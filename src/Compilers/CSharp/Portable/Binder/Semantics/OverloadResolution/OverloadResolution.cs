@@ -1363,52 +1363,34 @@ outerDefault:
                             return true;
                         }
 
-                        if ((extendedType.IsClassType() || extendedType.IsEnumType() || extendedType.IsStructType() || extendedType.IsDelegateType())
-                            && extendedType.IsDerivedFrom(type, TypeCompareKind.ConsiderEverything, ref useSiteInfo))
+                        if (extendedType is TypeParameterSymbol currentTypeParameter)
+                        {
+                            var baseClass = currentTypeParameter.EffectiveBaseClass(ref useSiteInfo);
+                            if (type.Equals(baseClass, TypeCompareKind.ConsiderEverything)
+                                || isLessDerived(type, currentType: baseClass, ref useSiteInfo))
+                            {
+                                return true;
+                            }
+
+                            foreach (var i in currentTypeParameter.AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
+                            {
+                                if (type.Equals(i, TypeCompareKind.ConsiderEverything))
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                        else if (extendedType.IsInterfaceType())
+                        {
+                            if (extendedType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo).Contains((NamedTypeSymbol)type))
+                            {
+                                return true;
+                            }
+                        }
+                        else if (extendedType.IsDerivedFrom(type, TypeCompareKind.ConsiderEverything, ref useSiteInfo))
                         {
                             return true;
                         }
-
-                        if (extendedType.IsInterfaceType()
-                            && extendedType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo).Contains((NamedTypeSymbol)type))
-                        {
-                            return true;
-                        }
-
-                        if (extendedType.IsTypeParameter())
-                        {
-                            return isLessDerivedThanTypeParameter(type, (TypeParameterSymbol)extendedType, ref useSiteInfo);
-                        }
-                    }
-                }
-
-                return false;
-            }
-
-            static bool isLessDerivedThanTypeParameter(TypeSymbol type, TypeParameterSymbol currentTypeParameter, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-            {
-                if (currentTypeParameter.HasValueTypeConstraint && type.SpecialType == SpecialType.System_ValueType)
-                {
-                    return true;
-                }
-
-                foreach (var constraintType in currentTypeParameter.ConstraintTypesNoUseSiteDiagnostics)
-                {
-                    if (type.Equals(constraintType.Type, TypeCompareKind.ConsiderEverything))
-                    {
-                        return true;
-                    }
-
-                    if (constraintType.Type is NamedTypeSymbol namedConstrainedType
-                        && isLessDerived(type, currentType: namedConstrainedType, ref useSiteInfo))
-                    {
-                        return true;
-                    }
-
-                    if (constraintType.Type is TypeParameterSymbol typeParameter2
-                        && isLessDerivedThanTypeParameter(type, typeParameter2, ref useSiteInfo))
-                    {
-                        return true;
                     }
                 }
 

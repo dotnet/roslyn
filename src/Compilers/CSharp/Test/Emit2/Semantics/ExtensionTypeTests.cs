@@ -23564,6 +23564,75 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T :
         Assert.Empty(model.GetMemberGroup(simpleInvocation));
     }
 
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Static_Invocation_TypeParameter_DerivedReferenceTypeConstraint(bool isExplicit)
+    {
+        var source = $$"""
+E<Derived>.M();
+E<Derived>.M2();
+
+public class C
+{
+    public static void M2() { System.Console.Write("ran "); }
+}
+
+public class Derived : C { }
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T : Derived
+{
+    public static void M() { M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var eDerivedInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E<Derived>.M2()");
+        Assert.Equal("void C.M2()", model.GetSymbolInfo(eDerivedInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(eDerivedInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Equal("void C.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Static_Invocation_TypeParameter_AfterMemberFromExtension_DerivedReferenceTypeConstraint(bool isExplicit)
+    {
+        var source = $$"""
+E<Derived>.M();
+E<Derived>.M2();
+
+public class C
+{
+    public static void M2() => throw null;
+}
+
+public class Derived : C { }
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E<T> for T where T : Derived
+{
+    public static void M2() { System.Console.Write("ran "); }
+    public static void M() { M2(); }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var eDerivedInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "E<Derived>.M2()");
+        Assert.Equal("void E<Derived>.M2()", model.GetSymbolInfo(eDerivedInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(eDerivedInvocation));
+
+        var simpleInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Equal("void E<T>.M2()", model.GetSymbolInfo(simpleInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(simpleInvocation));
+    }
+
     [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
     public void UnderlyingTypeMemberLookup_Instance_Invocation_TypeParameter_AfterMemberFromExtension_ReferenceTypeConstraint(bool isExplicit)
     {
