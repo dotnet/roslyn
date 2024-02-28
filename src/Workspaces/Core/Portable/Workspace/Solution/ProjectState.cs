@@ -851,9 +851,9 @@ internal partial class ProjectState
         return CreateNewStateForChangedAnalyzerConfigDocuments(newAnalyzerConfigDocumentStates);
     }
 
-    public ProjectState RemoveAllDocuments()
+    public ProjectState RemoveAllNormalDocuments()
     {
-        if (DocumentStates.IsEmpty && AdditionalDocumentStates.IsEmpty && AnalyzerConfigDocumentStates.IsEmpty)
+        if (DocumentStates.IsEmpty)
             return this;
 
         // We create a new CachingAnalyzerConfigSet for the new snapshot to avoid holding onto cached information
