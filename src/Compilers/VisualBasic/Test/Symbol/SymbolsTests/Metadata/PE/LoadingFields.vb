@@ -275,9 +275,8 @@ Value2")
         Public Sub TestLoadFieldsOfReadOnlySpanFromCorlib()
             Dim comp = CreateCompilation("", targetFramework:=TargetFramework.Net60)
 
-            Dim readOnlySpanType = comp.GetTypeByMetadataName("System.ReadOnlySpan`1")
-            Assert.NotNull(readOnlySpanType)
-            Assert.Equal(SpecialType.System_ReadOnlySpan_T, readOnlySpanType.SpecialType)
+            Dim readOnlySpanType = comp.GetSpecialType(SpecialType.System_ReadOnlySpan_T)
+            Assert.False(readOnlySpanType.IsErrorType())
 
             Dim fields = readOnlySpanType.GetMembers().OfType(Of FieldSymbol)()
             Assert.NotEmpty(fields)
