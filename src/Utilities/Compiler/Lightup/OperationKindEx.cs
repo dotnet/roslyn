@@ -12,6 +12,7 @@ namespace Analyzer.Utilities.Lightup
         public const OperationKind ImplicitIndexerReference = (OperationKind)0x7b;
         public const OperationKind Utf8String = (OperationKind)0x7c;
         public const OperationKind Attribute = (OperationKind)0x7d;
+        public const OperationKind CollectionExpression = (OperationKind)0x7f;
     }
 }
 

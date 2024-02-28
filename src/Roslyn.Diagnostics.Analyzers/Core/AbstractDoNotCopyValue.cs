@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
+using Analyzer.Utilities.Lightup;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
@@ -1435,6 +1436,9 @@ namespace Roslyn.Diagnostics.Analyzers
                         };
 
                     case OperationKind.Throw:
+                        return RefKind.None;
+
+                    case OperationKindEx.CollectionExpression:
                         return RefKind.None;
 
                     default:

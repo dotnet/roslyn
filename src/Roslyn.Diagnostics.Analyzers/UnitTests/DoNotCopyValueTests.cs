@@ -1400,5 +1400,123 @@ Public NotInheritable Class NonCopyableAttribute : Inherits System.Attribute : E
                 // /0/Test0.vb(38,22): warning RS0042: Auto-property 'Private Property Property3 As CannotCopy' cannot have non-copyable type 'CannotCopy'
                 VerifyVB.Diagnostic(AbstractDoNotCopyValue.NoAutoPropertyRule).WithLocation(1).WithArguments("CannotCopy", "Private Property Property3 As CannotCopy"));
         }
+
+        [Fact]
+        public async Task AllowCopyFromCollectionExpression()
+        {
+            var source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [NonCopyable]
+                [CollectionBuilder(typeof(MyCollection), nameof(Create))]
+                partial struct MyCollection : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+
+                    public static MyCollection Create(ReadOnlySpan<int> r) => throw null;
+                }
+
+                class C
+                {
+                    void M()
+                    {
+                        MyCollection m = [1, 2, 3];
+                        m = [];
+                    }
+                }
+
+                internal sealed class NonCopyableAttribute : System.Attribute { }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false)]
+                    internal sealed class CollectionBuilderAttribute : Attribute
+                    {
+                        public CollectionBuilderAttribute(Type builderType, string methodName)
+                        {
+                            BuilderType = builderType;
+                            MethodName = methodName;
+                        }
+
+                        public Type BuilderType { get; }
+
+                        public string MethodName { get; }
+                    }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task DoNotAllowCopyInCollectionExpressionElement()
+        {
+            var source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [NonCopyable]
+                struct S
+                {
+                }
+
+                [CollectionBuilder(typeof(MyCollection), nameof(Create))]
+                partial struct MyCollection : IEnumerable<S>
+                {
+                    public IEnumerator<S> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+                    public static MyCollection Create(ReadOnlySpan<S> r) => throw null;
+                }
+
+                class C
+                {
+                    void M()
+                    {
+                        S s = new();
+                        MyCollection m = [{|#0:s|}, new S()];
+                    }
+                }
+
+                internal sealed class NonCopyableAttribute : System.Attribute { }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, Inherited = false)]
+                    internal sealed class CollectionBuilderAttribute : Attribute
+                    {
+                        public CollectionBuilderAttribute(Type builderType, string methodName)
+                        {
+                            BuilderType = builderType;
+                            MethodName = methodName;
+                        }
+
+                        public Type BuilderType { get; }
+
+                        public string MethodName { get; }
+                    }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
+                ExpectedDiagnostics = {
+                    // /0/Test0.cs(25,27): warning RS0042: Unsupported use of non-copyable type 'S' in 'LocalReference' operation
+                    VerifyCS.Diagnostic(AbstractDoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("S", "LocalReference")
+                }
+            }.RunAsync();
+        }
     }
 }
