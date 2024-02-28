@@ -679,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // it if object.ToString is missing). Assume that this won't be removed, and emit a direct call rather
             // than a constrained virtual call. This keeps in the spirit of #7079, but expands the range of
             // types to all special value types.
-            if (structToStringMethod != null && (expr.Type.SpecialType != SpecialType.None && !isFieldOfMarshalByRef(expr, _compilation)))
+            if (structToStringMethod != null && (expr.Type.SpecialType is >= SpecialType.System_Object and <= SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute && !isFieldOfMarshalByRef(expr, _compilation)))
             {
                 return BoundCall.Synthesized(syntax, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, structToStringMethod);
             }

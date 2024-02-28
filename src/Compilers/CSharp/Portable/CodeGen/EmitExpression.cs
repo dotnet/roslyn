@@ -2286,7 +2286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var containingType = method.ContainingType;
             // overrides in structs that are special types can be called directly.
             // we can assume that special types will not be removing overrides
-            return containingType.SpecialType != SpecialType.None;
+            return containingType.SpecialType is >= SpecialType.System_Object and <= SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute;
         }
 
         /// <summary>
