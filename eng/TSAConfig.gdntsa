@@ -9,7 +9,7 @@
     ],
     "instanceUrl": "https://devdiv.visualstudio.com",
     "projectName": "DevDiv",
-    "areaPath": "DevDiv\\NET Developer Experience\\Productivity",
+    "areaPath": "DevDiv\\NET Developer Experience\\Roslyn",
     "iterationPath": "DevDiv",
     "tools": [
         "APIScan"
