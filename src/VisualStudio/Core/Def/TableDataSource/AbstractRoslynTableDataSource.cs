@@ -8,83 +8,84 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
-
-/// <summary>
-/// A version of ITableDataSource who knows how to connect them to Roslyn solution crawler for live information.
-/// </summary>
-internal abstract class AbstractRoslynTableDataSource<TItem, TData> : AbstractTableDataSource<TItem, TData>
-    where TItem : TableItem
-    where TData : notnull
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    public AbstractRoslynTableDataSource(Workspace workspace, IThreadingContext threadingContext)
-        : base(workspace, threadingContext)
-        => ConnectToSolutionCrawlerService(workspace);
-
-    protected ImmutableArray<DocumentId> GetDocumentsWithSameFilePath(Solution solution, DocumentId documentId)
-    {
-        var document = solution.GetTextDocument(documentId);
-        if (document == null)
-        {
-            return ImmutableArray<DocumentId>.Empty;
-        }
-
-        return solution.GetDocumentIdsWithFilePath(document.FilePath);
-    }
-
     /// <summary>
-    /// Flag indicating if a solution crawler is running incremental analyzers in background.
-    /// We get build progress updates from :ISolutionCrawlerProgressReporter.ProgressChanged.
-    /// Solution crawler progress events are guaranteed to be invoked in a serial fashion.
+    /// A version of ITableDataSource who knows how to connect them to Roslyn solution crawler for live information.
     /// </summary>
-    protected bool IsSolutionCrawlerRunning { get; private set; }
-
-    private void ConnectToSolutionCrawlerService(Workspace workspace)
+    internal abstract class AbstractRoslynTableDataSource<TItem, TData> : AbstractTableDataSource<TItem, TData>
+        where TItem : TableItem
+        where TData : notnull
     {
-#if false
-        var crawlerService = workspace.Services.GetService<ISolutionCrawlerService>();
-        if (crawlerService == null)
+        public AbstractRoslynTableDataSource(Workspace workspace, IThreadingContext threadingContext)
+            : base(workspace, threadingContext)
+            => ConnectToSolutionCrawlerService(workspace);
+
+        protected ImmutableArray<DocumentId> GetDocumentsWithSameFilePath(Solution solution, DocumentId documentId)
         {
-            // can happen depends on host such as testing host.
-            return;
+            var document = solution.GetTextDocument(documentId);
+            if (document == null)
+            {
+                return ImmutableArray<DocumentId>.Empty;
+            }
+
+            return solution.GetDocumentIdsWithFilePath(document.FilePath);
         }
 
-        var reporter = crawlerService.GetProgressReporter(workspace);
-        reporter.ProgressChanged += OnSolutionCrawlerProgressChanged;
+        /// <summary>
+        /// Flag indicating if a solution crawler is running incremental analyzers in background.
+        /// We get build progress updates from ISolutionCrawlerProgressReporter.ProgressChanged.
+        /// Solution crawler progress events are guaranteed to be invoked in a serial fashion.
+        /// </summary>
+        protected bool IsSolutionCrawlerRunning { get; private set; }
 
-        // set initial value
-        SolutionCrawlerProgressChanged(reporter.InProgress);
+        private void ConnectToSolutionCrawlerService(Workspace workspace)
+        {
+#if false
+            var crawlerService = workspace.Services.GetService<ISolutionCrawlerService>();
+            if (crawlerService == null)
+            {
+                // can happen depends on host such as testing host.
+                return;
+            }
+
+            var reporter = crawlerService.GetProgressReporter(workspace);
+            reporter.ProgressChanged += OnSolutionCrawlerProgressChanged;
+
+            // set initial value
+            SolutionCrawlerProgressChanged(reporter.InProgress);
 #endif
-    }
+        }
 
 #if false
-    private void OnSolutionCrawlerProgressChanged(object sender, ProgressData progressData)
-    {
-        switch (progressData.Status)
+        private void OnSolutionCrawlerProgressChanged(object sender, ProgressData progressData)
         {
-            case ProgressStatus.Started:
-                SolutionCrawlerProgressChanged(running: true);
-                break;
-            case ProgressStatus.Stopped:
-                SolutionCrawlerProgressChanged(running: false);
-                break;
+            switch (progressData.Status)
+            {
+                case ProgressStatus.Started:
+                    SolutionCrawlerProgressChanged(running: true);
+                    break;
+                case ProgressStatus.Stopped:
+                    SolutionCrawlerProgressChanged(running: false);
+                    break;
+            }
         }
-    }
 #endif
 
-    private void SolutionCrawlerProgressChanged(bool running)
-    {
-        IsSolutionCrawlerRunning = running;
-        ChangeStableStateIfRequired(newIsStable: !IsSolutionCrawlerRunning);
-    }
-
-    protected void ChangeStableStateIfRequired(bool newIsStable)
-    {
-        var oldIsStable = IsStable;
-        if (oldIsStable != newIsStable)
+        private void SolutionCrawlerProgressChanged(bool running)
         {
-            IsStable = newIsStable;
-            ChangeStableState(newIsStable);
+            IsSolutionCrawlerRunning = running;
+            ChangeStableStateIfRequired(newIsStable: !IsSolutionCrawlerRunning);
+        }
+
+        protected void ChangeStableStateIfRequired(bool newIsStable)
+        {
+            var oldIsStable = IsStable;
+            if (oldIsStable != newIsStable)
+            {
+                IsStable = newIsStable;
+                ChangeStableState(newIsStable);
+            }
         }
     }
 }

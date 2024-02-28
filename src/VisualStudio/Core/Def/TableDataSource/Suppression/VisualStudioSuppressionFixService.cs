@@ -156,7 +156,7 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
         return p => projectHierarchy == null || p.Id == projectIdToMatch;
     }
 
-    private async Task<ImmutableArray<DiagnosticData>> GetAllBuildDiagnosticsAsync(Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
+    private Task<ImmutableArray<DiagnosticData>> GetAllBuildDiagnosticsAsync(Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
     {
         using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
 
@@ -205,7 +205,7 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
         }
 #endif
 
-        return builder.ToImmutable();
+        return Task.FromResult(builder.ToImmutable());
     }
 
     private static string GetFixTitle(bool isAddSuppression)
