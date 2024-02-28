@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return kind != SyntaxKind.None;
         }
 
-        internal SyntaxTrivia? LookupTrivia<TArg>(
+        internal SyntaxTrivia LookupTrivia<TArg>(
             char[] textBuffer,
             int keyStart,
             int keyLength,
