@@ -40,7 +40,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         IThreadingContext threadingContext,
         IGlobalOptionService globalOptions,
         [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousTaggerProvider<ITextMarkerTag>(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
+        TaggerThreadCoordinator threadCoordinator,
+        IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousTaggerProvider<ITextMarkerTag>(
+            threadingContext,
+            globalOptions,
+            visibilityTracker,
+            threadCoordinator,
+            listenerProvider.GetListener(FeatureAttribute.Classification))
     {
         // We want to track text changes so that we can try to only reclassify a method body if
         // all edits were contained within one.

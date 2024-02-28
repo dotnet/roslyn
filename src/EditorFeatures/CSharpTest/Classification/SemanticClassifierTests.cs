@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
@@ -3921,6 +3922,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 workspace.GetService<ClassificationTypeMap>(),
                 globalOptions,
                 visibilityTracker: null,
+                workspace.GetService<TaggerThreadCoordinator>(),
                 listenerProvider);
 
             using var tagger = provider.CreateTagger(disposableView.TextView, extraBuffer);

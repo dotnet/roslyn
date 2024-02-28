@@ -14,12 +14,22 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
     internal abstract class VSTypeScriptAsynchronousTaggerProvider<TTag> : AsynchronousViewTaggerProvider<TTag>
         where TTag : ITag
     {
-        [Obsolete("Use constructor that takes ITextBufferVisibilityTracker.  Use `[Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker`")]
+        [Obsolete("Use constructor that takes ITextBufferVisibilityTracker.  Use `[Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker`", error: false)]
         protected VSTypeScriptAsynchronousTaggerProvider(
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider asyncListenerProvider,
             VSTypeScriptGlobalOptions globalOptions)
-            : base(threadingContext, globalOptions.Service, visibilityTracker: null, asyncListenerProvider.GetListener(FeatureAttribute.Classification))
+            : this(threadingContext, globalOptions, visibilityTracker: null, asyncListenerProvider)
+        {
+        }
+
+        [Obsolete("Use constructor that takes TaggerThreadCoordinator.", error: false)]
+        protected VSTypeScriptAsynchronousTaggerProvider(
+            IThreadingContext threadingContext,
+            VSTypeScriptGlobalOptions globalOptions,
+            ITextBufferVisibilityTracker? visibilityTracker,
+            IAsynchronousOperationListenerProvider asyncListenerProvider)
+            : this(threadingContext, globalOptions, visibilityTracker, threadCoordinator: null, asyncListenerProvider)
         {
         }
 
@@ -27,8 +37,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             IThreadingContext threadingContext,
             VSTypeScriptGlobalOptions globalOptions,
             ITextBufferVisibilityTracker? visibilityTracker,
+            TaggerThreadCoordinator? threadCoordinator,
             IAsynchronousOperationListenerProvider asyncListenerProvider)
-            : base(threadingContext, globalOptions.Service, visibilityTracker, asyncListenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(threadingContext, globalOptions.Service, visibilityTracker, threadCoordinator, asyncListenerProvider.GetListener(FeatureAttribute.Classification))
         {
         }
     }

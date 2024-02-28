@@ -37,7 +37,35 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected readonly IAsynchronousOperationListener AsyncListener;
         protected readonly IThreadingContext ThreadingContext;
         protected readonly IGlobalOptionService GlobalOptions;
+
+        /// <summary>
+        /// Used to keep track of if the tagger's <see cref="TagSource._subjectBuffer"/> is visible or not (e.g. is in
+        /// some <see cref="ITextView"/> that has some part visible or not.  This is used so we can <see
+        /// cref="TagSource.PauseIfNotVisible"/> tagging when not visible to avoid wasting machine resources. Note: we
+        /// do not examine <see cref="TagSource._textView"/> for this as that is only available for "view taggers"
+        /// (taggers which only tag portions of the view) whereas we want this for all taggers (including just buffer
+        /// taggers which tag the entire document).
+        /// </summary>
         private readonly ITextBufferVisibilityTracker? _visibilityTracker;
+
+        /// <summary>
+        /// Optional threading coordinator used so that all the different tagger's that are running can cooperatively
+        /// access the UI thread with each other.  Specifically, taggers need the UI thread for a few reasons:
+        /// <list type="number">
+        /// <item>To determine if their buffer is visible or not (so they can delay updating if not).</item>
+        /// <item>To collect UI state for tagging, like what portion of the view is visible, and what the current text
+        /// snapshot is.  Once collected, the actual tagging work can happen on the background.</item>
+        /// <item>To notify attached listeners of what portions of the document changed.</item>
+        /// </list>
+        /// As there can be many taggers running simultaneously, it is very normal for them all to wake up and then
+        /// attempt to switch to the UI thread (with their own independent UI message) to do their work.  This means
+        /// there are a lot of messages queued up on the UI thread for it to go through, interspersed between all the
+        /// other important pieces of work the UI needs to do.
+        /// <para/> To help alleviate this issue, the coordinator keeps its own internal queue of work, and then
+        /// processes all that work on the UI thread in one go when it wakes up.  This allows all taggers within that
+        /// timeslice to do their work in one UI message instead of N of them.
+        /// </summary>
+        private readonly TaggerThreadCoordinator? _threadCoordinator;
 
         /// <summary>
         /// The behavior the tagger engine will have when text changes happen to the subject buffer
@@ -122,17 +150,42 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptions,
             ITextBufferVisibilityTracker? visibilityTracker,
+            TaggerThreadCoordinator? threadCoordinator,
             IAsynchronousOperationListener asyncListener)
         {
             ThreadingContext = threadingContext;
             GlobalOptions = globalOptions;
             AsyncListener = asyncListener;
             _visibilityTracker = visibilityTracker;
+            _threadCoordinator = threadCoordinator;
 
 #if DEBUG
             StackTrace = new StackTrace().ToString();
 #endif
         }
+
+        private async Task PerformUIWorkAsync<TArgs>(Func<TArgs, CancellationToken, Task> work, TArgs args, CancellationToken cancellationToken)
+        {
+            if (_threadCoordinator is null)
+            {
+                // If we have no thread coordinator then just switch to the UI thread and do the work now.
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await work(args, cancellationToken).ConfigureAwait(true);
+            }
+            else
+            {
+                // Otherwise, let the coordinator take this and perform it with other UI work to reduce the amount of UI
+                // thread context switching we have to do.
+                await _threadCoordinator.AddUIWorkAsync(cancellationToken => work(args, cancellationToken), cancellationToken).ConfigureAwait(true);
+            }
+        }
+
+        private Task PerformUIWorkAsync(Action<CancellationToken> work, CancellationToken cancellationToken)
+            => PerformUIWorkAsync((_, cancellationToken) =>
+            {
+                work(cancellationToken);
+                return Task.CompletedTask;
+            }, args: 0, cancellationToken);
 
         protected EfficientTagger<TTag>? CreateEfficientTagger(ITextView? textView, ITextBuffer subjectBuffer)
         {
@@ -149,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             if (!this.TryRetrieveTagSource(textView, subjectBuffer, out var tagSource))
             {
-                tagSource = new TagSource(textView, subjectBuffer, _visibilityTracker, this, AsyncListener);
+                tagSource = new TagSource(textView, subjectBuffer, this, AsyncListener);
                 this.StoreTagSource(textView, subjectBuffer, tagSource);
             }
 

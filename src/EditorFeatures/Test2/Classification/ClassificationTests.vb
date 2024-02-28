@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -267,6 +268,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                     workspace.GetService(Of ClassificationTypeMap),
                     workspace.GetService(Of IGlobalOptionService),
                     visibilityTracker:=Nothing,
+                    workspace.GetService(Of TaggerThreadCoordinator),
                     listenerProvider)
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()

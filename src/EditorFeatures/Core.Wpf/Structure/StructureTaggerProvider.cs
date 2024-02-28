@@ -8,6 +8,7 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -39,8 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
             ITextEditorFactoryService textEditorFactoryService,
             IGlobalOptionService globalOptions,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
+            TaggerThreadCoordinator threadCoordinator,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, editorOptionsService, projectionBufferFactoryService, visibilityTracker, listenerProvider)
+            : base(threadingContext, editorOptionsService, projectionBufferFactoryService, visibilityTracker, threadCoordinator, listenerProvider)
         {
             _textEditorFactoryService = textEditorFactoryService;
         }

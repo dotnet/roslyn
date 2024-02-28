@@ -43,11 +43,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptions,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
+            TaggerThreadCoordinator threadCoordinator,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(
                 threadingContext,
                 globalOptions,
                 visibilityTracker,
+                threadCoordinator,
                 listenerProvider.GetListener(FeatureAttribute.InheritanceMargin))
         {
         }

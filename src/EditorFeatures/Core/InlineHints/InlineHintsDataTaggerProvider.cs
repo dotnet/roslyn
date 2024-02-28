@@ -40,7 +40,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         IGlobalOptionService globalOptions,
         [Import(AllowDefault = true)] IInlineHintKeyProcessor inlineHintKeyProcessor,
         [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewTaggerProvider<InlineHintDataTag>(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.InlineHints))
+        TaggerThreadCoordinator threadCoordinator,
+        IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewTaggerProvider<InlineHintDataTag>(
+            threadingContext,
+            globalOptions,
+            visibilityTracker,
+            threadCoordinator,
+            listenerProvider.GetListener(FeatureAttribute.InlineHints))
     {
         private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.InlineHints);
         private readonly IInlineHintKeyProcessor _inlineHintKeyProcessor = inlineHintKeyProcessor;

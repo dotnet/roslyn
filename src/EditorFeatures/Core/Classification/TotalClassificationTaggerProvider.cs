@@ -34,11 +34,12 @@ internal sealed class TotalClassificationTaggerProvider(
     ClassificationTypeMap typeMap,
     IGlobalOptionService globalOptions,
     [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
+    TaggerThreadCoordinator threadCoordinator,
     IAsynchronousOperationListenerProvider listenerProvider) : IViewTaggerProvider
 {
     private readonly SyntacticClassificationTaggerProvider _syntacticTaggerProvider = new(threadingContext, typeMap, globalOptions, listenerProvider);
-    private readonly SemanticClassificationViewTaggerProvider _semanticTaggerProvider = new(threadingContext, typeMap, globalOptions, visibilityTracker, listenerProvider);
-    private readonly EmbeddedLanguageClassificationViewTaggerProvider _embeddedTaggerProvider = new(threadingContext, typeMap, globalOptions, visibilityTracker, listenerProvider);
+    private readonly SemanticClassificationViewTaggerProvider _semanticTaggerProvider = new(threadingContext, typeMap, globalOptions, visibilityTracker, threadCoordinator, listenerProvider);
+    private readonly EmbeddedLanguageClassificationViewTaggerProvider _embeddedTaggerProvider = new(threadingContext, typeMap, globalOptions, visibilityTracker, threadCoordinator, listenerProvider);
 
     ITagger<T>? IViewTaggerProvider.CreateTagger<T>(ITextView textView, ITextBuffer buffer)
     {

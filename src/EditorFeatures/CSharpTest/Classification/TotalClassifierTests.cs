@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
@@ -3060,6 +3061,7 @@ Keyword("async"));
                 workspace.GetService<ClassificationTypeMap>(),
                 globalOptions,
                 visibilityTracker: null,
+                workspace.GetService<TaggerThreadCoordinator>(),
                 listenerProvider);
 
             var buffer = document.GetTextBuffer();

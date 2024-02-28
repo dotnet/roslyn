@@ -41,7 +41,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         IHighlightingService highlightingService,
         IGlobalOptionService globalOptions,
         [Import(AllowDefault = true)] ITextBufferVisibilityTracker visibilityTracker,
-        IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewTaggerProvider<KeywordHighlightTag>(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting))
+        TaggerThreadCoordinator threadCoordinator,
+        IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewTaggerProvider<KeywordHighlightTag>(
+            threadingContext,
+            globalOptions,
+            visibilityTracker,
+            threadCoordinator,
+            listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting))
     {
         private readonly IHighlightingService _highlightingService = highlightingService;
         private static readonly PooledObjects.ObjectPool<List<TextSpan>> s_listPool = new(() => []);

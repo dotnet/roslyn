@@ -74,6 +74,7 @@ public sealed class AsynchronousTaggerTests
                 .Select(i => new TagSpan<TextMarkerTag>(new SnapshotSpan(s.Snapshot, new Span(50 + i * 2, 1)), new TextMarkerTag($"Test{i}"))),
             eventSource,
             workspace.GetService<IGlobalOptionService>(),
+            workspace.GetService<TaggerThreadCoordinator>(),
             asyncListener);
 
         var document = workspace.Documents.First();
@@ -149,8 +150,9 @@ public sealed class AsynchronousTaggerTests
         Func<SnapshotSpan, CancellationToken, IEnumerable<ITagSpan<TextMarkerTag>>> callback,
         ITaggerEventSource eventSource,
         IGlobalOptionService globalOptions,
+        TaggerThreadCoordinator threadCoordinator,
         IAsynchronousOperationListener asyncListener)
-        : AsynchronousTaggerProvider<TextMarkerTag>(threadingContext, globalOptions, visibilityTracker: null, asyncListener)
+        : AsynchronousTaggerProvider<TextMarkerTag>(threadingContext, globalOptions, visibilityTracker: null, threadCoordinator, asyncListener)
     {
         protected override TaggerDelay EventChangeDelay
             => TaggerDelay.NearImmediate;

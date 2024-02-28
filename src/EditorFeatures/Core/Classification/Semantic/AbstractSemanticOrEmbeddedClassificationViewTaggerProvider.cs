@@ -42,9 +42,10 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
         ClassificationTypeMap typeMap,
         IGlobalOptionService globalOptions,
         ITextBufferVisibilityTracker? visibilityTracker,
+        TaggerThreadCoordinator threadCoordinator,
         IAsynchronousOperationListenerProvider listenerProvider,
         ClassificationType type)
-        : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
+        : base(threadingContext, globalOptions, visibilityTracker, threadCoordinator, listenerProvider.GetListener(FeatureAttribute.Classification))
     {
         _typeMap = typeMap;
         _globalOptions = globalOptions;

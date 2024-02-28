@@ -25,8 +25,9 @@ internal abstract class AsynchronousViewTaggerProvider<TTag> : AbstractAsynchron
         IThreadingContext threadingContext,
         IGlobalOptionService globalOptions,
         ITextBufferVisibilityTracker? visibilityTracker,
+        TaggerThreadCoordinator? threadCoordinator,
         IAsynchronousOperationListener asyncListener)
-        : base(threadingContext, globalOptions, visibilityTracker, asyncListener)
+        : base(threadingContext, globalOptions, visibilityTracker, threadCoordinator, asyncListener)
     {
     }
 

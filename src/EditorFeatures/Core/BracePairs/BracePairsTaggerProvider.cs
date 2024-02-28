@@ -36,9 +36,11 @@ internal sealed class BracePairsTaggerProvider(
     IThreadingContext threadingContext,
     IGlobalOptionService globalOptionService,
     [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
+    TaggerThreadCoordinator threadCoordinator,
     IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewportTaggerProvider<IBracePairTag>(threadingContext,
           globalOptionService,
           visibilityTracker,
+          threadCoordinator,
           listenerProvider.GetListener(FeatureAttribute.BracePairs))
 {
     protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
