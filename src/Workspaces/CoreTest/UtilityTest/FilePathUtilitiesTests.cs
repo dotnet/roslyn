@@ -100,26 +100,26 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expected: @"..\Beta2\Gamma", actual: result);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72043")]
-        public void GetRelativePath_CrashingWithTwoUp()
+        [ConditionalTheory(typeof(WindowsOnly)), WorkItem(72043, "https://github.com/dotnet/roslyn/issues/72043")]
+        [InlineData(@"C:\Alpha", @"C:\", @"..")]
+        [InlineData(@"C:\Alpha\Beta", @"C:\", @"..\..")]
+        [InlineData(@"C:\Alpha\Beta", @"C:\Gamma", @"..\..\Gamma")]
+        public void GetRelativePath_WithFullPathShorterThanBasePath_Windows(string baseDirectory, string fullPath, string expected)
         {
-            var baseDirectory = @"C:\Alpha\Beta";
-            var fullPath = @"C:\Gamma";
-
             var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
-            Assert.Equal(expected: @"..\..\Gamma", actual: result);
+            Assert.Equal(expected, result);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72043")]
-        public void GetRelativePath_CrashingWithOneUp()
+        [ConditionalTheory(typeof(UnixLikeOnly)), WorkItem(72043, "https://github.com/dotnet/roslyn/issues/72043")]
+        [InlineData("/Alpha", "/", "..")]
+        [InlineData("/Alpha/Beta", "/", "../..")]
+        [InlineData("/Alpha/Beta", "/Gamma", "../../Gamma")]
+        public void GetRelativePath_WithFullPathShorterThanBasePath_Unix(string baseDirectory, string fullPath, string expected)
         {
-            var baseDirectory = @"C:\Alpha";
-            var fullPath = @"C:\";
-
             var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
-            Assert.Equal(expected: @"..", actual: result);
+            Assert.Equal(expected, result);
         }
     }
 }
