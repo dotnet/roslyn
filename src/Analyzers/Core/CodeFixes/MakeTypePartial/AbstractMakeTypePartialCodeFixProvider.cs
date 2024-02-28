@@ -11,48 +11,47 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.MakeTypePartial
+namespace Microsoft.CodeAnalysis.MakeTypePartial;
+
+internal abstract class AbstractMakeTypePartialCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
-    internal abstract class AbstractMakeTypePartialCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    protected AbstractMakeTypePartialCodeFixProvider()
+        : base(supportsFixAll: false)
     {
-        protected AbstractMakeTypePartialCodeFixProvider()
-            : base(supportsFixAll: false)
-        {
-        }
+    }
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            RegisterCodeFix(context, CodeFixesResources.Make_type_partial, nameof(CodeFixesResources.Make_type_partial));
-            return Task.CompletedTask;
-        }
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    {
+        RegisterCodeFix(context, CodeFixesResources.Make_type_partial, nameof(CodeFixesResources.Make_type_partial));
+        return Task.CompletedTask;
+    }
 
-        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-        {
-            var syntaxRoot = editor.OriginalRoot;
-            var generator = editor.Generator;
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    {
+        var syntaxRoot = editor.OriginalRoot;
+        var generator = editor.Generator;
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            foreach (var diagnostic in diagnostics)
+        foreach (var diagnostic in diagnostics)
+        {
+            var declaration = syntaxRoot.FindNode(diagnostic.Location.SourceSpan);
+            var symbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
+
+            if (symbol is null)
             {
-                var declaration = syntaxRoot.FindNode(diagnostic.Location.SourceSpan);
-                var symbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
+                Debug.Fail("Declared symbol must never be null here");
+                continue;
+            }
 
-                if (symbol is null)
+            foreach (var reference in symbol.DeclaringSyntaxReferences)
+            {
+                var node = await reference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                var modifiers = generator.GetModifiers(node);
+
+                if (!modifiers.IsPartial)
                 {
-                    Debug.Fail("Declared symbol must never be null here");
-                    continue;
-                }
-
-                foreach (var reference in symbol.DeclaringSyntaxReferences)
-                {
-                    var node = await reference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                    var modifiers = generator.GetModifiers(node);
-
-                    if (!modifiers.IsPartial)
-                    {
-                        var fixedModifiers = modifiers.WithPartial(true);
-                        editor.ReplaceNode(node, generator.WithModifiers(node, fixedModifiers));
-                    }
+                    var fixedModifiers = modifiers.WithPartial(true);
+                    editor.ReplaceNode(node, generator.WithModifiers(node, fixedModifiers));
                 }
             }
         }

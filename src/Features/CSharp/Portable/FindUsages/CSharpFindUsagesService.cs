@@ -7,15 +7,14 @@ using System.Composition;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.FindUsages
+namespace Microsoft.CodeAnalysis.CSharp.FindUsages;
+
+[ExportLanguageService(typeof(IFindUsagesService), LanguageNames.CSharp), Shared]
+internal class CSharpFindUsagesService : AbstractFindUsagesService
 {
-    [ExportLanguageService(typeof(IFindUsagesService), LanguageNames.CSharp), Shared]
-    internal class CSharpFindUsagesService : AbstractFindUsagesService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpFindUsagesService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpFindUsagesService()
-        {
-        }
     }
 }

@@ -4,38 +4,37 @@
 
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
+
+internal class WhitespaceSettingBoolViewModel
 {
-    internal class WhitespaceSettingBoolViewModel
+    private readonly Setting _setting;
+    private bool _isChecked;
+
+    public bool IsChecked
     {
-        private readonly Setting _setting;
-        private bool _isChecked;
-
-        public bool IsChecked
+        get => _isChecked;
+        set
         {
-            get => _isChecked;
-            set
+            _isChecked = value;
+            if (_setting.GetValue() is bool currentValue && value != currentValue)
             {
-                _isChecked = value;
-                if (_setting.GetValue() is bool currentValue && value != currentValue)
-                {
-                    _setting.SetValue(value);
-                }
+                _setting.SetValue(value);
             }
         }
+    }
 
-        public string ToolTip => ServicesVSResources.Value;
+    public string ToolTip => ServicesVSResources.Value;
 
-        public string AutomationName => ServicesVSResources.Value;
+    public string AutomationName => ServicesVSResources.Value;
 
-        public WhitespaceSettingBoolViewModel(Setting setting)
+    public WhitespaceSettingBoolViewModel(Setting setting)
+    {
+        if (setting.GetValue() is bool value)
         {
-            if (setting.GetValue() is bool value)
-            {
-                _isChecked = value;
-            }
-
-            _setting = setting;
+            _isChecked = value;
         }
+
+        _setting = setting;
     }
 }

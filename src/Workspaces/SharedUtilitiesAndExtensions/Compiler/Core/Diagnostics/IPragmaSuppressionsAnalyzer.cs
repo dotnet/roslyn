@@ -8,23 +8,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+/// <summary>
+/// Special IDE analyzer to flag unnecessary inline source suppressions,
+/// i.e. pragma and local SuppressMessageAttribute suppressions.
+/// </summary>
+internal interface IPragmaSuppressionsAnalyzer
 {
     /// <summary>
-    /// Special IDE analyzer to flag unnecessary inline source suppressions,
-    /// i.e. pragma and local SuppressMessageAttribute suppressions.
+    /// Analyzes the tree, with an optional span scope, and report unnecessary inline suppressions.
     /// </summary>
-    internal interface IPragmaSuppressionsAnalyzer
-    {
-        /// <summary>
-        /// Analyzes the tree, with an optional span scope, and report unnecessary inline suppressions.
-        /// </summary>
-        Task AnalyzeAsync(
-            SemanticModel semanticModel,
-            TextSpan? span,
-            CompilationWithAnalyzers compilationWithAnalyzers,
-            Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnostics,
-            Action<Diagnostic> reportDiagnostic,
-            CancellationToken cancellationToken);
-    }
+    Task AnalyzeAsync(
+        SemanticModel semanticModel,
+        TextSpan? span,
+        CompilationWithAnalyzers compilationWithAnalyzers,
+        Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnostics,
+        Action<Diagnostic> reportDiagnostic,
+        CancellationToken cancellationToken);
 }

@@ -10,73 +10,72 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Options
+namespace Microsoft.CodeAnalysis.Options;
+
+internal static partial class EditorConfigFileGenerator
 {
-    internal static partial class EditorConfigFileGenerator
+    public static string Generate(
+        ImmutableArray<(string feature, ImmutableArray<IOption2> options)> groupedOptions,
+        IOptionsReader configOptions,
+        string language)
     {
-        public static string Generate(
-            ImmutableArray<(string feature, ImmutableArray<IOption2> options)> groupedOptions,
-            IOptionsReader configOptions,
-            string language)
+        var editorconfig = new StringBuilder();
+
+        editorconfig.AppendLine($"# {WorkspacesResources.Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories}");
+        editorconfig.AppendLine("root = true");
+        editorconfig.AppendLine();
+
+        if (language == LanguageNames.CSharp)
         {
-            var editorconfig = new StringBuilder();
-
-            editorconfig.AppendLine($"# {WorkspacesResources.Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories}");
-            editorconfig.AppendLine("root = true");
-            editorconfig.AppendLine();
-
-            if (language == LanguageNames.CSharp)
-            {
-                editorconfig.AppendLine($"# {WorkspacesResources.CSharp_files}");
-                editorconfig.AppendLine("[*.cs]");
-            }
-            else if (language == LanguageNames.VisualBasic)
-            {
-                editorconfig.AppendLine($"# {WorkspacesResources.Visual_Basic_files}");
-                editorconfig.AppendLine("[*.vb]");
-            }
-
-            editorconfig.AppendLine();
-
-            foreach ((var feature, var options) in groupedOptions)
-            {
-                AppendOptionsToEditorConfig(configOptions, feature, options, language, editorconfig);
-            }
-
-            if (configOptions.TryGetOption(new OptionKey2(NamingStyleOptions.NamingPreferences, language), out NamingStylePreferences namingStylePreferences))
-            {
-                AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, language, editorconfig);
-            }
-
-            return editorconfig.ToString();
+            editorconfig.AppendLine($"# {WorkspacesResources.CSharp_files}");
+            editorconfig.AppendLine("[*.cs]");
+        }
+        else if (language == LanguageNames.VisualBasic)
+        {
+            editorconfig.AppendLine($"# {WorkspacesResources.Visual_Basic_files}");
+            editorconfig.AppendLine("[*.vb]");
         }
 
-        private static void AppendOptionsToEditorConfig(IOptionsReader configOptions, string feature, ImmutableArray<IOption2> options, string language, StringBuilder editorconfig)
+        editorconfig.AppendLine();
+
+        foreach ((var feature, var options) in groupedOptions)
         {
-            editorconfig.AppendLine($"#### {feature} ####");
-            editorconfig.AppendLine();
+            AppendOptionsToEditorConfig(configOptions, feature, options, language, editorconfig);
+        }
 
-            foreach (var optionGrouping in options.GroupBy(o => o.Definition.Group).OrderBy(g => g.Key.Priority))
+        if (configOptions.TryGetOption(new OptionKey2(NamingStyleOptions.NamingPreferences, language), out NamingStylePreferences namingStylePreferences))
+        {
+            AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, language, editorconfig);
+        }
+
+        return editorconfig.ToString();
+    }
+
+    private static void AppendOptionsToEditorConfig(IOptionsReader configOptions, string feature, ImmutableArray<IOption2> options, string language, StringBuilder editorconfig)
+    {
+        editorconfig.AppendLine($"#### {feature} ####");
+        editorconfig.AppendLine();
+
+        foreach (var optionGrouping in options.GroupBy(o => o.Definition.Group).OrderBy(g => g.Key.Priority))
+        {
+            editorconfig.AppendLine($"# {optionGrouping.Key.Description}");
+
+            var uniqueEntries = new SortedSet<string>();
+            foreach (var option in optionGrouping)
             {
-                editorconfig.AppendLine($"# {optionGrouping.Key.Description}");
-
-                var uniqueEntries = new SortedSet<string>();
-                foreach (var option in optionGrouping)
+                var optionKey = new OptionKey2(option, option.IsPerLanguage ? language : null);
+                if (configOptions.TryGetOption<object?>(optionKey, out var value))
                 {
-                    var optionKey = new OptionKey2(option, option.IsPerLanguage ? language : null);
-                    if (configOptions.TryGetOption<object?>(optionKey, out var value))
-                    {
-                        uniqueEntries.Add($"{option.Definition.ConfigName} = {option.Definition.Serializer.Serialize(value)}");
-                    }
+                    uniqueEntries.Add($"{option.Definition.ConfigName} = {option.Definition.Serializer.Serialize(value)}");
                 }
-
-                foreach (var entry in uniqueEntries)
-                {
-                    editorconfig.AppendLine(entry);
-                }
-
-                editorconfig.AppendLine();
             }
+
+            foreach (var entry in uniqueEntries)
+            {
+                editorconfig.AppendLine(entry);
+            }
+
+            editorconfig.AppendLine();
         }
     }
 }

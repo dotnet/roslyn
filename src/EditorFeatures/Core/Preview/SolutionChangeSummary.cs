@@ -4,50 +4,49 @@
 
 using System.Linq;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+internal class SolutionChangeSummary
 {
-    internal class SolutionChangeSummary
+    public readonly Solution OldSolution;
+    public readonly Solution NewSolution;
+
+    public readonly int TotalFilesAffected;
+    public readonly int TotalProjectsAffected;
+
+    public SolutionChangeSummary(Solution oldSolution, Solution newSolution, SolutionChanges changes)
     {
-        public readonly Solution OldSolution;
-        public readonly Solution NewSolution;
+        OldSolution = oldSolution;
+        NewSolution = newSolution;
 
-        public readonly int TotalFilesAffected;
-        public readonly int TotalProjectsAffected;
-
-        public SolutionChangeSummary(Solution oldSolution, Solution newSolution, SolutionChanges changes)
+        foreach (var p in changes.GetProjectChanges())
         {
-            OldSolution = oldSolution;
-            NewSolution = newSolution;
+            TotalProjectsAffected += 1;
 
-            foreach (var p in changes.GetProjectChanges())
+            TotalFilesAffected += p.GetAddedDocuments().Count() +
+                                  p.GetChangedDocuments().Count() +
+                                  p.GetRemovedDocuments().Count() +
+                                  p.GetAddedAdditionalDocuments().Count() +
+                                  p.GetChangedAdditionalDocuments().Count() +
+                                  p.GetRemovedAdditionalDocuments().Count() +
+                                  p.GetAddedAnalyzerConfigDocuments().Count() +
+                                  p.GetChangedAnalyzerConfigDocuments().Count() +
+                                  p.GetRemovedAnalyzerConfigDocuments().Count();
+
+            if (p.GetAddedDocuments().Any() || p.GetRemovedDocuments().Any() ||
+                p.GetAddedAdditionalDocuments().Any() || p.GetRemovedAdditionalDocuments().Any() ||
+                p.GetAddedAnalyzerConfigDocuments().Any() || p.GetRemovedAnalyzerConfigDocuments().Any() ||
+                p.GetAddedMetadataReferences().Any() || p.GetRemovedMetadataReferences().Any() ||
+                p.GetAddedProjectReferences().Any() || p.GetRemovedProjectReferences().Any() ||
+                p.GetAddedAnalyzerReferences().Any() || p.GetRemovedAnalyzerReferences().Any())
             {
-                TotalProjectsAffected += 1;
-
-                TotalFilesAffected += p.GetAddedDocuments().Count() +
-                                      p.GetChangedDocuments().Count() +
-                                      p.GetRemovedDocuments().Count() +
-                                      p.GetAddedAdditionalDocuments().Count() +
-                                      p.GetChangedAdditionalDocuments().Count() +
-                                      p.GetRemovedAdditionalDocuments().Count() +
-                                      p.GetAddedAnalyzerConfigDocuments().Count() +
-                                      p.GetChangedAnalyzerConfigDocuments().Count() +
-                                      p.GetRemovedAnalyzerConfigDocuments().Count();
-
-                if (p.GetAddedDocuments().Any() || p.GetRemovedDocuments().Any() ||
-                    p.GetAddedAdditionalDocuments().Any() || p.GetRemovedAdditionalDocuments().Any() ||
-                    p.GetAddedAnalyzerConfigDocuments().Any() || p.GetRemovedAnalyzerConfigDocuments().Any() ||
-                    p.GetAddedMetadataReferences().Any() || p.GetRemovedMetadataReferences().Any() ||
-                    p.GetAddedProjectReferences().Any() || p.GetRemovedProjectReferences().Any() ||
-                    p.GetAddedAnalyzerReferences().Any() || p.GetRemovedAnalyzerReferences().Any())
-                {
-                    TotalFilesAffected += 1;  // The project file itself was affected too.
-                }
+                TotalFilesAffected += 1;  // The project file itself was affected too.
             }
-
-            var totalProjectsAddedOrRemoved = changes.GetAddedProjects().Count() + changes.GetRemovedProjects().Count();
-
-            TotalFilesAffected += totalProjectsAddedOrRemoved;
-            TotalProjectsAffected += totalProjectsAddedOrRemoved;
         }
+
+        var totalProjectsAddedOrRemoved = changes.GetAddedProjects().Count() + changes.GetRemovedProjects().Count();
+
+        TotalFilesAffected += totalProjectsAddedOrRemoved;
+        TotalProjectsAffected += totalProjectsAddedOrRemoved;
     }
 }

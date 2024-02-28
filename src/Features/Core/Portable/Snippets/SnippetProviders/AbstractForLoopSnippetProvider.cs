@@ -7,41 +7,40 @@ using System.Linq;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
+namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
+
+internal abstract class AbstractForLoopSnippetProvider : AbstractInlineStatementSnippetProvider
 {
-    internal abstract class AbstractForLoopSnippetProvider : AbstractInlineStatementSnippetProvider
+    protected override bool IsValidAccessingType(ITypeSymbol type, Compilation compilation)
     {
-        protected override bool IsValidAccessingType(ITypeSymbol type, Compilation compilation)
+        if (IsSuitableIntegerType(type))
         {
-            if (IsSuitableIntegerType(type))
-            {
-                return true;
-            }
-
-            var hasLengthProperty = FindLengthProperty(type, compilation) is not null;
-            var hasCountProperty = FindCountProperty(type, compilation) is not null;
-
-            // We want to allow types, which have either `Length` or `Count` property, but not both to avoid ambiguity
-            return hasLengthProperty ^ hasCountProperty;
+            return true;
         }
 
-        protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
-            => syntaxFacts.IsForStatement;
+        var hasLengthProperty = FindLengthProperty(type, compilation) is not null;
+        var hasCountProperty = FindCountProperty(type, compilation) is not null;
 
-        protected static bool IsSuitableIntegerType(ITypeSymbol type)
-            => type.IsIntegralType() || type.IsNativeIntegerType;
+        // We want to allow types, which have either `Length` or `Count` property, but not both to avoid ambiguity
+        return hasLengthProperty ^ hasCountProperty;
+    }
 
-        protected static IPropertySymbol? FindLengthProperty(ITypeSymbol type, Compilation compilation)
-            => FindAccessibleIntegerProperty(type, compilation, "Length");
+    protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
+        => syntaxFacts.IsForStatement;
 
-        protected static IPropertySymbol? FindCountProperty(ITypeSymbol type, Compilation compilation)
-            => FindAccessibleIntegerProperty(type, compilation, "Count");
+    protected static bool IsSuitableIntegerType(ITypeSymbol type)
+        => type.IsIntegralType() || type.IsNativeIntegerType;
 
-        private static IPropertySymbol? FindAccessibleIntegerProperty(ITypeSymbol type, Compilation compilation, string propertyName)
-        {
-            return type
-                .GetAccessibleMembersInThisAndBaseTypes<IPropertySymbol>(propertyName, compilation.Assembly)
-                .FirstOrDefault(p => p is { GetMethod: { } getMethod } && getMethod.IsAccessibleWithin(compilation.Assembly) && IsSuitableIntegerType(p.Type));
-        }
+    protected static IPropertySymbol? FindLengthProperty(ITypeSymbol type, Compilation compilation)
+        => FindAccessibleIntegerProperty(type, compilation, "Length");
+
+    protected static IPropertySymbol? FindCountProperty(ITypeSymbol type, Compilation compilation)
+        => FindAccessibleIntegerProperty(type, compilation, "Count");
+
+    private static IPropertySymbol? FindAccessibleIntegerProperty(ITypeSymbol type, Compilation compilation, string propertyName)
+    {
+        return type
+            .GetAccessibleMembersInThisAndBaseTypes<IPropertySymbol>(propertyName, compilation.Assembly)
+            .FirstOrDefault(p => p is { GetMethod: { } getMethod } && getMethod.IsAccessibleWithin(compilation.Assembly) && IsSuitableIntegerType(p.Type));
     }
 }
