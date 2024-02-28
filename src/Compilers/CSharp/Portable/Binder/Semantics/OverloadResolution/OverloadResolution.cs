@@ -1363,7 +1363,7 @@ outerDefault:
                             return true;
                         }
 
-                        if ((extendedType.IsClassType() || extendedType.IsEnumType() || extendedType.IsStructType()/* || extendedType.IsDelegateType()*/)
+                        if ((extendedType.IsClassType() || extendedType.IsEnumType() || extendedType.IsStructType() || extendedType.IsDelegateType())
                             && extendedType.IsDerivedFrom(type, TypeCompareKind.ConsiderEverything, ref useSiteInfo))
                         {
                             return true;
