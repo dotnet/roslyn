@@ -686,6 +686,8 @@ namespace Microsoft.CodeAnalysis.Text
 #else
             using var algorithm = CryptographicHashProvider.GetAlgorithm(algorithmId);
             var bytes = algorithm.ComputeHash(buffer, offset, count);
+
+            // ComputeHash return a freshly allocated array so it's safe to convert to ImmutableArray inline.
             return ImmutableCollectionsMarshal.AsImmutableArray(bytes);
 #endif
         }
@@ -708,6 +710,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             var bytes = algorithm.ComputeHash(stream);
+            // ComputeHash return a freshly allocated array so it's safe to convert to ImmutableArray inline.
             return ImmutableCollectionsMarshal.AsImmutableArray(bytes);
         }
 

@@ -20,6 +20,7 @@ namespace Roslyn.Utilities
             }
         }
 #endif
+
         /// <summary>
         /// Attempts to read all of the requested bytes from the stream into the buffer
         /// </summary>
