@@ -117,35 +117,35 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
             };
         }
 
-            if (TryGetCommonReceiver(leftReceiver, rightReceiver, leftTarget, rightTarget, model) is var (commonReceiver, leftNames, rightNames))
+        if (TryGetCommonReceiver(leftReceiver, rightReceiver, leftTarget, rightTarget, model) is var (commonReceiver, leftNames, rightNames))
+        {
+            return root =>
             {
-                return root =>
+                // It's possible we decided to discard a pattern due to it being redundant (such as a null check
+                // combined with a property check belonging to the same field we confirmed not being null).
+                // For instance 'cf != null && cf.C != 0', the left null check doesn't add more information than the 
+                // right expression because the is pattern `cf is { C: not 0 }` already checks for null implicitly
+                if (leftNames.Length == 0)
                 {
-                    // It's possible we decided to discard a pattern due to it being redundant (such as a null check
-                    // combined with a property check belonging to the same field we confirmed not being null).
-                    // For instance 'cf != null && cf.C != 0', the left null check doesn't add more information than the 
-                    // right expression because the is pattern `cf is { C: not 0 }` already checks for null implicitly
-                    if (leftNames.Length == 0)
-                    {
-                        var rightSubpattern = CreateSubpattern(rightNames, CreatePattern(rightReceiver, rightTarget, rightFlipped));
-                        var replacement = IsPatternExpression(commonReceiver, RecursivePattern(rightSubpattern));
-                        return root.ReplaceNode(logicalAnd, AdjustBinaryExpressionOperands(logicalAnd, replacement));
-                    }
-                    else if (rightNames.Length == 0)
-                    {
-                        var leftSubpattern = CreateSubpattern(leftNames, CreatePattern(leftReceiver, leftTarget, leftFlipped));
-                        var replacement = IsPatternExpression(commonReceiver, RecursivePattern(leftSubpattern));
-                        return root.ReplaceNode(logicalAnd, AdjustBinaryExpressionOperands(logicalAnd, replacement));
-                    }
-                    else
-                    {
-                        var leftSubpattern = CreateSubpattern(leftNames, CreatePattern(leftReceiver, leftTarget, leftFlipped));
-                        var rightSubpattern = CreateSubpattern(rightNames, CreatePattern(rightReceiver, rightTarget, rightFlipped));
-                        var replacement = IsPatternExpression(commonReceiver, RecursivePattern(leftSubpattern, rightSubpattern));
-                        return root.ReplaceNode(logicalAnd, AdjustBinaryExpressionOperands(logicalAnd, replacement));
-                    }
-                };
-            }
+                    var rightSubpattern = CreateSubpattern(rightNames, CreatePattern(rightReceiver, rightTarget, rightFlipped));
+                    var replacement = IsPatternExpression(commonReceiver, RecursivePattern(rightSubpattern));
+                    return root.ReplaceNode(logicalAnd, AdjustBinaryExpressionOperands(logicalAnd, replacement));
+                }
+                else if (rightNames.Length == 0)
+                {
+                    var leftSubpattern = CreateSubpattern(leftNames, CreatePattern(leftReceiver, leftTarget, leftFlipped));
+                    var replacement = IsPatternExpression(commonReceiver, RecursivePattern(leftSubpattern));
+                    return root.ReplaceNode(logicalAnd, AdjustBinaryExpressionOperands(logicalAnd, replacement));
+                }
+                else
+                {
+                    var leftSubpattern = CreateSubpattern(leftNames, CreatePattern(leftReceiver, leftTarget, leftFlipped));
+                    var rightSubpattern = CreateSubpattern(rightNames, CreatePattern(rightReceiver, rightTarget, rightFlipped));
+                    var replacement = IsPatternExpression(commonReceiver, RecursivePattern(leftSubpattern, rightSubpattern));
+                    return root.ReplaceNode(logicalAnd, AdjustBinaryExpressionOperands(logicalAnd, replacement));
+                }
+            };
+        }
 
         return null;
 
@@ -410,19 +410,19 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
     private static RecursivePatternSyntax RecursivePattern(SubpatternSyntax subpattern)
         => RecursivePattern(type: null, subpattern, designation: null);
 
-        /// <summary>
-        /// Obtain the outermost common receiver between two expressions.  This can succeed with a null 'CommonReceiver'
-        /// in the case that the common receiver is the 'implicit this'.
-        /// </summary>
-        private static (ExpressionSyntax CommonReceiver, ImmutableArray<IdentifierNameSyntax> LeftNames, ImmutableArray<IdentifierNameSyntax> RightNames)? TryGetCommonReceiver(
-            ExpressionSyntax left,
-            ExpressionSyntax right,
-            ExpressionOrPatternSyntax leftTarget,
-            ExpressionOrPatternSyntax rightTarget,
-            SemanticModel model)
-        {
-            using var _1 = ArrayBuilder<IdentifierNameSyntax>.GetInstance(out var leftNames);
-            using var _2 = ArrayBuilder<IdentifierNameSyntax>.GetInstance(out var rightNames);
+    /// <summary>
+    /// Obtain the outermost common receiver between two expressions.  This can succeed with a null 'CommonReceiver'
+    /// in the case that the common receiver is the 'implicit this'.
+    /// </summary>
+    private static (ExpressionSyntax CommonReceiver, ImmutableArray<IdentifierNameSyntax> LeftNames, ImmutableArray<IdentifierNameSyntax> RightNames)? TryGetCommonReceiver(
+        ExpressionSyntax left,
+        ExpressionSyntax right,
+        ExpressionOrPatternSyntax leftTarget,
+        ExpressionOrPatternSyntax rightTarget,
+        SemanticModel model)
+    {
+        using var _1 = ArrayBuilder<IdentifierNameSyntax>.GetInstance(out var leftNames);
+        using var _2 = ArrayBuilder<IdentifierNameSyntax>.GetInstance(out var rightNames);
 
         if (!TryGetInnermostReceiver(left, leftNames, out var leftReceiver, model) ||
             !TryGetInnermostReceiver(right, rightNames, out var rightReceiver, model) ||
@@ -443,38 +443,38 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
             commonReceiver = GetInnermostReceiver(left, lastName, static (identifierName, lastName) => identifierName != lastName);
         }
 
-            // If the common receiver is null, there might still be one in cases like these:
-            // `MyClassField != null && MyClassField.prop != 0`. In this case, the left expression doesn't say
-            // anything new to the second one so it should be discarded, but MyClassField should still act as the
-            // receiver instead of the implicit this so we get
-            // `MyClassField is { prop: not 0 }` instead of `this is { MyClassField: not null, MyClassField.prop: not 0 }`
-            // We need to cover this case for either side of the expression by detecting a null check on either side
-            if (AreEquivalent(leftNames[^1], rightNames[^1]))
+        // If the common receiver is null, there might still be one in cases like these:
+        // `MyClassField != null && MyClassField.prop != 0`. In this case, the left expression doesn't say
+        // anything new to the second one so it should be discarded, but MyClassField should still act as the
+        // receiver instead of the implicit this so we get
+        // `MyClassField is { prop: not 0 }` instead of `this is { MyClassField: not null, MyClassField.prop: not 0 }`
+        // We need to cover this case for either side of the expression by detecting a null check on either side
+        if (AreEquivalent(leftNames[^1], rightNames[^1]))
+        {
+            var leftIsNullCheck = IsNullCheck(leftTarget.Parent);
+            var rightIsNullCheck = IsNullCheck(rightTarget.Parent);
+
+            if (leftIsNullCheck)
             {
-                var leftIsNullCheck = IsNullCheck(leftTarget.Parent);
-                var rightIsNullCheck = IsNullCheck(rightTarget.Parent);
-
-                if (leftIsNullCheck)
-                {
-                    lastName = rightNames[^1];
-                    commonReceiver = GetInnermostReceiver(right, lastName, static (identifierName, lastName) => identifierName != lastName);
-                    rightNames.Clip(rightNames.Count - 1);
-                    return (commonReceiver ?? ThisExpression(), ImmutableArray<IdentifierNameSyntax>.Empty, rightNames.ToImmutable());
-                }
-
-                if (rightIsNullCheck)
-                {
-                    lastName = leftNames[^1];
-                    commonReceiver = GetInnermostReceiver(left, lastName, static (identifierName, lastName) => identifierName != lastName);
-                    leftNames.Clip(leftNames.Count - 1);
-                    return (commonReceiver ?? ThisExpression(), leftNames.ToImmutable(), ImmutableArray<IdentifierNameSyntax>.Empty);
-                }
+                lastName = rightNames[^1];
+                commonReceiver = GetInnermostReceiver(right, lastName, static (identifierName, lastName) => identifierName != lastName);
+                rightNames.Clip(rightNames.Count - 1);
+                return (commonReceiver ?? ThisExpression(), ImmutableArray<IdentifierNameSyntax>.Empty, rightNames.ToImmutable());
             }
 
-            // If the common receiver is null and we can't find a redundant pattern in the case above,
-            // it's an implicit `this` reference in source.
-            // For instance, `prop == 1 && field == 2` would be converted to `this is { prop: 1, field: 2 }`
-            return (commonReceiver ?? ThisExpression(), leftNames.ToImmutable(), rightNames.ToImmutable());
+            if (rightIsNullCheck)
+            {
+                lastName = leftNames[^1];
+                commonReceiver = GetInnermostReceiver(left, lastName, static (identifierName, lastName) => identifierName != lastName);
+                leftNames.Clip(leftNames.Count - 1);
+                return (commonReceiver ?? ThisExpression(), leftNames.ToImmutable(), ImmutableArray<IdentifierNameSyntax>.Empty);
+            }
+        }
+
+        // If the common receiver is null and we can't find a redundant pattern in the case above,
+        // it's an implicit `this` reference in source.
+        // For instance, `prop == 1 && field == 2` would be converted to `this is { prop: 1, field: 2 }`
+        return (commonReceiver ?? ThisExpression(), leftNames.ToImmutable(), rightNames.ToImmutable());
 
         static bool TryGetInnermostReceiver(ExpressionSyntax node, ArrayBuilder<IdentifierNameSyntax> builder, [NotNullWhen(true)] out ExpressionSyntax? receiver, SemanticModel model)
         {
@@ -496,22 +496,22 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
                 lastName = leftName;
             }
 
-                leftNames.Clip(leftIndex + 1);
-                rightNames.Clip(rightIndex + 1);
-                return lastName;
-            }
-
-            static bool IsNullCheck(SyntaxNode? exp)
-            {
-                if (exp is BinaryExpressionSyntax(NotEqualsExpression) binaryExpression)
-                {
-                    if (binaryExpression.Left.Kind() == NullLiteralExpression || binaryExpression.Right.Kind() == NullLiteralExpression)
-                        return true;
-                }
-
-                return false;
-            }
+            leftNames.Clip(leftIndex + 1);
+            rightNames.Clip(rightIndex + 1);
+            return lastName;
         }
+
+        static bool IsNullCheck(SyntaxNode? exp)
+        {
+            if (exp is BinaryExpressionSyntax(NotEqualsExpression) binaryExpression)
+            {
+                if (binaryExpression.Left.Kind() == NullLiteralExpression || binaryExpression.Right.Kind() == NullLiteralExpression)
+                    return true;
+            }
+
+            return false;
+        }
+    }
 
     private static ExpressionSyntax? GetInnermostReceiver(ExpressionSyntax node, ArrayBuilder<IdentifierNameSyntax> builder, SemanticModel model)
     {
