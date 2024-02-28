@@ -5,10 +5,9 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
+
+internal interface IVenusBraceMatchingService : ILanguageService
 {
-    internal interface IVenusBraceMatchingService : ILanguageService
-    {
-        bool TryGetCorrespondingOpenBrace(SyntaxToken token, out SyntaxToken openBrace);
-    }
+    bool TryGetCorrespondingOpenBrace(SyntaxToken token, out SyntaxToken openBrace);
 }

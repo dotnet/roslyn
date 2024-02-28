@@ -8,29 +8,28 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.SolutionCrawler
+namespace Microsoft.CodeAnalysis.SolutionCrawler;
+
+[ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class HostSolutionCrawlerWorkspaceEventListener(IGlobalOptionService globalOptions) : IEventListener<object>, IEventListenerStoppable
 {
-    [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class HostSolutionCrawlerWorkspaceEventListener(IGlobalOptionService globalOptions) : IEventListener<object>, IEventListenerStoppable
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
+
+    public void StartListening(Workspace workspace, object? serviceOpt)
     {
-        private readonly IGlobalOptionService _globalOptions = globalOptions;
-
-        public void StartListening(Workspace workspace, object? serviceOpt)
+        if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
         {
-            if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-            {
-                workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(workspace);
-            }
+            workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(workspace);
         }
+    }
 
-        public void StopListening(Workspace workspace)
-        {
-            // we do this so that we can stop solution crawler faster and fire some telemetry. 
-            // this is to reduce a case where we keep going even when VS is shutting down since we don't know about that
-            var registration = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            registration.Unregister(workspace, blockingShutdown: true);
-        }
+    public void StopListening(Workspace workspace)
+    {
+        // we do this so that we can stop solution crawler faster and fire some telemetry. 
+        // this is to reduce a case where we keep going even when VS is shutting down since we don't know about that
+        var registration = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
+        registration.Unregister(workspace, blockingShutdown: true);
     }
 }

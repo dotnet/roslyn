@@ -5,18 +5,17 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
-{
-    internal static class SyntaxTokenListExtensions
-    {
-        public static SyntaxTokenList ToSyntaxTokenList(this IEnumerable<SyntaxToken> tokens)
-            => new(tokens);
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
-        public static SyntaxTokenList ToSyntaxTokenListAndFree(this ArrayBuilder<SyntaxToken> tokens)
-        {
-            var tokenList = new SyntaxTokenList(tokens);
-            tokens.Free();
-            return tokenList;
-        }
+internal static class SyntaxTokenListExtensions
+{
+    public static SyntaxTokenList ToSyntaxTokenList(this IEnumerable<SyntaxToken> tokens)
+        => new(tokens);
+
+    public static SyntaxTokenList ToSyntaxTokenListAndFree(this ArrayBuilder<SyntaxToken> tokens)
+    {
+        var tokenList = new SyntaxTokenList(tokens);
+        tokens.Free();
+        return tokenList;
     }
 }

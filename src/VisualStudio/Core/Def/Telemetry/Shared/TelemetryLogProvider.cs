@@ -7,53 +7,52 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 
-namespace Microsoft.VisualStudio.LanguageServices.Telemetry
+namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
+
+/// <summary>
+/// Provides access to an appropriate <see cref="ITelemetryLogProvider"/> for logging telemetry.
+/// </summary>
+internal sealed class TelemetryLogProvider : ITelemetryLogProvider
 {
-    /// <summary>
-    /// Provides access to an appropriate <see cref="ITelemetryLogProvider"/> for logging telemetry.
-    /// </summary>
-    internal sealed class TelemetryLogProvider : ITelemetryLogProvider
+    private readonly AggregatingTelemetryLogManager _aggregatingTelemetryLogManager;
+    private readonly VisualStudioTelemetryLogManager _visualStudioTelemetryLogManager;
+
+    private TelemetryLogProvider(TelemetrySession session, ILogger telemetryLogger, IAsynchronousOperationListener asyncListener)
     {
-        private readonly AggregatingTelemetryLogManager _aggregatingTelemetryLogManager;
-        private readonly VisualStudioTelemetryLogManager _visualStudioTelemetryLogManager;
+        _aggregatingTelemetryLogManager = new AggregatingTelemetryLogManager(session, asyncListener);
+        _visualStudioTelemetryLogManager = new VisualStudioTelemetryLogManager(session, telemetryLogger);
+    }
 
-        private TelemetryLogProvider(TelemetrySession session, ILogger telemetryLogger, IAsynchronousOperationListener asyncListener)
-        {
-            _aggregatingTelemetryLogManager = new AggregatingTelemetryLogManager(session, asyncListener);
-            _visualStudioTelemetryLogManager = new VisualStudioTelemetryLogManager(session, telemetryLogger);
-        }
+    public static TelemetryLogProvider Create(TelemetrySession session, ILogger telemetryLogger, IAsynchronousOperationListener asyncListener)
+    {
+        var logProvider = new TelemetryLogProvider(session, telemetryLogger, asyncListener);
 
-        public static TelemetryLogProvider Create(TelemetrySession session, ILogger telemetryLogger, IAsynchronousOperationListener asyncListener)
-        {
-            var logProvider = new TelemetryLogProvider(session, telemetryLogger, asyncListener);
+        TelemetryLogging.SetLogProvider(logProvider);
 
-            TelemetryLogging.SetLogProvider(logProvider);
+        return logProvider;
+    }
 
-            return logProvider;
-        }
+    /// <summary>
+    /// Returns an <see cref="ITelemetryLog"/> for logging telemetry.
+    /// </summary>
+    public ITelemetryLog? GetLog(FunctionId functionId)
+    {
+        return _visualStudioTelemetryLogManager.GetLog(functionId);
+    }
 
-        /// <summary>
-        /// Returns an <see cref="ITelemetryLog"/> for logging telemetry.
-        /// </summary>
-        public ITelemetryLog? GetLog(FunctionId functionId)
-        {
-            return _visualStudioTelemetryLogManager.GetLog(functionId);
-        }
+    /// <summary>
+    /// Returns an aggregating <see cref="ITelemetryLog"/> for logging telemetry.
+    /// </summary>
+    public ITelemetryLog? GetAggregatingLog(FunctionId functionId, double[]? bucketBoundaries)
+    {
+        return _aggregatingTelemetryLogManager.GetLog(functionId, bucketBoundaries);
+    }
 
-        /// <summary>
-        /// Returns an aggregating <see cref="ITelemetryLog"/> for logging telemetry.
-        /// </summary>
-        public ITelemetryLog? GetAggregatingLog(FunctionId functionId, double[]? bucketBoundaries)
-        {
-            return _aggregatingTelemetryLogManager.GetLog(functionId, bucketBoundaries);
-        }
-
-        /// <summary>
-        /// Flushes all telemetry logs
-        /// </summary>
-        public void Flush()
-        {
-            _aggregatingTelemetryLogManager.Flush();
-        }
+    /// <summary>
+    /// Flushes all telemetry logs
+    /// </summary>
+    public void Flush()
+    {
+        _aggregatingTelemetryLogManager.Flush();
     }
 }

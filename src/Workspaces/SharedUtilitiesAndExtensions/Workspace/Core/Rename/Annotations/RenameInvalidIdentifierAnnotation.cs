@@ -4,14 +4,13 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
-{
-    internal class RenameInvalidIdentifierAnnotation : RenameAnnotation
-    {
-        public static RenameInvalidIdentifierAnnotation Instance = new();
+namespace Microsoft.CodeAnalysis.Rename.ConflictEngine;
 
-        private RenameInvalidIdentifierAnnotation()
-        {
-        }
+internal class RenameInvalidIdentifierAnnotation : RenameAnnotation
+{
+    public static RenameInvalidIdentifierAnnotation Instance = new();
+
+    private RenameInvalidIdentifierAnnotation()
+    {
     }
 }

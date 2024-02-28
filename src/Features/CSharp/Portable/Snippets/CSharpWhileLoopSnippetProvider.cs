@@ -13,38 +13,37 @@ using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Snippets
+namespace Microsoft.CodeAnalysis.CSharp.Snippets;
+
+[ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
+internal sealed class CSharpWhileLoopSnippetProvider : AbstractWhileLoopSnippetProvider
 {
-    [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpWhileLoopSnippetProvider : AbstractWhileLoopSnippetProvider
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpWhileLoopSnippetProvider()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpWhileLoopSnippetProvider()
-        {
-        }
+    }
 
-        protected override SyntaxNode GetCondition(SyntaxNode node)
-        {
-            var whileStatement = (WhileStatementSyntax)node;
-            return whileStatement.Condition;
-        }
+    protected override SyntaxNode GetCondition(SyntaxNode node)
+    {
+        var whileStatement = (WhileStatementSyntax)node;
+        return whileStatement.Condition;
+    }
 
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-        {
-            return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<WhileStatementSyntax>(
-                caretTarget,
-                static s => (BlockSyntax)s.Statement,
-                sourceText);
-        }
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
+    {
+        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<WhileStatementSyntax>(
+            caretTarget,
+            static s => (BlockSyntax)s.Statement,
+            sourceText);
+    }
 
-        protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-        {
-            return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<WhileStatementSyntax>(
-                document,
-                FindSnippetAnnotation,
-                static s => (BlockSyntax)s.Statement,
-                cancellationToken);
-        }
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
+    {
+        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<WhileStatementSyntax>(
+            document,
+            FindSnippetAnnotation,
+            static s => (BlockSyntax)s.Statement,
+            cancellationToken);
     }
 }

@@ -6,36 +6,35 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
+namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+
+internal class CSharpFlagsEnumGenerator : AbstractFlagsEnumGenerator
 {
-    internal class CSharpFlagsEnumGenerator : AbstractFlagsEnumGenerator
+    public static readonly CSharpFlagsEnumGenerator Instance = new();
+
+    private CSharpFlagsEnumGenerator()
     {
-        public static readonly CSharpFlagsEnumGenerator Instance = new();
-
-        private CSharpFlagsEnumGenerator()
-        {
-        }
-
-        protected override SyntaxNode CreateExplicitlyCastedLiteralValue(
-            SyntaxGenerator generator,
-            INamedTypeSymbol enumType,
-            SpecialType underlyingSpecialType,
-            object constantValue)
-        {
-            var expression = ExpressionGenerator.GenerateNonEnumValueExpression(
-                generator, enumType.EnumUnderlyingType, constantValue, canUseFieldReference: true);
-
-            var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType);
-            if (constantValueULong == 0)
-            {
-                // 0 is always convertible to an enum type without needing a cast.
-                return expression;
-            }
-
-            return generator.CastExpression(enumType, expression);
-        }
-
-        protected override bool IsValidName(INamedTypeSymbol enumType, string name)
-            => SyntaxFacts.IsValidIdentifier(name);
     }
+
+    protected override SyntaxNode CreateExplicitlyCastedLiteralValue(
+        SyntaxGenerator generator,
+        INamedTypeSymbol enumType,
+        SpecialType underlyingSpecialType,
+        object constantValue)
+    {
+        var expression = ExpressionGenerator.GenerateNonEnumValueExpression(
+            generator, enumType.EnumUnderlyingType, constantValue, canUseFieldReference: true);
+
+        var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType);
+        if (constantValueULong == 0)
+        {
+            // 0 is always convertible to an enum type without needing a cast.
+            return expression;
+        }
+
+        return generator.CastExpression(enumType, expression);
+    }
+
+    protected override bool IsValidName(INamedTypeSymbol enumType, string name)
+        => SyntaxFacts.IsValidIdentifier(name);
 }
