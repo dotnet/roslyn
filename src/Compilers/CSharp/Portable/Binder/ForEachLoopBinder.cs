@@ -1199,7 +1199,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (patternDisposeMethod is object)
                 {
                     Debug.Assert(!patternDisposeMethod.IsExtensionMethod);
-                    Debug.Assert(patternDisposeMethod.ParameterRefKinds.IsDefaultOrEmpty);
+                    Debug.Assert(patternDisposeMethod.ParameterRefKinds.IsDefaultOrEmpty ||
+                        patternDisposeMethod.ParameterRefKinds.All(static refKind => refKind is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter));
 
                     var argsBuilder = ArrayBuilder<BoundExpression>.GetInstance(patternDisposeMethod.ParameterCount);
                     var argsToParams = default(ImmutableArray<int>);
@@ -1865,7 +1866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <param name="extensionReceiverOpt">If method is an extension method, this must be non-null.</param>
-        private MethodArgumentInfo BindDefaultArguments(MethodSymbol method, BoundExpression extensionReceiverOpt, bool expanded, SyntaxNode syntax, BindingDiagnosticBag diagnostics, bool assertMissingParametersAreOptional = true)
+        private MethodArgumentInfo BindDefaultArguments(MethodSymbol method, BoundExpression extensionReceiverOpt, bool expanded, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert((extensionReceiverOpt != null) == method.IsExtensionMethod);
 
@@ -1892,8 +1893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultArguments: out BitVector defaultArguments,
                 expanded,
                 enableCallerInfo: true,
-                diagnostics,
-                assertMissingParametersAreOptional);
+                diagnostics);
 
             Debug.Assert(argsToParams.IsDefault);
             return new MethodArgumentInfo(method, argsBuilder.ToImmutableAndFree(), defaultArguments, expanded);

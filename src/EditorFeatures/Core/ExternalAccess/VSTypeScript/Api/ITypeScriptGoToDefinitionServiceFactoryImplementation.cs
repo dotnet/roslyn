@@ -4,10 +4,9 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+internal interface ITypeScriptGoToDefinitionServiceFactoryImplementation
 {
-    internal interface ITypeScriptGoToDefinitionServiceFactoryImplementation
-    {
-        ILanguageService CreateLanguageService(HostLanguageServices languageServices);
-    }
+    ILanguageService CreateLanguageService(HostLanguageServices languageServices);
 }

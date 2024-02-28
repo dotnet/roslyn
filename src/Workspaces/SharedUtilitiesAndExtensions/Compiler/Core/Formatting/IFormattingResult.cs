@@ -6,15 +6,14 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Formatting;
+
+/// <summary>
+/// Contains changes that can be either applied to different targets such as a buffer or a tree
+/// or examined to be used in other places such as quick fix.
+/// </summary>
+internal interface IFormattingResult
 {
-    /// <summary>
-    /// Contains changes that can be either applied to different targets such as a buffer or a tree
-    /// or examined to be used in other places such as quick fix.
-    /// </summary>
-    internal interface IFormattingResult
-    {
-        IList<TextChange> GetTextChanges(CancellationToken cancellationToken);
-        SyntaxNode GetFormattedRoot(CancellationToken cancellationToken);
-    }
+    IList<TextChange> GetTextChanges(CancellationToken cancellationToken);
+    SyntaxNode GetFormattedRoot(CancellationToken cancellationToken);
 }

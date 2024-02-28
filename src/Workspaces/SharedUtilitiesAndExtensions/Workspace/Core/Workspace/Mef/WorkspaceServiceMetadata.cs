@@ -2,37 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Collections.Generic;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Host.Mef
+namespace Microsoft.CodeAnalysis.Host.Mef;
+
+/// <summary>
+/// MEF metadata class used for finding <see cref="IWorkspaceService"/> and <see cref="IWorkspaceServiceFactory"/> exports.
+/// </summary>
+internal sealed class WorkspaceServiceMetadata(IDictionary<string, object> data) : ILayeredServiceMetadata
 {
-    /// <summary>
-    /// MEF metadata class used for finding <see cref="IWorkspaceService"/> and <see cref="IWorkspaceServiceFactory"/> exports.
-    /// </summary>
-    internal class WorkspaceServiceMetadata
-    {
-        public string ServiceType { get; }
-        public string Layer { get; }
+    public string ServiceType { get; } = (string)data[nameof(ExportWorkspaceServiceAttribute.ServiceType)];
+    public string Layer { get; } = (string)data[nameof(ExportWorkspaceServiceAttribute.Layer)];
 
-        public WorkspaceServiceMetadata(Type serviceType, string layer)
-            : this(serviceType.AssemblyQualifiedName, layer)
-        {
-        }
-
-        public WorkspaceServiceMetadata(IDictionary<string, object> data)
-        {
-            this.ServiceType = (string)data.GetValueOrDefault("ServiceType");
-            this.Layer = (string)data.GetValueOrDefault("Layer");
-        }
-
-        public WorkspaceServiceMetadata(string serviceType, string layer)
-        {
-            this.ServiceType = serviceType;
-            this.Layer = layer;
-        }
-    }
+    public IReadOnlyList<string> WorkspaceKinds { get; } = (IReadOnlyList<string>)data[
+#if CODE_STYLE
+            "WorkspaceKinds"
+#else
+            nameof(ExportLanguageServiceAttribute.WorkspaceKinds)
+#endif
+    ];
 }

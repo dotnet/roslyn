@@ -16,75 +16,74 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Tagging;
+
+/// <summary>
+/// Tagger event that fires once the compilation is available in the remote OOP process for a particular project.
+/// Used to trigger things such as:
+/// <list type="bullet">
+/// <item>reclassification pass as classification may show either cached classifications (from a  previous session),
+/// or incomplete classifications due to frozen-partial compilations being used.</item>
+/// <item>recomputation of navigation bar items due to frozen-partial compilations being used.</item>
+/// <item>recomputation of inheritance margin items due to frozen-partial compilations being used.</item>
+/// </list>
+/// </summary>
+internal sealed class CompilationAvailableTaggerEventSource : ITaggerEventSource
 {
+    private readonly ITextBuffer _subjectBuffer;
+
     /// <summary>
-    /// Tagger event that fires once the compilation is available in the remote OOP process for a particular project.
-    /// Used to trigger things such as:
-    /// <list type="bullet">
-    /// <item>reclassification pass as classification may show either cached classifications (from a  previous session),
-    /// or incomplete classifications due to frozen-partial compilations being used.</item>
-    /// <item>recomputation of navigation bar items due to frozen-partial compilations being used.</item>
-    /// <item>recomputation of inheritance margin items due to frozen-partial compilations being used.</item>
-    /// </list>
+    /// Other event sources we're composing over.  If they fire, we should reclassify.  However, after they fire, we
+    /// should also refire an event once we get the next full compilation ready.
     /// </summary>
-    internal sealed class CompilationAvailableTaggerEventSource : ITaggerEventSource
+    private readonly ITaggerEventSource _underlyingSource;
+
+    private readonly CompilationAvailableEventSource _eventSource;
+
+    private readonly Action _onCompilationAvailable;
+
+    public CompilationAvailableTaggerEventSource(
+        ITextBuffer subjectBuffer,
+        IAsynchronousOperationListener asyncListener,
+        params ITaggerEventSource[] eventSources)
     {
-        private readonly ITextBuffer _subjectBuffer;
+        _subjectBuffer = subjectBuffer;
+        _eventSource = new CompilationAvailableEventSource(asyncListener);
+        _underlyingSource = TaggerEventSources.Compose(eventSources);
+        _onCompilationAvailable = () => this.Changed?.Invoke(this, TaggerEventArgs.Empty);
+    }
 
-        /// <summary>
-        /// Other event sources we're composing over.  If they fire, we should reclassify.  However, after they fire, we
-        /// should also refire an event once we get the next full compilation ready.
-        /// </summary>
-        private readonly ITaggerEventSource _underlyingSource;
+    public event EventHandler<TaggerEventArgs>? Changed;
 
-        private readonly CompilationAvailableEventSource _eventSource;
+    public void Connect()
+    {
+        // When we are connected to, connect to all our underlying sources and have them notify us when they've changed.
+        _underlyingSource.Connect();
+        _underlyingSource.Changed += OnUnderlyingSourceChanged;
+    }
 
-        private readonly Action _onCompilationAvailable;
+    public void Disconnect()
+    {
+        _underlyingSource.Changed -= OnUnderlyingSourceChanged;
+        _underlyingSource.Disconnect();
+        _eventSource.Dispose();
+    }
 
-        public CompilationAvailableTaggerEventSource(
-            ITextBuffer subjectBuffer,
-            IAsynchronousOperationListener asyncListener,
-            params ITaggerEventSource[] eventSources)
-        {
-            _subjectBuffer = subjectBuffer;
-            _eventSource = new CompilationAvailableEventSource(asyncListener);
-            _underlyingSource = TaggerEventSources.Compose(eventSources);
-            _onCompilationAvailable = () => this.Changed?.Invoke(this, TaggerEventArgs.Empty);
-        }
+    public void Pause()
+        => _underlyingSource.Pause();
 
-        public event EventHandler<TaggerEventArgs>? Changed;
+    public void Resume()
+        => _underlyingSource.Resume();
 
-        public void Connect()
-        {
-            // When we are connected to, connect to all our underlying sources and have them notify us when they've changed.
-            _underlyingSource.Connect();
-            _underlyingSource.Changed += OnUnderlyingSourceChanged;
-        }
+    private void OnUnderlyingSourceChanged(object? sender, TaggerEventArgs args)
+    {
+        // First, notify anyone listening to us that something definitely changed.
+        this.Changed?.Invoke(this, args);
 
-        public void Disconnect()
-        {
-            _underlyingSource.Changed -= OnUnderlyingSourceChanged;
-            _underlyingSource.Disconnect();
-            _eventSource.Dispose();
-        }
+        var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+        if (document == null)
+            return;
 
-        public void Pause()
-            => _underlyingSource.Pause();
-
-        public void Resume()
-            => _underlyingSource.Resume();
-
-        private void OnUnderlyingSourceChanged(object? sender, TaggerEventArgs args)
-        {
-            // First, notify anyone listening to us that something definitely changed.
-            this.Changed?.Invoke(this, args);
-
-            var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-                return;
-
-            _eventSource.EnsureCompilationAvailability(document.Project, _onCompilationAvailable);
-        }
+        _eventSource.EnsureCompilationAvailability(document.Project, _onCompilationAvailable);
     }
 }

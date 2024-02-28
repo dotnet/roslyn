@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class RemoteDocumentDifferenceService : IDocumentDifferenceService
     {
-        [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.CSharp, layer: WorkspaceKind.Host), Shared]
+        [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.CSharp, layer: ServiceLayer.Host), Shared]
         internal sealed class CSharpDocumentDifferenceService : RemoteDocumentDifferenceService
         {
             [ImportingConstructor]
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.VisualBasic, layer: WorkspaceKind.Host), Shared]
+        [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.VisualBasic, layer: ServiceLayer.Host), Shared]
         internal sealed class VisualBasicDocumentDifferenceService : AbstractDocumentDifferenceService
         {
             [ImportingConstructor]
@@ -43,8 +43,10 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<DocumentDifferenceResult?> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        public async Task<SyntaxNode?> GetChangedMemberAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
+            return null;
+#if false
             // in remote workspace, we don't trust any version based on VersionStamp. we only trust content based information such as
             // checksum or tree comparison and etc.
 
@@ -72,6 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // semantic has changed as well.
             return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
+#endif
         }
     }
 }

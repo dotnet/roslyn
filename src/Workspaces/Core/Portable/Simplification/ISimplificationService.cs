@@ -10,29 +10,28 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Simplification
+namespace Microsoft.CodeAnalysis.Simplification;
+
+internal interface ISimplificationService : ISimplification, ILanguageService
 {
-    internal interface ISimplificationService : ISimplification, ILanguageService
-    {
-        SyntaxNode Expand(
-            SyntaxNode node,
-            SemanticModel semanticModel,
-            SyntaxAnnotation? annotationForReplacedAliasIdentifier,
-            Func<SyntaxNode, bool>? expandInsideNode,
-            bool expandParameter,
-            CancellationToken cancellationToken);
+    SyntaxNode Expand(
+        SyntaxNode node,
+        SemanticModel semanticModel,
+        SyntaxAnnotation? annotationForReplacedAliasIdentifier,
+        Func<SyntaxNode, bool>? expandInsideNode,
+        bool expandParameter,
+        CancellationToken cancellationToken);
 
-        SyntaxToken Expand(
-            SyntaxToken token,
-            SemanticModel semanticModel,
-            Func<SyntaxNode, bool>? expandInsideNode,
-            CancellationToken cancellationToken);
+    SyntaxToken Expand(
+        SyntaxToken token,
+        SemanticModel semanticModel,
+        Func<SyntaxNode, bool>? expandInsideNode,
+        CancellationToken cancellationToken);
 
-        Task<Document> ReduceAsync(
-            Document document,
-            ImmutableArray<TextSpan> spans,
-            SimplifierOptions options,
-            ImmutableArray<AbstractReducer> reducers = default,
-            CancellationToken cancellationToken = default);
-    }
+    Task<Document> ReduceAsync(
+        Document document,
+        ImmutableArray<TextSpan> spans,
+        SimplifierOptions options,
+        ImmutableArray<AbstractReducer> reducers = default,
+        CancellationToken cancellationToken = default);
 }

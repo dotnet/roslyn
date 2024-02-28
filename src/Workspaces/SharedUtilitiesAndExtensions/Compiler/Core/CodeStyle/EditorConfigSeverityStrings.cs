@@ -4,46 +4,45 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal static class EditorConfigSeverityStrings
 {
-    internal static class EditorConfigSeverityStrings
+    public const string None = "none";
+    public const string Refactoring = "refactoring";
+    public const string Silent = "silent";
+    public const string Suggestion = "suggestion";
+    public const string Warning = "warning";
+    public const string Error = "error";
+
+    public static bool TryParse(string editorconfigSeverityString, out ReportDiagnostic reportDiagnostic)
     {
-        public const string None = "none";
-        public const string Refactoring = "refactoring";
-        public const string Silent = "silent";
-        public const string Suggestion = "suggestion";
-        public const string Warning = "warning";
-        public const string Error = "error";
-
-        public static bool TryParse(string editorconfigSeverityString, out ReportDiagnostic reportDiagnostic)
+        switch (editorconfigSeverityString)
         {
-            switch (editorconfigSeverityString)
-            {
-                case None:
-                    reportDiagnostic = ReportDiagnostic.Suppress;
-                    return true;
+            case None:
+                reportDiagnostic = ReportDiagnostic.Suppress;
+                return true;
 
-                case Refactoring:
-                case Silent:
-                    reportDiagnostic = ReportDiagnostic.Hidden;
-                    return true;
+            case Refactoring:
+            case Silent:
+                reportDiagnostic = ReportDiagnostic.Hidden;
+                return true;
 
-                case Suggestion:
-                    reportDiagnostic = ReportDiagnostic.Info;
-                    return true;
+            case Suggestion:
+                reportDiagnostic = ReportDiagnostic.Info;
+                return true;
 
-                case Warning:
-                    reportDiagnostic = ReportDiagnostic.Warn;
-                    return true;
+            case Warning:
+                reportDiagnostic = ReportDiagnostic.Warn;
+                return true;
 
-                case Error:
-                    reportDiagnostic = ReportDiagnostic.Error;
-                    return true;
+            case Error:
+                reportDiagnostic = ReportDiagnostic.Error;
+                return true;
 
-                default:
-                    reportDiagnostic = default;
-                    return false;
-            }
+            default:
+                reportDiagnostic = default;
+                return false;
         }
     }
 }

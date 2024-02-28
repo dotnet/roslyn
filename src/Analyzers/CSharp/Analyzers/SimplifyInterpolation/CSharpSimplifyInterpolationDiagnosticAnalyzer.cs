@@ -11,18 +11,17 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.SimplifyInterpolation;
 
-namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation
+namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal class CSharpSimplifyInterpolationDiagnosticAnalyzer : AbstractSimplifyInterpolationDiagnosticAnalyzer<
+    InterpolationSyntax, ExpressionSyntax>
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpSimplifyInterpolationDiagnosticAnalyzer : AbstractSimplifyInterpolationDiagnosticAnalyzer<
-        InterpolationSyntax, ExpressionSyntax>
-    {
-        protected override IVirtualCharService GetVirtualCharService()
-            => CSharpVirtualCharService.Instance;
+    protected override IVirtualCharService GetVirtualCharService()
+        => CSharpVirtualCharService.Instance;
 
-        protected override ISyntaxFacts GetSyntaxFacts()
-            => CSharpSyntaxFacts.Instance;
+    protected override ISyntaxFacts GetSyntaxFacts()
+        => CSharpSyntaxFacts.Instance;
 
-        protected override AbstractSimplifyInterpolationHelpers GetHelpers() => CSharpSimplifyInterpolationHelpers.Instance;
-    }
+    protected override AbstractSimplifyInterpolationHelpers GetHelpers() => CSharpSimplifyInterpolationHelpers.Instance;
 }

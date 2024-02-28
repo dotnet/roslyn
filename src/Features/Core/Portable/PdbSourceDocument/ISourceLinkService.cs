@@ -6,26 +6,25 @@ using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.PdbSourceDocument
+namespace Microsoft.CodeAnalysis.PdbSourceDocument;
+
+internal interface ISourceLinkService
 {
-    internal interface ISourceLinkService
-    {
-        Task<SourceFilePathResult?> GetSourceFilePathAsync(string url, string relativePath, CancellationToken cancellationToken);
+    Task<SourceFilePathResult?> GetSourceFilePathAsync(string url, string relativePath, CancellationToken cancellationToken);
 
-        Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, bool useDefaultSymbolServers, CancellationToken cancellationToken);
-    }
-
-    // The following types mirror types in Microsoft.VisualStudio.Debugger.Contracts which cannot be referenced at this layer
-
-    /// <summary>
-    /// The result of findding a PDB file
-    /// </summary>
-    /// <param name="PdbFilePath">The path to the PDB file in the debugger cache</param>
-    internal record PdbFilePathResult(string PdbFilePath);
-
-    /// <summary>
-    /// The result of finding a source file via SourceLink
-    /// </summary>
-    /// <param name="SourceFilePath">The path to the source file in the debugger cache</param>
-    internal record SourceFilePathResult(string SourceFilePath);
+    Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, bool useDefaultSymbolServers, CancellationToken cancellationToken);
 }
+
+// The following types mirror types in Microsoft.VisualStudio.Debugger.Contracts which cannot be referenced at this layer
+
+/// <summary>
+/// The result of findding a PDB file
+/// </summary>
+/// <param name="PdbFilePath">The path to the PDB file in the debugger cache</param>
+internal record PdbFilePathResult(string PdbFilePath);
+
+/// <summary>
+/// The result of finding a source file via SourceLink
+/// </summary>
+/// <param name="SourceFilePath">The path to the source file in the debugger cache</param>
+internal record SourceFilePathResult(string SourceFilePath);

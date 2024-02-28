@@ -13,28 +13,8 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
-    internal static class AssemblyUtilities
+    internal static partial class AssemblyUtilities
     {
-        /// <summary>
-        /// Given a path to an assembly, returns its MVID (Module Version ID).
-        /// May throw.
-        /// </summary>
-        /// <exception cref="IOException">If the file at <paramref name="filePath"/> does not exist or cannot be accessed.</exception>
-        /// <exception cref="BadImageFormatException">If the file is not an assembly or is somehow corrupted.</exception>
-        public static Guid ReadMvid(string filePath)
-        {
-            RoslynDebug.Assert(PathUtilities.IsAbsolute(filePath));
-
-            using (var reader = new PEReader(FileUtilities.OpenRead(filePath)))
-            {
-                var metadataReader = reader.GetMetadataReader();
-                var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
-                var fileMvid = metadataReader.GetGuid(mvidHandle);
-
-                return fileMvid;
-            }
-        }
-
         /// <summary>
         /// Given a path to an assembly, finds the paths to all of its satellite
         /// assemblies.

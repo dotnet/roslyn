@@ -7,50 +7,49 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Telemetry
+namespace Microsoft.CodeAnalysis.Telemetry;
+
+/// <summary>
+/// Provides a mechanism to log telemetry information containing the execution time between
+/// creation and disposal of this object.
+/// </summary>
+internal sealed class TimedTelemetryLogBlock : IDisposable
 {
-    /// <summary>
-    /// Provides a mechanism to log telemetry information containing the execution time between
-    /// creation and disposal of this object.
-    /// </summary>
-    internal sealed class TimedTelemetryLogBlock : IDisposable
-    {
-        private readonly KeyValueLogMessage _logMessage;
-        private readonly int _minThresholdMs;
+    private readonly KeyValueLogMessage _logMessage;
+    private readonly int _minThresholdMs;
 #pragma warning disable IDE0052 // Remove unread private members - Not used in debug builds
-        private readonly ITelemetryLog _telemetryLog;
+    private readonly ITelemetryLog _telemetryLog;
 #pragma warning restore IDE0052 // Remove unread private members
-        private readonly SharedStopwatch _stopwatch;
+    private readonly SharedStopwatch _stopwatch;
 
-        public TimedTelemetryLogBlock(KeyValueLogMessage logMessage, int minThresholdMs, ITelemetryLog telemetryLog)
-        {
-            _logMessage = logMessage;
-            _minThresholdMs = minThresholdMs;
-            _telemetryLog = telemetryLog;
-            _stopwatch = SharedStopwatch.StartNew();
-        }
+    public TimedTelemetryLogBlock(KeyValueLogMessage logMessage, int minThresholdMs, ITelemetryLog telemetryLog)
+    {
+        _logMessage = logMessage;
+        _minThresholdMs = minThresholdMs;
+        _telemetryLog = telemetryLog;
+        _stopwatch = SharedStopwatch.StartNew();
+    }
 
-        public void Dispose()
+    public void Dispose()
+    {
+        var elapsed = (int)_stopwatch.Elapsed.TotalMilliseconds;
+        if (elapsed >= _minThresholdMs)
         {
-            var elapsed = (int)_stopwatch.Elapsed.TotalMilliseconds;
-            if (elapsed >= _minThresholdMs)
+            var logMessage = KeyValueLogMessage.Create(m =>
             {
-                var logMessage = KeyValueLogMessage.Create(m =>
-                {
-                    m[TelemetryLogging.KeyValue] = elapsed;
+                m[TelemetryLogging.KeyValue] = elapsed;
 
-                    m.AddRange(_logMessage.Properties);
-                });
+                m.AddRange(_logMessage.Properties);
+            });
 
 #if !DEBUG
-                // Don't skew telemetry results by logging in debug bits or under debugger.
-                if (!Debugger.IsAttached)
-                    _telemetryLog.Log(logMessage);
+            // Don't skew telemetry results by logging in debug bits or under debugger.
+            if (!Debugger.IsAttached)
+                _telemetryLog.Log(logMessage);
 #endif
-                logMessage.Free();
-            }
-
-            _logMessage.Free();
+            logMessage.Free();
         }
+
+        _logMessage.Free();
     }
 }

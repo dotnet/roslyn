@@ -4,24 +4,23 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.ExtractMethod
+namespace Microsoft.CodeAnalysis.ExtractMethod;
+
+internal class ReturnStyle
 {
-    internal class ReturnStyle
-    {
-        public ParameterBehavior ParameterBehavior { get; private set; }
-        public ReturnBehavior ReturnBehavior { get; private set; }
-        public DeclarationBehavior DeclarationBehavior { get; private set; }
+    public ParameterBehavior ParameterBehavior { get; private set; }
+    public ReturnBehavior ReturnBehavior { get; private set; }
+    public DeclarationBehavior DeclarationBehavior { get; private set; }
 
-        public static readonly ReturnStyle None =
-            new ReturnStyle() { ParameterBehavior = ParameterBehavior.None, ReturnBehavior = ReturnBehavior.None, DeclarationBehavior = DeclarationBehavior.None };
+    public static readonly ReturnStyle None =
+        new ReturnStyle() { ParameterBehavior = ParameterBehavior.None, ReturnBehavior = ReturnBehavior.None, DeclarationBehavior = DeclarationBehavior.None };
 
-        public static readonly ReturnStyle AssignmentWithInput =
-            new ReturnStyle() { ParameterBehavior = ParameterBehavior.Input, ReturnBehavior = ReturnBehavior.Assignment, DeclarationBehavior = DeclarationBehavior.None };
+    public static readonly ReturnStyle AssignmentWithInput =
+        new ReturnStyle() { ParameterBehavior = ParameterBehavior.Input, ReturnBehavior = ReturnBehavior.Assignment, DeclarationBehavior = DeclarationBehavior.None };
 
-        public static readonly ReturnStyle AssignmentWithNoInput =
-            new ReturnStyle() { ParameterBehavior = ParameterBehavior.None, ReturnBehavior = ReturnBehavior.Assignment, DeclarationBehavior = DeclarationBehavior.SplitIn };
+    public static readonly ReturnStyle AssignmentWithNoInput =
+        new ReturnStyle() { ParameterBehavior = ParameterBehavior.None, ReturnBehavior = ReturnBehavior.Assignment, DeclarationBehavior = DeclarationBehavior.SplitIn };
 
-        public static readonly ReturnStyle Initialization =
-            new ReturnStyle() { ParameterBehavior = ParameterBehavior.None, ReturnBehavior = ReturnBehavior.Initialization, DeclarationBehavior = DeclarationBehavior.SplitOut };
-    }
+    public static readonly ReturnStyle Initialization =
+        new ReturnStyle() { ParameterBehavior = ParameterBehavior.None, ReturnBehavior = ReturnBehavior.Initialization, DeclarationBehavior = DeclarationBehavior.SplitOut };
 }

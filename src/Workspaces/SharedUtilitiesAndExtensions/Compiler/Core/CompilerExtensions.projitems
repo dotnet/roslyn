@@ -19,6 +19,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" Link="InternalUtilities\Debug.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\EnumerableExtensions.cs" Link="InternalUtilities\EnumerableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="InternalUtilities\ExceptionUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExperimentalAttribute.cs" Link="InternalUtilities\ExperimentalAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynExperiments.cs" Link="InternalUtilities\RoslynExperiments.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterlockedOperations.cs" Link="InternalUtilities\InterlockedOperations.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" Link="InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs" Link="InternalUtilities\InterpolatedStringHandlerAttribute.cs" />
