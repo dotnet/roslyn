@@ -25,7 +25,7 @@ public class CreateSourceTextFromDisk
         Directory.CreateDirectory(dir);
         SmallFilePath = writeCode("small", 1000);
         MediumFilePath = writeCode("medium", 4000);
-        LargeFilePath = writeCode("medium", 8000);
+        LargeFilePath = writeCode("large", 8000);
 
         string writeCode(string fileName, int count)
         {
