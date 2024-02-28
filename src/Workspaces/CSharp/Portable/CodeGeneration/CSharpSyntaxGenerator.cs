@@ -802,23 +802,23 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
                              .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
                              .WithBody(null);
 
-                    case SyntaxKind.OperatorDeclaration:
-                        var operatorDeclaration = (OperatorDeclarationSyntax)member;
-                        var abstractVirtualModifiers = operatorDeclaration.Modifiers.Where(x =>
-                            x.Kind() == SyntaxKind.AbstractKeyword
-                            || x.Kind() == SyntaxKind.VirtualKeyword
-                            || x.Kind() == SyntaxKind.PublicKeyword);
-                        return operatorDeclaration
-                                 .WithModifiers(SyntaxTokenList.Create(abstractVirtualModifiers.ToArray()))
-                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword))
-                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                                 .WithBody(null);
+                case SyntaxKind.OperatorDeclaration:
+                    var operatorDeclaration = (OperatorDeclarationSyntax)member;
+                    var abstractVirtualModifiers = operatorDeclaration.Modifiers.Where(x =>
+                        x.Kind() == SyntaxKind.AbstractKeyword
+                        || x.Kind() == SyntaxKind.VirtualKeyword
+                        || x.Kind() == SyntaxKind.PublicKeyword);
+                    return operatorDeclaration
+                        .WithModifiers(SyntaxTokenList.Create(abstractVirtualModifiers.ToArray()))
+                        .AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword))
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                        .WithBody(null);
 
-                    case SyntaxKind.PropertyDeclaration:
-                        var property = (PropertyDeclarationSyntax)member;
-                        return property
-                            .WithModifiers(default)
-                            .WithAccessorList(WithoutBodies(property.AccessorList));
+                case SyntaxKind.PropertyDeclaration:
+                    var property = (PropertyDeclarationSyntax)member;
+                    return property
+                        .WithModifiers(default)
+                        .WithAccessorList(WithoutBodies(property.AccessorList));
 
                 case SyntaxKind.IndexerDeclaration:
                     var indexer = (IndexerDeclarationSyntax)member;
