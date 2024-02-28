@@ -1363,7 +1363,7 @@ outerDefault:
                             return true;
                         }
 
-                        if (extendedType.IsClassType()
+                        if ((extendedType.IsClassType() || extendedType.IsEnumType() || extendedType.IsStructType()/* || extendedType.IsDelegateType()*/)
                             && extendedType.IsDerivedFrom(type, TypeCompareKind.ConsiderEverything, ref useSiteInfo))
                         {
                             return true;
@@ -1378,21 +1378,6 @@ outerDefault:
                         if (extendedType.IsTypeParameter())
                         {
                             return isLessDerivedThanTypeParameter(type, (TypeParameterSymbol)extendedType, ref useSiteInfo);
-                        }
-
-                        if (extendedType.IsEnumType() && type.SpecialType == SpecialType.System_Enum)
-                        {
-                            return true;
-                        }
-
-                        if (extendedType.IsStructType() && type.SpecialType == SpecialType.System_ValueType)
-                        {
-                            return true;
-                        }
-
-                        if (extendedType.IsDelegateType() && type.SpecialType is SpecialType.System_Delegate or SpecialType.System_MulticastDelegate)
-                        {
-                            return true;
                         }
                     }
                 }

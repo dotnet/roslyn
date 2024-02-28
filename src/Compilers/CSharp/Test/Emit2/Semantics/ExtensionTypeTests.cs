@@ -16360,7 +16360,7 @@ public static class E2
     }
 
     [Fact]
-    public void ExtensionInvocation_InstanceReceiver_AmbiguityWithExtensionOnBaseType()
+    public void ExtensionInvocation_Instance_AmbiguityWithExtensionOnBaseType()
     {
         var source = """
 System.Console.Write(new C().M(42));
@@ -16419,7 +16419,7 @@ public static class E2
     }
 
     [Fact]
-    public void ExtensionInvocation_StaticReceiver_AmbiguityWithExtensionOnBaseType()
+    public void ExtensionInvocation_Static_AmbiguityWithExtensionOnBaseType()
     {
         var source = """
 System.Console.Write(C.M(42));
@@ -16458,7 +16458,7 @@ implicit extension E2 for C
     }
 
     [Fact]
-    public void ExtensionProperty_InstanceReceiver_AmbiguityWithExtensionOnBaseType()
+    public void ExtensionProperty_Instance_AmbiguityWithExtensionOnBaseType()
     {
         var source = """
 System.Console.Write(new C().P);
@@ -16493,7 +16493,7 @@ implicit extension E2 for C
     }
 
     [Fact]
-    public void ExtensionProperty_StaticReceiver_AmbiguityWithExtensionOnBaseType()
+    public void ExtensionProperty_Static_AmbiguityWithExtensionOnBaseType()
     {
         var source = """
 System.Console.Write(C.P);
@@ -24276,6 +24276,60 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     }
 
     [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void UnderlyingTypeMemberLookup_Instance_Invocation_Struct_AfterMemberFromExtension_FromValueType(bool isExplicit)
+    {
+        var source = $$"""
+namespace System
+{
+    public class ValueType
+    {
+        public void M2() { }
+    }
+    public class Object { }
+    public struct Void { }
+    public class Attribute { }
+    public class String { }
+    public struct Boolean { }
+    public class ObsoleteAttribute : Attribute
+    {
+        public ObsoleteAttribute() { }
+        public ObsoleteAttribute(string message) { }
+        public ObsoleteAttribute(string message, bool error) { }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class CompilerFeatureRequiredAttribute : Attribute
+    {
+        public CompilerFeatureRequiredAttribute(string featureName) { }
+    }
+}
+
+public struct Underlying { }
+
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
+{
+    public void M2() { }
+    public void M(E e) { this.M2(); e.M2(); }
+}
+""";
+        var comp = CreateEmptyCompilation(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        // PROTOTYPE need to fix the semantic model
+        var thisInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(thisInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(thisInvocation));
+
+        var instanceInvocation = GetSyntax<InvocationExpressionSyntax>(tree, "e.M2()");
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(instanceInvocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(instanceInvocation));
+    }
+
+    [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
     public void UnderlyingTypeMemberLookup_Instance_Invocation_Delegate(bool isExplicit)
     {
         var source = $$"""
@@ -25446,6 +25500,55 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for C
             //         _ = e[43];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "e[43]").WithArguments("E").WithLocation(17, 13)
             );
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Instance_IndexerAccess_Array(bool isExplicit)
+    {
+        var source = $$"""
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for int[]
+{
+    public void M(E e)
+    {
+        _ = this[42];
+        _ = e[43];
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE implement indexer access on receiver of extension type
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'E'
+            //         _ = this[42];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "this[42]").WithArguments("E").WithLocation(5, 13),
+            // (6,13): error CS0021: Cannot apply indexing with [] to an expression of type 'E'
+            //         _ = e[43];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "e[43]").WithArguments("E").WithLocation(6, 13));
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public void UnderlyingTypeMemberLookup_Instance_IndexerAccess_Array_AfterMemberFromExtension(bool isExplicit)
+    {
+        var source = $$"""
+public {{(isExplicit ? "explicit" : "implicit")}} extension E for int[]
+{
+    public int this[int i] { get => throw null; }
+    public void M(E e)
+    {
+        _ = this[42];
+        _ = e[43];
+    }
+}
+""";
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE implement indexer access on receiver of extension type
+        comp.VerifyEmitDiagnostics(
+            // (6,13): error CS0021: Cannot apply indexing with [] to an expression of type 'E'
+            //         _ = this[42];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "this[42]").WithArguments("E").WithLocation(6, 13),
+            // (7,13): error CS0021: Cannot apply indexing with [] to an expression of type 'E'
+            //         _ = e[43];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "e[43]").WithArguments("E").WithLocation(7, 13));
     }
 
     [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
