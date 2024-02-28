@@ -2718,6 +2718,71 @@ public sealed class ModuleCancellationTests : CSharpTestBase
     }
 
     [Fact]
+    public void CancellableOverload_IndexerAndMethod()
+    {
+        var source = """
+            using System.Threading;
+            
+            class C
+            {
+                int get_Item() => 0;
+                int this[CancellationToken token] => 0;
+
+                void F()
+                {
+                    var _ = get_Item();
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void CancellableOverload_PropertyAndMethod()
+    {
+        var source = """
+            using System.Threading;
+            
+            class C
+            {
+                void set_P() {}
+                CancellationToken P { get; set; }
+
+                void F()
+                {
+                    set_P();
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
+    public void CancellableOverload_RecordPropertyAndMethod()
+    {
+        var source = """
+            using System.Threading;
+            
+            record C(CancellationToken P)
+            {
+                void set_P() {}
+
+                void F()
+                {
+                    set_P();
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(source);
+        AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
+    }
+
+    [Fact]
     public void CancellableOverload_InfiniteRecursionAvoidance()
     {
         var source = """

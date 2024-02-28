@@ -123,9 +123,9 @@ internal sealed class ModuleCancellationInstrumenter(
     {
         Previous.InterceptCallAndAdjustArguments(ref method, ref receiver, ref arguments, ref argumentRefKindsOpt);
 
-        // If the target method is defined within this compilation it is already being instrumented to be cancellable.
+        // If the target method is defined within this module it is already being instrumented to be cancellable.
         // However, if we are calling Invoke method of a delegate or a virtual/interface method we can't determine whether
-        // or not the target is in the current compilation. Hence we replace the cancellation token for all calls.
+        // or not the target is in the current module. Hence we replace the cancellation token for all calls.
 
         if (arguments is [.., { Type: { } lastArgumentType } lastArgument] &&
             (argumentRefKindsOpt.IsDefault || argumentRefKindsOpt is [.., RefKind.None]) &&
@@ -185,13 +185,11 @@ internal sealed class ModuleCancellationInstrumenter(
                 member.MetadataVisibility == methodDefinition.MetadataVisibility &&
                 member is MethodSymbol { Parameters: [.., { RefKind: RefKind.None, Type: { } lastParamType }] parametersWithCancellationToken } overload &&
                 overload.Arity == methodDefinition.Arity &&
+                methodDefinition.MethodKind == overload.MethodKind &&
                 methodDefinition.Parameters.Length == parametersWithCancellationToken.Length - 1 &&
                 lastParamType.Equals(_throwMethod.ContainingType, TypeCompareKind.ConsiderEverything) &&
                 (!methodsSetsRequiredMembers || overload.HasSetsRequiredMembers))
             {
-                // we are only considering constructors and ordinary methods, which have different name.
-                Debug.Assert(methodDefinition.MethodKind == overload.MethodKind);
-
                 var typeMap = (methodDefinition.Arity > 0) ? new TypeMap(overload.TypeParameters, methodDefinition.TypeParameters) : null;
 
                 if (MemberSignatureComparer.HaveSameParameterTypes(
