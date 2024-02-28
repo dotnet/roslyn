@@ -4663,7 +4663,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 //kick out early if we've seen everything we're looking for
-                if (hasInstanceConstructor && hasStaticConstructor)
+                if (hasInstanceConstructor &&
+                    hasParameterlessInstanceConstructor &&
+                    hasStaticConstructor)
                 {
                     break;
                 }
