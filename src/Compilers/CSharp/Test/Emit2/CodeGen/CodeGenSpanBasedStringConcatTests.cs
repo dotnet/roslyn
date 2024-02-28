@@ -304,7 +304,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
             """);
     }
 
-    [Theory]
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72232")]
     [InlineData(null)]
     [InlineData((int)SpecialMember.System_String__Concat_2ReadOnlySpans)]
     public void ConcatTwo_ReadOnlySpan_NullConcatArgument(int? missingUnimportantMember)
