@@ -2268,15 +2268,13 @@ top:
 
                 if (width < MaxCachedTokenSize)
                 {
-                    var trivia = _cache.LookupTrivia(
+                    return _cache.LookupTrivia(
                         TextWindow.CharacterWindow,
                         TextWindow.LexemeRelativeStart,
                         width,
                         hashCode,
                         CreateWhitespaceTrivia,
                         TextWindow);
-
-                    return trivia;
                 }
                 else
                 {
