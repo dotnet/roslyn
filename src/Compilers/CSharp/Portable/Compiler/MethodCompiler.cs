@@ -1772,7 +1772,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     buildIdentifierMapOfBindIdentifierTargets(syntaxNode, bodyBinder, out inMethodBinder, out identifierMap);
 #endif
 
-                    BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics);
+                    BoundNode methodBody = Binder.BindWithLambdaBindingCountDiagnostics(
+                        bodyBinder,
+                        diagnostics,
+                        (bodyBinder, diagnostics) => bodyBinder.BindMethodBody(syntaxNode, diagnostics));
 
 #if DEBUG
                     assertBindIdentifierTargets(inMethodBinder, identifierMap, methodBody, diagnostics);

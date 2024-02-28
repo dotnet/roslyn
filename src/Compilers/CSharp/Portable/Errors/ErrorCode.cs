@@ -2301,6 +2301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ParamsCollectionMissingConstructor = 9228,
 
         ERR_NoModifiersOnUsing = 9229,
+        INF_TooManyBoundLambdas = 9230,
 
         #endregion
 

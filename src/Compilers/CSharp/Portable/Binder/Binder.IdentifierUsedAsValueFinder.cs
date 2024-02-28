@@ -531,6 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 UnboundLambda unboundLambda = Binder.MakeQueryUnboundLambda(
                     expression,
                     new QueryUnboundLambdaState(
+                        expression,
                         enclosingBinder, qvm, ImmutableArray.Create(parameter),
                         (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics) => throw ExceptionUtilities.Unreachable()),
                     withDependencies: false);

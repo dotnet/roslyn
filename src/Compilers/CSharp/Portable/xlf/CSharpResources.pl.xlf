@@ -2437,6 +2437,11 @@
         <target state="translated">wskaźnik</target>
         <note />
       </trans-unit>
+      <trans-unit id="INF_TooManyBoundLambdas">
+        <source>Compilation requires binding the nested lambda expression more than {0} times. Consider declaring some or all of the lambda expressions with explicit parameter types.</source>
+        <target state="new">Compilation requires binding the nested lambda expression more than {0} times. Consider declaring some or all of the lambda expressions with explicit parameter types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
         <source>{0} is not a valid C# spread operation</source>
         <target state="translated">{0} nie jest prawidłową operacją rozłożenia w języku C#</target>

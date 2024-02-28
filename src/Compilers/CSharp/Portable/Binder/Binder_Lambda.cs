@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -421,6 +422,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return lambda;
+        }
+
+        internal static T BindWithLambdaBindingCountDiagnostics<T>(Binder binder, BindingDiagnosticBag diagnostics, Func<Binder, BindingDiagnosticBag, T> bind)
+            where T : BoundNode
+        {
+            var lambdaBindings = new Dictionary<SyntaxNode, int>();
+            var result = bind(new RecordLambdaBindingBinder(binder, lambdaBindings), diagnostics);
+
+            var builder = ArrayBuilder<(SyntaxNode, int)>.GetInstance();
+            getLambdaBindingCounts(lambdaBindings, builder);
+
+            foreach (var (syntax, count) in builder)
+            {
+                const int maxLambdaBinding = 100;
+                if (count > maxLambdaBinding)
+                {
+                    int lowerCount = ((count - 1) / 100) * 100;
+                    diagnostics.Add(ErrorCode.INF_TooManyBoundLambdas, Binder.GetAnonymousFunctionLocation(syntax), lowerCount);
+                }
+            }
+
+            builder.Free();
+            return result;
+
+            static void getLambdaBindingCounts(Dictionary<SyntaxNode, int> lambdaBindingCounts, ArrayBuilder<(SyntaxNode, int)> builder)
+            {
+                Debug.Assert(builder.Count == 0);
+
+                foreach (var pair in lambdaBindingCounts)
+                {
+                    builder.Add((pair.Key, pair.Value));
+                }
+
+                builder.Sort((x, y) => getPosition(x.Item1) - getPosition(y.Item1));
+            }
+
+            static int getPosition(SyntaxNode syntax) => syntax.Location.SourceSpan.Start;
         }
     }
 }
