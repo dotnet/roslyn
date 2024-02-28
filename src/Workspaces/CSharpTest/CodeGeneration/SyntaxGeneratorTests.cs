@@ -2780,7 +2780,7 @@ public class C
                 }
                 """);
         }
-        
+
         [Fact]
         public void TestRemoveMembers()
         {
