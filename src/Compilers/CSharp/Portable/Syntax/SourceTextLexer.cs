@@ -27,4 +27,9 @@ public readonly struct SourceTextLexer : IDisposable
         var token = _lexer.Lex(InternalSyntax.LexerMode.Syntax);
         return new SyntaxToken(parent: null, token, position, index: 0);
     }
+
+    public static SyntaxKind GetContextualKind(SyntaxToken token)
+    {
+        return token.ContextualKind();
+    }
 }
