@@ -1,7 +1,10 @@
-## This document lists known breaking changes in Roslyn in *Visual Studio 2019 Update 1* and beyond compared to *Visual Studio 2019*.
+**This document lists known breaking changes in Roslyn in *Visual Studio 2019 Update 1* and beyond compared to *Visual Studio 2019*.**
 
-*Breaks are formatted with a monotonically increasing numbered list to allow them to referenced via shorthand (i.e., "known break #1").
-Each entry should include a short description of the break, followed by either a link to the issue describing the full details of the break or the full details of the break inline.*
+<!--
+*Breaking changes are formatted with a numerically delineated list so as to allow shorthand numerical references (e.g., "known break #1").
+
+Each entry should include a short description of the breaking change, followed by either a link to the issue describing the full details of the change or the full details inline.*
+-->
 
 1. https://github.com/dotnet/roslyn/issues/34882 A new feature in C# `8.0` will permit using a constant pattern with an open type.  For example, the following code will be permitted:
     ``` c#
