@@ -1998,14 +1998,6 @@ public sealed class ModuleCancellationTests : CSharpTestBase
         var source = """
             using System.Threading;
             using System.Diagnostics.CodeAnalysis;
-            
-            namespace System.Diagnostics.CodeAnalysis
-            {
-                [AttributeUsage(AttributeTargets.Constructor, AllowMultiple = false, Inherited = false)]
-                internal sealed class SetsRequiredMembersAttribute : Attribute
-                {
-                }
-            }
 
             class B
             {
@@ -2019,7 +2011,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
             class C() : B(1)
             {
             }
-            """;
+            """ + SetsRequiredMembersAttribute;
 
         var verifier = CompileAndVerify(source);
         AssertNotInstrumentedWithTokenLoad(verifier, "C..ctor");
@@ -2033,14 +2025,6 @@ public sealed class ModuleCancellationTests : CSharpTestBase
         var source = $$"""
             using System.Threading;
             using System.Diagnostics.CodeAnalysis;
-            
-            namespace System.Diagnostics.CodeAnalysis
-            {
-                [AttributeUsage(AttributeTargets.Constructor, AllowMultiple = false, Inherited = false)]
-                internal sealed class SetsRequiredMembersAttribute : Attribute
-                {
-                }
-            }
 
             class B
             {
@@ -2055,7 +2039,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
             class C() : B(1)
             {
             }
-            """;
+            """ + SetsRequiredMembersAttribute;
 
         var verifier = CompileAndVerify(source);
 
@@ -2776,9 +2760,9 @@ public sealed class ModuleCancellationTests : CSharpTestBase
                     set_P();
                 }
             }
-            """;
+            """ + IsExternalInitTypeDefinition;
 
-        var verifier = CompileAndVerify(source);
+        var verifier = CompileAndVerify(source, verification: Verification.FailsPEVerify);
         AssertNotInstrumentedWithTokenLoad(verifier, "C.F");
     }
 
