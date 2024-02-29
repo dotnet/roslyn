@@ -172,7 +172,7 @@ function Exec-Script([string]$script, [string]$scriptArgs = "", [switch]$useCons
   if ($args -ne "") {
     throw "Extra arguments passed to Exec-Script: $args"
   }
-  Exec-CommandCore -command "pwsh" -commandArgs "-noprofile -executionPolicy RemoteSigned -file `"$script`" $scriptArgs" -useConsole:$useConsole -echoCommand:$echoCommand
+  Exec-CommandCore -command "dotnet" -commandArgs "pwsh -noprofile -executionPolicy RemoteSigned -file `"$script`" $scriptArgs" -useConsole:$useConsole -echoCommand:$echoCommand
 }
 
 # Handy function for executing a dotnet command without having to track down the 

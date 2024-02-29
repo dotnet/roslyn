@@ -1,2 +1,2 @@
 @echo off
-pwsh -noprofile -file "%~dp0\make-bootstrap.ps1" %* 
+dotnet pwsh -noprofile -file "%~dp0\make-bootstrap.ps1" %* 
