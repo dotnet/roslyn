@@ -1146,7 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.FileKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.AllowsKeyword; i++)
             {
                 yield return (SyntaxKind)i;
             }
@@ -1202,6 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RequiredKeyword:
                 case SyntaxKind.ScopedKeyword:
                 case SyntaxKind.FileKeyword:
+                case SyntaxKind.AllowsKeyword:
                     return true;
                 default:
                     return false;
@@ -1327,6 +1328,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ScopedKeyword;
                 case "file":
                     return SyntaxKind.FileKeyword;
+                case "allows":
+                    return SyntaxKind.AllowsKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1772,6 +1775,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "scoped";
                 case SyntaxKind.FileKeyword:
                     return "file";
+                case SyntaxKind.AllowsKeyword:
+                    return "allows";
                 default:
                     return string.Empty;
             }
