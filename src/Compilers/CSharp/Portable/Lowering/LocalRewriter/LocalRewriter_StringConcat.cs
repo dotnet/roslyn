@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This logic can probably be applied to all special types,
             // but that would introduce a silent change every time a new special type is added,
             // and if at some point the assumption no longer holds, this would be a bug, which might not get noticed.
-            // So to be extra safe we we constrain the check to a fixed range of special types
+            // So to be extra safe we constrain the check to a fixed range of special types
             if (structToStringMethod != null &&
                 expr.Type.SpecialType is (>= SpecialType.System_Object and <= SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute) &&
                 !isFieldOfMarshalByRef(expr, _compilation))
