@@ -314,18 +314,15 @@ namespace Microsoft.CodeAnalysis
                         var initialProjectState = this.ProjectState.RemoveAllDocuments();
                         var initialCompilation = this.CreateEmptyCompilation();
 
-                        var translationActionsBuilder = ImmutableList.CreateBuilder<TranslationAction>();
-
-                        var oldProjectState = initialProjectState;
+                        var builder = ImmutableArray.CreateBuilder<DocumentState>(this.ProjectState.DocumentStates.Count);
                         foreach (var documentState in this.ProjectState.DocumentStates.GetStatesInCompilationOrder())
-                        {
-                            var documentStates = ImmutableArray.Create(documentState);
-                            var newProjectState = oldProjectState.AddDocuments(documentStates);
-                            translationActionsBuilder.Add(new TranslationAction.AddDocumentsAction(
-                                oldProjectState, newProjectState, documentStates));
+                            builder.Add(documentState);
 
-                            oldProjectState = newProjectState;
-                        }
+                        var documentStates = builder.MoveToImmutable();
+
+                        var newProjectState = initialProjectState.AddDocuments(documentStates);
+                        var newTranslations = ImmutableList.Create<TranslationAction>(
+                            new TranslationAction.AddDocumentsAction(initialProjectState, newProjectState, documentStates));
 
                         var compilationWithoutGeneratedDocuments = CreateEmptyCompilation();
 
@@ -338,7 +335,7 @@ namespace Microsoft.CodeAnalysis
                             new Lazy<Compilation>(CreateEmptyCompilation),
                             CompilationTrackerGeneratorInfo.Empty,
                             staleCompilationWithGeneratedDocuments: s_lazyNullCompilation,
-                            pendingTranslationActions: translationActionsBuilder.ToImmutable());
+                            pendingTranslationActions: newTranslations);
 
                         WriteState(allSyntaxTreesParsedState);
                         return allSyntaxTreesParsedState;
