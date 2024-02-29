@@ -185,7 +185,6 @@ function Exec-DotNet([string]$commandArgs = "", [switch]$useConsole = $true, [sw
   Exec-CommandCore -command $dotnet -commandArgs $commandArgs -useConsole:$useConsole -echoCommand:$echoCommand
 }
 
-
 # Ensure the proper .NET Core SDK is available. Returns the location to the dotnet.exe.
 function Ensure-DotnetSdk() {
   $dotnetInstallDir = (InitializeDotNetCli -install:$true)
