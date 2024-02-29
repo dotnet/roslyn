@@ -2381,6 +2381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void AddInterception(string filePath, int line, int character, Location attributeLocation, MethodSymbol interceptor)
         {
             Debug.Assert(!_declarationDiagnosticsFrozen);
+            Debug.Assert(!InterceptorsDiscoveryComplete);
 
             var dictionary = LazyInitializer.EnsureInitialized(ref _interceptions);
             dictionary.AddOrUpdate((filePath, line, character),
@@ -2402,6 +2403,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Explicit tuple element names are needed here so that the names unify when this is an extension method call (netstandard2.0).
                 factoryArgument: (AttributeLocation: attributeLocation, Interceptor: interceptor));
         }
+
+        internal bool InterceptorsDiscoveryComplete;
 
         internal (Location AttributeLocation, MethodSymbol Interceptor)? TryGetInterceptor(Location? callLocation)
         {

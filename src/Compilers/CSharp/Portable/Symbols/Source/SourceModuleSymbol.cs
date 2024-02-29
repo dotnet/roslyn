@@ -268,26 +268,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         _state.SpinWaitComplete(CompletionPart.FinishValidatingReferencedAssemblies, cancellationToken);
                         break;
 
-                    case CompletionPart.StartInterceptorsChecks:
-                        if (_state.NotePartComplete(CompletionPart.StartInterceptorsChecks))
-                        {
-                            DiscoverInterceptors();
-                            _state.NotePartComplete(CompletionPart.FinishInterceptorsChecks);
-                        }
-
-                        break;
-
-                    case CompletionPart.FinishInterceptorsChecks:
-                        Debug.Assert(_state.HasComplete(CompletionPart.StartInterceptorsChecks));
-                        _state.SpinWaitComplete(CompletionPart.FinishInterceptorsChecks, cancellationToken);
-                        break;
-
                     case CompletionPart.MembersCompleted:
                         this.GlobalNamespace.ForceComplete(locationOpt, filter, cancellationToken);
 
                         if (this.GlobalNamespace.HasComplete(CompletionPart.MembersCompleted))
                         {
                             _state.NotePartComplete(CompletionPart.MembersCompleted);
+
+                            // Completing the global namespace members means all InterceptsLocationAttributes have been bound.
+                            Volatile.Write(ref DeclaringCompilation.InterceptorsDiscoveryComplete, true);
                         }
                         else
                         {
@@ -337,10 +326,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void DiscoverInterceptorsIfNeeded()
         {
-            if (_state.NotePartComplete(CompletionPart.StartInterceptorsChecks))
+            if (!Volatile.Read(ref DeclaringCompilation.InterceptorsDiscoveryComplete))
             {
                 DiscoverInterceptors();
-                _state.NotePartComplete(CompletionPart.FinishInterceptorsChecks);
+                Volatile.Write(ref DeclaringCompilation.InterceptorsDiscoveryComplete, true);
             }
         }
 
@@ -355,18 +344,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Search the namespaces which were indicated to contain interceptors.
-            var interceptorsNamespaces = ((CSharpParseOptions)location.SourceTree.Options).InterceptorsPreviewNamespaces;
-            foreach (var namespaceParts in interceptorsNamespaces)
+            ImmutableArray<ImmutableArray<string>> interceptorsNamespaces = ((CSharpParseOptions)location.SourceTree.Options).InterceptorsPreviewNamespaces;
+            foreach (ImmutableArray<string> namespaceParts in interceptorsNamespaces)
             {
                 if (namespaceParts is ["global"])
                 {
+                    toVisit.Clear();
                     toVisit.Add(GlobalNamespace);
                     // No point in continuing, we already are going to search the entire module in this case.
                     break;
                 }
 
                 var cursor = GlobalNamespace;
-                foreach (var namespacePart in namespaceParts)
+                foreach (string namespacePart in namespaceParts)
                 {
                     cursor = (NamespaceSymbol?)cursor.GetMembers(namespacePart).FirstOrDefault(member => member.Kind == SymbolKind.Namespace);
                     if (cursor is null)
