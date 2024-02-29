@@ -31,15 +31,12 @@ public sealed class StackOverflowProbingTests : CSharpTestBase
             expectedOutput: expectedOutput);
 
     private static void AssertNotInstrumented(CompilationVerifier verifier, string qualifiedMethodName)
-        => AssertInstrumented(verifier, qualifiedMethodName, expected: false);
-
-    private static void AssertInstrumented(CompilationVerifier verifier, string qualifiedMethodName, bool expected = true)
     {
         var il = verifier.VisualizeIL(qualifiedMethodName);
         var isInstrumented = il.Contains("System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack");
 
-        AssertEx.AreEqual(expected, isInstrumented,
-            $"Method '{qualifiedMethodName}' should {(expected ? "be" : "not be")} instrumented. Actual IL:{Environment.NewLine}{il}");
+        Assert.False(isInstrumented,
+            $"Method '{qualifiedMethodName}' should not be trumented. Actual IL:{Environment.NewLine}{il}");
     }
 
     [Fact]
