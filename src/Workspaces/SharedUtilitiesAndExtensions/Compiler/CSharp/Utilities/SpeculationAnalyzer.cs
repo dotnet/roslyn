@@ -777,6 +777,7 @@ internal class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
             // target-typed tuple-expression conversion happened).  Note: unlike above, we don't have to check
             // a language version since tuple expressions always supported tuple-expression-conversions.
             if (newExpression.IsKind(SyntaxKind.TupleExpression) &&
+                SymbolsAreCompatible(originalTypeInfo.Type, newTypeInfo.ConvertedType) &&
                 this.SpeculativeSemanticModel.GetConversion(newExpression).IsTupleLiteralConversion)
             {
                 return true;
