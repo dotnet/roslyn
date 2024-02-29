@@ -823,11 +823,15 @@ internal partial class ProjectState
         if (documentIds.IsEmpty)
             return this;
 
+        var newDocumentStates = DocumentStates.RemoveRange(documentIds);
+        if (newDocumentStates.IsEmpty)
+            return this;
+
         // We create a new CachingAnalyzerConfigSet for the new snapshot to avoid holding onto cached information
         // for removed documents.
         return With(
             projectInfo: ProjectInfo.WithVersion(Version.GetNewerVersion()),
-            documentStates: DocumentStates.RemoveRange(documentIds),
+            documentStates: newDocumentStates,
             analyzerConfigSet: ComputeAnalyzerConfigOptionsValueSource(AnalyzerConfigDocumentStates));
     }
 
@@ -836,9 +840,13 @@ internal partial class ProjectState
         if (documentIds.IsEmpty)
             return this;
 
+        var newAdditionalDocumentStates = AdditionalDocumentStates.RemoveRange(documentIds);
+        if (newAdditionalDocumentStates.IsEmpty)
+            return this;
+
         return With(
             projectInfo: ProjectInfo.WithVersion(Version.GetNewerVersion()),
-            additionalDocumentStates: AdditionalDocumentStates.RemoveRange(documentIds));
+            additionalDocumentStates: newAdditionalDocumentStates);
     }
 
     public ProjectState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
@@ -847,6 +855,8 @@ internal partial class ProjectState
             return this;
 
         var newAnalyzerConfigDocumentStates = AnalyzerConfigDocumentStates.RemoveRange(documentIds);
+        if (newAnalyzerConfigDocumentStates.IsEmpty)
+            return this;
 
         return CreateNewStateForChangedAnalyzerConfigDocuments(newAnalyzerConfigDocumentStates);
     }
