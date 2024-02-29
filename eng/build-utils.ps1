@@ -302,8 +302,6 @@ function Unsubst-TempDir() {
 function Stop-Processes() {
   Write-Host 'Killing running build processes Roslyn style...'
   foreach ($processName in $processesToStopOnExit) {
-    Get-Process -Name $processName -ErrorAction SilentlyContinue 
-      ? { $_.ProcessId -ne $PID }
-      | Stop-Process
+    Get-Process -Name $processName -ErrorAction SilentlyContinue ? { $_.ProcessId -ne $PID } | Stop-Process
   }
 }
