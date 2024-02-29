@@ -6833,7 +6833,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            // PROTOTYPE(ParamsCollections): Add meaningful tests to verify that conversions are handled properly etc.
                             elements = ((BoundCollectionExpression)((BoundConversion)argument).Operand).UnconvertedCollectionExpression.Elements.CastArray<BoundExpression>();
                         }
 

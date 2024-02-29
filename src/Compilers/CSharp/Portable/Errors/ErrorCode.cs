@@ -2292,6 +2292,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_DynamicDispatchToParamsCollectionConstructor = 9505,
         ERR_ParamsCollectionInfiniteChainOfConstructorCalls = 9506,
         ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember = 9507,
+        ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember = 9508,
+        ERR_ParamsCollectionExpressionTree = 9509,
+        ERR_ParamsCollectionExtensionAddMethod = 9510,
+        ERR_ParamsCollectionMissingConstructor = 9511,
 
         #endregion
 

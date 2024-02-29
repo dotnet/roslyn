@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -810,8 +811,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return collectionCreation;
         }
 
-        internal bool HasCollectionExpressionApplicableConstructor(SyntaxNode syntax, TypeSymbol targetType, out MethodSymbol? constructor, out bool isExpanded, BindingDiagnosticBag diagnostics)
+        internal bool HasCollectionExpressionApplicableConstructor(SyntaxNode syntax, TypeSymbol targetType, out MethodSymbol? constructor, out bool isExpanded, BindingDiagnosticBag diagnostics, bool isParamsModifierValidation = false)
         {
+            Debug.Assert(!isParamsModifierValidation || syntax is ParameterSyntax);
+
             // This is what BindClassCreationExpression is doing in terms of reporting diagnostics
 
             constructor = null;
@@ -847,13 +850,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         out MemberResolutionResult<MethodSymbol> memberResolutionResult,
                         candidateConstructors: out _,
                         allowProtectedConstructorsOfBaseType: false,
-                        out CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo);
+                        out CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo,
+                        isParamsModifierValidation: isParamsModifierValidation);
 
                 analyzedArguments.Free();
 
                 if (overloadResolutionSucceeded)
                 {
-                    bindClassCreationExpressionContinued(binder, syntax, memberResolutionResult, in overloadResolutionUseSiteInfo, diagnostics);
+                    bindClassCreationExpressionContinued(binder, syntax, memberResolutionResult, in overloadResolutionUseSiteInfo, isParamsModifierValidation, diagnostics);
                     constructor = memberResolutionResult.Member;
                     isExpanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
                 }
@@ -879,6 +883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxNode node,
                 MemberResolutionResult<MethodSymbol> memberResolutionResult,
                 in CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo,
+                bool isParamsModifierValidation,
                 BindingDiagnosticBag diagnostics)
             {
                 ReportConstructorUseSiteDiagnostics(node.Location, diagnostics, suppressUnsupportedRequiredMembersError: false, in overloadResolutionUseSiteInfo);
@@ -888,7 +893,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder.ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
                 // NOTE: Use-site diagnostics were reported during overload resolution.
 
-                CheckRequiredMembersInObjectInitializer(method, initializers: default, node, diagnostics);
+                ImmutableSegmentedDictionary<string, Symbol> requiredMembers = GetMembersRequiringInitialization(method);
+                if (requiredMembers.Count != 0)
+                {
+                    if (isParamsModifierValidation)
+                    {
+                        diagnostics.Add(
+                            ErrorCode.ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember,
+                            ((ParameterSyntax)node).Modifiers.First(static m => m.IsKind(SyntaxKind.ParamsKeyword)).GetLocation(),
+                            method, requiredMembers.First().Value);
+                    }
+                    else
+                    {
+                        ReportMembersRequiringInitialization(node, requiredMembers.ToBuilder(), diagnostics);
+                    }
+                }
             }
 
             // This is what CreateBadClassCreationExpression is doing in terms of reporting diagnostics
