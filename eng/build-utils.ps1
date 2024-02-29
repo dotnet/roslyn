@@ -294,3 +294,16 @@ function Unsubst-TempDir() {
     $env:TMP=$originalTemp
   }
 }
+
+# Override the arcade Stop-Process so that we can avoid having the Powershell
+# process kill itself on exit
+# 
+# https://github.com/dotnet/arcade/issues/14532
+function Stop-Processes() {
+  Write-Host 'Killing running build processes Roslyn style...'
+  foreach ($processName in $processesToStopOnExit) {
+    Get-Process -Name $processName -ErrorAction SilentlyContinue 
+      ? { $_.ProcessId -ne $PID }
+      | Stop-Process
+  }
+}

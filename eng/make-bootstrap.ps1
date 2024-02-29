@@ -72,6 +72,7 @@ try {
   Exec-DotNet "build --no-restore /t:Clean $projectPath"
   Exec-DotNet "build-server shutdown"
 
+  Write-Host "Bootstrap compiler built successfully"
   ExitWithExitCode 0
 }
 catch {
