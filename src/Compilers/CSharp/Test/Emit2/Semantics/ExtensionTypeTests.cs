@@ -13837,7 +13837,7 @@ implicit extension E for C
     }
 
     [ConditionalFact(typeof(CoreClrOnly), AlwaysSkip = "PROTOTYPE: crash when binding foreach")]
-    public void ExtensionMemberLookup_PatternBasedForEach_NoMethod()
+    public void ExtensionMemberLookup_PatternBased_ForEach_NoMethod()
     {
         var src = """
 foreach (var x in new C())
@@ -13877,7 +13877,7 @@ implicit extension E2 for D
     }
 
     [ConditionalFact(typeof(CoreClrOnly), AlwaysSkip = "PROTOTYPE: crash when binding foreach")]
-    public void ExtensionMemberLookup_PatternBasedForEach_NoApplicableMethod()
+    public void ExtensionMemberLookup_PatternBased_ForEach_NoApplicableMethod()
     {
         var src = """
 foreach (var x in new C())
@@ -13918,7 +13918,7 @@ implicit extension E2 for D
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBasedForEach_WrongArity()
+    public void ExtensionMemberLookup_PatternBased_ForEach_WrongArity()
     {
         var src = """
 using System.Collections;
@@ -13949,7 +13949,7 @@ implicit extension E for C
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBasedForEach_NonInvocable()
+    public void ExtensionMemberLookup_PatternBased_ForEach_NonInvocable()
     {
         var src = """
 using System.Collections;
@@ -13977,7 +13977,7 @@ implicit extension E for C
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
-    public void ExtensionMemberLookup_PatternBasedDeconstruct_NoMethod()
+    public void ExtensionMemberLookup_PatternBased_Deconstruct_NoMethod()
     {
         var src = """
 var (x, y) = new C();
@@ -14009,7 +14009,7 @@ implicit extension E for C
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
-    public void ExtensionMemberLookup_PatternBasedDeconstruct_FallbackToExtensionMethod()
+    public void ExtensionMemberLookup_PatternBased_Deconstruct_FallbackToExtensionMethod()
     {
         // If the method from the extension type is not applicable, we fall back
         // to a Deconstruct extension method
@@ -14048,7 +14048,7 @@ public static class E2
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
-    public void ExtensionMemberLookup_PatternBasedDeconstruct_DelegateTypeProperty()
+    public void ExtensionMemberLookup_PatternBased_Deconstruct_DelegateTypeProperty()
     {
         var src = """
 var (x, y) = new C();
@@ -14077,7 +14077,7 @@ implicit extension E for C
     }
 
     [ConditionalFact(typeof(CoreClrOnly), AlwaysSkip = "PROTOTYPE Asserts in BindDynamicInvocation")]
-    public void ExtensionMemberLookup_PatternBasedDeconstruct_DynamicProperty()
+    public void ExtensionMemberLookup_PatternBased_Deconstruct_DynamicProperty()
     {
         var src = """
 var (x, y) = new C();
@@ -14113,7 +14113,7 @@ implicit extension E for C
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
-    public void ExtensionMemberLookup_PatternBasedDeconstruct_NoApplicableMethod()
+    public void ExtensionMemberLookup_PatternBased_Deconstruct_NoApplicableMethod()
     {
         var src = """
 var (x, y) = new C();
@@ -14148,7 +14148,7 @@ implicit extension E for C
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
-    public void ExtensionMemberLookup_PatternBasedDispose_Async_NoMethod()
+    public void ExtensionMemberLookup_PatternBased_Dispose_Async_NoMethod()
     {
         var src = """
 using System.Threading.Tasks;
@@ -14197,7 +14197,7 @@ implicit extension E for C
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
-    public void ExtensionMemberLookup_PatternBasedDispose_Async_NoApplicableMethod()
+    public void ExtensionMemberLookup_PatternBased_Dispose_Async_NoApplicableMethod()
     {
         var src = """
 using System.Threading.Tasks;
@@ -14230,7 +14230,7 @@ implicit extension E for C
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBasedDispose_RefStruct()
+    public void ExtensionMemberLookup_PatternBased_Dispose_RefStruct()
     {
         var src = """
 using var x = new S();
@@ -14256,7 +14256,7 @@ implicit extension E for S
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
-    public void ExtensionMemberLookup_PatternBasedFixed_NoMethod()
+    public void ExtensionMemberLookup_PatternBased_Fixed_NoMethod()
     {
         var text = @"
 unsafe class C
@@ -14316,7 +14316,7 @@ implicit extension E for Fixable
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]
-    public void ExtensionMemberLookup_PatternBasedFixed_NoApplicableMethod()
+    public void ExtensionMemberLookup_PatternBased_Fixed_NoApplicableMethod()
     {
         var src = """
 unsafe class C
@@ -14354,7 +14354,7 @@ implicit extension E for Fixable
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBasedFixed_Static()
+    public void ExtensionMemberLookup_PatternBased_Fixed_Static()
     {
         var text = @"
 unsafe class C
@@ -14388,7 +14388,7 @@ implicit extension E for Fixable
     }
 
     [ConditionalFact(typeof(NoBaseExtensions))]
-    public void ExtensionMemberLookup_PatternBasedAwait_NoMethod()
+    public void ExtensionMemberLookup_PatternBased_Await_NoMethod()
     {
         var text = @"
 using System;
@@ -14428,7 +14428,7 @@ implicit extension E2 for D : INotifyCompletion
     }
 
     [ConditionalFact(typeof(NoBaseExtensions))]
-    public void ExtensionMemberLookup_PatternBasedAwait_NoApplicableGetAwaiterMethod()
+    public void ExtensionMemberLookup_PatternBased_Await_NoApplicableGetAwaiterMethod()
     {
         var text = @"
 using System;
@@ -14470,7 +14470,7 @@ implicit extension E2 for D : INotifyCompletion
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBasedIndexIndexer_NoIndexer()
+    public void ExtensionMemberLookup_PatternBased_IndexIndexer_NoIndexer()
     {
         var src = """
 var c = new C();
@@ -14536,7 +14536,7 @@ implicit extension E for C
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBasedIndexIndexer_NoLength()
+    public void ExtensionMemberLookup_PatternBased_IndexIndexer_NoLength()
     {
         var src = """
 var c = new C();
@@ -14602,7 +14602,7 @@ implicit extension E for C
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBasedIndexIndexer_NoApplicableIndexer()
+    public void ExtensionMemberLookup_PatternBased_IndexIndexer_NoApplicableIndexer()
     {
         var src = """
 var c = new C();
@@ -14651,7 +14651,7 @@ implicit extension E for C
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBasedRangeIndexer_NoMethod()
+    public void ExtensionMemberLookup_PatternBased_RangeIndexer_NoMethod()
     {
         var src = """
 var c = new C();
@@ -14720,7 +14720,7 @@ implicit extension E for C
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBasedRangeIndexer_NoApplicableMethod()
+    public void ExtensionMemberLookup_PatternBased_RangeIndexer_NoApplicableMethod()
     {
         var src = """
 var c = new C();
@@ -24453,7 +24453,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     }
 
     [Theory, CombinatorialData]
-    public void DelegateInvocation(bool isExplicit)
+    public void UnderlyingTypeMemberLookup_PatternBased_DelegateInvocation(bool isExplicit)
     {
         var source = $$"""
 public delegate void Underlying();
@@ -24476,7 +24476,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     }
 
     [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
-    public void Deconstruction(bool isExplicit)
+    public void UnderlyingTypeMemberLookup_PatternBased_Deconstruction(bool isExplicit)
     {
         var source = $$"""
 public class Underlying
@@ -24511,7 +24511,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     }
 
     [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
-    public void Deconstruction_AfterMemberFromExtension(bool isExplicit)
+    public void UnderlyingTypeMemberLookup_PatternBased_Deconstruction_AfterMemberFromExtension(bool isExplicit)
     {
         var source = $$"""
 public class Underlying
@@ -24549,7 +24549,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     }
 
     [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
-    public void Foreach_GetEnumerator(bool isExplicit)
+    public void UnderlyingTypeMemberLookup_PatternBased_Foreach_GetEnumerator(bool isExplicit)
     {
         var source = $$"""
 public class Underlying
@@ -24588,7 +24588,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     }
 
     [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
-    public void Foreach_GetEnumerator_AfterMemberFromExtension(bool isExplicit)
+    public void UnderlyingTypeMemberLookup_PatternBased_Foreach_GetEnumerator_AfterMemberFromExtension(bool isExplicit)
     {
         var source = $$"""
 public class Underlying
@@ -24629,7 +24629,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     }
 
     [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
-    public void Foreach_MoveNext(bool isExplicit)
+    public void UnderlyingTypeMemberLookup_PatternBased_Foreach_MoveNext(bool isExplicit)
     {
         var source = $$"""
 public class Underlying
@@ -24678,7 +24678,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     }
 
     [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
-    public void Foreach_Current(bool isExplicit)
+    public void UnderlyingTypeMemberLookup_PatternBased_Foreach_Current(bool isExplicit)
     {
         var source = $$"""
 public class Underlying
@@ -24727,7 +24727,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     }
 
     [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
-    public void Using(bool isExplicit)
+    public void UnderlyingTypeMemberLookup_PatternBased_Using(bool isExplicit)
     {
         var source = $$"""
 public class Underlying
@@ -24756,7 +24756,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     }
 
     [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
-    public void Await(bool isExplicit)
+    public void UnderlyingTypeMemberLookup_PatternBased_Await(bool isExplicit)
     {
         var source = $$"""
 public class Underlying
@@ -24793,7 +24793,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     }
 
     [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
-    public void Await_AfterMemberFromExtension(bool isExplicit)
+    public void UnderlyingTypeMemberLookup_PatternBased_Await_AfterMemberFromExtension(bool isExplicit)
     {
         var source = $$"""
 public class Underlying
@@ -24832,7 +24832,7 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension E for Underlying
     }
 
     [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
-    public void Fixed(bool isExplicit)
+    public void UnderlyingTypeMemberLookup_PatternBased_Fixed(bool isExplicit)
     {
         var source = $$"""
 public class Underlying
@@ -24855,7 +24855,7 @@ public unsafe {{(isExplicit ? "explicit" : "implicit")}} extension E for Underly
     }
 
     [ConditionalTheory(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly)), CombinatorialData] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
-    public void Fixed_AfterMemberFromExtension(bool isExplicit)
+    public void UnderlyingTypeMemberLookup_PatternBased_Fixed_AfterMemberFromExtension(bool isExplicit)
     {
         var source = $$"""
 public class Underlying
@@ -26265,7 +26265,7 @@ public implicit extension E for C
     }
 
     [Fact]
-    public void PatternBasedLookup_EnumerationGetEnumerator()
+    public void ExtensionMemberLookup_PatternBased_EnumerationGetEnumerator()
     {
         var source = """
 using System.Collections.Generic;
@@ -26295,7 +26295,7 @@ public implicit extension E for C
     }
 
     [Fact]
-    public void PatternBasedLookup_EnumerationCurrent()
+    public void ExtensionMemberLookup_PatternBased_EnumerationCurrent()
     {
         var source = """
 foreach (var x in new C())
@@ -26332,7 +26332,7 @@ public implicit extension E for C.Enumerator
     }
 
     [Fact]
-    public void PatternBasedLookup_EnumerationMoveNext()
+    public void ExtensionMemberLookup_PatternBased_EnumerationMoveNext()
     {
         var source = """
 foreach (var x in new C())
