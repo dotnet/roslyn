@@ -675,11 +675,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // If it's a special value type (and not a field of a MarshalByRef object), it should have its own ToString method (but we might fail to find
-            // it if object.ToString is missing). Assume that this won't be removed, and emit a direct call rather
-            // than a constrained virtual call. This keeps in the spirit of #7079, but expands the range of
-            // types to all special value types.
-            if (structToStringMethod != null && (expr.Type.SpecialType is >= SpecialType.System_Object and <= SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute && !isFieldOfMarshalByRef(expr, _compilation)))
+            // If it's one of special value types in the given range (and not a field of a MarshalByRef object),
+            // it should have its own ToString method (but we might fail to find it if object.ToString is missing).
+            // Assume that this won't be removed, and emit a direct call rather than a constrained virtual call.
+            // This logic can probably be applied to all special types,
+            // but that would introduce a silent change every time a new special type is added,
+            // and if at some point the assumption no longer holds, this would be a bug, which might not get noticed.
+            // So to be extra safe we we constrain the check to a fixed range of special types
+            if (structToStringMethod != null &&
+                expr.Type.SpecialType is (>= SpecialType.System_Object and <= SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute) &&
+                !isFieldOfMarshalByRef(expr, _compilation))
             {
                 return BoundCall.Synthesized(syntax, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, structToStringMethod);
             }
