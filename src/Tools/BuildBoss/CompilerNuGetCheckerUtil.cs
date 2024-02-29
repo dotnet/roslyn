@@ -360,7 +360,7 @@ namespace BuildBoss
                 }
 
                 // As a simplification we only validate the assembly names that begin with Microsoft.CodeAnalysis. This is a good 
-                // hueristic for finding assemblies that we build. Can be expanded in the future if we find more assemblies that
+                // heuristic for finding assemblies that we build. Can be expanded in the future if we find more assemblies that
                 // are worth validating here.
                 var neededDllNames = neededDllNameSet
                     .Where(x => x.StartsWith("Microsoft.CodeAnalysis"))
