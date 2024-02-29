@@ -16,7 +16,6 @@ parameters:
         oopCoreClr: false
         lspEditor: false
         runName: 64
-  
 
 stages:
 - stage: Windows_${{ parameters.configuration }}_Build

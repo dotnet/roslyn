@@ -490,7 +490,7 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
-      - script: .\eng\test-rebuild.cmd -ci -configuration Release -bootstrap
+      - pwsh: ./eng/test-rebuild.ps1 -ci -configuration Release -bootstrap
         displayName: Run BuildValidator
 
       - task: PublishBuildArtifacts@1
