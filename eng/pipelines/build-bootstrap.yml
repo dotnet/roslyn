@@ -7,6 +7,9 @@ parameters:
 steps:
     - template: checkout-windows-task.yml
 
+    - pwsh: ./eng/tool-restore.ps1
+      displayName: Restore local tools
+
     - pwsh: |
         ./eng/make-bootstrap.ps1 -ci -toolset ${{parameters.toolset}} -output '$(Build.SourcesDirectory)/artifacts/bootstrap/ci-bootstrap'
 

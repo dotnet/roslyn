@@ -791,8 +791,6 @@ catch {
   ExitWithExitCode 1
 }
 finally {
-  if (Test-Path Function:\Unsubst-TempDir) {
-    Unsubst-TempDir
-  }
+  Unsubst-TempDir
   Pop-Location
 }
