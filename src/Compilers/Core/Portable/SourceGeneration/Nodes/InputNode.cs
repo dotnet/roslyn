@@ -45,20 +45,8 @@ namespace Microsoft.CodeAnalysis
             var inputItems = _getInput(graphState);
             TimeSpan elapsedTime = stopwatch.Elapsed;
 
-            HashSet<T> itemsSet;
-            PooledHashSet<T>? pooledItemsSet;
-
             // create a mutable hashset of the new items we can check against
-            if (_inputComparer == EqualityComparer<T>.Default)
-            {
-                pooledItemsSet = PooledHashSet<T>.GetInstance();
-                itemsSet = pooledItemsSet;
-            }
-            else
-            {
-                pooledItemsSet = null;
-                itemsSet = new HashSet<T>(_inputComparer);
-            }
+            var itemsSet = (_inputComparer == EqualityComparer<T>.Default) ? PooledHashSet<T>.GetInstance() : new HashSet<T>(_inputComparer);
 
 #if NETCOREAPP
             itemsSet.EnsureCapacity(inputItems.Length);
@@ -115,7 +103,7 @@ namespace Microsoft.CodeAnalysis
             var newTable = tableBuilder.ToImmutableAndFree();
             this.LogTables(previousTable, newTable, inputItems);
 
-            pooledItemsSet?.Free();
+            (itemsSet as PooledHashSet<T>)?.Free();
 
             return newTable;
 
