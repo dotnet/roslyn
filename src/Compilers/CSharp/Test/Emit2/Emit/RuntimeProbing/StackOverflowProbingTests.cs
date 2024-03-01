@@ -36,7 +36,7 @@ public sealed class StackOverflowProbingTests : CSharpTestBase
         var isInstrumented = il.Contains("System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack");
 
         Assert.False(isInstrumented,
-            $"Method '{qualifiedMethodName}' should not be trumented. Actual IL:{Environment.NewLine}{il}");
+            $"Method '{qualifiedMethodName}' should not be instrumented. Actual IL:{Environment.NewLine}{il}");
     }
 
     [Fact]
