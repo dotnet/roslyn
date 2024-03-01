@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ScopedKeyword = 8448,
         /// <summary>Represents <see langword="file"/>.</summary>
         FileKeyword = 8449,
-        /// <summary>Represents <see langword="where"/>.</summary>
+        /// <summary>Represents <see langword="allows"/>.</summary>
         AllowsKeyword = 8450,
 
         // when adding a contextual keyword following functions must be adapted:

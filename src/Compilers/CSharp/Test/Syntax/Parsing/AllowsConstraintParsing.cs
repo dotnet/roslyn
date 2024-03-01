@@ -963,6 +963,64 @@ class C<T> where T : struct, allows ref struct
         }
 
         [Fact]
+        public void RefStruct_AfterStructAndMissingComma()
+        {
+            var text = @"
+class C<T> where T : struct allows ref struct
+{}";
+            UsingTree(text,
+                // (2,29): error CS1003: Syntax error, ',' expected
+                // class C<T> where T : struct allows ref struct
+                Diagnostic(ErrorCode.ERR_SyntaxError, "allows").WithArguments(",").WithLocation(2, 29)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.StructConstraint);
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.AllowsConstraintClause);
+                        {
+                            N(SyntaxKind.AllowsKeyword);
+                            N(SyntaxKind.RefStructConstraint);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.StructKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void RefStruct_AfterClass()
         {
             var text = @"

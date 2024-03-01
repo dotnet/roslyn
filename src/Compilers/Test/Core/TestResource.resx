@@ -554,7 +554,7 @@ namespace My
         [Obsolete]
         private volatile int f2;
         public abstract int m&lt;T&gt;(T t)
-          where T : struct
+          where T : struct, allows ref struct
         {
             return 1;
         }
