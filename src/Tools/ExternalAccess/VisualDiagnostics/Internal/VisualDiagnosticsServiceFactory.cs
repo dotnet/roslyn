@@ -126,7 +126,7 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
 
             if (broker != null)
             {
-                IHotReloadSessionNotificationService? hotReloadSessionNotificationService = await broker.HotReloadSessionNotificationServiceAsync().ConfigureAwait(false);
+                IHotReloadSessionNotificationService? hotReloadSessionNotificationService = await broker.GetHotReloadSessionNotificationServiceAsync().ConfigureAwait(false);
                 if (hotReloadSessionNotificationService != null)
                 {
                     // We have the broker service, stop the timer
@@ -146,7 +146,7 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
                 return;
             }
 
-            IHotReloadSessionNotificationService? notificationService = await _brokeredDebuggerServices.Value.HotReloadSessionNotificationServiceAsync().ConfigureAwait(false);
+            IHotReloadSessionNotificationService? notificationService = await _brokeredDebuggerServices.Value.GetHotReloadSessionNotificationServiceAsync().ConfigureAwait(false);
             if (notificationService != null)
             {
                 HotReloadSessionInfo info = await notificationService.FetchHotReloadSessionInfoAsync(_cancellationToken).ConfigureAwait(false);
@@ -182,11 +182,11 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
 
             foreach (ManagedEditAndContinueProcessInfo processInfo in info.Processes)
             {
-                ProcessInfo diagnosticsProcessInfo = new(processInfo.ProcessId, processInfo.LocalProcessId, processInfo.PathToTargetAssembly);
+                ProcessInfo diagnosticsProcessInfo = new(processInfo.ProcessId, processInfo.LocalProcessId, processInfo.PathToTargetAssembly, null);
                 IVisualDiagnosticsLanguageService? visualDiagnosticsLanguageService = await EnsureVisualDiagnosticsLanguageServiceAsync(diagnosticsProcessInfo).ConfigureAwait(false);
                 if (visualDiagnosticsLanguageService != null)
                 {
-                    visualDiagnosticsLanguageService?.StartDebuggingSessionAsync(diagnosticsProcessInfo, _cancellationToken);
+                    visualDiagnosticsLanguageService?.HandleDiagnosticSessionStartAsync(diagnosticsProcessInfo, _cancellationToken);
                     _debugProcesses.Add(diagnosticsProcessInfo);
                 }
             }
@@ -205,11 +205,11 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
                 if (!info.Processes.Any(item => item.ProcessId == trackedDebuggedProcess.ProcessId))
                 {
                     IVisualDiagnosticsLanguageService? visualDiagnosticsLanguageService = await EnsureVisualDiagnosticsLanguageServiceAsync(trackedDebuggedProcess).ConfigureAwait(false);
-                    visualDiagnosticsLanguageService?.StopDebuggingSessionAsync(trackedDebuggedProcess, _cancellationToken);
+                    visualDiagnosticsLanguageService?.HandleDiagnosticSessionStopAsync(trackedDebuggedProcess, _cancellationToken);
                 }
             }
             // Save the new list. 
-            _debugProcesses = info.Processes.Select(_debugProcess => new ProcessInfo(_debugProcess.ProcessId, _debugProcess.LocalProcessId, _debugProcess.PathToTargetAssembly)).ToList();
+            _debugProcesses = info.Processes.Select(_debugProcess => new ProcessInfo(_debugProcess.ProcessId, _debugProcess.LocalProcessId, _debugProcess.PathToTargetAssembly, null)).ToList();
         }
 
         private async Task<IVisualDiagnosticsLanguageService?> EnsureVisualDiagnosticsLanguageServiceAsync(ProcessInfo processInfo)
@@ -229,7 +229,7 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
 
                     if (visualDiagnosticsLanguageService != null)
                     {
-                        IServiceBroker? serviceProvider = await _brokeredDebuggerServices.Value.ServiceBrokerAsync().ConfigureAwait(false);
+                        IServiceBroker? serviceProvider = await _brokeredDebuggerServices.Value.GetServiceBrokerAsync().ConfigureAwait(false);
                         await visualDiagnosticsLanguageService.InitializeAsync(serviceProvider, _cancellationToken).ConfigureAwait(false);
                         _visualDiagnosticsLanguageServiceTable.Add(workspace, visualDiagnosticsLanguageService);
                     }

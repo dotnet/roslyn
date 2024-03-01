@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal
 
         private readonly IServiceBroker _serviceBroker;
         private IHotReloadSessionNotificationService? _hotReloadSessionNotificationService;
-        private IManagedHotReloadAgentManagerService? _ManagedHotReloadAgentManagerService;
+        private IManagedHotReloadAgentManagerService? _managedHotReloadAgentManagerService;
         private IManagedHotReloadService? _managedHotReloadService;
 
         [ImportingConstructor]
@@ -51,12 +51,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal
             _serviceBroker = serviceBroker;
         }
 
-        public Task<IServiceBroker> ServiceBrokerAsync()
+        public Task<IServiceBroker> GetServiceBrokerAsync()
         {
             return Task.FromResult<IServiceBroker>(_serviceBroker);
         }
 
-        public async Task<IHotReloadSessionNotificationService?> HotReloadSessionNotificationServiceAsync()
+        public async Task<IHotReloadSessionNotificationService?> GetHotReloadSessionNotificationServiceAsync()
         {
             if (_hotReloadSessionNotificationService == null)
             {
@@ -66,17 +66,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal
             return _hotReloadSessionNotificationService;
         }
 
-        public async Task<IManagedHotReloadAgentManagerService?> ManagedHotReloadAgentManagerServiceAsync()
+        public async Task<IManagedHotReloadAgentManagerService?> GetManagedHotReloadAgentManagerServiceAsync()
         {
-            if (_ManagedHotReloadAgentManagerService == null)
+            if (_managedHotReloadAgentManagerService == null)
             {
-                _ManagedHotReloadAgentManagerService = await _serviceBroker.GetProxyAsync<IManagedHotReloadAgentManagerService>(ManagedHotReloadAgentManagerServiceDescriptor, _serviceBrokerToken).ConfigureAwait(false);
+                _managedHotReloadAgentManagerService = await _serviceBroker.GetProxyAsync<IManagedHotReloadAgentManagerService>(ManagedHotReloadAgentManagerServiceDescriptor, _serviceBrokerToken).ConfigureAwait(false);
             }
 
-            return _ManagedHotReloadAgentManagerService;
+            return _managedHotReloadAgentManagerService;
         }
 
-        public async Task<IManagedHotReloadService?> ManagedHotReloadServiceAsync()
+        public async Task<IManagedHotReloadService?> GetManagedHotReloadServiceAsync()
         {
             if (_managedHotReloadService == null)
             {
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal
         public void Dispose()
         {
             (_hotReloadSessionNotificationService as IDisposable)?.Dispose();
-            (_ManagedHotReloadAgentManagerService as IDisposable)?.Dispose();
+            (_managedHotReloadAgentManagerService as IDisposable)?.Dispose();
             (_managedHotReloadService as IDisposable)?.Dispose();
         }
 

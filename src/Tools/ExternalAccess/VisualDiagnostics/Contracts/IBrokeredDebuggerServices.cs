@@ -13,10 +13,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts
     /// </summary>
     internal interface IBrokeredDebuggerServices
     {
-        Task<IServiceBroker> ServiceBrokerAsync();
-        Task<IHotReloadSessionNotificationService?> HotReloadSessionNotificationServiceAsync();
-        Task<IManagedHotReloadAgentManagerService?> ManagedHotReloadAgentManagerServiceAsync();
-
-        Task<IManagedHotReloadService?> ManagedHotReloadServiceAsync();
+        Task<IServiceBroker> GetServiceBrokerAsync();
+        Task<IHotReloadSessionNotificationService?> GetHotReloadSessionNotificationServiceAsync();
+        Task<IManagedHotReloadAgentManagerService?> GetManagedHotReloadAgentManagerServiceAsync();
+        Task<IManagedHotReloadService?> GetManagedHotReloadServiceAsync();
     }
 }

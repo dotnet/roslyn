@@ -19,12 +19,10 @@
     <!--
       ⚠ ONLY XAML ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Xaml" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.DesignTools.Xaml" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.Xaml" Key="$(VisualStudioKey)" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.XamlLanguageService" Key="$(VisualStudioKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.CodeAnalysis" Key="$(VisualStudioKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.CodeAnalysis.Diagnostics" Key="$(VisualStudioKey)"/>
   </ItemGroup>
-
+  
   <ItemGroup>
     <PackageReference Include="System.ComponentModel.Composition" Version="$(SystemComponentModelCompositionVersion)" />
     <PackageReference Include="System.Collections.Immutable" />
@@ -53,6 +51,4 @@
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="copy /Y &quot;$(PkgMicrosoft_VisualStudio_Debugger_Contracts)\lib\netstandard2.0\Microsoft.VisualStudio.Debugger.Contracts.dll&quot; &quot;$(OutDir)&quot;" />
   </Target>
-
-
 </Project>
