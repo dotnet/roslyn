@@ -12,7 +12,6 @@
       A supporting package for Razor:
       https://github.com/dotnet/razor
     </PackageDescription>
-    <ExcludeFromVerticalBuild>false</ExcludeFromVerticalBuild>
   </PropertyGroup>
 
   <ItemGroup>

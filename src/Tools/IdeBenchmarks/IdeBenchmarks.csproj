@@ -10,6 +10,7 @@
     <!-- Xunit analyzer doesn't recognize benchmark attributes -->
     <NoWarn>$(NoWarn),xUnit1013</NoWarn>
     <UseWpf>true</UseWpf>
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" />
