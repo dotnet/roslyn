@@ -2,7 +2,7 @@ parameters:
   StageLabel: ''
   JobLabel: ''
   CustomSensitiveDataList: ''
-  # A default - in case value from eng/common/templates/post-build/common-variables.yml is not passed
+  # A default - in case value from eng/common/templates-official/post-build/common-variables.yml is not passed
   BinlogToolVersion: '1.0.11'
 
 steps:
@@ -39,7 +39,7 @@ steps:
   continueOnError: true
   condition: always()
       
-- task: PublishBuildArtifacts@1
+- task: 1ES.PublishBuildArtifacts@1
   displayName: Publish Logs
   inputs:
     PathtoPublish: '$(Build.SourcesDirectory)/PostBuildLogs'

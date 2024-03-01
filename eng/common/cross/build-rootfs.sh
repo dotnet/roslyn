@@ -8,7 +8,7 @@ usage()
     echo "BuildArch can be: arm(default), arm64, armel, armv6, ppc64le, riscv64, s390x, x64, x86"
     echo "CodeName - optional, Code name for Linux, can be: xenial(default), zesty, bionic, alpine"
     echo "                               for alpine can be specified with version: alpineX.YY or alpineedge"
-    echo "                               for FreeBSD can be: freebsd12, freebsd13"
+    echo "                               for FreeBSD can be: freebsd13, freebsd14"
     echo "                               for illumos can be: illumos"
     echo "                               for Haiku can be: haiku."
     echo "lldbx.y - optional, LLDB version, can be: lldb3.9(default), lldb4.0, lldb5.0, lldb6.0 no-lldb. Ignored for alpine and FreeBSD"
@@ -71,9 +71,9 @@ __AlpinePackages+=" krb5-dev"
 __AlpinePackages+=" openssl-dev"
 __AlpinePackages+=" zlib-dev"
 
-__FreeBSDBase="12.4-RELEASE"
+__FreeBSDBase="13.2-RELEASE"
 __FreeBSDPkg="1.17.0"
-__FreeBSDABI="12"
+__FreeBSDABI="13"
 __FreeBSDPackages="libunwind"
 __FreeBSDPackages+=" icu"
 __FreeBSDPackages+=" libinotify"
@@ -182,12 +182,12 @@ while :; do
             __AlpinePackages="${__AlpinePackages// lldb-dev/}"
             __QEMUArch=riscv64
             __UbuntuArch=riscv64
-            __UbuntuRepo="http://deb.debian.org/debian-ports"
+            __UbuntuRepo="http://deb.debian.org/debian"
             __UbuntuPackages="${__UbuntuPackages// libunwind8-dev/}"
             unset __LLDB_Package
 
-            if [[ -e "/usr/share/keyrings/debian-ports-archive-keyring.gpg" ]]; then
-                __Keyring="--keyring /usr/share/keyrings/debian-ports-archive-keyring.gpg --include=debian-ports-archive-keyring"
+            if [[ -e "/usr/share/keyrings/debian-archive-keyring.gpg" ]]; then
+                __Keyring="--keyring /usr/share/keyrings/debian-archive-keyring.gpg --include=debian-archive-keyring"
             fi
             ;;
         ppc64le)
@@ -334,14 +334,14 @@ while :; do
                 __AlpineVersion="$__AlpineMajorVersion.$__AlpineMinoVersion"
             fi
             ;;
-        freebsd12)
+        freebsd13)
             __CodeName=freebsd
             __SkipUnmount=1
             ;;
-        freebsd13)
+        freebsd14)
             __CodeName=freebsd
-            __FreeBSDBase="13.2-RELEASE"
-            __FreeBSDABI="13"
+            __FreeBSDBase="14.0-RELEASE"
+            __FreeBSDABI="14"
             __SkipUnmount=1
             ;;
         illumos)
@@ -487,7 +487,7 @@ if [[ "$__CodeName" == "alpine" ]]; then
             -X "http://dl-cdn.alpinelinux.org/alpine/$version/main" \
             -X "http://dl-cdn.alpinelinux.org/alpine/$version/community" \
             -U $__ApkSignatureArg --root "$__RootfsDir" --arch "$__AlpineArch" \
-            search 'llvm*-libs' | sort | tail -1 | sed 's/-[^-]*//2g')"
+            search 'llvm*-libs' | grep -E '^llvm' | sort | tail -1 | sed 's/-[^-]*//2g')"
     fi
 
     # install all packages in one go

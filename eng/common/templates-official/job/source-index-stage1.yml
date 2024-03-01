@@ -1,6 +1,6 @@
 parameters:
   runAsPublic: false
-  sourceIndexPackageVersion: 1.0.1-20240129.2
+  sourceIndexPackageVersion: 1.0.1-20231213.4
   sourceIndexPackageSource: https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json
   sourceIndexBuildCommand: powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "eng/common/build.ps1 -restore -build -binarylog -ci"
   preSteps: []
@@ -22,7 +22,7 @@ jobs:
     value: ${{ parameters.binlogPath }}
   - ${{ if and(eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
     - group: source-dot-net stage1 variables
-  - template: /eng/common/templates/variables/pool-providers.yml
+  - template: /eng/common/templates-official/variables/pool-providers.yml
 
   ${{ if ne(parameters.pool, '') }}:
     pool: ${{ parameters.pool }}
@@ -30,10 +30,10 @@ jobs:
     pool:
       ${{ if eq(variables['System.TeamProject'], 'public') }}:
         name: $(DncEngPublicBuildPool)
-        demands: ImageOverride -equals windows.vs2022.amd64.open
+        image: windows.vs2022.amd64.open
       ${{ if eq(variables['System.TeamProject'], 'internal') }}:
         name: $(DncEngInternalBuildPool)
-        demands: ImageOverride -equals windows.vs2022.amd64
+        image: windows.vs2022.amd64
 
   steps:
   - ${{ each preStep in parameters.preSteps }}:
