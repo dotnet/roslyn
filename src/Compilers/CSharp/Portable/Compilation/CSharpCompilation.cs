@@ -2375,6 +2375,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             LazyInitializer.EnsureInitialized(ref _moduleInitializerMethods).Add(method);
         }
 
+        internal bool InterceptorsDiscoveryComplete;
+
         // NB: the 'Many' case for these dictionary values means there are duplicates. An error is reported for this after binding.
         private ConcurrentDictionary<(string FilePath, int Line, int Character), OneOrMany<(Location AttributeLocation, MethodSymbol Interceptor)>>? _interceptions;
 
@@ -2403,8 +2405,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Explicit tuple element names are needed here so that the names unify when this is an extension method call (netstandard2.0).
                 factoryArgument: (AttributeLocation: attributeLocation, Interceptor: interceptor));
         }
-
-        internal bool InterceptorsDiscoveryComplete;
 
         internal (Location AttributeLocation, MethodSymbol Interceptor)? TryGetInterceptor(Location? callLocation)
         {

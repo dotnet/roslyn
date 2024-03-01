@@ -273,10 +273,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (this.GlobalNamespace.HasComplete(CompletionPart.MembersCompleted))
                         {
-                            _state.NotePartComplete(CompletionPart.MembersCompleted);
-
                             // Completing the global namespace members means all InterceptsLocationAttributes have been bound.
                             Volatile.Write(ref DeclaringCompilation.InterceptorsDiscoveryComplete, true);
+
+                            _state.NotePartComplete(CompletionPart.MembersCompleted);
                         }
                         else
                         {
@@ -328,71 +328,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (!Volatile.Read(ref DeclaringCompilation.InterceptorsDiscoveryComplete))
             {
-                DiscoverInterceptors();
+                discoverInterceptors();
                 Volatile.Write(ref DeclaringCompilation.InterceptorsDiscoveryComplete, true);
             }
-        }
 
-        private void DiscoverInterceptors()
-        {
-            var toVisit = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
-
-            var location = this.GlobalNamespace.GetFirstLocationOrNone();
-            if (!location.IsInSource)
+            void discoverInterceptors()
             {
-                return;
-            }
+                var toVisit = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
 
-            // Search the namespaces which were indicated to contain interceptors.
-            ImmutableArray<ImmutableArray<string>> interceptorsNamespaces = ((CSharpParseOptions)location.SourceTree.Options).InterceptorsPreviewNamespaces;
-            foreach (ImmutableArray<string> namespaceParts in interceptorsNamespaces)
-            {
-                if (namespaceParts is ["global"])
+                var location = this.GlobalNamespace.GetFirstLocationOrNone();
+                if (!location.IsInSource)
                 {
-                    toVisit.Clear();
-                    toVisit.Add(GlobalNamespace);
-                    // No point in continuing, we already are going to search the entire module in this case.
-                    break;
+                    return;
                 }
 
-                var cursor = GlobalNamespace;
-                foreach (string namespacePart in namespaceParts)
+                // Search the namespaces which were indicated to contain interceptors.
+                ImmutableArray<ImmutableArray<string>> interceptorsNamespaces = ((CSharpParseOptions)location.SourceTree.Options).InterceptorsPreviewNamespaces;
+                foreach (ImmutableArray<string> namespaceParts in interceptorsNamespaces)
                 {
-                    cursor = (NamespaceSymbol?)cursor.GetMembers(namespacePart).FirstOrDefault(member => member.Kind == SymbolKind.Namespace);
-                    if (cursor is null)
+                    if (namespaceParts is ["global"])
                     {
+                        toVisit.Clear();
+                        toVisit.Add(GlobalNamespace);
+                        // No point in continuing, we already are going to search the entire module in this case.
                         break;
                     }
-                }
 
-                if (cursor is not null)
-                {
-                    toVisit.Add(cursor);
-                }
-            }
-
-            while (toVisit.Count > 0)
-            {
-                var item = toVisit.Pop();
-                if (item is SourceMemberContainerTypeSymbol type)
-                {
-                    type.DiscoverInterceptors(toVisit);
-                }
-                else if (item is SourceNamespaceSymbol @namespace)
-                {
-                    foreach (var member in @namespace.GetMembers())
+                    var cursor = GlobalNamespace;
+                    foreach (string namespacePart in namespaceParts)
                     {
-                        if (member is not NamespaceOrTypeSymbol namespaceOrType)
+                        cursor = (NamespaceSymbol?)cursor.GetMembers(namespacePart).FirstOrDefault(member => member.Kind == SymbolKind.Namespace);
+                        if (cursor is null)
                         {
-                            throw ExceptionUtilities.UnexpectedValue(member);
+                            break;
                         }
+                    }
 
-                        toVisit.Add(namespaceOrType);
+                    if (cursor is not null)
+                    {
+                        toVisit.Add(cursor);
                     }
                 }
-                else
+
+                while (toVisit.Count > 0)
                 {
-                    throw ExceptionUtilities.UnexpectedValue(item);
+                    var item = toVisit.Pop();
+                    if (item is SourceMemberContainerTypeSymbol type)
+                    {
+                        type.DiscoverInterceptors(toVisit);
+                    }
+                    else if (item is SourceNamespaceSymbol @namespace)
+                    {
+                        foreach (var member in @namespace.GetMembers())
+                        {
+                            if (member is not NamespaceOrTypeSymbol namespaceOrType)
+                            {
+                                throw ExceptionUtilities.UnexpectedValue(member);
+                            }
+
+                            toVisit.Add(namespaceOrType);
+                        }
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(item);
+                    }
                 }
             }
         }
