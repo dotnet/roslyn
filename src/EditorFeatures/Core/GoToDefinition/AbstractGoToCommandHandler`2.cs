@@ -221,7 +221,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     {
         var cancellationToken = cancellationTokenSource.Token;
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-        var (presenterContext, presenterCancellationToken) = _streamingPresenter.StartSearch(DisplayName, supportsReferences: false);
+        var (presenterContext, presenterCancellationToken) = _streamingPresenter.StartSearch(DisplayName, StreamingFindUsagesPresenterOptions.Default);
 
         try
         {

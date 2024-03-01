@@ -126,11 +126,14 @@ internal class FindReferencesCommandHandler : ICommandHandler<FindReferencesComm
             // Let the presented know we're starting a search.  It will give us back the context object that the FAR
             // service will push results into. This operation is not externally cancellable.  Instead, the find refs
             // window will cancel it if another request is made to use it.
-            var (context, cancellationToken) = presenter.StartSearchWithCustomColumns(
+            var (context, cancellationToken) = presenter.StartSearch(
                 EditorFeaturesResources.Find_References,
-                supportsReferences: true,
-                includeContainingTypeAndMemberColumns: document.Project.SupportsCompilation,
-                includeKindColumn: document.Project.Language != LanguageNames.FSharp);
+                new StreamingFindUsagesPresenterOptions()
+                {
+                    SupportsReferences = true,
+                    IncludeContainingTypeAndMemberColumns = document.Project.SupportsCompilation,
+                    IncludeKindColumn = document.Project.Language != LanguageNames.FSharp
+                });
 
             using (Logger.LogBlock(
                 FunctionId.CommandHandler_FindAllReference,
