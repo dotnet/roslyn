@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
@@ -10,13 +9,6 @@ namespace Test.Utilities
 {
     public static class AdditionalMetadataReferences
     {
-        public static ReferenceAssemblies Net80 { get; } = new ReferenceAssemblies(
-            "net8.0",
-            new PackageIdentity(
-                "Microsoft.NETCore.App.Ref",
-                "8.0.0-preview.6.23329.7"),
-            Path.Combine("ref", "net8.0"));
-
         public static ReferenceAssemblies Default { get; } = CreateDefaultReferenceAssemblies();
 
         public static ReferenceAssemblies DefaultWithoutRoslynSymbols { get; } = ReferenceAssemblies.Default
