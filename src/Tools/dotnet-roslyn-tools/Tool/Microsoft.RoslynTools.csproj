@@ -29,7 +29,7 @@
     <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="16.201.0-preview" />
     <PackageReference Include="Microsoft.VisualStudio.Services.Client" Version="16.201.0-preview" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="NuGet.Protocol" Version="6.2.4" />
+    <PackageReference Include="NuGet.Protocol" Version="6.3.0" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta2.21615.1" />
     <PackageReference Include="System.CommandLine.Rendering" Version="0.4.0-alpha.21615.1" />
   </ItemGroup>
