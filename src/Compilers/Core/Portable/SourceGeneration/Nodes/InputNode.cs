@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -44,8 +45,25 @@ namespace Microsoft.CodeAnalysis
             var inputItems = _getInput(graphState);
             TimeSpan elapsedTime = stopwatch.Elapsed;
 
+            HashSet<T> itemsSet;
+            PooledHashSet<T>? pooledItemsSet;
+
             // create a mutable hashset of the new items we can check against
-            HashSet<T> itemsSet = new HashSet<T>(_inputComparer);
+            if (_inputComparer == EqualityComparer<T>.Default)
+            {
+                pooledItemsSet = PooledHashSet<T>.GetInstance();
+                itemsSet = pooledItemsSet;
+            }
+            else
+            {
+                pooledItemsSet = null;
+                itemsSet = new HashSet<T>(_inputComparer);
+            }
+
+#if NETCOREAPP
+            itemsSet.EnsureCapacity(inputItems.Length);
+#endif
+
             foreach (var item in inputItems)
             {
                 var added = itemsSet.Add(item);
@@ -96,6 +114,9 @@ namespace Microsoft.CodeAnalysis
 
             var newTable = tableBuilder.ToImmutableAndFree();
             this.LogTables(previousTable, newTable, inputItems);
+
+            pooledItemsSet?.Free();
+
             return newTable;
 
         }
@@ -116,7 +137,7 @@ namespace Microsoft.CodeAnalysis
                 return;
             }
 
-            var tableBuilder = NodeStateTable<T>.Empty.ToBuilder(_name, stepTrackingEnabled: false);
+            var tableBuilder = NodeStateTable<T>.Empty.ToBuilder(_name, stepTrackingEnabled: false, tableCapacity: inputs.Length);
             foreach (var input in inputs)
             {
                 tableBuilder.AddEntry(input, EntryState.Added, TimeSpan.Zero, stepInputs: default, EntryState.Added);
