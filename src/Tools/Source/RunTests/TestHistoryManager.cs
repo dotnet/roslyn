@@ -71,7 +71,7 @@ internal class TestHistoryManager
         if (runForThisStage == null)
         {
             // If this is a new stage, historical runs will not have any data for it.
-            ConsoleUtil.WriteLine($"Unable to get a run with name {phaseName} from build {lastSuccessfulBuild.Url}.");
+            ConsoleUtil.WriteLine($"Unable to get a run with name {phaseName} from build {lastSuccessfulBuild.Url}");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
@@ -173,8 +173,13 @@ internal class TestHistoryManager
             var minTime = build.QueueTime!.Value;
             var maxTime = build.FinishTime!.Value;
             var runsInBuild = await testClient.QueryTestRunsAsync2("public", minTime, maxTime, buildIds: new int[] { build.Id }, cancellationToken: cancellationToken);
-
             var runForThisStage = runsInBuild.SingleOrDefault(r => r.Name.Contains(phaseName));
+            if (runForThisStage == null)
+            {
+                ConsoleUtil.WriteLine($"Could not find {phaseName} in {string.Join(", ", runsInBuild.Select(r => r.Name))}");
+                return null;
+            }
+
             return runForThisStage;
         }
         catch (Exception ex)

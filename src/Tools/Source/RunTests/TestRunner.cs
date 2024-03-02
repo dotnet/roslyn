@@ -177,13 +177,13 @@ namespace RunTests
                 }
             }
 
-            static string GetHelixRelativeAssemblyPath(string assemblyPath)
+            static string GetHelixRelativeAssemblyPath(string assemblyPath, string relativePathToTestAssemblies)
             {
                 var tfmDir = Path.GetDirectoryName(assemblyPath)!;
                 var configurationDir = Path.GetDirectoryName(tfmDir)!;
                 var projectDir = Path.GetDirectoryName(configurationDir)!;
 
-                var assemblyRelativePath = Path.Combine(Path.GetFileName(projectDir), Path.GetFileName(configurationDir), Path.GetFileName(tfmDir), Path.GetFileName(assemblyPath));
+                var assemblyRelativePath = Path.Combine(relativePathToTestAssemblies, Path.GetFileName(projectDir), Path.GetFileName(configurationDir), Path.GetFileName(tfmDir), Path.GetFileName(assemblyPath));
                 return assemblyRelativePath;
             }
 
@@ -198,6 +198,12 @@ namespace RunTests
                 var setEnvironmentVariable = isUnix ? "export" : "set";
 
                 var command = new StringBuilder();
+                if (!isUnix)
+                {
+                    // Show timestamps when commands run.
+                    command.AppendLine("prompt $P - $t$g");
+                }
+
                 command.AppendLine($"{setEnvironmentVariable} DOTNET_ROLL_FORWARD=LatestMajor");
                 command.AppendLine($"{setEnvironmentVariable} DOTNET_ROLL_FORWARD_TO_PRERELEASE=1");
                 command.AppendLine(isUnix ? $"ls -l" : $"dir");
@@ -239,11 +245,49 @@ namespace RunTests
 
                 // Create a payload directory that contains all the assemblies in the work item in separate folders.
                 var payloadDirectory = Path.Combine(msbuildTestPayloadRoot, "artifacts", "bin");
+                var relativePathToTestAssemblies = string.Empty;
+                if (options.TestVsi)
+                {
+                    // For integration tests we'll need the whole test payload directory which includes
+                    // the eng/ folder (to run setup scripts) and the artifacts/VSSetup/ folder which includes the vsixes
+                    payloadDirectory = msbuildTestPayloadRoot;
+
+                    // Since our payload root is not in the artifacts directory, we have to set the relative path to the test assemblies.
+                    relativePathToTestAssemblies = Path.Combine("artifacts", "bin");
+                }
 
                 // Update the assembly groups to test with the assembly paths in the context of the helix work item.
-                workItemInfo = workItemInfo with { Filters = workItemInfo.Filters.ToImmutableSortedDictionary(kvp => kvp.Key with { AssemblyPath = GetHelixRelativeAssemblyPath(kvp.Key.AssemblyPath) }, kvp => kvp.Value) };
+                workItemInfo = workItemInfo with { Filters = workItemInfo.Filters.ToImmutableSortedDictionary(kvp => kvp.Key with { AssemblyPath = GetHelixRelativeAssemblyPath(kvp.Key.AssemblyPath, relativePathToTestAssemblies) }, kvp => kvp.Value) };
 
                 AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix);
+
+                var logDirectory = Path.Combine("%HELIX_WORKITEM_ROOT%", "artifacts", "log", options.Configuration);
+                if (options.TestVsi)
+                {
+                    command.AppendLine($@"call {Path.Combine(relativePathToTestAssemblies, "RunTests", "Debug", "net8.0")}\rehydrate.cmd");
+
+                    command.AppendLine($"set XUNIT_LOGS={logDirectory}");
+                    command.AppendLine("echo %XUNIT_LOGS%");
+
+                    var args = $"-configuration {options.Configuration} -ci";
+                    if (options.Oop64Bit)
+                    {
+                        args += " -oop64bit";
+                    }
+
+                    if (options.OopCoreClr)
+                    {
+                        args += " -oopCoreClr";
+                    }
+
+                    if (options.LspEditor)
+                    {
+                        args += " -lspEditor";
+                    }
+                    // We need to prepare the integration tests by running the setup scripts.
+                    // We use -file instead of -command to ensure the cmd exit code is set to the script exit code.
+                    command.AppendLine($@"PowerShell.exe -ExecutionPolicy Unrestricted -file .\eng\setup-integration-test.ps1 {args}");
+                }
 
                 var xmlResultsFilePath = ProcessTestExecutor.GetResultsFilePath(workItemInfo, options, "xml");
                 Contract.Assert(!options.IncludeHtml);
@@ -290,6 +334,23 @@ namespace RunTests
                 // non .NET Core dump files that aren't controlled by that value.
                 var postCommands = new StringBuilder();
 
+                postCommands.AppendLine(isUnix ? $"cp {xmlResultsFilePath} %24{{HELIX_WORKITEM_UPLOAD_ROOT}}" : $"copy {xmlResultsFilePath} %HELIX_WORKITEM_UPLOAD_ROOT%");
+
+                if (options.TestVsi)
+                {
+                    // Copy test logs to the helix upload directory.  This is where screenshots and other log files are written to.
+                    postCommands.AppendLine($@"xcopy {logDirectory} %HELIX_WORKITEM_UPLOAD_ROOT% /E /Y");
+
+                    // Zip up VS logs and copy them to the helix upload directory.
+                    postCommands.AppendLine($@"tar.exe -a -c -f servicehub_logs.zip -C %TEMP%\servicehub\logs .");
+                    postCommands.AppendLine($@"tar.exe -a -c -f loghub_logs.zip -C %TEMP%\VSLogs .");
+                    postCommands.AppendLine($@"tar.exe -a -c -f telemetry_logs.zip -C %TEMP%\VSTelemetryLog .");
+
+                    postCommands.AppendLine($@"copy servicehub_logs.zip %HELIX_WORKITEM_UPLOAD_ROOT%");
+                    postCommands.AppendLine($@"copy loghub_logs.zip %HELIX_WORKITEM_UPLOAD_ROOT%");
+                    postCommands.AppendLine($@"copy telemetry_logs.zip %HELIX_WORKITEM_UPLOAD_ROOT%");
+                }
+
                 if (isUnix)
                 {
                     // Write out this command into a separate file; unfortunately the use of single quotes and ; that is required
@@ -302,6 +363,14 @@ namespace RunTests
                     postCommands.AppendLine("for /r %%f in (*.dmp) do copy %%f %HELIX_DUMP_FOLDER%");
                 }
 
+                var workItemTimeout = "00:30:00";
+                if (options.TestVsi)
+                {
+                    // It can occasionally take some time to install the VSIXs (in the order of 15minutes)
+                    // So give integration test work items more time to finish for those rare occasions.
+                    workItemTimeout = "00:45:00";
+                }
+
                 var workItem = $@"
         <HelixWorkItem Include=""{workItemInfo.DisplayName}"">
             <PayloadDirectory>{payloadDirectory}</PayloadDirectory>
@@ -311,7 +380,7 @@ namespace RunTests
             <PostCommands>
                 {postCommands}
             </PostCommands>
-            <Timeout>00:30:00</Timeout>
+            <Timeout>{workItemTimeout}</Timeout>
         </HelixWorkItem>
 ";
                 return workItem;

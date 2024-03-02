@@ -47,15 +47,27 @@ namespace RunTests
         private static readonly TimeSpan s_maxExecutionTime = TimeSpan.FromSeconds(150);
 
         /// <summary>
+        /// The time to acquire helix integration test machines drastically overshadows the test execution time
+        /// if we split up the tests across too many different machines.  Instead, we favor fewer, longer work items
+        /// over many shorter ones.  We spend less time waiting for machines and less time running the install steps
+        /// so the wall clock time ends up being overall faster.
+        /// </summary>
+        private static readonly TimeSpan s_integrationMaxExecutionTime = TimeSpan.FromMinutes(10);
+
+        private readonly TimeSpan _maxExecutionTime;
+
+        /// <summary>
         /// If we were unable to find the test execution history, we fall back to partitioning by just method count.
         /// </summary>
-        private static readonly int s_maxMethodCount = 500;
+        private readonly int _maxMethodCount;
 
         private readonly Options _options;
 
         internal AssemblyScheduler(Options options)
         {
             _options = options;
+            _maxExecutionTime = options.TestVsi ? s_integrationMaxExecutionTime : s_maxExecutionTime;
+            _maxMethodCount = options.TestVsi ? 150 : 500;
         }
 
         public async Task<ImmutableArray<WorkItemInfo>> ScheduleAsync(ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
@@ -81,7 +93,7 @@ namespace RunTests
                 ConsoleUtil.Warning($"Could not look up test history - partitioning based on test count instead");
                 var workItemsByMethodCount = BuildWorkItems<int>(
                     orderedTypeInfos,
-                    isOverLimitFunc: (accumulatedMethodCount) => accumulatedMethodCount >= s_maxMethodCount,
+                    isOverLimitFunc: (accumulatedMethodCount) => accumulatedMethodCount >= _maxMethodCount,
                     addFunc: (currentTest, accumulatedMethodCount) => accumulatedMethodCount + 1);
 
                 LogWorkItems(workItemsByMethodCount);
@@ -97,7 +109,7 @@ namespace RunTests
             // that some work items will run tests from multiple assemblies due to large variances in test execution time.
             var workItems = BuildWorkItems<TimeSpan>(
                 orderedTypeInfos,
-                isOverLimitFunc: (accumulatedExecutionTime) => accumulatedExecutionTime >= s_maxExecutionTime,
+                isOverLimitFunc: (accumulatedExecutionTime) => accumulatedExecutionTime >= _maxExecutionTime,
                 addFunc: (currentTest, accumulatedExecutionTime) => currentTest.ExecutionTime + accumulatedExecutionTime);
             LogWorkItems(workItems);
             return workItems;
@@ -268,7 +280,7 @@ namespace RunTests
             }
         }
 
-        private static void LogWorkItems(ImmutableArray<WorkItemInfo> workItems)
+        private void LogWorkItems(ImmutableArray<WorkItemInfo> workItems)
         {
             ConsoleUtil.WriteLine($"Built {workItems.Length} work items");
             Logger.Log("==== Work Item List ====");
@@ -276,11 +288,11 @@ namespace RunTests
             {
                 var totalExecutionTime = TimeSpan.FromMilliseconds(workItem.Filters.Values.SelectMany(f => f).Sum(f => f.ExecutionTime.TotalMilliseconds));
                 Logger.Log($"- Work Item {workItem.PartitionIndex} (Execution time {totalExecutionTime})");
-                if (totalExecutionTime > s_maxExecutionTime)
+                if (totalExecutionTime > _maxExecutionTime)
                 {
                     // Log a warning to the console with work item details when we were not able to partition in under our limit.
                     // This can happen when a single specific test exceeds our execution time limit.
-                    ConsoleUtil.Warning($"Work item {workItem.PartitionIndex} estimated execution {totalExecutionTime} time exceeds max execution time {s_maxExecutionTime}.");
+                    ConsoleUtil.Warning($"Work item {workItem.PartitionIndex} estimated execution {totalExecutionTime} time exceeds max execution time {_maxExecutionTime}.");
                     LogFilters(workItem, ConsoleUtil.WriteLine);
                 }
                 else
