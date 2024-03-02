@@ -50,11 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         private readonly CSharpCompilationOptions _options;
-        private readonly Lazy<UsingsFromOptionsAndDiagnostics> _usingsFromOptions;
-        private readonly Lazy<ImmutableArray<NamespaceOrTypeAndUsingDirective>> _globalImports;
-        private readonly Lazy<Imports> _previousSubmissionImports;
-        private readonly Lazy<AliasSymbol> _globalNamespaceAlias;  // alias symbol used to resolve "global::".
-        private readonly Lazy<ImplicitNamedTypeSymbol?> _scriptClass;
+        private UsingsFromOptionsAndDiagnostics? _usingsFromOptions;
+        private ImmutableArray<NamespaceOrTypeAndUsingDirective> _globalImports;
+        private Imports? _previousSubmissionImports;
+        private AliasSymbol? _globalNamespaceAlias;  // alias symbol used to resolve "global::".
+
+        private bool _scriptClassInitialized;
+        private ImplicitNamedTypeSymbol? _scriptClass;
 
         // The type of host object model if available.
         private TypeSymbol? _lazyHostObjectTypeSymbol;
@@ -77,17 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A conversions object that ignores nullability.
         /// </summary>
         internal Conversions Conversions
-        {
-            get
-            {
-                if (_conversions == null)
-                {
-                    Interlocked.CompareExchange(ref _conversions, new BuckStopsHereBinder(this, associatedFileIdentifier: null).Conversions, null);
-                }
-
-                return _conversions;
-            }
-        }
+            => InterlockedOperations.Initialize(ref _conversions, static self => new BuckStopsHereBinder(self, associatedFileIdentifier: null).Conversions, this);
 
         /// <summary>
         /// Manages anonymous types declared in this compilation. Unifies types that are structurally equivalent.
@@ -473,11 +465,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _options = options;
 
             this.builtInOperators = new BuiltInOperators(this);
-            _scriptClass = new Lazy<ImplicitNamedTypeSymbol?>(BindScriptClass);
-            _globalImports = new Lazy<ImmutableArray<NamespaceOrTypeAndUsingDirective>>(BindGlobalImports);
-            _usingsFromOptions = new Lazy<UsingsFromOptionsAndDiagnostics>(BindUsingsFromOptions);
-            _previousSubmissionImports = new Lazy<Imports>(ExpandPreviousSubmissionImports);
-            _globalNamespaceAlias = new Lazy<AliasSymbol>(CreateGlobalNamespaceAlias);
             _anonymousTypeManager = new AnonymousTypeManager(this);
             this.LanguageVersion = CommonLanguageVersion(syntaxAndDeclarations.ExternalSyntaxTrees);
 
@@ -1503,7 +1490,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal new NamedTypeSymbol? ScriptClass
         {
-            get { return _scriptClass.Value; }
+            get
+            {
+                // _scriptClass is allowed to be null, thus why a bool is used to track initialization
+                if (!_scriptClassInitialized)
+                {
+                    _scriptClassInitialized = true;
+                    Interlocked.CompareExchange(ref _scriptClass, BindScriptClass(), null);
+                }
+
+                return _scriptClass;
+            }
         }
 
         /// <summary>
@@ -1526,7 +1523,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Global imports (including those from previous submissions, if there are any).
         /// </summary>
-        internal ImmutableArray<NamespaceOrTypeAndUsingDirective> GlobalImports => _globalImports.Value;
+        internal ImmutableArray<NamespaceOrTypeAndUsingDirective> GlobalImports
+        {
+            get
+            {
+                if (_globalImports.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(ref _globalImports, BindGlobalImports());
+                }
+
+                return _globalImports;
+            }
+        }
 
         private ImmutableArray<NamespaceOrTypeAndUsingDirective> BindGlobalImports()
         {
@@ -1565,7 +1573,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Global imports not including those from previous submissions.
         /// </summary>
-        private UsingsFromOptionsAndDiagnostics UsingsFromOptions => _usingsFromOptions.Value;
+        private UsingsFromOptionsAndDiagnostics UsingsFromOptions
+            => InterlockedOperations.Initialize(ref _usingsFromOptions, static self => self.BindUsingsFromOptions(), this);
 
         private UsingsFromOptionsAndDiagnostics BindUsingsFromOptions() => UsingsFromOptionsAndDiagnostics.FromOptions(this);
 
@@ -1590,7 +1599,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Imports from all previous submissions.
         /// </summary>
-        internal Imports GetPreviousSubmissionImports() => _previousSubmissionImports.Value;
+        internal Imports GetPreviousSubmissionImports()
+            => InterlockedOperations.Initialize(ref _previousSubmissionImports, static self => self.ExpandPreviousSubmissionImports(), this);
 
         private Imports ExpandPreviousSubmissionImports()
         {
@@ -1607,12 +1617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal AliasSymbol GlobalNamespaceAlias
-        {
-            get
-            {
-                return _globalNamespaceAlias.Value;
-            }
-        }
+            => InterlockedOperations.Initialize(ref _globalNamespaceAlias, static self => self.CreateGlobalNamespaceAlias(), this);
 
         /// <summary>
         /// Get the symbol for the predefined type from the COR Library referenced by this compilation.
