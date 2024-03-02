@@ -64,7 +64,7 @@ internal partial class SymbolTreeInfo
     public MultiDictionary<string, ExtensionMethodInfo>.ValueSet GetExtensionMethodInfoForReceiverType(string typeName)
         => _receiverTypeNameToExtensionMethodMap != null
             ? _receiverTypeNameToExtensionMethodMap[typeName]
-            : new MultiDictionary<string, ExtensionMethodInfo>.ValueSet(null, null);
+            : new MultiDictionary<string, ExtensionMethodInfo>.ValueSet(null);
 
     public bool ContainsExtensionMethod => _receiverTypeNameToExtensionMethodMap?.Count > 0;
 

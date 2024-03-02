@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameterMap == null)
             {
                 var parameters = _methodSymbol.Parameters;
-                parameterMap = new MultiDictionary<string, ParameterSymbol>(parameters.Length, EqualityComparer<string>.Default);
+                parameterMap = new MultiDictionary<string, ParameterSymbol>(parameters.Length);
                 foreach (var parameter in parameters)
                 {
                     if ((this.Flags & BinderFlags.InEEMethodBinder) != 0 && parameter.Type.IsDisplayClassType())

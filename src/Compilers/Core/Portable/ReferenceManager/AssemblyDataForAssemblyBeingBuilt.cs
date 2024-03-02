@@ -85,7 +85,10 @@ namespace Microsoft.CodeAnalysis
 
                 for (int i = 0; i < _referencedAssemblyData.Length; i++)
                 {
-                    Debug.Assert(assemblies[_referencedAssemblyData[i].Identity.Name].Contains((_referencedAssemblyData[i], i + 1)));
+#if DEBUG
+                    var valueSet = assemblies[_referencedAssemblyData[i].Identity.Name];
+                    Debug.Assert(valueSet.Contains((_referencedAssemblyData[i], i + 1), assemblies.ValueComparer));
+#endif
                     boundReferences[i] = new AssemblyReferenceBinding(_referencedAssemblyData[i].Identity, i + 1);
                 }
 

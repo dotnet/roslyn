@@ -100,8 +100,6 @@ namespace Roslyn.Utilities
             // Stores either a single V or an ImmutableHashSet<V>
             private readonly object? _value;
 
-            private readonly IEqualityComparer<V> _equalityComparer;
-
             public int Count
             {
                 get
@@ -128,10 +126,9 @@ namespace Roslyn.Utilities
                 }
             }
 
-            public ValueSet(object? value, IEqualityComparer<V>? equalityComparer = null)
+            public ValueSet(object? value)
             {
                 _value = value;
-                _equalityComparer = equalityComparer ?? ImmutableHashSet<V>.Empty.KeyComparer;
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -149,46 +146,33 @@ namespace Roslyn.Utilities
                 return new Enumerator(this);
             }
 
-            public ValueSet Add(V v)
+            public ValueSet Add(V v, IEqualityComparer<V> comparer)
             {
                 Debug.Assert(_value != null);
 
                 var set = _value as ImmutableHashSet<V>;
                 if (set == null)
                 {
-                    if (_equalityComparer.Equals((V)_value!, v))
+                    if (comparer.Equals((V)_value!, v))
                     {
                         return this;
                     }
 
-                    set = ImmutableHashSet.Create(_equalityComparer, (V)_value!);
+                    set = ImmutableHashSet.Create(comparer, (V)_value!);
                 }
 
-                return new ValueSet(set.Add(v), _equalityComparer);
-            }
-
-            public bool Contains(V v)
-            {
-                var set = _value as ImmutableHashSet<V>;
-                if (set == null)
-                {
-                    return _equalityComparer.Equals((V)_value!, v);
-                }
-
-                return set.Contains(v);
+                return new ValueSet(set.Add(v));
             }
 
             public bool Contains(V v, IEqualityComparer<V> comparer)
             {
-                foreach (V other in this)
+                var set = _value as ImmutableHashSet<V>;
+                if (set == null)
                 {
-                    if (comparer.Equals(other, v))
-                    {
-                        return true;
-                    }
+                    return comparer.Equals((V)_value!, v);
                 }
 
-                return false;
+                return set.Contains(v);
             }
 
             public V Single()
@@ -205,7 +189,7 @@ namespace Roslyn.Utilities
 
         private readonly Dictionary<K, ValueSet> _dictionary;
 
-        private readonly IEqualityComparer<V>? _valueComparer;
+        public IEqualityComparer<V> ValueComparer { get; }
 
         public int Count => _dictionary.Count;
 
@@ -215,7 +199,7 @@ namespace Roslyn.Utilities
 
         public Dictionary<K, ValueSet>.ValueCollection Values => _dictionary.Values;
 
-        private readonly ValueSet _emptySet = new(null, null);
+        private readonly ValueSet _emptySet = new(null);
 
         // Returns an empty set if there is no such key in the dictionary.
         public ValueSet this[K k]
@@ -227,13 +211,13 @@ namespace Roslyn.Utilities
         }
 
         public MultiDictionary()
+            : this(0)
         {
-            _dictionary = new Dictionary<K, ValueSet>();
         }
 
         public MultiDictionary(IEqualityComparer<K> comparer)
+            : this(0, comparer)
         {
-            _dictionary = new Dictionary<K, ValueSet>(comparer);
         }
 
         public void EnsureCapacity(int capacity)
@@ -243,10 +227,10 @@ namespace Roslyn.Utilities
 #endif
         }
 
-        public MultiDictionary(int capacity, IEqualityComparer<K> comparer, IEqualityComparer<V>? valueComparer = null)
+        public MultiDictionary(int capacity, IEqualityComparer<K>? comparer = null, IEqualityComparer<V>? valueComparer = null)
         {
             _dictionary = new Dictionary<K, ValueSet>(capacity, comparer);
-            _valueComparer = valueComparer;
+            ValueComparer = valueComparer ?? EqualityComparer<V>.Default;
         }
 
         public bool Add(K k, V v)
@@ -255,7 +239,7 @@ namespace Roslyn.Utilities
 
             if (_dictionary.TryGetValue(k, out ValueSet set))
             {
-                updated = set.Add(v);
+                updated = set.Add(v, ValueComparer);
                 if (updated.Equals(set))
                 {
                     return false;
@@ -263,7 +247,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                updated = new ValueSet(v, _valueComparer);
+                updated = new ValueSet(v);
             }
 
             _dictionary[k] = updated;
