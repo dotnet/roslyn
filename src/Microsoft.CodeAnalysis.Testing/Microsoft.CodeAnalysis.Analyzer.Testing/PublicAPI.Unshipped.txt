@@ -280,6 +280,13 @@ static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net80MacOS.get -> 
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net80TvOS.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net80Windows.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net80iOS.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net90.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net90Android.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net90MacCatalyst.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net90MacOS.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net90TvOS.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net90Windows.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net.Net90iOS.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp10.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp11.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp20.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
