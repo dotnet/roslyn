@@ -318,7 +318,7 @@ internal partial class StreamingFindUsagesPresenter :
         return infoBarHost;
     }
 
-    private async Task ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
+    private async Task ReportMessageAsync(string message, NotificationSeverity severity, CancellationToken cancellationToken)
     {
         await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         RemoveExistingInfoBar();
@@ -332,7 +332,13 @@ internal partial class StreamingFindUsagesPresenter :
 
         _infoBar = factory.CreateInfoBar(new InfoBarModel(
             message,
-            KnownMonikers.StatusInformation,
+            severity switch
+            {
+                NotificationSeverity.Information => KnownMonikers.StatusInformation,
+                NotificationSeverity.Error => KnownMonikers.StatusError,
+                NotificationSeverity.Warning => KnownMonikers.StatusWarning,
+                _ => throw ExceptionUtilities.UnexpectedValue(severity),
+            },
             isCloseButtonVisible: false));
 
         infoBarHost.AddInfoBar(_infoBar);
