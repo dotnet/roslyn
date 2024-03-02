@@ -44,7 +44,17 @@ namespace Microsoft.CodeAnalysis
             // guarantees only one thread is building at a time
             private SemaphoreSlim? _buildLock;
 
-            public SkeletonReferenceCache SkeletonReferenceCache { get; }
+            private SkeletonReferenceCache? _skeletonReferenceCache;
+
+            public SkeletonReferenceCache? TryGetSkeletonReferenceCache() => _skeletonReferenceCache;
+
+            public SkeletonReferenceCache GetOrCreateSkeletonReferenceCache()
+            {
+                if (_skeletonReferenceCache is null)
+                    InterlockedOperations.Initialize(ref _skeletonReferenceCache, () => new SkeletonReferenceCache());
+
+                return _skeletonReferenceCache;
+            }
 
             /// <summary>
             /// Set via a feature flag to enable strict validation of the compilations that are produced, in that they match the original states. This validation is expensive, so we don't want it
@@ -55,13 +65,13 @@ namespace Microsoft.CodeAnalysis
             private CompilationTracker(
                 ProjectState project,
                 CompilationTrackerState? state,
-                SkeletonReferenceCache cachedSkeletonReferences)
+                SkeletonReferenceCache? cachedSkeletonReferences)
             {
                 Contract.ThrowIfNull(project);
 
                 this.ProjectState = project;
                 _stateDoNotAccessDirectly = state;
-                this.SkeletonReferenceCache = cachedSkeletonReferences;
+                _skeletonReferenceCache = cachedSkeletonReferences;
 
                 _validateStates = project.LanguageServices.SolutionServices.GetRequiredService<IWorkspaceConfigurationService>().Options.ValidateCompilationTrackerStates;
 
@@ -73,7 +83,7 @@ namespace Microsoft.CodeAnalysis
             /// and will have no extra information beyond the project itself.
             /// </summary>
             public CompilationTracker(ProjectState project)
-                : this(project, state: null, cachedSkeletonReferences: new())
+                : this(project, state: null, cachedSkeletonReferences: null)
             {
             }
 
@@ -131,7 +141,7 @@ namespace Microsoft.CodeAnalysis
                 return new CompilationTracker(
                     newProjectState,
                     forkedTrackerState,
-                    this.SkeletonReferenceCache.Clone());
+                    this.TryGetSkeletonReferenceCache()?.Clone());
 
                 CompilationTrackerState? ForkTrackerState()
                 {
@@ -656,7 +666,7 @@ namespace Microsoft.CodeAnalysis
                     // generate on demand.  So just try to see if we can grab the last generated skeleton for that
                     // project.
                     var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
-                    return this.SkeletonReferenceCache.TryGetAlreadyBuiltMetadataReference(properties);
+                    return this.TryGetSkeletonReferenceCache()?.TryGetAlreadyBuiltMetadataReference(properties);
                 }
 
                 return null;
@@ -682,7 +692,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var state = this.ReadState();
 
-                var clonedCache = this.SkeletonReferenceCache.Clone();
+                var clonedCache = this.TryGetSkeletonReferenceCache()?.Clone();
                 if (state is FinalCompilationTrackerState finalState)
                 {
                     // If we're finalized and already frozen, we can just use ourselves. Otherwise, flip the frozen bit

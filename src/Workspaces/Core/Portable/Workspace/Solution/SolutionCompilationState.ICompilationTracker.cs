@@ -17,7 +17,8 @@ internal partial class SolutionCompilationState
         ProjectState ProjectState { get; }
         GeneratorDriver? GeneratorDriver { get; }
 
-        SkeletonReferenceCache SkeletonReferenceCache { get; }
+        SkeletonReferenceCache? TryGetSkeletonReferenceCache();
+        SkeletonReferenceCache GetOrCreateSkeletonReferenceCache();
 
         /// <summary>
         /// Returns <see langword="true"/> if this <see cref="Project"/>/<see cref="Compilation"/> could produce the

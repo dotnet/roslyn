@@ -31,7 +31,10 @@ internal partial class SolutionCompilationState
         private Compilation? _compilationWithReplacements;
 
         public ICompilationTracker UnderlyingTracker { get; } = underlyingTracker;
-        public SkeletonReferenceCache SkeletonReferenceCache { get; } = underlyingTracker.SkeletonReferenceCache.Clone();
+
+        public SkeletonReferenceCache? TryGetSkeletonReferenceCache() => UnderlyingTracker.TryGetSkeletonReferenceCache()?.Clone();
+        public SkeletonReferenceCache GetOrCreateSkeletonReferenceCache() => UnderlyingTracker.GetOrCreateSkeletonReferenceCache().Clone();
+
         public ProjectState ProjectState => UnderlyingTracker.ProjectState;
 
         public GeneratorDriver? GeneratorDriver => UnderlyingTracker.GeneratorDriver;

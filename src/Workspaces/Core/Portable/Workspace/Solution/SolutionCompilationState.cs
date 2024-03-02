@@ -959,7 +959,7 @@ internal sealed partial class SolutionCompilationState
             using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_GetMetadataOnlyImage, cancellationToken))
             {
                 var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
-                return await tracker.SkeletonReferenceCache.GetOrBuildReferenceAsync(
+                return await tracker.GetOrCreateSkeletonReferenceCache().GetOrBuildReferenceAsync(
                     tracker, this, properties, cancellationToken).ConfigureAwait(false);
             }
         }
