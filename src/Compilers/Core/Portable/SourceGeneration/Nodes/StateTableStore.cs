@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -51,10 +52,15 @@ namespace Microsoft.CodeAnalysis
             public StateTableStore ToImmutable()
             {
                 // we can cache the tables at this point, as we'll no longer be using them to determine current state
-                var keys = _tableBuilder.Keys.ToArray();
-                foreach (var key in keys)
+                var scratch = ArrayBuilder<KeyValuePair<object, IStateTable>>.GetInstance(_tableBuilder.Keys.Count);
+                foreach (var kvp in _tableBuilder)
                 {
-                    _tableBuilder[key] = _tableBuilder[key].AsCached();
+                    scratch.Add(kvp);
+                }
+
+                foreach (var kvp in scratch)
+                {
+                    _tableBuilder[kvp.Key] = kvp.Value.AsCached();
                 }
 
                 return new StateTableStore(_tableBuilder.ToImmutable());
