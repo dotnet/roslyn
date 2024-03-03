@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis
                 var assemblyPath = Path.Combine(Directory, simpleName + ".dll");
                 if (_loader.IsAnalyzerDependencyPath(assemblyPath))
                 {
-                    (_, var loadPath, _) = _loader.GetAssemblyInfoForPath(assemblyPath);
+                    (_, var loadPath) = _loader.GetAssemblyInfoForPath(assemblyPath);
                     return loadCore(loadPath);
                 }
 
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis
                 var assemblyPath = Path.Combine(Directory, unmanagedDllName + ".dll");
                 if (_loader.IsAnalyzerDependencyPath(assemblyPath))
                 {
-                    (_, var loadPath, _) = _loader.GetAssemblyInfoForPath(assemblyPath);
+                    (_, var loadPath) = _loader.GetAssemblyInfoForPath(assemblyPath);
                     return LoadUnmanagedDllFromPath(loadPath);
                 }
 
