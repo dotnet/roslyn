@@ -84,11 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Manages anonymous types declared in this compilation. Unifies types that are structurally equivalent.
         /// </summary>
-        private readonly AnonymousTypeManager _anonymousTypeManager;
+        private AnonymousTypeManager? _anonymousTypeManager;
 
         private NamespaceSymbol? _lazyGlobalNamespace;
 
-        internal readonly BuiltInOperators builtInOperators;
+        private BuiltInOperators? _builtInOperators;
 
         /// <summary>
         /// The <see cref="SourceAssemblySymbol"/> for this compilation. Do not access directly, use Assembly property
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Cache of T to Nullable&lt;T&gt;.
         /// </summary>
-        private readonly ConcurrentCache<TypeSymbol, NamedTypeSymbol> _typeToNullableVersion = new ConcurrentCache<TypeSymbol, NamedTypeSymbol>(size: 100);
+        private ConcurrentCache<TypeSymbol, NamedTypeSymbol>? _typeToNullableVersion;
 
         /// <summary>Lazily caches SyntaxTrees by their mapped path. Used to look up the syntax tree referenced by an interceptor (temporary compat behavior).</summary>
         /// <remarks>Must be removed prior to interceptors stable release.</remarks>
@@ -180,13 +180,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal BuiltInOperators BuiltInOperators
+            => InterlockedOperations.Initialize(ref _builtInOperators, static self => new BuiltInOperators(self), this);
+
         internal AnonymousTypeManager AnonymousTypeManager
-        {
-            get
-            {
-                return _anonymousTypeManager;
-            }
-        }
+            => InterlockedOperations.Initialize(ref _anonymousTypeManager, self => new AnonymousTypeManager(self), this);
 
         internal override CommonAnonymousTypeManager CommonAnonymousTypeManager
         {
@@ -461,11 +459,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AsyncQueue<CompilationEvent>? eventQueue = null)
             : base(assemblyName, references, features, isSubmission, semanticModelProvider, eventQueue)
         {
-            WellKnownMemberSignatureComparer = new WellKnownMembersSignatureComparer(this);
             _options = options;
 
-            this.builtInOperators = new BuiltInOperators(this);
-            _anonymousTypeManager = new AnonymousTypeManager(this);
             this.LanguageVersion = CommonLanguageVersion(syntaxAndDeclarations.ExternalSyntaxTrees);
 
             if (isSubmission)
@@ -1644,6 +1639,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        private ConcurrentCache<TypeSymbol, NamedTypeSymbol> TypeToNullableVersion
+            => InterlockedOperations.Initialize(ref _typeToNullableVersion, static () => new ConcurrentCache<TypeSymbol, NamedTypeSymbol>(size: 100));
+
         /// <summary>
         /// Given a provided <paramref name="typeArgument"/>, gives back <see cref="Nullable{T}"/> constructed with that
         /// argument.  This function is only intended to be used for very common instantiations produced heavily during
@@ -1658,10 +1656,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Fail($"Unsupported type argument: {typeArgument.ToDisplayString()}");
 #endif
 
-            if (!_typeToNullableVersion.TryGetValue(typeArgument, out var constructedNullableInstance))
+            var typeToNullableVersion = TypeToNullableVersion;
+            if (!typeToNullableVersion.TryGetValue(typeArgument, out var constructedNullableInstance))
             {
                 constructedNullableInstance = this.GetSpecialType(SpecialType.System_Nullable_T).Construct(typeArgument);
-                _typeToNullableVersion.TryAdd(typeArgument, constructedNullableInstance);
+                typeToNullableVersion.TryAdd(typeArgument, constructedNullableInstance);
             }
 
             return constructedNullableInstance;
@@ -4203,7 +4202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (easyOutBinaryKind != BinaryOperatorKind.Error)
                     {
-                        var signature = this.builtInOperators.GetSignature(easyOutBinaryKind);
+                        var signature = this.BuiltInOperators.GetSignature(easyOutBinaryKind);
                         if (csharpReturnType.SpecialType == signature.ReturnType.SpecialType &&
                             csharpLeftType.SpecialType == signature.LeftType.SpecialType &&
                             csharpRightType.SpecialType == signature.RightType.SpecialType)
@@ -4426,7 +4425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (easyOutUnaryKind != UnaryOperatorKind.Error)
                     {
-                        var signature = this.builtInOperators.GetSignature(easyOutUnaryKind);
+                        var signature = this.BuiltInOperators.GetSignature(easyOutUnaryKind);
                         if (csharpReturnType.SpecialType == signature.ReturnType.SpecialType &&
                             csharpOperandType.SpecialType == signature.OperandType.SpecialType)
                         {
