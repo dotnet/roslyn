@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages;
@@ -17,9 +18,9 @@ internal abstract class FindUsagesContext : IFindUsagesContext
         ProgressTracker = new StreamingProgressTracker(ReportProgressAsync);
     }
 
-    public virtual ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken) => default;
+    public virtual ValueTask ReportNoResultsAsync(string message, CancellationToken cancellationToken) => default;
 
-    public virtual ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken) => default;
+    public virtual ValueTask ReportMessageAsync(string message, NotificationSeverity severity, CancellationToken cancellationToken) => default;
 
     public virtual ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken) => default;
 

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -96,10 +97,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public IStreamingProgressTracker ProgressTracker => this;
 
-            public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
+            public ValueTask ReportNoResultsAsync(string message, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportMessageAsync(_callbackId, message, cancellationToken), cancellationToken);
 
-            public ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
+            public ValueTask ReportMessageAsync(string message, NotificationSeverity severity, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportInformationalMessageAsync(_callbackId, message, cancellationToken), cancellationToken);
 
             public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)

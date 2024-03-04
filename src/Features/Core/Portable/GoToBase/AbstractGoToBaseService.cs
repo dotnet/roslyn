@@ -36,7 +36,7 @@ internal abstract class AbstractGoToBaseService : IGoToBaseService
 
         if (symbolAndProjectOpt == null)
         {
-            await context.ReportMessageAsync(
+            await context.ReportNoResultsAsync(
                 FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, cancellationToken).ConfigureAwait(false);
             return;
         }
@@ -85,7 +85,7 @@ internal abstract class AbstractGoToBaseService : IGoToBaseService
 
         if (!found)
         {
-            await context.ReportMessageAsync(FeaturesResources.The_symbol_has_no_base, cancellationToken).ConfigureAwait(false);
+            await context.ReportNoResultsAsync(FeaturesResources.The_symbol_has_no_base, cancellationToken).ConfigureAwait(false);
         }
     }
 }
