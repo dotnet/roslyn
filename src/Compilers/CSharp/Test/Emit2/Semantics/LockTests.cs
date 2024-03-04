@@ -1761,9 +1761,6 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (4,7): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
-            // lock (new Lock())
-            Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(4, 7),
             // (6,5): error CS1996: Cannot await in the body of a lock statement
             //     await Task.Yield();
             Diagnostic(ErrorCode.ERR_BadAwaitInLock, "await Task.Yield()").WithLocation(6, 5));
@@ -1784,10 +1781,7 @@ public class LockTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (8,15): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
-            //         lock (new Lock()) { }
-            Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(8, 15));
+        CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -1799,17 +1793,23 @@ public class LockTests : CSharpTestBase
 
             class C
             {
-                async void M()
+                static async Task Main()
                 {
                     await Task.Yield();
-                    lock (new Lock()) { }
+                    lock (new Lock())
+                    {
+                        System.Console.WriteLine();
+                        System.Console.WriteLine("In lock");
+                    }
                 }
             }
             """;
-        CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (9,15): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
-            //         lock (new Lock()) { }
-            Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(9, 15));
+        var comp = CreateCompilation([source, LockTypeDefinition], options: TestOptions.DebugExe);
+
+        CompileAndVerify(comp, expectedOutput:
+@"E
+In lock
+D", verify: Verification.Skipped);
     }
 
     [Fact]
@@ -1826,10 +1826,7 @@ public class LockTests : CSharpTestBase
 
             local();
             """;
-        CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (6,11): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
-            //     lock (new Lock()) { }
-            Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(6, 11));
+        CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -1847,10 +1844,7 @@ public class LockTests : CSharpTestBase
 
             local();
             """;
-        CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (7,11): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
-            //     lock (new Lock()) { }
-            Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(7, 11));
+        CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -1865,10 +1859,7 @@ public class LockTests : CSharpTestBase
                 lock (new Lock()) { }
             };
             """;
-        CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (6,11): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
-            //     lock (new Lock()) { }
-            Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(6, 11));
+        CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -1884,10 +1875,7 @@ public class LockTests : CSharpTestBase
                 lock (new Lock()) { }
             };
             """;
-        CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (7,11): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
-            //     lock (new Lock()) { }
-            Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(7, 11));
+        CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -1938,10 +1926,7 @@ public class LockTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilationWithTasksExtensions([source, LockTypeDefinition, AsyncStreamsTypes]).VerifyDiagnostics(
-            // (10,15): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
-            //         lock (new Lock())
-            Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(10, 15));
+        CreateCompilationWithTasksExtensions([source, LockTypeDefinition, AsyncStreamsTypes]).VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]
