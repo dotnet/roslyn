@@ -52,16 +52,22 @@ namespace Microsoft.CodeAnalysis
             public StateTableStore ToImmutable()
             {
                 // we can cache the tables at this point, as we'll no longer be using them to determine current state
-                var scratch = ArrayBuilder<KeyValuePair<object, IStateTable>>.GetInstance(_tableBuilder.Keys.Count);
+                var nonCachedEntries = ArrayBuilder<KeyValuePair<object, IStateTable>>.GetInstance(_tableBuilder.Keys.Count);
                 foreach (var kvp in _tableBuilder)
                 {
-                    scratch.Add(kvp);
+                    var cachedValue = kvp.Value.AsCached();
+                    if (cachedValue != kvp.Value)
+                    {
+                        nonCachedEntries.Add(new KeyValuePair<object, IStateTable>(kvp.Key, cachedValue));
+                    }
                 }
 
-                foreach (var kvp in scratch)
+                foreach (var kvp in nonCachedEntries)
                 {
-                    _tableBuilder[kvp.Key] = kvp.Value.AsCached();
+                    _tableBuilder[kvp.Key] = kvp.Value;
                 }
+
+                nonCachedEntries.Free();
 
                 return new StateTableStore(_tableBuilder.ToImmutable());
             }
