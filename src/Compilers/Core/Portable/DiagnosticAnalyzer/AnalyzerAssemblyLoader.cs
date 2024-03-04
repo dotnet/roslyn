@@ -100,6 +100,7 @@ namespace Microsoft.CodeAnalysis
                 // it's instance. Repeated calls to this method, even if the underlying 
                 // file system contents, should reuse the results of the first call.
                 _ = _analyzerAssemblyInfoMap.TryAdd(fullPath, null);
+                _ = _analyzerSatelliteAssemblyInfoMap.TryAdd(fullPath, null);
             }
         }
 
