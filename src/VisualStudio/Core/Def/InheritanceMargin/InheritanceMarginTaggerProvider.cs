@@ -65,14 +65,9 @@ internal sealed class InheritanceMarginTaggerProvider : AsynchronousViewportTagg
 
     protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
     {
-        // Because we use frozen-partial documents for semantic classification, we may end up with incomplete
-        // semantics (esp. during solution load).  Because of this, we also register to hear when the full
-        // compilation is available so that reclassify and bring ourselves up to date.
         // Note: Also generate tags when InheritanceMarginOptions.InheritanceMarginCombinedWithIndicatorMargin is changed,
         // because we want to refresh the glyphs in indicator margin.
-        return new CompilationAvailableTaggerEventSource(
-           subjectBuffer,
-           AsyncListener,
+        return TaggerEventSources.Compose(
            TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
            TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
            TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
