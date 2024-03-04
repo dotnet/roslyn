@@ -285,12 +285,143 @@ class C<T> where T : @allows ref struct
         }
 
         [Fact]
+        public void RefStruct_Single_EscapedRef()
+        {
+            var text = @"
+class C<T> where T : allows @ref struct
+{}";
+            UsingTree(text,
+                // (2,29): error CS1003: Syntax error, ',' expected
+                // class C<T> where T : allows @ref struct
+                Diagnostic(ErrorCode.ERR_SyntaxError, "@ref").WithArguments(",").WithLocation(2, 29),
+                // (2,34): error CS1003: Syntax error, ',' expected
+                // class C<T> where T : allows @ref struct
+                Diagnostic(ErrorCode.ERR_SyntaxError, "struct").WithArguments(",").WithLocation(2, 34)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "allows");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "@ref");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.StructConstraint);
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RefStruct_Single_EscapedStruct()
+        {
+            var text = @"
+class C<T> where T : allows ref @struct
+{}";
+            UsingTree(text,
+                // (2,33): error CS1003: Syntax error, 'struct' expected
+                // class C<T> where T : allows ref @struct
+                Diagnostic(ErrorCode.ERR_SyntaxError, "@struct").WithArguments("struct").WithLocation(2, 33),
+                // (2,33): error CS1003: Syntax error, ',' expected
+                // class C<T> where T : allows ref @struct
+                Diagnostic(ErrorCode.ERR_SyntaxError, "@struct").WithArguments(",").WithLocation(2, 33)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.AllowsConstraintClause);
+                        {
+                            N(SyntaxKind.AllowsKeyword);
+                            N(SyntaxKind.RefStructConstraint);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                M(SyntaxKind.StructKeyword);
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "@struct");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void RefStruct_TwoInARow()
         {
             var text = @"
 class C<T> where T : allows ref struct, ref struct
 {}";
-            UsingTree(text); // PROTOTYPE(RefStructInterfaces): Ensure there is a declaration error
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -345,7 +476,7 @@ class C<T> where T : allows ref struct, ref struct
             var text = @"
 class C<T> where T : allows ref struct, struct
 {}";
-            UsingTree(text); // PROTOTYPE(RefStructInterfaces): Ensure there is a declaration error
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -403,7 +534,7 @@ class C<T> where T : allows ref struct, ref
                 // (2,44): error CS1003: Syntax error, 'struct' expected
                 // class C<T> where T : allows ref struct, ref
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("struct").WithLocation(2, 44)
-                ); // PROTOTYPE(RefStructInterfaces): Ensure there is a declaration error
+                );
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -458,7 +589,7 @@ class C<T> where T : allows ref struct, ref
             var text = @"
 class C<T> where T : allows ref struct, allows ref struct
 {}";
-            UsingTree(text); // PROTOTYPE(RefStructInterfaces): Ensure there is a declaration error
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1026,7 +1157,7 @@ class C<T> where T : struct allows ref struct
             var text = @"
 class C<T> where T : class, allows ref struct
 {}";
-            UsingTree(text); // PROTOTYPE(RefStructInterfaces): Ensure there is a declaration error
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1080,7 +1211,7 @@ class C<T> where T : class, allows ref struct
             var text = @"
 class C<T> where T : default, allows ref struct
 {}";
-            UsingTree(text); // PROTOTYPE(RefStructInterfaces): Ensure there is a declaration error
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1164,6 +1295,63 @@ class C<T> where T : unmanaged, allows ref struct
                             N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "unmanaged");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.AllowsConstraintClause);
+                        {
+                            N(SyntaxKind.AllowsKeyword);
+                            N(SyntaxKind.RefStructConstraint);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.StructKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RefStruct_AfterNotNull()
+        {
+            var text = @"
+class C<T> where T : notnull, allows ref struct
+{}";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "notnull");
                             }
                         }
                         N(SyntaxKind.CommaToken);
@@ -1373,7 +1561,7 @@ class C<T> where T : struct, SomeType, new(), allows ref struct
             var text = @"
 class C<T> where T : allows ref struct, class
 {}";
-            UsingTree(text); // PROTOTYPE(RefStructInterfaces): Ensure there is a declaration error
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1427,7 +1615,7 @@ class C<T> where T : allows ref struct, class
             var text = @"
 class C<T> where T : allows ref struct, default
 {}";
-            UsingTree(text); // PROTOTYPE(RefStructInterfaces): Ensure there is a declaration error
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1481,7 +1669,7 @@ class C<T> where T : allows ref struct, default
             var text = @"
 class C<T> where T : allows ref struct, unmanaged
 {}";
-            UsingTree(text); // PROTOTYPE(RefStructInterfaces): Ensure there is a declaration error
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1533,12 +1721,69 @@ class C<T> where T : allows ref struct, unmanaged
         }
 
         [Fact]
+        public void RefStruct_BeforeNotNull()
+        {
+            var text = @"
+class C<T> where T : allows ref struct, notnull
+{}";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.AllowsConstraintClause);
+                        {
+                            N(SyntaxKind.AllowsKeyword);
+                            N(SyntaxKind.RefStructConstraint);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.StructKeyword);
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "notnull");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void RefStruct_BeforeTypeConstraint()
         {
             var text = @"
 class C<T> where T : allows ref struct, SomeType
 {}";
-            UsingTree(text); // PROTOTYPE(RefStructInterfaces): Ensure there is a declaration error
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1595,7 +1840,7 @@ class C<T> where T : allows ref struct, SomeType
             var text = @"
 class C<T> where T : allows ref struct, new()
 {}";
-            UsingTree(text); // PROTOTYPE(RefStructInterfaces): Ensure there is a declaration error
+            UsingTree(text);
 
             N(SyntaxKind.CompilationUnit);
             {

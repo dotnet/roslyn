@@ -42,6 +42,11 @@
         <target state="translated">메서드 그룹 '{0}'을(를) 비함수 포인터 형식 '{1}'(으)로 변환할 수 없습니다(&amp;M).</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AllowsClauseMustBeLast">
+        <source>The 'allows' constraint clause must be the last constraint specified</source>
+        <target state="new">The 'allows' constraint clause must be the last constraint specified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
         <target state="translated">보간된 축자 문자열에 '$@' 대신 '@$'를 사용하려면 언어 버전 '{0}' 이상을 사용하세요.</target>
@@ -385,6 +390,11 @@
       <trans-unit id="ERR_CheckedOperatorNeedsMatch">
         <source>The operator '{0}' requires a matching non-checked version of the operator to also be defined</source>
         <target state="translated">연산자 '{0}'에는 일치하는 확인되지 않은 버전의 연산자도 정의해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClassIsCombinedWithRefStruct">
+        <source>Cannot allow ref structs for a type parameter known from other constraints to be a class</source>
+        <target state="new">Cannot allow ref structs for a type parameter known from other constraints to be a class</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloneDisallowedInRecord">
@@ -1712,6 +1722,11 @@
         <target state="translated">참조 반환 속성은 필요하지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefStructConstraintAlreadySpecified">
+        <source>The 'ref struct' is already specified.</source>
+        <target state="new">The 'ref struct' is already specified.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">
         <source>Relational patterns may not be used for a floating-point NaN.</source>
         <target state="translated">부동 소수점 NaN에는 관계형 패턴을 사용할 수 없습니다.</target>
@@ -1755,6 +1770,11 @@
       <trans-unit id="ERR_RequiredNameDisallowed">
         <source>Types and aliases cannot be named 'required'.</source>
         <target state="translated">유형 및 별칭은 '필수'로 지정할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
+        <source>Target runtime doesn't support by-ref-like generics.</source>
+        <target state="new">Target runtime doesn't support by-ref-like generics.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
@@ -2272,6 +2292,11 @@
         <target state="translated">ref readonly 매개 변수</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRefStructInterfaces">
+        <source>ref struct interfaces</source>
+        <target state="new">ref struct interfaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
         <source>relaxed shift operator</source>
         <target state="translated">완화된 시프트 연산자</target>
@@ -2340,11 +2365,6 @@
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">포인터 요소 액세스</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_RefStructInterfaces">
-        <source>ref struct interfaces</source>
-        <target state="new">ref struct interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_SK_ARRAY">
@@ -6469,8 +6489,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundMustBeLast">
-        <source>The new() constraint must be the last constraint specified</source>
-        <target state="translated">new() 제약 조건은 마지막에 지정해야 합니다.</target>
+        <source>The new() constraint must be the last restrictive constraint specified</source>
+        <target state="needs-review-translation">new() 제약 조건은 마지막에 지정해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainCantBeGeneric">

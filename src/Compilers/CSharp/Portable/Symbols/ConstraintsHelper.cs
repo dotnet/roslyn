@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// generic method. In those cases, additional constraint checks are applied.
         /// </summary>
         public static TypeParameterBounds ResolveBounds(
-            this TypeParameterSymbol typeParameter,
+            this SourceTypeParameterSymbolBase typeParameter,
             AssemblySymbol corLibrary,
             ConsList<TypeParameterSymbol> inProgress,
             ImmutableArray<TypeWithAnnotations> constraintTypes,
@@ -93,6 +93,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             diagnosticsBuilder.Free();
+
+            if (typeParameter.AllowByRefLike)
+            {
+                if (inherited)
+                {
+                    Location location = typeParameter.GetFirstLocation();
+                    Binder.CheckFeatureAvailability(location.SourceTree, MessageID.IDS_FeatureRefStructInterfaces, diagnostics, location);
+
+                    if (!typeParameter.DeclaringCompilation.Assembly.RuntimeSupportsByRefLikeGenerics)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, location);
+                    }
+                }
+                else
+                {
+                    switch (typeParameter.HasReferenceTypeConstraint ? SpecialType.None : (bounds?.EffectiveBaseClass.SpecialType ?? SpecialType.System_Object))
+                    {
+                        case SpecialType.System_Object:
+                        case SpecialType.System_ValueType:
+                        case SpecialType.System_Enum:
+                            break;
+                        default:
+                            diagnostics.Add(ErrorCode.ERR_ClassIsCombinedWithRefStruct, typeParameter.GetFirstLocation());
+                            break;
+                    }
+                }
+            }
+
             return bounds;
         }
 

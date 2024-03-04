@@ -42,6 +42,11 @@
         <target state="translated">Impossible de convertir le groupe '{0}' de &amp;method en type de pointeur non-fonction '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AllowsClauseMustBeLast">
+        <source>The 'allows' constraint clause must be the last constraint specified</source>
+        <target state="new">The 'allows' constraint clause must be the last constraint specified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
         <target state="translated">Pour utiliser '@$' à la place de '$@' pour une chaîne verbatim interpolée, utilisez la version de langage '{0}' ou une version ultérieure.</target>
@@ -385,6 +390,11 @@
       <trans-unit id="ERR_CheckedOperatorNeedsMatch">
         <source>The operator '{0}' requires a matching non-checked version of the operator to also be defined</source>
         <target state="translated">L’opérateur '{0}' nécessite également la définition d’une version correspondante non vérifiée de l’opérateur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClassIsCombinedWithRefStruct">
+        <source>Cannot allow ref structs for a type parameter known from other constraints to be a class</source>
+        <target state="new">Cannot allow ref structs for a type parameter known from other constraints to be a class</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloneDisallowedInRecord">
@@ -1712,6 +1722,11 @@
         <target state="translated">Impossible d’exiger une référence retournant des propriétés.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefStructConstraintAlreadySpecified">
+        <source>The 'ref struct' is already specified.</source>
+        <target state="new">The 'ref struct' is already specified.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">
         <source>Relational patterns may not be used for a floating-point NaN.</source>
         <target state="translated">Les modèles relationnels ne peuvent pas être utilisés pour une valeur NaN à virgule flottante.</target>
@@ -1755,6 +1770,11 @@
       <trans-unit id="ERR_RequiredNameDisallowed">
         <source>Types and aliases cannot be named 'required'.</source>
         <target state="translated">Les types et alias ne peuvent pas être nommés « required ».</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
+        <source>Target runtime doesn't support by-ref-like generics.</source>
+        <target state="new">Target runtime doesn't support by-ref-like generics.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
@@ -2272,6 +2292,11 @@
         <target state="translated">paramètres ref readonly</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRefStructInterfaces">
+        <source>ref struct interfaces</source>
+        <target state="new">ref struct interfaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
         <source>relaxed shift operator</source>
         <target state="translated">opérateur shift souple</target>
@@ -2340,11 +2365,6 @@
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">accès à l’élément de pointeur</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_RefStructInterfaces">
-        <source>ref struct interfaces</source>
-        <target state="new">ref struct interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_SK_ARRAY">
@@ -6469,8 +6489,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundMustBeLast">
-        <source>The new() constraint must be the last constraint specified</source>
-        <target state="translated">La contrainte new() doit être la dernière contrainte spécifiée</target>
+        <source>The new() constraint must be the last restrictive constraint specified</source>
+        <target state="needs-review-translation">La contrainte new() doit être la dernière contrainte spécifiée</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainCantBeGeneric">

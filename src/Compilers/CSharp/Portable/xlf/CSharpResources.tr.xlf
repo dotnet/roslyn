@@ -42,6 +42,11 @@
         <target state="translated">'{0}' &amp;metot grubu, işlev dışı '{1}' işaretçi türüne dönüştürülemiyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AllowsClauseMustBeLast">
+        <source>The 'allows' constraint clause must be the last constraint specified</source>
+        <target state="new">The 'allows' constraint clause must be the last constraint specified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
         <target state="translated">İlişkilendirilmiş tam bir dize için '$@' yerine '@$' kullanmak amacıyla lütfen '{0}' veya daha yüksek bir dil sürümü kullanın.</target>
@@ -385,6 +390,11 @@
       <trans-unit id="ERR_CheckedOperatorNeedsMatch">
         <source>The operator '{0}' requires a matching non-checked version of the operator to also be defined</source>
         <target state="translated">'{0}' işleci, işlecin eşleşen denetlenmemiş bir sürümünün de tanımlanmasını gerektirir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClassIsCombinedWithRefStruct">
+        <source>Cannot allow ref structs for a type parameter known from other constraints to be a class</source>
+        <target state="new">Cannot allow ref structs for a type parameter known from other constraints to be a class</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloneDisallowedInRecord">
@@ -1712,6 +1722,11 @@
         <target state="translated">Başvuru döndüren özellikler gerekli kılınamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefStructConstraintAlreadySpecified">
+        <source>The 'ref struct' is already specified.</source>
+        <target state="new">The 'ref struct' is already specified.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">
         <source>Relational patterns may not be used for a floating-point NaN.</source>
         <target state="translated">İlişkisel desenler, kayan noktalı NaN için kullanılamaz.</target>
@@ -1755,6 +1770,11 @@
       <trans-unit id="ERR_RequiredNameDisallowed">
         <source>Types and aliases cannot be named 'required'.</source>
         <target state="translated">Türler ve diğer adlar 'gerekli' olarak adlandırılamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
+        <source>Target runtime doesn't support by-ref-like generics.</source>
+        <target state="new">Target runtime doesn't support by-ref-like generics.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
@@ -2272,6 +2292,11 @@
         <target state="translated">ref salt okunur parametreleri</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRefStructInterfaces">
+        <source>ref struct interfaces</source>
+        <target state="new">ref struct interfaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
         <source>relaxed shift operator</source>
         <target state="translated">esnek kaydırma işleci</target>
@@ -2340,11 +2365,6 @@
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">işaretçi öğesi erişimi</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_RefStructInterfaces">
-        <source>ref struct interfaces</source>
-        <target state="new">ref struct interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_SK_ARRAY">
@@ -6469,8 +6489,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundMustBeLast">
-        <source>The new() constraint must be the last constraint specified</source>
-        <target state="translated">new() kısıtlaması belirtilen son kısıtlama olmalıdır</target>
+        <source>The new() constraint must be the last restrictive constraint specified</source>
+        <target state="needs-review-translation">new() kısıtlaması belirtilen son kısıtlama olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainCantBeGeneric">

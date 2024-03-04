@@ -567,6 +567,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        public override bool AllowByRefLike
+        {
+            get
+            {
+                return (_flags & MetadataHelpers.GenericParameterAttributesAllowByRefLike) != 0;
+            }
+        }
+
         public override bool IsValueTypeFromConstraintTypes
         {
             get

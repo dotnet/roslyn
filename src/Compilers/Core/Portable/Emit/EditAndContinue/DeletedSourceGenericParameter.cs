@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public bool MustBeValueType => OldDefinition.MustBeValueType;
 
+        public bool AllowByRefLike => OldDefinition.AllowByRefLike;
+
         public bool MustHaveDefaultConstructor => OldDefinition.MustHaveDefaultConstructor;
 
         public TypeParameterVariance Variance => OldDefinition.Variance;

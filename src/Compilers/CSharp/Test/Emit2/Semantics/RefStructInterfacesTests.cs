@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -13,6 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class RefStructInterfacesTests : CSharpTestBase
     {
+        // PROTOTYPE(RefStructInterfaces): Switch to supporting target framework once we have its ref assemblies.
+        private static readonly TargetFramework s_targetFrameworkSupportingByRefLikeGenerics = TargetFramework.Net80;
+
         [Theory]
         [CombinatorialData]
         public void UnscopedRefInInterface_Method_01(bool isVirtual)
@@ -3846,6 +3850,1409 @@ public interface Vec4
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void AllowsConstraint_01_SimpleTypeTypeParameter()
+        {
+            var src = @"
+public class C<T>
+    where T : allows ref struct
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var t = c.TypeParameters.Single();
+                Assert.False(t.HasReferenceTypeConstraint);
+                Assert.False(t.HasValueTypeConstraint);
+                Assert.False(t.HasUnmanagedTypeConstraint);
+                Assert.False(t.HasNotNullConstraint);
+                Assert.True(t.AllowByRefLike);
+            }
+
+            CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+
+            CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (3,22): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("ref struct interfaces").WithLocation(3, 22)
+                );
+
+            CreateCompilation(src, targetFramework: TargetFramework.DesktopLatestExtended, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+                // (3,22): error CS9500: Target runtime doesn't support by-ref-like generics.
+                //     where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 22)
+                );
+        }
+
+        [Fact]
+        public void AllowsConstraint_02_SimpleMethodTypeParameter()
+        {
+            var src = @"
+public class C
+{
+    public void M<T>()
+        where T : allows ref struct
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var method = m.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+                var t = method.TypeParameters.Single();
+                Assert.False(t.HasReferenceTypeConstraint);
+                Assert.False(t.HasValueTypeConstraint);
+                Assert.False(t.HasUnmanagedTypeConstraint);
+                Assert.False(t.HasNotNullConstraint);
+                Assert.True(t.AllowByRefLike);
+            }
+
+            CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+
+            CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (5,26): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("ref struct interfaces").WithLocation(5, 26)
+                );
+
+            CreateCompilation(src, targetFramework: TargetFramework.DesktopLatestExtended, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+                // (5,26): error CS9500: Target runtime doesn't support by-ref-like generics.
+                //         where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(5, 26)
+                );
+        }
+
+        [Fact]
+        public void AllowsConstraint_03_TwoRefStructInARow()
+        {
+            var src = @"
+public class C<T>
+    where T : allows ref struct, ref struct
+{
+}
+
+public class D<T>
+    where T : allows ref struct, ref
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (3,34): error CS9501: The 'ref struct' is already specified.
+                //     where T : allows ref struct, ref struct
+                Diagnostic(ErrorCode.ERR_RefStructConstraintAlreadySpecified, "ref struct").WithLocation(3, 34),
+                // (8,34): error CS9501: The 'ref struct' is already specified.
+                //     where T : allows ref struct, ref
+                Diagnostic(ErrorCode.ERR_RefStructConstraintAlreadySpecified, @"ref
+").WithLocation(8, 34),
+                // (8,37): error CS1003: Syntax error, 'struct' expected
+                //     where T : allows ref struct, ref
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("struct").WithLocation(8, 37)
+                );
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.False(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+            Assert.True(t.AllowByRefLike);
+
+            var d = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("D");
+            var dt = d.TypeParameters.Single();
+            Assert.False(dt.HasReferenceTypeConstraint);
+            Assert.False(dt.HasValueTypeConstraint);
+            Assert.False(dt.HasUnmanagedTypeConstraint);
+            Assert.False(dt.HasNotNullConstraint);
+            Assert.True(dt.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_04_TwoAllows()
+        {
+            var src = @"
+public class C<T>
+    where T : allows ref struct, allows ref struct
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (3,15): error CS9502: The 'allows' constraint clause must be the last constraint specified
+                //     where T : allows ref struct, allows ref struct
+                Diagnostic(ErrorCode.ERR_AllowsClauseMustBeLast, "allows").WithLocation(3, 15)
+                );
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var ct = c.TypeParameters.Single();
+            Assert.False(ct.HasReferenceTypeConstraint);
+            Assert.False(ct.HasValueTypeConstraint);
+            Assert.False(ct.HasUnmanagedTypeConstraint);
+            Assert.False(ct.HasNotNullConstraint);
+            Assert.True(ct.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_05_FollowedByStruct()
+        {
+            var src = @"
+public class C<T>
+    where T : allows ref struct, struct
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (3,15): error CS9502: The 'allows' constraint clause must be the last constraint specified
+                //     where T : allows ref struct, struct
+                Diagnostic(ErrorCode.ERR_AllowsClauseMustBeLast, "allows").WithLocation(3, 15),
+                // (3,34): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     where T : allows ref struct, struct
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "struct").WithLocation(3, 34)
+                );
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.True(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_06_AfterStruct()
+        {
+            var src = @"
+public class C<T>
+    where T : struct, allows ref struct
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics();
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.True(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_07_FollowedByClass()
+        {
+            var src = @"
+public class C<T>
+    where T : allows ref struct, class
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (2,16): error CS9503: Cannot allow ref structs for a type parameter known from other constraints to be a class
+                // public class C<T>
+                Diagnostic(ErrorCode.ERR_ClassIsCombinedWithRefStruct, "T").WithLocation(2, 16),
+                // (3,15): error CS9502: The 'allows' constraint clause must be the last constraint specified
+                //     where T : allows ref struct, class
+                Diagnostic(ErrorCode.ERR_AllowsClauseMustBeLast, "allows").WithLocation(3, 15),
+                // (3,34): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     where T : allows ref struct, class
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(3, 34)
+                );
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.True(t.HasReferenceTypeConstraint);
+            Assert.False(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_08_AfterClass()
+        {
+            var src = @"
+public class C<T>
+    where T : class, allows ref struct
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (2,16): error CS9503: Cannot allow ref structs for a type parameter known from other constraints to be a class
+                // public class C<T>
+                Diagnostic(ErrorCode.ERR_ClassIsCombinedWithRefStruct, "T").WithLocation(2, 16)
+                );
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.True(t.HasReferenceTypeConstraint);
+            Assert.False(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_09_FollowedByDefault()
+        {
+            var src = @"
+public class C<T>
+    where T : allows ref struct, default
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (3,15): error CS9502: The 'allows' constraint clause must be the last constraint specified
+                //     where T : allows ref struct, default
+                Diagnostic(ErrorCode.ERR_AllowsClauseMustBeLast, "allows").WithLocation(3, 15),
+                // (3,34): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
+                //     where T : allows ref struct, default
+                Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(3, 34),
+                // (3,34): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     where T : allows ref struct, default
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "default").WithLocation(3, 34)
+                );
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.False(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_10_FollowedByDefault()
+        {
+            var src = @"
+public class C
+{
+    public void M<T>()
+        where T : allows ref struct, default
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (5,19): error CS9502: The 'allows' constraint clause must be the last constraint specified
+                //         where T : allows ref struct, default
+                Diagnostic(ErrorCode.ERR_AllowsClauseMustBeLast, "allows").WithLocation(5, 19),
+                // (5,38): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
+                //         where T : allows ref struct, default
+                Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(5, 38),
+                // (5,38): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //         where T : allows ref struct, default
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "default").WithLocation(5, 38)
+                );
+
+            var method = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+            var t = method.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.False(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_11_FollowedByDefault()
+        {
+            var src = @"
+public class C : B
+{
+    public override void M<T>()
+        where T : allows ref struct, default
+    {
+    }
+}
+
+public class B
+{
+    public virtual void M<T>()
+        where T : allows ref struct
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (5,19): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //         where T : allows ref struct, default
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "allows ref struct").WithLocation(5, 19)
+                );
+
+            var method = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+            var t = method.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.False(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_12_AfterDefault()
+        {
+            var src = @"
+public class C<T>
+    where T : default, allows ref struct
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (3,15): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
+                //     where T : default, allows ref struct
+                Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(3, 15)
+                );
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.False(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_13_AfterDefault()
+        {
+            var src = @"
+public class C
+{
+    public void M<T>()
+        where T : default, allows ref struct
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (5,19): error CS8823: The 'default' constraint is valid on override and explicit interface implementation methods only.
+                //         where T : default, allows ref struct
+                Diagnostic(ErrorCode.ERR_DefaultConstraintOverrideOnly, "default").WithLocation(5, 19)
+                );
+
+            var method = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+            var t = method.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.False(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_14_AfterDefault()
+        {
+            var src = @"
+public class C : B
+{
+    public override void M<T>()
+        where T : default, allows ref struct
+    {
+    }
+}
+
+public class B
+{
+    public virtual void M<T>()
+        where T : allows ref struct
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (5,28): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //         where T : default, allows ref struct
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "allows ref struct").WithLocation(5, 28)
+                );
+
+            var method = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+            var t = method.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.False(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_15_FollowedByUnmanaged()
+        {
+            var src = @"
+public class C<T>
+    where T : allows ref struct, unmanaged
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (3,15): error CS9502: The 'allows' constraint clause must be the last constraint specified
+                //     where T : allows ref struct, unmanaged
+                Diagnostic(ErrorCode.ERR_AllowsClauseMustBeLast, "allows").WithLocation(3, 15),
+                // (3,34): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     where T : allows ref struct, unmanaged
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "unmanaged").WithLocation(3, 34)
+                );
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.False(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_16_AfterUnmanaged()
+        {
+            var src = @"
+public class C<T>
+    where T : unmanaged, allows ref struct
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics();
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.True(t.HasValueTypeConstraint);
+            Assert.True(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_17_FollowedByNotNull()
+        {
+            var src = @"
+public class C<T>
+    where T : allows ref struct, notnull
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (3,15): error CS9502: The 'allows' constraint clause must be the last constraint specified
+                //     where T : allows ref struct, notnull
+                Diagnostic(ErrorCode.ERR_AllowsClauseMustBeLast, "allows").WithLocation(3, 15),
+                // (3,34): error CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints cannot be combined or duplicated, and must be specified first in the constraints list.
+                //     where T : allows ref struct, notnull
+                Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "notnull").WithLocation(3, 34)
+                );
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.False(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.True(t.HasNotNullConstraint);
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_18_AfterNotNull()
+        {
+            var src = @"
+public class C<T>
+    where T : notnull, allows ref struct
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics();
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.False(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.True(t.HasNotNullConstraint);
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_19_FollowedByType()
+        {
+            var src = @"
+public class C<T>
+    where T : allows ref struct, I1
+{
+}
+
+public interface I1 {}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (3,15): error CS9502: The 'allows' constraint clause must be the last constraint specified
+                //     where T : allows ref struct, notnull
+                Diagnostic(ErrorCode.ERR_AllowsClauseMustBeLast, "allows").WithLocation(3, 15)
+                );
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.False(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+
+            Assert.Equal("I1", t.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString());
+
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_20_AfterType()
+        {
+            var src = @"
+public class C<T>
+    where T : I1, allows ref struct
+{
+}
+
+public interface I1 {}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics();
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.False(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+
+            Assert.Equal("I1", t.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString());
+
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_21_AfterClassType()
+        {
+            var src = @"
+public class C<T>
+    where T : C1, allows ref struct
+{
+}
+
+public class C1 {}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (2,16): error CS9503: Cannot allow ref structs for a type parameter known from other constraints to be a class
+                // public class C<T>
+                Diagnostic(ErrorCode.ERR_ClassIsCombinedWithRefStruct, "T").WithLocation(2, 16)
+                );
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.False(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+
+            Assert.Equal("C1", t.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString());
+
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_22_AfterSystemValueType()
+        {
+            var src = @"
+public class C<T>
+    where T : System.ValueType, allows ref struct
+{
+}
+
+public class C1 {}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (3,15): error CS0702: Constraint cannot be special class 'ValueType'
+                //     where T : System.ValueType, allows ref struct
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "System.ValueType").WithArguments("System.ValueType").WithLocation(3, 15)
+                );
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.False(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+
+            Assert.Empty(t.ConstraintTypesNoUseSiteDiagnostics);
+
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_23_AfterSystemEnum()
+        {
+            var src = @"
+public class C<T>
+    where T : System.Enum, allows ref struct
+{
+}
+
+public class C1 {}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics();
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.False(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+
+            Assert.Equal("System.Enum", t.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString());
+
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_24_FollowedByNew()
+        {
+            var src = @"
+public class C<T>
+    where T : allows ref struct, new()
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (3,15): error CS9502: The 'allows' constraint clause must be the last constraint specified
+                //     where T : allows ref struct, new()
+                Diagnostic(ErrorCode.ERR_AllowsClauseMustBeLast, "allows").WithLocation(3, 15)
+                );
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.False(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+            Assert.True(t.HasConstructorConstraint);
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_25_AfterNew()
+        {
+            var src = @"
+public class C<T>
+    where T : new(), allows ref struct
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics();
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.False(t.HasReferenceTypeConstraint);
+            Assert.False(t.HasValueTypeConstraint);
+            Assert.False(t.HasUnmanagedTypeConstraint);
+            Assert.False(t.HasNotNullConstraint);
+            Assert.True(t.HasConstructorConstraint);
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_26_PartialTypes()
+        {
+            var src = @"
+partial class C<T> where T : allows ref struct
+{
+}
+
+partial class C<T> where T : allows ref struct
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics();
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_27_PartialTypes()
+        {
+            var src = @"
+partial class C<T>
+{
+}
+
+partial class C<T> where T : allows ref struct
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics();
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_28_PartialTypes()
+        {
+            var src = @"
+partial class C<T> where T : allows ref struct
+{
+}
+
+partial class C<T>
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics();
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_29_PartialTypes()
+        {
+            var src = @"
+partial class C<T> where T : struct
+{
+}
+
+partial class C<T> where T : struct, allows ref struct
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (2,15): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
+                // partial class C<T> where T : struct
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(2, 15)
+                );
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.False(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_30_PartialTypes()
+        {
+            var src = @"
+partial class C<T> where T : struct, allows ref struct
+{
+}
+
+partial class C<T> where T : struct
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (2,15): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
+                // partial class C<T> where T : struct, allows ref struct
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(2, 15)
+                );
+
+            var c = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var t = c.TypeParameters.Single();
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_31_PartialMethod()
+        {
+            var src = @"
+partial class C
+{
+    partial void M<T>() where T : allows ref struct;
+}
+
+partial class C
+{
+    partial void M<T>() where T : allows ref struct
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics();
+
+            var method = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+            var t = method.TypeParameters.Single();
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_32_PartialMethod()
+        {
+            var src = @"
+partial class C
+{
+    partial void M<T>();
+}
+
+partial class C
+{
+    partial void M<T>() where T : allows ref struct
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (9,18): error CS0761: Partial method declarations of 'C.M<T>()' have inconsistent constraints for type parameter 'T'
+                //     partial void M<T>() where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M").WithArguments("C.M<T>()", "T").WithLocation(9, 18)
+                );
+
+            var method = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+            var t = method.TypeParameters.Single();
+            Assert.False(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_33_PartialMethod()
+        {
+            var src = @"
+partial class C
+{
+    partial void M<T>() where T : allows ref struct;
+}
+
+partial class C
+{
+    partial void M<T>()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (9,18): error CS0761: Partial method declarations of 'C.M<T>()' have inconsistent constraints for type parameter 'T'
+                //     partial void M<T>()
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M").WithArguments("C.M<T>()", "T").WithLocation(9, 18)
+                );
+
+            var method = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+            var t = method.TypeParameters.Single();
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_34_PartialMethod()
+        {
+            var src = @"
+partial class C
+{
+    partial void M<T>() where T : struct;
+}
+
+partial class C
+{
+    partial void M<T>() where T : struct, allows ref struct
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (9,18): error CS0761: Partial method declarations of 'C.M<T>()' have inconsistent constraints for type parameter 'T'
+                //     partial void M<T>() where T : struct, allows ref struct
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M").WithArguments("C.M<T>()", "T").WithLocation(9, 18)
+                );
+
+            var method = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+            var t = method.TypeParameters.Single();
+            Assert.False(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_35_PartialMethod()
+        {
+            var src = @"
+partial class C
+{
+    partial void M<T>() where T : struct, allows ref struct;
+}
+
+partial class C
+{
+    partial void M<T>() where T : struct
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (9,18): error CS0761: Partial method declarations of 'C.M<T>()' have inconsistent constraints for type parameter 'T'
+                //     partial void M<T>() where T : struct
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M").WithArguments("C.M<T>()", "T").WithLocation(9, 18)
+                );
+
+            var method = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+            var t = method.TypeParameters.Single();
+            Assert.True(t.AllowByRefLike);
+        }
+
+        [Fact]
+        public void AllowsConstraint_36_InheritedByOverride()
+        {
+            var src = @"
+class C1
+{
+    public virtual void M1<T>() where T : allows ref struct
+    {
+    }
+    public virtual void M2<T>() where T : unmanaged
+    {
+    }
+}
+
+class C2 : C1
+{
+    public override void M1<T>() where T : allows ref struct
+    {
+    }
+}
+
+class C3 : C1
+{
+    public override void M2<T>() where T : unmanaged
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (14,44): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void M1<T>() where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "allows ref struct").WithLocation(14, 44),
+                // (21,44): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void M2<T>() where T : unmanaged
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "unmanaged").WithLocation(21, 44)
+                );
+
+            var method1 = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.M1");
+            var t1 = method1.TypeParameters.Single();
+            Assert.True(t1.AllowByRefLike);
+
+            var method2 = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C3.M2");
+            var t2 = method2.TypeParameters.Single();
+            Assert.True(t2.HasUnmanagedTypeConstraint);
+        }
+
+        [Fact]
+        public void AllowsConstraint_37_InheritedByOverride()
+        {
+            var src1 = @"
+public class C1
+{
+    public virtual void M1<T>() where T : allows ref struct
+    {
+    }
+    public virtual void M2<T>() where T : unmanaged
+    {
+    }
+}
+";
+
+            var src2 = @"
+class C2 : C1
+{
+    public override void M1<T>()
+    {
+    }
+    public override void M2<T>()
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp1.VerifyDiagnostics();
+
+            var method1 = comp1.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.M1");
+            var t1 = method1.TypeParameters.Single();
+            Assert.True(t1.AllowByRefLike);
+
+            var method2 = comp1.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.M2");
+            var t2 = method2.TypeParameters.Single();
+            Assert.True(t2.HasUnmanagedTypeConstraint);
+
+            CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+
+            CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (4,29): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override void M1<T>()
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("ref struct interfaces").WithLocation(4, 29)
+                );
+
+            var comp2 = CreateCompilation(src1, targetFramework: TargetFramework.Net70);
+
+            CreateCompilation(src2, references: [comp2.ToMetadataReference()], targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (4,29): error CS9500: Target runtime doesn't support by-ref-like generics.
+                //     public override void M1<T>()
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "T").WithLocation(4, 29)
+                );
+        }
+
+        [Fact]
+        public void AllowsConstraint_38_InheritedByOverride()
+        {
+            var src = @"
+class C1<S>
+{
+    public virtual void M1<T>() where T : S, allows ref struct
+    {
+    }
+    public virtual void M2<T>() where T : class, S
+    {
+    }
+}
+
+class C2 : C1<C>
+{
+    public override void M1<T>()
+    {
+    }
+    public override void M2<T>()
+    {
+    }
+}
+
+class C {}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics();
+
+            var method1 = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.M1");
+            var t1 = method1.TypeParameters.Single();
+            Assert.True(t1.AllowByRefLike);
+            Assert.Equal("C", t1.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString());
+
+            var method2 = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.M2");
+            var t2 = method2.TypeParameters.Single();
+            Assert.True(t2.HasReferenceTypeConstraint);
+            Assert.Equal("C", t2.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString());
+        }
+
+        [Fact]
+        public void AllowsConstraint_39_InheritedByExplicitImplementation()
+        {
+            var src = @"
+interface C1
+{
+    void M1<T>() where T : allows ref struct;
+    void M2<T>() where T : unmanaged;
+}
+
+class C2 : C1
+{
+    void C1.M1<T>() where T : allows ref struct
+    {
+    }
+
+    void C1.M2<T>() where T : unmanaged
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (10,31): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     void C1.M1<T>() where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "allows ref struct").WithLocation(10, 31),
+                // (14,31): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     void C1.M2<T>() where T : unmanaged
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "unmanaged").WithLocation(14, 31)
+                );
+
+            var method1 = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.C1.M1");
+            var t1 = method1.TypeParameters.Single();
+            Assert.True(t1.AllowByRefLike);
+
+            var method2 = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.C1.M2");
+            var t2 = method2.TypeParameters.Single();
+            Assert.True(t2.HasUnmanagedTypeConstraint);
+        }
+
+        [Fact]
+        public void AllowsConstraint_40_InheritedByExplicitImplementation()
+        {
+            var src1 = @"
+public interface C1
+{
+    void M1<T>() where T : allows ref struct;
+    void M2<T>() where T : unmanaged;
+}
+";
+
+            var src2 = @"
+class C2 : C1
+{
+    void C1.M1<T>()
+    {
+    }
+    void C1.M2<T>()
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp1.VerifyDiagnostics();
+
+            var method1 = comp1.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.C1.M1");
+            var t1 = method1.TypeParameters.Single();
+            Assert.True(t1.AllowByRefLike);
+
+            var method2 = comp1.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.C1.M2");
+            var t2 = method2.TypeParameters.Single();
+            Assert.True(t2.HasUnmanagedTypeConstraint);
+
+            CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+
+            CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (4,16): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     void C1.M1<T>()
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("ref struct interfaces").WithLocation(4, 16)
+                );
+
+            var comp2 = CreateCompilation(src1, targetFramework: TargetFramework.Net70);
+
+            CreateCompilation(src2, references: [comp2.ToMetadataReference()], targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (4,16): error CS9500: Target runtime doesn't support by-ref-like generics.
+                //     void C1.M1<T>()
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "T").WithLocation(4, 16)
+                );
+        }
+
+        [Fact]
+        public void AllowsConstraint_41_InheritedByExplicitImplementation()
+        {
+            var src = @"
+interface C1<S>
+{
+    void M1<T>() where T : S, allows ref struct;
+    void M2<T>() where T : class, S;
+}
+
+class C2 : C1<C>
+{
+    void C1<C>.M1<T>()
+    {
+    }
+    void C1<C>.M2<T>()
+    {
+    }
+}
+
+class C {}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics();
+
+            var method1 = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.C1<C>.M1");
+            var t1 = method1.TypeParameters.Single();
+            Assert.True(t1.AllowByRefLike);
+            Assert.Equal("C", t1.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString());
+
+            var method2 = comp.SourceModule.GlobalNamespace.GetMember<MethodSymbol>("C2.C1<C>.M2");
+            var t2 = method2.TypeParameters.Single();
+            Assert.True(t2.HasReferenceTypeConstraint);
+            Assert.Equal("C", t2.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString());
+        }
+
+        [Fact]
+        public void AllowsConstraint_42_ImplicitImplementationMustMatch()
+        {
+            var src = @"
+interface C1
+{
+    void M1<T>() where T : allows ref struct;
+    void M2<T>() where T : unmanaged;
+}
+
+class C2 : C1
+{
+    public void M1<T>() where T : allows ref struct
+    {
+    }
+
+    public void M2<T>() where T : unmanaged
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AllowsConstraint_43_ImplicitImplementationMustMatch()
+        {
+            var src = @"
+interface C1
+{
+    void M1<T>() where T : allows ref struct;
+    void M2<T>() where T : unmanaged;
+}
+
+class C2 : C1
+{
+    public void M1<T>()
+    {
+    }
+    public void M2<T>()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (10,17): error CS0425: The constraints for type parameter 'T' of method 'C2.M1<T>()' must match the constraints for type parameter 'T' of interface method 'C1.M1<T>()'. Consider using an explicit interface implementation instead.
+                //     public void M1<T>()
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "M1").WithArguments("T", "C2.M1<T>()", "T", "C1.M1<T>()").WithLocation(10, 17),
+                // (13,17): error CS0425: The constraints for type parameter 'T' of method 'C2.M2<T>()' must match the constraints for type parameter 'T' of interface method 'C1.M2<T>()'. Consider using an explicit interface implementation instead.
+                //     public void M2<T>()
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "M2").WithArguments("T", "C2.M2<T>()", "T", "C1.M2<T>()").WithLocation(13, 17)
+                );
+        }
+
+        [Fact]
+        public void AllowsConstraint_44_ImplicitImplementationMustMatch()
+        {
+            var src = @"
+interface C1<S>
+{
+    void M1<T>() where T : S, allows ref struct;
+    void M2<T>() where T : class, S;
+}
+
+class C2 : C1<C>
+{
+    public void M1<T>() where T : C, allows ref struct
+    {
+    }
+    public void M2<T>() where T : class, C
+    {
+    }
+}
+
+class C {}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (10,20): error CS9503: Cannot allow ref structs for a type parameter known from other constraints to be a class
+                //     public void M1<T>() where T : C, allows ref struct
+                Diagnostic(ErrorCode.ERR_ClassIsCombinedWithRefStruct, "T").WithLocation(10, 20),
+                // (13,17): error CS0425: The constraints for type parameter 'T' of method 'C2.M2<T>()' must match the constraints for type parameter 'T' of interface method 'C1<C>.M2<T>()'. Consider using an explicit interface implementation instead.
+                //     public void M2<T>() where T : class, C
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "M2").WithArguments("T", "C2.M2<T>()", "T", "C1<C>.M2<T>()").WithLocation(13, 17),
+                // (13,42): error CS0450: 'C': cannot specify both a constraint class and the 'class' or 'struct' constraint
+                //     public void M2<T>() where T : class, C
+                Diagnostic(ErrorCode.ERR_RefValBoundWithClass, "C").WithArguments("C").WithLocation(13, 42)
+                );
+        }
+
+        [Fact]
+        public void AllowsConstraint_45_NotPresent()
+        {
+            var src = @"
+public class C<T>
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var t = c.TypeParameters.Single();
+                Assert.False(t.HasReferenceTypeConstraint);
+                Assert.False(t.HasValueTypeConstraint);
+                Assert.False(t.HasUnmanagedTypeConstraint);
+                Assert.False(t.HasNotNullConstraint);
+                Assert.False(t.AllowByRefLike);
+            }
         }
     }
 }

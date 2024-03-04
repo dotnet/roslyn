@@ -477,6 +477,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Figure out if the target runtime supports inline array types.
+        /// </summary>
+        internal bool RuntimeSupportsByRefLikeGenerics // PROTOTYPE(RefStructInterfaces): Implement public API.
+        {
+            // PROTOTYPE(RefStructInterfaces): Implement VB side.
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsByRefLikeGenerics
+            get
+            {
+                // PROTOTYPE(RefStructInterfaces): Implement real check once RuntimeFeature.ByRefLikeGenerics becomes available in ref assembly.
+                //                                 See https://github.com/dotnet/runtime/issues/68002#issuecomment-1942166436 for details.
+                return RuntimeSupportsInlineArrayTypes;
+            }
+        }
+
         protected bool RuntimeSupportsFeature(SpecialMember feature)
         {
             // Keep in sync with VB's AssemblySymbol.RuntimeSupportsFeature

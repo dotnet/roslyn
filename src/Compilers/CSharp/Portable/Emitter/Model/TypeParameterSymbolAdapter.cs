@@ -302,6 +302,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        bool Cci.IGenericParameter.AllowByRefLike
+        {
+            get
+            {
+                return AdaptedTypeParameterSymbol.AllowByRefLike;
+            }
+        }
+
         bool Cci.IGenericParameter.MustHaveDefaultConstructor
         {
             get
