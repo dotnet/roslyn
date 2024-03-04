@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<package >
+<package>
+  <!-- This file is only used in repos where OptProf is enabled. -->
   <metadata>
     <id>LibraryName.VSInsertionMetadata</id>
     <version>$version$</version>
