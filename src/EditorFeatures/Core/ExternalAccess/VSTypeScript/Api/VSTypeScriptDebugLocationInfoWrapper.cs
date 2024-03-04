@@ -4,14 +4,13 @@
 
 using Microsoft.CodeAnalysis.Debugging;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
-{
-    internal readonly struct VSTypeScriptDebugLocationInfoWrapper(string name, int lineOffset)
-    {
-        internal readonly DebugLocationInfo UnderlyingObject = new DebugLocationInfo(name, lineOffset);
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
-        public readonly string Name => UnderlyingObject.Name;
-        public readonly int LineOffset => UnderlyingObject.LineOffset;
-        internal bool IsDefault => UnderlyingObject.IsDefault;
-    }
+internal readonly struct VSTypeScriptDebugLocationInfoWrapper(string name, int lineOffset)
+{
+    internal readonly DebugLocationInfo UnderlyingObject = new DebugLocationInfo(name, lineOffset);
+
+    public readonly string Name => UnderlyingObject.Name;
+    public readonly int LineOffset => UnderlyingObject.LineOffset;
+    internal bool IsDefault => UnderlyingObject.IsDefault;
 }

@@ -6,14 +6,13 @@ using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages
+namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal class CSharpJsonDetectionAnalyzer : AbstractJsonDetectionAnalyzer
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpJsonDetectionAnalyzer : AbstractJsonDetectionAnalyzer
+    public CSharpJsonDetectionAnalyzer()
+        : base(CSharpEmbeddedLanguagesProvider.Info)
     {
-        public CSharpJsonDetectionAnalyzer()
-            : base(CSharpEmbeddedLanguagesProvider.Info)
-        {
-        }
     }
 }

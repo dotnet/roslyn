@@ -633,6 +633,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session);
         }
 
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/62571")]
+        public void String_GlobalStatement()
+        {
+            var code = """
+                $[||]$$
+                """;
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+        }
+
         internal static Holder CreateSessionSingleQuote(string code)
         {
             return CreateSession(

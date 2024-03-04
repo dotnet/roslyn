@@ -33,6 +33,7 @@ try {
 
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   Push-Location $RepoRoot
+  $prepareMachine = $ci
 
   if ($enableDumps) {
     $key = "HKLM:\\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps"
@@ -44,8 +45,8 @@ try {
 
   if ($bootstrapDir -eq "") {
     Write-Host "Building bootstrap compiler"
-    Exec-Script (Join-Path $PSScriptRoot "make-bootstrap.ps1") "-name correctness -ci:$ci"
     $bootstrapDir = Join-Path $ArtifactsDir "bootstrap" "correctness"
+    Exec-Script (Join-Path $PSScriptRoot "make-bootstrap.ps1") "-output $bootstrapDir -ci:$ci"
   }
 
   Write-Host "Building Roslyn"
@@ -65,14 +66,14 @@ try {
   Exec-DotNet "tool run dotnet-format whitespace . --folder --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --verify-no-changes"
   Write-Host ""
 
-  exit 0
+  ExitWithExitCode 0
 }
 catch {
   Write-Host $_
   Write-Host $_.Exception
   Write-Host $_.ScriptStackTrace
   Write-Host "##vso[task.logissue type=error]How to investigate bootstrap failures: https://github.com/dotnet/roslyn/blob/main/docs/compilers/Bootstrap%20Builds.md#Investigating"
-  exit 1
+  ExitWithExitCode 1
 }
 finally {
   if ($enableDumps) {

@@ -7,60 +7,59 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Classification.Classifiers
+namespace Microsoft.CodeAnalysis.Classification.Classifiers;
+
+internal abstract class AbstractNameSyntaxClassifier : AbstractSyntaxClassifier
 {
-    internal abstract class AbstractNameSyntaxClassifier : AbstractSyntaxClassifier
+    protected abstract int? GetRightmostNameArity(SyntaxNode node);
+    protected abstract bool IsParentAnAttribute(SyntaxNode node);
+
+    protected ISymbol? TryGetSymbol(SyntaxNode node, SymbolInfo symbolInfo)
     {
-        protected abstract int? GetRightmostNameArity(SyntaxNode node);
-        protected abstract bool IsParentAnAttribute(SyntaxNode node);
+        var symbol = symbolInfo.GetAnySymbol();
 
-        protected ISymbol? TryGetSymbol(SyntaxNode node, SymbolInfo symbolInfo)
+        // Classify a reference to an attribute constructor in an attribute location
+        // as if we were classifying the attribute type itself.
+        if (symbol.IsConstructor() && IsParentAnAttribute(node))
         {
-            var symbol = symbolInfo.GetAnySymbol();
-
-            // Classify a reference to an attribute constructor in an attribute location
-            // as if we were classifying the attribute type itself.
-            if (symbol.IsConstructor() && IsParentAnAttribute(node))
-            {
-                symbol = symbol.ContainingType;
-            }
-
-            return symbol;
+            symbol = symbol.ContainingType;
         }
 
-        protected static void TryClassifyStaticSymbol(
-            ISymbol symbol,
-            TextSpan span,
-            SegmentedList<ClassifiedSpan> result)
+        return symbol;
+    }
+
+    protected static void TryClassifyStaticSymbol(
+        ISymbol symbol,
+        TextSpan span,
+        SegmentedList<ClassifiedSpan> result)
+    {
+        if (IsStaticSymbol(symbol))
+            result.Add(new ClassifiedSpan(span, ClassificationTypeNames.StaticSymbol));
+    }
+
+    protected static bool IsStaticSymbol(ISymbol symbol)
+    {
+        if (!symbol.IsStatic)
         {
-            if (IsStaticSymbol(symbol))
-                result.Add(new ClassifiedSpan(span, ClassificationTypeNames.StaticSymbol));
+            return false;
         }
 
-        protected static bool IsStaticSymbol(ISymbol symbol)
+        if (symbol.IsEnumMember())
         {
-            if (!symbol.IsStatic)
-            {
-                return false;
-            }
-
-            if (symbol.IsEnumMember())
-            {
-                // EnumMembers are not classified as static since there is no
-                // instance equivalent of the concept and they have their own
-                // classification type.
-                return false;
-            }
-
-            if (symbol.IsNamespace())
-            {
-                // Namespace names are not classified as static since there is no
-                // instance equivalent of the concept and they have their own
-                // classification type.
-                return false;
-            }
-
-            return true;
+            // EnumMembers are not classified as static since there is no
+            // instance equivalent of the concept and they have their own
+            // classification type.
+            return false;
         }
+
+        if (symbol.IsNamespace())
+        {
+            // Namespace names are not classified as static since there is no
+            // instance equivalent of the concept and they have their own
+            // classification type.
+            return false;
+        }
+
+        return true;
     }
 }

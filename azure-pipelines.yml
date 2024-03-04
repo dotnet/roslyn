@@ -383,19 +383,22 @@ stages:
       - task: PowerShell@2
         displayName: Restore
         inputs:
+          pwsh: true
           filePath: eng/build.ps1
           arguments: -configuration Release -prepareMachine -ci -restore -binaryLogName Restore.binlog 
 
       - task: PowerShell@2
         displayName: Build
         inputs:
+          pwsh: true
           filePath: eng/build.ps1
           arguments: -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLogName Build.binlog
 
       - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.sln
         displayName: Validate Build Artifacts
 
-      - script: eng/validate-rules-missing-documentation.cmd -ci
+      - pwsh: |
+          ./eng/validate-rules-missing-documentation.ps1 -ci
         displayName: Validate rules missing documentation
 
       - pwsh: |
@@ -404,7 +407,7 @@ stages:
         condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
 
       - pwsh: |
-          ./eng/validate-code-formatting.ps1 -rootDirectory $(Build.SourcesDirectory)\src -includeDirectories Compilers\CSharp\Portable\Generated\, Compilers\VisualBasic\Portable\Generated\, ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\
+          ./eng/validate-code-formatting.ps1 -ci -rootDirectory $(Build.SourcesDirectory)\src -includeDirectories Compilers\CSharp\Portable\Generated\, Compilers\VisualBasic\Portable\Generated\, ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\ 
         displayName: Validate Generated Syntax Files
         condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
 
@@ -422,13 +425,15 @@ stages:
       - template: eng/pipelines/variables-build.yml
         parameters:
           configuration: Debug
+      - name: bootstrapDir
+        value: $(Build.SourcesDirectory)/artifacts/bootstrap/determinism
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
-      - script: eng/make-bootstrap.cmd -name determinism
+      - pwsh: eng/make-bootstrap.ps1 -output $(bootstrapDir)
         displayName: Build Bootstrap Compiler
 
-      - script: eng/test-determinism.cmd -configuration Debug -bootstrapDir $(Build.SourcesDirectory)/artifacts/bootstrap/determinism
+      - pwsh: eng/test-determinism.ps1 -configuration Debug -bootstrapDir $(bootstrapDir)
         displayName: Build - Validate determinism
 
       - template: eng/pipelines/publish-logs.yml

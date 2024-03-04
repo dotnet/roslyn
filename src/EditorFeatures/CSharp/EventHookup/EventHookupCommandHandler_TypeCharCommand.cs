@@ -14,66 +14,65 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
+namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
+
+internal partial class EventHookupCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
 {
-    internal partial class EventHookupCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
+    public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
     {
-        public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
-            nextHandler();
+        _threadingContext.ThrowIfNotOnUIThread();
+        nextHandler();
 
-            if (!_globalOptions.GetOption(EventHookupOptionsStorage.EventHookup))
+        if (!_globalOptions.GetOption(EventHookupOptionsStorage.EventHookup))
+        {
+            EventHookupSessionManager.CancelAndDismissExistingSessions();
+            return;
+        }
+
+        // Event hookup is current uncancellable.
+        var cancellationToken = CancellationToken.None;
+        using (Logger.LogBlock(FunctionId.EventHookup_Type_Char, cancellationToken))
+        {
+            if (args.TypedChar == '=')
             {
+                // They've typed an equals. Cancel existing sessions and potentially start a 
+                // new session.
+
                 EventHookupSessionManager.CancelAndDismissExistingSessions();
-                return;
-            }
 
-            // Event hookup is current uncancellable.
-            var cancellationToken = CancellationToken.None;
-            using (Logger.LogBlock(FunctionId.EventHookup_Type_Char, cancellationToken))
-            {
-                if (args.TypedChar == '=')
+                if (IsTextualPlusEquals(args.TextView, args.SubjectBuffer))
                 {
-                    // They've typed an equals. Cancel existing sessions and potentially start a 
-                    // new session.
-
+                    EventHookupSessionManager.BeginSession(this, args.TextView, args.SubjectBuffer, _asyncListener, TESTSessionHookupMutex);
+                }
+            }
+            else
+            {
+                // Spaces are the only non-'=' character that allow the session to continue
+                if (args.TypedChar != ' ')
+                {
                     EventHookupSessionManager.CancelAndDismissExistingSessions();
-
-                    if (IsTextualPlusEquals(args.TextView, args.SubjectBuffer))
-                    {
-                        EventHookupSessionManager.BeginSession(this, args.TextView, args.SubjectBuffer, _asyncListener, TESTSessionHookupMutex);
-                    }
-                }
-                else
-                {
-                    // Spaces are the only non-'=' character that allow the session to continue
-                    if (args.TypedChar != ' ')
-                    {
-                        EventHookupSessionManager.CancelAndDismissExistingSessions();
-                    }
                 }
             }
         }
+    }
 
-        private bool IsTextualPlusEquals(ITextView textView, ITextBuffer subjectBuffer)
+    private bool IsTextualPlusEquals(ITextView textView, ITextBuffer subjectBuffer)
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
+
+        var caretPoint = textView.GetCaretPoint(subjectBuffer);
+        if (!caretPoint.HasValue)
         {
-            _threadingContext.ThrowIfNotOnUIThread();
-
-            var caretPoint = textView.GetCaretPoint(subjectBuffer);
-            if (!caretPoint.HasValue)
-            {
-                return false;
-            }
-
-            var position = caretPoint.Value.Position;
-            return position - 2 >= 0 && subjectBuffer.CurrentSnapshot.GetText(position - 2, 2) == "+=";
+            return false;
         }
 
-        public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
-            return nextHandler();
-        }
+        var position = caretPoint.Value.Position;
+        return position - 2 >= 0 && subjectBuffer.CurrentSnapshot.GetText(position - 2, 2) == "+=";
+    }
+
+    public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
+        return nextHandler();
     }
 }

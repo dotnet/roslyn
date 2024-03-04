@@ -8,10 +8,9 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Editor.Host
+namespace Microsoft.CodeAnalysis.Editor.Host;
+
+internal interface IPreviewPaneService : IWorkspaceService
 {
-    internal interface IPreviewPaneService : IWorkspaceService
-    {
-        object GetPreviewPane(DiagnosticData diagnostic, IReadOnlyList<object> previewContent);
-    }
+    object GetPreviewPane(DiagnosticData diagnostic, IReadOnlyList<object> previewContent);
 }

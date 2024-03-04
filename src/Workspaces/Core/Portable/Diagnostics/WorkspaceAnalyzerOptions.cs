@@ -11,29 +11,28 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+/// <summary>
+/// Analyzer options with workspace.
+/// These are used to fetch the workspace options by our internal analyzers (e.g. simplification analyzer).
+/// </summary>
+internal sealed class WorkspaceAnalyzerOptions(AnalyzerOptions options, IdeAnalyzerOptions ideOptions) : AnalyzerOptions(options.AdditionalFiles, options.AnalyzerConfigOptionsProvider)
 {
-    /// <summary>
-    /// Analyzer options with workspace.
-    /// These are used to fetch the workspace options by our internal analyzers (e.g. simplification analyzer).
-    /// </summary>
-    internal sealed class WorkspaceAnalyzerOptions(AnalyzerOptions options, IdeAnalyzerOptions ideOptions) : AnalyzerOptions(options.AdditionalFiles, options.AnalyzerConfigOptionsProvider)
+    public IdeAnalyzerOptions IdeOptions { get; } = ideOptions;
+
+    public override bool Equals(object obj)
     {
-        public IdeAnalyzerOptions IdeOptions { get; } = ideOptions;
-
-        public override bool Equals(object obj)
+        if (ReferenceEquals(this, obj))
         {
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            return obj is WorkspaceAnalyzerOptions other &&
-                IdeOptions == other.IdeOptions &&
-                base.Equals(other);
+            return true;
         }
 
-        public override int GetHashCode()
-            => Hash.Combine(IdeOptions.GetHashCode(), base.GetHashCode());
+        return obj is WorkspaceAnalyzerOptions other &&
+            IdeOptions == other.IdeOptions &&
+            base.Equals(other);
     }
+
+    public override int GetHashCode()
+        => Hash.Combine(IdeOptions.GetHashCode(), base.GetHashCode());
 }

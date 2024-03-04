@@ -9,24 +9,23 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Navigation
+namespace Microsoft.CodeAnalysis.Navigation;
+
+[ExportWorkspaceServiceFactory(typeof(IDocumentNavigationService), ServiceLayer.Default), Shared]
+internal sealed class DefaultDocumentNavigationServiceFactory : IWorkspaceServiceFactory
 {
-    [ExportWorkspaceServiceFactory(typeof(IDocumentNavigationService), ServiceLayer.Default), Shared]
-    internal sealed class DefaultDocumentNavigationServiceFactory : IWorkspaceServiceFactory
+    private IDocumentNavigationService _singleton;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public DefaultDocumentNavigationServiceFactory()
     {
-        private IDocumentNavigationService _singleton;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultDocumentNavigationServiceFactory()
-        {
-        }
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+    {
+        _singleton ??= new DefaultDocumentNavigationService();
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            _singleton ??= new DefaultDocumentNavigationService();
-
-            return _singleton;
-        }
+        return _singleton;
     }
 }

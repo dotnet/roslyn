@@ -8,19 +8,19 @@
       <SourceBuild RepoName="source-build-externals" ManagedOnly="true" />
     </Dependency>
     <!-- Intermediate is necessary for source build. -->
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-reference-packages" Version="9.0.0-alpha.1.24119.1">
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-reference-packages" Version="9.0.0-alpha.1.24127.2">
       <Uri>https://github.com/dotnet/source-build-reference-packages</Uri>
-      <Sha>539af5d8ae183d4fe61e8b2f8f4a8505c8a765a7</Sha>
+      <Sha>6d28b5a26876f8f22dadb8f6cdee878faaa88464</Sha>
       <SourceBuild RepoName="source-build-reference-packages" ManagedOnly="true" />
     </Dependency>
-    <Dependency Name="System.CommandLine" Version="2.0.0-beta4.24112.1">
+    <Dependency Name="System.CommandLine" Version="2.0.0-beta4.24123.1">
       <Uri>https://github.com/dotnet/command-line-api</Uri>
-      <Sha>e9ac4ff4293cf853f3d07eb9e747aef27f5be965</Sha>
+      <Sha>94ef1b035c73904f2240b3b3b0de6c4890dab6d8</Sha>
     </Dependency>
     <!-- Intermediate is necessary for source build. -->
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.command-line-api" Version="0.1.511201">
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.command-line-api" Version="0.1.512301">
       <Uri>https://github.com/dotnet/command-line-api</Uri>
-      <Sha>e9ac4ff4293cf853f3d07eb9e747aef27f5be965</Sha>
+      <Sha>94ef1b035c73904f2240b3b3b0de6c4890dab6d8</Sha>
       <SourceBuild RepoName="command-line-api" ManagedOnly="true" />
     </Dependency>
     <!-- Necessary for source-build. This allows the live version of the package to be used by source-build. -->
