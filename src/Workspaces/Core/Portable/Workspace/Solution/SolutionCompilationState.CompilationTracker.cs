@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var finalState = await GetOrBuildFinalStateAsync(
-                    compilationState, lockGate: true, cancellationToken).ConfigureAwait(false);
+                    compilationState, cancellationToken).ConfigureAwait(false);
 
                 return finalState.GeneratorInfo.Driver?.GetRunResult();
             }
