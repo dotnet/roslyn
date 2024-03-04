@@ -809,38 +809,38 @@ namespace Microsoft.Cci
 
             if (!encInfo.LocalSlots.IsDefaultOrEmpty)
             {
-                var writer = new BlobBuilder();
+                var writer = PooledBlobBuilder.GetInstance();
 
                 encInfo.SerializeLocalSlots(writer);
 
                 _debugMetadataOpt.AddCustomDebugInformation(
                     parent: method,
                     kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EncLocalSlotMap),
-                    value: _debugMetadataOpt.GetOrAddBlob(writer));
+                    value: _debugMetadataOpt.GetOrAddBlobAndFree(writer));
             }
 
             if (!encInfo.Lambdas.IsDefaultOrEmpty)
             {
-                var writer = new BlobBuilder();
+                var writer = PooledBlobBuilder.GetInstance();
 
                 encInfo.SerializeLambdaMap(writer);
 
                 _debugMetadataOpt.AddCustomDebugInformation(
                     parent: method,
                     kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EncLambdaAndClosureMap),
-                    value: _debugMetadataOpt.GetOrAddBlob(writer));
+                    value: _debugMetadataOpt.GetOrAddBlobAndFree(writer));
             }
 
             if (!encInfo.StateMachineStates.IsDefaultOrEmpty)
             {
-                var writer = new BlobBuilder();
+                var writer = PooledBlobBuilder.GetInstance();
 
                 encInfo.SerializeStateMachineStates(writer);
 
                 _debugMetadataOpt.AddCustomDebugInformation(
                     parent: method,
                     kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EncStateMachineStateMap),
-                    value: _debugMetadataOpt.GetOrAddBlob(writer));
+                    value: _debugMetadataOpt.GetOrAddBlobAndFree(writer));
             }
         }
 

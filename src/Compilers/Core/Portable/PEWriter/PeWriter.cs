@@ -66,7 +66,7 @@ namespace Microsoft.Cci
 
             var ilBuilder = new BlobBuilder(32 * 1024);
             var mappedFieldDataBuilder = new BlobBuilder();
-            var managedResourceBuilder = new BlobBuilder(1024);
+            var managedResourceBuilder = PooledBlobBuilder.GetInstance();
 
             Blob mvidFixup, mvidStringFixup;
             mdWriter.BuildMetadataAndIL(
@@ -155,7 +155,7 @@ namespace Microsoft.Cci
             // We need to calculate the PDB checksum, so we may as well use the calculated hash for PDB ID regardless of whether deterministic build is requested.
             var portablePdbContentHash = default(ImmutableArray<byte>);
 
-            BlobBuilder portablePdbToEmbed = null;
+            PooledBlobBuilder portablePdbToEmbed = null;
             if (mdWriter.EmitPortableDebugMetadata)
             {
                 mdWriter.AddRemainingDebugDocuments(mdWriter.Module.DebugDocumentsBuilder.DebugDocuments);
@@ -167,7 +167,7 @@ namespace Microsoft.Cci
                     new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(portablePdbContentHash = CryptographicHashProvider.ComputeHash(context.Module.PdbChecksumAlgorithm, content))) :
                     null;
 
-                var portablePdbBlob = new BlobBuilder();
+                var portablePdbBlob = PooledBlobBuilder.GetInstance();
                 var portablePdbBuilder = mdWriter.GetPortablePdbBuilder(metadataRootBuilder.Sizes.RowCounts, debugEntryPointHandle, portablePdbIdProvider);
                 pdbContentId = portablePdbBuilder.Serialize(portablePdbBlob);
                 portablePdbVersion = portablePdbBuilder.FormatVersion;
@@ -186,6 +186,7 @@ namespace Microsoft.Cci
                         try
                         {
                             portablePdbBlob.WriteContentTo(portablePdbStream);
+                            portablePdbBlob.Free();
                         }
                         catch (Exception e) when (!(e is OperationCanceledException))
                         {
@@ -221,6 +222,7 @@ namespace Microsoft.Cci
                 if (portablePdbToEmbed != null)
                 {
                     debugDirectoryBuilder.AddEmbeddedPortablePdbEntry(portablePdbToEmbed, portablePdbVersion);
+                    portablePdbToEmbed.Free();
                 }
             }
             else
@@ -230,6 +232,12 @@ namespace Microsoft.Cci
 
             var strongNameProvider = context.Module.CommonCompilation.Options.StrongNameProvider;
             var corFlags = properties.CorFlags;
+
+            if (managedResourceBuilder.Count == 0)
+            {
+                managedResourceBuilder.Free();
+                managedResourceBuilder = null;
+            }
 
             var peBuilder = new ExtendedPEBuilder(
                 peHeaderBuilder,
@@ -269,6 +277,7 @@ namespace Microsoft.Cci
             }
 
             peBlob.Free();
+            managedResourceBuilder?.AssertFreed();
 
             return true;
         }
