@@ -50,10 +50,7 @@ namespace Microsoft.CodeAnalysis
 
             public SkeletonReferenceCache GetOrCreateSkeletonReferenceCache()
             {
-                if (_skeletonReferenceCache is null)
-                    InterlockedOperations.Initialize(ref _skeletonReferenceCache, () => new SkeletonReferenceCache());
-
-                return _skeletonReferenceCache;
+                return InterlockedOperations.Initialize(ref _skeletonReferenceCache, static () => new SkeletonReferenceCache());
             }
 
             /// <summary>

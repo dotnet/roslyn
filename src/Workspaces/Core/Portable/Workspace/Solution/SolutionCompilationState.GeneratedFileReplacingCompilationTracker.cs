@@ -32,8 +32,20 @@ internal partial class SolutionCompilationState
 
         public ICompilationTracker UnderlyingTracker { get; } = underlyingTracker;
 
-        public SkeletonReferenceCache? TryGetSkeletonReferenceCache() => UnderlyingTracker.TryGetSkeletonReferenceCache()?.Clone();
-        public SkeletonReferenceCache GetOrCreateSkeletonReferenceCache() => UnderlyingTracker.GetOrCreateSkeletonReferenceCache().Clone();
+        private SkeletonReferenceCache? _skeletonReferenceCache;
+
+        public SkeletonReferenceCache? TryGetSkeletonReferenceCache()
+        {
+            if (UnderlyingTracker.TryGetSkeletonReferenceCache() is null)
+                return null;
+
+            return GetOrCreateSkeletonReferenceCache();
+        }
+
+        public SkeletonReferenceCache GetOrCreateSkeletonReferenceCache()
+        {
+            return InterlockedOperations.Initialize(ref _skeletonReferenceCache, static underlyingTracker => underlyingTracker.GetOrCreateSkeletonReferenceCache().Clone(), arg: UnderlyingTracker);
+        }
 
         public ProjectState ProjectState => UnderlyingTracker.ProjectState;
 
