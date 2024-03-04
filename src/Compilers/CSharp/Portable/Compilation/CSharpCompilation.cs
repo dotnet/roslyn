@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
@@ -55,8 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Imports? _previousSubmissionImports;
         private AliasSymbol? _globalNamespaceAlias;  // alias symbol used to resolve "global::".
 
-        private bool _scriptClassInitialized;
-        private ImplicitNamedTypeSymbol? _scriptClass;
+        private StrongBox<NamedTypeSymbol?>? _scriptClass;
 
         // The type of host object model if available.
         private TypeSymbol? _lazyHostObjectTypeSymbol;
@@ -1484,19 +1484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// defined in the compilation.
         /// </summary>
         internal new NamedTypeSymbol? ScriptClass
-        {
-            get
-            {
-                // _scriptClass is allowed to be null, thus why a bool is used to track initialization
-                if (!_scriptClassInitialized)
-                {
-                    Interlocked.CompareExchange(ref _scriptClass, BindScriptClass(), null);
-                    _scriptClassInitialized = true;
-                }
-
-                return _scriptClass;
-            }
-        }
+            => InterlockedOperations.Initialize(ref _scriptClass, static self => self.BindScriptClass(), this);
 
         /// <summary>
         /// Resolves a symbol that represents script container (Script class). Uses the
@@ -1519,7 +1507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Global imports (including those from previous submissions, if there are any).
         /// </summary>
         internal ImmutableArray<NamespaceOrTypeAndUsingDirective> GlobalImports
-            => InterlockedOperations.Initialize(ref _globalImports, () => BindGlobalImports());
+            => InterlockedOperations.Initialize(ref _globalImports, static self => self.BindGlobalImports(), arg: this);
 
         private ImmutableArray<NamespaceOrTypeAndUsingDirective> BindGlobalImports()
         {
