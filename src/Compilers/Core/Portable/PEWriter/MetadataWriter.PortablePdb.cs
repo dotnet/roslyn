@@ -635,7 +635,7 @@ namespace Microsoft.Cci
                 return default(BlobHandle);
             }
 
-            var writer = new BlobBuilder();
+            var writer = PooledBlobBuilder.GetInstance();
 
             int previousNonHiddenStartLine = -1;
             int previousNonHiddenStartColumn = -1;
@@ -699,7 +699,7 @@ namespace Microsoft.Cci
                 previousNonHiddenStartColumn = sequencePoints[i].StartColumn;
             }
 
-            return _debugMetadataOpt.GetOrAddBlob(writer);
+            return _debugMetadataOpt.GetOrAddBlobAndFree(writer);
         }
 
         private static DebugSourceDocument TryGetSingleDocument(ImmutableArray<SequencePoint> sequencePoints)

@@ -245,7 +245,11 @@ namespace Microsoft.Cci
                 peIdProvider,
                 metadataOnly && !context.IncludePrivateMembers);
 
-            var peBlob = new BlobBuilder();
+            // This needs to force the backing builder to zero due to the issue writing COFF
+            // headers. Can remove once this issue is fixed and we've moved to SRM with the 
+            // fix
+            // https://github.com/dotnet/runtime/issues/99244
+            var peBlob = PooledBlobBuilder.GetInstance(zero: true);
             var peContentId = peBuilder.Serialize(peBlob, out Blob mvidSectionFixup);
 
             PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
@@ -263,6 +267,8 @@ namespace Microsoft.Cci
             {
                 throw new PeWritingException(e);
             }
+
+            peBlob.Free();
 
             return true;
         }
