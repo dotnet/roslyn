@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => InterlockedOperations.Initialize(ref _builtInOperators, static self => new BuiltInOperators(self), this);
 
         internal AnonymousTypeManager AnonymousTypeManager
-            => InterlockedOperations.Initialize(ref _anonymousTypeManager, self => new AnonymousTypeManager(self), this);
+            => InterlockedOperations.Initialize(ref _anonymousTypeManager, static self => new AnonymousTypeManager(self), this);
 
         internal override CommonAnonymousTypeManager CommonAnonymousTypeManager
         {
@@ -1490,8 +1490,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // _scriptClass is allowed to be null, thus why a bool is used to track initialization
                 if (!_scriptClassInitialized)
                 {
-                    _scriptClassInitialized = true;
                     Interlocked.CompareExchange(ref _scriptClass, BindScriptClass(), null);
+                    _scriptClassInitialized = true;
                 }
 
                 return _scriptClass;
@@ -1519,17 +1519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Global imports (including those from previous submissions, if there are any).
         /// </summary>
         internal ImmutableArray<NamespaceOrTypeAndUsingDirective> GlobalImports
-        {
-            get
-            {
-                if (_globalImports.IsDefault)
-                {
-                    ImmutableInterlocked.InterlockedInitialize(ref _globalImports, BindGlobalImports());
-                }
-
-                return _globalImports;
-            }
-        }
+            => InterlockedOperations.Initialize(ref _globalImports, () => BindGlobalImports());
 
         private ImmutableArray<NamespaceOrTypeAndUsingDirective> BindGlobalImports()
         {
