@@ -98,7 +98,6 @@ internal sealed class InheritanceMarginTaggerProvider : AsynchronousViewportTagg
 
         // Use FrozenSemantics Version of document to get the semantics ready, therefore we could have faster
         // response. (Since the full load might take a long time)
-        // We also subscribe to CompilationAvailableTaggerEventSource, so this will finally reach the correct state.
         document = document.WithFrozenPartialSemantics(cancellationToken);
 
         var spanToSearch = spanToTag.SnapshotSpan.Span.ToTextSpan();
