@@ -20,5 +20,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         {
             throw new NotImplementedException();
         }
+
+        public Assembly LoadFromPath(string fullPath, bool prepareSatelliteAssemblies)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

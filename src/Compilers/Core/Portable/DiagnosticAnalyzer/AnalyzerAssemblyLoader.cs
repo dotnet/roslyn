@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
     /// to <see cref="AddDependencyLocation(string)"/>.
     /// </summary>
     /// <remarks>
-    /// This type generally assumes that files on disk aren't changing, since it ensure that two calls to <see cref="LoadFromPath(string, bool)"/>
+    /// This type generally assumes that files on disk aren't changing, since it ensure that two calls to <see cref="LoadFromPath(string)"/>
     /// will always return the same thing, per that interface's contract.
     /// </remarks>
     internal abstract partial class AnalyzerAssemblyLoader : IAnalyzerAssemblyLoaderInternal
@@ -104,16 +104,23 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public Assembly LoadFromPath(string originalAnalyzerPath, bool prepareSatelliteAssemblies = false)
+        public Assembly LoadFromPath(string originalAnalyzerPath, bool prepareSatelliteAssemblies)
         {
-            CompilerPathUtilities.RequireAbsolutePath(originalAnalyzerPath, nameof(originalAnalyzerPath));
-
-            (AssemblyName? assemblyName, _) = GetAssemblyInfoForPath(originalAnalyzerPath);
+            var result = LoadFromPath(originalAnalyzerPath);
 
             if (prepareSatelliteAssemblies)
             {
                 GetSatelliteAssemblyInfoForPath(originalAnalyzerPath);
             }
+
+            return result;
+        }
+
+        public Assembly LoadFromPath(string originalAnalyzerPath)
+        {
+            CompilerPathUtilities.RequireAbsolutePath(originalAnalyzerPath, nameof(originalAnalyzerPath));
+
+            (AssemblyName? assemblyName, _) = GetAssemblyInfoForPath(originalAnalyzerPath);
 
             // Not a managed assembly, nothing else to do
             if (assemblyName is null)
