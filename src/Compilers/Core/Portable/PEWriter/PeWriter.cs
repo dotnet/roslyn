@@ -277,7 +277,6 @@ namespace Microsoft.Cci
             }
 
             peBlob.Free();
-            managedResourceBuilder?.AssertFreed();
 
             return true;
         }

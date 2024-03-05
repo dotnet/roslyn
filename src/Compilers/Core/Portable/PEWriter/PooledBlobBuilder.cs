@@ -15,23 +15,11 @@ namespace Microsoft.Cci
         private const int PoolSize = 128;
         private const int PoolChunkSize = 1024;
 
-#if DEBUG
-        internal bool IsFreed { get; private set; }
-#endif
-
         private static readonly ObjectPool<PooledBlobBuilder> s_chunkPool = new ObjectPool<PooledBlobBuilder>(() => new PooledBlobBuilder(PoolChunkSize), PoolSize);
 
         private PooledBlobBuilder(int size)
             : base(size)
         {
-        }
-
-        [Conditional("DEBUG")]
-        public void AssertFreed()
-        {
-#if DEBUG
-            Debug.Assert(IsFreed);
-#endif
         }
 
         /// <summary>
@@ -53,9 +41,6 @@ namespace Microsoft.Cci
                 builder.WriteBytes(0, builder.ChunkCapacity);
                 builder.Clear();
             }
-#if DEBUG
-            builder.IsFreed = false;
-#endif
             return builder;
         }
 
@@ -71,10 +56,6 @@ namespace Microsoft.Cci
 
         protected override void FreeChunk()
         {
-#if DEBUG
-            IsFreed = true;
-#endif
-
             if (ChunkCapacity != PoolChunkSize)
             {
                 // The invariant of this builder is that it produces BlobBuilder instances that have a 
