@@ -64,7 +64,10 @@ namespace Microsoft.CodeAnalysis
 
                 this.ProjectState = project;
                 _stateDoNotAccessDirectly = state;
+
+#pragma warning disable RS0042 // Do not copy value.  This is acceptable as we're just initializing the field, and consumers will only see the fully initialized value.
                 _skeletonReferenceCache = skeletonReferences;
+#pragma warning restore RS0042 // Do not copy value
 
                 _validateStates = project.LanguageServices.SolutionServices.GetRequiredService<IWorkspaceConfigurationService>().Options.ValidateCompilationTrackerStates;
 

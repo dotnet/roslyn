@@ -41,7 +41,9 @@ internal partial class SolutionCompilationState
         /// <summary>
         /// Intentionally not readonly as this is a mutable struct.
         /// </summary>
+#pragma warning disable RS0042 // Do not copy value.  This is acceptable as the underlying tracker is giving us a cloned copy intentionally for copying.
         private SkeletonReferenceCache _skeletonReferenceCache = underlyingTracker.GetClonedSkeletonReferenceCache();
+#pragma warning restore RS0042 // Do not copy value
 
         public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary, out MetadataReferenceInfo? referencedThrough)
         {
