@@ -35,6 +35,11 @@ variables:
   - name: HelixApiAccessToken
     value: ''
 
+  - name: Codeql.Enabled
+    value: false
+  - name: Codeql.SkipTaskAutoInjection
+    value: true
+
   # Set pool / queue name variables depending on which instance we're running in.
   - name: PoolName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
