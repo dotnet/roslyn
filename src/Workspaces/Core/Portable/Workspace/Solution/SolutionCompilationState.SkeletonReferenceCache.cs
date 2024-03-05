@@ -62,6 +62,13 @@ internal partial class SolutionCompilationState
         private static readonly EmitOptions s_metadataOnlyEmitOptions = new(metadataOnly: true);
 
         /// <summary>
+        /// Lock around <see cref="_version"/> and <see cref="_skeletonReferenceSet"/> to ensure they are updated/read
+        /// in an atomic fashion.  Static to keep this only as a single allocation.  As this is only for reading/writing
+        /// very small pieces of data, this is fine.
+        /// </summary>
+        private static readonly object _stateGate = new();
+
+        /// <summary>
         /// Static conditional mapping from a compilation to the skeleton set produced for it.  This is valuable for a
         /// couple of reasons. First, a compilation tracker may fork, but produce the same compilation.  As such, we
         /// want to get the same skeleton set for it.  Second, consider the following scenario:
@@ -76,12 +83,6 @@ internal partial class SolutionCompilationState
         /// want to keep it's skeleton cache around.
         /// </summary>
         private static readonly ConditionalWeakTable<Compilation, AsyncLazy<SkeletonReferenceSet?>> s_compilationToSkeletonSet = new();
-
-        /// <summary>
-        /// Lock around <see cref="_version"/> and <see cref="_skeletonReferenceSet"/> to ensure they are updated/read 
-        /// in an atomic fashion.
-        /// </summary>
-        private readonly object _stateGate = new();
 
         /// <summary>
         /// The <see cref="Project.GetDependentSemanticVersionAsync"/> version of the project that the
