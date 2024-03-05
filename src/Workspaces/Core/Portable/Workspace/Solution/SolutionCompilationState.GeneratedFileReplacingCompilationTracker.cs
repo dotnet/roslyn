@@ -19,7 +19,10 @@ internal partial class SolutionCompilationState
     /// to return a generated document with a specific content, regardless of what the generator actually produces. In other words, it says
     /// "take the compilation this other thing produced, and pretend the generator gave this content, even if it wouldn't."
     /// </summary>
-    private class GeneratedFileReplacingCompilationTracker(ICompilationTracker underlyingTracker, TextDocumentStates<SourceGeneratedDocumentState> replacementDocumentStates) : ICompilationTracker
+    private class GeneratedFileReplacingCompilationTracker(
+        ICompilationTracker underlyingTracker,
+        TextDocumentStates<SourceGeneratedDocumentState> replacementDocumentStates)
+        : ICompilationTracker
     {
         private AsyncLazy<Checksum>? _lazyDependentChecksum;
 
@@ -31,10 +34,14 @@ internal partial class SolutionCompilationState
         private Compilation? _compilationWithReplacements;
 
         public ICompilationTracker UnderlyingTracker { get; } = underlyingTracker;
-        public SkeletonReferenceCache SkeletonReferenceCache { get; } = underlyingTracker.SkeletonReferenceCache.Clone();
         public ProjectState ProjectState => UnderlyingTracker.ProjectState;
 
         public GeneratorDriver? GeneratorDriver => UnderlyingTracker.GeneratorDriver;
+
+        /// <summary>
+        /// Intentionally not readonly as this is a mutable struct.
+        /// </summary>
+        private SkeletonReferenceCache _skeletonReferenceCache = underlyingTracker.GetClonedSkeletonReferenceCache();
 
         public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary, out MetadataReferenceInfo? referencedThrough)
         {
@@ -198,5 +205,11 @@ internal partial class SolutionCompilationState
             // outputs of each other.
             return UnderlyingTracker.GetSourceGeneratorDiagnosticsAsync(compilationState, cancellationToken);
         }
+
+        public SkeletonReferenceCache GetClonedSkeletonReferenceCache()
+            => _skeletonReferenceCache.Clone();
+
+        public Task<MetadataReference?> GetOrBuildSkeletonReferenceAsync(SolutionCompilationState compilationState, MetadataReferenceProperties properties, CancellationToken cancellationToken)
+            => _skeletonReferenceCache.GetOrBuildReferenceAsync(this, compilationState, properties, cancellationToken);
     }
 }
