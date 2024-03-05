@@ -6080,7 +6080,7 @@ public class C
                 }
                 """;
 
-            // TODO2: ImmutableArray is only available when we specify a targetFramework
+            // ImmutableArray is only available when we specify a targetFramework
             var comp = CompileAndVerify(source, expectedOutput: "1", options: TestOptions.ReleaseExe, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
         }
