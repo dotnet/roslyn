@@ -16,17 +16,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     internal class SemanticTokensRangeHandler : ILspServiceDocumentRequestHandler<SemanticTokensRangeParams, LSP.SemanticTokens>
     {
         private readonly IGlobalOptionService _globalOptions;
-        private readonly SemanticTokensRefreshQueue _semanticTokenRefreshQueue;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
         public SemanticTokensRangeHandler(
-            IGlobalOptionService globalOptions,
-            SemanticTokensRefreshQueue semanticTokensRefreshQueue)
+            IGlobalOptionService globalOptions)
         {
             _globalOptions = globalOptions;
-            _semanticTokenRefreshQueue = semanticTokensRefreshQueue;
         }
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
@@ -42,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
             Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
             var ranges = new[] { request.Range };
-            var tokensData = await SemanticTokensHelpers.HandleRequestHelperAsync(_globalOptions, _semanticTokenRefreshQueue, ranges, context, cancellationToken).ConfigureAwait(false);
+            var tokensData = await SemanticTokensHelpers.HandleRequestHelperAsync(_globalOptions, ranges, context, cancellationToken).ConfigureAwait(false);
             return new LSP.SemanticTokens { Data = tokensData };
         }
     }

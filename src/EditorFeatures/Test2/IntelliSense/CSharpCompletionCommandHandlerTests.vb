@@ -12356,7 +12356,6 @@ public static class Ext
 
                 ' Disable features that would try to get full compilation outside of completion code path under test
 
-                CompilationAvailableHelpers.TestAccessor.SkipComputation = True
                 state.Workspace.GlobalOptions.SetGlobalOption(EditorComponentOnOffOptions.Tagger, False)
                 state.Workspace.GlobalOptions.SetGlobalOption(SemanticColorizerOptionsStorage.SemanticColorizer, False)
                 state.Workspace.GlobalOptions.SetGlobalOption(SyntacticColorizerOptionsStorage.SyntacticColorizer, False)

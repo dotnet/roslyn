@@ -17,18 +17,15 @@ internal class SemanticTokensRangesHandler : ILspServiceDocumentRequestHandler<S
 {
     public const string SemanticRangesMethodName = "roslyn/semanticTokenRanges";
     private readonly IGlobalOptionService _globalOptions;
-    private readonly SemanticTokensRefreshQueue _semanticTokenRefreshQueue;
 
     public bool MutatesSolutionState => false;
 
     public bool RequiresLSPSolution => true;
 
     public SemanticTokensRangesHandler(
-        IGlobalOptionService globalOptions,
-        SemanticTokensRefreshQueue semanticTokensRefreshQueue)
+        IGlobalOptionService globalOptions)
     {
         _globalOptions = globalOptions;
-        _semanticTokenRefreshQueue = semanticTokensRefreshQueue;
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(SemanticTokensRangesParams request)
@@ -43,7 +40,7 @@ internal class SemanticTokensRangesHandler : ILspServiceDocumentRequestHandler<S
             CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
-        var tokensData = await SemanticTokensHelpers.HandleRequestHelperAsync(_globalOptions, _semanticTokenRefreshQueue, request.Ranges, context, cancellationToken).ConfigureAwait(false);
+        var tokensData = await SemanticTokensHelpers.HandleRequestHelperAsync(_globalOptions, request.Ranges, context, cancellationToken).ConfigureAwait(false);
         return new SemanticTokens { Data = tokensData };
     }
 }
