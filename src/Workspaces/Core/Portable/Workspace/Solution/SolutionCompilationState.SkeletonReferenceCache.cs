@@ -64,7 +64,7 @@ internal partial class SolutionCompilationState
         /// in an atomic fashion.  Static to keep this only as a single allocation.  As this is only for reading/writing
         /// very small pieces of data, this is fine.
         /// </summary>
-        private static readonly object _stateGate = new();
+        private static readonly object s_stateGate = new();
 
         /// <summary>
         /// Static conditional mapping from a compilation to the skeleton set produced for it.  This is valuable for a
@@ -114,7 +114,7 @@ internal partial class SolutionCompilationState
         /// </summary>
         public readonly SkeletonReferenceCache Clone()
         {
-            lock (_stateGate)
+            lock (s_stateGate)
             {
                 // pass along the best version/reference-set we computed for ourselves.  That way future ProjectStates
                 // can use this data if either the version changed, or they weren't able to build a skeleton for themselves.
@@ -158,7 +158,7 @@ internal partial class SolutionCompilationState
 
             var currentSkeletonReferenceSet = await CreateSkeletonReferenceSetAsync(compilationTracker, compilationState, cancellationToken).ConfigureAwait(false);
 
-            lock (_stateGate)
+            lock (s_stateGate)
             {
                 // If we successfully created the metadata storage, then create the new set that points to it.
                 // if we didn't, that's ok too, we'll just say that for this requested version, that we can
@@ -214,7 +214,7 @@ internal partial class SolutionCompilationState
 
         private readonly bool TryReadSkeletonReferenceSetAtThisVersion(VersionStamp version, out SkeletonReferenceSet? result)
         {
-            lock (_stateGate)
+            lock (s_stateGate)
             {
                 // if we're asking about the same version as we've cached, then return whatever have (regardless of
                 // whether it succeeded or not.
