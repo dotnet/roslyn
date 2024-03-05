@@ -5,10 +5,9 @@
 using System;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+public sealed class TextDocumentEventArgs(TextDocument document) : EventArgs
 {
-    public sealed class TextDocumentEventArgs(TextDocument document) : EventArgs
-    {
-        public TextDocument Document { get; } = document ?? throw new ArgumentNullException(nameof(document));
-    }
+    public TextDocument Document { get; } = document ?? throw new ArgumentNullException(nameof(document));
 }

@@ -18,47 +18,46 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
+namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
+
+/// <summary>
+/// Interaction logic for CallstackExplorerRoot.xaml
+/// </summary>
+internal partial class StackTraceExplorerRoot : UserControl
 {
-    /// <summary>
-    /// Interaction logic for CallstackExplorerRoot.xaml
-    /// </summary>
-    internal partial class StackTraceExplorerRoot : UserControl
+    public string CloseTab => ServicesVSResources.Close_tab;
+    public string Clear_Text => ServicesVSResources.Clear;
+    public string StackTrace => ServicesVSResources.Stack_Trace;
+
+    public readonly StackTraceExplorerRootViewModel ViewModel;
+
+    public StackTraceExplorerRoot(StackTraceExplorerRootViewModel viewModel)
     {
-        public string CloseTab => ServicesVSResources.Close_tab;
-        public string Clear_Text => ServicesVSResources.Clear;
-        public string StackTrace => ServicesVSResources.Stack_Trace;
+        DataContext = ViewModel = viewModel;
 
-        public readonly StackTraceExplorerRootViewModel ViewModel;
-
-        public StackTraceExplorerRoot(StackTraceExplorerRootViewModel viewModel)
-        {
-            DataContext = ViewModel = viewModel;
-
-            InitializeComponent();
-            DataObject.AddPastingHandler(this, OnPaste);
-        }
-
-        private void CommandBinding_OnPaste(object sender, ExecutedRoutedEventArgs e)
-            => ViewModel.DoPasteAsync(default).Start();
-
-        internal void OnClear()
-        {
-            ViewModel.SelectedTab?.Content.OnClear();
-        }
-
-        private void OnPaste(object sender, DataObjectPastingEventArgs e)
-            => ViewModel.DoPasteAsync(default).Start();
-
-        private void Close_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is StackTraceExplorerTab tab)
-            {
-                tab.CloseClick.Execute(null);
-            }
-        }
-
-        private void Clear_Click(object sender, RoutedEventArgs e)
-            => OnClear();
+        InitializeComponent();
+        DataObject.AddPastingHandler(this, OnPaste);
     }
+
+    private void CommandBinding_OnPaste(object sender, ExecutedRoutedEventArgs e)
+        => ViewModel.DoPasteAsync(default).Start();
+
+    internal void OnClear()
+    {
+        ViewModel.SelectedTab?.Content.OnClear();
+    }
+
+    private void OnPaste(object sender, DataObjectPastingEventArgs e)
+        => ViewModel.DoPasteAsync(default).Start();
+
+    private void Close_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is StackTraceExplorerTab tab)
+        {
+            tab.CloseClick.Execute(null);
+        }
+    }
+
+    private void Clear_Click(object sender, RoutedEventArgs e)
+        => OnClear();
 }

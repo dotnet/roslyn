@@ -5,25 +5,24 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
-namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
+namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
+
+internal class RQMemberParameterIndex(
+    RQMember containingMember,
+    int parameterIndex) : RQNode
 {
-    internal class RQMemberParameterIndex(
-        RQMember containingMember,
-        int parameterIndex) : RQNode
+    public readonly RQMember ContainingMember = containingMember;
+    public readonly int ParameterIndex = parameterIndex;
+
+    protected override string RQKeyword
     {
-        public readonly RQMember ContainingMember = containingMember;
-        public readonly int ParameterIndex = parameterIndex;
+        get { return RQNameStrings.MemberParamIndex; }
+    }
 
-        protected override string RQKeyword
-        {
-            get { return RQNameStrings.MemberParamIndex; }
-        }
-
-        protected override void AppendChildren(List<SimpleTreeNode> childList)
-        {
-            childList.Add(ContainingMember.ToSimpleTree());
-            childList.Add(new SimpleLeafNode(ParameterIndex.ToString()));
-            childList.Add(new SimpleLeafNode(RQNameStrings.NotPartial));
-        }
+    protected override void AppendChildren(List<SimpleTreeNode> childList)
+    {
+        childList.Add(ContainingMember.ToSimpleTree());
+        childList.Add(new SimpleLeafNode(ParameterIndex.ToString()));
+        childList.Add(new SimpleLeafNode(RQNameStrings.NotPartial));
     }
 }

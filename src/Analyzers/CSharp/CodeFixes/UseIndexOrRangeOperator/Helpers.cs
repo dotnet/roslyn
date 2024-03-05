@@ -7,16 +7,15 @@
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
+namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator;
+
+internal static class CodeFixHelpers
 {
-    internal static class CodeFixHelpers
-    {
-        /// <summary>
-        /// Creates an `^expr` index expression from a given `expr`.
-        /// </summary>
-        public static PrefixUnaryExpressionSyntax IndexExpression(ExpressionSyntax expr)
-            => SyntaxFactory.PrefixUnaryExpression(
-                SyntaxKind.IndexExpression,
-                expr.Parenthesize());
-    }
+    /// <summary>
+    /// Creates an `^expr` index expression from a given `expr`.
+    /// </summary>
+    public static PrefixUnaryExpressionSyntax IndexExpression(ExpressionSyntax expr)
+        => SyntaxFactory.PrefixUnaryExpression(
+            SyntaxKind.IndexExpression,
+            expr.Parenthesize());
 }

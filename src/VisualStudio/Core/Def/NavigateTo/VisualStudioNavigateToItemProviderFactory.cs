@@ -11,44 +11,43 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigateTo
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigateTo;
+
+// Used to indicate that this type should be ignored if the platform uses the new ISearchItemsSourceProvider system instead.
+[OnlyNavigateToSupport]
+[Export(typeof(INavigateToItemProviderFactory))]
+internal sealed class VisualStudioNavigateToItemProviderFactory : INavigateToItemProviderFactory
 {
-    // Used to indicate that this type should be ignored if the platform uses the new ISearchItemsSourceProvider system instead.
-    [OnlyNavigateToSupport]
-    [Export(typeof(INavigateToItemProviderFactory))]
-    internal sealed class VisualStudioNavigateToItemProviderFactory : INavigateToItemProviderFactory
+    private readonly VisualStudioWorkspace _workspace;
+    private readonly IThreadingContext _threadingContext;
+    private readonly IUIThreadOperationExecutor _threadOperationExecutor;
+    private readonly IAsynchronousOperationListener _asyncListener;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VisualStudioNavigateToItemProviderFactory(
+        VisualStudioWorkspace workspace,
+        IThreadingContext threadingContext,
+        IUIThreadOperationExecutor threadOperationExecutor,
+        IAsynchronousOperationListenerProvider listenerProvider)
     {
-        private readonly VisualStudioWorkspace _workspace;
-        private readonly IThreadingContext _threadingContext;
-        private readonly IUIThreadOperationExecutor _threadOperationExecutor;
-        private readonly IAsynchronousOperationListener _asyncListener;
+        _workspace = workspace;
+        _threadingContext = threadingContext;
+        _threadOperationExecutor = threadOperationExecutor;
+        _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigateTo);
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioNavigateToItemProviderFactory(
-            VisualStudioWorkspace workspace,
-            IThreadingContext threadingContext,
-            IUIThreadOperationExecutor threadOperationExecutor,
-            IAsynchronousOperationListenerProvider listenerProvider)
+    public bool TryCreateNavigateToItemProvider(IServiceProvider serviceProvider, out INavigateToItemProvider? provider)
+    {
+        // Let LSP handle goto when running under the LSP editor.
+        if (_workspace.Services.GetRequiredService<IWorkspaceContextService>().IsInLspEditorContext())
         {
-            _workspace = workspace;
-            _threadingContext = threadingContext;
-            _threadOperationExecutor = threadOperationExecutor;
-            _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigateTo);
+            provider = null;
+            return false;
         }
 
-        public bool TryCreateNavigateToItemProvider(IServiceProvider serviceProvider, out INavigateToItemProvider? provider)
-        {
-            // Let LSP handle goto when running under the LSP editor.
-            if (_workspace.Services.GetRequiredService<IWorkspaceContextService>().IsInLspEditorContext())
-            {
-                provider = null;
-                return false;
-            }
-
-            provider = new NavigateToItemProvider(
-                _workspace, _threadingContext, _threadOperationExecutor, _asyncListener);
-            return true;
-        }
+        provider = new NavigateToItemProvider(
+            _workspace, _threadingContext, _threadOperationExecutor, _asyncListener);
+        return true;
     }
 }

@@ -9,19 +9,18 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Formatting
-{
-    internal class AggregatedFormattingResult : AbstractAggregatedFormattingResult
-    {
-        public AggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanIntervalTree? formattingSpans)
-            : base(node, results, formattingSpans)
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-        protected override SyntaxNode Rewriter(Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> map, CancellationToken cancellationToken)
-        {
-            var rewriter = new TriviaRewriter(this.Node, GetFormattingSpans(), map, cancellationToken);
-            return rewriter.Transform();
-        }
+internal class AggregatedFormattingResult : AbstractAggregatedFormattingResult
+{
+    public AggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanIntervalTree? formattingSpans)
+        : base(node, results, formattingSpans)
+    {
+    }
+
+    protected override SyntaxNode Rewriter(Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> map, CancellationToken cancellationToken)
+    {
+        var rewriter = new TriviaRewriter(this.Node, GetFormattingSpans(), map, cancellationToken);
+        return rewriter.Transform();
     }
 }

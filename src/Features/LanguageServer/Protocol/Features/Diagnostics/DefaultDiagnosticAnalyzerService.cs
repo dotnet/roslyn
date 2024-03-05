@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -20,11 +18,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     [Shared]
-    [ExportIncrementalAnalyzerProvider(WellKnownSolutionCrawlerAnalyzers.Diagnostic, workspaceKinds: null)]
+    [ExportIncrementalAnalyzerProvider(WellKnownSolutionCrawlerAnalyzers.Diagnostic, workspaceKinds: [])]
     internal partial class DefaultDiagnosticAnalyzerService : IIncrementalAnalyzerProvider, IDiagnosticUpdateSource
     {
         private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache = new();
         private readonly IGlobalOptionService _globalOptions;
+
+        public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -49,13 +49,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new DefaultDiagnosticIncrementalAnalyzer(this, workspace);
         }
 
-        public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>> DiagnosticsUpdated;
-        public event EventHandler DiagnosticsCleared { add { } remove { } }
-
         // this only support push model, pull model will be provided by DiagnosticService by caching everything this one pushed
         public bool SupportGetDiagnostics => false;
 
-        public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+        public event EventHandler DiagnosticsCleared { add { } remove { } }
+
+        public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
             // pull model not supported
             return new ValueTask<ImmutableArray<DiagnosticData>>([]);
@@ -72,6 +71,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public DefaultDiagnosticIncrementalAnalyzer(DefaultDiagnosticAnalyzerService service, Workspace workspace)
             {
+                Contract.ThrowIfNull(workspace.Kind);
+
                 _service = service;
                 _workspace = workspace;
                 _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(service._analyzerInfoCache);
@@ -127,6 +128,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private async Task AnalyzeForKindAsync(TextDocument document, AnalysisKind kind, CancellationToken cancellationToken)
             {
+                Contract.ThrowIfNull(_workspace.Kind);
+
                 var diagnosticData = await GetDiagnosticsAsync(document, kind, cancellationToken).ConfigureAwait(false);
 
                 // TODO: Consider raising these with a batching work queue to aggregate results from analyzers that
@@ -221,6 +224,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private void RaiseEmptyDiagnosticUpdated(AnalysisKind kind, DocumentId documentId)
             {
+                Contract.ThrowIfNull(_workspace.Kind);
+
                 // TODO: Consider raising these with a batching work queue to aggregate results from analyzers that
                 // complete quickly.
                 _service.RaiseDiagnosticsUpdated([DiagnosticsUpdatedArgs.DiagnosticsRemoved(
@@ -260,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 public override string BuildTool => PredefinedBuildTools.Live;
 
-                public override bool Equals(object obj)
+                public override bool Equals(object? obj)
                 {
                     if (obj is not DefaultUpdateArgsId other)
                     {

@@ -7,31 +7,30 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
+
+internal abstract partial class ReferenceChange : AbstractChange
 {
-    internal abstract partial class ReferenceChange : AbstractChange
+    private sealed class AnalyzerReferenceChange : ReferenceChange
     {
-        private sealed class AnalyzerReferenceChange : ReferenceChange
+        private readonly AnalyzerReference _reference;
+
+        public AnalyzerReferenceChange(AnalyzerReference reference, ProjectId projectId, string projectName, bool isAdded, PreviewEngine engine)
+            : base(projectId, projectName, isAdded, engine)
         {
-            private readonly AnalyzerReference _reference;
+            _reference = reference;
+        }
 
-            public AnalyzerReferenceChange(AnalyzerReference reference, ProjectId projectId, string projectName, bool isAdded, PreviewEngine engine)
-                : base(projectId, projectName, isAdded, engine)
-            {
-                _reference = reference;
-            }
+        internal override Solution AddToSolution(Solution solution)
+            => solution.AddAnalyzerReference(this.ProjectId, _reference);
 
-            internal override Solution AddToSolution(Solution solution)
-                => solution.AddAnalyzerReference(this.ProjectId, _reference);
+        internal override Solution RemoveFromSolution(Solution solution)
+            => solution.RemoveAnalyzerReference(this.ProjectId, _reference);
 
-            internal override Solution RemoveFromSolution(Solution solution)
-                => solution.RemoveAnalyzerReference(this.ProjectId, _reference);
-
-            protected override string GetDisplayText()
-            {
-                var display = _reference.Display ?? ServicesVSResources.Unknown1;
-                return string.Format(ServicesVSResources.Analyzer_reference_to_0_in_project_1, display, this.ProjectName);
-            }
+        protected override string GetDisplayText()
+        {
+            var display = _reference.Display ?? ServicesVSResources.Unknown1;
+            return string.Format(ServicesVSResources.Analyzer_reference_to_0_in_project_1, display, this.ProjectName);
         }
     }
 }
