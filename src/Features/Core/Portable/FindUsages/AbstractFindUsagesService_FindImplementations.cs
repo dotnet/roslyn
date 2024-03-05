@@ -28,7 +28,7 @@ internal abstract partial class AbstractFindUsagesService
             document, position, cancellationToken).ConfigureAwait(false);
         if (symbolAndProjectOpt == null)
         {
-            await context.ReportMessageAsync(
+            await context.ReportNoResultsAsync(
                 FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, cancellationToken).ConfigureAwait(false);
             return;
         }
@@ -78,7 +78,7 @@ internal abstract partial class AbstractFindUsagesService
 
         if (implementations.IsEmpty)
         {
-            await context.ReportMessageAsync(FeaturesResources.The_symbol_has_no_implementations, cancellationToken).ConfigureAwait(false);
+            await context.ReportNoResultsAsync(FeaturesResources.The_symbol_has_no_implementations, cancellationToken).ConfigureAwait(false);
             return;
         }
 
