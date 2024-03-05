@@ -25,7 +25,6 @@ internal partial class SolutionCompilationState
         string? assemblyName,
         DeferredDocumentationProvider documentationProvider)
     {
-
         /// <summary>
         /// Lock this object while reading/writing from it.  Used so we can return the same reference for the same
         /// properties.  While this is isn't strictly necessary (as the important thing to keep the same is the
