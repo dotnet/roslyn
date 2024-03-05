@@ -3043,7 +3043,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var savedState = this.State.Clone();
             VisitStatements(node.Statements);
-            this.State = savedState;
+            SetState(savedState);
             return null;
         }
 

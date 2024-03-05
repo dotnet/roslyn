@@ -121,16 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // lower the decision dag.
                 ImmutableArray<BoundStatement> loweredDag = LowerDecisionDagCore(decisionDag);
-                var resultBuilder = ArrayBuilder<BoundStatement>.GetInstance(loweredDag.Length + _statements.Count);
-                resultBuilder.AddRange(loweredDag);
-                resultBuilder.AddRange(_statements);
                 return _factory.Sequence(
                     _tempAllocator.AllTemps(),
                     sideEffectsBuilder.ToImmutableAndFree(),
                     new BoundLoweredIsPatternExpression(
                         node.Syntax,
                         // Note: it is not expected for this node to trigger spilling
-                        resultBuilder.ToImmutableAndFree(),
+                        loweredDag.AddRange(_statements),
                         node.WhenTrueLabel,
                         node.WhenFalseLabel,
                         node.Type));
