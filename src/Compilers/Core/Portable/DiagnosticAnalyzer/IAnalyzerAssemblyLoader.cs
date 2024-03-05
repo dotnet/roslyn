@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Handles loading analyzer assemblies and their dependencies.
     /// 
-    /// Before an analyzer assembly is loaded with <see cref="LoadFromPath(string)"/>,
+    /// Before an analyzer assembly is loaded with <see cref="LoadFromPath(string, bool)"/>,
     /// its location and the location of all of its dependencies must first be specified
     /// by calls to <see cref="AddDependencyLocation(string)"/>.
     /// </summary>
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         /// <exception cref="ArgumentNullException"><paramref name="fullPath" /> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="fullPath" /> is not a full path.</exception>
-        Assembly LoadFromPath(string fullPath);
+        Assembly LoadFromPath(string fullPath, bool prepareSatelliteAssemblies = false);
 
         /// <summary>
         /// Adds a file to consider when loading an analyzer or its dependencies.

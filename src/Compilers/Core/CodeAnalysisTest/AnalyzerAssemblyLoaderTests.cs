@@ -261,7 +261,7 @@ Delta: Gamma: Beta: Test B
         }
 
         /// <summary>
-        /// The loaders should not actually look at the contents of the disk until a <see cref="AnalyzerAssemblyLoader.LoadFromPath(string)"/>
+        /// The loaders should not actually look at the contents of the disk until a <see cref="AnalyzerAssemblyLoader.LoadFromPath(string, bool)"/>
         /// call has occurred. This is historical behavior that doesn't have a clear reason for existing. There
         /// is strong suspicion it's to delay loading of analyzers until absolutely necessary. As such we're
         /// enshrining the behavior here so it is not _accidentally_ changed.
@@ -1337,7 +1337,7 @@ Delta.2: Test D2
                 var analyzerPath = tempDir.CreateFile("AnalyzerWithLoc.dll").CopyContentFrom(testFixture.AnalyzerWithLoc).Path;
                 var analyzerResourcesPath = tempDir.CreateDirectory("en-GB").CreateFile("AnalyzerWithLoc.resources.dll").CopyContentFrom(testFixture.AnalyzerWithLocResourceEnGB).Path;
                 loader.AddDependencyLocation(analyzerPath);
-                var assembly = loader.LoadFromPath(analyzerPath);
+                var assembly = loader.LoadFromPath(analyzerPath, prepareSatelliteAssemblies: true);
                 var methodInfo = assembly
                     .GetType("AnalyzerWithLoc.Util")!
                     .GetMethod("Exec", BindingFlags.Static | BindingFlags.Public)!;

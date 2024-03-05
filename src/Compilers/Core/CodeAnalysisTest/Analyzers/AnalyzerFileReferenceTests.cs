@@ -748,6 +748,6 @@ public class Generator : ISourceGenerator
     {
         public void AddDependencyLocation(string fullPath) { }
         public bool IsHostAssembly(Assembly assembly) => false;
-        public Assembly LoadFromPath(string fullPath) => throw new Exception();
+        public Assembly LoadFromPath(string fullPath, bool prepareResourceAssemblies = false) => throw new Exception();
     }
 }
