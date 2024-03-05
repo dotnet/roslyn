@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim errorReported As Boolean = False        ' was an error already reported?
                 Dim interfaceNamedType As NamedTypeSymbol = DirectCast(interfaceType, NamedTypeSymbol)
 
-                If Not containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics(interfaceNamedType).Contains(interfaceNamedType) Then
+                If Not containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics(interfaceNamedType).Contains(interfaceNamedType, containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ValueComparer) Then
                     ' Class doesn't implement the interface that was named
                     Binder.ReportDiagnostic(diagBag, interfaceName, ERRID.ERR_InterfaceNotImplemented1,
                                             interfaceType)

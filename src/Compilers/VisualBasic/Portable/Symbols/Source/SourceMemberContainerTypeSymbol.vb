@@ -480,7 +480,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Gets the implements location for a particular interface, which must be implemented but might be indirectly implemented.
         ' Also gets the direct interface it was inherited through
         Private Function GetImplementsLocation(implementedInterface As NamedTypeSymbol, ByRef directInterface As NamedTypeSymbol) As Location
-            Debug.Assert(Me.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics(implementedInterface).Contains(implementedInterface))
+            Debug.Assert(Me.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics(implementedInterface).Contains(implementedInterface, Me.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ValueComparer))
 
             ' Find the directly implemented interface that "implementedIface" was inherited through.
             directInterface = Nothing

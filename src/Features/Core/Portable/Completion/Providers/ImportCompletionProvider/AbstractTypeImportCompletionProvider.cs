@@ -142,7 +142,7 @@ internal abstract class AbstractTypeImportCompletionProvider<AliasDeclarationTyp
             // check if the type name is in the dictionary.
             // It is done in this way to avoid calling ImportCompletionItem.GetTypeName for all the CompletionItems
             if (!aliasTargetNamespaceToTypeNameMap.IsEmpty
-                && aliasTargetNamespaceToTypeNameMap[containingNamespace].Contains(ImportCompletionItem.GetTypeName(item)))
+                && aliasTargetNamespaceToTypeNameMap[containingNamespace].Contains(ImportCompletionItem.GetTypeName(item), aliasTargetNamespaceToTypeNameMap.ValueComparer))
             {
                 return false;
             }
