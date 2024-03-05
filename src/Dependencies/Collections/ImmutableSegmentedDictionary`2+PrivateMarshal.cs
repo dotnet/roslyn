@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// Private helper class for use only by <see cref="RoslynImmutableInterlocked"/> and
         /// <see cref="SegmentedCollectionsMarshal"/>.
         /// </summary>
-        internal static class PrivateInterlocked
+        internal static class PrivateMarshal
         {
             internal static ImmutableSegmentedDictionary<TKey, TValue> VolatileRead(in ImmutableSegmentedDictionary<TKey, TValue> location)
             {

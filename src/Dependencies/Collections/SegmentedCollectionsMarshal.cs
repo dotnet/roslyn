@@ -53,7 +53,7 @@ internal static class SegmentedCollectionsMarshal
     [SuppressMessage("Documentation", "CA1200", Justification = "Not all targets can resolve the documented method reference.")]
     public static ref readonly TValue GetValueRefOrNullRef<TKey, TValue>(ImmutableSegmentedDictionary<TKey, TValue> dictionary, TKey key)
         where TKey : notnull
-        => ref ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.FindValue(dictionary, key);
+        => ref ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.FindValue(dictionary, key);
 
     /// <summary>
     /// Gets either a ref to a <typeparamref name="TValue"/> in the <see cref="ImmutableSegmentedDictionary{TKey, TValue}.Builder"/>
@@ -93,7 +93,7 @@ internal static class SegmentedCollectionsMarshal
     /// </para>
     /// </remarks>
     public static ImmutableSegmentedList<T> AsImmutableSegmentedList<T>(SegmentedList<T>? list)
-        => ImmutableSegmentedList<T>.PrivateInterlocked.AsImmutableSegmentedList(list);
+        => ImmutableSegmentedList<T>.PrivateMarshal.AsImmutableSegmentedList(list);
 
     /// <summary>
     /// Gets the underlying <see cref="SegmentedList{T}"/> for an input <see cref="ImmutableSegmentedList{T}"/> value.
@@ -113,7 +113,7 @@ internal static class SegmentedCollectionsMarshal
     /// </para>
     /// </remarks>
     public static SegmentedList<T>? AsSegmentedList<T>(ImmutableSegmentedList<T> list)
-        => ImmutableSegmentedList<T>.PrivateInterlocked.AsSegmentedList(list);
+        => ImmutableSegmentedList<T>.PrivateMarshal.AsSegmentedList(list);
 
     /// <summary>
     /// Gets an <see cref="ImmutableSegmentedHashSet{T}"/> value wrapping the input <see cref="SegmentedHashSet{T}"/>.
@@ -135,7 +135,7 @@ internal static class SegmentedCollectionsMarshal
     /// </para>
     /// </remarks>
     public static ImmutableSegmentedHashSet<T> AsImmutableSegmentedHashSet<T>(SegmentedHashSet<T>? set)
-        => ImmutableSegmentedHashSet<T>.PrivateInterlocked.AsImmutableSegmentedHashSet(set);
+        => ImmutableSegmentedHashSet<T>.PrivateMarshal.AsImmutableSegmentedHashSet(set);
 
     /// <summary>
     /// Gets the underlying <see cref="SegmentedHashSet{T}"/> for an input <see cref="ImmutableSegmentedHashSet{T}"/> value.
@@ -155,7 +155,7 @@ internal static class SegmentedCollectionsMarshal
     /// </para>
     /// </remarks>
     public static SegmentedHashSet<T>? AsSegmentedHashSet<T>(ImmutableSegmentedHashSet<T> set)
-        => ImmutableSegmentedHashSet<T>.PrivateInterlocked.AsSegmentedHashSet(set);
+        => ImmutableSegmentedHashSet<T>.PrivateMarshal.AsSegmentedHashSet(set);
 
     /// <summary>
     /// Gets an <see cref="ImmutableSegmentedDictionary{TKey, TValue}"/> value wrapping the input <see cref="SegmentedDictionary{TKey, TValue}"/>.
@@ -179,7 +179,7 @@ internal static class SegmentedCollectionsMarshal
     /// </remarks>
     public static ImmutableSegmentedDictionary<TKey, TValue> AsImmutableSegmentedDictionary<TKey, TValue>(SegmentedDictionary<TKey, TValue>? dictionary)
         where TKey : notnull
-        => ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.AsImmutableSegmentedDictionary(dictionary);
+        => ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.AsImmutableSegmentedDictionary(dictionary);
 
     /// <summary>
     /// Gets the underlying <see cref="SegmentedDictionary{TKey, TValue}"/> for an input <see cref="ImmutableSegmentedDictionary{TKey, TValue}"/> value.
@@ -201,5 +201,5 @@ internal static class SegmentedCollectionsMarshal
     /// </remarks>
     public static SegmentedDictionary<TKey, TValue>? AsSegmentedDictionary<TKey, TValue>(ImmutableSegmentedDictionary<TKey, TValue> dictionary)
         where TKey : notnull
-        => ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.AsSegmentedDictionary(dictionary);
+        => ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.AsSegmentedDictionary(dictionary);
 }
