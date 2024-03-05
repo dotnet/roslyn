@@ -19,11 +19,10 @@ internal partial class SolutionCompilationState
     /// to return a generated document with a specific content, regardless of what the generator actually produces. In other words, it says
     /// "take the compilation this other thing produced, and pretend the generator gave this content, even if it wouldn't."
     /// </summary>
-    private class GeneratedFileReplacingCompilationTracker(
-        ICompilationTracker underlyingTracker,
-        TextDocumentStates<SourceGeneratedDocumentState> replacementDocumentStates)
-        : ICompilationTracker
+    private class GeneratedFileReplacingCompilationTracker : ICompilationTracker
     {
+        private readonly TextDocumentStates<SourceGeneratedDocumentState> _replacementDocumentStates;
+
         private AsyncLazy<Checksum>? _lazyDependentChecksum;
 
         /// <summary>
@@ -33,7 +32,7 @@ internal partial class SolutionCompilationState
         [DisallowNull]
         private Compilation? _compilationWithReplacements;
 
-        public ICompilationTracker UnderlyingTracker { get; } = underlyingTracker;
+        public ICompilationTracker UnderlyingTracker { get; }
         public ProjectState ProjectState => UnderlyingTracker.ProjectState;
 
         public GeneratorDriver? GeneratorDriver => UnderlyingTracker.GeneratorDriver;
@@ -41,9 +40,16 @@ internal partial class SolutionCompilationState
         /// <summary>
         /// Intentionally not readonly as this is a mutable struct.
         /// </summary>
-#pragma warning disable RS0042 // Do not copy value.  This is acceptable as the underlying tracker is giving us a cloned copy intentionally for copying.
-        private SkeletonReferenceCache _skeletonReferenceCache = underlyingTracker.GetClonedSkeletonReferenceCache();
-#pragma warning restore RS0042 // Do not copy value
+        private SkeletonReferenceCache _skeletonReferenceCache;
+
+        public GeneratedFileReplacingCompilationTracker(
+            ICompilationTracker underlyingTracker,
+            TextDocumentStates<SourceGeneratedDocumentState> replacementDocumentStates)
+        {
+            this.UnderlyingTracker = underlyingTracker;
+            _replacementDocumentStates = replacementDocumentStates;
+            _skeletonReferenceCache = underlyingTracker.GetClonedSkeletonReferenceCache();
+        }
 
         public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary, out MetadataReferenceInfo? referencedThrough)
         {
@@ -70,7 +76,7 @@ internal partial class SolutionCompilationState
         public ICompilationTracker FreezePartialState(CancellationToken cancellationToken)
         {
             // Ensure the underlying tracker is totally frozen, and then ensure our replaced generated doc is present.
-            return new GeneratedFileReplacingCompilationTracker(UnderlyingTracker.FreezePartialState(cancellationToken), replacementDocumentStates);
+            return new GeneratedFileReplacingCompilationTracker(UnderlyingTracker.FreezePartialState(cancellationToken), _replacementDocumentStates);
         }
 
         public async Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
@@ -84,7 +90,7 @@ internal partial class SolutionCompilationState
             var underlyingSourceGeneratedDocuments = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(compilationState, cancellationToken).ConfigureAwait(false);
             var newCompilation = await UnderlyingTracker.GetCompilationAsync(compilationState, cancellationToken).ConfigureAwait(false);
 
-            foreach (var (id, replacementState) in replacementDocumentStates.States)
+            foreach (var (id, replacementState) in _replacementDocumentStates.States)
             {
                 underlyingSourceGeneratedDocuments.TryGetState(id, out var existingState);
 
@@ -133,7 +139,7 @@ internal partial class SolutionCompilationState
         private async Task<Checksum> ComputeDependentChecksumAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
             => Checksum.Create(
                 await UnderlyingTracker.GetDependentChecksumAsync(compilationState, cancellationToken).ConfigureAwait(false),
-                (await replacementDocumentStates.GetChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false)).Checksum);
+                (await _replacementDocumentStates.GetChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false)).Checksum);
 
         public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
         {
@@ -153,7 +159,7 @@ internal partial class SolutionCompilationState
             var newStates = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(
                 compilationState, cancellationToken).ConfigureAwait(false);
 
-            foreach (var (id, replacementState) in replacementDocumentStates.States)
+            foreach (var (id, replacementState) in _replacementDocumentStates.States)
             {
                 if (newStates.Contains(id))
                 {
@@ -188,7 +194,7 @@ internal partial class SolutionCompilationState
 
         public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId)
         {
-            if (replacementDocumentStates.TryGetState(documentId, out var replacementState))
+            if (_replacementDocumentStates.TryGetState(documentId, out var replacementState))
             {
                 return replacementState;
             }
