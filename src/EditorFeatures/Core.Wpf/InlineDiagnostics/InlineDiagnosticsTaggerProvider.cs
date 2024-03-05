@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
     [Export(typeof(ITaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(InlineDiagnosticsTag))]
-    internal sealed class InlineDiagnosticsTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<InlineDiagnosticsTag>
+    internal sealed class InlineDiagnosticsTaggerProvider : AbstractDiagnosticsTaggerProvider<InlineDiagnosticsTag>
     {
         private readonly IEditorFormatMap _editorFormatMap;
         private readonly IClassificationFormatMapService _classificationFormatMapService;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             IEditorFormatMapService editorFormatMapService,
             IClassificationFormatMapService classificationFormatMapService,
             IClassificationTypeRegistryService classificationTypeRegistryService)
-            : base(threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listenerProvider)
+            : base(threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles))
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
             _classificationFormatMapService = classificationFormatMapService;
