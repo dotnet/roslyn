@@ -145,8 +145,8 @@
   <data name="Discovering_tests" xml:space="preserve">
     <value>Discovering tests...</value>
   </data>
-  <data name="Exception_thrown_while_loading_0" xml:space="preserve">
-    <value>Exception thrown while loading {0}</value>
+  <data name="Exception_thrown_0" xml:space="preserve">
+    <value>Exception thrown: {0}</value>
   </data>
   <data name="Failed" xml:space="preserve">
     <value>Failed!</value>

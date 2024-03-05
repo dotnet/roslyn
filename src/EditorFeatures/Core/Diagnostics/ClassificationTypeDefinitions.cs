@@ -9,15 +9,14 @@ using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
-{
-    internal sealed class ClassificationTypeDefinitions
-    {
-        public const string UnnecessaryCode = "unnecessary code";
+namespace Microsoft.CodeAnalysis.Diagnostics;
 
-        [Export]
-        [Name(UnnecessaryCode)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal ClassificationTypeDefinition UnnecessaryCodeTypeDefinition { get; set; }
-    }
+internal sealed class ClassificationTypeDefinitions
+{
+    public const string UnnecessaryCode = "unnecessary code";
+
+    [Export]
+    [Name(UnnecessaryCode)]
+    [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+    internal ClassificationTypeDefinition UnnecessaryCodeTypeDefinition { get; set; }
 }

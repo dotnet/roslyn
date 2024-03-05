@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
@@ -75,7 +76,7 @@ internal sealed class LoadedProject : IDisposable
         _projectSystemProject.RemoveFromWorkspace();
     }
 
-    public async ValueTask<(ImmutableArray<CommandLineReference>, OutputKind, bool)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, ILogger logger)
+    public async ValueTask<(ProjectLoadTelemetryReporter.TelemetryInfo, bool NeedsRestore)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, ILogger logger)
     {
         if (_mostRecentFileInfo != null)
         {
@@ -189,7 +190,8 @@ internal sealed class LoadedProject : IDisposable
 
         Contract.ThrowIfNull(_projectSystemProject.CompilationOptions, "Compilation options cannot be null for C#/VB project");
         var outputKind = _projectSystemProject.CompilationOptions.OutputKind;
-        return (metadataReferences, outputKind, needsRestore);
+        var telemetryInfo = new ProjectLoadTelemetryReporter.TelemetryInfo { OutputKind = outputKind, MetadataReferences = metadataReferences };
+        return (telemetryInfo, needsRestore);
 
         // logMessage should be a string with two placeholders; the first is the project name, the second is the number of items.
         void UpdateProjectSystemProjectCollection<T>(IEnumerable<T> loadedCollection, IEnumerable<T>? oldLoadedCollection, IEqualityComparer<T> comparer, Action<T> addItem, Action<T> removeItem, string logMessage)

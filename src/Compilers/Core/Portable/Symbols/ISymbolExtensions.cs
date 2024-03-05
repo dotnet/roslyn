@@ -6,6 +6,8 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
+    using LockTypeInfo = (IMethodSymbol EnterScopeMethod, IMethodSymbol ScopeDisposeMethod);
+
     public static partial class ISymbolExtensions
     {
         /// <summary>
@@ -115,6 +117,84 @@ namespace Microsoft.CodeAnalysis
             }
 
             return false;
+        }
+
+        // Keep consistent with TypeSymbolExtensions.IsWellKnownTypeLock.
+        internal static bool IsWellKnownTypeLock(this ITypeSymbol type)
+        {
+            return type is INamedTypeSymbol
+            {
+                Name: WellKnownMemberNames.LockTypeName,
+                Arity: 0,
+                ContainingType: null,
+                ContainingNamespace:
+                {
+                    Name: nameof(System.Threading),
+                    ContainingNamespace:
+                    {
+                        Name: nameof(System),
+                        ContainingNamespace.IsGlobalNamespace: true,
+                    }
+                }
+            };
+        }
+
+        // Keep consistent with LockBinder.TryFindLockTypeInfo.
+        internal static LockTypeInfo? TryFindLockTypeInfo(this ITypeSymbol lockType)
+        {
+            IMethodSymbol? enterScopeMethod = TryFindPublicVoidParameterlessMethod(lockType, WellKnownMemberNames.EnterScopeMethodName);
+            if (enterScopeMethod is not { ReturnsVoid: false, RefKind: RefKind.None })
+            {
+                return null;
+            }
+
+            ITypeSymbol? scopeType = enterScopeMethod.ReturnType;
+            if (scopeType is not INamedTypeSymbol { Name: WellKnownMemberNames.LockScopeTypeName, Arity: 0, IsValueType: true, IsRefLikeType: true, DeclaredAccessibility: Accessibility.Public } ||
+                !lockType.Equals(scopeType.ContainingType, SymbolEqualityComparer.ConsiderEverything))
+            {
+                return null;
+            }
+
+            IMethodSymbol? disposeMethod = TryFindPublicVoidParameterlessMethod(scopeType, WellKnownMemberNames.DisposeMethodName);
+            if (disposeMethod is not { ReturnsVoid: true })
+            {
+                return null;
+            }
+
+            return new LockTypeInfo
+            {
+                EnterScopeMethod = enterScopeMethod,
+                ScopeDisposeMethod = disposeMethod,
+            };
+        }
+
+        // Keep consistent with LockBinder.TryFindPublicVoidParameterlessMethod.
+        private static IMethodSymbol? TryFindPublicVoidParameterlessMethod(ITypeSymbol type, string name)
+        {
+            var members = type.GetMembers(name);
+            IMethodSymbol? result = null;
+            foreach (var member in members)
+            {
+                if (member is IMethodSymbol
+                    {
+                        Parameters: [],
+                        Arity: 0,
+                        IsStatic: false,
+                        DeclaredAccessibility: Accessibility.Public,
+                        MethodKind: MethodKind.Ordinary,
+                    } method)
+                {
+                    if (result is not null)
+                    {
+                        // Ambiguous method found.
+                        return null;
+                    }
+
+                    result = method;
+                }
+            }
+
+            return result;
         }
     }
 }

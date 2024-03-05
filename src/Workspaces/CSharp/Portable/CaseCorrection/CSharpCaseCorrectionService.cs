@@ -11,26 +11,25 @@ using Microsoft.CodeAnalysis.CaseCorrection;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.CaseCorrection
-{
-    [ExportLanguageService(typeof(ICaseCorrectionService), LanguageNames.CSharp), Shared]
-    internal class CSharpCaseCorrectionService : AbstractCaseCorrectionService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCaseCorrectionService()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.CaseCorrection;
 
-        protected override void AddReplacements(
-            SemanticModel? semanticModel,
-            SyntaxNode root,
-            ImmutableArray<TextSpan> spans,
-            ConcurrentDictionary<SyntaxToken, SyntaxToken> replacements,
-            CancellationToken cancellationToken)
-        {
-            // C# doesn't support case correction since we are a case sensitive language.
-            return;
-        }
+[ExportLanguageService(typeof(ICaseCorrectionService), LanguageNames.CSharp), Shared]
+internal class CSharpCaseCorrectionService : AbstractCaseCorrectionService
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpCaseCorrectionService()
+    {
+    }
+
+    protected override void AddReplacements(
+        SemanticModel? semanticModel,
+        SyntaxNode root,
+        ImmutableArray<TextSpan> spans,
+        ConcurrentDictionary<SyntaxToken, SyntaxToken> replacements,
+        CancellationToken cancellationToken)
+    {
+        // C# doesn't support case correction since we are a case sensitive language.
+        return;
     }
 }

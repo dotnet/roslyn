@@ -9,29 +9,28 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library;
+
+internal abstract partial class AbstractLibraryManager : IVsCoTaskMemFreeMyStrings
 {
-    internal abstract partial class AbstractLibraryManager : IVsCoTaskMemFreeMyStrings
+    internal readonly Guid LibraryGuid;
+    private readonly IntPtr _imageListPtr;
+
+    protected AbstractLibraryManager(Guid libraryGuid, IComponentModel componentModel, IServiceProvider serviceProvider)
     {
-        internal readonly Guid LibraryGuid;
-        private readonly IntPtr _imageListPtr;
+        LibraryGuid = libraryGuid;
+        ComponentModel = componentModel;
+        ServiceProvider = serviceProvider;
 
-        protected AbstractLibraryManager(Guid libraryGuid, IComponentModel componentModel, IServiceProvider serviceProvider)
-        {
-            LibraryGuid = libraryGuid;
-            ComponentModel = componentModel;
-            ServiceProvider = serviceProvider;
+        var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
+        vsShell?.TryGetPropertyValue(__VSSPROPID.VSSPROPID_ObjectMgrTypesImgList, out _imageListPtr);
+    }
 
-            var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
-            vsShell?.TryGetPropertyValue(__VSSPROPID.VSSPROPID_ObjectMgrTypesImgList, out _imageListPtr);
-        }
+    public IComponentModel ComponentModel { get; }
+    public IServiceProvider ServiceProvider { get; }
 
-        public IComponentModel ComponentModel { get; }
-        public IServiceProvider ServiceProvider { get; }
-
-        public IntPtr ImageListPtr
-        {
-            get { return _imageListPtr; }
-        }
+    public IntPtr ImageListPtr
+    {
+        get { return _imageListPtr; }
     }
 }

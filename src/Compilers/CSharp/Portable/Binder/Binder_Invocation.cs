@@ -1363,7 +1363,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             bool enableCallerInfo,
             BindingDiagnosticBag diagnostics,
-            bool assertMissingParametersAreOptional = true,
             Symbol? attributedMember = null)
         {
             int firstParamArrayArgument = -1;
@@ -1499,7 +1498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!visitedParameters[parameter.Ordinal])
                     {
-                        Debug.Assert(parameter.IsOptional || !assertMissingParametersAreOptional);
+                        Debug.Assert(parameter.IsOptional);
 
                         defaultArguments[argumentsBuilder.Count] = true;
                         argumentsBuilder.Add(bindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics, argumentsBuilder, argumentsCount, argsToParamsOpt));

@@ -9,19 +9,18 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
+
+[Export(typeof(ITableControlEventProcessorProvider))]
+[DataSourceType(StandardTableDataSources.CommentTableDataSource)]
+[DataSource(VisualStudioTaskListTable.IdentifierString)]
+[Name("Task List Table Control Event Processor")]
+[Order(Before = "default")]
+internal sealed class TaskListTableControlEventProcessorProvider : AbstractTableControlEventProcessorProvider<TaskListTableItem>
 {
-    [Export(typeof(ITableControlEventProcessorProvider))]
-    [DataSourceType(StandardTableDataSources.CommentTableDataSource)]
-    [DataSource(VisualStudioTaskListTable.IdentifierString)]
-    [Name("Task List Table Control Event Processor")]
-    [Order(Before = "default")]
-    internal sealed class TaskListTableControlEventProcessorProvider : AbstractTableControlEventProcessorProvider<TaskListTableItem>
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public TaskListTableControlEventProcessorProvider()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TaskListTableControlEventProcessorProvider()
-        {
-        }
     }
 }

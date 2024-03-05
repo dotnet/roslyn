@@ -154,8 +154,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly ConcurrentCache<TypeSymbol, NamedTypeSymbol> _typeToNullableVersion = new ConcurrentCache<TypeSymbol, NamedTypeSymbol>(size: 100);
 
-        /// <summary>Lazily caches SyntaxTrees by their mapped path. Used to look up the syntax tree referenced by an interceptor. <see cref="TryGetInterceptor"/></summary>
+        /// <summary>Lazily caches SyntaxTrees by their mapped path. Used to look up the syntax tree referenced by an interceptor (temporary compat behavior).</summary>
+        /// <remarks>Must be removed prior to interceptors stable release.</remarks>
         private ImmutableSegmentedDictionary<string, OneOrMany<SyntaxTree>> _mappedPathToSyntaxTree;
+
+        /// <summary>Lazily caches SyntaxTrees by their path. Used to look up the syntax tree referenced by an interceptor.</summary>
+        private ImmutableSegmentedDictionary<string, OneOrMany<SyntaxTree>> _pathToSyntaxTree;
 
         public override string Language
         {
@@ -1042,6 +1046,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal OneOrMany<SyntaxTree> GetSyntaxTreesByMappedPath(string mappedPath)
         {
+            // This method supports a "compat" behavior for interceptor file path resolution.
+            // It must be removed prior to stable release.
+
             // We could consider storing this on SyntaxAndDeclarationManager instead, and updating it incrementally.
             // However, this would make it more difficult for it to be "pay-for-play",
             // i.e. only created in compilations where interceptors are used.
@@ -1061,6 +1068,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var tree in SyntaxTrees)
                 {
                     var path = resolver?.NormalizePath(tree.FilePath, baseFilePath: null) ?? tree.FilePath;
+                    builder[path] = builder.ContainsKey(path) ? builder[path].Add(tree) : OneOrMany.Create(tree);
+                }
+                return builder.ToImmutable();
+            }
+        }
+
+        internal OneOrMany<SyntaxTree> GetSyntaxTreesByPath(string path)
+        {
+            // We could consider storing this on SyntaxAndDeclarationManager instead, and updating it incrementally.
+            // However, this would make it more difficult for it to be "pay-for-play",
+            // i.e. only created in compilations where interceptors are used.
+            var pathToSyntaxTree = _pathToSyntaxTree;
+            if (pathToSyntaxTree.IsDefault)
+            {
+                RoslynImmutableInterlocked.InterlockedInitialize(ref _pathToSyntaxTree, computePathToSyntaxTree());
+                pathToSyntaxTree = _pathToSyntaxTree;
+            }
+
+            return pathToSyntaxTree.TryGetValue(path, out var value) ? value : OneOrMany<SyntaxTree>.Empty;
+
+            ImmutableSegmentedDictionary<string, OneOrMany<SyntaxTree>> computePathToSyntaxTree()
+            {
+                var builder = ImmutableSegmentedDictionary.CreateBuilder<string, OneOrMany<SyntaxTree>>();
+                foreach (var tree in SyntaxTrees)
+                {
+                    var path = FileUtilities.GetNormalizedPathOrOriginalPath(tree.FilePath, basePath: null);
                     builder[path] = builder.ContainsKey(path) ? builder[path].Add(tree) : OneOrMany.Create(tree);
                 }
                 return builder.ToImmutable();
@@ -2400,10 +2433,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Binding
 
+        public new SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility)
+#pragma warning disable RSEXPERIMENTAL001 // Internal usage of experimental API
+            => GetSemanticModel(syntaxTree, ignoreAccessibility ? SemanticModelOptions.IgnoreAccessibility : SemanticModelOptions.None);
+#pragma warning restore RSEXPERIMENTAL001
+
         /// <summary>
         /// Gets a new SyntaxTreeSemanticModel for the specified syntax tree.
         /// </summary>
-        public new SemanticModel GetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility)
+        [Experimental(RoslynExperiments.NullableDisabledSemanticModel, UrlFormat = RoslynExperiments.NullableDisabledSemanticModel_Url)]
+        public new SemanticModel GetSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options)
         {
             if (syntaxTree == null)
             {
@@ -2418,15 +2457,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             SemanticModel? model = null;
             if (SemanticModelProvider != null)
             {
-                model = SemanticModelProvider.GetSemanticModel(syntaxTree, this, ignoreAccessibility);
+                model = SemanticModelProvider.GetSemanticModel(syntaxTree, this, options);
                 Debug.Assert(model != null);
             }
 
-            return model ?? CreateSemanticModel(syntaxTree, ignoreAccessibility);
+            return model ?? CreateSemanticModel(syntaxTree, options);
         }
 
-        internal override SemanticModel CreateSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility)
-            => new SyntaxTreeSemanticModel(this, syntaxTree, ignoreAccessibility);
+#pragma warning disable RSEXPERIMENTAL001 // Internal usage of experimental API
+        internal override SemanticModel CreateSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options)
+            => new SyntaxTreeSemanticModel(this, syntaxTree, options);
+#pragma warning restore RSEXPERIMENTAL001
 
         // When building symbols from the declaration table (lazily), or inside a type, or when
         // compiling a method body, we may not have a BinderContext in hand for the enclosing
@@ -3829,9 +3870,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _options; }
         }
 
-        protected override SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility)
+        [Experimental(RoslynExperiments.NullableDisabledSemanticModel)]
+        protected override SemanticModel CommonGetSemanticModel(SyntaxTree syntaxTree, SemanticModelOptions options)
         {
-            return this.GetSemanticModel(syntaxTree, ignoreAccessibility);
+            return this.GetSemanticModel(syntaxTree, options);
         }
 
         protected internal override ImmutableArray<SyntaxTree> CommonSyntaxTrees
