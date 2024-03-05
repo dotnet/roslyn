@@ -114,7 +114,7 @@ internal partial class SolutionCompilationState
         /// the version is different, then the clone will attempt to make a new skeleton reference for that version.  If it
         /// succeeds, it will use that.  If it fails however, it can still use our skeletons.
         /// </summary>
-        public SkeletonReferenceCache Clone()
+        public readonly SkeletonReferenceCache Clone()
         {
             lock (_stateGate)
             {
@@ -126,7 +126,7 @@ internal partial class SolutionCompilationState
             }
         }
 
-        public MetadataReference? TryGetAlreadyBuiltMetadataReference(MetadataReferenceProperties properties)
+        public readonly MetadataReference? TryGetAlreadyBuiltMetadataReference(MetadataReferenceProperties properties)
             => _skeletonReferenceSet?.GetOrCreateMetadataReference(properties);
 
         public async Task<MetadataReference?> GetOrBuildReferenceAsync(
@@ -214,7 +214,7 @@ internal partial class SolutionCompilationState
                 new DeferredDocumentationProvider(compilation));
         }
 
-        private bool TryReadSkeletonReferenceSetAtThisVersion(VersionStamp version, out SkeletonReferenceSet? result)
+        private readonly bool TryReadSkeletonReferenceSetAtThisVersion(VersionStamp version, out SkeletonReferenceSet? result)
         {
             lock (_stateGate)
             {
