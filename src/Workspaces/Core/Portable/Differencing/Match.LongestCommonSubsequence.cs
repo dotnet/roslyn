@@ -7,43 +7,42 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Differencing
+namespace Microsoft.CodeAnalysis.Differencing;
+
+public partial class Match<TNode>
 {
-    public partial class Match<TNode>
+    internal sealed class LongestCommonSubsequence : LongestCommonSubsequence<IReadOnlyList<TNode>>
     {
-        internal sealed class LongestCommonSubsequence : LongestCommonSubsequence<IReadOnlyList<TNode>>
+        private readonly Match<TNode> _match;
+
+        internal LongestCommonSubsequence(Match<TNode> match)
         {
-            private readonly Match<TNode> _match;
+            Debug.Assert(match != null);
+            _match = match;
+        }
 
-            internal LongestCommonSubsequence(Match<TNode> match)
+        protected override bool ItemsEqual(IReadOnlyList<TNode> oldSequence, int oldIndex, IReadOnlyList<TNode> newSequence, int newIndex)
+            => _match.Contains(oldSequence[oldIndex], newSequence[newIndex]);
+
+        internal Dictionary<TNode, TNode> GetMatchingNodes(IReadOnlyList<TNode> oldNodes, IReadOnlyList<TNode> newNodes)
+        {
+            var result = new Dictionary<TNode, TNode>();
+
+            foreach (var pair in GetMatchingPairs(oldNodes, oldNodes.Count, newNodes, newNodes.Count))
             {
-                Debug.Assert(match != null);
-                _match = match;
+                result.Add(oldNodes[pair.Key], newNodes[pair.Value]);
             }
 
-            protected override bool ItemsEqual(IReadOnlyList<TNode> oldSequence, int oldIndex, IReadOnlyList<TNode> newSequence, int newIndex)
-                => _match.Contains(oldSequence[oldIndex], newSequence[newIndex]);
+            return result;
+        }
 
-            internal Dictionary<TNode, TNode> GetMatchingNodes(IReadOnlyList<TNode> oldNodes, IReadOnlyList<TNode> newNodes)
+        internal IEnumerable<Edit<TNode>> GetEdits(IReadOnlyList<TNode> oldNodes, IReadOnlyList<TNode> newNodes)
+        {
+            foreach (var edit in GetEdits(oldNodes, oldNodes.Count, newNodes, newNodes.Count))
             {
-                var result = new Dictionary<TNode, TNode>();
-
-                foreach (var pair in GetMatchingPairs(oldNodes, oldNodes.Count, newNodes, newNodes.Count))
-                {
-                    result.Add(oldNodes[pair.Key], newNodes[pair.Value]);
-                }
-
-                return result;
-            }
-
-            internal IEnumerable<Edit<TNode>> GetEdits(IReadOnlyList<TNode> oldNodes, IReadOnlyList<TNode> newNodes)
-            {
-                foreach (var edit in GetEdits(oldNodes, oldNodes.Count, newNodes, newNodes.Count))
-                {
-                    yield return new Edit<TNode>(edit.Kind, _match.Comparer,
-                        edit.OldIndex >= 0 ? oldNodes[edit.OldIndex] : default,
-                        edit.NewIndex >= 0 ? newNodes[edit.NewIndex] : default);
-                }
+                yield return new Edit<TNode>(edit.Kind, _match.Comparer,
+                    edit.OldIndex >= 0 ? oldNodes[edit.OldIndex] : default,
+                    edit.NewIndex >= 0 ? newNodes[edit.NewIndex] : default);
             }
         }
     }

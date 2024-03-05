@@ -1,8 +1,8 @@
 # Make a bootstrap compiler and install it into artifacts/bootstrap folder
 
-[CmdletBinding(PositionalBinding=$false)]
+[CmdletBinding(PositionalBinding=$true)]
 param (
-  [string]$name = "local",
+  [string]$output = "",
   [string]$toolset = "Default",
   [string]$configuration = "Release",
   [switch]$force = $false,
@@ -15,14 +15,18 @@ $ErrorActionPreference="Stop"
 try {
 
   . (Join-Path $PSScriptRoot "build-utils.ps1")
+  $prepareMachine = $ci
 
-  $bootstrapDir = Join-Path $ArtifactsDir "bootstrap" $name
-  Write-Host "Building bootstrap compiler into $bootstrapDir"
+  if ($output -eq "") {
+    $output = Join-Path $ArtifactsDir "bootstrap" "local"
+  }
 
-  if (Test-Path $bootstrapDir) {
+  Write-Host "Building bootstrap compiler into $output"
+
+  if (Test-Path $output) {
     if ($force) {
       Write-Host "Removing existing bootstrap compiler"
-      Remove-Item -Recurse -Force $bootstrapDir
+      Remove-Item -Recurse -Force $output
     }
     else {
       Write-Host "Bootstrap compiler already exists. Use -force to rebuild"
@@ -42,6 +46,7 @@ try {
     throw "Unsupported bootstrap toolset $toolset"
   }
 
+  $name = Split-Path -Leaf $output
   $binaryLogFilePath = Join-Path $LogDir "bootstrap-$($name).binlog"
 
   # Because we override the C#/VB toolset to build against our LKG package, it is important
@@ -51,7 +56,7 @@ try {
   $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /nodeReuse:false /p:Configuration=$configuration /v:m";
   $args += " /p:RunAnalyzersDuringBuild=false /bl:$binaryLogFilePath"
   $args += " /t:Pack /p:RoslynEnforceCodeStyle=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP"
-  $args += " /p:PackageOutputPath=$bootstrapDir /p:NgenOptimization=false /p:PublishWindowsPdb=false"
+  $args += " /p:PackageOutputPath=$output /p:NgenOptimization=false /p:PublishWindowsPdb=false"
 
   if ($ci) {
     $args += " /p:ContinuousIntegrationBuild=true"
@@ -59,21 +64,21 @@ try {
 
   Exec-DotNet "build $args $projectPath"
 
-  $packageFilePath = Get-ChildItem -Path $bootstrapDir -Filter "$packageName.*.nupkg"
+  $packageFilePath = Get-ChildItem -Path $output -Filter "$packageName.*.nupkg"
   Write-Host "Found package $packageFilePath"
-  Unzip $packageFilePath.FullName $bootstrapDir
+  Unzip $packageFilePath.FullName $output
 
   Write-Host "Cleaning up artifacts"
   Exec-DotNet "build --no-restore /t:Clean $projectPath"
   Exec-DotNet "build-server shutdown"
 
-  exit 0
+  ExitWithExitCode 0
 }
 catch {
   Write-Host $_
   Write-Host $_.Exception
   Write-Host $_.ScriptStackTrace
-  exit 1
+  ExitWithExitCode 1
 }
 finally {
   Pop-Location

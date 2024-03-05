@@ -7,10 +7,9 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal interface IDiagnosticPropertiesService : ILanguageService
 {
-    internal interface IDiagnosticPropertiesService : ILanguageService
-    {
-        ImmutableDictionary<string, string> GetAdditionalProperties(Diagnostic diagnostic);
-    }
+    ImmutableDictionary<string, string> GetAdditionalProperties(Diagnostic diagnostic);
 }
