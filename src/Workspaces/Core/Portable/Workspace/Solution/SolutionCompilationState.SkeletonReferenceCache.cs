@@ -56,6 +56,11 @@ internal partial class SolutionCompilationState
     /// memory.
     /// </para>
     /// </summary>
+    /// <remarks>
+    /// Note: this is a mutable struct that updates itself in place atomically.  As such, it should never be copied by
+    /// consumers (hence the <see cref="NonCopyableAttribute"/> restriction).  Consumers wanting to make a copy should
+    /// only do so by calling <see cref="Clone"/>.
+    /// </remarks>
     [NonCopyable]
     private struct SkeletonReferenceCache
     {
