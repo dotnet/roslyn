@@ -685,14 +685,13 @@ namespace Microsoft.CodeAnalysis
             {
                 var state = this.ReadState();
 
-                var clonedSkeletonReferenceCache = _skeletonReferenceCache.Clone();
                 if (state is FinalCompilationTrackerState finalState)
                 {
                     // If we're finalized and already frozen, we can just use ourselves. Otherwise, flip the frozen bit
                     // so that any future forks keep things frozen.
                     return finalState.IsFrozen
                         ? this
-                        : new CompilationTracker(this.ProjectState, finalState.WithIsFrozen(), clonedSkeletonReferenceCache);
+                        : new CompilationTracker(this.ProjectState, finalState.WithIsFrozen(), _skeletonReferenceCache.Clone());
                 }
 
                 // Non-final state currently.  Produce an in-progress-state containing the forked change. Note: we
@@ -746,7 +745,7 @@ namespace Microsoft.CodeAnalysis
                             CompilationTrackerGeneratorInfo.Empty,
                             lazyCompilationWithGeneratedDocuments,
                             pendingTranslationActions: []),
-                        clonedSkeletonReferenceCache);
+                        _skeletonReferenceCache.Clone());
                 }
                 else if (state is InProgressState inProgressState)
                 {
@@ -772,7 +771,7 @@ namespace Microsoft.CodeAnalysis
                             generatorInfo,
                             compilationWithGeneratedDocuments,
                             pendingTranslationActions: []),
-                        clonedSkeletonReferenceCache);
+                        _skeletonReferenceCache.Clone());
                 }
                 else
                 {
