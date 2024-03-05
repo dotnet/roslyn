@@ -58,16 +58,14 @@ namespace Microsoft.CodeAnalysis
             private CompilationTracker(
                 ProjectState project,
                 CompilationTrackerState? state,
-                SkeletonReferenceCache skeletonReferences)
+                in SkeletonReferenceCache skeletonReferenceCacheToClone)
             {
                 Contract.ThrowIfNull(project);
 
                 this.ProjectState = project;
                 _stateDoNotAccessDirectly = state;
 
-#pragma warning disable RS0042 // Do not copy value.  This is acceptable as we're just initializing the field, and consumers will only see the fully initialized value.
-                _skeletonReferenceCache = skeletonReferences;
-#pragma warning restore RS0042 // Do not copy value
+                _skeletonReferenceCache = skeletonReferenceCacheToClone.Clone();
 
                 _validateStates = project.LanguageServices.SolutionServices.GetRequiredService<IWorkspaceConfigurationService>().Options.ValidateCompilationTrackerStates;
 
@@ -79,7 +77,7 @@ namespace Microsoft.CodeAnalysis
             /// and will have no extra information beyond the project itself.
             /// </summary>
             public CompilationTracker(ProjectState project)
-                : this(project, state: null, skeletonReferences: new())
+                : this(project, state: null, skeletonReferenceCacheToClone: new())
             {
             }
 
@@ -137,7 +135,7 @@ namespace Microsoft.CodeAnalysis
                 return new CompilationTracker(
                     newProjectState,
                     forkedTrackerState,
-                    _skeletonReferenceCache.Clone());
+                    skeletonReferenceCacheToClone: _skeletonReferenceCache);
 
                 CompilationTrackerState? ForkTrackerState()
                 {
@@ -694,7 +692,7 @@ namespace Microsoft.CodeAnalysis
                     // so that any future forks keep things frozen.
                     return finalState.IsFrozen
                         ? this
-                        : new CompilationTracker(this.ProjectState, finalState.WithIsFrozen(), _skeletonReferenceCache.Clone());
+                        : new CompilationTracker(this.ProjectState, finalState.WithIsFrozen(), skeletonReferenceCacheToClone: _skeletonReferenceCache);
                 }
 
                 // Non-final state currently.  Produce an in-progress-state containing the forked change. Note: we
@@ -748,7 +746,7 @@ namespace Microsoft.CodeAnalysis
                             CompilationTrackerGeneratorInfo.Empty,
                             lazyCompilationWithGeneratedDocuments,
                             pendingTranslationActions: []),
-                        _skeletonReferenceCache.Clone());
+                        skeletonReferenceCacheToClone: _skeletonReferenceCache);
                 }
                 else if (state is InProgressState inProgressState)
                 {
@@ -774,7 +772,7 @@ namespace Microsoft.CodeAnalysis
                             generatorInfo,
                             compilationWithGeneratedDocuments,
                             pendingTranslationActions: []),
-                        _skeletonReferenceCache.Clone());
+                        skeletonReferenceCacheToClone: _skeletonReferenceCache);
                 }
                 else
                 {
