@@ -63,8 +63,6 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
     protected abstract ImmutableArray<IOption2> Options { get; }
     protected virtual ImmutableArray<IOption2> FeatureOptions { get; } = [];
 
-    protected abstract bool IsEnabled { get; }
-
     protected abstract bool IncludeDiagnostic(DiagnosticData data);
 
     protected abstract bool TagEquals(TTag tag1, TTag tag2);

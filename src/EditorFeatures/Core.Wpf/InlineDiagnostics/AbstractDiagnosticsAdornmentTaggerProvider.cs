@@ -29,8 +29,6 @@ internal abstract partial class AbstractDiagnosticsAdornmentTaggerProvider<TTag>
 
     protected abstract TTag? CreateTag(Workspace workspace, DiagnosticData diagnostic);
 
-    protected sealed override bool IsEnabled => true;
-
     protected sealed override ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data)
     {
         var errorTag = CreateTag(workspace, data);
