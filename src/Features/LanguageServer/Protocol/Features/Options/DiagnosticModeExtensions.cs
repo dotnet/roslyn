@@ -20,10 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 : diagnosticModeOption;
         }
 
-        public static bool IsLspPullDiagnostics(this IGlobalOptionService globalOptions, Option2<DiagnosticMode>? option = null)
-            => GetDiagnosticMode(globalOptions, option) == DiagnosticMode.LspPull;
-
-        public static bool IsSolutionCrawlerPushDiagnostics(this IGlobalOptionService globalOptions, Option2<DiagnosticMode>? option = null)
-            => GetDiagnosticMode(globalOptions, option) == DiagnosticMode.SolutionCrawlerPush;
+        public static bool IsLspPullDiagnostics(this IGlobalOptionService globalOptions)
+            => GetDiagnosticMode(globalOptions) == DiagnosticMode.LspPull;
     }
 }
