@@ -1867,7 +1867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (destination is AnonymousTypeManager.AnonymousDelegatePublicSymbol { CheckParamsCollectionsFeatureAvailability: true })
             {
-                MessageID.IDS_ParamsCollections.CheckFeatureAvailability(diagnostics, syntax);
+                MessageID.IDS_FeatureParamsCollections.CheckFeatureAvailability(diagnostics, syntax);
             }
 
             Debug.Assert(conversion.UnderlyingConversions.IsDefault);

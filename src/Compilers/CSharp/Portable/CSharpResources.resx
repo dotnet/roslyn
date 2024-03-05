@@ -7857,7 +7857,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_LockObject" xml:space="preserve">
     <value>Lock object</value>
   </data>
-  <data name="IDS_ParamsCollections" xml:space="preserve">
+  <data name="IDS_FeatureParamsCollections" xml:space="preserve">
     <value>params collections</value>
   </data>
   <data name="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections" xml:space="preserve">

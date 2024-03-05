@@ -2292,6 +2292,11 @@
         <target state="translated">매개 변수 없는 구조체 생성자</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureParamsCollections">
+        <source>params collections</source>
+        <target state="new">params collections</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
         <target state="translated">레코드의 위치 필드</target>
@@ -2390,11 +2395,6 @@
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;missing&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_ParamsCollections">
-        <source>params collections</source>
-        <target state="new">params collections</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">

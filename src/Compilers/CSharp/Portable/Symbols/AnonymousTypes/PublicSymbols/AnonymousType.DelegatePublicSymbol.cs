@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             /// <summary>
             /// This member does not participate in equality because it is not reflecting any semantic aspect of the symbol.
-            /// It is only used to determine if we need to check for <see cref="MessageID.IDS_ParamsCollections"/>
+            /// It is only used to determine if we need to check for <see cref="MessageID.IDS_FeatureParamsCollections"/>
             /// feature availability, which happens if this field is set to 'true'. 
             /// If in the process of merging equivalent types, the one with 'false' wins over the one with 'true',
             /// that is fine, because that means that the feature availability check is performed on a
