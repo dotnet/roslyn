@@ -12,7 +12,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
@@ -51,12 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         private readonly CSharpCompilationOptions _options;
-        private UsingsFromOptionsAndDiagnostics? _usingsFromOptions;
-        private ImmutableArray<NamespaceOrTypeAndUsingDirective> _globalImports;
-        private Imports? _previousSubmissionImports;
-        private AliasSymbol? _globalNamespaceAlias;  // alias symbol used to resolve "global::".
+        private UsingsFromOptionsAndDiagnostics? _lazyUsingsFromOptions;
+        private ImmutableArray<NamespaceOrTypeAndUsingDirective> _lazyGlobalImports;
+        private Imports? _lazyPreviousSubmissionImports;
+        private AliasSymbol? _lazyGlobalNamespaceAlias;  // alias symbol used to resolve "global::".
 
-        private StrongBox<NamedTypeSymbol?>? _scriptClass;
+        private NamedTypeSymbol? _lazyScriptClass;
 
         // The type of host object model if available.
         private TypeSymbol? _lazyHostObjectTypeSymbol;
@@ -79,7 +78,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A conversions object that ignores nullability.
         /// </summary>
         internal Conversions Conversions
-            => InterlockedOperations.Initialize(ref _conversions, static self => new BuckStopsHereBinder(self, associatedFileIdentifier: null).Conversions, this);
+        {
+            get
+            {
+                if (_conversions == null)
+                {
+                    Interlocked.CompareExchange(ref _conversions, new BuckStopsHereBinder(this, associatedFileIdentifier: null).Conversions, null);
+                }
+
+                return _conversions;
+            }
+        }
 
         /// <summary>
         /// Manages anonymous types declared in this compilation. Unifies types that are structurally equivalent.
@@ -181,10 +190,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal BuiltInOperators BuiltInOperators
-            => InterlockedOperations.Initialize(ref _builtInOperators, static self => new BuiltInOperators(self), this);
+        {
+            get
+            {
+                return InterlockedOperations.Initialize(ref _builtInOperators, static self => new BuiltInOperators(self), this);
+            }
+        }
 
         internal AnonymousTypeManager AnonymousTypeManager
-            => InterlockedOperations.Initialize(ref _anonymousTypeManager, static self => new AnonymousTypeManager(self), this);
+        {
+            get
+            {
+                return InterlockedOperations.Initialize(ref _anonymousTypeManager, static self => new AnonymousTypeManager(self), this);
+            }
+        }
 
         internal override CommonAnonymousTypeManager CommonAnonymousTypeManager
         {
@@ -460,6 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(assemblyName, references, features, isSubmission, semanticModelProvider, eventQueue)
         {
             _options = options;
+            _lazyScriptClass = ErrorTypeSymbol.UnknownResultType;
 
             this.LanguageVersion = CommonLanguageVersion(syntaxAndDeclarations.ExternalSyntaxTrees);
 
@@ -1484,7 +1504,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// defined in the compilation.
         /// </summary>
         internal new NamedTypeSymbol? ScriptClass
-            => InterlockedOperations.Initialize(ref _scriptClass, static self => self.BindScriptClass(), this);
+        {
+            get
+            {
+                if (ReferenceEquals(_lazyScriptClass, ErrorTypeSymbol.UnknownResultType))
+                {
+                    Interlocked.CompareExchange(ref _lazyScriptClass, BindScriptClass()!, ErrorTypeSymbol.UnknownResultType);
+                }
+
+                return _lazyScriptClass;
+            }
+        }
 
         /// <summary>
         /// Resolves a symbol that represents script container (Script class). Uses the
@@ -1507,7 +1537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Global imports (including those from previous submissions, if there are any).
         /// </summary>
         internal ImmutableArray<NamespaceOrTypeAndUsingDirective> GlobalImports
-            => InterlockedOperations.Initialize(ref _globalImports, static self => self.BindGlobalImports(), arg: this);
+            => InterlockedOperations.Initialize(ref _lazyGlobalImports, static self => self.BindGlobalImports(), arg: this);
 
         private ImmutableArray<NamespaceOrTypeAndUsingDirective> BindGlobalImports()
         {
@@ -1547,7 +1577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Global imports not including those from previous submissions.
         /// </summary>
         private UsingsFromOptionsAndDiagnostics UsingsFromOptions
-            => InterlockedOperations.Initialize(ref _usingsFromOptions, static self => self.BindUsingsFromOptions(), this);
+            => InterlockedOperations.Initialize(ref _lazyUsingsFromOptions, static self => self.BindUsingsFromOptions(), this);
 
         private UsingsFromOptionsAndDiagnostics BindUsingsFromOptions() => UsingsFromOptionsAndDiagnostics.FromOptions(this);
 
@@ -1573,7 +1603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Imports from all previous submissions.
         /// </summary>
         internal Imports GetPreviousSubmissionImports()
-            => InterlockedOperations.Initialize(ref _previousSubmissionImports, static self => self.ExpandPreviousSubmissionImports(), this);
+            => InterlockedOperations.Initialize(ref _lazyPreviousSubmissionImports, static self => self.ExpandPreviousSubmissionImports(), this);
 
         private Imports ExpandPreviousSubmissionImports()
         {
@@ -1590,7 +1620,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal AliasSymbol GlobalNamespaceAlias
-            => InterlockedOperations.Initialize(ref _globalNamespaceAlias, static self => self.CreateGlobalNamespaceAlias(), this);
+        {
+            get
+            {
+                return InterlockedOperations.Initialize(ref _lazyGlobalNamespaceAlias, static self => self.CreateGlobalNamespaceAlias(), this);
+            }
+        }
 
         /// <summary>
         /// Get the symbol for the predefined type from the COR Library referenced by this compilation.
@@ -1618,7 +1653,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private ConcurrentCache<TypeSymbol, NamedTypeSymbol> TypeToNullableVersion
-            => InterlockedOperations.Initialize(ref _typeToNullableVersion, static () => new ConcurrentCache<TypeSymbol, NamedTypeSymbol>(size: 100));
+        {
+            get
+            {
+                return InterlockedOperations.Initialize(ref _typeToNullableVersion, static () => new ConcurrentCache<TypeSymbol, NamedTypeSymbol>(size: 100));
+            }
+        }
 
         /// <summary>
         /// Given a provided <paramref name="typeArgument"/>, gives back <see cref="Nullable{T}"/> constructed with that
