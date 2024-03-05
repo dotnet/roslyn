@@ -223,8 +223,15 @@ namespace Microsoft.CodeAnalysis
         // new item will displace previous one at the same location.
         protected readonly int mask;
 
+        // See docs for createBackingArray on the constructor for why using the non-threadsafe ??= is ok here.
         protected TEntry[] Entries => _entries ??= new TEntry[_alignedSize];
 
+        /// <param name="createBackingArray">Whether or not the backing array should be created immediately, or should
+        /// be deferred until the first time that <see cref="Entries"/> is used.  Note: if <paramref
+        /// name="createBackingArray"/> is <see langword="false"/> then the array will be created in a non-threadsafe
+        /// fashion (effectively different threads might observe a small window of time when different arrays could be
+        /// returned.  Derived types should only pass <see langword="false"/> here if that behavior is acceptable for
+        /// their use case.</param>
         internal CachingBase(int size, bool createBackingArray = true)
         {
             _alignedSize = AlignSize(size);
