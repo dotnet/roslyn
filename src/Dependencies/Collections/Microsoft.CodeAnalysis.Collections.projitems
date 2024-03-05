@@ -53,6 +53,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RoslynEnumerable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynImmutableInterlocked.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedArray.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SegmentedArray`1+PrivateMarshal.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedCollectionsMarshal.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedDictionary`2+PrivateMarshal.cs" />

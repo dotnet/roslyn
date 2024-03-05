@@ -13,6 +13,16 @@ namespace Microsoft.CodeAnalysis.Collections;
 internal static class SegmentedCollectionsMarshal
 {
     /// <summary>
+    /// Gets the backing storage array for a <see cref="SegmentedArray{T}"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of elements stored in the array.</typeparam>
+    /// <param name="array">The segmented array.</param>
+    /// <returns>The backing storage array for the segmented array. Note that replacing segments within the returned
+    /// value will invalidate the <see cref="SegmentedArray{T}"/> data structure.</returns>
+    public static T[][] AsSegments<T>(SegmentedArray<T> array)
+        => SegmentedArray<T>.PrivateMarshal.AsSegments(array);
+
+    /// <summary>
     /// Gets either a ref to a <typeparamref name="TValue"/> in the <see cref="SegmentedDictionary{TKey, TValue}"/> or a
     /// ref null if it does not exist in the <paramref name="dictionary"/>.
     /// </summary>
