@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
 
         private async Task VerifyNet80CSharpAdditionalFileFixAsync(string source, string? shippedApiText, string? oldUnshippedApiText, string newUnshippedApiText)
         {
-            await VerifyAdditionalFileFixAsync(LanguageNames.CSharp, source, shippedApiText, oldUnshippedApiText, newUnshippedApiText, AdditionalMetadataReferences.Net80);
+            await VerifyAdditionalFileFixAsync(LanguageNames.CSharp, source, shippedApiText, oldUnshippedApiText, newUnshippedApiText, ReferenceAssemblies.Net.Net80);
         }
 
         private async Task VerifyAdditionalFileFixAsync(string language, string source, string? shippedApiText, string? oldUnshippedApiText, string newUnshippedApiText,
@@ -3269,7 +3269,7 @@ C.C() -> void";
 
             var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>()
             {
-                ReferenceAssemblies = AdditionalMetadataReferences.Net80,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
                 CompilerDiagnostics = CompilerDiagnostics.None,
                 TestState =
                 {
