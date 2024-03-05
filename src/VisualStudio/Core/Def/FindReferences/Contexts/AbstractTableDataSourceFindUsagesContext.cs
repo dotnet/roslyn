@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -489,7 +490,7 @@ internal partial class StreamingFindUsagesPresenter
             }
         }
 
-        public sealed override ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
+        public sealed override ValueTask ReportNoResultsAsync(string message, CancellationToken cancellationToken)
         {
             lock (Gate)
             {
@@ -499,9 +500,9 @@ internal partial class StreamingFindUsagesPresenter
             return ValueTaskFactory.CompletedTask;
         }
 
-        public sealed override async ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
+        public sealed override async ValueTask ReportMessageAsync(string message, NotificationSeverity severity, CancellationToken cancellationToken)
         {
-            await this.Presenter.ReportInformationalMessageAsync(message, cancellationToken).ConfigureAwait(false);
+            await this.Presenter.ReportMessageAsync(message, severity, cancellationToken).ConfigureAwait(false);
         }
 
         protected sealed override ValueTask ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken)
