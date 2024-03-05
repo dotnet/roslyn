@@ -7,8 +7,8 @@
     The purpose of this project is to include all dependecies of Microsoft.CodeAnalysis.Remote.ServiceHub and C# and VB features layer targeting .Net Core.
     -->
     <IsShipping>false</IsShipping>
-
-    <GenerateReadyToRun Condition="'$(GenerateReadyToRun)' == '' and '$(Configuration)' == 'Release' and '$(OfficialBuild)' == 'true'">true</GenerateReadyToRun>
+    <GenerateReadyToRun>false</GenerateReadyToRun>
+    <!-- <GenerateReadyToRun Condition="'$(GenerateReadyToRun)' == '' and '$(Configuration)' == 'Release' and '$(OfficialBuild)' == 'true'">true</GenerateReadyToRun> -->
   </PropertyGroup>  
 
   <ItemGroup>
