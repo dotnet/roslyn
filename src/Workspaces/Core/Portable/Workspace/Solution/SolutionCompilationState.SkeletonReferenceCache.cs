@@ -151,8 +151,13 @@ internal partial class SolutionCompilationState
         {
             // First, just see if we have cached a reference set that is complimentary with the version of the project
             // being passed in.  If so, we can just reuse what we already computed before.
-            if (TryReadSkeletonReferenceSetAtThisVersion(version, out var referenceSet))
-                return referenceSet;
+            lock (s_stateGate)
+            {
+                // if we're asking about the same version as we've cached, then return whatever have (regardless of
+                // whether it succeeded or not.
+                if (version == _version)
+                    return _skeletonReferenceSet;
+            }
 
             // okay, we don't have anything cached with this version. so create one now.
 
@@ -210,23 +215,6 @@ internal partial class SolutionCompilationState
                 metadata,
                 compilation.AssemblyName,
                 new DeferredDocumentationProvider(compilation));
-        }
-
-        private readonly bool TryReadSkeletonReferenceSetAtThisVersion(VersionStamp version, out SkeletonReferenceSet? result)
-        {
-            lock (s_stateGate)
-            {
-                // if we're asking about the same version as we've cached, then return whatever have (regardless of
-                // whether it succeeded or not.
-                if (version == _version)
-                {
-                    result = _skeletonReferenceSet;
-                    return true;
-                }
-            }
-
-            result = null;
-            return false;
         }
 
         private static ITemporaryStreamStorageInternal? TryCreateMetadataStorage(SolutionServices services, Compilation compilation, CancellationToken cancellationToken)
