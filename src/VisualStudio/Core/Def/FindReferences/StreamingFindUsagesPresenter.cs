@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -47,7 +48,7 @@ internal partial class StreamingFindUsagesPresenter :
     public readonly ClassificationTypeMap TypeMap;
     public readonly IEditorFormatMapService FormatMapService;
     private readonly IAsynchronousOperationListener _asyncListener;
-    public readonly IClassificationFormatMap ClassificationFormatMap;
+    private readonly Lazy<IClassificationFormatMap> _lazyClassificationFormatMap;
 
     private readonly Workspace _workspace;
     private readonly IGlobalOptionService _globalOptions;
@@ -121,10 +122,18 @@ internal partial class StreamingFindUsagesPresenter :
         TypeMap = typeMap;
         FormatMapService = formatMapService;
         _asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.FindReferences);
-        ClassificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
+
+        _lazyClassificationFormatMap = new Lazy<IClassificationFormatMap>(() =>
+        {
+            AssertIsForeground();
+            return classificationFormatMapService.GetClassificationFormatMap("tooltip");
+        });
 
         _customColumns = columns.ToImmutableArray();
     }
+
+    public IClassificationFormatMap ClassificationFormatMap
+        => _lazyClassificationFormatMap.Value;
 
     private static IEnumerable<ITableColumnDefinition> GetCustomColumns(IEnumerable<Lazy<ITableColumnDefinition, NameMetadata>> columns)
     {
@@ -157,33 +166,9 @@ internal partial class StreamingFindUsagesPresenter :
     }
 
     /// <summary>
-    /// Starts a search that will not include Containing Type, Containing Member, or Kind columns
-    /// </summary>
-    /// <param name="title"></param>
-    /// <param name="supportsReferences"></param>
-    /// <returns></returns>
-    public (FindUsagesContext context, CancellationToken cancellationToken) StartSearch(string title, bool supportsReferences)
-        => StartSearchWithCustomColumns(title, supportsReferences, includeContainingTypeAndMemberColumns: false, includeKindColumn: false);
-
-    /// <summary>
     /// Start a search that may include Containing Type, Containing Member, or Kind information about the reference
     /// </summary>
-    public (FindUsagesContext context, CancellationToken cancellationToken) StartSearchWithCustomColumns(
-        string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
-    {
-        this.AssertIsForeground();
-        var context = StartSearchWorker(title, supportsReferences, includeContainingTypeAndMemberColumns, includeKindColumn);
-
-        // Keep track of this context object as long as it is being displayed in the UI.
-        // That way we can Clear it out if requested by a client.  When the context is
-        // no longer being displayed, VS will dispose it and it will remove itself from
-        // this set.
-        _currentContexts.Add(context);
-        return (context, context.CancellationTokenSource!.Token);
-    }
-
-    private AbstractTableDataSourceFindUsagesContext StartSearchWorker(
-        string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+    public (FindUsagesContext context, CancellationToken cancellationToken) StartSearch(string title, StreamingFindUsagesPresenterOptions options)
     {
         this.AssertIsForeground();
 
@@ -205,9 +190,16 @@ internal partial class StreamingFindUsagesPresenter :
             StoreCurrentGroupingPriority(window);
         }
 
-        return supportsReferences
-            ? StartSearchWithReferences(window, desiredGroupingPriority, includeContainingTypeAndMemberColumns, includeKindColumn)
-            : StartSearchWithoutReferences(window, includeContainingTypeAndMemberColumns, includeKindColumn);
+        var context = options.SupportsReferences
+            ? StartSearchWithReferences(window, desiredGroupingPriority, options.IncludeContainingTypeAndMemberColumns, options.IncludeKindColumn)
+            : StartSearchWithoutReferences(window, options.IncludeContainingTypeAndMemberColumns, options.IncludeKindColumn);
+
+        // Keep track of this context object as long as it is being displayed in the UI.
+        // That way we can Clear it out if requested by a client.  When the context is
+        // no longer being displayed, VS will dispose it and it will remove itself from
+        // this set.
+        _currentContexts.Add(context);
+        return (context, context.CancellationTokenSource!.Token);
     }
 
     private AbstractTableDataSourceFindUsagesContext StartSearchWithReferences(
@@ -326,7 +318,7 @@ internal partial class StreamingFindUsagesPresenter :
         return infoBarHost;
     }
 
-    private async Task ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
+    private async Task ReportMessageAsync(string message, NotificationSeverity severity, CancellationToken cancellationToken)
     {
         await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         RemoveExistingInfoBar();
@@ -340,7 +332,13 @@ internal partial class StreamingFindUsagesPresenter :
 
         _infoBar = factory.CreateInfoBar(new InfoBarModel(
             message,
-            KnownMonikers.StatusInformation,
+            severity switch
+            {
+                NotificationSeverity.Information => KnownMonikers.StatusInformation,
+                NotificationSeverity.Error => KnownMonikers.StatusError,
+                NotificationSeverity.Warning => KnownMonikers.StatusWarning,
+                _ => throw ExceptionUtilities.UnexpectedValue(severity),
+            },
             isCloseButtonVisible: false));
 
         infoBarHost.AddInfoBar(_infoBar);
