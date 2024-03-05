@@ -2000,8 +2000,8 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_SystemVoid" xml:space="preserve">
     <value>System.Void cannot be used from C# -- use typeof(void) to get the void type object</value>
   </data>
-  <data name="ERR_ExplicitParamArray" xml:space="preserve">
-    <value>Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.</value>
+  <data name="ERR_ExplicitParamArrayOrCollection" xml:space="preserve">
+    <value>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</value>
   </data>
   <data name="WRN_BitwiseOrSignExtend" xml:space="preserve">
     <value>Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first</value>
@@ -4080,7 +4080,7 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>Cannot specify a default value for the 'this' parameter</value>
   </data>
   <data name="ERR_DefaultValueForParamsParameter" xml:space="preserve">
-    <value>Cannot specify a default value for a parameter array</value>
+    <value>Cannot specify a default value for a parameter collection</value>
   </data>
   <data name="ERR_NoConversionForDefaultParam" xml:space="preserve">
     <value>A value of type '{0}' cannot be used as a default parameter because there are no standard conversions to type '{1}'</value>

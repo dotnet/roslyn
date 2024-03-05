@@ -617,6 +617,11 @@
         <target state="translated">不允许显示应用 “System.Runtime.CompilerServices.NullableAttribute”。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitParamArrayOrCollection">
+        <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
+        <target state="new">Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
         <source>Accessors '{0}' and '{1}' should both be init-only or neither</source>
         <target state="translated">访问器 {0} 和 {1} 应同时为 init-only，或两者都不是</target>
@@ -7697,11 +7702,6 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">在 C# 中无法使用 System.Void -- 使用 typeof(void)获取 void 类型对象</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitParamArray">
-        <source>Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.</source>
-        <target state="translated">不要使用 "System.ParamArrayAttribute"，而是使用 "params" 关键字。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_BitwiseOrSignExtend">
         <source>Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first</source>
         <target state="translated">在经符号扩展的操作数上使用了按位“或”运算符；请考虑首先强制转换为较小的无符号类型</target>
@@ -10952,8 +10952,8 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
-        <source>Cannot specify a default value for a parameter array</source>
-        <target state="translated">无法为参数数组指定默认值</target>
+        <source>Cannot specify a default value for a parameter collection</source>
+        <target state="needs-review-translation">无法为参数数组指定默认值</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">

@@ -617,6 +617,11 @@
         <target state="translated">'System.Runtime.CompilerServices.NullableAttribute'의 명시적 적용은 허용되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitParamArrayOrCollection">
+        <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
+        <target state="new">Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
         <source>Accessors '{0}' and '{1}' should both be init-only or neither</source>
         <target state="translated">'{0}' 및 '{1}' 접근자는 둘 다 초기값 전용이거나 둘 다 초기값 전용이 아니어야 합니다.</target>
@@ -7697,11 +7702,6 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">System.Void는 C#에서 사용할 수 없습니다. void 형식 개체를 가져오려면 typeof(void)를 사용하세요.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitParamArray">
-        <source>Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.</source>
-        <target state="translated">System.ParamArrayAttribute'를 사용하지 않고, 대신 'params' 키워드를 사용하세요.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_BitwiseOrSignExtend">
         <source>Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first</source>
         <target state="translated">부호 확장 피연산자에 비트 OR 연산자를 사용했습니다. 더 작은 부호 없는 형식으로 먼저 캐스팅하세요.</target>
@@ -10952,8 +10952,8 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
-        <source>Cannot specify a default value for a parameter array</source>
-        <target state="translated">매개 변수 배열의 기본값을 지정할 수 없습니다.</target>
+        <source>Cannot specify a default value for a parameter collection</source>
+        <target state="needs-review-translation">매개 변수 배열의 기본값을 지정할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">

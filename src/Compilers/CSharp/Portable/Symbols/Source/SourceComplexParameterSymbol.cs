@@ -764,10 +764,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_DefaultValueUsedWithAttributes, arguments.AttributeSyntaxOpt.Name.Location);
                 }
             }
-            else if (attribute.IsTargetAttribute(AttributeDescription.ParamArrayAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.ParamArrayAttribute) || attribute.IsTargetAttribute(AttributeDescription.ParamCollectionAttribute))
             {
-                // error CS0674: Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.
-                diagnostics.Add(ErrorCode.ERR_ExplicitParamArray, arguments.AttributeSyntaxOpt.Name.Location);
+                // error CS0674: Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.
+                diagnostics.Add(ErrorCode.ERR_ExplicitParamArrayOrCollection, arguments.AttributeSyntaxOpt.Name.Location);
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.InAttribute))
             {

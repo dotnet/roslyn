@@ -617,6 +617,11 @@
         <target state="translated">No se permite la aplicación explícita de "System.Runtime.CompilerServices.NullableAttribute".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitParamArrayOrCollection">
+        <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
+        <target state="new">Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
         <source>Accessors '{0}' and '{1}' should both be init-only or neither</source>
         <target state="translated">Los descriptores de acceso "{0}" y "{1}" deben ser los dos solo de inicialización o ninguno de ellos</target>
@@ -7697,11 +7702,6 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
         <target state="translated">System.Void no se puede usar en C#; use typeof(void) para obtener el objeto de tipo void</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitParamArray">
-        <source>Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.</source>
-        <target state="translated">No use 'System.ParamArrayAttribute'. Use la palabra clave 'params' en su lugar.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_BitwiseOrSignExtend">
         <source>Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first</source>
         <target state="translated">Operador OR bit a bit usado en un operando con extensión de signo; puede convertir primero a un tipo sin signo más pequeño</target>
@@ -10952,8 +10952,8 @@ Considere la posibilidad de suprimir la advertencia solo si tiene la seguridad d
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
-        <source>Cannot specify a default value for a parameter array</source>
-        <target state="translated">No se puede especificar un valor predeterminado para una matriz de parámetros</target>
+        <source>Cannot specify a default value for a parameter collection</source>
+        <target state="needs-review-translation">No se puede especificar un valor predeterminado para una matriz de parámetros</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">

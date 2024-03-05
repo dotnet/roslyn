@@ -7045,7 +7045,7 @@ public static class CExt
                 // (18,54): error CS0225: The params parameter must have a valid collection type
                 //     public static Enumerator GetEnumerator(this C c, params int i = 0) => null;
                 Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(18, 54),
-                // (18,54): error CS1751: Cannot specify a default value for a parameter array
+                // (18,54): error CS1751: Cannot specify a default value for a parameter collection
                 //     public static Enumerator GetEnumerator(this C c, params int i = 0) => null;
                 Diagnostic(ErrorCode.ERR_DefaultValueForParamsParameter, "params").WithLocation(18, 54)
             };

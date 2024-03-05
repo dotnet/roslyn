@@ -8293,7 +8293,7 @@ class Program
                 var lam = (params int[] xs = null) => xs.Length;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,12): error CS1751: Cannot specify a default value for a parameter array
+                // (1,12): error CS1751: Cannot specify a default value for a parameter collection
                 // var lam = (params int[] xs = null) => xs.Length;
                 Diagnostic(ErrorCode.ERR_DefaultValueForParamsParameter, "params").WithLocation(1, 12));
         }
@@ -8305,9 +8305,9 @@ class Program
                 var lam = ([System.ParamArray] int[] xs) => xs.Length;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,13): error CS0674: Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.
+                // (1,13): error CS0674: Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.
                 // var lam = ([System.ParamArray] int[] xs) => xs.Length;
-                Diagnostic(ErrorCode.ERR_ExplicitParamArray, "System.ParamArray").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_ExplicitParamArrayOrCollection, "System.ParamArray").WithLocation(1, 13));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66060")]

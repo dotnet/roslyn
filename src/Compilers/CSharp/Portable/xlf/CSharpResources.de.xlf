@@ -617,6 +617,11 @@
         <target state="translated">Die explizite Anwendung von "System.Runtime.CompilerServices.NullableAttribute" ist unzulässig.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitParamArrayOrCollection">
+        <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
+        <target state="new">Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
         <source>Accessors '{0}' and '{1}' should both be init-only or neither</source>
         <target state="translated">"init-only" muss entweder für beide oder für keine der Zugriffsmethoden "{0}" und "{1}" festgelegt sein.</target>
@@ -7697,11 +7702,6 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <target state="translated">System.Void kann nicht in C# verwendet werden. Sie können das void-Typobjekt mit typeof(void) abfragen.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitParamArray">
-        <source>Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.</source>
-        <target state="translated">Verwenden Sie nicht System.ParamArrayAttribute, sondern das params-Schlüsselwort.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_BitwiseOrSignExtend">
         <source>Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first</source>
         <target state="translated">Bitweiser OR-Operator wird für einen signaturerweiterten Operanden verwendet. Es wird empfohlen, zuerst eine Umwandlung in einen kleineren unsignierten Typ durchzuführen.</target>
@@ -10952,8 +10952,8 @@ Sie sollten das Unterdrücken der Warnung nur in Betracht ziehen, wenn Sie siche
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
-        <source>Cannot specify a default value for a parameter array</source>
-        <target state="translated">Es kann kein Standardwert für ein Parameterarray angegeben werden.</target>
+        <source>Cannot specify a default value for a parameter collection</source>
+        <target state="needs-review-translation">Es kann kein Standardwert für ein Parameterarray angegeben werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">

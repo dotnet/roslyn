@@ -617,6 +617,11 @@
         <target state="translated">Explicitní použití System.Runtime.CompilerServices.NullableAttribute není povolené.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitParamArrayOrCollection">
+        <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
+        <target state="new">Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
         <source>Accessors '{0}' and '{1}' should both be init-only or neither</source>
         <target state="translated">Přístupové objekty {0} a {1} by měly být buď oba jenom pro inicializaci, nebo ani jeden.</target>
@@ -7697,11 +7702,6 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <target state="translated">Nejde použít konstrukci System.Void jazyka C#. Objekt typu void získáte pomocí syntaxe typeof(void).</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitParamArray">
-        <source>Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.</source>
-        <target state="translated">Nepoužívejte atribut System.ParamArrayAttribute. Použijte místo něj klíčové slovo params.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_BitwiseOrSignExtend">
         <source>Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first</source>
         <target state="translated">Logický bitový operátor or se použil pro operand s rozšířeným podpisem. Zvažte nejprve možnost přetypování na menší nepodepsaný typ.</target>
@@ -10952,8 +10952,8 @@ Potlačení upozornění zvažte jenom v případě, když určitě nechcete če
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
-        <source>Cannot specify a default value for a parameter array</source>
-        <target state="translated">Nejde zadat výchozí hodnotu pro pole parametrů.</target>
+        <source>Cannot specify a default value for a parameter collection</source>
+        <target state="needs-review-translation">Nejde zadat výchozí hodnotu pro pole parametrů.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">

@@ -14562,5 +14562,206 @@ class C2
                 Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] x").WithLocation(18, 20)
                 );
         }
+
+        [Fact]
+        public void ParamsNotLast_01()
+        {
+            var src = @"
+using System.Collections.Generic;
+
+class C1
+{
+    C1(params IEnumerable<long> x, int y)
+    {
+    }
+
+    static void M1(params IEnumerable<long> x, int y)
+    {
+    }
+
+    int this[params IEnumerable<long> x, int y] => 0;   
+}
+
+delegate void D1(params IEnumerable<long> x, int y);
+
+class C2
+{
+    C2(IEnumerable<long> x, int y)
+    {
+    }
+
+    static void M3(IEnumerable<long> x, int y)
+    {
+    }
+
+    int this[IEnumerable<long> x, int y] => 0;   
+}
+
+delegate void D2(IEnumerable<long> x, int y);
+";
+            CreateCompilation(src).VerifyDiagnostics(
+                // (6,8): error CS0231: A params parameter must be the last parameter in a parameter list
+                //     C1(params IEnumerable<long> x, int y)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params IEnumerable<long> x").WithLocation(6, 8),
+                // (10,20): error CS0231: A params parameter must be the last parameter in a parameter list
+                //     static void M1(params IEnumerable<long> x, int y)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params IEnumerable<long> x").WithLocation(10, 20),
+                // (14,14): error CS0231: A params parameter must be the last parameter in a parameter list
+                //     int this[params IEnumerable<long> x, int y] => 0;   
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params IEnumerable<long> x").WithLocation(14, 14),
+                // (17,18): error CS0231: A params parameter must be the last parameter in a parameter list
+                // delegate void D1(params IEnumerable<long> x, int y);
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params IEnumerable<long> x").WithLocation(17, 18)
+                );
+        }
+
+        [Fact]
+        public void ExplicitParamCollectionAttribute()
+        {
+            var source = """
+var lam = ([System.Runtime.CompilerServices.ParamCollectionAttribute] int[] xs) => xs.Length;
+""";
+
+            CreateCompilation([source, ParamCollectionAttributeSource]).VerifyDiagnostics(
+                // (1,13): error CS0674: Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.
+                // var lam = ([System.Runtime.CompilerServices.ParamCollectionAttribute] int[] xs) => xs.Length;
+                Diagnostic(ErrorCode.ERR_ExplicitParamArrayOrCollection, "System.Runtime.CompilerServices.ParamCollectionAttribute").WithLocation(1, 13)
+                );
+        }
+
+        [Theory]
+        [InlineData("in")]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        [InlineData("out")]
+        public void ParamsCantBeWithModifier_01(string modifier)
+        {
+            var src = @"
+using System.Collections.Generic;
+
+class C1
+{
+    static void M1(params " + modifier + @" IEnumerable<long> x)
+    {
+        throw null;
+    }
+}
+";
+
+            if (modifier == "ref readonly")
+            {
+                modifier = "ref";
+            }
+
+            CreateCompilation(src).VerifyDiagnostics(
+                // (6,27): error CS1611: The params parameter cannot be declared as in
+                //     static void M1(params in IEnumerable<long> x)
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, modifier).WithArguments(modifier).WithLocation(6, 27)
+                );
+        }
+
+        [Theory]
+        [InlineData("in")]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        [InlineData("out")]
+        public void ParamsCantBeWithModifier_02(string modifier)
+        {
+            var src = @"
+using System.Collections.Generic;
+
+class C1
+{
+    static void M1(" + modifier + @"
+params IEnumerable<long> x)
+    {
+        throw null;
+    }
+}
+";
+
+            if (modifier == "ref readonly")
+            {
+                modifier = "ref";
+            }
+
+            CreateCompilation(src).VerifyDiagnostics(
+                // (7,1): error CS8328:  The parameter modifier 'params' cannot be used with 'in'
+                // params IEnumerable<long> x)
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", modifier).WithLocation(7, 1)
+                );
+        }
+
+        [Fact]
+        public void IllegalParams_01()
+        {
+            var src = @"
+using System.Collections.Generic;
+
+var lam = delegate (params IEnumerable<long> xs)
+{
+    return 0;
+};
+";
+
+            CreateCompilation(src).VerifyDiagnostics(
+                // (4,21): error CS1670: params is not valid in this context
+                // var lam = delegate (params IEnumerable<long> xs)
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(4, 21)
+                );
+        }
+
+        [Fact]
+        public void ParamsWithDefault_01()
+        {
+            var src = @"
+using System.Collections.Generic;
+
+class C1
+{
+    static void M1(params IEnumerable<long> x = null)
+    {
+    }
+}
+";
+            CreateCompilation(src).VerifyDiagnostics(
+                // (6,20): error CS1751: Cannot specify a default value for a parameter collection
+                //     static void M1(params IEnumerable<long> x = null)
+                Diagnostic(ErrorCode.ERR_DefaultValueForParamsParameter, "params").WithLocation(6, 20)
+                );
+        }
+
+        [Fact]
+        public void NoOverloadingOnParams_01()
+        {
+            var src = @"
+using System.Collections.Generic;
+
+class C1
+{
+    static void M1(params IEnumerable<long> x)
+    {
+    }
+    static void M1(IEnumerable<long> x)
+    {
+    }
+
+    static void M2(IEnumerable<long> x)
+    {
+    }
+    static void M2(params IEnumerable<long> x)
+    {
+    }
+}
+";
+            CreateCompilation(src).VerifyDiagnostics(
+                // (9,17): error CS0111: Type 'C1' already defines a member called 'M1' with the same parameter types
+                //     static void M1(IEnumerable<long> x)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "C1").WithLocation(9, 17),
+                // (16,17): error CS0111: Type 'C1' already defines a member called 'M2' with the same parameter types
+                //     static void M2(params IEnumerable<long> x)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M2").WithArguments("M2", "C1").WithLocation(16, 17)
+                );
+        }
     }
 }

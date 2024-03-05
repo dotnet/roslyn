@@ -34086,7 +34086,6 @@ partial class Program
 
             var comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
 
-            // PROTOTYPE(ParamsCollections): Confirm the behavior matches what we decided to do for https://github.com/dotnet/roslyn/issues/71840
             comp3.VerifyDiagnostics(
                 // (5,24): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         Overloads.Test([2, 3]);
@@ -34167,7 +34166,6 @@ partial class Program
 
             var comp3 = CreateCompilation(source3, references: [comp1Ref], options: TestOptions.UnsafeDebugExe);
 
-            // PROTOTYPE(ParamsCollections): Confirm the behavior matches what we decided to do for https://github.com/dotnet/roslyn/issues/71840
             comp3.VerifyDiagnostics(
                 // (5,25): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         Overloads.Test([2, 3]);
