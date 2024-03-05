@@ -155,6 +155,7 @@ namespace Microsoft.Cci
             // We need to calculate the PDB checksum, so we may as well use the calculated hash for PDB ID regardless of whether deterministic build is requested.
             var portablePdbContentHash = default(ImmutableArray<byte>);
 
+            PooledBlobBuilder portablePdbBuilderOwner = null;
             PooledBlobBuilder portablePdbToEmbed = null;
             if (mdWriter.EmitPortableDebugMetadata)
             {
@@ -167,7 +168,8 @@ namespace Microsoft.Cci
                     new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(portablePdbContentHash = CryptographicHashProvider.ComputeHash(context.Module.PdbChecksumAlgorithm, content))) :
                     null;
 
-                var portablePdbBlob = PooledBlobBuilder.GetInstance(zero: true);
+                portablePdbBuilderOwner = PooledBlobBuilder.GetInstance(zero: true);
+                var portablePdbBlob = portablePdbBuilderOwner;
                 var portablePdbBuilder = mdWriter.GetPortablePdbBuilder(metadataRootBuilder.Sizes.RowCounts, debugEntryPointHandle, portablePdbIdProvider);
                 pdbContentId = portablePdbBuilder.Serialize(portablePdbBlob);
                 portablePdbVersion = portablePdbBuilder.FormatVersion;
@@ -186,7 +188,6 @@ namespace Microsoft.Cci
                         try
                         {
                             portablePdbBlob.WriteContentTo(portablePdbStream);
-                            portablePdbBlob.Free();
                         }
                         catch (Exception e) when (!(e is OperationCanceledException))
                         {
@@ -222,13 +223,14 @@ namespace Microsoft.Cci
                 if (portablePdbToEmbed != null)
                 {
                     debugDirectoryBuilder.AddEmbeddedPortablePdbEntry(portablePdbToEmbed, portablePdbVersion);
-                    portablePdbToEmbed.Free();
                 }
             }
             else
             {
                 debugDirectoryBuilder = null;
             }
+
+            portablePdbBuilderOwner?.Free();
 
             var strongNameProvider = context.Module.CommonCompilation.Options.StrongNameProvider;
             var corFlags = properties.CorFlags;

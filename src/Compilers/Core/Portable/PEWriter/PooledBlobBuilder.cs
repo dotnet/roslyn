@@ -6,7 +6,6 @@ using System;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
-using System.Diagnostics;
 
 namespace Microsoft.Cci
 {
