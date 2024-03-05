@@ -9,8 +9,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal sealed class DocumentDiagnosticSource(DiagnosticKind diagnosticKind, Document document)
-    : AbstractDocumentDiagnosticSource<Document>(document)
+internal sealed class DocumentDiagnosticSource(DiagnosticKind diagnosticKind, TextDocument document)
+    : AbstractDocumentDiagnosticSource<TextDocument>(document)
 {
     public DiagnosticKind DiagnosticKind { get; } = diagnosticKind;
 

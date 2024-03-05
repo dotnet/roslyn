@@ -279,6 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_StringEscapeCharacter = MessageBase + 12839,
 
         IDS_ImplicitIndexerInitializer = MessageBase + 12840,
+        IDS_LockObject = MessageBase + 12841,
 
         IDS_ParamsCollections = MessageBase + 12900, // PROTOTYPE(ParamsCollections): pack numbers
     }
@@ -463,6 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# preview features.
                 case MessageID.IDS_StringEscapeCharacter:
                 case MessageID.IDS_ImplicitIndexerInitializer:
+                case MessageID.IDS_LockObject:
                 case MessageID.IDS_ParamsCollections:
                     return LanguageVersion.Preview;
 

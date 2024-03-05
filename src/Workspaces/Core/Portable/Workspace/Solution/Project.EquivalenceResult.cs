@@ -4,14 +4,13 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+public partial class Project
 {
-    public partial class Project
+    private class EquivalenceResult(bool publiclyEquivalent, bool privatelyEquivalent)
     {
-        private class EquivalenceResult(bool publiclyEquivalent, bool privatelyEquivalent)
-        {
-            public readonly bool PubliclyEquivalent = publiclyEquivalent;
-            public readonly bool PrivatelyEquivalent = privatelyEquivalent;
-        }
+        public readonly bool PubliclyEquivalent = publiclyEquivalent;
+        public readonly bool PrivatelyEquivalent = privatelyEquivalent;
     }
 }

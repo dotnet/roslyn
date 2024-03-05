@@ -269,10 +269,7 @@ namespace Roslyn.Test.Utilities
                 SortText = sortText,
                 InsertTextFormat = LSP.InsertTextFormat.Plaintext,
                 Kind = kind,
-                Data = JObject.FromObject(new CompletionResolveData()
-                {
-                    ResultId = resultId,
-                }),
+                Data = JObject.FromObject(new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document))),
                 Preselect = preselect,
                 VsResolveTextEditOnCommit = vsResolveTextEditOnCommit,
                 LabelDetails = labelDetails

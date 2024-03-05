@@ -9,44 +9,43 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
-namespace Microsoft.CodeAnalysis.StackTraceExplorer
+namespace Microsoft.CodeAnalysis.StackTraceExplorer;
+
+internal sealed class VSDebugCallstackParser : IStackFrameParser
 {
-    internal sealed class VSDebugCallstackParser : IStackFrameParser
+    public bool TryParseLine(VirtualCharSequence line, [NotNullWhen(true)] out ParsedFrame? parsedFrame)
     {
-        public bool TryParseLine(VirtualCharSequence line, [NotNullWhen(true)] out ParsedFrame? parsedFrame)
+        // Example line:
+        // ConsoleApp4.dll!ConsoleApp4.MyClass.ThrowAtOne() Line 19	C#
+        //                |--------------------------------|
+        //                     Symbol data we care about
+        parsedFrame = null;
+
+        var startPoint = -1;
+        for (var i = 0; i < line.Length; i++)
         {
-            // Example line:
-            // ConsoleApp4.dll!ConsoleApp4.MyClass.ThrowAtOne() Line 19	C#
-            //                |--------------------------------|
-            //                     Symbol data we care about
-            parsedFrame = null;
-
-            var startPoint = -1;
-            for (var i = 0; i < line.Length; i++)
+            if (line[i].Value == '!')
             {
-                if (line[i].Value == '!')
-                {
-                    // +1 here because we always want to skip the '!' character
-                    startPoint = i + 1;
-                    break;
-                }
+                // +1 here because we always want to skip the '!' character
+                startPoint = i + 1;
+                break;
             }
-
-            if (startPoint <= 0 || startPoint == line.Length)
-            {
-                return false;
-            }
-
-            var textToParse = line.GetSubSequence(TextSpan.FromBounds(startPoint, line.Length));
-            var tree = StackFrameParser.TryParse(textToParse);
-
-            if (tree is null)
-            {
-                return false;
-            }
-
-            parsedFrame = new ParsedStackFrame(tree);
-            return true;
         }
+
+        if (startPoint <= 0 || startPoint == line.Length)
+        {
+            return false;
+        }
+
+        var textToParse = line.GetSubSequence(TextSpan.FromBounds(startPoint, line.Length));
+        var tree = StackFrameParser.TryParse(textToParse);
+
+        if (tree is null)
+        {
+            return false;
+        }
+
+        parsedFrame = new ParsedStackFrame(tree);
+        return true;
     }
 }

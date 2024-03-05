@@ -10,74 +10,73 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
+
+internal partial class AbstractLegacyProject : IVsReportExternalErrors, IVsLanguageServiceBuildErrorReporter2
 {
-    internal partial class AbstractLegacyProject : IVsReportExternalErrors, IVsLanguageServiceBuildErrorReporter2
+    private readonly ProjectExternalErrorReporter _externalErrorReporter;
+
+    int IVsReportExternalErrors.AddNewErrors(IVsEnumExternalErrors pErrors)
+        => _externalErrorReporter.AddNewErrors(pErrors);
+
+    int IVsReportExternalErrors.ClearAllErrors()
+        => _externalErrorReporter.ClearAllErrors();
+
+    int IVsLanguageServiceBuildErrorReporter.ClearErrors()
+        => _externalErrorReporter.ClearErrors();
+
+    int IVsLanguageServiceBuildErrorReporter2.ClearErrors()
+        => _externalErrorReporter.ClearErrors();
+
+    int IVsReportExternalErrors.GetErrors(out IVsEnumExternalErrors pErrors)
+        => _externalErrorReporter.GetErrors(out pErrors);
+
+    int IVsLanguageServiceBuildErrorReporter.ReportError(string bstrErrorMessage, string bstrErrorId, VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)
     {
-        private readonly ProjectExternalErrorReporter _externalErrorReporter;
+        return _externalErrorReporter.ReportError(
+            bstrErrorMessage,
+            bstrErrorId,
+            nPriority,
+            iLine,
+            iColumn,
+            bstrFileName);
+    }
 
-        int IVsReportExternalErrors.AddNewErrors(IVsEnumExternalErrors pErrors)
-            => _externalErrorReporter.AddNewErrors(pErrors);
+    int IVsLanguageServiceBuildErrorReporter2.ReportError(
+        string bstrErrorMessage,
+        string bstrErrorId,
+        [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority,
+        int iLine,
+        int iColumn,
+        string bstrFileName)
+    {
+        return _externalErrorReporter.ReportError(
+            bstrErrorMessage,
+            bstrErrorId,
+            nPriority,
+            iLine,
+            iColumn,
+            bstrFileName);
+    }
 
-        int IVsReportExternalErrors.ClearAllErrors()
-            => _externalErrorReporter.ClearAllErrors();
-
-        int IVsLanguageServiceBuildErrorReporter.ClearErrors()
-            => _externalErrorReporter.ClearErrors();
-
-        int IVsLanguageServiceBuildErrorReporter2.ClearErrors()
-            => _externalErrorReporter.ClearErrors();
-
-        int IVsReportExternalErrors.GetErrors(out IVsEnumExternalErrors pErrors)
-            => _externalErrorReporter.GetErrors(out pErrors);
-
-        int IVsLanguageServiceBuildErrorReporter.ReportError(string bstrErrorMessage, string bstrErrorId, VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)
-        {
-            return _externalErrorReporter.ReportError(
+    void IVsLanguageServiceBuildErrorReporter2.ReportError2(
+        string bstrErrorMessage,
+        string bstrErrorId,
+        [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority,
+        int iStartLine,
+        int iStartColumn,
+        int iEndLine,
+        int iEndColumn,
+        string bstrFileName)
+    {
+        _externalErrorReporter.ReportError2(
                 bstrErrorMessage,
                 bstrErrorId,
                 nPriority,
-                iLine,
-                iColumn,
+                iStartLine,
+                iStartColumn,
+                iEndLine,
+                iEndColumn,
                 bstrFileName);
-        }
-
-        int IVsLanguageServiceBuildErrorReporter2.ReportError(
-            string bstrErrorMessage,
-            string bstrErrorId,
-            [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority,
-            int iLine,
-            int iColumn,
-            string bstrFileName)
-        {
-            return _externalErrorReporter.ReportError(
-                bstrErrorMessage,
-                bstrErrorId,
-                nPriority,
-                iLine,
-                iColumn,
-                bstrFileName);
-        }
-
-        void IVsLanguageServiceBuildErrorReporter2.ReportError2(
-            string bstrErrorMessage,
-            string bstrErrorId,
-            [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority,
-            int iStartLine,
-            int iStartColumn,
-            int iEndLine,
-            int iEndColumn,
-            string bstrFileName)
-        {
-            _externalErrorReporter.ReportError2(
-                    bstrErrorMessage,
-                    bstrErrorId,
-                    nPriority,
-                    iStartLine,
-                    iStartColumn,
-                    iEndLine,
-                    iEndColumn,
-                    bstrFileName);
-        }
     }
 }

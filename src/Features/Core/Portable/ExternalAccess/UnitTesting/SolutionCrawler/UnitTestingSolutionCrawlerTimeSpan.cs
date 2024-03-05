@@ -4,14 +4,13 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
+
+internal static class UnitTestingSolutionCrawlerTimeSpan
 {
-    internal static class UnitTestingSolutionCrawlerTimeSpan
-    {
-        public static readonly TimeSpan AllFilesWorkerBackOff = TimeSpan.FromMilliseconds(1500);
-        public static readonly TimeSpan EntireProjectWorkerBackOff = TimeSpan.FromMilliseconds(5000);
-        public static readonly TimeSpan SemanticChangeBackOff = TimeSpan.FromMilliseconds(100);
-        public static readonly TimeSpan ProjectPropagationBackOff = TimeSpan.FromMilliseconds(500);
-        public static readonly TimeSpan PreviewBackOff = TimeSpan.FromMilliseconds(500);
-    }
+    public static readonly TimeSpan AllFilesWorkerBackOff = TimeSpan.FromMilliseconds(1500);
+    public static readonly TimeSpan EntireProjectWorkerBackOff = TimeSpan.FromMilliseconds(5000);
+    public static readonly TimeSpan SemanticChangeBackOff = TimeSpan.FromMilliseconds(100);
+    public static readonly TimeSpan ProjectPropagationBackOff = TimeSpan.FromMilliseconds(500);
+    public static readonly TimeSpan PreviewBackOff = TimeSpan.FromMilliseconds(500);
 }

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -85,16 +86,27 @@ namespace Microsoft.CodeAnalysis.Remote
                             assetHint: AssetHint.None, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false));
                     }
 
-                    if (newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentity != Checksum.Null &&
-                        newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentText != Checksum.Null)
+                    if (newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.HasValue &&
+                        newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.HasValue)
                     {
-                        var identity = await _assetProvider.GetAssetAsync<SourceGeneratedDocumentIdentity>(
-                            assetHint: AssetHint.None, newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentity, cancellationToken).ConfigureAwait(false);
-                        var serializableSourceText = await _assetProvider.GetAssetAsync<SerializableSourceText>(
-                            assetHint: AssetHint.None, newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentText, cancellationToken).ConfigureAwait(false);
+                        var count = newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.Value.Count;
+                        var _ = ArrayBuilder<(SourceGeneratedDocumentIdentity, SourceText)>.GetInstance(count, out var frozenDocuments);
 
-                        var sourceText = await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        solution = solution.WithFrozenSourceGeneratedDocument(identity, sourceText).Project.Solution;
+                        for (var i = 0; i < count; i++)
+                        {
+                            var identity = await _assetProvider.GetAssetAsync<SourceGeneratedDocumentIdentity>(
+                                assetHint: AssetHint.None, newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.Value[i], cancellationToken).ConfigureAwait(false);
+
+                            var documentStateChecksums = await _assetProvider.GetAssetAsync<DocumentStateChecksums>(
+                                assetHint: AssetHint.None, newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value.Checksums[i], cancellationToken).ConfigureAwait(false);
+
+                            var serializableSourceText = await _assetProvider.GetAssetAsync<SerializableSourceText>(assetHint: newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value.Ids[i], documentStateChecksums.Text, cancellationToken).ConfigureAwait(false);
+
+                            var text = await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                            frozenDocuments.Add((identity, text));
+                        }
+
+                        solution = solution.WithFrozenSourceGeneratedDocuments(frozenDocuments.ToImmutable());
                     }
 
 #if DEBUG

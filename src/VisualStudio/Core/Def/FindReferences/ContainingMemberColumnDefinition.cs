@@ -12,25 +12,24 @@ using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences;
+
+/// <summary>
+/// Custom column to display the containing member for the Find All References window.
+/// </summary>
+[Export(typeof(ITableColumnDefinition))]
+[Name(ColumnName)]
+internal class ContainingMemberColumnDefinition : TableColumnDefinitionBase
 {
-    /// <summary>
-    /// Custom column to display the containing member for the Find All References window.
-    /// </summary>
-    [Export(typeof(ITableColumnDefinition))]
-    [Name(ColumnName)]
-    internal class ContainingMemberColumnDefinition : TableColumnDefinitionBase
+    public const string ColumnName = AbstractReferenceFinder.ContainingMemberInfoPropertyName;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public ContainingMemberColumnDefinition()
     {
-        public const string ColumnName = AbstractReferenceFinder.ContainingMemberInfoPropertyName;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ContainingMemberColumnDefinition()
-        {
-        }
-
-        public override bool IsFilterable => true;
-        public override string Name => ColumnName;
-        public override string DisplayName => ServicesVSResources.Containing_member;
     }
+
+    public override bool IsFilterable => true;
+    public override string Name => ColumnName;
+    public override string DisplayName => ServicesVSResources.Containing_member;
 }

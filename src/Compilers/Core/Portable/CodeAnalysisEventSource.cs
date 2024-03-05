@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis
             public const EventTask GeneratorDriverRunTime = (EventTask)1;
             public const EventTask SingleGeneratorRunTime = (EventTask)2;
             public const EventTask BuildStateTable = (EventTask)3;
+            public const EventTask Compilation = (EventTask)4;
         }
 
         private CodeAnalysisEventSource() { }
@@ -94,6 +95,12 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
+
+        [Event(7, Message = "Server compilation {0} started", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Start, Task = Tasks.Compilation)]
+        internal void StartServerCompilation(string name) => WriteEvent(7, name);
+
+        [Event(8, Message = "Server compilation {0} completed", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.Compilation)]
+        internal void StopServerCompilation(string name) => WriteEvent(8, name);
 
         private static unsafe EventData GetEventDataForString(string value, char* ptr)
         {
