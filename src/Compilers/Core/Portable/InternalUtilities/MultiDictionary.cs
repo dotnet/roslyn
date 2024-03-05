@@ -164,6 +164,11 @@ namespace Roslyn.Utilities
                 return new ValueSet(set.Add(v));
             }
 
+            public bool Contains(V v)
+            {
+                throw new InvalidOperationException("Call Contains method with equality comparer");
+            }
+
             public bool Contains(V v, IEqualityComparer<V> comparer)
             {
                 var set = _value as ImmutableHashSet<V>;

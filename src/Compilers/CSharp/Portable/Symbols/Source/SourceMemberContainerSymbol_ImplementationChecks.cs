@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (!interfacesAndTheirBases[@interface].Contains(@interface))
+                if (!interfacesAndTheirBases[@interface].Contains(@interface, this.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ValueComparer))
                 {
                     continue;
                 }
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // We ideally want to identify the interface location in the base list with an exact match but
             // will fall back and use the first derived interface if exact interface is not present.
             // this is the similar logic as the VB implementation.
-            Debug.Assert(this.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics[implementedInterface].Contains(implementedInterface));
+            Debug.Assert(this.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics[implementedInterface].Contains(implementedInterface, this.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ValueComparer));
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
             NamedTypeSymbol directInterface = null;
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (set.Count != 0)
             {
-                if (set.Contains(@interface))
+                if (set.Contains(@interface, currType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ValueComparer))
                 {
                     result = HasBaseTypeDeclaringInterfaceResult.ExactMatch;
                     return true;
