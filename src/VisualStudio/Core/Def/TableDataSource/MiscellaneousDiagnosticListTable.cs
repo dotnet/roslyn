@@ -13,67 +13,66 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell.TableManager;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
+
+[ExportEventListener(WellKnownEventListeners.DiagnosticService, WorkspaceKind.MiscellaneousFiles), Shared]
+internal sealed class MiscellaneousDiagnosticListTableWorkspaceEventListener : IEventListener<IDiagnosticService>
 {
-    [ExportEventListener(WellKnownEventListeners.DiagnosticService, WorkspaceKind.MiscellaneousFiles), Shared]
-    internal sealed class MiscellaneousDiagnosticListTableWorkspaceEventListener : IEventListener<IDiagnosticService>
+    internal const string IdentifierString = nameof(MiscellaneousDiagnosticListTable);
+    private readonly IThreadingContext _threadingContext;
+    private readonly ITableManagerProvider _tableManagerProvider;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public MiscellaneousDiagnosticListTableWorkspaceEventListener(
+        IThreadingContext threadingContext,
+        ITableManagerProvider tableManagerProvider)
     {
-        internal const string IdentifierString = nameof(MiscellaneousDiagnosticListTable);
-        private readonly IThreadingContext _threadingContext;
-        private readonly ITableManagerProvider _tableManagerProvider;
+        _threadingContext = threadingContext;
+        _tableManagerProvider = tableManagerProvider;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MiscellaneousDiagnosticListTableWorkspaceEventListener(
+    public void StartListening(Workspace workspace, IDiagnosticService diagnosticService)
+        => new MiscellaneousDiagnosticListTable(workspace, _threadingContext, diagnosticService, _tableManagerProvider);
+
+    private sealed class MiscellaneousDiagnosticListTable : VisualStudioBaseDiagnosticListTable
+    {
+        private readonly LiveTableDataSource _source;
+
+        public MiscellaneousDiagnosticListTable(
+            Workspace workspace,
             IThreadingContext threadingContext,
-            ITableManagerProvider tableManagerProvider)
+            IDiagnosticService diagnosticService,
+            ITableManagerProvider provider)
+            : base(workspace, provider)
         {
-            _threadingContext = threadingContext;
-            _tableManagerProvider = tableManagerProvider;
+            _source = new LiveTableDataSource(workspace, threadingContext, diagnosticService, IdentifierString);
+
+            AddInitialTableSource(workspace.CurrentSolution, _source);
+            ConnectWorkspaceEvents();
         }
 
-        public void StartListening(Workspace workspace, IDiagnosticService diagnosticService)
-            => new MiscellaneousDiagnosticListTable(workspace, _threadingContext, diagnosticService, _tableManagerProvider);
-
-        private sealed class MiscellaneousDiagnosticListTable : VisualStudioBaseDiagnosticListTable
+        protected override void AddTableSourceIfNecessary(Solution solution)
         {
-            private readonly LiveTableDataSource _source;
-
-            public MiscellaneousDiagnosticListTable(
-                Workspace workspace,
-                IThreadingContext threadingContext,
-                IDiagnosticService diagnosticService,
-                ITableManagerProvider provider)
-                : base(workspace, provider)
+            if (solution.ProjectIds.Count == 0 || this.TableManager.Sources.Any(s => s == _source))
             {
-                _source = new LiveTableDataSource(workspace, threadingContext, diagnosticService, IdentifierString);
-
-                AddInitialTableSource(workspace.CurrentSolution, _source);
-                ConnectWorkspaceEvents();
+                return;
             }
 
-            protected override void AddTableSourceIfNecessary(Solution solution)
-            {
-                if (solution.ProjectIds.Count == 0 || this.TableManager.Sources.Any(s => s == _source))
-                {
-                    return;
-                }
-
-                AddTableSource(_source);
-            }
-
-            protected override void RemoveTableSourceIfNecessary(Solution solution)
-            {
-                if (solution.ProjectIds.Count > 0 || !this.TableManager.Sources.Any(s => s == _source))
-                {
-                    return;
-                }
-
-                this.TableManager.RemoveSource(_source);
-            }
-
-            protected override void ShutdownSource()
-                => _source.Shutdown();
+            AddTableSource(_source);
         }
+
+        protected override void RemoveTableSourceIfNecessary(Solution solution)
+        {
+            if (solution.ProjectIds.Count > 0 || !this.TableManager.Sources.Any(s => s == _source))
+            {
+                return;
+            }
+
+            this.TableManager.RemoveSource(_source);
+        }
+
+        protected override void ShutdownSource()
+            => _source.Shutdown();
     }
 }
