@@ -8,16 +8,15 @@ using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.BraceMatching
+namespace Microsoft.CodeAnalysis.CSharp.BraceMatching;
+
+[ExportBraceMatcher(LanguageNames.CSharp), Shared]
+internal class OpenCloseParenBraceMatcher : AbstractCSharpBraceMatcher
 {
-    [ExportBraceMatcher(LanguageNames.CSharp), Shared]
-    internal class OpenCloseParenBraceMatcher : AbstractCSharpBraceMatcher
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public OpenCloseParenBraceMatcher()
+        : base(SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public OpenCloseParenBraceMatcher()
-            : base(SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken)
-        {
-        }
     }
 }

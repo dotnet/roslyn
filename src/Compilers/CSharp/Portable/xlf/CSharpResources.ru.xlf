@@ -272,6 +272,11 @@
         <target state="translated">Элемент записи "{0}" должен быть доступным для чтения свойством экземпляра или полем типа "{1}", чтобы соответствовать позиционному параметру "{2}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRefLock">
+        <source>A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</source>
+        <target state="new">A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefUsing">
         <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
         <target state="translated">Ресурс оператора использования типа "{0}" нельзя применять в асинхронных методах или асинхронных лямбда-выражениях.</target>
@@ -2277,6 +2282,11 @@
         <target state="translated">глобальная директива using</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureImplicitIndexerInitializer">
+        <source>implicit indexer initializer</source>
+        <target state="new">implicit indexer initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
         <target state="translated">создание объекта с типом целевого объекта</target>
@@ -2325,6 +2335,11 @@
       <trans-unit id="IDS_FeatureListPattern">
         <source>list pattern</source>
         <target state="translated">шаблон списка</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLockObject">
+        <source>Lock object</source>
+        <target state="new">Lock object</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
@@ -2382,6 +2397,11 @@
         <target state="translated">запечатанный ToString в записи</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureStringEscapeCharacter">
+        <source>string escape character</source>
+        <target state="new">string escape character</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureStructFieldInitializers">
         <source>struct field initializers</source>
         <target state="translated">инициализаторы полей структуры</target>
@@ -2422,11 +2442,6 @@
         <target state="translated">сопоставление шаблонов ReadOnly/Span&lt;char&gt; в строке константы</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_ImplicitIndexerInitializer">
-        <source>implicit indexer initializer</source>
-        <target state="translated">неявный инициализатор индексатора</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;missing&gt;</target>
@@ -2455,11 +2470,6 @@
       <trans-unit id="IDS_SK_POINTER">
         <source>pointer</source>
         <target state="translated">указатель</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_StringEscapeCharacter">
-        <source>string escape character</source>
-        <target state="translated">escape-символ строки</target>
         <note />
       </trans-unit>
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
@@ -2665,6 +2675,16 @@
       <trans-unit id="WRN_CompileTimeCheckedOverflow_Title">
         <source>The operation may overflow at runtime (use 'unchecked' syntax to override)</source>
         <target state="translated">Операция может привести к переполнению в среде выполнения (для переопределения используйте синтаксис "unchecked")</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
+        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock_Title">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
+        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">

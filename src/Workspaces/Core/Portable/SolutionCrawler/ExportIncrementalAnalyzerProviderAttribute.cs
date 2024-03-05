@@ -2,25 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Collections.Generic;
 using System.Composition;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportIncrementalAnalyzerProviderAttribute(string name, string[] workspaceKinds) : ExportAttribute(typeof(IIncrementalAnalyzerProvider))
+    internal sealed class ExportIncrementalAnalyzerProviderAttribute(string name, string[] workspaceKinds, bool highPriorityForActiveFile = false)
+        : ExportAttribute(typeof(IIncrementalAnalyzerProvider))
     {
-        public bool HighPriorityForActiveFile { get; } = false;
-        public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
-        public string[] WorkspaceKinds { get; } = workspaceKinds;
-
-        public ExportIncrementalAnalyzerProviderAttribute(bool highPriorityForActiveFile, string name, string[] workspaceKinds)
-            : this(name, workspaceKinds)
-        {
-            this.HighPriorityForActiveFile = highPriorityForActiveFile;
-        }
+        public bool HighPriorityForActiveFile { get; } = highPriorityForActiveFile;
+        public string Name { get; } = name;
+        public IReadOnlyList<string> WorkspaceKinds { get; } = workspaceKinds;
     }
 }

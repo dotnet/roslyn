@@ -12,14 +12,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Test;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.Notification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
@@ -69,7 +67,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             var worker = new Analyzer(workspace.GlobalOptions);
             var provider = new AnalyzerProvider(worker);
-            service.AddAnalyzerProvider(provider, Metadata.Crawler);
+
+            service.AddAnalyzerProvider(provider, metadata: new(
+                new Dictionary<string, object>
+                {
+                    { "WorkspaceKinds", new[] { SolutionCrawlerWorkspaceKind } },
+                    { "HighPriorityForActiveFile", false },
+                    { "Name", "TestAnalyzer" }
+                }));
 
             // wait for everything to settle
             await WaitAsync(service, workspace);
@@ -659,7 +664,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             await WaitWaiterAsync(workspace.ExportProvider);
 
             var lazyWorker = Assert.Single(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>());
-            Assert.Equal(Metadata.Crawler, lazyWorker.Metadata);
+            VerifyMetadata(lazyWorker.Metadata);
             var worker = Assert.IsType<Analyzer>(Assert.IsAssignableFrom<AnalyzerProvider>(lazyWorker.Value).Analyzer);
             Assert.False(worker.WaitForCancellation);
             Assert.False(worker.BlockedRun);
@@ -813,7 +818,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             await WaitWaiterAsync(workspace.ExportProvider);
 
             var lazyWorker = Assert.Single(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>());
-            Assert.Equal(Metadata.Crawler, lazyWorker.Metadata);
+            VerifyMetadata(lazyWorker.Metadata);
             var analyzer = Assert.IsType<Analyzer>(Assert.IsAssignableFrom<AnalyzerProvider>(lazyWorker.Value).Analyzer);
             Assert.True(analyzer.WaitForCancellation);
             Assert.False(analyzer.BlockedRun);
@@ -871,7 +876,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             var expectedDocumentSemanticEvents = 5;
 
             var lazyWorker = Assert.Single(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>());
-            Assert.Equal(Metadata.Crawler, lazyWorker.Metadata);
+            VerifyMetadata(lazyWorker.Metadata);
             var analyzer = Assert.IsType<Analyzer>(Assert.IsAssignableFrom<AnalyzerProvider>(lazyWorker.Value).Analyzer);
             Assert.True(analyzer.WaitForCancellation);
             Assert.False(analyzer.BlockedRun);
@@ -921,7 +926,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             var id = workspace.CurrentSolution.Projects.First().DocumentIds[0];
 
             var lazyWorker = Assert.Single(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>());
-            Assert.Equal(Metadata.Crawler, lazyWorker.Metadata);
+            VerifyMetadata(lazyWorker.Metadata);
             var analyzer = Assert.IsType<Analyzer>(Assert.IsAssignableFrom<AnalyzerProvider>(lazyWorker.Value).Analyzer);
             Assert.False(analyzer.WaitForCancellation);
             Assert.True(analyzer.BlockedRun);
@@ -1449,7 +1454,7 @@ class C
 
             // add analyzer
             var lazyWorker = Assert.Single(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>());
-            Assert.Equal(Metadata.Crawler, lazyWorker.Metadata);
+            VerifyMetadata(lazyWorker.Metadata);
             var worker = Assert.IsType<Analyzer2>(Assert.IsAssignableFrom<AnalyzerProvider>(lazyWorker.Value).Analyzer);
 
             // enable solution crawler
@@ -1534,7 +1539,7 @@ class C
             var textBuffer = testDocument.GetTextBuffer();
 
             var lazyWorker = Assert.Single(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>());
-            Assert.Equal(Metadata.Crawler, lazyWorker.Metadata);
+            VerifyMetadata(lazyWorker.Metadata);
             var analyzer = Assert.IsType<Analyzer>(Assert.IsAssignableFrom<AnalyzerProvider>(lazyWorker.Value).Analyzer);
             Assert.False(analyzer.WaitForCancellation);
             Assert.False(analyzer.BlockedRun);
@@ -1568,7 +1573,8 @@ class C
         private static async Task<Analyzer> ExecuteOperationAsync(EditorTestWorkspace workspace, Func<EditorTestWorkspace, Task> operation)
         {
             var lazyWorker = Assert.Single(workspace.ExportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>());
-            Assert.Equal(Metadata.Crawler, lazyWorker.Metadata);
+            VerifyMetadata(lazyWorker.Metadata);
+
             var worker = Assert.IsType<Analyzer>(Assert.IsAssignableFrom<AnalyzerProvider>(lazyWorker.Value).Analyzer);
             Assert.False(worker.WaitForCancellation);
             Assert.False(worker.BlockedRun);
@@ -1789,9 +1795,11 @@ class C
             }
         }
 
-        internal static class Metadata
+        internal static void VerifyMetadata(IncrementalAnalyzerProviderMetadata metadata)
         {
-            public static readonly IncrementalAnalyzerProviderMetadata Crawler = new IncrementalAnalyzerProviderMetadata(new Dictionary<string, object> { { "WorkspaceKinds", new[] { SolutionCrawlerWorkspaceKind } }, { "HighPriorityForActiveFile", false }, { "Name", "TestAnalyzer" } });
+            AssertEx.AreEqual([SolutionCrawlerWorkspaceKind], metadata.WorkspaceKinds);
+            Assert.False(metadata.HighPriorityForActiveFile);
+            AssertEx.Equal("TestAnalyzer", metadata.Name);
         }
 
         private class Analyzer : IIncrementalAnalyzer

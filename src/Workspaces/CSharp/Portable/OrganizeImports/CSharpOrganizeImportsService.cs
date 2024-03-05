@@ -14,31 +14,30 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.OrganizeImports;
 
-namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
+namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports;
+
+[ExportLanguageService(typeof(IOrganizeImportsService), LanguageNames.CSharp), Shared]
+internal partial class CSharpOrganizeImportsService : IOrganizeImportsService
 {
-    [ExportLanguageService(typeof(IOrganizeImportsService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpOrganizeImportsService : IOrganizeImportsService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpOrganizeImportsService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpOrganizeImportsService()
-        {
-        }
-
-        public async Task<Document> OrganizeImportsAsync(Document document, OrganizeImportsOptions options, CancellationToken cancellationToken)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var rewriter = new Rewriter(options);
-            var newRoot = rewriter.Visit(root);
-
-            return document.WithSyntaxRoot(newRoot);
-        }
-
-        public string SortImportsDisplayStringWithAccelerator
-            => CSharpWorkspaceResources.Sort_Usings;
-
-        public string SortAndRemoveUnusedImportsDisplayStringWithAccelerator
-            => CSharpWorkspaceResources.Remove_and_Sort_Usings;
     }
+
+    public async Task<Document> OrganizeImportsAsync(Document document, OrganizeImportsOptions options, CancellationToken cancellationToken)
+    {
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        var rewriter = new Rewriter(options);
+        var newRoot = rewriter.Visit(root);
+
+        return document.WithSyntaxRoot(newRoot);
+    }
+
+    public string SortImportsDisplayStringWithAccelerator
+        => CSharpWorkspaceResources.Sort_Usings;
+
+    public string SortAndRemoveUnusedImportsDisplayStringWithAccelerator
+        => CSharpWorkspaceResources.Remove_and_Sort_Usings;
 }

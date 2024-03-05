@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
             // fire-and-forget streaming fashion).  As such, we do not want to use the cancellation
             // token provided by the presenter.  Instead, we'll let our caller own if this work
             // is cancelable.
-            var (context, _) = streamingPresenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true);
+            var (context, _) = streamingPresenter.StartSearch(EditorFeaturesResources.Find_References, new StreamingFindUsagesPresenterOptions { SupportsReferences = true });
 
             var classificationOptions = globalOptions.GetClassificationOptionsProvider();
 

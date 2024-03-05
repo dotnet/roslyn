@@ -4,10 +4,9 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+internal interface IVSTypeScriptDiagnosticAnalyzerService
 {
-    internal interface IVSTypeScriptDiagnosticAnalyzerService
-    {
-        void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false);
-    }
+    void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false);
 }

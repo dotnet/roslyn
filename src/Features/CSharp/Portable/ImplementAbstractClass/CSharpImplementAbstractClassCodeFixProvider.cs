@@ -8,23 +8,22 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ImplementAbstractClass;
 
-namespace Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass
+namespace Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ImplementAbstractClass), Shared]
+[ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateType)]
+internal class CSharpImplementAbstractClassCodeFixProvider :
+    AbstractImplementAbstractClassCodeFixProvider<TypeDeclarationSyntax>
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ImplementAbstractClass), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateType)]
-    internal class CSharpImplementAbstractClassCodeFixProvider :
-        AbstractImplementAbstractClassCodeFixProvider<TypeDeclarationSyntax>
+    private const string CS0534 = nameof(CS0534); // 'Program' does not implement inherited abstract member 'Goo.bar()'
+
+    [ImportingConstructor]
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    public CSharpImplementAbstractClassCodeFixProvider()
+        : base(CS0534)
     {
-        private const string CS0534 = nameof(CS0534); // 'Program' does not implement inherited abstract member 'Goo.bar()'
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpImplementAbstractClassCodeFixProvider()
-            : base(CS0534)
-        {
-        }
-
-        protected override SyntaxToken GetClassIdentifier(TypeDeclarationSyntax classNode)
-            => classNode.Identifier;
     }
+
+    protected override SyntaxToken GetClassIdentifier(TypeDeclarationSyntax classNode)
+        => classNode.Identifier;
 }

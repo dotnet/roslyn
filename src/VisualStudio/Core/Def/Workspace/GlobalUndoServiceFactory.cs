@@ -14,68 +14,67 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.VisualStudio.LanguageServices.Implementation;
+
+using Workspace = Microsoft.CodeAnalysis.Workspace;
+
+/// <summary>
+/// A service that provide a way to undo operations applied to the workspace
+/// </summary>
+[ExportWorkspaceServiceFactory(typeof(IGlobalUndoService), ServiceLayer.Host), Shared]
+internal partial class GlobalUndoServiceFactory : IWorkspaceServiceFactory
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
+    private readonly GlobalUndoService _singleton;
 
-    /// <summary>
-    /// A service that provide a way to undo operations applied to the workspace
-    /// </summary>
-    [ExportWorkspaceServiceFactory(typeof(IGlobalUndoService), ServiceLayer.Host), Shared]
-    internal partial class GlobalUndoServiceFactory : IWorkspaceServiceFactory
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public GlobalUndoServiceFactory(
+        IThreadingContext threadingContext,
+        ITextUndoHistoryRegistry undoHistoryRegistry,
+        SVsServiceProvider serviceProvider,
+        Lazy<VisualStudioWorkspace> workspace)
     {
-        private readonly GlobalUndoService _singleton;
+        _singleton = new GlobalUndoService(threadingContext, undoHistoryRegistry, serviceProvider, workspace);
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GlobalUndoServiceFactory(
-            IThreadingContext threadingContext,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            SVsServiceProvider serviceProvider,
-            Lazy<VisualStudioWorkspace> workspace)
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => _singleton;
+
+    private class GlobalUndoService : IGlobalUndoService
+    {
+        private readonly IThreadingContext _threadingContext;
+        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
+        private readonly IVsLinkedUndoTransactionManager _undoManager;
+        private readonly Lazy<VisualStudioWorkspace> _lazyVSWorkspace;
+        internal int ActiveTransactions;
+
+        public GlobalUndoService(IThreadingContext threadingContext, ITextUndoHistoryRegistry undoHistoryRegistry, SVsServiceProvider serviceProvider, Lazy<VisualStudioWorkspace> lazyVSWorkspace)
         {
-            _singleton = new GlobalUndoService(threadingContext, undoHistoryRegistry, serviceProvider, workspace);
+            _threadingContext = threadingContext;
+            _undoHistoryRegistry = undoHistoryRegistry;
+            _undoManager = (IVsLinkedUndoTransactionManager)serviceProvider.GetService(typeof(SVsLinkedUndoTransactionManager));
+            _lazyVSWorkspace = lazyVSWorkspace;
         }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => _singleton;
-
-        private class GlobalUndoService : IGlobalUndoService
+        public bool CanUndo(Workspace workspace)
         {
-            private readonly IThreadingContext _threadingContext;
-            private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-            private readonly IVsLinkedUndoTransactionManager _undoManager;
-            private readonly Lazy<VisualStudioWorkspace> _lazyVSWorkspace;
-            internal int ActiveTransactions;
-
-            public GlobalUndoService(IThreadingContext threadingContext, ITextUndoHistoryRegistry undoHistoryRegistry, SVsServiceProvider serviceProvider, Lazy<VisualStudioWorkspace> lazyVSWorkspace)
-            {
-                _threadingContext = threadingContext;
-                _undoHistoryRegistry = undoHistoryRegistry;
-                _undoManager = (IVsLinkedUndoTransactionManager)serviceProvider.GetService(typeof(SVsLinkedUndoTransactionManager));
-                _lazyVSWorkspace = lazyVSWorkspace;
-            }
-
-            public bool CanUndo(Workspace workspace)
-            {
-                // only primary workspace supports global undo
-                return _lazyVSWorkspace.Value == workspace;
-            }
-
-            public IWorkspaceGlobalUndoTransaction OpenGlobalUndoTransaction(Workspace workspace, string description)
-            {
-                if (!CanUndo(workspace))
-                {
-                    throw new ArgumentException(ServicesVSResources.given_workspace_doesn_t_support_undo);
-                }
-
-                var transaction = new WorkspaceUndoTransaction(_threadingContext, _undoHistoryRegistry, _undoManager, workspace, description, this);
-                ActiveTransactions++;
-                return transaction;
-            }
-
-            public bool IsGlobalTransactionOpen(Workspace workspace)
-                => ActiveTransactions > 0;
+            // only primary workspace supports global undo
+            return _lazyVSWorkspace.Value == workspace;
         }
+
+        public IWorkspaceGlobalUndoTransaction OpenGlobalUndoTransaction(Workspace workspace, string description)
+        {
+            if (!CanUndo(workspace))
+            {
+                throw new ArgumentException(ServicesVSResources.given_workspace_doesn_t_support_undo);
+            }
+
+            var transaction = new WorkspaceUndoTransaction(_threadingContext, _undoHistoryRegistry, _undoManager, workspace, description, this);
+            ActiveTransactions++;
+            return transaction;
+        }
+
+        public bool IsGlobalTransactionOpen(Workspace workspace)
+            => ActiveTransactions > 0;
     }
 }

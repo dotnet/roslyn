@@ -7,43 +7,42 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
-namespace Microsoft.CodeAnalysis.CSharp.Structure
+namespace Microsoft.CodeAnalysis.CSharp.Structure;
+
+internal class PropertyDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<PropertyDeclarationSyntax>
 {
-    internal class PropertyDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<PropertyDeclarationSyntax>
+    protected override void CollectBlockSpans(
+        SyntaxToken previousToken,
+        PropertyDeclarationSyntax propertyDeclaration,
+        ref TemporaryArray<BlockSpan> spans,
+        BlockStructureOptions options,
+        CancellationToken cancellationToken)
     {
-        protected override void CollectBlockSpans(
-            SyntaxToken previousToken,
-            PropertyDeclarationSyntax propertyDeclaration,
-            ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptions options,
-            CancellationToken cancellationToken)
+        CSharpStructureHelpers.CollectCommentBlockSpans(propertyDeclaration, ref spans, options);
+
+        // fault tolerance
+        if (propertyDeclaration.AccessorList == null ||
+            propertyDeclaration.AccessorList.OpenBraceToken.IsMissing ||
+            propertyDeclaration.AccessorList.CloseBraceToken.IsMissing)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(propertyDeclaration, ref spans, options);
-
-            // fault tolerance
-            if (propertyDeclaration.AccessorList == null ||
-                propertyDeclaration.AccessorList.OpenBraceToken.IsMissing ||
-                propertyDeclaration.AccessorList.CloseBraceToken.IsMissing)
-            {
-                return;
-            }
-
-            SyntaxNodeOrToken current = propertyDeclaration;
-            var nextSibling = current.GetNextSibling();
-
-            // Check IsNode to compress blank lines after this node if it is the last child of the parent.
-            //
-            // Properties are grouped together with indexers in Metadata as Source.
-            var compressEmptyLines = options.IsMetadataAsSource
-                && (!nextSibling.IsNode || nextSibling.Kind() is SyntaxKind.PropertyDeclaration or SyntaxKind.IndexerDeclaration);
-
-            spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
-                propertyDeclaration,
-                propertyDeclaration.Identifier,
-                compressEmptyLines: compressEmptyLines,
-                autoCollapse: true,
-                type: BlockTypes.Member,
-                isCollapsible: true));
+            return;
         }
+
+        SyntaxNodeOrToken current = propertyDeclaration;
+        var nextSibling = current.GetNextSibling();
+
+        // Check IsNode to compress blank lines after this node if it is the last child of the parent.
+        //
+        // Properties are grouped together with indexers in Metadata as Source.
+        var compressEmptyLines = options.IsMetadataAsSource
+            && (!nextSibling.IsNode || nextSibling.Kind() is SyntaxKind.PropertyDeclaration or SyntaxKind.IndexerDeclaration);
+
+        spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
+            propertyDeclaration,
+            propertyDeclaration.Identifier,
+            compressEmptyLines: compressEmptyLines,
+            autoCollapse: true,
+            type: BlockTypes.Member,
+            isCollapsible: true));
     }
 }

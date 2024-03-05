@@ -399,6 +399,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public const string TopLevelStatementsEntryPointTypeName = "Program";
 
+        internal const string LockTypeName = "Lock";
+        internal const string EnterScopeMethodName = "EnterScope";
+        internal const string LockScopeTypeName = "Scope";
+
         /// <summary>
         /// The name of marker method for an implicit extension type.
         /// </summary>
