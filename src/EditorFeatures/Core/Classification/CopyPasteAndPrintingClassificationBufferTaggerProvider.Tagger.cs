@@ -48,12 +48,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             _subjectBuffer = subjectBuffer;
             _globalOptions = globalOptions;
 
-            // Note: because we use frozen-partial documents for semantic classification, we may end up with incomplete
-            // semantics (esp. during solution load).  Because of this, we also register to hear when the full
-            // compilation is available so that reclassify and bring ourselves up to date.
-            _eventSource = new CompilationAvailableTaggerEventSource(
-                subjectBuffer,
-                asyncListener,
+            _eventSource = TaggerEventSources.Compose(
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, asyncListener),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer));
 
