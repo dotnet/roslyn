@@ -28166,6 +28166,44 @@ namespace System.Runtime.CompilerServices
 ", property.GetDocumentationCommentXml());
         }
 
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1931501")]
+        public void XmlDoc_InsideType(
+            [CombinatorialValues("x", "p")] string identifier,
+            [CombinatorialValues("param", "paramref")] string tag)
+        {
+            var source = $$"""
+                record C(int p)
+                {
+                    /// <{{tag}} name="{{identifier}}"></{{tag}}>
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    /// <summary>Ignored</summary>
+                    public static class IsExternalInit
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            comp.VerifyDiagnostics(
+                // (3,5): warning CS1587: XML comment is not placed on a valid language element
+                //     /// <param name="x"></param>
+                Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(3, 5));
+
+            var tree = comp.SyntaxTrees.Single();
+            var doc = tree.GetRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>().First();
+            var x = doc.DescendantNodes().OfType<IdentifierNameSyntax>().Single();
+            Assert.Equal(identifier, x.Identifier.ValueText);
+
+            var model = comp.GetSemanticModel(tree);
+            var symbolInfo = model.GetSymbolInfo(x);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.True(symbolInfo.IsEmpty);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+        }
+
         [Fact, WorkItem(53912, "https://github.com/dotnet/roslyn/issues/53912")]
         public void XmlDoc_CrefToPositionalProperty_Test53912()
         {

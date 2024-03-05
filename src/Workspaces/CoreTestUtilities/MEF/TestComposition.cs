@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         public static readonly TestComposition Empty = new TestComposition([], [], []);
 
-        private static readonly Dictionary<CacheKey, IExportProviderFactory> s_factoryCache = new Dictionary<CacheKey, IExportProviderFactory>();
+        private static readonly Dictionary<CacheKey, IExportProviderFactory> s_factoryCache = [];
 
         private readonly struct CacheKey : IEquatable<CacheKey>
         {

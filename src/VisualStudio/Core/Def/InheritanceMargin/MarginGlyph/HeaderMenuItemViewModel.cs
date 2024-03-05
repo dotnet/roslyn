@@ -4,19 +4,18 @@
 
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
+
+/// <summary>
+/// The view model used for the header of TargetMenuItemViewModel.
+/// e.g.
+/// 'I↓ Implementing members'
+///       Method 'Bar'
+/// </summary>
+internal class HeaderMenuItemViewModel : MenuItemViewModel
 {
-    /// <summary>
-    /// The view model used for the header of TargetMenuItemViewModel.
-    /// e.g.
-    /// 'I↓ Implementing members'
-    ///       Method 'Bar'
-    /// </summary>
-    internal class HeaderMenuItemViewModel : MenuItemViewModel
+    public HeaderMenuItemViewModel(string displayContent, ImageMoniker imageMoniker)
+        : base(displayContent, imageMoniker)
     {
-        public HeaderMenuItemViewModel(string displayContent, ImageMoniker imageMoniker)
-            : base(displayContent, imageMoniker)
-        {
-        }
     }
 }

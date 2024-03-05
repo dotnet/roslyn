@@ -1714,4 +1714,76 @@ public sealed partial class UseCollectionInitializerTests
             }
             """, languageVersion: LanguageVersion.CSharp12);
     }
+
+    [Fact]
+    public async Task TestDictionaryInitializerAmbiguity1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        var v = [|new|] List<int[]>();
+                        [|v.Add(|][1, 2, 3]);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M()
+                    {
+                        var v = new List<int[]>
+                        {
+                            ([1, 2, 3])
+                        };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestDictionaryInitializerAmbiguity2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        var v = [|new|] List<int[]>();
+                        // Leading
+                        [|v.Add(|][1, 2, 3]);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M()
+                    {
+                        var v = new List<int[]>
+                        {
+                            // Leading
+                            ([1, 2, 3])
+                        };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }

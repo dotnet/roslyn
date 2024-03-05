@@ -4,10 +4,9 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.SolutionCrawler
+namespace Microsoft.CodeAnalysis.SolutionCrawler;
+
+internal static class WellKnownSolutionCrawlerAnalyzers
 {
-    internal static class WellKnownSolutionCrawlerAnalyzers
-    {
-        public const string Diagnostic = nameof(Diagnostic);
-    }
+    public const string Diagnostic = nameof(Diagnostic);
 }

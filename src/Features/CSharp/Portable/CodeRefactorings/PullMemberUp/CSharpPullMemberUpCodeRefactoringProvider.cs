@@ -15,19 +15,18 @@ using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
-{
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.PullMemberUp), Shared]
-    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-    internal class CSharpPullMemberUpCodeRefactoringProvider(IPullMemberUpOptionsService service) : AbstractPullMemberUpRefactoringProvider(service)
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpPullMemberUpCodeRefactoringProvider() : this(service: null)
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp;
 
-        protected override Task<ImmutableArray<SyntaxNode>> GetSelectedNodesAsync(CodeRefactoringContext context)
-            => NodeSelectionHelpers.GetSelectedDeclarationsOrVariablesAsync(context);
+[ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.PullMemberUp), Shared]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
+internal class CSharpPullMemberUpCodeRefactoringProvider(IPullMemberUpOptionsService service) : AbstractPullMemberUpRefactoringProvider(service)
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpPullMemberUpCodeRefactoringProvider() : this(service: null)
+    {
     }
+
+    protected override Task<ImmutableArray<SyntaxNode>> GetSelectedNodesAsync(CodeRefactoringContext context)
+        => NodeSelectionHelpers.GetSelectedDeclarationsOrVariablesAsync(context);
 }

@@ -498,15 +498,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (method.IsExtensionMethod)
             {
                 Debug.Assert(expression == null);
-                Debug.Assert(method.Parameters.AsSpan()[1..].All(p => (p.IsOptional || p.IsParams) && p.RefKind == RefKind.None));
-                Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds[0] is RefKind.In or RefKind.RefReadOnlyParameter or RefKind.None);
+                Debug.Assert(method.Parameters.AsSpan()[1..].All(static (p) => (p.IsOptional || p.IsParams) && p.RefKind is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter));
             }
             else
             {
                 Debug.Assert(method.Parameters.All(p => p.IsOptional || p.IsParams));
-                Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty);
             }
 
+            Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds.All(static refKind => refKind is RefKind.In or RefKind.RefReadOnlyParameter or RefKind.None));
             Debug.Assert(methodArgumentInfo.Arguments.All(arg => arg is not BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler }));
 #endif
 

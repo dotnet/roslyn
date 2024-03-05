@@ -340,6 +340,7 @@
                 case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
                 case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
                 case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
+                case ErrorCode.WRN_ConvertingLock:
                     return true;
                 default:
                     return false;

@@ -8,13 +8,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+
+internal class AnalyzerSettingsUpdater(Workspace workspace, string editorconfigPath) : SettingsUpdaterBase<AnalyzerSetting, ReportDiagnostic>(workspace, editorconfigPath)
 {
-    internal class AnalyzerSettingsUpdater(Workspace workspace, string editorconfigPath) : SettingsUpdaterBase<AnalyzerSetting, ReportDiagnostic>(workspace, editorconfigPath)
-    {
-        protected override SourceText? GetNewText(SourceText sourceText,
-                                                  IReadOnlyList<(AnalyzerSetting option, ReportDiagnostic value)> settingsToUpdate,
-                                                  CancellationToken token)
-            => SettingsUpdateHelper.TryUpdateAnalyzerConfigDocument(sourceText, EditorconfigPath, settingsToUpdate);
-    }
+    protected override SourceText? GetNewText(SourceText sourceText,
+                                              IReadOnlyList<(AnalyzerSetting option, ReportDiagnostic value)> settingsToUpdate,
+                                              CancellationToken token)
+        => SettingsUpdateHelper.TryUpdateAnalyzerConfigDocument(sourceText, EditorconfigPath, settingsToUpdate);
 }

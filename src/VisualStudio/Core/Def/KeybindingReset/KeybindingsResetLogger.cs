@@ -4,19 +4,18 @@
 
 using Microsoft.CodeAnalysis.Internal.Log;
 
-namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
-{
-    internal static class KeybindingsResetLogger
-    {
-        private const string Name = "KeybindingsResetDetector";
+namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset;
 
-        public static void Log(string action)
+internal static class KeybindingsResetLogger
+{
+    private const string Name = "KeybindingsResetDetector";
+
+    public static void Log(string action)
+    {
+        Logger.Log(FunctionId.Experiment_KeybindingsReset, KeyValueLogMessage.Create(LogType.UserAction, m =>
         {
-            Logger.Log(FunctionId.Experiment_KeybindingsReset, KeyValueLogMessage.Create(LogType.UserAction, m =>
-            {
-                m[nameof(Name)] = Name;
-                m[nameof(action)] = action;
-            }));
-        }
+            m[nameof(Name)] = Name;
+            m[nameof(action)] = action;
+        }));
     }
 }

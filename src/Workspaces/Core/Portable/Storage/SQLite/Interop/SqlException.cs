@@ -4,10 +4,9 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.SQLite.Interop
+namespace Microsoft.CodeAnalysis.SQLite.Interop;
+
+internal class SqlException(Result result, string message) : Exception(message)
 {
-    internal class SqlException(Result result, string message) : Exception(message)
-    {
-        public readonly Result Result = result;
-    }
+    public readonly Result Result = result;
 }

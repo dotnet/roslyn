@@ -31,6 +31,7 @@ Imports Microsoft.VisualStudio.Shell.TableControl
 Imports Microsoft.VisualStudio.Shell.TableManager
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.Editor.Host
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
@@ -68,7 +69,7 @@ class {|Definition:C1|}
             Using workspace = EditorTestWorkspace.Create(input, composition:=composition, documentServiceProvider:=TestDocumentServiceProvider.Instance)
 
                 Dim presenter = New StreamingFindUsagesPresenter(workspace, workspace.ExportProvider.AsExportProvider())
-                Dim tuple = presenter.StartSearch("test", supportsReferences:=True)
+                Dim tuple = presenter.StartSearch("test", New StreamingFindUsagesPresenterOptions() With {.SupportsReferences = True})
                 Dim context = tuple.context
 
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
