@@ -6044,7 +6044,7 @@ partial struct CustomHandler
         Assert.True(interceptor.GetSymbol()!.HasComplete(CompletionPart.Attributes));
 
         // Possibly irrelevant attributes within interceptors namespaces are still bound when discovering interceptors.
-        // TODO2: perhaps QuickAttributes should be used in order to bail out in some cases.
+        // https://github.com/dotnet/roslyn/issues/72410: perhaps QuickAttributes should be used in order to bail out in some cases.
         var EM = comp.GetMember<MethodSymbol>("Interceptors.E.M");
         Assert.True(EM.HasComplete(CompletionPart.Attributes));
 
