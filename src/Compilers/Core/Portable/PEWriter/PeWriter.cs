@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -38,10 +36,10 @@ namespace Microsoft.Cci
         internal static bool WritePeToStream(
             EmitContext context,
             CommonMessageProvider messageProvider,
-            Func<Stream> getPeStream,
-            Func<Stream> getPortablePdbStreamOpt,
-            PdbWriter nativePdbWriterOpt,
-            string pdbPathOpt,
+            Func<Stream?> getPeStream,
+            Func<Stream?>? getPortablePdbStreamOpt,
+            PdbWriter? nativePdbWriterOpt,
+            string? pdbPathOpt,
             bool metadataOnly,
             bool isDeterministic,
             bool emitTestCoverageData,
@@ -113,7 +111,7 @@ namespace Microsoft.Cci
                 nativePdbWriterOpt.WriteCompilerVersion(context.Module.CommonCompilation.Language);
             }
 
-            Stream peStream = getPeStream();
+            Stream? peStream = getPeStream();
             if (peStream == null)
             {
                 return false;
@@ -155,8 +153,8 @@ namespace Microsoft.Cci
             // We need to calculate the PDB checksum, so we may as well use the calculated hash for PDB ID regardless of whether deterministic build is requested.
             var portablePdbContentHash = default(ImmutableArray<byte>);
 
-            PooledBlobBuilder portablePdbBuilderOwner = null;
-            PooledBlobBuilder portablePdbToEmbed = null;
+            PooledBlobBuilder? portablePdbBuilderOwner = null;
+            PooledBlobBuilder? portablePdbToEmbed = null;
             if (mdWriter.EmitPortableDebugMetadata)
             {
                 mdWriter.AddRemainingDebugDocuments(mdWriter.Module.DebugDocumentsBuilder.DebugDocuments);
@@ -182,7 +180,7 @@ namespace Microsoft.Cci
                 else
                 {
                     // write to Portable PDB stream:
-                    Stream portablePdbStream = getPortablePdbStreamOpt();
+                    Stream? portablePdbStream = getPortablePdbStreamOpt();
                     if (portablePdbStream != null)
                     {
                         try
@@ -197,7 +195,7 @@ namespace Microsoft.Cci
                 }
             }
 
-            DebugDirectoryBuilder debugDirectoryBuilder;
+            DebugDirectoryBuilder? debugDirectoryBuilder;
             if (pdbPathOpt != null || isDeterministic || portablePdbToEmbed != null)
             {
                 debugDirectoryBuilder = new DebugDirectoryBuilder();
@@ -211,7 +209,7 @@ namespace Microsoft.Cci
                         // Emit PDB Checksum entry for Portable and Embedded PDBs. The checksum is not as useful when the PDB is embedded, 
                         // however it allows the client to efficiently validate a standalone Portable PDB that 
                         // has been extracted from Embedded PDB and placed next to the PE file.
-                        debugDirectoryBuilder.AddPdbChecksumEntry(context.Module.PdbChecksumAlgorithm.Name, portablePdbContentHash);
+                        debugDirectoryBuilder.AddPdbChecksumEntry(context.Module.PdbChecksumAlgorithm.Name!, portablePdbContentHash);
                     }
                 }
 
@@ -266,6 +264,7 @@ namespace Microsoft.Cci
 
             if (privateKeyOpt != null && corFlags.HasFlag(CorFlags.StrongNameSigned))
             {
+                Debug.Assert(strongNameProvider != null);
                 strongNameProvider.SignBuilder(peBuilder, peBlob, privateKeyOpt.Value);
             }
 
@@ -283,7 +282,8 @@ namespace Microsoft.Cci
             return true;
         }
 
-        private static MethodInfo s_calculateChecksumMethod;
+        private static MethodInfo? s_calculateChecksumMethod;
+
         // internal for testing
         internal static uint CalculateChecksum(BlobBuilder peBlob, Blob checksumBlob)
         {
@@ -298,7 +298,7 @@ namespace Microsoft.Cci
             {
                 peBlob,
                 checksumBlob,
-            });
+            })!;
         }
 
         private static void PatchModuleVersionIds(Blob guidFixup, Blob guidSectionFixup, Blob stringFixup, Guid mvid)
@@ -334,7 +334,7 @@ namespace Microsoft.Cci
             return path + new string('\0', Math.Max(0, minLength - Encoding.UTF8.GetByteCount(path) - 1));
         }
 
-        private static ResourceSectionBuilder CreateNativeResourceSectionSerializer(CommonPEModuleBuilder module)
+        private static ResourceSectionBuilder? CreateNativeResourceSectionSerializer(CommonPEModuleBuilder module)
         {
             // Win32 resources are supplied to the compiler in one of two forms, .RES (the output of the resource compiler),
             // or .OBJ (the output of running cvtres.exe on a .RES file). A .RES file is parsed and processed into
