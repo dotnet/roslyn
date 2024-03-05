@@ -2292,6 +2292,11 @@
         <target state="translated">constructeurs de struct sans paramètre</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureParamsCollections">
+        <source>params collections</source>
+        <target state="new">params collections</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
         <target state="translated">champs positionnels dans les enregistrements</target>
@@ -2390,11 +2395,6 @@
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;manquant&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_ParamsCollections">
-        <source>params collections</source>
-        <target state="new">params collections</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">

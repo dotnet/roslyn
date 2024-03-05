@@ -1646,7 +1646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (collectionTypeKind != CollectionExpressionTypeKind.Array)
                 {
-                    MessageID.IDS_ParamsCollections.CheckFeatureAvailability(diagnostics, ParameterSyntax);
+                    MessageID.IDS_FeatureParamsCollections.CheckFeatureAvailability(diagnostics, ParameterSyntax);
                 }
             }
 

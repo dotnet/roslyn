@@ -1588,7 +1588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (Compilation.SourceModule != parameters[paramsIndex].ContainingModule)
                     {
-                        MessageID.IDS_ParamsCollections.CheckFeatureAvailability(diagnostics, node);
+                        MessageID.IDS_FeatureParamsCollections.CheckFeatureAvailability(diagnostics, node);
                     }
 
                     var unconvertedCollection = new BoundUnconvertedCollectionExpression(node, ImmutableArray<BoundNode>.CastUp(collectionArgs)) { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
