@@ -5,6 +5,7 @@
 #if !NETCOREAPP
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -100,10 +101,25 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 var assemblyName = new AssemblyName(args.Name);
-                string? bestPath = GetBestPath(assemblyName);
-                if (bestPath is not null)
+                var isSatelliteAssembly =
+                    assemblyName.CultureInfo is CultureInfo cultureInfo &&
+                    !cultureInfo.IsNeutralCulture &&
+                    assemblyName.Name.EndsWith(".resources", StringComparison.Ordinal);
+
+                if (isSatelliteAssembly)
                 {
-                    return Assembly.LoadFrom(bestPath);
+                    assemblyName.Name = assemblyName.Name[..^".resources".Length];
+                }
+
+                var (originalPath, realPath) = GetBestPath(assemblyName);
+                if (realPath is not null)
+                {
+                    if (isSatelliteAssembly)
+                    {
+                        realPath = GetSatelliteInfoForPath(originalPath, assemblyName.CultureName);
+                    }
+
+                    return Assembly.LoadFrom(realPath);
                 }
 
                 return null;
