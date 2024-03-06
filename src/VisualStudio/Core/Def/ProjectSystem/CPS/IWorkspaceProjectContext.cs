@@ -73,7 +73,6 @@ internal interface IWorkspaceProjectContext : IDisposable
     void RemoveAnalyzerConfigFile(string filePath);
 
     void StartBatch();
-    ValueTask StartBatchAsync(CancellationToken cancellationToken);
     IAsyncDisposable CreateBatchScope();
     ValueTask<IAsyncDisposable> CreateBatchScopeAsync(CancellationToken cancellationToken);
     ValueTask EndBatchAsync();
