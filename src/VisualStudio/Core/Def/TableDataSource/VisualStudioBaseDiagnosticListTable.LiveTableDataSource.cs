@@ -172,20 +172,9 @@ internal abstract partial class VisualStudioBaseDiagnosticListTable
             return new AggregatedKey(documents, liveArgsId.Analyzer, liveArgsId.Kind);
         }
 
-        private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)
+        private void PopulateInitialData(Workspace _1, IDiagnosticService _2)
         {
-            var diagnostics = diagnosticService.GetDiagnosticBuckets(
-                workspace, projectId: null, documentId: null, cancellationToken: CancellationToken.None);
-
-            foreach (var bucket in diagnostics)
-            {
-                // We only need to issue an event to VS that these docs have diagnostics associated with them.  So
-                // we create a dummy notification for this.  It doesn't matter that it is 'DiagnosticsRemoved' as
-                // this doesn't actually change any data.  All that will happen now is that VS will call back into
-                // us for these IDs and we'll fetch the diagnostics at that point.
-                OnDataAddedOrChanged(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                    bucket.Id, bucket.Workspace, solution: null, bucket.ProjectId, bucket.DocumentId));
-            }
+            // We no longer have Solution-Crawler mode.  So this method does nothing.
         }
 
         private void OnDiagnosticsUpdated(object sender, ImmutableArray<DiagnosticsUpdatedArgs> argsCollection)
