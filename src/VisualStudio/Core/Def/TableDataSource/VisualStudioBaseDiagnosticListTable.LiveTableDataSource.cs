@@ -172,7 +172,7 @@ internal abstract partial class VisualStudioBaseDiagnosticListTable
             return new AggregatedKey(documents, liveArgsId.Analyzer, liveArgsId.Kind);
         }
 
-        private void PopulateInitialData(Workspace _1, IDiagnosticService _2)
+        private static void PopulateInitialData(Workspace _1, IDiagnosticService _2)
         {
             // We no longer have Solution-Crawler mode.  So this method does nothing.
         }
@@ -188,7 +188,8 @@ internal abstract partial class VisualStudioBaseDiagnosticListTable
                         continue;
                     }
 
-                    var diagnostics = e.Diagnostics;
+                    // We no longer have solution-crawler mode.  So we don't do anything here.
+                    var diagnostics = ImmutableArray<DiagnosticData>.Empty;
                     if (diagnostics.Length == 0)
                     {
                         OnDataRemoved(e);
