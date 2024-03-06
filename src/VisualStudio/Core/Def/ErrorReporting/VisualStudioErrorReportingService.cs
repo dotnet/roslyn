@@ -14,82 +14,81 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.CodeAnalysis.ErrorReporting
+namespace Microsoft.CodeAnalysis.ErrorReporting;
+
+[ExportWorkspaceService(typeof(IErrorReportingService), ServiceLayer.Host), Shared]
+internal partial class VisualStudioErrorReportingService : IErrorReportingService
 {
-    [ExportWorkspaceService(typeof(IErrorReportingService), ServiceLayer.Host), Shared]
-    internal partial class VisualStudioErrorReportingService : IErrorReportingService
+    private readonly IThreadingContext _threadingContext;
+    private readonly IVsService<IVsActivityLog> _activityLog;
+    private readonly IAsynchronousOperationListener _listener;
+    private readonly VisualStudioInfoBar _infoBar;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VisualStudioErrorReportingService(
+        IThreadingContext threadingContext,
+        IVsService<SVsActivityLog, IVsActivityLog> activityLog,
+        IAsynchronousOperationListenerProvider listenerProvider,
+        SVsServiceProvider serviceProvider)
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly IVsService<IVsActivityLog> _activityLog;
-        private readonly IAsynchronousOperationListener _listener;
-        private readonly VisualStudioInfoBar _infoBar;
+        _threadingContext = threadingContext;
+        _activityLog = activityLog;
+        _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
+        _infoBar = new VisualStudioInfoBar(threadingContext, serviceProvider, listenerProvider);
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioErrorReportingService(
-            IThreadingContext threadingContext,
-            IVsService<SVsActivityLog, IVsActivityLog> activityLog,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            SVsServiceProvider serviceProvider)
+    public string HostDisplayName => "Visual Studio";
+
+    public void ShowGlobalErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception, params InfoBarUI[] items)
+    {
+        var stackTrace = exception is null ? "" : GetFormattedExceptionStack(exception);
+        LogGlobalErrorToActivityLog(message, stackTrace);
+        _infoBar.ShowInfoBar(message, items);
+
+        Logger.Log(FunctionId.VS_ErrorReportingService_ShowGlobalErrorInfo, KeyValueLogMessage.Create(LogType.UserAction, m =>
         {
-            _threadingContext = threadingContext;
-            _activityLog = activityLog;
-            _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
-            _infoBar = new VisualStudioInfoBar(threadingContext, serviceProvider, listenerProvider);
+            m["Message"] = message;
+            m["FeatureName"] = featureName.ToString();
+        }));
+    }
+
+    public void ShowDetailedErrorInfo(Exception exception)
+    {
+        var errorInfo = GetFormattedExceptionStack(exception);
+        new DetailedErrorInfoDialog(exception.Message, errorInfo).ShowModal();
+    }
+
+    public void ShowFeatureNotAvailableErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception)
+    {
+        var infoBarUIs = new List<InfoBarUI>();
+
+        if (exception != null)
+        {
+            infoBarUIs.Add(new InfoBarUI(
+                WorkspacesResources.Show_Stack_Trace,
+                InfoBarUI.UIKind.HyperLink,
+                () => ShowDetailedErrorInfo(exception),
+                closeAfterAction: true));
         }
 
-        public string HostDisplayName => "Visual Studio";
+        ShowGlobalErrorInfo(message, featureName, exception, infoBarUIs.ToArray());
+    }
 
-        public void ShowGlobalErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception, params InfoBarUI[] items)
+    private void LogGlobalErrorToActivityLog(string message, string? detailedError)
+    {
+        _ = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
         {
-            var stackTrace = exception is null ? "" : GetFormattedExceptionStack(exception);
-            LogGlobalErrorToActivityLog(message, stackTrace);
-            _infoBar.ShowInfoBar(message, items);
+            using var _ = _listener.BeginAsyncOperation(nameof(LogGlobalErrorToActivityLog));
 
-            Logger.Log(FunctionId.VS_ErrorReportingService_ShowGlobalErrorInfo, KeyValueLogMessage.Create(LogType.UserAction, m =>
-            {
-                m["Message"] = message;
-                m["FeatureName"] = featureName.ToString();
-            }));
-        }
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
-        public void ShowDetailedErrorInfo(Exception exception)
-        {
-            var errorInfo = GetFormattedExceptionStack(exception);
-            new DetailedErrorInfoDialog(exception.Message, errorInfo).ShowModal();
-        }
+            var activityLog = await _activityLog.GetValueAsync(_threadingContext.DisposalToken).ConfigureAwait(true);
 
-        public void ShowFeatureNotAvailableErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception)
-        {
-            var infoBarUIs = new List<InfoBarUI>();
-
-            if (exception != null)
-            {
-                infoBarUIs.Add(new InfoBarUI(
-                    WorkspacesResources.Show_Stack_Trace,
-                    InfoBarUI.UIKind.HyperLink,
-                    () => ShowDetailedErrorInfo(exception),
-                    closeAfterAction: true));
-            }
-
-            ShowGlobalErrorInfo(message, featureName, exception, infoBarUIs.ToArray());
-        }
-
-        private void LogGlobalErrorToActivityLog(string message, string? detailedError)
-        {
-            _ = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
-            {
-                using var _ = _listener.BeginAsyncOperation(nameof(LogGlobalErrorToActivityLog));
-
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
-
-                var activityLog = await _activityLog.GetValueAsync(_threadingContext.DisposalToken).ConfigureAwait(true);
-
-                activityLog.LogEntry(
-                    (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR,
-                    nameof(VisualStudioErrorReportingService),
-                    string.Join(Environment.NewLine, message, detailedError));
-            });
-        }
+            activityLog.LogEntry(
+                (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR,
+                nameof(VisualStudioErrorReportingService),
+                string.Join(Environment.NewLine, message, detailedError));
+        });
     }
 }

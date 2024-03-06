@@ -6,11 +6,10 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
+
+internal class JsonEmbeddedLanguage : IEmbeddedLanguage
 {
-    internal class JsonEmbeddedLanguage : IEmbeddedLanguage
-    {
-        // No completion for embedded json currently.
-        public EmbeddedLanguageCompletionProvider? CompletionProvider => null;
-    }
+    // No completion for embedded json currently.
+    public EmbeddedLanguageCompletionProvider? CompletionProvider => null;
 }

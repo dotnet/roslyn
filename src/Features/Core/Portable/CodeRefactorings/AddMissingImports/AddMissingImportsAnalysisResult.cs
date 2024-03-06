@@ -5,12 +5,11 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.AddImport;
 
-namespace Microsoft.CodeAnalysis.AddMissingImports
+namespace Microsoft.CodeAnalysis.AddMissingImports;
+
+internal sealed class AddMissingImportsAnalysisResult(
+    ImmutableArray<AddImportFixData> addImportFixData)
 {
-    internal sealed class AddMissingImportsAnalysisResult(
-        ImmutableArray<AddImportFixData> addImportFixData)
-    {
-        public ImmutableArray<AddImportFixData> AddImportFixData { get; } = addImportFixData;
-        public bool CanAddMissingImports => !AddImportFixData.IsEmpty;
-    }
+    public ImmutableArray<AddImportFixData> AddImportFixData { get; } = addImportFixData;
+    public bool CanAddMissingImports => !AddImportFixData.IsEmpty;
 }

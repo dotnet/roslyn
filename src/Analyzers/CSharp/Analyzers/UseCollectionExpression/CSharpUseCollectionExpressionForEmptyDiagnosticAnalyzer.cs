@@ -56,6 +56,7 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
             Descriptor,
             memberAccess.Name.Identifier.GetLocation(),
             option.Notification,
+            context.Options,
             additionalLocations: ImmutableArray.Create(nodeToReplace.GetLocation()),
             properties: changesSemantics ? ChangesSemantics : null));
     }

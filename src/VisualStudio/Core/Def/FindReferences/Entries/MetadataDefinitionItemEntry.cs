@@ -9,57 +9,45 @@ using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.FindSymbols.Finders;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.Shell.TableManager;
 
-namespace Microsoft.VisualStudio.LanguageServices.FindUsages
+namespace Microsoft.VisualStudio.LanguageServices.FindUsages;
+
+internal partial class StreamingFindUsagesPresenter
 {
-    internal partial class StreamingFindUsagesPresenter
+    private class MetadataDefinitionItemEntry(
+        AbstractTableDataSourceFindUsagesContext context,
+        RoslynDefinitionBucket definitionBucket,
+        AssemblyLocation metadataLocation,
+        IThreadingContext threadingContext)
+        : AbstractItemEntry(definitionBucket, context.Presenter), ISupportsNavigation
     {
-        private class MetadataDefinitionItemEntry : AbstractItemEntry, ISupportsNavigation
+        protected override object? GetValueWorker(string keyName)
+            => keyName switch
+            {
+                StandardTableKeyNames.ProjectName => metadataLocation.Version != Versions.Null
+                    ? string.Format(ServicesVSResources.AssemblyNameAndVersionDisplay, metadataLocation.Name, metadataLocation.Version)
+                    : metadataLocation.Name,
+                StandardTableKeyNames.DisplayPath => metadataLocation.FilePath,
+                StandardTableKeyNames.Text => DefinitionBucket.DefinitionItem.DisplayParts.JoinText(),
+                StandardTableKeyNames.ItemOrigin => ItemOrigin.ExactMetadata,
+                _ => null,
+            };
+
+        public bool CanNavigateTo()
+            => true;
+
+        public async Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
         {
-            private readonly IThreadingContext _threadingContext;
-
-            public MetadataDefinitionItemEntry(
-                AbstractTableDataSourceFindUsagesContext context,
-                RoslynDefinitionBucket definitionBucket,
-                IThreadingContext threadingContext)
-                : base(definitionBucket, context.Presenter)
-            {
-                _threadingContext = threadingContext;
-            }
-
-            protected override object? GetValueWorker(string keyName)
-            {
-                switch (keyName)
-                {
-                    case StandardTableKeyNames.ProjectName:
-                        return DefinitionBucket.DefinitionItem.OriginationParts.JoinText();
-                    case StandardTableKeyNames.DocumentName:
-                        return DefinitionBucket.DefinitionItem.Properties[AbstractReferenceFinder.ContainingTypeInfoPropertyName];
-                    case StandardTableKeyNames.Text:
-                        return DefinitionBucket.DefinitionItem.DisplayParts.JoinText();
-                    case StandardTableKeyNames.ItemOrigin:
-                        return ItemOrigin.ExactMetadata;
-                }
-
-                return null;
-            }
-
-            public bool CanNavigateTo()
-                => true;
-
-            public async Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
-            {
-                var location = await DefinitionBucket.DefinitionItem.GetNavigableLocationAsync(
-                    Presenter._workspace, cancellationToken).ConfigureAwait(false);
-                await location.TryNavigateToAsync(_threadingContext, options, cancellationToken).ConfigureAwait(false);
-            }
-
-            protected override IList<Inline> CreateLineTextInlines()
-                => DefinitionBucket.DefinitionItem.DisplayParts
-                    .ToInlines(Presenter.ClassificationFormatMap, Presenter.TypeMap);
+            var location = await DefinitionBucket.DefinitionItem.GetNavigableLocationAsync(
+                Presenter._workspace, cancellationToken).ConfigureAwait(false);
+            await location.TryNavigateToAsync(threadingContext, options, cancellationToken).ConfigureAwait(false);
         }
+
+        protected override IList<Inline> CreateLineTextInlines()
+            => DefinitionBucket.DefinitionItem.DisplayParts
+                .ToInlines(Presenter.ClassificationFormatMap, Presenter.TypeMap);
     }
 }

@@ -59,6 +59,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
             Descriptor,
             expression.GetFirstToken().GetLocation(),
             option.Notification,
+            context.Options,
             additionalLocations: locations,
             properties: null));
 
@@ -71,6 +72,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
             NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+            context.Options,
             additionalLocations: locations,
             additionalUnnecessaryLocations: additionalUnnecessaryLocations));
     }
@@ -97,6 +99,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
             Descriptor,
             expression.GetFirstToken().GetLocation(),
             option.Notification,
+            context.Options,
             additionalLocations: locations,
             properties: null));
 
@@ -109,6 +112,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
             NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+            context.Options,
             additionalLocations: locations,
             additionalUnnecessaryLocations: additionalUnnecessaryLocations));
     }

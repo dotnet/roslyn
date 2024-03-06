@@ -7,23 +7,22 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp.Simplification
-{
-    internal sealed partial class CSharpNullableAnnotationReducer
-    {
-        private class Rewriter : AbstractReductionRewriter
-        {
-            public Rewriter(ObjectPool<IReductionRewriter> pool) : base(pool)
-            {
-            }
+namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
-            public override SyntaxNode VisitNullableType(NullableTypeSyntax node)
-            {
-                return SimplifyNode(
-                    node,
-                    base.VisitNullableType(node),
-                    simplifier: s_simplifyNullableType);
-            }
+internal sealed partial class CSharpNullableAnnotationReducer
+{
+    private class Rewriter : AbstractReductionRewriter
+    {
+        public Rewriter(ObjectPool<IReductionRewriter> pool) : base(pool)
+        {
+        }
+
+        public override SyntaxNode VisitNullableType(NullableTypeSyntax node)
+        {
+            return SimplifyNode(
+                node,
+                base.VisitNullableType(node),
+                simplifier: s_simplifyNullableType);
         }
     }
 }

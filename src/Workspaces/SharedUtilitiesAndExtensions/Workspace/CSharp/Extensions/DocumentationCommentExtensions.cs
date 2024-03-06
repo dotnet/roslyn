@@ -6,18 +6,17 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
-{
-    internal static class DocumentationCommentExtensions
-    {
-        public static bool IsMultilineDocComment([NotNullWhen(true)] this DocumentationCommentTriviaSyntax? documentationComment)
-        {
-            if (documentationComment == null)
-            {
-                return false;
-            }
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
-            return documentationComment.ToFullString().StartsWith("/**", StringComparison.Ordinal);
+internal static class DocumentationCommentExtensions
+{
+    public static bool IsMultilineDocComment([NotNullWhen(true)] this DocumentationCommentTriviaSyntax? documentationComment)
+    {
+        if (documentationComment == null)
+        {
+            return false;
         }
+
+        return documentationComment.ToFullString().StartsWith("/**", StringComparison.Ordinal);
     }
 }

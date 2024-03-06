@@ -7,12 +7,11 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Snippets
+namespace Microsoft.CodeAnalysis.Snippets;
+
+internal interface ISnippetInfoService : ILanguageService
 {
-    internal interface ISnippetInfoService : ILanguageService
-    {
-        IEnumerable<SnippetInfo> GetSnippetsIfAvailable();
-        bool SnippetShortcutExists_NonBlocking(string shortcut);
-        bool ShouldFormatSnippet(SnippetInfo snippetInfo);
-    }
+    IEnumerable<SnippetInfo> GetSnippetsIfAvailable();
+    bool SnippetShortcutExists_NonBlocking(string shortcut);
+    bool ShouldFormatSnippet(SnippetInfo snippetInfo);
 }
