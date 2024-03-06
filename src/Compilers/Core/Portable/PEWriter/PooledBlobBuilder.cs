@@ -6,6 +6,9 @@ using System;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Operations;
+using System.Diagnostics;
 
 namespace Microsoft.Cci
 {
@@ -13,6 +16,10 @@ namespace Microsoft.Cci
     {
         private const int PoolSize = 128;
         private const int PoolChunkSize = 1024;
+
+#if DEBUG
+        internal bool IsAlive { get; private set; }
+#endif
 
         private static readonly ObjectPool<PooledBlobBuilder> s_chunkPool = new ObjectPool<PooledBlobBuilder>(() => new PooledBlobBuilder(PoolChunkSize), PoolSize);
 
@@ -40,6 +47,10 @@ namespace Microsoft.Cci
                 builder.WriteBytes(0, builder.ChunkCapacity);
                 builder.Clear();
             }
+#if DEBUG
+            builder.IsAlive = true;
+#endif
+
             return builder;
         }
 
@@ -77,6 +88,17 @@ namespace Microsoft.Cci
             {
                 s_chunkPool.Free(this);
             }
+#if DEBUG
+            IsAlive = false;
+#endif
+        }
+
+        [Conditional("DEBUG")]
+        public void AssertAlive()
+        {
+#if DEBUG
+            Debug.Assert(IsAlive);
+#endif
         }
 
         public new void Free()
