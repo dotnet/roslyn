@@ -23,8 +23,9 @@ internal sealed class VSTypeScriptDiagnosticService(IDiagnosticService service) 
 
     public async Task<ImmutableArray<VSTypeScriptDiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
     {
-        var result = await _service.GetDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-        return result.SelectAsArray(data => new VSTypeScriptDiagnosticData(data));
+        // this is the TS entrypoint to get push diagnostics.  Since we only have pull diagnostics now, this returns
+        // nothing.
+        return [];
     }
 
     [Obsolete]
