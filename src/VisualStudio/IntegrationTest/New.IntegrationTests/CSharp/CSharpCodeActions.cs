@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
@@ -776,6 +777,7 @@ class C
             static async Task VerifyDiagnosticInErrorListAsync(string expectedSeverity, TestServices testServices, CancellationToken cancellationToken)
             {
                 await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
+                await testServices.Editor.GetTagsAsync<IErrorTag>(cancellationToken);
                 var expectedContents = $"Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used";
 
                 var builder = new StringBuilder();
@@ -856,6 +858,8 @@ dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
             static async Task VerifyDiagnosticInErrorListAsync(string expectedSeverity, TestServices testServices, CancellationToken cancellationToken)
             {
                 await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
+                await testServices.Editor.GetTagsAsync<IErrorTag>(cancellationToken);
+
                 var expectedContents = $"Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used";
 
                 var builder = new StringBuilder();
@@ -969,6 +973,7 @@ dotnet_diagnostic.IDE0059.severity = none", HangMitigatingCancellationToken);
             static async Task VerifyDiagnosticsInErrorListAsync(string expectedCompilerDiagnosticSeverity, string expectedAnalyzerDiagnosticSeverity, TestServices testServices, CancellationToken cancellationToken)
             {
                 await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
+                await testServices.Editor.GetTagsAsync<IErrorTag>(cancellationToken);
 
                 using var _ = ArrayBuilder<string>.GetInstance(out var expectedContentsBuilder);
 
