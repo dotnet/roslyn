@@ -4,23 +4,22 @@
 
 using System.Windows.Controls;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View;
+
+/// <summary>
+/// Interaction logic for CodeStyleValueControl.xaml
+/// </summary>
+internal partial class CodeStyleValueControl : UserControl
 {
-    /// <summary>
-    /// Interaction logic for CodeStyleValueControl.xaml
-    /// </summary>
-    internal partial class CodeStyleValueControl : UserControl
+    private readonly CodeStyleValueViewModel _viewModel;
+
+    public CodeStyleValueControl(CodeStyleValueViewModel viewModel)
     {
-        private readonly CodeStyleValueViewModel _viewModel;
-
-        public CodeStyleValueControl(CodeStyleValueViewModel viewModel)
-        {
-            InitializeComponent();
-            DataContext = viewModel;
-            _viewModel = viewModel;
-        }
-
-        private void ValueComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-            => _viewModel.SelectionChanged(ValueComboBox.SelectedIndex);
+        InitializeComponent();
+        DataContext = viewModel;
+        _viewModel = viewModel;
     }
+
+    private void ValueComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        => _viewModel.SelectionChanged(ValueComboBox.SelectedIndex);
 }

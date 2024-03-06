@@ -6,52 +6,51 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+
+internal sealed class QuickInfoHyperLink : IEquatable<QuickInfoHyperLink?>
 {
-    internal sealed class QuickInfoHyperLink : IEquatable<QuickInfoHyperLink?>
+    private readonly Workspace _workspace;
+
+    public QuickInfoHyperLink(Workspace workspace, Uri uri)
     {
-        private readonly Workspace _workspace;
+        _workspace = workspace;
+        Uri = uri;
 
-        public QuickInfoHyperLink(Workspace workspace, Uri uri)
+        NavigationAction = OpenLink;
+    }
+
+    public Action NavigationAction { get; }
+
+    public Uri Uri { get; }
+
+    public override bool Equals(object? obj)
+    {
+        return Equals(obj as QuickInfoHyperLink);
+    }
+
+    public bool Equals(QuickInfoHyperLink? other)
+    {
+        return EqualityComparer<Uri?>.Default.Equals(Uri, other?.Uri);
+    }
+
+    public override int GetHashCode()
+    {
+        return Uri.GetHashCode();
+    }
+
+    private void OpenLink()
+    {
+        var navigateToLinkService = _workspace.Services.GetRequiredService<INavigateToLinkService>();
+        _ = navigateToLinkService.TryNavigateToLinkAsync(Uri, CancellationToken.None);
+    }
+
+    internal readonly struct TestAccessor
+    {
+        public static Action CreateNavigationAction(Uri uri)
         {
-            _workspace = workspace;
-            Uri = uri;
-
-            NavigationAction = OpenLink;
-        }
-
-        public Action NavigationAction { get; }
-
-        public Uri Uri { get; }
-
-        public override bool Equals(object? obj)
-        {
-            return Equals(obj as QuickInfoHyperLink);
-        }
-
-        public bool Equals(QuickInfoHyperLink? other)
-        {
-            return EqualityComparer<Uri?>.Default.Equals(Uri, other?.Uri);
-        }
-
-        public override int GetHashCode()
-        {
-            return Uri.GetHashCode();
-        }
-
-        private void OpenLink()
-        {
-            var navigateToLinkService = _workspace.Services.GetRequiredService<INavigateToLinkService>();
-            _ = navigateToLinkService.TryNavigateToLinkAsync(Uri, CancellationToken.None);
-        }
-
-        internal readonly struct TestAccessor
-        {
-            public static Action CreateNavigationAction(Uri uri)
-            {
-                // The workspace is not validated by tests
-                return new QuickInfoHyperLink(null!, uri).NavigationAction;
-            }
+            // The workspace is not validated by tests
+            return new QuickInfoHyperLink(null!, uri).NavigationAction;
         }
     }
 }

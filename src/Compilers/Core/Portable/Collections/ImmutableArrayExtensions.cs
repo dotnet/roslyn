@@ -349,6 +349,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, CancellationToken, ValueTask<TResult>> selector, CancellationToken cancellationToken)
         {
+            if (array.IsEmpty)
+                return ImmutableArray<TResult>.Empty;
+
             var builder = ArrayBuilder<TResult>.GetInstance(array.Length);
 
             foreach (var item in array)
@@ -364,6 +367,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TArg, TResult>(this ImmutableArray<TItem> array, Func<TItem, TArg, CancellationToken, ValueTask<TResult>> selector, TArg arg, CancellationToken cancellationToken)
         {
+            if (array.IsEmpty)
+                return ImmutableArray<TResult>.Empty;
+
             var builder = ArrayBuilder<TResult>.GetInstance(array.Length);
 
             foreach (var item in array)
@@ -864,7 +870,48 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
-        internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T>? comparer = null)
+        /// <summary>
+        /// Determines whether duplicates exist using default equality comparer.
+        /// </summary>
+        /// <param name="array">Array to search for duplicates</param>
+        /// <returns>Whether duplicates were found</returns>
+        internal static bool HasDuplicates<T>(this ImmutableArray<T> array)
+        {
+            switch (array.Length)
+            {
+                case 0:
+                case 1:
+                    return false;
+
+                case 2:
+                    return EqualityComparer<T>.Default.Equals(array[0], array[1]);
+
+                default:
+                    var set = PooledHashSet<T>.GetInstance();
+                    var foundDuplicate = false;
+
+                    foreach (var element in array)
+                    {
+                        if (!set.Add(element))
+                        {
+                            foundDuplicate = true;
+                            break;
+                        }
+                    }
+
+                    set.Free();
+                    return foundDuplicate;
+            }
+        }
+
+        /// <summary>
+        /// Determines whether duplicates exist using <paramref name="comparer"/>. Use other override
+        /// if you don't need a custom comparer.
+        /// </summary>
+        /// <param name="array">Array to search for duplicates</param>
+        /// <param name="comparer">Comparer to use in search</param>
+        /// <returns>Whether duplicates were found</returns>
+        internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T> comparer)
         {
             switch (array.Length)
             {
@@ -878,9 +925,9 @@ namespace Microsoft.CodeAnalysis
 
                 default:
                     var set = new HashSet<T>(comparer);
-                    foreach (var i in array)
+                    foreach (var element in array)
                     {
-                        if (!set.Add(i))
+                        if (!set.Add(element))
                         {
                             return true;
                         }

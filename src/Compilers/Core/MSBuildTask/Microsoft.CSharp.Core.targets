@@ -50,7 +50,8 @@
                   @(AdditionalFiles);
                   @(EmbeddedFiles);
                   @(Analyzer);
-                  @(EditorConfigFiles)"
+                  @(EditorConfigFiles);
+                  $(SourceLink)"
           Outputs="@(DocFileItem);
                    @(IntermediateAssembly);
                    @(IntermediateRefAssembly);
@@ -134,6 +135,7 @@
          Platform="$(PlatformTarget)"
          Prefer32Bit="$(Prefer32Bit)"
          PreferredUILang="$(PreferredUILang)"
+         ProjectName="$(MSBuildProjectName)"
          ProvideCommandLineArgs="$(ProvideCommandLineArgs)"
          References="@(ReferencePathWithRefAssemblies)"
          RefOnly="$(ProduceOnlyReferenceAssembly)"
@@ -148,6 +150,7 @@
          Sources="@(Compile)"
          SubsystemVersion="$(SubsystemVersion)"
          TargetType="$(OutputType)"
+         TargetFramework="$(TargetFramework)"
          ToolExe="$(CscToolExe)"
          ToolPath="$(CscToolPath)"
          TreatWarningsAsErrors="$(TreatWarningsAsErrors)"

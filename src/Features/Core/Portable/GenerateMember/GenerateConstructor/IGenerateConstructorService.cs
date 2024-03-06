@@ -9,10 +9,9 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
+namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
+
+internal interface IGenerateConstructorService : ILanguageService
 {
-    internal interface IGenerateConstructorService : ILanguageService
-    {
-        Task<ImmutableArray<CodeAction>> GenerateConstructorAsync(Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
-    }
+    Task<ImmutableArray<CodeAction>> GenerateConstructorAsync(Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 }

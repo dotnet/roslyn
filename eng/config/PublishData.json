@@ -200,9 +200,10 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "rel/d17.10",
+      "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.10]"
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.10 P2]"
     },
     "main": {
       "nugetKind": [
@@ -211,20 +212,10 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.10 P2]"
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[d17.10 P3]"
     },
     "features/vscode_net8": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[Validation]"
-    },
-    "dev/jjonescz/razor-ea": {
       "nugetKind": [
         "Shipping",
         "NonShipping"

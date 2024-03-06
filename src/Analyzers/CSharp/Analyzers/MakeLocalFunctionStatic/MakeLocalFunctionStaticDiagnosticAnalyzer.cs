@@ -9,54 +9,54 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
+namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal sealed class MakeLocalFunctionStaticDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class MakeLocalFunctionStaticDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    public MakeLocalFunctionStaticDiagnosticAnalyzer()
+        : base(IDEDiagnosticIds.MakeLocalFunctionStaticDiagnosticId,
+               EnforceOnBuildValues.MakeLocalFunctionStatic,
+               CSharpCodeStyleOptions.PreferStaticLocalFunction,
+               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_local_function_static), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Local_function_can_be_made_static), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
     {
-        public MakeLocalFunctionStaticDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.MakeLocalFunctionStaticDiagnosticId,
-                   EnforceOnBuildValues.MakeLocalFunctionStatic,
-                   CSharpCodeStyleOptions.PreferStaticLocalFunction,
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_local_function_static), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Local_function_can_be_made_static), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+    }
+
+    public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+
+    protected override void InitializeWorker(AnalysisContext context)
+        => context.RegisterCompilationStartAction(context =>
         {
+            if (MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(context.Compilation.LanguageVersion()))
+                context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.LocalFunctionStatement);
+        });
+
+    private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
+    {
+        var localFunction = (LocalFunctionStatementSyntax)context.Node;
+        if (localFunction.Modifiers.Any(SyntaxKind.StaticKeyword))
+        {
+            return;
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterCompilationStartAction(context =>
-            {
-                if (MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(context.Compilation.LanguageVersion()))
-                    context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.LocalFunctionStatement);
-            });
-
-        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
+        var option = context.GetCSharpAnalyzerOptions().PreferStaticLocalFunction;
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
         {
-            var localFunction = (LocalFunctionStatementSyntax)context.Node;
-            if (localFunction.Modifiers.Any(SyntaxKind.StaticKeyword))
-            {
-                return;
-            }
+            return;
+        }
 
-            var option = context.GetCSharpAnalyzerOptions().PreferStaticLocalFunction;
-            if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
-            {
-                return;
-            }
-
-            var semanticModel = context.SemanticModel;
-            if (MakeLocalFunctionStaticHelper.CanMakeLocalFunctionStaticBecauseNoCaptures(localFunction, semanticModel))
-            {
-                context.ReportDiagnostic(DiagnosticHelper.Create(
-                    Descriptor,
-                    localFunction.Identifier.GetLocation(),
-                    option.Notification,
-                    additionalLocations: ImmutableArray.Create(localFunction.GetLocation()),
-                    properties: null));
-            }
+        var semanticModel = context.SemanticModel;
+        if (MakeLocalFunctionStaticHelper.CanMakeLocalFunctionStaticBecauseNoCaptures(localFunction, semanticModel))
+        {
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
+                localFunction.Identifier.GetLocation(),
+                option.Notification,
+                context.Options,
+                additionalLocations: ImmutableArray.Create(localFunction.GetLocation()),
+                properties: null));
         }
     }
 }

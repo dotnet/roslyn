@@ -8,15 +8,14 @@ using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+[ExportLanguageService(typeof(IBlockFactsService), LanguageNames.CSharp), Shared]
+internal class CSharpBlockFactsService : CSharpBlockFacts, IBlockFactsService
 {
-    [ExportLanguageService(typeof(IBlockFactsService), LanguageNames.CSharp), Shared]
-    internal class CSharpBlockFactsService : CSharpBlockFacts, IBlockFactsService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpBlockFactsService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpBlockFactsService()
-        {
-        }
     }
 }

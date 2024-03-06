@@ -1678,10 +1678,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lookupResult.Free();
             }
 
-            ImmutableArray<ISymbol> sealedResults = results.ToImmutableAndFree();
-            return name == null
-                ? FilterNotReferencable(sealedResults)
-                : sealedResults;
+            if (name == null)
+                FilterNotReferenceable(results);
+
+            return results.ToImmutableAndFree();
         }
 
         private void AppendSymbolsWithName(ArrayBuilder<ISymbol> results, string name, Binder binder, NamespaceOrTypeSymbol container, LookupOptions options, LookupSymbolsInfo info)
@@ -1795,25 +1795,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal abstract Symbol RemapSymbolIfNecessaryCore(Symbol symbol);
 
-        private static ImmutableArray<ISymbol> FilterNotReferencable(ImmutableArray<ISymbol> sealedResults)
+        private static void FilterNotReferenceable(ArrayBuilder<ISymbol> sealedResults)
         {
-            ArrayBuilder<ISymbol> builder = null;
-            int pos = 0;
-            foreach (var result in sealedResults)
+            var writeIndex = 0;
+            for (var i = 0; i < sealedResults.Count; i++)
             {
-                if (result.CanBeReferencedByName)
+                var symbol = sealedResults[i];
+                if (symbol.CanBeReferencedByName)
                 {
-                    builder?.Add(result);
+                    if (writeIndex != i)
+                        sealedResults[writeIndex] = symbol;
+
+                    writeIndex++;
                 }
-                else if (builder == null)
-                {
-                    builder = ArrayBuilder<ISymbol>.GetInstance();
-                    builder.AddRange(sealedResults, pos);
-                }
-                pos++;
             }
 
-            return builder?.ToImmutableAndFree() ?? sealedResults;
+            sealedResults.Count = writeIndex;
         }
 
         /// <summary>
@@ -4119,10 +4116,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ImmutableArray<IPropertySymbol>.Empty;
             }
 
-            return FilterOverriddenOrHiddenIndexers(symbols.ToImmutableAndFree());
+            var result = FilterOverriddenOrHiddenIndexers(symbols);
+            symbols.Free();
+
+            return result;
         }
 
-        private static ImmutableArray<IPropertySymbol> FilterOverriddenOrHiddenIndexers(ImmutableArray<ISymbol> symbols)
+        private static ImmutableArray<IPropertySymbol> FilterOverriddenOrHiddenIndexers(ArrayBuilder<ISymbol> symbols)
         {
             PooledHashSet<Symbol> hiddenSymbols = null;
             foreach (ISymbol iSymbol in symbols)

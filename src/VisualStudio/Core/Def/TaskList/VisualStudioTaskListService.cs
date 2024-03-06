@@ -169,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 new IncrementalAnalyzerProviderMetadata(
                     nameof(TaskListIncrementalAnalyzerProvider),
                     highPriorityForActiveFile: false,
-                    workspaceKinds: WorkspaceKind.Host));
+                    workspaceKinds: [WorkspaceKind.Host]));
         }
 
         /// <summary>
