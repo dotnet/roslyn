@@ -235,25 +235,6 @@ class A {
         }
 
         [Theory, CombinatorialData]
-        public async Task TestNoDocumentDiagnosticsForOpenFilesIfDefaultAndFeatureFlagOff(bool useVSDiagnostics, bool mutatingLspWorkspace)
-        {
-            var markup =
-@"class A {";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
-                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, CompilerDiagnosticsScope.OpenFiles, useVSDiagnostics));
-
-            // Calling GetTextBuffer will effectively open the file.
-            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
-            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
-            await OpenDocumentAsync(testLspServer, document);
-
-            // Ensure we get no diagnostics when feature flag is off.
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag, false);
-
-            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics));
-        }
-
-        [Theory, CombinatorialData]
         public async Task TestDocumentDiagnosticsForOpenFilesIfDefaultAndFeatureFlagOn(bool useVSDiagnostics, bool mutatingLspWorkspace)
         {
             var markup =
