@@ -1230,5 +1230,13 @@ namespace Microsoft.CodeAnalysis.Collections
                 _current = default;
             }
         }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor(SegmentedList<T> instance)
+        {
+            public ref SegmentedArray<T> Items => ref instance._items;
+        }
     }
 }
