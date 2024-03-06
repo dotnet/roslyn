@@ -21,7 +21,7 @@ internal sealed class VSTypeScriptStreamingFindUsagesPresenterAccessor(IStreamin
     public (IVSTypeScriptFindUsagesContext context, CancellationToken cancellationToken) StartSearch(
         string title, bool supportsReferences)
     {
-        var (context, cancellationToken) = _underlyingObject.StartSearch(title, supportsReferences);
+        var (context, cancellationToken) = _underlyingObject.StartSearch(title, new StreamingFindUsagesPresenterOptions() { SupportsReferences = supportsReferences });
         return (new VSTypeScriptFindUsagesContext(context), cancellationToken);
     }
 

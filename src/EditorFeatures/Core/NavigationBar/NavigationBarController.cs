@@ -112,9 +112,7 @@ internal partial class NavigationBarController : IDisposable
 
         // Use 'compilation available' as that may produce different results from the initial 'frozen partial'
         // snapshot we use.
-        _eventSource = new CompilationAvailableTaggerEventSource(
-            subjectBuffer,
-            asyncListener,
+        _eventSource = TaggerEventSources.Compose(
             // Any time an edit happens, recompute as the nav bar items may have changed.
             TaggerEventSources.OnTextChanged(subjectBuffer),
             // Switching what is the active context may change the nav bar contents.

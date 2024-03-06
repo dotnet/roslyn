@@ -5405,7 +5405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ImplicitIndexerAccess:
                     var implicitIndexer = (BoundImplicitIndexerAccess)boundMember;
-                    MessageID.IDS_ImplicitIndexerInitializer.CheckFeatureAvailability(diagnostics, implicitIndexer.Syntax);
+                    MessageID.IDS_FeatureImplicitIndexerInitializer.CheckFeatureAvailability(diagnostics, implicitIndexer.Syntax);
 
                     if (isRhsNestedInitializer && GetPropertySymbol(implicitIndexer, out _, out _) is { } property)
                     {

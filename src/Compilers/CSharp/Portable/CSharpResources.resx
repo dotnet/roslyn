@@ -7794,7 +7794,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRefReadonlyParameters" xml:space="preserve">
     <value>ref readonly parameters</value>
   </data>
-  <data name="IDS_StringEscapeCharacter" xml:space="preserve">
+  <data name="IDS_FeatureStringEscapeCharacter" xml:space="preserve">
     <value>string escape character</value>
   </data>
   <data name="WRN_OverridingDifferentRefness" xml:space="preserve">
@@ -7842,7 +7842,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InvalidExperimentalDiagID" xml:space="preserve">
     <value>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</value>
   </data>
-  <data name="IDS_ImplicitIndexerInitializer" xml:space="preserve">
+  <data name="IDS_FeatureImplicitIndexerInitializer" xml:space="preserve">
     <value>implicit indexer initializer</value>
   </data>
   <data name="WRN_ConvertingLock" xml:space="preserve">
@@ -7854,7 +7854,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadSpecialByRefLock" xml:space="preserve">
     <value>A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</value>
   </data>
-  <data name="IDS_LockObject" xml:space="preserve">
+  <data name="IDS_FeatureLockObject" xml:space="preserve">
     <value>Lock object</value>
   </data>
 </root>
