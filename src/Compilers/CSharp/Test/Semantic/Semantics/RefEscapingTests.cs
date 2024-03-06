@@ -7196,5 +7196,73 @@ public struct Vec4
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void ArgIterator_01()
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static int GetArgsLength(__arglist)
+                    {
+                        var args = new ArgIterator(__arglist);
+                        return args.GetRemainingCount();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net70);
+            var argIteratorType = comp.GetSpecialType(SpecialType.System_ArgIterator);
+            Assert.False(argIteratorType.ContainingModule.UseUpdatedEscapeRules);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ArgIterator_02()
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
+    public struct ArgIterator
+    {
+        public ArgIterator(RuntimeArgumentHandle arglist) { }
+        public int GetRemainingCount() => 0;
+    }
+    public ref struct RuntimeArgumentHandle { }
+}";
+            var comp = CreateEmptyCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            var sourceB = """
+                using System;
+                class Program
+                {
+                    static int GetArgsLength(__arglist)
+                    {
+                        var args = new ArgIterator(__arglist);
+                        return args.GetRemainingCount();
+                    }
+                }
+                """;
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA });
+            var argIteratorType = comp.GetSpecialType(SpecialType.System_ArgIterator);
+            Assert.True(argIteratorType.ContainingModule.UseUpdatedEscapeRules);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }

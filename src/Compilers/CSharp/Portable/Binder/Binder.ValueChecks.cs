@@ -4017,6 +4017,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var switchExpr = (BoundSwitchExpression)expr;
                     return GetValEscape(switchExpr.SwitchArms.SelectAsArray(a => a.Value), scopeOfTheContainingExpression);
 
+                case BoundKind.ArgList:
+                    // PROTOTYPE: How do we hit ArgList in CheckValEscape()?
+                    return scopeOfTheContainingExpression;
+
                 default:
                     // in error situations some unexpected nodes could make here
                     // returning "scopeOfTheContainingExpression" seems safer than throwing.
