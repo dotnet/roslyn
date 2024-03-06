@@ -402,11 +402,6 @@
         <target state="translated">요소가 잘못되었습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_Razor_pull_diagnostics_experimental_requires_restart">
-        <source>Enable Razor 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="translated">Razor '풀' 진단 사용(실험적, 다시 시작 필요)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
         <source>Enable all features in opened files from source generators (experimental)</source>
         <target state="translated">소스 생성기에서 열린 파일의 모든 기능 사용 (실험적)</target>
@@ -425,11 +420,6 @@
       <trans-unit id="Enable_navigation_to_sourcelink_and_embedded_sources">
         <source>Enable navigation to Source Link and Embedded sources</source>
         <target state="translated">Source Link 및 포함된 소스 탐색 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_pull_diagnostics_requires_restart">
-        <source>Enable 'pull' diagnostics (requires restart)</source>
-        <target state="new">Enable 'pull' diagnostics (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enabled">
