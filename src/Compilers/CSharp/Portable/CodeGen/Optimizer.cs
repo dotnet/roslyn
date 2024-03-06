@@ -1469,8 +1469,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
         {
             var statements = VisitSideEffects(node.Statements);
-            RecordBranch(node.WhenTrueLabel);
-            RecordBranch(node.WhenFalseLabel);
+            RecordLabel(node.WhenTrueLabel);
+            RecordLabel(node.WhenFalseLabel);
             return node.Update(statements, node.WhenTrueLabel, node.WhenFalseLabel, VisitType(node.Type));
         }
 
