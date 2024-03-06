@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
@@ -72,7 +73,9 @@ internal interface IWorkspaceProjectContext : IDisposable
     void RemoveAnalyzerConfigFile(string filePath);
 
     void StartBatch();
+    ValueTask StartBatchAsync(CancellationToken cancellationToken);
     IAsyncDisposable CreateBatchScope();
+    ValueTask<IAsyncDisposable> CreateBatchScopeAsync(CancellationToken cancellationToken);
     ValueTask EndBatchAsync();
 
     void ReorderSourceFiles(IEnumerable<string> filePaths);

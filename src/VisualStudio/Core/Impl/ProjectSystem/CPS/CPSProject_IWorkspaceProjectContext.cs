@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
@@ -263,6 +264,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public void StartBatch()
             => _batchScopes.Enqueue(_projectSystemProject.CreateBatchScope());
 
+        public async ValueTask StartBatchAsync(CancellationToken cancellationToken)
+        {
+            var batchScope = await _projectSystemProject.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+            _batchScopes.Enqueue(batchScope);
+        }
+
         public ValueTask EndBatchAsync()
         {
             Contract.ThrowIfFalse(_batchScopes.TryDequeue(out var scope));
@@ -282,5 +289,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             => _projectSystemProject.RemoveAnalyzerConfigFile(filePath);
 
         public IAsyncDisposable CreateBatchScope() => _projectSystemProject.CreateBatchScope();
+
+        public async ValueTask<IAsyncDisposable> CreateBatchScopeAsync(CancellationToken cancellationToken)
+            => await _projectSystemProject.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
     }
 }

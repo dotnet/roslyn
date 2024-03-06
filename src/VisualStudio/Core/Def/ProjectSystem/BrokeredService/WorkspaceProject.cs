@@ -32,7 +32,8 @@ internal sealed class WorkspaceProject : IWorkspaceProject
     [Obsolete($"Call the {nameof(AddAdditionalFilesAsync)} overload that takes {nameof(SourceFileInfo)}.")]
     public async Task AddAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken cancellationToken)
     {
-        await using var batch = _project.CreateBatchScope().ConfigureAwait(false);
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var additionalFilePath in additionalFilePaths)
             _project.AddAdditionalFile(additionalFilePath);
@@ -40,7 +41,8 @@ internal sealed class WorkspaceProject : IWorkspaceProject
 
     public async Task AddAdditionalFilesAsync(IReadOnlyList<SourceFileInfo> additionalFiles, CancellationToken cancellationToken)
     {
-        await using var batchScope = _project.CreateBatchScope().ConfigureAwait(false);
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var additionalFile in additionalFiles)
             _project.AddAdditionalFile(additionalFile.FilePath, folderNames: additionalFile.FolderNames.ToImmutableArray());
