@@ -1012,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FieldCantHaveVoidType:
                 case ErrorCode.WRN_NonObsoleteOverridingObsolete:
                 case ErrorCode.ERR_SystemVoid:
-                case ErrorCode.ERR_ExplicitParamArray:
+                case ErrorCode.ERR_ExplicitParamArrayOrCollection:
                 case ErrorCode.WRN_BitwiseOrSignExtend:
                 case ErrorCode.ERR_VolatileStruct:
                 case ErrorCode.ERR_VolatileAndReadonly:
@@ -2471,7 +2471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_DeprecatedSymbolStr:
                 case ErrorCode.ERR_MissingPredefinedMember:
                 case ErrorCode.ERR_DefaultValueUsedWithAttributes:
-                case ErrorCode.ERR_ExplicitParamArray:
+                case ErrorCode.ERR_ExplicitParamArrayOrCollection:
                     return false;
                 default:
                     return true;

@@ -617,6 +617,11 @@
         <target state="translated">不允許明確應用 'System.Runtime.CompilerServices.NullableAttribute'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitParamArrayOrCollection">
+        <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
+        <target state="new">Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
         <source>Accessors '{0}' and '{1}' should both be init-only or neither</source>
         <target state="translated">存取子 '{0}' 與 '{1}' 不得同時是或不是僅供初始化</target>
@@ -7697,11 +7702,6 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">無法從 C# 使用 System.Void -- 請使用 typeof(void) 取得 void 類型物件</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitParamArray">
-        <source>Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.</source>
-        <target state="translated">請勿使用 'System.ParamArrayAttribute'。請改用 'params' 關鍵字。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_BitwiseOrSignExtend">
         <source>Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first</source>
         <target state="translated">用於 sign-extend 運算元的 Bitwise-or 運算子; 請先考慮轉換為較小的不帶正負號類型</target>
@@ -10952,8 +10952,8 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
-        <source>Cannot specify a default value for a parameter array</source>
-        <target state="translated">無法指定參數陣列的預設值</target>
+        <source>Cannot specify a default value for a parameter collection</source>
+        <target state="needs-review-translation">無法指定參數陣列的預設值</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">

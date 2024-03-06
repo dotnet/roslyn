@@ -617,6 +617,11 @@
         <target state="translated">L'application explicite de 'System.Runtime.CompilerServices.NullableAttribute' n'est pas autorisée.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitParamArrayOrCollection">
+        <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
+        <target state="new">Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
         <source>Accessors '{0}' and '{1}' should both be init-only or neither</source>
         <target state="translated">Les accesseurs '{0}' et '{1}' doivent tous deux être initialiseurs uniquement ou ne pas l'être</target>
@@ -7697,11 +7702,6 @@ Si une telle classe est utilisée en tant que classe de base et si la classe dé
         <target state="translated">Impossible d'utiliser System.Void dans C# : utilisez typeof(void) pour obtenir l'objet de type void</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitParamArray">
-        <source>Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.</source>
-        <target state="translated">N'utilisez pas 'System.ParamArrayAttribute'. Utilisez plutôt le mot clé 'params'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_BitwiseOrSignExtend">
         <source>Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first</source>
         <target state="translated">Opérateur de bits or utilisé sur un opérande de signe étendu ; effectuez un cast en type plus faible non signé</target>
@@ -10952,8 +10952,8 @@ Supprimez l'avertissement seulement si vous êtes sûr de ne pas vouloir attendr
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
-        <source>Cannot specify a default value for a parameter array</source>
-        <target state="translated">Impossible de spécifier une valeur par défaut pour un tableau de paramètres</target>
+        <source>Cannot specify a default value for a parameter collection</source>
+        <target state="needs-review-translation">Impossible de spécifier une valeur par défaut pour un tableau de paramètres</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">

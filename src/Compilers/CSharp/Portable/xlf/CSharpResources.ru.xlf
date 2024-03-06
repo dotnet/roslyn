@@ -617,6 +617,11 @@
         <target state="translated">Явное применение атрибута "System.Runtime.CompilerServices.NullableAttribute" не допускается.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitParamArrayOrCollection">
+        <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
+        <target state="new">Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
         <source>Accessors '{0}' and '{1}' should both be init-only or neither</source>
         <target state="translated">Каждый из методов доступа "{0}" и "{1}" должен вызываться только во время инициализации либо ни один из этих методов доступа не должен вызываться таким образом.</target>
@@ -7698,11 +7703,6 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">System.Void из C# использоваться не может -- для получения объекта типа void используйте typeof(void).</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitParamArray">
-        <source>Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.</source>
-        <target state="translated">Не используйте "System.ParamArrayAttribute". Используйте ключевое слово "params".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_BitwiseOrSignExtend">
         <source>Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first</source>
         <target state="translated">Побитовый оператор "ИЛИ" применен к операнду, расширенному знаком; рекомендуется предварительное приведение к меньшему беззнаковому типу</target>
@@ -10953,8 +10953,8 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
-        <source>Cannot specify a default value for a parameter array</source>
-        <target state="translated">Не удалось указать значение по умолчанию для массива параметров.</target>
+        <source>Cannot specify a default value for a parameter collection</source>
+        <target state="needs-review-translation">Не удалось указать значение по умолчанию для массива параметров.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">

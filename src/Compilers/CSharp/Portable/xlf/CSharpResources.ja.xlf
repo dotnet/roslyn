@@ -617,6 +617,11 @@
         <target state="translated">'System.Runtime.CompilerServices.NullableAttribute' の明示的な適用は許可されていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitParamArrayOrCollection">
+        <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
+        <target state="new">Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
         <source>Accessors '{0}' and '{1}' should both be init-only or neither</source>
         <target state="translated">アクセサー '{0}' と '{1}' は、両方 init 専用か、両方そうでないかのいずれかでなければなりません</target>
@@ -7697,11 +7702,6 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">System.Void は C# から使用できません。void 型オブジェクトを取得するには typeof(void) を使用してください</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitParamArray">
-        <source>Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.</source>
-        <target state="translated">System.ParamArrayAttribute' を使用しないでください。代わりに 'params' キーワードを使用してください。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_BitwiseOrSignExtend">
         <source>Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first</source>
         <target state="translated">Bitwise-or 演算子が sign-extended オペランドで使用されています。まず、小さい符号なしの型をキャストしてみてください</target>
@@ -10952,8 +10952,8 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
-        <source>Cannot specify a default value for a parameter array</source>
-        <target state="translated">パラメーター配列には既定値を指定できません</target>
+        <source>Cannot specify a default value for a parameter collection</source>
+        <target state="needs-review-translation">パラメーター配列には既定値を指定できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">

@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (paramsKeyword.Kind() == SyntaxKind.ParamsKeyword)
             {
-                // error CS1751: Cannot specify a default value for a parameter array
+                // error CS1751: Cannot specify a default value for a parameter collection
                 diagnostics.Add(ErrorCode.ERR_DefaultValueForParamsParameter, paramsKeyword.GetLocation());
                 hasErrors = true;
             }

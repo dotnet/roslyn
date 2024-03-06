@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FieldCantHaveVoidType = 670,
         WRN_NonObsoleteOverridingObsolete = 672,
         ERR_SystemVoid = 673,
-        ERR_ExplicitParamArray = 674,
+        ERR_ExplicitParamArrayOrCollection = 674,
         WRN_BitwiseOrSignExtend = 675,
         ERR_VolatileStruct = 677,
         ERR_VolatileAndReadonly = 678,

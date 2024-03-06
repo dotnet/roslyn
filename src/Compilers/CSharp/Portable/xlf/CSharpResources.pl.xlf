@@ -617,6 +617,11 @@
         <target state="translated">Jawne stosowanie elementu „System.Runtime.CompilerServices.NullableAttribute” jest niedozwolone.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitParamArrayOrCollection">
+        <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
+        <target state="new">Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
         <source>Accessors '{0}' and '{1}' should both be init-only or neither</source>
         <target state="translated">Tylko do inicjowania powinny być obie metody dostępu „{0}” i „{1}” albo żadna z nich</target>
@@ -7697,11 +7702,6 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <target state="translated">W języku C# nie można użyć elementu System.Void. Aby uzyskać obiekt typu void, użyj elementu typeof(void).</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitParamArray">
-        <source>Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.</source>
-        <target state="translated">Nie używaj atrybutu „System.ParamArrayAttribute”. Zamiast niego użyj słowa kluczowego „params”.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_BitwiseOrSignExtend">
         <source>Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first</source>
         <target state="translated">Operator LUB działający na bitach został użyty względem argumentu ze znakiem. Rozważ możliwość wcześniejszego rzutowania na mniejszy typ bez znaku.</target>
@@ -10952,8 +10952,8 @@ Pominięcie ostrzeżenia należy wziąć pod uwagę tylko w sytuacji, gdy na pew
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
-        <source>Cannot specify a default value for a parameter array</source>
-        <target state="translated">Nie można określić wartości domyślnej dla tablicy parametrów</target>
+        <source>Cannot specify a default value for a parameter collection</source>
+        <target state="needs-review-translation">Nie można określić wartości domyślnej dla tablicy parametrów</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">

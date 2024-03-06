@@ -12351,7 +12351,7 @@ class TestClass
         }
 
         [Fact]
-        public void CS0674ERR_ExplicitParamArray()
+        public void CS0674ERR_ExplicitParamArrayOrCollection()
         {
             var text = @"using System;
 public class MyClass
@@ -12365,7 +12365,7 @@ public class MyClass
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitParamArray, Line = 4, Column = 35 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitParamArrayOrCollection, Line = 4, Column = 35 });
         }
 
         [Fact]
@@ -16213,7 +16213,7 @@ class Test
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 // 'i': A value of type '<null>' cannot be used as a default parameter because there are no standard conversions to type 'int'
                 new ErrorDescription { Code = 1750, Line = 3, Column = 24 },
-                // 'params': error CS1751: Cannot specify a default value for a parameter array
+                // 'params': error CS1751: Cannot specify a default value for a parameter collection
                 new ErrorDescription { Code = 1751, Line = 3, Column = 34 });
         }
 
