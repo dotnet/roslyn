@@ -632,7 +632,6 @@ class B {";
             var markup =
 @"class A {";
 
-            // Turn off pull diagnostics by default, but send a request to the razor LSP server which is always pull.
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
                 GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, CompilerDiagnosticsScope.OpenFiles, useVSDiagnostics, WellKnownLspServerKinds.RazorLspServer));
 
@@ -657,7 +656,6 @@ class B {";
             var markup =
 @"class A {";
 
-            // Turn off pull diagnostics by default, but send a request to the razor LSP server which is always pull.
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
                 GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, CompilerDiagnosticsScope.OpenFiles, useVSDiagnostics, WellKnownLspServerKinds.LiveShareLspServer));
 
