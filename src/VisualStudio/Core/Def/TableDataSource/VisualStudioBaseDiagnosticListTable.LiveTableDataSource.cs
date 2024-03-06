@@ -172,9 +172,20 @@ internal abstract partial class VisualStudioBaseDiagnosticListTable
             return new AggregatedKey(documents, liveArgsId.Analyzer, liveArgsId.Kind);
         }
 
-        private static void PopulateInitialData(Workspace _1, IDiagnosticService _2)
+        private void PopulateInitialData(Workspace _1, IDiagnosticService _2)
         {
-            // We no longer have Solution-Crawler mode.  So this method does nothing.
+            // If we're not in Solution-Crawler mode, then don't add any diagnostics to the table.  Instead, the LSP
+            // client will be handling everything.
+            var diagnostics = ImmutableArray<DiagnosticBucket>.Empty;
+            foreach (var bucket in diagnostics)
+            {
+                // We only need to issue an event to VS that these docs have diagnostics associated with them.  So
+                // we create a dummy notification for this.  It doesn't matter that it is 'DiagnosticsRemoved' as
+                // this doesn't actually change any data.  All that will happen now is that VS will call back into
+                // us for these IDs and we'll fetch the diagnostics at that point.
+                OnDataAddedOrChanged(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+                    bucket.Id, bucket.Workspace, solution: null, bucket.ProjectId, bucket.DocumentId));
+            }
         }
 
         private void OnDiagnosticsUpdated(object sender, ImmutableArray<DiagnosticsUpdatedArgs> argsCollection)
@@ -297,7 +308,18 @@ internal abstract partial class VisualStudioBaseDiagnosticListTable
             public override ImmutableArray<DiagnosticTableItem> GetItems()
             {
                 // Since we're in lsp pull mode the lsp client owns the error list.
-                return ImmutableArray<DiagnosticTableItem>.Empty;
+                var lspPullMode = true;
+                if (lspPullMode)
+                    return [];
+
+                var provider = _source._diagnosticService;
+                var items = provider.GetDiagnosticsAsync(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, CancellationToken.None)
+                    .AsTask()
+                    .WaitAndGetResult_CanCallOnBackground(CancellationToken.None)
+                                    .Where(ShouldInclude)
+                                    .Select(data => DiagnosticTableItem.Create(_workspace, data));
+
+                return items.ToImmutableArray();
             }
 
             public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<DiagnosticTableItem> items)
