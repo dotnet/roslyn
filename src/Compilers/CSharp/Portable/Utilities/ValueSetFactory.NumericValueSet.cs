@@ -201,7 +201,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return new NumericValueSet<T>(builder.ToImmutableAndFree(), _tc);
-
             }
 
             /// <summary>
