@@ -95,6 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _sourceTypeParameter.HasValueTypeConstraint; }
         }
 
+        public override bool AllowByRefLike
+        {
+            get { return _sourceTypeParameter.AllowByRefLike; }
+        }
+
         public override bool IsValueTypeFromConstraintTypes
         {
             get

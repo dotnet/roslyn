@@ -42,6 +42,11 @@
         <target state="translated">無法將方法群組 '{0}' 轉換成非函式指標類型 '{1}'(&amp;M)</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AllowsClauseMustBeLast">
+        <source>The 'allows' constraint clause must be the last constraint specified</source>
+        <target state="new">The 'allows' constraint clause must be the last constraint specified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
         <target state="translated">若要在插入的逐字字串使用 '@$' 而不是 '$@'，請使用 '{0}' 或更高的語言版本。</target>
@@ -385,6 +390,11 @@
       <trans-unit id="ERR_CheckedOperatorNeedsMatch">
         <source>The operator '{0}' requires a matching non-checked version of the operator to also be defined</source>
         <target state="translated">運算子 '{0}' 需要也同時定義運算子的相符未檢查版本</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ClassIsCombinedWithRefStruct">
+        <source>Cannot allow ref structs for a type parameter known from other constraints to be a class</source>
+        <target state="new">Cannot allow ref structs for a type parameter known from other constraints to be a class</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloneDisallowedInRecord">
@@ -1712,6 +1722,11 @@
         <target state="translated">無法要求 Ref 傳回屬性。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefStructConstraintAlreadySpecified">
+        <source>'ref struct' is already specified.</source>
+        <target state="new">'ref struct' is already specified.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">
         <source>Relational patterns may not be used for a floating-point NaN.</source>
         <target state="translated">浮點 NaN 不可使用關聯性模式。</target>
@@ -1755,6 +1770,11 @@
       <trans-unit id="ERR_RequiredNameDisallowed">
         <source>Types and aliases cannot be named 'required'.</source>
         <target state="translated">類型和別名不能命名為 'required'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
+        <source>Target runtime doesn't support by-ref-like generics.</source>
+        <target state="new">Target runtime doesn't support by-ref-like generics.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
@@ -2272,6 +2292,11 @@
         <target state="translated">ref readonly 參數</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRefStructInterfaces">
+        <source>ref struct interfaces</source>
+        <target state="new">ref struct interfaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
         <source>relaxed shift operator</source>
         <target state="translated">寬鬆移位 (Shift) 運算子</target>
@@ -2340,11 +2365,6 @@
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">指標元素存取</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_RefStructInterfaces">
-        <source>ref struct interfaces</source>
-        <target state="new">ref struct interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_SK_ARRAY">
@@ -6469,8 +6489,8 @@ strument:TestCoverage      產生檢測要收集
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundMustBeLast">
-        <source>The new() constraint must be the last constraint specified</source>
-        <target state="translated">new() 條件約束必須是最後指定的條件約束</target>
+        <source>The new() constraint must be the last restrictive constraint specified</source>
+        <target state="needs-review-translation">new() 條件約束必須是最後指定的條件約束</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainCantBeGeneric">

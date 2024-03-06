@@ -1969,7 +1969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (attributeData is SourceAttributeData { ApplicationSyntaxReference: { } applicationSyntaxReference } &&
                         attributeData.IsTargetAttribute(AttributeDescription.UnscopedRefAttribute))
                     {
-                        MessageID.IDS_RefStructInterfaces.CheckFeatureAvailability(diagnostics, implementingSymbol.DeclaringCompilation, applicationSyntaxReference.GetLocation());
+                        MessageID.IDS_FeatureRefStructInterfaces.CheckFeatureAvailability(diagnostics, implementingSymbol.DeclaringCompilation, applicationSyntaxReference.GetLocation());
                         return;
                     }
                 }

@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool HasValueTypeConstraint => false;
 
+        public override bool AllowByRefLike => false; // PROTOTYPE(RefStructInterfaces): That should probably match constraints on implemented interface(s).
+
         public override bool IsValueTypeFromConstraintTypes => false;
 
         public override bool HasUnmanagedTypeConstraint => false;

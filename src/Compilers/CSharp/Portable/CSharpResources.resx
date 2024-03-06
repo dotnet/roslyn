@@ -1279,7 +1279,7 @@
     <value>The type or namespace name '{0}' could not be found in the global namespace (are you missing an assembly reference?)</value>
   </data>
   <data name="ERR_NewBoundMustBeLast" xml:space="preserve">
-    <value>The new() constraint must be the last constraint specified</value>
+    <value>The new() constraint must be the last restrictive constraint specified</value>
   </data>
   <data name="WRN_MainCantBeGeneric" xml:space="preserve">
     <value>'{0}': an entry point cannot be generic or in a generic type</value>
@@ -7845,7 +7845,19 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_ImplicitIndexerInitializer" xml:space="preserve">
     <value>implicit indexer initializer</value>
   </data>
-  <data name="IDS_RefStructInterfaces" xml:space="preserve">
+  <data name="IDS_FeatureRefStructInterfaces" xml:space="preserve">
     <value>ref struct interfaces</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportByRefLikeGenerics" xml:space="preserve">
+    <value>Target runtime doesn't support by-ref-like generics.</value>
+  </data>
+  <data name="ERR_RefStructConstraintAlreadySpecified" xml:space="preserve">
+    <value>'ref struct' is already specified.</value>
+  </data>
+  <data name="ERR_AllowsClauseMustBeLast" xml:space="preserve">
+    <value>The 'allows' constraint clause must be the last constraint specified</value>
+  </data>
+  <data name="ERR_ClassIsCombinedWithRefStruct" xml:space="preserve">
+    <value>Cannot allow ref structs for a type parameter known from other constraints to be a class</value>
   </data>
 </root>

@@ -45,6 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             }
         }
 
+        protected override bool AllowByRefLike
+        {
+            get
+            {
+                return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.AllowByRefLike;
+            }
+        }
+
         protected override bool MustHaveDefaultConstructor
         {
             get

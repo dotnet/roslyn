@@ -1314,7 +1314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (ContainingType.IsInterface || IsExplicitInterfaceImplementation)
                     {
-                        MessageID.IDS_RefStructInterfaces.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+                        MessageID.IDS_FeatureRefStructInterfaces.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
                     }
                 }
                 else

@@ -2285,6 +2285,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CollectionExpressionMissingConstructor = 9214,
         ERR_CollectionExpressionMissingAdd = 9215,
 
+        ERR_RuntimeDoesNotSupportByRefLikeGenerics = 9500, // PROTOTYPE(RefStructInterfaces): Pack numbers
+        ERR_RefStructConstraintAlreadySpecified = 9501,
+        ERR_AllowsClauseMustBeLast = 9502,
+        ERR_ClassIsCombinedWithRefStruct = 9503,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

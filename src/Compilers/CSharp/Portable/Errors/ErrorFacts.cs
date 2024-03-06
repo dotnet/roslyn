@@ -2413,6 +2413,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_CollectionExpressionTargetNoElementType:
                 case ErrorCode.ERR_CollectionExpressionMissingConstructor:
                 case ErrorCode.ERR_CollectionExpressionMissingAdd:
+                case ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics:
+                case ErrorCode.ERR_RefStructConstraintAlreadySpecified:
+                case ErrorCode.ERR_AllowsClauseMustBeLast:
+                case ErrorCode.ERR_ClassIsCombinedWithRefStruct:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

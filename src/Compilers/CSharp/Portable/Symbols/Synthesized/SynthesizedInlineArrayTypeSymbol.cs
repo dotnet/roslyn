@@ -226,6 +226,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool HasValueTypeConstraint => false;
 
+            public override bool AllowByRefLike => false; // PROTOTYPE(RefStructInterfaces): Do we want to support ref structs as the inline array elements?
+
             public override bool IsValueTypeFromConstraintTypes => false;
 
             public override bool HasUnmanagedTypeConstraint => false;
