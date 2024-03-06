@@ -3276,6 +3276,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (logicalOperator.LogicalOperator.HasUnsupportedMetadata ||
                         logicalOperator.LogicalOperator.RefKind == RefKind.None));
                     break;
+
+                case BoundKind.CompoundAssignmentOperator:
+                    Debug.Assert(expr is BoundCompoundAssignmentOperator compoundAssignmentOperator &&
+                        (compoundAssignmentOperator.Operator.Method is not { } compoundMethod ||
+                        compoundMethod.HasUnsupportedMetadata ||
+                        compoundMethod.RefKind == RefKind.None));
+                    break;
             }
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
@@ -3638,6 +3645,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(expr is BoundUserDefinedConditionalLogicalOperator logicalOperator &&
                         (logicalOperator.LogicalOperator.HasUnsupportedMetadata ||
                         logicalOperator.LogicalOperator.RefKind == RefKind.None));
+                    break;
+
+                case BoundKind.CompoundAssignmentOperator:
+                    Debug.Assert(expr is BoundCompoundAssignmentOperator compoundAssignmentOperator &&
+                        (compoundAssignmentOperator.Operator.Method is not { } compoundMethod ||
+                        compoundAssignmentOperator.Operator.Method.HasUnsupportedMetadata ||
+                        compoundAssignmentOperator.Operator.Method.RefKind == RefKind.None));
                     break;
 
                 case BoundKind.ThrowExpression:
@@ -4020,6 +4034,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.CompoundAssignmentOperator:
                     var compound = (BoundCompoundAssignmentOperator)expr;
+
+                    if (compound.Operator.Method is { } compoundMethod)
+                    {
+                        return GetInvocationEscapeScope(
+                            compoundMethod,
+                            receiver: null,
+                            receiverIsSubjectToCloning: ThreeState.Unknown,
+                            compoundMethod.Parameters,
+                            argsOpt: [compound.Left, compound.Right],
+                            argRefKindsOpt: default,
+                            argsToParamsOpt: default,
+                            scopeOfTheContainingExpression: scopeOfTheContainingExpression,
+                            isRefEscape: false);
+                    }
 
                     return Math.Max(GetValEscape(compound.Left, scopeOfTheContainingExpression),
                                     GetValEscape(compound.Right, scopeOfTheContainingExpression));
@@ -4676,6 +4704,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.CompoundAssignmentOperator:
                     var compound = (BoundCompoundAssignmentOperator)expr;
+
+                    if (compound.Operator.Method is { } compoundMethod)
+                    {
+                        return CheckInvocationEscape(
+                            compound.Syntax,
+                            compoundMethod,
+                            receiver: null,
+                            receiverIsSubjectToCloning: ThreeState.Unknown,
+                            compoundMethod.Parameters,
+                            argsOpt: [compound.Left, compound.Right],
+                            argRefKindsOpt: default,
+                            argsToParamsOpt: default,
+                            checkingReceiver: checkingReceiver,
+                            escapeFrom: escapeFrom,
+                            escapeTo: escapeTo,
+                            diagnostics,
+                            isRefEscape: false);
+                    }
 
                     return CheckValEscape(compound.Left.Syntax, compound.Left, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
                            CheckValEscape(compound.Right.Syntax, compound.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);

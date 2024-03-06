@@ -7983,6 +7983,92 @@ public struct Vec4
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Compound()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(C left, C right) => right;
+                    public C M(C c, scoped C c1)
+                    {
+                        c += c1;
+                        return c;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,14): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(6, 14));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Left()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(scoped C left, C right) => right;
+                    public C M(C c, scoped C c1)
+                    {
+                        c += c1;
+                        return c;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (6,14): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(6, 14));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Right()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(C left, scoped C right) => right;
+                    public C M(C c, scoped C c1)
+                    {
+                        c += c1;
+                        return c;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (3,59): error CS8352: Cannot use variable 'scoped C right' in this context because it may expose referenced variables outside of their declaration scope
+                //     public static C operator +(C left, scoped C right) => right;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "right").WithArguments("scoped C right").WithLocation(3, 59),
+                // (6,14): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(6, 14));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Both()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(scoped C left, scoped C right) => right;
+                    public C M(C c, scoped C c1)
+                    {
+                        c += c1;
+                        return c;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (3,66): error CS8352: Cannot use variable 'scoped C right' in this context because it may expose referenced variables outside of their declaration scope
+                //     public static C operator +(scoped C left, scoped C right) => right;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "right").WithArguments("scoped C right").WithLocation(3, 66),
+                // (6,14): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(6, 14));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
         public void UserDefinedUnaryOperator_RefStruct()
         {
             var source = """
