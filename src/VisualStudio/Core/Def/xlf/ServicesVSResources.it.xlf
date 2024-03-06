@@ -402,11 +402,6 @@
         <target state="translated">L'elemento non è valido.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_Razor_pull_diagnostics_experimental_requires_restart">
-        <source>Enable Razor 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="translated">Abilita diagnostica 'pull' di Razor (sperimentale, richiede il riavvio)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
         <source>Enable all features in opened files from source generators (experimental)</source>
         <target state="translated">Abilita tutte le funzionalità nei file aperti dai generatori di origine (sperimentale)</target>
@@ -425,11 +420,6 @@
       <trans-unit id="Enable_navigation_to_sourcelink_and_embedded_sources">
         <source>Enable navigation to Source Link and Embedded sources</source>
         <target state="translated">Abilitare lo spostamento in Collegamento origine e origini incorporate</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_pull_diagnostics_requires_restart">
-        <source>Enable 'pull' diagnostics (requires restart)</source>
-        <target state="new">Enable 'pull' diagnostics (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enabled">

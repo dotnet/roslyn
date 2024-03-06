@@ -17,20 +17,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 [Export(typeof(IVSTypeScriptDiagnosticService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class VSTypeScriptDiagnosticService(IDiagnosticService service, IGlobalOptionService globalOptions) : IVSTypeScriptDiagnosticService
+internal sealed class VSTypeScriptDiagnosticService(IDiagnosticService service) : IVSTypeScriptDiagnosticService
 {
     private readonly IDiagnosticService _service = service;
-    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     public async Task<ImmutableArray<VSTypeScriptDiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
     {
-        // this is the TS entrypoint to get push diagnostics.  Only return diagnostics if we're actually in push-mode.
-        var diagnosticMode = _globalOptions.GetDiagnosticMode();
-        if (diagnosticMode != DiagnosticMode.SolutionCrawlerPush)
-            return [];
-
-        var result = await _service.GetDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-        return result.SelectAsArray(data => new VSTypeScriptDiagnosticData(data));
+        // this is the TS entrypoint to get push diagnostics.  Since we only have pull diagnostics now, this returns
+        // nothing.
+        return [];
     }
 
     [Obsolete]
