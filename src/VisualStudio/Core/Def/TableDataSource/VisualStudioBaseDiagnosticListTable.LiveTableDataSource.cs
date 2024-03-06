@@ -296,14 +296,8 @@ internal abstract partial class VisualStudioBaseDiagnosticListTable
 
             public override ImmutableArray<DiagnosticTableItem> GetItems()
             {
-                var provider = _source._diagnosticService;
-                var items = provider.GetDiagnosticsAsync(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, cancellationToken: CancellationToken.None)
-                    .AsTask()
-                    .WaitAndGetResult_CanCallOnBackground(CancellationToken.None)
-                                    .Where(ShouldInclude)
-                                    .Select(data => DiagnosticTableItem.Create(_workspace, data));
-
-                return items.ToImmutableArray();
+                // Since we're in lsp pull mode the lsp client owns the error list.
+                return ImmutableArray<DiagnosticTableItem>.Empty;
             }
 
             public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<DiagnosticTableItem> items)
