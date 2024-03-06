@@ -2159,6 +2159,123 @@ class Program
         }
 
         [Fact]
+        public void ImplementsIEnumerableT_22_ObsoleteConstructor()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable<long>
+{
+    [System.Obsolete()]
+    public MyCollection(){}
+    public List<long> Array = new List<long>();
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    public void Add(long l) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+#line 100
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+
+    [System.Obsolete()]
+    static void Test2(params MyCollection a)
+    {
+        Test2();
+        Test2(1);
+        Test2(2, 3);
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (100,9): warning CS0612: 'MyCollection.MyCollection()' is obsolete
+                //         Test();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Test()").WithArguments("MyCollection.MyCollection()").WithLocation(100, 9),
+                // (101,9): warning CS0612: 'MyCollection.MyCollection()' is obsolete
+                //         Test(1);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Test(1)").WithArguments("MyCollection.MyCollection()").WithLocation(101, 9),
+                // (102,9): warning CS0612: 'MyCollection.MyCollection()' is obsolete
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Test(2, 3)").WithArguments("MyCollection.MyCollection()").WithLocation(102, 9),
+                // (105,22): warning CS0612: 'MyCollection.MyCollection()' is obsolete
+                //     static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "params MyCollection a").WithArguments("MyCollection.MyCollection()").WithLocation(105, 22)
+                );
+        }
+
+        [Fact]
+        public void ImplementsIEnumerableT_23_ObsoleteAdd()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable<long>
+{
+    public List<long> Array = new List<long>();
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+
+    [System.Obsolete()]
+    public void Add(long l) => Array.Add(l);
+}
+
+class Program
+{
+    static void Main()
+    {
+#line 100
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+
+    static void Test(params MyCollection a)
+    {
+    }
+
+    [System.Obsolete()]
+    static void Test2(params MyCollection a)
+    {
+        Test2();
+        Test2(1);
+        Test2(2, 3);
+    }
+}
+""";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (101,14): warning CS1064: The best overloaded Add method 'MyCollection.Add(long)' for the collection initializer element is obsolete.
+                //         Test(1);
+                Diagnostic(ErrorCode.WRN_DeprecatedCollectionInitAdd, "1").WithArguments("MyCollection.Add(long)").WithLocation(101, 14),
+                // (102,14): warning CS1064: The best overloaded Add method 'MyCollection.Add(long)' for the collection initializer element is obsolete.
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.WRN_DeprecatedCollectionInitAdd, "2").WithArguments("MyCollection.Add(long)").WithLocation(102, 14),
+                // (102,17): warning CS1064: The best overloaded Add method 'MyCollection.Add(long)' for the collection initializer element is obsolete.
+                //         Test(2, 3);
+                Diagnostic(ErrorCode.WRN_DeprecatedCollectionInitAdd, "3").WithArguments("MyCollection.Add(long)").WithLocation(102, 17),
+                // (105,22): warning CS1064: The best overloaded Add method 'MyCollection.Add(long)' for the collection initializer element is obsolete.
+                //     static void Test(params MyCollection a)
+                Diagnostic(ErrorCode.WRN_DeprecatedCollectionInitAdd, "params MyCollection a").WithArguments("MyCollection.Add(long)").WithLocation(105, 22)
+                );
+        }
+
+        [Fact]
         public void ImplementsIEnumerable_01()
         {
             var src = """
