@@ -9,30 +9,29 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
+
+[Export(typeof(ITableControlEventProcessorProvider))]
+[DataSourceType(StandardTableDataSources.ErrorTableDataSource)]
+[DataSource(VisualStudioDiagnosticListTableWorkspaceEventListener.IdentifierString)]
+[Name(Name)]
+[Order(Before = "default")]
+internal partial class DiagnosticTableControlEventProcessorProvider : AbstractTableControlEventProcessorProvider<DiagnosticTableItem>
 {
-    [Export(typeof(ITableControlEventProcessorProvider))]
-    [DataSourceType(StandardTableDataSources.ErrorTableDataSource)]
-    [DataSource(VisualStudioDiagnosticListTableWorkspaceEventListener.IdentifierString)]
-    [Name(Name)]
-    [Order(Before = "default")]
-    internal partial class DiagnosticTableControlEventProcessorProvider : AbstractTableControlEventProcessorProvider<DiagnosticTableItem>
+    internal const string Name = "C#/VB Diagnostic Table Event Processor";
+    private readonly VisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public DiagnosticTableControlEventProcessorProvider(
+        VisualStudioDiagnosticListSuppressionStateService suppressionStateService)
     {
-        internal const string Name = "C#/VB Diagnostic Table Event Processor";
-        private readonly VisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
+        _suppressionStateService = suppressionStateService;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DiagnosticTableControlEventProcessorProvider(
-            VisualStudioDiagnosticListSuppressionStateService suppressionStateService)
-        {
-            _suppressionStateService = suppressionStateService;
-        }
-
-        protected override EventProcessor CreateEventProcessor()
-        {
-            var suppressionStateEventProcessor = new SuppressionStateEventProcessor(_suppressionStateService);
-            return new AggregateDiagnosticTableControlEventProcessor(additionalEventProcessors: suppressionStateEventProcessor);
-        }
+    protected override EventProcessor CreateEventProcessor()
+    {
+        var suppressionStateEventProcessor = new SuppressionStateEventProcessor(_suppressionStateService);
+        return new AggregateDiagnosticTableControlEventProcessor(additionalEventProcessors: suppressionStateEventProcessor);
     }
 }

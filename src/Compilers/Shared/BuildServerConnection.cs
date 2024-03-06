@@ -20,11 +20,30 @@ namespace Microsoft.CodeAnalysis.CommandLine
 {
     internal sealed class BuildServerConnection
     {
-        // Spend up to 1s connecting to existing process (existing processes should be always responsive).
-        internal const int TimeOutMsExistingProcess = 1000;
+        /// <summary>
+        /// The time to wait for a named pipe connection to complete to an existing server 
+        /// process.
+        /// </summary>
+        /// <remarks>
+        /// The compiler server is designed to be responsive to new connections so in ideal 
+        /// circumstances a timeout as short as one second is fine. However, in practice the
+        /// server can become temporarily unresponsive if say the machine is under heavy load
+        /// or a connection occurs just as a gen2 GC occurs.
+        ///
+        /// In any of these cases abandoning the connection attempt means falling back to 
+        /// starting csc.exe / vbc.exe which will likely make the above problems. That will 
+        /// create a new process that adds more load to the system. 
+        /// 
+        /// As such this timeout should be significantly longer than the average gen2 pause
+        /// time for the server. When changing this value consider profiling building 
+        /// Roslyn.sln and consulting the GC stats to see what a typical pause time is.
+        /// </remarks>
+        internal const int TimeOutMsExistingProcess = 5_000;
 
-        // Spend up to 20s connecting to a new process, to allow time for it to start.
-        internal const int TimeOutMsNewProcess = 20000;
+        /// <summary>
+        /// The time to wait for a named pipe connection to complete for a newly started server
+        /// </summary>
+        internal const int TimeOutMsNewProcess = 20_000;
 
         // To share a mutex between processes the name should have the Global prefix
         private const string GlobalMutexPrefix = "Global\\";

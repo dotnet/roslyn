@@ -349,6 +349,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, CancellationToken, ValueTask<TResult>> selector, CancellationToken cancellationToken)
         {
+            if (array.IsEmpty)
+                return ImmutableArray<TResult>.Empty;
+
             var builder = ArrayBuilder<TResult>.GetInstance(array.Length);
 
             foreach (var item in array)
@@ -364,6 +367,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TArg, TResult>(this ImmutableArray<TItem> array, Func<TItem, TArg, CancellationToken, ValueTask<TResult>> selector, TArg arg, CancellationToken cancellationToken)
         {
+            if (array.IsEmpty)
+                return ImmutableArray<TResult>.Empty;
+
             var builder = ArrayBuilder<TResult>.GetInstance(array.Length);
 
             foreach (var item in array)

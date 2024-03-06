@@ -13,20 +13,19 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 
-namespace Microsoft.CodeAnalysis.ExtractInterface
+namespace Microsoft.CodeAnalysis.ExtractInterface;
+
+internal interface IExtractInterfaceOptionsService : IWorkspaceService
 {
-    internal interface IExtractInterfaceOptionsService : IWorkspaceService
-    {
-        Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
-            ISyntaxFactsService syntaxFactsService,
-            INotificationService notificationService,
-            List<ISymbol> extractableMembers,
-            string defaultInterfaceName,
-            List<string> conflictingTypeNames,
-            string defaultNamespace,
-            string generatedNameTypeParameterSuffix,
-            string languageName,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
-            CancellationToken cancellationToken);
-    }
+    Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
+        ISyntaxFactsService syntaxFactsService,
+        INotificationService notificationService,
+        List<ISymbol> extractableMembers,
+        string defaultInterfaceName,
+        List<string> conflictingTypeNames,
+        string defaultNamespace,
+        string generatedNameTypeParameterSuffix,
+        string languageName,
+        CleanCodeGenerationOptionsProvider fallbackOptions,
+        CancellationToken cancellationToken);
 }

@@ -7,10 +7,9 @@
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavInfo;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library;
+
+internal interface ILibraryService : ILanguageService
 {
-    internal interface ILibraryService : ILanguageService
-    {
-        NavInfoFactory NavInfoFactory { get; }
-    }
+    NavInfoFactory NavInfoFactory { get; }
 }

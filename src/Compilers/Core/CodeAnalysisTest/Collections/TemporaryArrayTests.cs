@@ -302,5 +302,23 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.False(array.Contains(-1));
             Assert.False(array.Contains(initialItems));
         }
+
+        [Fact]
+        public void TestSingleOrDefault()
+        {
+            using var array = TemporaryArray<int>.Empty;
+            array.Add(1);
+            array.Add(2);
+            array.Add(3);
+
+            Assert.Equal(3, array.SingleOrDefault(p => p > 2));
+            Assert.Equal(3, array.SingleOrDefault((p, arg) => p > arg, arg: 2));
+
+            Assert.Equal(0, array.SingleOrDefault(p => p > 5));
+            Assert.Equal(0, array.SingleOrDefault((p, arg) => p > arg, arg: 5));
+
+            Assert.Throws<InvalidOperationException>(() => array.SingleOrDefault(p => p > 1));
+            Assert.Throws<InvalidOperationException>(() => array.SingleOrDefault((p, arg) => p > arg, arg: 1));
+        }
     }
 }

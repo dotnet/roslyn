@@ -12,25 +12,24 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.MoveToNamespace
-{
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MoveToNamespace), Shared]
-    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.SyncNamespace)]
-    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.MoveTypeToFile)]
-    internal class MoveToNamespaceCodeActionProvider : CodeRefactoringProvider
-    {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public MoveToNamespaceCodeActionProvider()
-        {
-        }
+namespace Microsoft.CodeAnalysis.MoveToNamespace;
 
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
-        {
-            var (document, textSpan, cancellationToken) = context;
-            var moveToNamespaceService = document.GetLanguageService<IMoveToNamespaceService>();
-            var actions = await moveToNamespaceService.GetCodeActionsAsync(document, textSpan, context.Options, cancellationToken).ConfigureAwait(false);
-            context.RegisterRefactorings(actions);
-        }
+[ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MoveToNamespace), Shared]
+[ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.SyncNamespace)]
+[ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.MoveTypeToFile)]
+internal class MoveToNamespaceCodeActionProvider : CodeRefactoringProvider
+{
+    [ImportingConstructor]
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    public MoveToNamespaceCodeActionProvider()
+    {
+    }
+
+    public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+    {
+        var (document, textSpan, cancellationToken) = context;
+        var moveToNamespaceService = document.GetLanguageService<IMoveToNamespaceService>();
+        var actions = await moveToNamespaceService.GetCodeActionsAsync(document, textSpan, context.Options, cancellationToken).ConfigureAwait(false);
+        context.RegisterRefactorings(actions);
     }
 }

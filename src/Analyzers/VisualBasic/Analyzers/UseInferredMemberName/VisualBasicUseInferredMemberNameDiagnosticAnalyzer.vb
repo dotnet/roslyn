@@ -57,6 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                     Descriptor,
                     nameColonEquals.GetLocation(),
                     preference.Notification,
+                    context.Options,
                     additionalLocations:=ImmutableArray(Of Location).Empty,
                     additionalUnnecessaryLocations:=ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))))
         End Sub
@@ -80,6 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                     Descriptor,
                     syntaxTree.GetLocation(fadeSpan),
                     preference.Notification,
+                    context.Options,
                     additionalLocations:=ImmutableArray(Of Location).Empty,
                     additionalUnnecessaryLocations:=ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))))
         End Sub

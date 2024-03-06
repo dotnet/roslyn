@@ -7,6 +7,7 @@
     <TargetFramework>net472</TargetFramework>
     <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
     <IsShipping>false</IsShipping>
+    <IsTestUtilityProject>true</IsTestUtilityProject>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\..\Features\DiagnosticsTestUtilities\CodeActions\AnalyzerProperty.cs" Link="AnalyzerProperty.cs" />
