@@ -76,20 +76,13 @@ namespace Microsoft.CodeAnalysis
                     var stopwatch = SharedStopwatch.StartNew();
                     // generate the new entries
                     ImmutableArray<TOutput> newOutputs;
-                    if (_wrapUserFunc)
-                    {
-                        try
-                        {
-                            newOutputs = _func(entry.Item, cancellationToken);
-                        }
-                        catch (Exception e) when (!ExceptionUtilities.IsCurrentOperationBeingCancelled(e, cancellationToken))
-                        {
-                            throw new UserFunctionException(e);
-                        }
-                    }
-                    else
+                    try
                     {
                         newOutputs = _func(entry.Item, cancellationToken);
+                    }
+                    catch (Exception e) when (_wrapUserFunc && !ExceptionUtilities.IsCurrentOperationBeingCancelled(e, cancellationToken))
+                    {
+                        throw new UserFunctionException(e);
                     }
 
                     if (entry.State != EntryState.Modified || !tableBuilder.TryModifyEntries(newOutputs, _comparer, stopwatch.Elapsed, inputs, entry.State))
