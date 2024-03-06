@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Imports? _lazyPreviousSubmissionImports;
         private AliasSymbol? _lazyGlobalNamespaceAlias;  // alias symbol used to resolve "global::".
 
-        private NamedTypeSymbol? _lazyScriptClass;
+        private NamedTypeSymbol? _lazyScriptClass = ErrorTypeSymbol.UnknownResultType;
 
         // The type of host object model if available.
         private TypeSymbol? _lazyHostObjectTypeSymbol;
@@ -93,11 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Manages anonymous types declared in this compilation. Unifies types that are structurally equivalent.
         /// </summary>
-        private AnonymousTypeManager? _anonymousTypeManager;
+        private AnonymousTypeManager? _lazyAnonymousTypeManager;
 
         private NamespaceSymbol? _lazyGlobalNamespace;
 
-        private BuiltInOperators? _builtInOperators;
+        private BuiltInOperators? _lazyBuiltInOperators;
 
         /// <summary>
         /// The <see cref="SourceAssemblySymbol"/> for this compilation. Do not access directly, use Assembly property
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Cache of T to Nullable&lt;T&gt;.
         /// </summary>
-        private ConcurrentCache<TypeSymbol, NamedTypeSymbol>? _typeToNullableVersion;
+        private ConcurrentCache<TypeSymbol, NamedTypeSymbol>? _lazyTypeToNullableVersion;
 
         /// <summary>Lazily caches SyntaxTrees by their mapped path. Used to look up the syntax tree referenced by an interceptor (temporary compat behavior).</summary>
         /// <remarks>Must be removed prior to interceptors stable release.</remarks>
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return InterlockedOperations.Initialize(ref _builtInOperators, static self => new BuiltInOperators(self), this);
+                return InterlockedOperations.Initialize(ref _lazyBuiltInOperators, static self => new BuiltInOperators(self), this);
             }
         }
 
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return InterlockedOperations.Initialize(ref _anonymousTypeManager, static self => new AnonymousTypeManager(self), this);
+                return InterlockedOperations.Initialize(ref _lazyAnonymousTypeManager, static self => new AnonymousTypeManager(self), this);
             }
         }
 
@@ -479,7 +479,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(assemblyName, references, features, isSubmission, semanticModelProvider, eventQueue)
         {
             _options = options;
-            _lazyScriptClass = ErrorTypeSymbol.UnknownResultType;
 
             this.LanguageVersion = CommonLanguageVersion(syntaxAndDeclarations.ExternalSyntaxTrees);
 
@@ -1656,7 +1655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return InterlockedOperations.Initialize(ref _typeToNullableVersion, static () => new ConcurrentCache<TypeSymbol, NamedTypeSymbol>(size: 100));
+                return InterlockedOperations.Initialize(ref _lazyTypeToNullableVersion, static () => new ConcurrentCache<TypeSymbol, NamedTypeSymbol>(size: 100));
             }
         }
 
