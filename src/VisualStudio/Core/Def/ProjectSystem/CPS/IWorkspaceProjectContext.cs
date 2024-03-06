@@ -72,9 +72,18 @@ internal interface IWorkspaceProjectContext : IDisposable
     /// </summary>
     void RemoveAnalyzerConfigFile(string filePath);
 
-    void StartBatch();
-    IAsyncDisposable CreateBatchScope();
+    /// <summary>
+    /// Creates a batching scope for this context
+    /// </summary>
     ValueTask<IAsyncDisposable> CreateBatchScopeAsync(CancellationToken cancellationToken);
+
+    // Can be removed once CPS starts consuming CreateBatchScopeAsync
+    void StartBatch();
+
+    // Can be removed once CPS starts consuming CreateBatchScopeAsync
+    IAsyncDisposable CreateBatchScope();
+
+    // Can be removed once CPS starts consuming CreateBatchScopeAsync
     ValueTask EndBatchAsync();
 
     void ReorderSourceFiles(IEnumerable<string> filePaths);
