@@ -8182,6 +8182,11 @@ public struct Vec4
                     {
                         return new R(1) || new R(2);
                     }
+                
+                    static R F2()
+                    {
+                        return new R(1) | new R(2);
+                    }
                 }
                 """;
             CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
@@ -8193,7 +8198,16 @@ public struct Vec4
                 Diagnostic(ErrorCode.ERR_EscapeCall, "new R(2)").WithArguments("R.R(in int)", "i").WithLocation(13, 28),
                 // (13,34): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         return new R(1) || new R(2);
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(13, 34));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(13, 34),
+                // (18,16): error CS8347: Cannot use a result of 'R.operator |(scoped R, R)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) | new R(2)").WithArguments("R.operator |(scoped R, R)", "y").WithLocation(18, 16),
+                // (18,27): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(2)").WithArguments("R.R(in int)", "i").WithLocation(18, 27),
+                // (18,33): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(18, 33));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
@@ -8214,6 +8228,11 @@ public struct Vec4
                     {
                         return new R(1) || new R(2);
                     }
+                
+                    static R F2()
+                    {
+                        return new R(1) | new R(2);
+                    }
                 }
                 """;
             CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
@@ -8225,7 +8244,16 @@ public struct Vec4
                 Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) || new R(2)").WithArguments("R.operator |(R, scoped R)", "x").WithLocation(13, 16),
                 // (13,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         return new R(1) || new R(2);
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(13, 22));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(13, 22),
+                // (18,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(18, 16),
+                // (18,16): error CS8347: Cannot use a result of 'R.operator |(R, scoped R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) | new R(2)").WithArguments("R.operator |(R, scoped R)", "x").WithLocation(18, 16),
+                // (18,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(18, 22));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
@@ -8245,6 +8273,11 @@ public struct Vec4
                     static R F()
                     {
                         return new R(1) || new R(2);
+                    }
+                
+                    static R F2()
+                    {
+                        return new R(1) | new R(2);
                     }
                 }
                 """;
@@ -8269,6 +8302,11 @@ public struct Vec4
                     {
                         return new R(1) || new R(2);
                     }
+
+                    static R F2()
+                    {
+                        return new R(1) | new R(2);
+                    }
                 }
                 """;
             CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
@@ -8280,7 +8318,16 @@ public struct Vec4
                 Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) || new R(2)").WithArguments("R.operator |(R, R)", "x").WithLocation(13, 16),
                 // (13,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         return new R(1) || new R(2);
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(13, 22));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(13, 22),
+                // (18,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(18, 16),
+                // (18,16): error CS8347: Cannot use a result of 'R.operator |(R, R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) | new R(2)").WithArguments("R.operator |(R, R)", "x").WithLocation(18, 16),
+                // (18,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(18, 22));
         }
     }
 }
