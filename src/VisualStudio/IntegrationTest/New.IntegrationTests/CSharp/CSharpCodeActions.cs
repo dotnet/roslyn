@@ -711,7 +711,7 @@ public class Program
             ], cancellationToken: HangMitigatingCancellationToken);
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/72428"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/46784")]
         public async Task ConfigureSeverity()
         {
@@ -799,7 +799,7 @@ class C
             }
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/72428"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/46784")]
         public async Task ConfigureSeverityWithManualEditsToEditorconfig()
         {
@@ -880,7 +880,7 @@ dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
             }
         }
 
-        [IdeTheory, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+        [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/72428"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
         [InlineData(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, CompilerDiagnosticsScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics)]
         [InlineData(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution)]
         internal async Task ConfigureSeverityWithManualEditsToEditorconfig_CurrentDocumentScope(BackgroundAnalysisScope analyzerScope, CompilerDiagnosticsScope compilerScope)
