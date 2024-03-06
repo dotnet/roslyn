@@ -1723,8 +1723,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefStructConstraintAlreadySpecified">
-        <source>The 'ref struct' is already specified.</source>
-        <target state="new">The 'ref struct' is already specified.</target>
+        <source>'ref struct' is already specified.</source>
+        <target state="new">'ref struct' is already specified.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">

@@ -7852,7 +7852,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Target runtime doesn't support by-ref-like generics.</value>
   </data>
   <data name="ERR_RefStructConstraintAlreadySpecified" xml:space="preserve">
-    <value>The 'ref struct' is already specified.</value>
+    <value>'ref struct' is already specified.</value>
   </data>
   <data name="ERR_AllowsClauseMustBeLast" xml:space="preserve">
     <value>The 'allows' constraint clause must be the last constraint specified</value>

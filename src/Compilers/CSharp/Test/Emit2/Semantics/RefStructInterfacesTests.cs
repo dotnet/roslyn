@@ -3950,10 +3950,10 @@ public class D<T>
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             comp.VerifyDiagnostics(
-                // (3,34): error CS9501: The 'ref struct' is already specified.
+                // (3,34): error CS9501: 'ref struct' is already specified.
                 //     where T : allows ref struct, ref struct
                 Diagnostic(ErrorCode.ERR_RefStructConstraintAlreadySpecified, "ref struct").WithLocation(3, 34),
-                // (8,34): error CS9501: The 'ref struct' is already specified.
+                // (8,34): error CS9501: 'ref struct' is already specified.
                 //     where T : allows ref struct, ref
                 Diagnostic(ErrorCode.ERR_RefStructConstraintAlreadySpecified, @"ref
 ").WithLocation(8, 34),
@@ -4509,8 +4509,6 @@ public class C<T>
     where T : System.ValueType, allows ref struct
 {
 }
-
-public class C1 {}
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
@@ -4540,8 +4538,6 @@ public class C<T>
     where T : System.Enum, allows ref struct
 {
 }
-
-public class C1 {}
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
@@ -5252,6 +5248,72 @@ public class C<T>
                 Assert.False(t.HasUnmanagedTypeConstraint);
                 Assert.False(t.HasNotNullConstraint);
                 Assert.False(t.AllowByRefLike);
+            }
+        }
+
+        [Fact]
+        public void AllowsConstraint_46()
+        {
+            var src = @"
+class C<T, U>
+    where T : allows ref struct
+    where U : T, allows ref struct
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var t = c.TypeParameters[0];
+                Assert.False(t.HasReferenceTypeConstraint);
+                Assert.False(t.HasValueTypeConstraint);
+                Assert.False(t.HasUnmanagedTypeConstraint);
+                Assert.False(t.HasNotNullConstraint);
+                Assert.True(t.AllowByRefLike);
+
+                var u = c.TypeParameters[1];
+                Assert.False(u.HasReferenceTypeConstraint);
+                Assert.False(u.HasValueTypeConstraint);
+                Assert.False(u.HasUnmanagedTypeConstraint);
+                Assert.False(u.HasNotNullConstraint);
+                Assert.True(u.AllowByRefLike);
+            }
+        }
+
+        [Fact]
+        public void AllowsConstraint_47()
+        {
+            var src = @"
+class C<T, U>
+    where T : allows ref struct
+    where U : T
+{
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var t = c.TypeParameters[0];
+                Assert.False(t.HasReferenceTypeConstraint);
+                Assert.False(t.HasValueTypeConstraint);
+                Assert.False(t.HasUnmanagedTypeConstraint);
+                Assert.False(t.HasNotNullConstraint);
+                Assert.True(t.AllowByRefLike);
+
+                var u = c.TypeParameters[1];
+                Assert.False(u.HasReferenceTypeConstraint);
+                Assert.False(u.HasValueTypeConstraint);
+                Assert.False(u.HasUnmanagedTypeConstraint);
+                Assert.False(u.HasNotNullConstraint);
+                Assert.False(u.AllowByRefLike);
             }
         }
     }
