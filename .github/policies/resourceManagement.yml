@@ -39,6 +39,7 @@ configuration:
       - approvePullRequest:
           comment: Auto-approval
       description: Auto-approve auto-merge PRs
+      triggerOnOwnActions: false
     - if:
       - payloadType: Pull_Request
       - isPullRequest
@@ -55,6 +56,7 @@ configuration:
       - approvePullRequest:
           comment: Auto-approve
       description: Auto-approve maestro PRs
+      triggerOnOwnActions: false
     - if:
       - payloadType: Pull_Request
       - isPullRequest
@@ -63,8 +65,10 @@ configuration:
             branch: main
         - targetsBranch:
             branch: main-vs-deps
-      - isAction:
-          action: Null
+      - and:
+        - isAction:
+            action: Closed
+        - isMerged
       then:
       - addMilestone:
           milestone: Next
@@ -85,6 +89,7 @@ configuration:
       - addLabel:
           label: auto-merge
       description: Auto-approve OneLoc PRs
+      triggerOnOwnActions: false
     - if:
       - payloadType: Issue_Comment
       - isIssue
@@ -97,6 +102,7 @@ configuration:
       - removeLabel:
           label: Need More Info
       description: Remove "Need More Info" on comment
+      triggerOnOwnActions: false
     - if:
       - payloadType: Pull_Request
       - isPullRequest
@@ -137,6 +143,7 @@ configuration:
       - addLabel:
           label: Community
       description: Label Community Pull Requests
+      triggerOnOwnActions: false
     - if:
       - payloadType: Pull_Request
       - isPullRequest
@@ -160,8 +167,10 @@ configuration:
             action: Opened
         - isAction:
             action: Synchronize
-        - isAction:
-            action: Null
+        - and:
+          - isAction:
+              action: Closed
+          - isMerged
       - and:
         - not:
             isActivitySender:
@@ -179,6 +188,7 @@ configuration:
       - addLabel:
           label: Needs UX Triage
       description: Add "Needs UX Triage" on PRs
+      triggerOnOwnActions: false
     - if:
       - payloadType: Pull_Request
       - filesMatchPattern:
@@ -205,6 +215,7 @@ configuration:
       - addReply:
           reply: This PR modifies public API files. Please follow the instructions at https://github.com/dotnet/roslyn/blob/main/docs/contributing/API%20Review%20Process.md for ensuring all public APIs are reviewed before merging.
       description: Adds "Needs API Review" on PRs that touch public APIs
+      triggerOnOwnActions: false
     - if:
       - payloadType: Issues
       - isIssue
@@ -216,5 +227,6 @@ configuration:
       then:
       - closeIssue
       description: Close automatically generated PR tagger issues
+      triggerOnOwnActions: false
 onFailure: 
-onSuccess: 
+onSuccess:
