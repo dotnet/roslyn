@@ -91,9 +91,6 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
         private async Task ProduceTagsAsync(
             TaggerContext<TTag> context, DocumentSnapshotSpan documentSpanToTag, CancellationToken cancellationToken)
         {
-            if (!_callback.IsEnabled)
-                return;
-
             var document = documentSpanToTag.Document;
             if (document == null)
                 return;

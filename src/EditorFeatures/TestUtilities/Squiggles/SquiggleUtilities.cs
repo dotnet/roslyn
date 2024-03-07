@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
         internal static async Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<TTag>>)> GetDiagnosticsAndErrorSpansAsync<TProvider, TTag>(
             EditorTestWorkspace workspace,
             IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
-            where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<TTag>
+            where TProvider : AbstractDiagnosticsTaggerProvider<TTag>
             where TTag : class, ITag
         {
             using var wrapper = new DiagnosticTaggerWrapper<TProvider, TTag>(workspace, analyzerMap);
