@@ -109,7 +109,7 @@ End Namespace
                 string.Join(Environment.NewLine, actualContents));
         }
 
-        [IdeFact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1643350")]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/72428"), WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1643350")]
         public virtual async Task BuildErrorsInClosedFiles()
         {
             // Enter code with compiler error.
