@@ -59,16 +59,6 @@ namespace AnalyzerRunner
                     throw new InvalidOperationException("Benchmark is not configured to use persistent storage.");
                 }
             }
-
-            var incrementalAnalyzerProviders = exportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>();
-            foreach (var incrementalAnalyzerName in _options.IncrementalAnalyzerNames)
-            {
-                var incrementalAnalyzerProvider = incrementalAnalyzerProviders.Where(x => x.Metadata.Name == incrementalAnalyzerName).SingleOrDefault(provider => provider.Metadata.WorkspaceKinds.Contains(_workspace.Kind))?.Value;
-                incrementalAnalyzerProvider ??= incrementalAnalyzerProviders.Where(x => x.Metadata.Name == incrementalAnalyzerName).SingleOrDefault(provider => provider.Metadata.WorkspaceKinds.Contains(WorkspaceKind.Host))?.Value;
-                incrementalAnalyzerProvider ??= incrementalAnalyzerProviders.Where(x => x.Metadata.Name == incrementalAnalyzerName).SingleOrDefault(provider => provider.Metadata.WorkspaceKinds.Contains(WorkspaceKind.RemoteWorkspace))?.Value;
-                incrementalAnalyzerProvider ??= incrementalAnalyzerProviders.Where(x => x.Metadata.Name == incrementalAnalyzerName).Single(provider => provider.Metadata.WorkspaceKinds is []).Value;
-                ((DiagnosticAnalyzerService)incrementalAnalyzerProvider).CreateIncrementalAnalyzer(_workspace);
-            }
         }
     }
 }
