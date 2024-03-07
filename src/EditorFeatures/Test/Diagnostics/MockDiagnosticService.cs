@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     {
         public const string DiagnosticId = "MockId";
 
-        public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
+        public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>> DiagnosticsUpdated { add { } remove { } }
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
