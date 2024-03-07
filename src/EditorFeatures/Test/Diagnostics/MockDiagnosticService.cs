@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     {
         public const string DiagnosticId = "MockId";
 
-        private DiagnosticData? _diagnosticData;
-
         public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
 
         [ImportingConstructor]
@@ -26,25 +24,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public MockDiagnosticService()
         {
         }
-
-        internal void CreateDiagnosticAndFireEvents(Workspace workspace, MockDiagnosticAnalyzerService analyzerService, Location location, DiagnosticKind diagnosticKind, bool isSuppressed)
-        {
-            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-            _diagnosticData = DiagnosticData.Create(Diagnostic.Create(DiagnosticId, "MockCategory", "MockMessage", DiagnosticSeverity.Error, DiagnosticSeverity.Error, isEnabledByDefault: true, warningLevel: 0, isSuppressed: isSuppressed,
-                location: location),
-                document);
-
-            analyzerService.AddDiagnostic(_diagnosticData, diagnosticKind);
-            DiagnosticsUpdated?.Invoke(this, ImmutableArray.Create(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                this, workspace, workspace.CurrentSolution,
-                GetProjectId(workspace), GetDocumentId(workspace),
-                ImmutableArray.Create(_diagnosticData))));
-        }
-
-        private static DocumentId GetDocumentId(Workspace workspace)
-            => workspace.CurrentSolution.Projects.Single().Documents.Single().Id;
-
-        private static ProjectId GetProjectId(Workspace workspace)
-            => workspace.CurrentSolution.Projects.Single().Id;
     }
 }
