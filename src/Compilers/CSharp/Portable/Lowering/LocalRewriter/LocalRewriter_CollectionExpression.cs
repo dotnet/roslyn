@@ -919,7 +919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(asSpan is { });
                 Debug.Assert(knownLengthTemp is { });
 
-                // CollectionsMarshal.SetCount<ElementType>(knownLengthTemp, list);
+                // CollectionsMarshal.SetCount<ElementType>(list, knownLengthTemp);
                 sideEffects.Add(_factory.Call(receiver: null, setCount, listTemp, knownLengthTemp));
 
                 // var span = CollectionsMarshal.AsSpan<ElementType(list);
