@@ -646,7 +646,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Public ReadOnly Property GlobalOptions As IGlobalOptionService Implements IDiagnosticAnalyzerService.GlobalOptions
 
             Public Sub New(globalOptions As IGlobalOptionService, Optional data As ImmutableArray(Of DiagnosticData) = Nothing)
-                _data = data.NullToEmpty
                 _analyzerInfoCache = New DiagnosticAnalyzerInfoCache()
                 Me.GlobalOptions = globalOptions
             End Sub
