@@ -143,10 +143,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     source.OnSolutionBuildCompleted()
 
                     Await waiter.ExpeditedWaitAsync()
-
-                    Dim buildOnlyDiagnosticService = workspace.Services.GetRequiredService(Of IBuildOnlyDiagnosticsService)
-                    Assert.Empty(buildOnlyDiagnosticService.GetBuildOnlyDiagnostics(project.DocumentIds.First()))
-                    Assert.Empty(buildOnlyDiagnosticService.GetBuildOnlyDiagnostics(project.Id))
                 End Using
             End Using
         End Function
@@ -310,16 +306,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Await waiter.ExpeditedWaitAsync()
 
                     Assert.Equal(hasCompilationEndTag, buildDiagnosticCallbackSeen)
-
-                    Dim buildOnlyDiagnosticService = workspace.Services.GetRequiredService(Of IBuildOnlyDiagnosticsService)
-                    Dim buildOnlyDiagnostics = buildOnlyDiagnosticService.GetBuildOnlyDiagnostics(project.Id)
-                    If (hasCompilationEndTag) Then
-                        Assert.Equal(1, buildOnlyDiagnostics.Length)
-                        Assert.Equal(buildOnlyDiagnostics(0).Properties(WellKnownDiagnosticPropertyNames.Origin), WellKnownDiagnosticTags.Build)
-                    Else
-                        Assert.Empty(buildOnlyDiagnostics)
-                    End If
-
                 End Using
             End Using
         End Function
@@ -562,10 +548,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Assert.NotNull(actualDiagnostic)
                     Assert.Equal(actualDiagnostic, diagnostic)
 
-                    Dim buildOnlyDiagnosticService = workspace.Services.GetRequiredService(Of IBuildOnlyDiagnosticsService)
-                    Dim buildOnlyDiagnostic = Assert.Single(buildOnlyDiagnosticService.GetBuildOnlyDiagnostics(document.Id))
-                    Assert.Equal(buildOnlyDiagnostic, diagnostic)
-
                     ' Verify build-only diagnostics cleared after document changed event
                     document = document.WithText(SourceText.From("class C2 { }"))
                     source.GetTestAccessor().OnWorkspaceChanged(workspace, New WorkspaceChangeEventArgs(WorkspaceChangeKind.DocumentChanged,
@@ -574,7 +556,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                     Assert.True(diagnosticRemoved)
                     Assert.Null(actualDiagnostic)
-                    Assert.Empty(buildOnlyDiagnosticService.GetBuildOnlyDiagnostics(document.Id))
                 End Using
             End Using
         End Function

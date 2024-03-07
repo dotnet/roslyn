@@ -40,7 +40,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSou
 {
     private readonly Workspace _workspace;
     private readonly IDiagnosticAnalyzerService _diagnosticService;
-    private readonly IBuildOnlyDiagnosticsService _buildOnlyDiagnosticsService;
     private readonly IGlobalOperationNotificationService _notificationService;
     private readonly CancellationToken _disposalToken;
 
@@ -104,7 +103,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSou
         _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
         _diagnosticService = diagnosticService;
-        _buildOnlyDiagnosticsService = _workspace.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
 
         _notificationService = notificationService;
     }
@@ -612,12 +610,10 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSou
             if (args.Kind == DiagnosticsUpdatedKind.DiagnosticsCreated)
             {
                 RoslynDebug.AssertNotNull(args.Solution);
-                _buildOnlyDiagnosticsService.AddBuildOnlyDiagnostics(args.Solution, args.ProjectId, args.DocumentId, args.Diagnostics);
             }
             else if (args.Kind == DiagnosticsUpdatedKind.DiagnosticsRemoved)
             {
                 RoslynDebug.AssertNotNull(args.Solution);
-                _buildOnlyDiagnosticsService.ClearBuildOnlyDiagnostics(args.Solution, args.ProjectId, args.DocumentId);
             }
         }
 
