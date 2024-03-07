@@ -41,7 +41,15 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Access must be guarded by <see cref="_guard"/>
         /// </remarks>
-        private readonly Dictionary<string, (AssemblyName? AssemblyName, string RealAssemblyPath, ImmutableHashSet<string>? SatelliteCultureNames)?> _analyzerAssemblyInfoMap = new();
+        private readonly Dictionary<string, (AssemblyName? AssemblyName, string RealAssemblyPath)?> _analyzerAssemblyInfoMap = new();
+
+        /// <summary>
+        /// Set of analyzer dependencies original full paths to the satellite data calculated for that path
+        /// </summary>
+        /// <remarks>
+        /// Access must be guarded by <see cref="_guard"/>
+        /// </remarks>
+        private readonly Dictionary<string, (string RealAssemblyPath, ImmutableHashSet<string> SatelliteCultureNames)?> _analyzerSatelliteAssemblyInfoMap = new();
 
         /// <summary>
         /// Maps analyzer dependency simple names to the set of original full paths it was loaded from. This _only_ 
@@ -94,10 +102,11 @@ namespace Microsoft.CodeAnalysis
                     _knownAssemblyPathsBySimpleName[simpleName] = paths.Add(fullPath);
                 }
 
-                // This type assumses the file system is static for the duration of the
+                // This type assumes the file system is static for the duration of the
                 // it's instance. Repeated calls to this method, even if the underlying 
                 // file system contents, should reuse the results of the first call.
                 _ = _analyzerAssemblyInfoMap.TryAdd(fullPath, null);
+                _ = _analyzerSatelliteAssemblyInfoMap.TryAdd(fullPath, null);
             }
         }
 
@@ -143,7 +152,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (tuple is { } info)
                 {
-                    return (info.AssemblyName, info.RealAssemblyPath);
+                    return info;
                 }
             }
 
@@ -163,7 +172,7 @@ namespace Microsoft.CodeAnalysis
 
             lock (_guard)
             {
-                _analyzerAssemblyInfoMap[originalAnalyzerPath] = (assemblyName, realPath, SatelliteCultureNames: null);
+                _analyzerAssemblyInfoMap[originalAnalyzerPath] = (assemblyName, realPath);
             }
 
             return (assemblyName, realPath);
@@ -173,31 +182,25 @@ namespace Microsoft.CodeAnalysis
         {
             lock (_guard)
             {
-                if (!_analyzerAssemblyInfoMap.TryGetValue(originalAnalyzerPath, out var tuple))
+                if (!_analyzerSatelliteAssemblyInfoMap.TryGetValue(originalAnalyzerPath, out var tuple))
                 {
                     throw new InvalidOperationException();
                 }
 
-                if (tuple is not { } info)
+                if (tuple is { } info)
                 {
-                    // GetAssemblyInfoForPath should be called before requesting satellite assembly information
-                    throw new InvalidOperationException();
-                }
-
-                if (info.SatelliteCultureNames is not null)
-                {
-                    return (info.RealAssemblyPath, info.SatelliteCultureNames);
+                    return info;
                 }
             }
 
-            var (assemblyName, realPath) = GetAssemblyInfoForPath(originalAnalyzerPath);
+            var (_, realPath) = GetAssemblyInfoForPath(originalAnalyzerPath);
 
             var resourceAssemblyCultureNames = getResourceAssemblyCultureNames(originalAnalyzerPath);
             PrepareSatelliteAssembliesToLoad(originalAnalyzerPath, resourceAssemblyCultureNames);
 
             lock (_guard)
             {
-                _analyzerAssemblyInfoMap[originalAnalyzerPath] = (assemblyName, realPath, resourceAssemblyCultureNames);
+                _analyzerSatelliteAssemblyInfoMap[originalAnalyzerPath] = (realPath, resourceAssemblyCultureNames);
             }
 
             return (realPath, resourceAssemblyCultureNames);
@@ -249,7 +252,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Return the best (original, real) path information for loading an assembly with the specified <see cref="AssemblyName"/>.
         /// </summary>
-        protected (string?, string?) GetBestPath(AssemblyName requestedName)
+        protected (string? BestOriginalPath, string? BestRealPath) GetBestPath(AssemblyName requestedName)
         {
             if (requestedName.Name is null)
             {
@@ -307,6 +310,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected abstract string PreparePathToLoad(string assemblyFilePath);
 
+        /// <summary>
+        /// When overridden in a derived class, ensures satellite assemblies from the specified
+        /// path are prepared for loading. This is used to substitute out the original path with 
+        /// the shadow-copied version.
+        /// </summary>
         protected abstract void PrepareSatelliteAssembliesToLoad(string assemblyFilePath, ImmutableHashSet<string> resourceAssemblyCultureNames);
 
         /// <summary>
