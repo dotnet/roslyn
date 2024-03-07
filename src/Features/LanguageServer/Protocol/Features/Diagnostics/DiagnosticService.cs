@@ -31,8 +31,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly object _gate = new();
         private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map = [];
 
-        private readonly EventListenerTracker<IDiagnosticService> _eventListenerTracker;
-
         private ImmutableHashSet<IDiagnosticUpdateSource> _updateSources;
 
         [ImportingConstructor]
@@ -42,14 +40,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
         {
             // we use registry service rather than doing MEF import since MEF import method can have race issue where
-            // update source gets created before aggregator - diagnostic service - is created and we will lose events fired before
-            // the aggregator is created.
+            // update source gets created before aggregator - diagnostic service - is created and we will lose events
+            // fired before the aggregator is created.
             _updateSources = [];
 
             // queue to serialize events.
             _eventQueue = new TaskQueue(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), TaskScheduler.Default);
-
-            _eventListenerTracker = new EventListenerTracker<IDiagnosticService>(eventListeners, WellKnownEventListeners.DiagnosticService);
         }
 
         public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>> DiagnosticsUpdated
@@ -67,16 +63,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void RaiseDiagnosticsUpdated(IDiagnosticUpdateSource source, ImmutableArray<DiagnosticsUpdatedArgs> argsCollection)
         {
-            Workspace? previousWorkspace = null;
-            foreach (var args in argsCollection)
-            {
-                if (args.Workspace != previousWorkspace)
-                {
-                    _eventListenerTracker.EnsureEventListener(args.Workspace, this);
-                    previousWorkspace = args.Workspace;
-                }
-            }
-
             var ev = _eventMap.GetEventHandlers<EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>>(DiagnosticsUpdatedEventName);
 
             _eventQueue.ScheduleTask(DiagnosticsUpdatedEventName, () =>
@@ -414,20 +400,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Id = args.Id;
                 Diagnostics = diagnostics;
             }
-        }
-
-        internal TestAccessor GetTestAccessor()
-            => new(this);
-
-        internal readonly struct TestAccessor
-        {
-            private readonly DiagnosticService _diagnosticService;
-
-            internal TestAccessor(DiagnosticService diagnosticService)
-                => _diagnosticService = diagnosticService;
-
-            internal ref readonly EventListenerTracker<IDiagnosticService> EventListenerTracker
-                => ref _diagnosticService._eventListenerTracker;
         }
     }
 }

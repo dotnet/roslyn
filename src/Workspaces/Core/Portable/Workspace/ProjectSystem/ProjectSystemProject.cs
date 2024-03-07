@@ -467,6 +467,15 @@ internal sealed partial class ProjectSystemProject
         }
     }
 
+    public async ValueTask<BatchScope> CreateBatchScopeAsync(CancellationToken cancellationToken)
+    {
+        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        {
+            _activeBatchScopes++;
+            return new BatchScope(this);
+        }
+    }
+
     public sealed class BatchScope : IDisposable, IAsyncDisposable
     {
         private readonly ProjectSystemProject _project;

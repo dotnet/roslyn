@@ -11,9 +11,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed class DiagnosticsUpdatedArgs : UpdatedEventArgs
 {
-    public DiagnosticsUpdatedKind Kind { get; }
-    public Solution? Solution { get; }
-
+    public readonly DiagnosticsUpdatedKind Kind;
+    public readonly Solution? Solution;
     public readonly ImmutableArray<DiagnosticData> Diagnostics;
 
     private DiagnosticsUpdatedArgs(

@@ -19,25 +19,27 @@ namespace Microsoft.CodeAnalysis
         private readonly IEqualityComparer<TOutput> _comparer;
         private readonly IIncrementalGeneratorNode<TInput> _sourceNode;
         private readonly string? _name;
+        private readonly bool _wrapUserFunc;
 
-        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<TInput, CancellationToken, TOutput> userFunc, IEqualityComparer<TOutput>? comparer = null, string? name = null)
-            : this(sourceNode, userFunc: (i, token) => ImmutableArray.Create(userFunc(i, token)), comparer, name)
+        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<TInput, CancellationToken, TOutput> userFunc, bool wrapUserFunc = false, IEqualityComparer<TOutput>? comparer = null, string? name = null)
+            : this(sourceNode, userFunc: (i, token) => ImmutableArray.Create(userFunc(i, token)), wrapUserFunc, comparer, name)
         {
         }
 
-        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<TInput, CancellationToken, ImmutableArray<TOutput>> userFunc, IEqualityComparer<TOutput>? comparer = null, string? name = null)
+        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<TInput, CancellationToken, ImmutableArray<TOutput>> userFunc, bool wrapUserFunc = false, IEqualityComparer<TOutput>? comparer = null, string? name = null)
         {
             _sourceNode = sourceNode;
             _func = userFunc;
+            _wrapUserFunc = wrapUserFunc;
             _comparer = comparer ?? EqualityComparer<TOutput>.Default;
             _name = name;
         }
 
         public IIncrementalGeneratorNode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer)
-            => new TransformNode<TInput, TOutput>(_sourceNode, _func, comparer, _name);
+            => new TransformNode<TInput, TOutput>(_sourceNode, _func, _wrapUserFunc, comparer, _name);
 
         public IIncrementalGeneratorNode<TOutput> WithTrackingName(string name)
-            => new TransformNode<TInput, TOutput>(_sourceNode, _func, _comparer, name);
+            => new TransformNode<TInput, TOutput>(_sourceNode, _func, _wrapUserFunc, _comparer, name);
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<TOutput>? previousTable, CancellationToken cancellationToken)
         {
@@ -73,7 +75,15 @@ namespace Microsoft.CodeAnalysis
                 {
                     var stopwatch = SharedStopwatch.StartNew();
                     // generate the new entries
-                    var newOutputs = _func(entry.Item, cancellationToken);
+                    ImmutableArray<TOutput> newOutputs;
+                    try
+                    {
+                        newOutputs = _func(entry.Item, cancellationToken);
+                    }
+                    catch (Exception e) when (_wrapUserFunc && !ExceptionUtilities.IsCurrentOperationBeingCancelled(e, cancellationToken))
+                    {
+                        throw new UserFunctionException(e);
+                    }
 
                     if (entry.State != EntryState.Modified || !tableBuilder.TryModifyEntries(newOutputs, _comparer, stopwatch.Elapsed, inputs, entry.State))
                     {
