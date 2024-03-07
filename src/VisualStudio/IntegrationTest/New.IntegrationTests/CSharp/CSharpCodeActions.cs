@@ -778,6 +778,7 @@ class C
             {
                 await testServices.ErrorList.ShowErrorListAsync(cancellationToken);
                 await testServices.Editor.GetTagsAsync<IErrorTag>(cancellationToken);
+
                 var expectedContents = $"Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used";
 
                 var builder = new StringBuilder();
@@ -861,7 +862,6 @@ dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
                 await testServices.Editor.GetTagsAsync<IErrorTag>(cancellationToken);
 
                 var expectedContents = $"Class1.cs(7, 13): {expectedSeverity} CS0168: The variable 'x' is declared but never used";
-
                 var builder = new StringBuilder();
 
                 for (var i = 0; i < 120; i++)
