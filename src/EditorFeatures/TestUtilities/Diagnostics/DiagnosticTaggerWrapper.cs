@@ -19,15 +19,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
-    internal class DiagnosticTaggerWrapper<TProvider, TTag> : IDisposable
+    internal class DiagnosticTaggerWrapper<TProvider, TTag>
         where TProvider : AbstractDiagnosticsTaggerProvider<TTag>
         where TTag : ITag
     {
         private readonly EditorTestWorkspace _workspace;
         public readonly DiagnosticAnalyzerService? AnalyzerService;
-#if false
-        private readonly SolutionCrawlerRegistrationService _registrationService;
-#endif
         public readonly DiagnosticService DiagnosticService;
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
@@ -53,15 +50,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             _workspace = workspace;
 
-#if false
-            _registrationService = (SolutionCrawlerRegistrationService)workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            _registrationService.Register(workspace);
-
-            if (!_registrationService.GetTestAccessor().TryGetWorkCoordinator(workspace, out var coordinator))
-                throw new InvalidOperationException();
-
-            AnalyzerService = (DiagnosticAnalyzerService?)_registrationService.GetTestAccessor().AnalyzerProviders.SelectMany(pair => pair.Value).SingleOrDefault(lazyProvider => lazyProvider.Metadata.Name == WellKnownSolutionCrawlerAnalyzers.Diagnostic && lazyProvider.Metadata.HighPriorityForActiveFile)?.Value;
-#endif
             DiagnosticService = (DiagnosticService)workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
 
             if (updateSource is object)
@@ -97,13 +85,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 return _taggerProvider;
             }
-        }
-
-        public void Dispose()
-        {
-#if false
-            _registrationService.Unregister(_workspace);
-#endif
         }
 
         public async Task WaitForTags()

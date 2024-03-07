@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<TTag>
             where TTag : class, ITag
         {
-            using var wrapper = new DiagnosticTaggerWrapper<TProvider, TTag>(workspace, analyzerMap);
+            var wrapper = new DiagnosticTaggerWrapper<TProvider, TTag>(workspace, analyzerMap);
 
             var firstDocument = workspace.Documents.First();
             var textBuffer = firstDocument.GetTextBuffer();

@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<SyntaxNode?> GetChangedMemberAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        public Task<SyntaxNode?> GetChangedMemberAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
-            return null;
+            return SpecializedTasks.Null<SyntaxNode>();
 #if false
             // in remote workspace, we don't trust any version based on VersionStamp. we only trust content based information such as
             // checksum or tree comparison and etc.
