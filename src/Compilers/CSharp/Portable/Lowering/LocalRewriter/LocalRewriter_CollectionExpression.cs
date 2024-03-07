@@ -883,12 +883,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // Create a temp for the knownLength
+            BoundAssignmentOperator assignmentToTemp;
+            BoundLocal? knownLengthTemp = null;
+
             BoundObjectCreationExpression rewrittenReceiver;
-            if (useKnownLength && elements.Length > 0 && !useOptimizations)
+            if (useKnownLength && elements.Length > 0)
             {
-                // List<ElementType> list = new(N + s1.Length + ...);
+                // int knownLengthTemp = N + s1.Length + ...;
+                knownLengthTemp = _factory.StoreToTemp(GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder), out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
+                localsBuilder.Add(knownLengthTemp);
+                sideEffects.Add(assignmentToTemp);
+
+                // List<ElementType> list = new(knownLengthTemp);
                 var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32)).AsMember(collectionType);
-                rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create(GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder)));
+                rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create<BoundExpression>(knownLengthTemp));
             }
             else
             {
@@ -898,7 +907,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Create a temp for the list.
-            BoundAssignmentOperator assignmentToTemp;
             BoundLocal listTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
             localsBuilder.Add(listTemp);
             sideEffects.Add(assignmentToTemp);
@@ -909,9 +917,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(useKnownLength);
                 Debug.Assert(setCount is { });
                 Debug.Assert(asSpan is { });
+                Debug.Assert(knownLengthTemp is { });
 
-                // CollectionsMarshal.SetCount<ElementType>(list, N + s1.Length + ...);
-                sideEffects.Add(_factory.Call(receiver: null, setCount, listTemp, GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder)));
+                // CollectionsMarshal.SetCount<ElementType>(knownLengthTemp, list);
+                sideEffects.Add(_factory.Call(receiver: null, setCount, listTemp, knownLengthTemp));
 
                 // var span = CollectionsMarshal.AsSpan<ElementType(list);
                 BoundLocal spanTemp = _factory.StoreToTemp(_factory.Call(receiver: null, asSpan, listTemp), out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
