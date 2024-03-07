@@ -15,12 +15,10 @@ Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.ProcessInfo.Pr
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.BrokeredDebuggerServices
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.BrokeredDebuggerServices.BrokeredDebuggerServices(Microsoft.ServiceHub.Framework.IServiceBroker! serviceBroker) -> void
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.BrokeredDebuggerServices.Dispose() -> void
-Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.BrokeredDebuggerServices.HotReloadSessionNotificationServiceAsync() -> System.Threading.Tasks.Task<Microsoft.VisualStudio.Debugger.Contracts.HotReload.IHotReloadSessionNotificationService?>!
-Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.BrokeredDebuggerServices.ManagedHotReloadAgentManagerServiceAsync() -> System.Threading.Tasks.Task<Microsoft.VisualStudio.Debugger.Contracts.HotReload.IManagedHotReloadAgentManagerService?>!
-Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.BrokeredDebuggerServices.ManagedHotReloadServiceAsync() -> System.Threading.Tasks.Task<Microsoft.VisualStudio.Debugger.Contracts.HotReload.IManagedHotReloadService?>!
-Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.BrokeredDebuggerServices.ServiceBrokerAsync() -> System.Threading.Tasks.Task<Microsoft.ServiceHub.Framework.IServiceBroker!>!
-Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.IBrokeredDebuggerServices
-Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.IBrokeredDebuggerServices.HotReloadSessionNotificationService.get -> System.Threading.Tasks.ValueTask<Microsoft.VisualStudio.Debugger.Contracts.HotReload.IHotReloadSessionNotificationService!>
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.BrokeredDebuggerServices.GetHotReloadSessionNotificationServiceAsync() -> System.Threading.Tasks.Task<Microsoft.VisualStudio.Debugger.Contracts.HotReload.IHotReloadSessionNotificationService?>!
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.BrokeredDebuggerServices.GetManagedHotReloadAgentManagerServiceAsync() -> System.Threading.Tasks.Task<Microsoft.VisualStudio.Debugger.Contracts.HotReload.IManagedHotReloadAgentManagerService?>!
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.BrokeredDebuggerServices.GetManagedHotReloadServiceAsync() -> System.Threading.Tasks.Task<Microsoft.VisualStudio.Debugger.Contracts.HotReload.IManagedHotReloadService?>!
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.BrokeredDebuggerServices.GetServiceBrokerAsync() -> System.Threading.Tasks.Task<Microsoft.ServiceHub.Framework.IServiceBroker!>!
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.RunningProcessEntry
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.RunningProcessEntry.RunningProcessEntry() -> void
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.VisualDiagnosticsServiceFactory
