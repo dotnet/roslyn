@@ -153,10 +153,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public async Task ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
-            if (_map.TryGetValue(project.Solution.Workspace, out var analyzer))
-            {
-                await analyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
-            }
+            var analyzer = CreateIncrementalAnalyzer(project.Solution.Workspace);
+            await analyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
