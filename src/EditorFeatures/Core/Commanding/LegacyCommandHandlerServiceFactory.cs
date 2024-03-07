@@ -8,16 +8,15 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Commanding
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Commanding;
+
+[Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+[Export(typeof(ICommandHandlerServiceFactory))]
+internal sealed class LegacyCommandHandlerServiceFactory : ICommandHandlerServiceFactory
 {
-    [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-    [Export(typeof(ICommandHandlerServiceFactory))]
-    internal sealed class LegacyCommandHandlerServiceFactory : ICommandHandlerServiceFactory
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public LegacyCommandHandlerServiceFactory()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LegacyCommandHandlerServiceFactory()
-        {
-        }
     }
 }

@@ -8,13 +8,12 @@ using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.Highlighting
+namespace Microsoft.CodeAnalysis.Highlighting;
+
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class)]
+[ExcludeFromCodeCoverage]
+internal class ExportHighlighterAttribute(string language) : ExportAttribute(typeof(IHighlighter))
 {
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    [ExcludeFromCodeCoverage]
-    internal class ExportHighlighterAttribute(string language) : ExportAttribute(typeof(IHighlighter))
-    {
-        public string Language { get; } = language ?? throw new ArgumentNullException(nameof(language));
-    }
+    public string Language { get; } = language ?? throw new ArgumentNullException(nameof(language));
 }

@@ -8,121 +8,120 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
+namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+
+internal partial class ExplicitInterfaceMemberCompletionProvider
 {
-    internal partial class ExplicitInterfaceMemberCompletionProvider
+    private static class CompletionSymbolDisplay
     {
-        private static class CompletionSymbolDisplay
+        public static string ToDisplayString(ISymbol symbol)
+            => symbol switch
+            {
+                IEventSymbol eventSymbol => ToDisplayString(eventSymbol),
+                IPropertySymbol propertySymbol => ToDisplayString(propertySymbol),
+                IMethodSymbol methodSymbol => ToDisplayString(methodSymbol),
+                _ => "" // This shouldn't happen.
+            };
+
+        private static string ToDisplayString(IEventSymbol symbol)
+            => symbol.Name;
+
+        private static string ToDisplayString(IPropertySymbol symbol)
         {
-            public static string ToDisplayString(ISymbol symbol)
-                => symbol switch
-                {
-                    IEventSymbol eventSymbol => ToDisplayString(eventSymbol),
-                    IPropertySymbol propertySymbol => ToDisplayString(propertySymbol),
-                    IMethodSymbol methodSymbol => ToDisplayString(methodSymbol),
-                    _ => "" // This shouldn't happen.
-                };
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
 
-            private static string ToDisplayString(IEventSymbol symbol)
-                => symbol.Name;
-
-            private static string ToDisplayString(IPropertySymbol symbol)
+            if (symbol.IsIndexer)
             {
-                using var _ = PooledStringBuilder.GetInstance(out var builder);
-
-                if (symbol.IsIndexer)
-                {
-                    builder.Append("this");
-                }
-                else
-                {
-                    builder.Append(symbol.Name);
-                }
-
-                if (symbol.Parameters.Length > 0)
-                {
-                    builder.Append('[');
-                    AddParameters(symbol.Parameters, builder);
-                    builder.Append(']');
-                }
-
-                return builder.ToString();
+                builder.Append("this");
+            }
+            else
+            {
+                builder.Append(symbol.Name);
             }
 
-            private static string ToDisplayString(IMethodSymbol symbol)
+            if (symbol.Parameters.Length > 0)
             {
-                using var _ = PooledStringBuilder.GetInstance(out var builder);
-                switch (symbol.MethodKind)
-                {
-                    case MethodKind.Ordinary:
-                        builder.Append(symbol.Name);
-                        break;
-                    case MethodKind.UserDefinedOperator:
-                    case MethodKind.BuiltinOperator:
-                        AppendOperatorKeywords(symbol, builder);
-                        builder.Append(SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(symbol.MetadataName)));
-                        break;
-                    case MethodKind.Conversion:
-                        AppendOperatorKeywords(symbol, builder);
-                        AddType(symbol.ReturnType, builder);
-                        break;
-                }
-
-                AddTypeArguments(symbol, builder);
-                builder.Append('(');
+                builder.Append('[');
                 AddParameters(symbol.Parameters, builder);
-                builder.Append(')');
-                return builder.ToString();
-
-                static void AppendOperatorKeywords(IMethodSymbol symbol, StringBuilder builder)
-                {
-                    builder.Append("operator ");
-                    if (SyntaxFacts.IsCheckedOperator(symbol.MetadataName))
-                    {
-                        builder.Append("checked ");
-                    }
-                }
+                builder.Append(']');
             }
 
-            private static void AddParameters(ImmutableArray<IParameterSymbol> parameters, StringBuilder builder)
+            return builder.ToString();
+        }
+
+        private static string ToDisplayString(IMethodSymbol symbol)
+        {
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
+            switch (symbol.MethodKind)
             {
-                builder.AppendJoinedValues(", ", parameters, static (parameter, builder) =>
+                case MethodKind.Ordinary:
+                    builder.Append(symbol.Name);
+                    break;
+                case MethodKind.UserDefinedOperator:
+                case MethodKind.BuiltinOperator:
+                    AppendOperatorKeywords(symbol, builder);
+                    builder.Append(SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(symbol.MetadataName)));
+                    break;
+                case MethodKind.Conversion:
+                    AppendOperatorKeywords(symbol, builder);
+                    AddType(symbol.ReturnType, builder);
+                    break;
+            }
+
+            AddTypeArguments(symbol, builder);
+            builder.Append('(');
+            AddParameters(symbol.Parameters, builder);
+            builder.Append(')');
+            return builder.ToString();
+
+            static void AppendOperatorKeywords(IMethodSymbol symbol, StringBuilder builder)
+            {
+                builder.Append("operator ");
+                if (SyntaxFacts.IsCheckedOperator(symbol.MetadataName))
                 {
-                    builder.Append(parameter.RefKind switch
-                    {
-                        RefKind.Out => "out ",
-                        RefKind.Ref => "ref ",
-                        RefKind.In => "in ",
-                        _ => ""
-                    });
+                    builder.Append("checked ");
+                }
+            }
+        }
 
-                    if (parameter.IsParams)
-                    {
-                        builder.Append("params ");
-                    }
-
-                    AddType(parameter.Type, builder);
-                    builder.Append($" {parameter.Name.EscapeIdentifier()}");
+        private static void AddParameters(ImmutableArray<IParameterSymbol> parameters, StringBuilder builder)
+        {
+            builder.AppendJoinedValues(", ", parameters, static (parameter, builder) =>
+            {
+                builder.Append(parameter.RefKind switch
+                {
+                    RefKind.Out => "out ",
+                    RefKind.Ref => "ref ",
+                    RefKind.In => "in ",
+                    _ => ""
                 });
-            }
 
-            private static void AddTypeArguments(IMethodSymbol symbol, StringBuilder builder)
-            {
-                if (symbol.TypeArguments.Length > 0)
+                if (parameter.IsParams)
                 {
-                    builder.Append('<');
-                    builder.AppendJoinedValues(", ", symbol.TypeArguments, static (symbol, builder) => builder.Append(symbol.Name.EscapeIdentifier()));
-                    builder.Append('>');
+                    builder.Append("params ");
                 }
-            }
 
-            private static void AddType(ITypeSymbol symbol, StringBuilder builder)
+                AddType(parameter.Type, builder);
+                builder.Append($" {parameter.Name.EscapeIdentifier()}");
+            });
+        }
+
+        private static void AddTypeArguments(IMethodSymbol symbol, StringBuilder builder)
+        {
+            if (symbol.TypeArguments.Length > 0)
             {
-                builder.Append(symbol.ToNameDisplayString());
-                if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
-                {
-                    builder.Append('?');
-                }
+                builder.Append('<');
+                builder.AppendJoinedValues(", ", symbol.TypeArguments, static (symbol, builder) => builder.Append(symbol.Name.EscapeIdentifier()));
+                builder.Append('>');
+            }
+        }
+
+        private static void AddType(ITypeSymbol symbol, StringBuilder builder)
+        {
+            builder.Append(symbol.ToNameDisplayString());
+            if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
+            {
+                builder.Append('?');
             }
         }
     }

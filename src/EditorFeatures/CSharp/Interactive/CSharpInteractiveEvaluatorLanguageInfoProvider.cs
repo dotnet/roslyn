@@ -10,49 +10,48 @@ using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
+namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
+
+internal sealed class CSharpInteractiveEvaluatorLanguageInfoProvider : InteractiveEvaluatorLanguageInfoProvider
 {
-    internal sealed class CSharpInteractiveEvaluatorLanguageInfoProvider : InteractiveEvaluatorLanguageInfoProvider
+    public static readonly CSharpInteractiveEvaluatorLanguageInfoProvider Instance = new();
+
+    private CSharpInteractiveEvaluatorLanguageInfoProvider()
     {
-        public static readonly CSharpInteractiveEvaluatorLanguageInfoProvider Instance = new();
-
-        private CSharpInteractiveEvaluatorLanguageInfoProvider()
-        {
-        }
-
-        private static readonly CSharpParseOptions s_parseOptions =
-            new(languageVersion: LanguageVersion.Latest, kind: SourceCodeKind.Script);
-
-        public override string LanguageName
-            => LanguageNames.CSharp;
-
-        public override ParseOptions ParseOptions
-            => s_parseOptions;
-
-        public override CommandLineParser CommandLineParser
-            => CSharpCommandLineParser.Script;
-
-        public override CompilationOptions GetSubmissionCompilationOptions(string name, MetadataReferenceResolver metadataReferenceResolver, SourceReferenceResolver sourceReferenceResolver, ImmutableArray<string> imports)
-            => CSharpScriptCompiler.WithTopLevelBinderFlags(
-                new CSharpCompilationOptions(
-                    OutputKind.DynamicallyLinkedLibrary,
-                    scriptClassName: name,
-                    allowUnsafe: true,
-                    xmlReferenceResolver: null, // no support for permission set and doc includes in interactive
-                    usings: imports,
-                    sourceReferenceResolver: sourceReferenceResolver,
-                    metadataReferenceResolver: metadataReferenceResolver,
-                    assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default));
-
-        public override bool IsCompleteSubmission(string text)
-            => SyntaxFactory.IsCompleteSubmission(SyntaxFactory.ParseSyntaxTree(SourceText.From(text, encoding: null, SourceHashAlgorithms.Default), options: s_parseOptions));
-
-        public override string InteractiveResponseFileName
-            => "CSharpInteractive.rsp";
-
-        public override Type ReplServiceProviderType
-            => typeof(CSharpReplServiceProvider);
-
-        public override string Extension => ".csx";
     }
+
+    private static readonly CSharpParseOptions s_parseOptions =
+        new(languageVersion: LanguageVersion.Latest, kind: SourceCodeKind.Script);
+
+    public override string LanguageName
+        => LanguageNames.CSharp;
+
+    public override ParseOptions ParseOptions
+        => s_parseOptions;
+
+    public override CommandLineParser CommandLineParser
+        => CSharpCommandLineParser.Script;
+
+    public override CompilationOptions GetSubmissionCompilationOptions(string name, MetadataReferenceResolver metadataReferenceResolver, SourceReferenceResolver sourceReferenceResolver, ImmutableArray<string> imports)
+        => CSharpScriptCompiler.WithTopLevelBinderFlags(
+            new CSharpCompilationOptions(
+                OutputKind.DynamicallyLinkedLibrary,
+                scriptClassName: name,
+                allowUnsafe: true,
+                xmlReferenceResolver: null, // no support for permission set and doc includes in interactive
+                usings: imports,
+                sourceReferenceResolver: sourceReferenceResolver,
+                metadataReferenceResolver: metadataReferenceResolver,
+                assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default));
+
+    public override bool IsCompleteSubmission(string text)
+        => SyntaxFactory.IsCompleteSubmission(SyntaxFactory.ParseSyntaxTree(SourceText.From(text, encoding: null, SourceHashAlgorithms.Default), options: s_parseOptions));
+
+    public override string InteractiveResponseFileName
+        => "CSharpInteractive.rsp";
+
+    public override Type ReplServiceProviderType
+        => typeof(CSharpReplServiceProvider);
+
+    public override string Extension => ".csx";
 }

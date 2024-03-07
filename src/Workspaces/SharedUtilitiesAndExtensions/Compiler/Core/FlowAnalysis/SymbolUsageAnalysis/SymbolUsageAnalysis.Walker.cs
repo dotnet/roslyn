@@ -13,555 +13,554 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
+namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis;
+
+internal static partial class SymbolUsageAnalysis
 {
-    internal static partial class SymbolUsageAnalysis
+    /// <summary>
+    /// Operations walker used for walking high-level operation tree
+    /// as well as control flow graph based operations.
+    /// </summary>
+    private sealed class Walker : OperationWalker
     {
-        /// <summary>
-        /// Operations walker used for walking high-level operation tree
-        /// as well as control flow graph based operations.
-        /// </summary>
-        private sealed class Walker : OperationWalker
+        private AnalysisData _currentAnalysisData;
+        private ISymbol _currentContainingSymbol;
+        private IOperation _currentRootOperation;
+        private CancellationToken _cancellationToken;
+        private PooledDictionary<IAssignmentOperation, PooledHashSet<(ISymbol, IOperation)>> _pendingWritesMap;
+
+        private static readonly ObjectPool<Walker> s_visitorPool = new(() => new Walker());
+        private Walker() { }
+
+        public static void AnalyzeOperationsAndUpdateData(
+            ISymbol containingSymbol,
+            IEnumerable<IOperation> operations,
+            AnalysisData analysisData,
+            CancellationToken cancellationToken)
         {
-            private AnalysisData _currentAnalysisData;
-            private ISymbol _currentContainingSymbol;
-            private IOperation _currentRootOperation;
-            private CancellationToken _cancellationToken;
-            private PooledDictionary<IAssignmentOperation, PooledHashSet<(ISymbol, IOperation)>> _pendingWritesMap;
-
-            private static readonly ObjectPool<Walker> s_visitorPool = new(() => new Walker());
-            private Walker() { }
-
-            public static void AnalyzeOperationsAndUpdateData(
-                ISymbol containingSymbol,
-                IEnumerable<IOperation> operations,
-                AnalysisData analysisData,
-                CancellationToken cancellationToken)
+            var visitor = s_visitorPool.Allocate();
+            try
             {
-                var visitor = s_visitorPool.Allocate();
-                try
+                visitor.Visit(containingSymbol, operations, analysisData, cancellationToken);
+            }
+            finally
+            {
+                s_visitorPool.Free(visitor);
+            }
+        }
+
+        private void Visit(ISymbol containingSymbol, IEnumerable<IOperation> operations, AnalysisData analysisData, CancellationToken cancellationToken)
+        {
+            Debug.Assert(_currentContainingSymbol == null);
+            Debug.Assert(_currentAnalysisData == null);
+            Debug.Assert(_currentRootOperation == null);
+            Debug.Assert(_pendingWritesMap == null);
+
+            _pendingWritesMap = PooledDictionary<IAssignmentOperation, PooledHashSet<(ISymbol, IOperation)>>.GetInstance();
+            try
+            {
+                _currentContainingSymbol = containingSymbol;
+                _currentAnalysisData = analysisData;
+                _cancellationToken = cancellationToken;
+
+                foreach (var operation in operations)
                 {
-                    visitor.Visit(containingSymbol, operations, analysisData, cancellationToken);
-                }
-                finally
-                {
-                    s_visitorPool.Free(visitor);
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    _currentRootOperation = operation;
+                    Visit(operation);
                 }
             }
-
-            private void Visit(ISymbol containingSymbol, IEnumerable<IOperation> operations, AnalysisData analysisData, CancellationToken cancellationToken)
+            finally
             {
-                Debug.Assert(_currentContainingSymbol == null);
-                Debug.Assert(_currentAnalysisData == null);
-                Debug.Assert(_currentRootOperation == null);
-                Debug.Assert(_pendingWritesMap == null);
+                _currentContainingSymbol = null;
+                _currentAnalysisData = null;
+                _currentRootOperation = null;
+                _cancellationToken = default;
 
-                _pendingWritesMap = PooledDictionary<IAssignmentOperation, PooledHashSet<(ISymbol, IOperation)>>.GetInstance();
-                try
+                foreach (var pendingWrites in _pendingWritesMap.Values)
                 {
-                    _currentContainingSymbol = containingSymbol;
-                    _currentAnalysisData = analysisData;
-                    _cancellationToken = cancellationToken;
-
-                    foreach (var operation in operations)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        _currentRootOperation = operation;
-                        Visit(operation);
-                    }
+                    pendingWrites.Free();
                 }
-                finally
-                {
-                    _currentContainingSymbol = null;
-                    _currentAnalysisData = null;
-                    _currentRootOperation = null;
-                    _cancellationToken = default;
 
-                    foreach (var pendingWrites in _pendingWritesMap.Values)
-                    {
-                        pendingWrites.Free();
-                    }
+                _pendingWritesMap.Free();
+                _pendingWritesMap = null;
+            }
+        }
 
-                    _pendingWritesMap.Free();
-                    _pendingWritesMap = null;
-                }
+        private void OnReadReferenceFound(ISymbol symbol)
+            => _currentAnalysisData.OnReadReferenceFound(symbol);
+
+        private void OnWriteReferenceFound(ISymbol symbol, IOperation operation, ValueUsageInfo valueUsageInfo)
+        {
+            // maybeWritten == 'ref' argument.
+            var isRef = valueUsageInfo == ValueUsageInfo.ReadableWritableReference;
+            _currentAnalysisData.OnWriteReferenceFound(symbol, operation, maybeWritten: isRef, isRef);
+            ProcessPossibleDelegateCreationAssignment(symbol, operation);
+        }
+
+        private void OnLValueCaptureFound(ISymbol symbol, IOperation operation, CaptureId captureId)
+            => _currentAnalysisData.OnLValueCaptureFound(symbol, operation, captureId);
+
+        private void OnLValueDereferenceFound(CaptureId captureId)
+             => _currentAnalysisData.OnLValueDereferenceFound(captureId);
+
+        private void OnReferenceFound(ISymbol symbol, IOperation operation)
+        {
+            Debug.Assert(symbol != null);
+
+            var valueUsageInfo = operation.GetValueUsageInfo(_currentContainingSymbol);
+            var isReadFrom = valueUsageInfo.IsReadFrom();
+            var isWrittenTo = valueUsageInfo.IsWrittenTo();
+
+            if (isWrittenTo && MakePendingWrite(operation, symbolOpt: symbol))
+            {
+                // Certain writes are processed at a later visit
+                // and are marked as a pending write for post processing.
+                // For example, consider the write to 'x' in "x = M(x, ...)".
+                // We visit the Target (left) of assignment before visiting the Value (right)
+                // of the assignment, as there might be expressions on the left that are evaluated first.
+                // We don't want to mark the symbol read while processing the left of assignment
+                // as there can be references on the right, which reads the prior value.
+                // Instead we mark this as a pending write, which will be processed when we finish visiting the assignment.
+                isWrittenTo = false;
             }
 
-            private void OnReadReferenceFound(ISymbol symbol)
-                => _currentAnalysisData.OnReadReferenceFound(symbol);
-
-            private void OnWriteReferenceFound(ISymbol symbol, IOperation operation, ValueUsageInfo valueUsageInfo)
+            if (isReadFrom)
             {
-                // maybeWritten == 'ref' argument.
-                var isRef = valueUsageInfo == ValueUsageInfo.ReadableWritableReference;
-                _currentAnalysisData.OnWriteReferenceFound(symbol, operation, maybeWritten: isRef, isRef);
-                ProcessPossibleDelegateCreationAssignment(symbol, operation);
-            }
-
-            private void OnLValueCaptureFound(ISymbol symbol, IOperation operation, CaptureId captureId)
-                => _currentAnalysisData.OnLValueCaptureFound(symbol, operation, captureId);
-
-            private void OnLValueDereferenceFound(CaptureId captureId)
-                 => _currentAnalysisData.OnLValueDereferenceFound(captureId);
-
-            private void OnReferenceFound(ISymbol symbol, IOperation operation)
-            {
-                Debug.Assert(symbol != null);
-
-                var valueUsageInfo = operation.GetValueUsageInfo(_currentContainingSymbol);
-                var isReadFrom = valueUsageInfo.IsReadFrom();
-                var isWrittenTo = valueUsageInfo.IsWrittenTo();
-
-                if (isWrittenTo && MakePendingWrite(operation, symbolOpt: symbol))
+                if (operation.Parent is IFlowCaptureOperation flowCapture &&
+                    _currentAnalysisData.IsLValueFlowCapture(flowCapture.Id))
                 {
-                    // Certain writes are processed at a later visit
-                    // and are marked as a pending write for post processing.
-                    // For example, consider the write to 'x' in "x = M(x, ...)".
-                    // We visit the Target (left) of assignment before visiting the Value (right)
-                    // of the assignment, as there might be expressions on the left that are evaluated first.
-                    // We don't want to mark the symbol read while processing the left of assignment
-                    // as there can be references on the right, which reads the prior value.
-                    // Instead we mark this as a pending write, which will be processed when we finish visiting the assignment.
-                    isWrittenTo = false;
-                }
+                    OnLValueCaptureFound(symbol, operation, flowCapture.Id);
 
-                if (isReadFrom)
-                {
-                    if (operation.Parent is IFlowCaptureOperation flowCapture &&
-                        _currentAnalysisData.IsLValueFlowCapture(flowCapture.Id))
-                    {
-                        OnLValueCaptureFound(symbol, operation, flowCapture.Id);
-
-                        // For compound assignments, the flow capture can be both an R-Value and an L-Value capture.
-                        if (_currentAnalysisData.IsRValueFlowCapture(flowCapture.Id))
-                        {
-                            OnReadReferenceFound(symbol);
-                        }
-                    }
-                    else
+                    // For compound assignments, the flow capture can be both an R-Value and an L-Value capture.
+                    if (_currentAnalysisData.IsRValueFlowCapture(flowCapture.Id))
                     {
                         OnReadReferenceFound(symbol);
                     }
                 }
-
-                if (isWrittenTo)
-                {
-                    OnWriteReferenceFound(symbol, operation, valueUsageInfo);
-                }
-
-                if (operation.Parent is IIncrementOrDecrementOperation &&
-                    operation.Parent.Parent?.Kind != OperationKind.ExpressionStatement)
+                else
                 {
                     OnReadReferenceFound(symbol);
                 }
             }
 
-            private bool MakePendingWrite(IOperation operation, ISymbol symbolOpt)
+            if (isWrittenTo)
             {
-                Debug.Assert(symbolOpt != null || operation.Kind == OperationKind.FlowCaptureReference);
-
-                if (operation.Parent is IAssignmentOperation assignmentOperation &&
-                    assignmentOperation.Target == operation)
-                {
-                    var set = PooledHashSet<(ISymbol, IOperation)>.GetInstance();
-                    set.Add((symbolOpt, operation));
-                    _pendingWritesMap.Add(assignmentOperation, set);
-                    return true;
-                }
-                else if (operation.IsInLeftOfDeconstructionAssignment(out var deconstructionAssignment))
-                {
-                    if (!_pendingWritesMap.TryGetValue(deconstructionAssignment, out var set))
-                    {
-                        set = PooledHashSet<(ISymbol, IOperation)>.GetInstance();
-                        _pendingWritesMap.Add(deconstructionAssignment, set);
-                    }
-
-                    set.Add((symbolOpt, operation));
-                    return true;
-                }
-
-                return false;
+                OnWriteReferenceFound(symbol, operation, valueUsageInfo);
             }
 
-            private void ProcessPendingWritesForAssignmentTarget(IAssignmentOperation operation)
+            if (operation.Parent is IIncrementOrDecrementOperation &&
+                operation.Parent.Parent?.Kind != OperationKind.ExpressionStatement)
             {
-                if (_pendingWritesMap.TryGetValue(operation, out var pendingWrites))
+                OnReadReferenceFound(symbol);
+            }
+        }
+
+        private bool MakePendingWrite(IOperation operation, ISymbol symbolOpt)
+        {
+            Debug.Assert(symbolOpt != null || operation.Kind == OperationKind.FlowCaptureReference);
+
+            if (operation.Parent is IAssignmentOperation assignmentOperation &&
+                assignmentOperation.Target == operation)
+            {
+                var set = PooledHashSet<(ISymbol, IOperation)>.GetInstance();
+                set.Add((symbolOpt, operation));
+                _pendingWritesMap.Add(assignmentOperation, set);
+                return true;
+            }
+            else if (operation.IsInLeftOfDeconstructionAssignment(out var deconstructionAssignment))
+            {
+                if (!_pendingWritesMap.TryGetValue(deconstructionAssignment, out var set))
                 {
-                    var isUsedCompoundAssignment = operation.IsAnyCompoundAssignment() &&
-                        operation.Parent?.Kind != OperationKind.ExpressionStatement;
+                    set = PooledHashSet<(ISymbol, IOperation)>.GetInstance();
+                    _pendingWritesMap.Add(deconstructionAssignment, set);
+                }
 
-                    foreach (var (symbolOpt, write) in pendingWrites)
+                set.Add((symbolOpt, operation));
+                return true;
+            }
+
+            return false;
+        }
+
+        private void ProcessPendingWritesForAssignmentTarget(IAssignmentOperation operation)
+        {
+            if (_pendingWritesMap.TryGetValue(operation, out var pendingWrites))
+            {
+                var isUsedCompoundAssignment = operation.IsAnyCompoundAssignment() &&
+                    operation.Parent?.Kind != OperationKind.ExpressionStatement;
+
+                foreach (var (symbolOpt, write) in pendingWrites)
+                {
+                    if (write.Kind != OperationKind.FlowCaptureReference)
                     {
-                        if (write.Kind != OperationKind.FlowCaptureReference)
-                        {
-                            Debug.Assert(symbolOpt != null);
-                            OnWriteReferenceFound(symbolOpt, write, ValueUsageInfo.Write);
+                        Debug.Assert(symbolOpt != null);
+                        OnWriteReferenceFound(symbolOpt, write, ValueUsageInfo.Write);
 
-                            if (isUsedCompoundAssignment)
-                            {
-                                OnReadReferenceFound(symbolOpt);
-                            }
+                        if (isUsedCompoundAssignment)
+                        {
+                            OnReadReferenceFound(symbolOpt);
+                        }
+                    }
+                    else
+                    {
+                        Debug.Assert(symbolOpt == null);
+
+                        var captureReference = (IFlowCaptureReferenceOperation)write;
+                        Debug.Assert(_currentAnalysisData.IsLValueFlowCapture(captureReference.Id));
+
+                        OnLValueDereferenceFound(captureReference.Id);
+                    }
+                }
+
+                _pendingWritesMap.Remove(operation);
+            }
+        }
+
+        public override void VisitSimpleAssignment(ISimpleAssignmentOperation operation)
+        {
+            base.VisitSimpleAssignment(operation);
+            ProcessPendingWritesForAssignmentTarget(operation);
+        }
+
+        public override void VisitCompoundAssignment(ICompoundAssignmentOperation operation)
+        {
+            base.VisitCompoundAssignment(operation);
+            ProcessPendingWritesForAssignmentTarget(operation);
+        }
+
+        public override void VisitCoalesceAssignment(ICoalesceAssignmentOperation operation)
+        {
+            base.VisitCoalesceAssignment(operation);
+            ProcessPendingWritesForAssignmentTarget(operation);
+        }
+
+        public override void VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation)
+        {
+            base.VisitDeconstructionAssignment(operation);
+            ProcessPendingWritesForAssignmentTarget(operation);
+        }
+
+        public override void VisitLocalReference(ILocalReferenceOperation operation)
+        {
+            if (operation.Local.IsRef)
+            {
+                // Bail out for ref locals.
+                // We need points to analysis for analyzing writes to ref locals, which is currently not supported.
+                return;
+            }
+
+            OnReferenceFound(operation.Local, operation);
+        }
+
+        public override void VisitParameterReference(IParameterReferenceOperation operation)
+        {
+            if (operation.Parameter.IsPrimaryConstructor(_cancellationToken))
+            {
+                // Bail out for primary constructor parameters.
+                return;
+            }
+
+            OnReferenceFound(operation.Parameter, operation);
+        }
+
+        public override void VisitVariableDeclarator(IVariableDeclaratorOperation operation)
+        {
+            var variableInitializer = operation.GetVariableInitializer();
+            if (variableInitializer != null ||
+                operation.Parent is IForEachLoopOperation forEachLoop && forEachLoop.LoopControlVariable == operation ||
+                operation.Parent is ICatchClauseOperation catchClause && catchClause.ExceptionDeclarationOrExpression == operation)
+            {
+                OnWriteReferenceFound(operation.Symbol, operation, ValueUsageInfo.Write);
+            }
+
+            base.VisitVariableDeclarator(operation);
+        }
+
+        public override void VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation)
+        {
+            base.VisitFlowCaptureReference(operation);
+
+            if (_currentAnalysisData.IsLValueFlowCapture(operation.Id) &&
+                !MakePendingWrite(operation, symbolOpt: null))
+            {
+                OnLValueDereferenceFound(operation.Id);
+            }
+        }
+
+        public override void VisitDeclarationPattern(IDeclarationPatternOperation operation)
+        {
+            if (operation.DeclaredSymbol is not null)
+            {
+                OnReferenceFound(operation.DeclaredSymbol, operation);
+            }
+        }
+
+        public override void VisitRecursivePattern(IRecursivePatternOperation operation)
+        {
+            base.VisitRecursivePattern(operation);
+
+            if (operation.DeclaredSymbol is not null)
+            {
+                OnReferenceFound(operation.DeclaredSymbol, operation);
+            }
+        }
+
+        public override void VisitListPattern(IListPatternOperation operation)
+        {
+            base.VisitListPattern(operation);
+
+            if (operation.DeclaredSymbol is not null)
+            {
+                OnReferenceFound(operation.DeclaredSymbol, operation);
+            }
+        }
+
+        public override void VisitInvocation(IInvocationOperation operation)
+        {
+            base.VisitInvocation(operation);
+
+            switch (operation.TargetMethod.MethodKind)
+            {
+                case MethodKind.AnonymousFunction:
+                case MethodKind.DelegateInvoke:
+                    if (operation.Instance != null)
+                    {
+                        AnalyzePossibleDelegateInvocation(operation.Instance);
+                    }
+                    else
+                    {
+                        _currentAnalysisData.ResetState();
+                    }
+
+                    break;
+
+                case MethodKind.LocalFunction:
+                    AnalyzeLocalFunctionInvocation(operation.TargetMethod);
+                    break;
+            }
+        }
+
+        private void AnalyzeLocalFunctionInvocation(IMethodSymbol localFunction)
+        {
+            Debug.Assert(localFunction.IsLocalFunction());
+
+            var newAnalysisData = _currentAnalysisData.AnalyzeLocalFunctionInvocation(localFunction, _cancellationToken);
+            _currentAnalysisData.SetCurrentBlockAnalysisDataFrom(newAnalysisData);
+        }
+
+        private void AnalyzeLambdaInvocation(IFlowAnonymousFunctionOperation lambda)
+        {
+            var newAnalysisData = _currentAnalysisData.AnalyzeLambdaInvocation(lambda, _cancellationToken);
+            _currentAnalysisData.SetCurrentBlockAnalysisDataFrom(newAnalysisData);
+        }
+
+        public override void VisitArgument(IArgumentOperation operation)
+        {
+            base.VisitArgument(operation);
+
+            if (_currentAnalysisData.IsTrackingDelegateCreationTargets &&
+                operation.Value.Type.IsDelegateType())
+            {
+                // Delegate argument might be captured and invoked multiple times.
+                // So, conservatively reset the state.
+                _currentAnalysisData.ResetState();
+            }
+        }
+
+        public override void VisitLocalFunction(ILocalFunctionOperation operation)
+        {
+            // Skip visiting if we are doing an operation tree walk.
+            // This will only happen if the operation is not the current root operation.
+            if (_currentRootOperation != operation)
+            {
+                return;
+            }
+
+            base.VisitLocalFunction(operation);
+        }
+
+        public override void VisitAnonymousFunction(IAnonymousFunctionOperation operation)
+        {
+            // Skip visiting if we are doing an operation tree walk.
+            // This will only happen if the operation is not the current root operation.
+            if (_currentRootOperation != operation)
+            {
+                return;
+            }
+
+            base.VisitAnonymousFunction(operation);
+        }
+
+        public override void VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation)
+        {
+            // Skip visiting if we are not analyzing an invocation of this lambda.
+            // This will only happen if the operation is not the current root operation.
+            if (_currentRootOperation != operation)
+            {
+                return;
+            }
+
+            base.VisitFlowAnonymousFunction(operation);
+        }
+
+        private void ProcessPossibleDelegateCreationAssignment(ISymbol symbol, IOperation write)
+        {
+            if (!_currentAnalysisData.IsTrackingDelegateCreationTargets ||
+                symbol.GetSymbolType()?.TypeKind != TypeKind.Delegate)
+            {
+                return;
+            }
+
+            IOperation initializerValue = null;
+            if (write is IVariableDeclaratorOperation variableDeclarator)
+            {
+                initializerValue = variableDeclarator.GetVariableInitializer()?.Value;
+            }
+            else if (write.Parent is ISimpleAssignmentOperation simpleAssignment)
+            {
+                initializerValue = simpleAssignment.Value;
+            }
+
+            if (initializerValue != null)
+            {
+                ProcessPossibleDelegateCreation(initializerValue, write);
+            }
+        }
+
+        private void ProcessPossibleDelegateCreation(IOperation creation, IOperation write)
+        {
+            var currentOperation = creation;
+            while (true)
+            {
+                switch (currentOperation.Kind)
+                {
+                    case OperationKind.Conversion:
+                        currentOperation = ((IConversionOperation)currentOperation).Operand;
+                        continue;
+
+                    case OperationKind.Parenthesized:
+                        currentOperation = ((IParenthesizedOperation)currentOperation).Operand;
+                        continue;
+
+                    case OperationKind.DelegateCreation:
+                        currentOperation = ((IDelegateCreationOperation)currentOperation).Target;
+                        continue;
+
+                    case OperationKind.AnonymousFunction:
+                        // We don't support lambda target analysis for operation tree
+                        // and control flow graph should have replaced 'AnonymousFunction' nodes
+                        // with 'FlowAnonymousFunction' nodes.
+                        throw ExceptionUtilities.Unreachable();
+
+                    case OperationKind.FlowAnonymousFunction:
+                        _currentAnalysisData.SetLambdaTargetForDelegate(write, (IFlowAnonymousFunctionOperation)currentOperation);
+                        return;
+
+                    case OperationKind.MethodReference:
+                        var methodReference = (IMethodReferenceOperation)currentOperation;
+                        if (methodReference.Method.IsLocalFunction())
+                        {
+                            _currentAnalysisData.SetLocalFunctionTargetForDelegate(write, methodReference);
                         }
                         else
                         {
-                            Debug.Assert(symbolOpt == null);
-
-                            var captureReference = (IFlowCaptureReferenceOperation)write;
-                            Debug.Assert(_currentAnalysisData.IsLValueFlowCapture(captureReference.Id));
-
-                            OnLValueDereferenceFound(captureReference.Id);
+                            _currentAnalysisData.SetEmptyInvocationTargetsForDelegate(write);
                         }
-                    }
 
-                    _pendingWritesMap.Remove(operation);
-                }
-            }
+                        return;
 
-            public override void VisitSimpleAssignment(ISimpleAssignmentOperation operation)
-            {
-                base.VisitSimpleAssignment(operation);
-                ProcessPendingWritesForAssignmentTarget(operation);
-            }
+                    case OperationKind.LocalReference:
+                        var localReference = (ILocalReferenceOperation)currentOperation;
+                        _currentAnalysisData.SetTargetsFromSymbolForDelegate(write, localReference.Local);
+                        return;
 
-            public override void VisitCompoundAssignment(ICompoundAssignmentOperation operation)
-            {
-                base.VisitCompoundAssignment(operation);
-                ProcessPendingWritesForAssignmentTarget(operation);
-            }
+                    case OperationKind.ParameterReference:
+                        var parameterReference = (IParameterReferenceOperation)currentOperation;
+                        _currentAnalysisData.SetTargetsFromSymbolForDelegate(write, parameterReference.Parameter);
+                        return;
 
-            public override void VisitCoalesceAssignment(ICoalesceAssignmentOperation operation)
-            {
-                base.VisitCoalesceAssignment(operation);
-                ProcessPendingWritesForAssignmentTarget(operation);
-            }
-
-            public override void VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation)
-            {
-                base.VisitDeconstructionAssignment(operation);
-                ProcessPendingWritesForAssignmentTarget(operation);
-            }
-
-            public override void VisitLocalReference(ILocalReferenceOperation operation)
-            {
-                if (operation.Local.IsRef)
-                {
-                    // Bail out for ref locals.
-                    // We need points to analysis for analyzing writes to ref locals, which is currently not supported.
-                    return;
-                }
-
-                OnReferenceFound(operation.Local, operation);
-            }
-
-            public override void VisitParameterReference(IParameterReferenceOperation operation)
-            {
-                if (operation.Parameter.IsPrimaryConstructor(_cancellationToken))
-                {
-                    // Bail out for primary constructor parameters.
-                    return;
-                }
-
-                OnReferenceFound(operation.Parameter, operation);
-            }
-
-            public override void VisitVariableDeclarator(IVariableDeclaratorOperation operation)
-            {
-                var variableInitializer = operation.GetVariableInitializer();
-                if (variableInitializer != null ||
-                    operation.Parent is IForEachLoopOperation forEachLoop && forEachLoop.LoopControlVariable == operation ||
-                    operation.Parent is ICatchClauseOperation catchClause && catchClause.ExceptionDeclarationOrExpression == operation)
-                {
-                    OnWriteReferenceFound(operation.Symbol, operation, ValueUsageInfo.Write);
-                }
-
-                base.VisitVariableDeclarator(operation);
-            }
-
-            public override void VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation)
-            {
-                base.VisitFlowCaptureReference(operation);
-
-                if (_currentAnalysisData.IsLValueFlowCapture(operation.Id) &&
-                    !MakePendingWrite(operation, symbolOpt: null))
-                {
-                    OnLValueDereferenceFound(operation.Id);
-                }
-            }
-
-            public override void VisitDeclarationPattern(IDeclarationPatternOperation operation)
-            {
-                if (operation.DeclaredSymbol is not null)
-                {
-                    OnReferenceFound(operation.DeclaredSymbol, operation);
-                }
-            }
-
-            public override void VisitRecursivePattern(IRecursivePatternOperation operation)
-            {
-                base.VisitRecursivePattern(operation);
-
-                if (operation.DeclaredSymbol is not null)
-                {
-                    OnReferenceFound(operation.DeclaredSymbol, operation);
-                }
-            }
-
-            public override void VisitListPattern(IListPatternOperation operation)
-            {
-                base.VisitListPattern(operation);
-
-                if (operation.DeclaredSymbol is not null)
-                {
-                    OnReferenceFound(operation.DeclaredSymbol, operation);
-                }
-            }
-
-            public override void VisitInvocation(IInvocationOperation operation)
-            {
-                base.VisitInvocation(operation);
-
-                switch (operation.TargetMethod.MethodKind)
-                {
-                    case MethodKind.AnonymousFunction:
-                    case MethodKind.DelegateInvoke:
-                        if (operation.Instance != null)
+                    case OperationKind.Literal:
+                        if (currentOperation.ConstantValue.Value is null)
                         {
-                            AnalyzePossibleDelegateInvocation(operation.Instance);
-                        }
-                        else
-                        {
-                            _currentAnalysisData.ResetState();
+                            _currentAnalysisData.SetEmptyInvocationTargetsForDelegate(write);
                         }
 
-                        break;
+                        return;
 
-                    case MethodKind.LocalFunction:
-                        AnalyzeLocalFunctionInvocation(operation.TargetMethod);
-                        break;
+                    default:
+                        return;
                 }
             }
+        }
 
-            private void AnalyzeLocalFunctionInvocation(IMethodSymbol localFunction)
+        private void AnalyzePossibleDelegateInvocation(IOperation operation)
+        {
+            Debug.Assert(operation.Type.IsDelegateType());
+
+            if (!_currentAnalysisData.IsTrackingDelegateCreationTargets)
             {
-                Debug.Assert(localFunction.IsLocalFunction());
-
-                var newAnalysisData = _currentAnalysisData.AnalyzeLocalFunctionInvocation(localFunction, _cancellationToken);
-                _currentAnalysisData.SetCurrentBlockAnalysisDataFrom(newAnalysisData);
+                return;
             }
 
-            private void AnalyzeLambdaInvocation(IFlowAnonymousFunctionOperation lambda)
+            ProcessPossibleDelegateCreation(creation: operation, write: operation);
+            if (!_currentAnalysisData.TryGetDelegateInvocationTargets(operation, out var targets))
             {
-                var newAnalysisData = _currentAnalysisData.AnalyzeLambdaInvocation(lambda, _cancellationToken);
-                _currentAnalysisData.SetCurrentBlockAnalysisDataFrom(newAnalysisData);
+                // Failed to identify targets, so conservatively reset the state.
+                _currentAnalysisData.ResetState();
+                return;
             }
 
-            public override void VisitArgument(IArgumentOperation operation)
+            switch (targets.Count)
             {
-                base.VisitArgument(operation);
+                case 0:
+                    // None of the delegate invocation targets are lambda/local functions.
+                    break;
 
-                if (_currentAnalysisData.IsTrackingDelegateCreationTargets &&
-                    operation.Value.Type.IsDelegateType())
-                {
-                    // Delegate argument might be captured and invoked multiple times.
-                    // So, conservatively reset the state.
-                    _currentAnalysisData.ResetState();
-                }
-            }
+                case 1:
+                    // Single target.
+                    // If we know it is an explicit invocation that will certainly be invoked,
+                    // analyze it explicitly and overwrite current state.
+                    AnalyzeDelegateInvocation(targets.Single());
+                    break;
 
-            public override void VisitLocalFunction(ILocalFunctionOperation operation)
-            {
-                // Skip visiting if we are doing an operation tree walk.
-                // This will only happen if the operation is not the current root operation.
-                if (_currentRootOperation != operation)
-                {
-                    return;
-                }
+                default:
+                    // Multiple potential lambda/local function targets.
+                    // Analyze each one, merging the outputs from all.
+                    var savedCurrentAnalysisData = _currentAnalysisData.CreateBlockAnalysisData();
+                    savedCurrentAnalysisData.SetAnalysisDataFrom(_currentAnalysisData.CurrentBlockAnalysisData);
 
-                base.VisitLocalFunction(operation);
-            }
-
-            public override void VisitAnonymousFunction(IAnonymousFunctionOperation operation)
-            {
-                // Skip visiting if we are doing an operation tree walk.
-                // This will only happen if the operation is not the current root operation.
-                if (_currentRootOperation != operation)
-                {
-                    return;
-                }
-
-                base.VisitAnonymousFunction(operation);
-            }
-
-            public override void VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation)
-            {
-                // Skip visiting if we are not analyzing an invocation of this lambda.
-                // This will only happen if the operation is not the current root operation.
-                if (_currentRootOperation != operation)
-                {
-                    return;
-                }
-
-                base.VisitFlowAnonymousFunction(operation);
-            }
-
-            private void ProcessPossibleDelegateCreationAssignment(ISymbol symbol, IOperation write)
-            {
-                if (!_currentAnalysisData.IsTrackingDelegateCreationTargets ||
-                    symbol.GetSymbolType()?.TypeKind != TypeKind.Delegate)
-                {
-                    return;
-                }
-
-                IOperation initializerValue = null;
-                if (write is IVariableDeclaratorOperation variableDeclarator)
-                {
-                    initializerValue = variableDeclarator.GetVariableInitializer()?.Value;
-                }
-                else if (write.Parent is ISimpleAssignmentOperation simpleAssignment)
-                {
-                    initializerValue = simpleAssignment.Value;
-                }
-
-                if (initializerValue != null)
-                {
-                    ProcessPossibleDelegateCreation(initializerValue, write);
-                }
-            }
-
-            private void ProcessPossibleDelegateCreation(IOperation creation, IOperation write)
-            {
-                var currentOperation = creation;
-                while (true)
-                {
-                    switch (currentOperation.Kind)
+                    var mergedAnalysisData = _currentAnalysisData.CreateBlockAnalysisData();
+                    foreach (var target in targets)
                     {
-                        case OperationKind.Conversion:
-                            currentOperation = ((IConversionOperation)currentOperation).Operand;
-                            continue;
-
-                        case OperationKind.Parenthesized:
-                            currentOperation = ((IParenthesizedOperation)currentOperation).Operand;
-                            continue;
-
-                        case OperationKind.DelegateCreation:
-                            currentOperation = ((IDelegateCreationOperation)currentOperation).Target;
-                            continue;
-
-                        case OperationKind.AnonymousFunction:
-                            // We don't support lambda target analysis for operation tree
-                            // and control flow graph should have replaced 'AnonymousFunction' nodes
-                            // with 'FlowAnonymousFunction' nodes.
-                            throw ExceptionUtilities.Unreachable();
-
-                        case OperationKind.FlowAnonymousFunction:
-                            _currentAnalysisData.SetLambdaTargetForDelegate(write, (IFlowAnonymousFunctionOperation)currentOperation);
-                            return;
-
-                        case OperationKind.MethodReference:
-                            var methodReference = (IMethodReferenceOperation)currentOperation;
-                            if (methodReference.Method.IsLocalFunction())
-                            {
-                                _currentAnalysisData.SetLocalFunctionTargetForDelegate(write, methodReference);
-                            }
-                            else
-                            {
-                                _currentAnalysisData.SetEmptyInvocationTargetsForDelegate(write);
-                            }
-
-                            return;
-
-                        case OperationKind.LocalReference:
-                            var localReference = (ILocalReferenceOperation)currentOperation;
-                            _currentAnalysisData.SetTargetsFromSymbolForDelegate(write, localReference.Local);
-                            return;
-
-                        case OperationKind.ParameterReference:
-                            var parameterReference = (IParameterReferenceOperation)currentOperation;
-                            _currentAnalysisData.SetTargetsFromSymbolForDelegate(write, parameterReference.Parameter);
-                            return;
-
-                        case OperationKind.Literal:
-                            if (currentOperation.ConstantValue.Value is null)
-                            {
-                                _currentAnalysisData.SetEmptyInvocationTargetsForDelegate(write);
-                            }
-
-                            return;
-
-                        default:
-                            return;
+                        _currentAnalysisData.SetCurrentBlockAnalysisDataFrom(savedCurrentAnalysisData);
+                        AnalyzeDelegateInvocation(target);
+                        mergedAnalysisData = BasicBlockAnalysisData.Merge(mergedAnalysisData,
+                            _currentAnalysisData.CurrentBlockAnalysisData, _currentAnalysisData.TrackAllocatedBlockAnalysisData);
                     }
-                }
+
+                    _currentAnalysisData.SetCurrentBlockAnalysisDataFrom(mergedAnalysisData);
+                    break;
             }
 
-            private void AnalyzePossibleDelegateInvocation(IOperation operation)
+            return;
+
+            // Local functions.
+            void AnalyzeDelegateInvocation(IOperation target)
             {
-                Debug.Assert(operation.Type.IsDelegateType());
-
-                if (!_currentAnalysisData.IsTrackingDelegateCreationTargets)
+                switch (target.Kind)
                 {
-                    return;
-                }
-
-                ProcessPossibleDelegateCreation(creation: operation, write: operation);
-                if (!_currentAnalysisData.TryGetDelegateInvocationTargets(operation, out var targets))
-                {
-                    // Failed to identify targets, so conservatively reset the state.
-                    _currentAnalysisData.ResetState();
-                    return;
-                }
-
-                switch (targets.Count)
-                {
-                    case 0:
-                        // None of the delegate invocation targets are lambda/local functions.
+                    case OperationKind.FlowAnonymousFunction:
+                        AnalyzeLambdaInvocation((IFlowAnonymousFunctionOperation)target);
                         break;
 
-                    case 1:
-                        // Single target.
-                        // If we know it is an explicit invocation that will certainly be invoked,
-                        // analyze it explicitly and overwrite current state.
-                        AnalyzeDelegateInvocation(targets.Single());
+                    case OperationKind.MethodReference:
+                        AnalyzeLocalFunctionInvocation(((IMethodReferenceOperation)target).Method);
                         break;
 
                     default:
-                        // Multiple potential lambda/local function targets.
-                        // Analyze each one, merging the outputs from all.
-                        var savedCurrentAnalysisData = _currentAnalysisData.CreateBlockAnalysisData();
-                        savedCurrentAnalysisData.SetAnalysisDataFrom(_currentAnalysisData.CurrentBlockAnalysisData);
-
-                        var mergedAnalysisData = _currentAnalysisData.CreateBlockAnalysisData();
-                        foreach (var target in targets)
-                        {
-                            _currentAnalysisData.SetCurrentBlockAnalysisDataFrom(savedCurrentAnalysisData);
-                            AnalyzeDelegateInvocation(target);
-                            mergedAnalysisData = BasicBlockAnalysisData.Merge(mergedAnalysisData,
-                                _currentAnalysisData.CurrentBlockAnalysisData, _currentAnalysisData.TrackAllocatedBlockAnalysisData);
-                        }
-
-                        _currentAnalysisData.SetCurrentBlockAnalysisDataFrom(mergedAnalysisData);
-                        break;
-                }
-
-                return;
-
-                // Local functions.
-                void AnalyzeDelegateInvocation(IOperation target)
-                {
-                    switch (target.Kind)
-                    {
-                        case OperationKind.FlowAnonymousFunction:
-                            AnalyzeLambdaInvocation((IFlowAnonymousFunctionOperation)target);
-                            break;
-
-                        case OperationKind.MethodReference:
-                            AnalyzeLocalFunctionInvocation(((IMethodReferenceOperation)target).Method);
-                            break;
-
-                        default:
-                            throw ExceptionUtilities.Unreachable();
-                    }
+                        throw ExceptionUtilities.Unreachable();
                 }
             }
         }

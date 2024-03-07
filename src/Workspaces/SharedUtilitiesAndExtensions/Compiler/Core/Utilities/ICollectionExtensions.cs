@@ -6,63 +6,62 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+internal static class ICollectionExtensions
 {
-    internal static class ICollectionExtensions
+    public static void AddRange<T>(this ICollection<T> collection, IEnumerable<T>? values)
     {
-        public static void AddRange<T>(this ICollection<T> collection, IEnumerable<T>? values)
+        if (collection == null)
         {
-            if (collection == null)
-            {
-                throw new ArgumentNullException(nameof(collection));
-            }
-
-            if (values != null)
-            {
-                foreach (var item in values)
-                {
-                    collection.Add(item);
-                }
-            }
+            throw new ArgumentNullException(nameof(collection));
         }
 
-        public static void AddRange<T>(this ICollection<T> collection, HashSet<T>? values)
+        if (values != null)
         {
-            if (collection == null)
-                throw new ArgumentNullException(nameof(collection));
-
-            if (values != null)
+            foreach (var item in values)
             {
-                foreach (var item in values)
-                    collection.Add(item);
+                collection.Add(item);
             }
         }
+    }
 
-        public static void AddRange<TKey, TValue>(this ICollection<TKey> collection, Dictionary<TKey, TValue>.KeyCollection? keyCollection) where TKey : notnull
+    public static void AddRange<T>(this ICollection<T> collection, HashSet<T>? values)
+    {
+        if (collection == null)
+            throw new ArgumentNullException(nameof(collection));
+
+        if (values != null)
         {
-            if (collection == null)
-                throw new ArgumentNullException(nameof(collection));
+            foreach (var item in values)
+                collection.Add(item);
+        }
+    }
 
-            if (keyCollection != null)
-            {
-                foreach (var key in keyCollection)
-                    collection.Add(key);
-            }
+    public static void AddRange<TKey, TValue>(this ICollection<TKey> collection, Dictionary<TKey, TValue>.KeyCollection? keyCollection) where TKey : notnull
+    {
+        if (collection == null)
+            throw new ArgumentNullException(nameof(collection));
+
+        if (keyCollection != null)
+        {
+            foreach (var key in keyCollection)
+                collection.Add(key);
+        }
+    }
+
+    public static void AddRange<T>(this ICollection<T> collection, ImmutableArray<T> values)
+    {
+        if (collection == null)
+        {
+            throw new ArgumentNullException(nameof(collection));
         }
 
-        public static void AddRange<T>(this ICollection<T> collection, ImmutableArray<T> values)
+        if (!values.IsDefault)
         {
-            if (collection == null)
+            foreach (var item in values)
             {
-                throw new ArgumentNullException(nameof(collection));
-            }
-
-            if (!values.IsDefault)
-            {
-                foreach (var item in values)
-                {
-                    collection.Add(item);
-                }
+                collection.Add(item);
             }
         }
     }

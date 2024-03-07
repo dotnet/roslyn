@@ -7,20 +7,19 @@
 using System.IO;
 using Microsoft.CodeAnalysis.Elfie.Model;
 
-namespace Microsoft.CodeAnalysis.SymbolSearch
+namespace Microsoft.CodeAnalysis.SymbolSearch;
+
+internal partial class SymbolSearchUpdateEngine
 {
-    internal partial class SymbolSearchUpdateEngine
+    private class DatabaseFactoryService : IDatabaseFactoryService
     {
-        private class DatabaseFactoryService : IDatabaseFactoryService
+        public AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes)
         {
-            public AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes)
-            {
-                using var memoryStream = new MemoryStream(bytes);
-                using var streamReader = new StreamReader(memoryStream);
-                var database = new AddReferenceDatabase(ArdbVersion.V1);
-                database.ReadText(streamReader);
-                return database;
-            }
+            using var memoryStream = new MemoryStream(bytes);
+            using var streamReader = new StreamReader(memoryStream);
+            var database = new AddReferenceDatabase(ArdbVersion.V1);
+            database.ReadText(streamReader);
+            return database;
         }
     }
 }
