@@ -12,59 +12,58 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
-{
-    [Export(typeof(IVSTypeScriptDiagnosticService)), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class VSTypeScriptDiagnosticService(IDiagnosticService service) : IVSTypeScriptDiagnosticService
-    {
-        private readonly IDiagnosticService _service = service;
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
-        public async Task<ImmutableArray<VSTypeScriptDiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-        {
-            var result = await _service.GetDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-            return result.SelectAsArray(data => new VSTypeScriptDiagnosticData(data));
-        }
+[Export(typeof(IVSTypeScriptDiagnosticService)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VSTypeScriptDiagnosticService(IDiagnosticService service) : IVSTypeScriptDiagnosticService
+{
+    private readonly IDiagnosticService _service = service;
+
+    public async Task<ImmutableArray<VSTypeScriptDiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+    {
+        var result = await _service.GetDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+        return result.SelectAsArray(data => new VSTypeScriptDiagnosticData(data));
+    }
+
+    [Obsolete]
+    public IDisposable RegisterDiagnosticsUpdatedEventHandler(Action<VSTypeScriptDiagnosticsUpdatedArgsWrapper> action)
+        => new EventHandlerWrapper(_service, action);
+
+    public IDisposable RegisterDiagnosticsUpdatedEventHandler(Action<ImmutableArray<VSTypeScriptDiagnosticsUpdatedArgsWrapper>> action)
+        => new EventHandlerWrapper(_service, action);
+
+    private sealed class EventHandlerWrapper : IDisposable
+    {
+        private readonly IDiagnosticService _service;
+        private readonly EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>> _handler;
 
         [Obsolete]
-        public IDisposable RegisterDiagnosticsUpdatedEventHandler(Action<VSTypeScriptDiagnosticsUpdatedArgsWrapper> action)
-            => new EventHandlerWrapper(_service, action);
-
-        public IDisposable RegisterDiagnosticsUpdatedEventHandler(Action<ImmutableArray<VSTypeScriptDiagnosticsUpdatedArgsWrapper>> action)
-            => new EventHandlerWrapper(_service, action);
-
-        private sealed class EventHandlerWrapper : IDisposable
+        internal EventHandlerWrapper(IDiagnosticService service, Action<VSTypeScriptDiagnosticsUpdatedArgsWrapper> action)
         {
-            private readonly IDiagnosticService _service;
-            private readonly EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>> _handler;
-
-            [Obsolete]
-            internal EventHandlerWrapper(IDiagnosticService service, Action<VSTypeScriptDiagnosticsUpdatedArgsWrapper> action)
+            _service = service;
+            _handler = (sender, argsCollection) =>
             {
-                _service = service;
-                _handler = (sender, argsCollection) =>
-                {
-                    foreach (var args in argsCollection)
-                        action(new VSTypeScriptDiagnosticsUpdatedArgsWrapper(args));
-                };
-                _service.DiagnosticsUpdated += _handler;
-            }
+                foreach (var args in argsCollection)
+                    action(new VSTypeScriptDiagnosticsUpdatedArgsWrapper(args));
+            };
+            _service.DiagnosticsUpdated += _handler;
+        }
 
-            internal EventHandlerWrapper(IDiagnosticService service, Action<ImmutableArray<VSTypeScriptDiagnosticsUpdatedArgsWrapper>> action)
+        internal EventHandlerWrapper(IDiagnosticService service, Action<ImmutableArray<VSTypeScriptDiagnosticsUpdatedArgsWrapper>> action)
+        {
+            _service = service;
+            _handler = (sender, argsCollection) =>
             {
-                _service = service;
-                _handler = (sender, argsCollection) =>
-                {
-                    action(ImmutableArray.CreateRange(argsCollection, static args => new VSTypeScriptDiagnosticsUpdatedArgsWrapper(args)));
-                };
-                _service.DiagnosticsUpdated += _handler;
-            }
+                action(ImmutableArray.CreateRange(argsCollection, static args => new VSTypeScriptDiagnosticsUpdatedArgsWrapper(args)));
+            };
+            _service.DiagnosticsUpdated += _handler;
+        }
 
-            public void Dispose()
-            {
-                _service.DiagnosticsUpdated -= _handler;
-            }
+        public void Dispose()
+        {
+            _service.DiagnosticsUpdated -= _handler;
         }
     }
 }

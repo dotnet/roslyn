@@ -9,40 +9,39 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+[ExportIncrementalAnalyzerProvider(
+    name: WellKnownSolutionCrawlerAnalyzers.Diagnostic,
+    workspaceKinds: [WorkspaceKind.Host, WorkspaceKind.Interactive],
+    highPriorityForActiveFile: true)]
+internal partial class DiagnosticAnalyzerService : IIncrementalAnalyzerProvider
 {
-    [ExportIncrementalAnalyzerProvider(
-        name: WellKnownSolutionCrawlerAnalyzers.Diagnostic,
-        workspaceKinds: [WorkspaceKind.Host, WorkspaceKind.Interactive],
-        highPriorityForActiveFile: true)]
-    internal partial class DiagnosticAnalyzerService : IIncrementalAnalyzerProvider
+    public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
     {
-        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-        {
-            return _map.GetValue(workspace, _createIncrementalAnalyzer);
-        }
+        return _map.GetValue(workspace, _createIncrementalAnalyzer);
+    }
 
 #if false
-        public void ShutdownAnalyzerFrom(Workspace workspace)
+    public void ShutdownAnalyzerFrom(Workspace workspace)
+    {
+        // this should be only called once analyzer associated with the workspace is done.
+        if (_map.TryGetValue(workspace, out var analyzer))
         {
-            // this should be only called once analyzer associated with the workspace is done.
-            if (_map.TryGetValue(workspace, out var analyzer))
-            {
-                analyzer.Shutdown();
-            }
+            analyzer.Shutdown();
         }
+    }
 #endif
 
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        private DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzerCallback(Workspace workspace)
-        {
-            // subscribe to active context changed event for new workspace
-            workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
+    [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+    private DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzerCallback(Workspace workspace)
+    {
+        // subscribe to active context changed event for new workspace
+        workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
 
-            return new DiagnosticIncrementalAnalyzer(this, CorrelationIdFactory.GetNextId(), workspace, AnalyzerInfoCache);
-        }
-
-        private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)
-            => Reanalyze(e.Solution.Workspace, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable(e.NewActiveContextDocumentId), highPriority: true);
+        return new DiagnosticIncrementalAnalyzer(this, CorrelationIdFactory.GetNextId(), workspace, AnalyzerInfoCache);
     }
+
+    private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)
+        => Reanalyze(e.Solution.Workspace, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable(e.NewActiveContextDocumentId), highPriority: true);
 }
