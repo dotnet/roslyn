@@ -44,7 +44,10 @@ namespace Microsoft.CodeAnalysis
             // guarantees only one thread is building at a time
             private SemaphoreSlim? _buildLock;
 
-            public SkeletonReferenceCache SkeletonReferenceCache { get; }
+            /// <summary>
+            /// Intentionally not readonly.  This is a mutable struct.
+            /// </summary>
+            private SkeletonReferenceCache _skeletonReferenceCache;
 
             /// <summary>
             /// Set via a feature flag to enable strict validation of the compilations that are produced, in that they match the original states. This validation is expensive, so we don't want it
@@ -55,13 +58,14 @@ namespace Microsoft.CodeAnalysis
             private CompilationTracker(
                 ProjectState project,
                 CompilationTrackerState? state,
-                SkeletonReferenceCache cachedSkeletonReferences)
+                in SkeletonReferenceCache skeletonReferenceCacheToClone)
             {
                 Contract.ThrowIfNull(project);
 
                 this.ProjectState = project;
                 _stateDoNotAccessDirectly = state;
-                this.SkeletonReferenceCache = cachedSkeletonReferences;
+
+                _skeletonReferenceCache = skeletonReferenceCacheToClone.Clone();
 
                 _validateStates = project.LanguageServices.SolutionServices.GetRequiredService<IWorkspaceConfigurationService>().Options.ValidateCompilationTrackerStates;
 
@@ -73,7 +77,7 @@ namespace Microsoft.CodeAnalysis
             /// and will have no extra information beyond the project itself.
             /// </summary>
             public CompilationTracker(ProjectState project)
-                : this(project, state: null, cachedSkeletonReferences: new())
+                : this(project, state: null, skeletonReferenceCacheToClone: new())
             {
             }
 
@@ -131,7 +135,7 @@ namespace Microsoft.CodeAnalysis
                 return new CompilationTracker(
                     newProjectState,
                     forkedTrackerState,
-                    this.SkeletonReferenceCache.Clone());
+                    skeletonReferenceCacheToClone: _skeletonReferenceCache);
 
                 CompilationTrackerState? ForkTrackerState()
                 {
@@ -656,7 +660,7 @@ namespace Microsoft.CodeAnalysis
                     // generate on demand.  So just try to see if we can grab the last generated skeleton for that
                     // project.
                     var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
-                    return this.SkeletonReferenceCache.TryGetAlreadyBuiltMetadataReference(properties);
+                    return _skeletonReferenceCache.TryGetAlreadyBuiltMetadataReference(properties);
                 }
 
                 return null;
@@ -682,14 +686,13 @@ namespace Microsoft.CodeAnalysis
             {
                 var state = this.ReadState();
 
-                var clonedCache = this.SkeletonReferenceCache.Clone();
                 if (state is FinalCompilationTrackerState finalState)
                 {
                     // If we're finalized and already frozen, we can just use ourselves. Otherwise, flip the frozen bit
                     // so that any future forks keep things frozen.
                     return finalState.IsFrozen
                         ? this
-                        : new CompilationTracker(this.ProjectState, finalState.WithIsFrozen(), clonedCache);
+                        : new CompilationTracker(this.ProjectState, finalState.WithIsFrozen(), skeletonReferenceCacheToClone: _skeletonReferenceCache);
                 }
 
                 // Non-final state currently.  Produce an in-progress-state containing the forked change. Note: we
@@ -743,7 +746,7 @@ namespace Microsoft.CodeAnalysis
                             CompilationTrackerGeneratorInfo.Empty,
                             lazyCompilationWithGeneratedDocuments,
                             pendingTranslationActions: []),
-                        clonedCache);
+                        skeletonReferenceCacheToClone: _skeletonReferenceCache);
                 }
                 else if (state is InProgressState inProgressState)
                 {
@@ -769,7 +772,7 @@ namespace Microsoft.CodeAnalysis
                             generatorInfo,
                             compilationWithGeneratedDocuments,
                             pendingTranslationActions: []),
-                        clonedCache);
+                        skeletonReferenceCacheToClone: _skeletonReferenceCache);
                 }
                 else
                 {
@@ -857,6 +860,12 @@ namespace Microsoft.CodeAnalysis
                             "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators" or
                             "Microsoft.CodeAnalysis.Razor.Compiler";
             }
+
+            public SkeletonReferenceCache GetClonedSkeletonReferenceCache()
+                => _skeletonReferenceCache.Clone();
+
+            public Task<MetadataReference?> GetOrBuildSkeletonReferenceAsync(SolutionCompilationState compilationState, MetadataReferenceProperties properties, CancellationToken cancellationToken)
+                => _skeletonReferenceCache.GetOrBuildReferenceAsync(this, compilationState, properties, cancellationToken);
 
             // END HACK HACK HACK HACK, or the setup of it at least; once this hack is removed the calls to IsGeneratorRunResultToIgnore
             // need to be cleaned up.
