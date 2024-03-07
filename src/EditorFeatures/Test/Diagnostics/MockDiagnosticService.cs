@@ -46,17 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return _diagnosticData == null ? ImmutableArray<DiagnosticData>.Empty : ImmutableArray.Create(_diagnosticData);
         }
 
-        public ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(
-            Workspace workspace, ProjectId? projectId, DocumentId? documentId, CancellationToken cancellationToken)
-        {
-            Assert.Equal(projectId, GetProjectId(workspace));
-            Assert.Equal(documentId, GetDocumentId(workspace));
-
-            return _diagnosticData == null
-                ? ImmutableArray<DiagnosticBucket>.Empty
-                : ImmutableArray.Create(new DiagnosticBucket(this, workspace, GetProjectId(workspace), GetDocumentId(workspace)));
-        }
-
         internal void CreateDiagnosticAndFireEvents(Workspace workspace, MockDiagnosticAnalyzerService analyzerService, Location location, DiagnosticKind diagnosticKind, bool isSuppressed)
         {
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();

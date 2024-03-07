@@ -281,28 +281,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return result.ToImmutable();
         }
 
-        public ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(
-            Workspace workspace,
-            ProjectId? projectId,
-            DocumentId? documentId,
-            CancellationToken cancellationToken)
-        {
-            using var _1 = ArrayBuilder<DiagnosticBucket>.GetInstance(out var result);
-            using var _2 = ArrayBuilder<Data>.GetInstance(out var buffer);
-
-            foreach (var source in _updateSources)
-            {
-                buffer.Clear();
-                cancellationToken.ThrowIfCancellationRequested();
-
-                AppendMatchingData(source, workspace, projectId, documentId, id: null, buffer);
-                foreach (var data in buffer)
-                    result.Add(new DiagnosticBucket(data.Id, data.Workspace, data.ProjectId, data.DocumentId));
-            }
-
-            return result.ToImmutable();
-        }
-
         private void AppendMatchingData(
             IDiagnosticUpdateSource source, Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, ArrayBuilder<Data> list)
         {
