@@ -401,10 +401,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             MockAnalyzerReference? analyzerReference = null,
             TextDocumentKind documentKind = TextDocumentKind.Document)
         {
-            var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
-
             // register diagnostic engine to solution crawler
-            diagnosticIncrementalAnalyzer = (DiagnosticIncrementalAnalyzer)incrementalAnalyzer.CreateIncrementalAnalyzer(workspace)!;
+            diagnosticIncrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)!;
 
             var reference = analyzerReference ?? new MockAnalyzerReference();
             var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
@@ -786,11 +784,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetRequiredService<IErrorLoggerService>()));
             var fixService = new CodeFixService(
                 diagnosticService, logger, vsixFixers, SpecializedCollections.EmptyEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>>());
-
-            var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
-
-            // register diagnostic engine to solution crawler
-            var analyzer = incrementalAnalyzer.CreateIncrementalAnalyzer(workspace);
 
             diagnosticAnalyzer ??= new MockAnalyzerReference.MockDiagnosticAnalyzer();
             var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(diagnosticAnalyzer);

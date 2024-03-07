@@ -17,9 +17,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
     highPriorityForActiveFile: true)]
 internal partial class DiagnosticAnalyzerService : IIncrementalAnalyzerProvider
 {
-    IIncrementalAnalyzer IIncrementalAnalyzerProvider.CreateIncrementalAnalyzer(Workspace workspace)
-        => CreateIncrementalAnalyzer(workspace);
-
     public DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
     {
         return _map.GetValue(workspace, _createIncrementalAnalyzer);

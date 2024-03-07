@@ -6,5 +6,4 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler;
 
 internal interface IIncrementalAnalyzerProvider
 {
-    IIncrementalAnalyzer? CreateIncrementalAnalyzer(Workspace workspace);
 }
