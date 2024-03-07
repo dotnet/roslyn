@@ -141,8 +141,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     if (diagnostics.Length > 0)
                     {
-                        // save data only if there is a diagnostic
-                        var data = source.SupportGetDiagnostics ? new Data(args) : new Data(args, diagnostics);
+                        var data = new Data(args, diagnostics);
                         diagnosticDataMap.Add(args.Id, data);
                     }
 
