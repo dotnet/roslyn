@@ -35,10 +35,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var diagnosticService = GetDiagnosticService(workspace);
 
-            var source1 = new TestDiagnosticUpdateSource(support: false, diagnosticData: null);
+            var source1 = new TestDiagnosticUpdateSource();
             diagnosticService.Register(source1);
 
-            var source2 = new TestDiagnosticUpdateSource(support: false, diagnosticData: null);
+            var source2 = new TestDiagnosticUpdateSource();
             diagnosticService.Register(source2);
 
             diagnosticService.DiagnosticsUpdated += MarkSet;
@@ -114,13 +114,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource
         {
-            private readonly bool _support;
-
-            public TestDiagnosticUpdateSource(bool support, DiagnosticData[]? diagnosticData)
-            {
-                _support = support;
-            }
-
             public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
             public event EventHandler? DiagnosticsCleared;
 

@@ -76,11 +76,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
         private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource
         {
-            private ImmutableArray<DiagnosticData> _diagnostics = ImmutableArray<DiagnosticData>.Empty;
-
             public void RaiseDiagnosticsUpdated(ImmutableArray<DiagnosticsUpdatedArgs> args)
             {
-                _diagnostics = args.SelectManyAsArray(e => e.Diagnostics);
                 DiagnosticsUpdated?.Invoke(this, args);
             }
 
