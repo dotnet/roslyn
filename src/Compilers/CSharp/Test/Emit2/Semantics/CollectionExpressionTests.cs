@@ -33649,7 +33649,7 @@ partial class Program
 
         [CombinatorialData]
         [Theory]
-        public void CreatingNewListFromLengthWithSideEffects([CombinatorialValues(TargetFramework.Net70, TargetFramework.Net80)], TargetFramework targetFramework)
+        public void CreatingNewListFromLengthWithSideEffects([CombinatorialValues(TargetFramework.Net70, TargetFramework.Net80)] TargetFramework targetFramework)
         {
             string source = """
                 using System;
