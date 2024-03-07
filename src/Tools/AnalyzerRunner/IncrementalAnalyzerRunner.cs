@@ -49,11 +49,6 @@ namespace AnalyzerRunner
             var workspaceConfigurationService = (AnalyzerRunnerWorkspaceConfigurationService)_workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
             workspaceConfigurationService.Options = new(CacheStorage: usePersistentStorage ? StorageDatabase.SQLite : StorageDatabase.None);
 
-#if false
-            var solutionCrawlerRegistrationService = (SolutionCrawlerRegistrationService)_workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            solutionCrawlerRegistrationService.Register(_workspace);
-#endif
-
             if (usePersistentStorage)
             {
                 var persistentStorageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
@@ -72,9 +67,6 @@ namespace AnalyzerRunner
                 incrementalAnalyzerProvider ??= incrementalAnalyzerProviders.Where(x => x.Metadata.Name == incrementalAnalyzerName).SingleOrDefault(provider => provider.Metadata.WorkspaceKinds.Contains(WorkspaceKind.RemoteWorkspace))?.Value;
                 incrementalAnalyzerProvider ??= incrementalAnalyzerProviders.Where(x => x.Metadata.Name == incrementalAnalyzerName).Single(provider => provider.Metadata.WorkspaceKinds is []).Value;
                 var incrementalAnalyzer = incrementalAnalyzerProvider.CreateIncrementalAnalyzer(_workspace);
-#if false
-                solutionCrawlerRegistrationService.GetTestAccessor().WaitUntilCompletion(_workspace, ImmutableArray.Create(incrementalAnalyzer));
-#endif
             }
         }
     }
