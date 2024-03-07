@@ -33646,5 +33646,41 @@ partial class Program
                     IList<T>.RemoveAt(0): System.NotSupportedException
                     """);
         }
+
+        [CombinatorialData]
+        [Theory]
+        public void CreatingNewListFromLengthWithSideEffects([CombinatorialValues(TargetFramework.Net70, TargetFramework.Net80)], TargetFramework targetFramework)
+        {
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private List<T> _list = new();
+                    public int Length
+                    {
+                        get { Console.Write("Length: {0}, ", _list.Count); return _list.Count; }
+                    }
+                    public void Add(T t) { _list.Add(t); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = [1, 2];
+                        MyCollection<object> y = [3];
+                        List<object> z = [..x, ..y];
+                    }
+                }
+                """;
+            CompileAndVerify(
+                source,
+                targetFramework: targetFramework,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("Length: 2, Length: 1, "));
+        }
     }
 }
