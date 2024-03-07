@@ -17,7 +17,7 @@ internal sealed class VSTypeScriptFindUsagesContext(FindUsagesContext underlying
         => new VSTypeScriptStreamingProgressTracker(UnderlyingObject.ProgressTracker);
 
     public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
-        => UnderlyingObject.ReportMessageAsync(message, cancellationToken);
+        => UnderlyingObject.ReportNoResultsAsync(message, cancellationToken);
 
     public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
         => UnderlyingObject.SetSearchTitleAsync(title, cancellationToken);

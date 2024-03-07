@@ -68,7 +68,6 @@ internal class AlwaysActivateInProcLanguageClient(
         serverCapabilities.BreakableRangeProvider = true;
 
         serverCapabilities.SupportsDiagnosticRequests = true;
-
         serverCapabilities.DiagnosticProvider ??= new();
         serverCapabilities.DiagnosticProvider = serverCapabilities.DiagnosticProvider with
         {

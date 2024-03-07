@@ -37,7 +37,7 @@ internal sealed class VSTypeScriptFindUsagesService(IVSTypeScriptFindUsagesServi
             => new ProgressTracker(_context.ProgressTracker);
 
         public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
-            => _context.ReportMessageAsync(message, cancellationToken);
+            => _context.ReportNoResultsAsync(message, cancellationToken);
 
         public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
             => _context.SetSearchTitleAsync(title, cancellationToken);
