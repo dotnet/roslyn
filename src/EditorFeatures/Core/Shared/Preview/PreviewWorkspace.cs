@@ -32,13 +32,6 @@ internal class PreviewWorkspace : Workspace
         this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
     }
 
-#if false
-    public void EnableSolutionCrawler()
-    {
-        Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(this);
-    }
-#endif
-
     public override bool CanApplyChange(ApplyChangesKind feature)
     {
         // one can manipulate preview workspace solution as mush as they want.
@@ -109,9 +102,6 @@ internal class PreviewWorkspace : Workspace
     {
         base.Dispose(finalize);
 
-#if false
-        Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Unregister(this);
-#endif
         ClearSolution();
     }
 }
