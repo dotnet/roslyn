@@ -89,23 +89,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool isExplicit,
             CancellationToken cancellationToken)
         {
-            if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
+            var analyzer = CreateIncrementalAnalyzer(document.Project.Solution.Workspace);
+
+            // always make sure that analyzer is called on background thread.
+            return Task.Run(async () =>
             {
-                // always make sure that analyzer is called on background thread.
-                return Task.Run(async () =>
-                {
-                    priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
+                priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
 
-                    using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
-                    var upToDate = await analyzer.TryAppendDiagnosticsForSpanAsync(
-                        document, range, diagnostics, shouldIncludeDiagnostic,
-                        includeSuppressedDiagnostics, true, priorityProvider, blockForData: false,
-                        addOperationScope: null, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
-                    return (diagnostics.ToImmutable(), upToDate);
-                }, cancellationToken);
-            }
-
-            return Task.FromResult((ImmutableArray<DiagnosticData>.Empty, upToDate: false));
+                using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
+                var upToDate = await analyzer.TryAppendDiagnosticsForSpanAsync(
+                    document, range, diagnostics, shouldIncludeDiagnostic,
+                    includeSuppressedDiagnostics, true, priorityProvider, blockForData: false,
+                    addOperationScope: null, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
+                return (diagnostics.ToImmutable(), upToDate);
+            }, cancellationToken);
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
@@ -159,12 +156,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeSuppressedDiagnostics,
             bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
         {
-            if (_map.TryGetValue(solution.Workspace, out var analyzer))
-            {
-                return analyzer.GetProjectDiagnosticsForIdsAsync(solution, projectId, diagnosticIds, shouldIncludeAnalyzer, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
-            }
-
-            return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
+            var analyzer = CreateIncrementalAnalyzer(solution.Workspace);
+            return analyzer.GetProjectDiagnosticsForIdsAsync(solution, projectId, diagnosticIds, shouldIncludeAnalyzer, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
         }
     }
 }
