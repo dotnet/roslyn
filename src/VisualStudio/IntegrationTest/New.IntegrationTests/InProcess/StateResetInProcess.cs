@@ -53,7 +53,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             configurationService.Clear();
 
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-            ResetOption(globalOptions, DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag)
+            ResetOption(globalOptions, DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag);
             ResetOption(globalOptions, CSharpCodeStyleOptions.NamespaceDeclarations);
             ResetOption(globalOptions, InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin);
             ResetOption(globalOptions, InlineRenameSessionOptionsStorage.PreviewChanges);
