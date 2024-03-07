@@ -22,17 +22,6 @@ internal partial class DiagnosticAnalyzerService : IIncrementalAnalyzerProvider
         return _map.GetValue(workspace, _createIncrementalAnalyzer);
     }
 
-#if false
-    public void ShutdownAnalyzerFrom(Workspace workspace)
-    {
-        // this should be only called once analyzer associated with the workspace is done.
-        if (_map.TryGetValue(workspace, out var analyzer))
-        {
-            analyzer.Shutdown();
-        }
-    }
-#endif
-
     [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
     private DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzerCallback(Workspace workspace)
     {
