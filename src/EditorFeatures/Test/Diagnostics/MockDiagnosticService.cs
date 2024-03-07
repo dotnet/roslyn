@@ -6,13 +6,8 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
@@ -30,20 +25,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MockDiagnosticService()
         {
-        }
-
-        public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-            Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-        {
-            return new ValueTask<ImmutableArray<DiagnosticData>>(GetDiagnostics(workspace, projectId, documentId));
-        }
-
-        private ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId? projectId, DocumentId? documentId)
-        {
-            Assert.Equal(projectId, GetProjectId(workspace));
-            Assert.Equal(documentId, GetDocumentId(workspace));
-
-            return _diagnosticData == null ? ImmutableArray<DiagnosticData>.Empty : ImmutableArray.Create(_diagnosticData);
         }
 
         internal void CreateDiagnosticAndFireEvents(Workspace workspace, MockDiagnosticAnalyzerService analyzerService, Location location, DiagnosticKind diagnosticKind, bool isSuppressed)
