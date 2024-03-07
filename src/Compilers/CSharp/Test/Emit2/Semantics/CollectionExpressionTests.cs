@@ -19809,59 +19809,60 @@ partial class Program
             verifier.VerifyIL("Program.F2",
                 """
                 {
-                  // Code size       90 (0x5a)
-                  .maxstack  2
-                  .locals init (System.Collections.Generic.List<dynamic[]> V_0,
+                  // Code size       91 (0x5b)
+                  .maxstack  3
+                  .locals init (int V_0,
                                 System.Collections.Generic.List<object> V_1,
                                 System.Span<object> V_2,
                                 int V_3,
                                 System.Collections.Generic.List<dynamic[]>.Enumerator V_4,
                                 dynamic[] V_5)
                   IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  newobj     "System.Collections.Generic.List<object>..ctor()"
-                  IL_0007:  stloc.1
-                  IL_0008:  ldloc.1
-                  IL_0009:  ldloc.0
-                  IL_000a:  callvirt   "int System.Collections.Generic.List<dynamic[]>.Count.get"
-                  IL_000f:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<object>(System.Collections.Generic.List<object>, int)"
-                  IL_0014:  ldloc.1
-                  IL_0015:  call       "System.Span<object> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<object>(System.Collections.Generic.List<object>)"
-                  IL_001a:  stloc.2
-                  IL_001b:  ldc.i4.0
-                  IL_001c:  stloc.3
-                  IL_001d:  ldloc.0
-                  IL_001e:  callvirt   "System.Collections.Generic.List<dynamic[]>.Enumerator System.Collections.Generic.List<dynamic[]>.GetEnumerator()"
-                  IL_0023:  stloc.s    V_4
+                  IL_0001:  dup
+                  IL_0002:  callvirt   "int System.Collections.Generic.List<dynamic[]>.Count.get"
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloc.0
+                  IL_0009:  newobj     "System.Collections.Generic.List<object>..ctor(int)"
+                  IL_000e:  stloc.1
+                  IL_000f:  ldloc.1
+                  IL_0010:  ldloc.0
+                  IL_0011:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<object>(System.Collections.Generic.List<object>, int)"
+                  IL_0016:  ldloc.1
+                  IL_0017:  call       "System.Span<object> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<object>(System.Collections.Generic.List<object>)"
+                  IL_001c:  stloc.2
+                  IL_001d:  ldc.i4.0
+                  IL_001e:  stloc.3
+                  IL_001f:  callvirt   "System.Collections.Generic.List<dynamic[]>.Enumerator System.Collections.Generic.List<dynamic[]>.GetEnumerator()"
+                  IL_0024:  stloc.s    V_4
                   .try
                   {
-                    IL_0025:  br.s       IL_003f
-                    IL_0027:  ldloca.s   V_4
-                    IL_0029:  call       "dynamic[] System.Collections.Generic.List<dynamic[]>.Enumerator.Current.get"
-                    IL_002e:  stloc.s    V_5
-                    IL_0030:  ldloca.s   V_2
-                    IL_0032:  ldloc.3
-                    IL_0033:  call       "ref object System.Span<object>.this[int].get"
-                    IL_0038:  ldloc.s    V_5
-                    IL_003a:  stind.ref
-                    IL_003b:  ldloc.3
-                    IL_003c:  ldc.i4.1
-                    IL_003d:  add
-                    IL_003e:  stloc.3
-                    IL_003f:  ldloca.s   V_4
-                    IL_0041:  call       "bool System.Collections.Generic.List<dynamic[]>.Enumerator.MoveNext()"
-                    IL_0046:  brtrue.s   IL_0027
-                    IL_0048:  leave.s    IL_0058
+                    IL_0026:  br.s       IL_0040
+                    IL_0028:  ldloca.s   V_4
+                    IL_002a:  call       "dynamic[] System.Collections.Generic.List<dynamic[]>.Enumerator.Current.get"
+                    IL_002f:  stloc.s    V_5
+                    IL_0031:  ldloca.s   V_2
+                    IL_0033:  ldloc.3
+                    IL_0034:  call       "ref object System.Span<object>.this[int].get"
+                    IL_0039:  ldloc.s    V_5
+                    IL_003b:  stind.ref
+                    IL_003c:  ldloc.3
+                    IL_003d:  ldc.i4.1
+                    IL_003e:  add
+                    IL_003f:  stloc.3
+                    IL_0040:  ldloca.s   V_4
+                    IL_0042:  call       "bool System.Collections.Generic.List<dynamic[]>.Enumerator.MoveNext()"
+                    IL_0047:  brtrue.s   IL_0028
+                    IL_0049:  leave.s    IL_0059
                   }
                   finally
                   {
-                    IL_004a:  ldloca.s   V_4
-                    IL_004c:  constrained. "System.Collections.Generic.List<dynamic[]>.Enumerator"
-                    IL_0052:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_0057:  endfinally
+                    IL_004b:  ldloca.s   V_4
+                    IL_004d:  constrained. "System.Collections.Generic.List<dynamic[]>.Enumerator"
+                    IL_0053:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0058:  endfinally
                   }
-                  IL_0058:  ldloc.1
-                  IL_0059:  ret
+                  IL_0059:  ldloc.1
+                  IL_005a:  ret
                 }
                 """);
         }
