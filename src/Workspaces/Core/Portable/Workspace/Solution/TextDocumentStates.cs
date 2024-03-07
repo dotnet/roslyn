@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -141,6 +142,21 @@ internal readonly struct TextDocumentStates<TState>
 
     public TextDocumentStates<TState> RemoveRange(ImmutableArray<DocumentId> ids)
     {
+        if (ids.Length == _ids.Count)
+        {
+            using var _ = PooledHashSet<DocumentId>.GetInstance(out var set);
+
+#if NETCOREAPP
+            set.EnsureCapacity(ids.Length);
+#endif
+
+            foreach (var documentId in _ids)
+                set.Add(documentId);
+
+            if (ids.All(static (id, set) => set.Contains(id), set))
+                return Empty;
+        }
+
         IEnumerable<DocumentId> enumerableIds = ids;
         return new(_ids.RemoveRange(enumerableIds), _map.RemoveRange(enumerableIds));
     }

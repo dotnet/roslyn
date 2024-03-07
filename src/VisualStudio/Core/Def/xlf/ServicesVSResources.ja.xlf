@@ -402,11 +402,6 @@
         <target state="translated">要素が有効ではありません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_Razor_pull_diagnostics_experimental_requires_restart">
-        <source>Enable Razor 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="translated">Razor 'pull' 診断を有効にする (試験段階、再起動が必要)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
         <source>Enable all features in opened files from source generators (experimental)</source>
         <target state="translated">ソース ジェネレーターから開いたファイル内のすべての機能を有効にする (試験段階)</target>
@@ -425,11 +420,6 @@
       <trans-unit id="Enable_navigation_to_sourcelink_and_embedded_sources">
         <source>Enable navigation to Source Link and Embedded sources</source>
         <target state="translated">Source Link および埋め込みソースに移動できるようにする</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_pull_diagnostics_requires_restart">
-        <source>Enable 'pull' diagnostics (requires restart)</source>
-        <target state="new">Enable 'pull' diagnostics (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enabled">

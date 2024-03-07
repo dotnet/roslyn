@@ -765,6 +765,9 @@ internal partial class ProjectState
 
     public ProjectState AddDocuments(ImmutableArray<DocumentState> documents)
     {
+        if (documents.IsEmpty)
+            return this;
+
         Debug.Assert(!documents.Any(d => DocumentStates.Contains(d.Id)));
 
         return With(
@@ -774,6 +777,9 @@ internal partial class ProjectState
 
     public ProjectState AddAdditionalDocuments(ImmutableArray<AdditionalDocumentState> documents)
     {
+        if (documents.IsEmpty)
+            return this;
+
         Debug.Assert(!documents.Any(d => AdditionalDocumentStates.Contains(d.Id)));
 
         return With(
@@ -783,6 +789,9 @@ internal partial class ProjectState
 
     public ProjectState AddAnalyzerConfigDocuments(ImmutableArray<AnalyzerConfigDocumentState> documents)
     {
+        if (documents.IsEmpty)
+            return this;
+
         Debug.Assert(!documents.Any(d => AnalyzerConfigDocumentStates.Contains(d.Id)));
 
         var newAnalyzerConfigDocumentStates = AnalyzerConfigDocumentStates.AddRange(documents);
@@ -811,6 +820,9 @@ internal partial class ProjectState
 
     public ProjectState RemoveDocuments(ImmutableArray<DocumentId> documentIds)
     {
+        if (documentIds.IsEmpty)
+            return this;
+
         // We create a new CachingAnalyzerConfigSet for the new snapshot to avoid holding onto cached information
         // for removed documents.
         return With(
@@ -821,6 +833,9 @@ internal partial class ProjectState
 
     public ProjectState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
     {
+        if (documentIds.IsEmpty)
+            return this;
+
         return With(
             projectInfo: ProjectInfo.WithVersion(Version.GetNewerVersion()),
             additionalDocumentStates: AdditionalDocumentStates.RemoveRange(documentIds));
@@ -828,13 +843,19 @@ internal partial class ProjectState
 
     public ProjectState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
     {
+        if (documentIds.IsEmpty)
+            return this;
+
         var newAnalyzerConfigDocumentStates = AnalyzerConfigDocumentStates.RemoveRange(documentIds);
 
         return CreateNewStateForChangedAnalyzerConfigDocuments(newAnalyzerConfigDocumentStates);
     }
 
-    public ProjectState RemoveAllDocuments()
+    public ProjectState RemoveAllNormalDocuments()
     {
+        if (DocumentStates.IsEmpty)
+            return this;
+
         // We create a new CachingAnalyzerConfigSet for the new snapshot to avoid holding onto cached information
         // for removed documents.
         return With(

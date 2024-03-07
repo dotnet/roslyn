@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
@@ -21,10 +22,11 @@ internal sealed class VSTypeScriptDiagnosticService(IDiagnosticService service) 
 {
     private readonly IDiagnosticService _service = service;
 
-    public async Task<ImmutableArray<VSTypeScriptDiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+    public Task<ImmutableArray<VSTypeScriptDiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
     {
-        var result = await _service.GetDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-        return result.SelectAsArray(data => new VSTypeScriptDiagnosticData(data));
+        // This type is only for push diagnostics, which is now no longer how any of our diagnostic systems work. So
+        // this just returns nothing.
+        return SpecializedTasks.EmptyImmutableArray<VSTypeScriptDiagnosticData>();
     }
 
     [Obsolete]

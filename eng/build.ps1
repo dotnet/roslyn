@@ -615,7 +615,7 @@ function Deploy-VsixViaTool() {
   # Configure LSP
   $lspRegistryValue = [int]$lspEditor.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\LSP\Editor" Value dword $lspRegistryValue
-  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Lsp\PullDiagnostics" Value dword $lspRegistryValue
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Lsp\PullDiagnostics" Value dword 1
 
   # Disable text editor error reporting because it pops up a dialog. We want to either fail fast in our
   # custom handler or fail silently and continue testing.
