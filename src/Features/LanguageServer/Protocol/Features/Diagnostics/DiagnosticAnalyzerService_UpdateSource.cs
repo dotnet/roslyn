@@ -101,15 +101,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         bool IDiagnosticUpdateSource.SupportGetDiagnostics => true;
-
-        ValueTask<ImmutableArray<DiagnosticData>> IDiagnosticUpdateSource.GetDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-        {
-            if (id != null)
-            {
-                return new ValueTask<ImmutableArray<DiagnosticData>>(GetSpecificCachedDiagnosticsAsync(workspace, id, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics: true, cancellationToken));
-            }
-
-            return new ValueTask<ImmutableArray<DiagnosticData>>(GetCachedDiagnosticsAsync(workspace, projectId, documentId, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken));
-        }
     }
 }

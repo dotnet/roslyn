@@ -49,9 +49,6 @@ internal sealed class EditAndContinueDiagnosticUpdateSource : IDiagnosticUpdateS
     /// </summary>
     public bool SupportGetDiagnostics => false;
 
-    public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
-        => new([]);
-
     /// <summary>
     /// Clears all diagnostics reported thru this source.
     /// We do not track the particular reported diagnostics here since we can just clear all of them at once.

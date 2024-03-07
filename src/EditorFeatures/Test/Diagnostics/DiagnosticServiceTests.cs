@@ -127,9 +127,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
             public event EventHandler? DiagnosticsCleared;
 
-            public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
-                => new(_support ? _diagnosticData : ImmutableArray<DiagnosticData>.Empty);
-
             public void RaiseDiagnosticsUpdatedEvent(ImmutableArray<DiagnosticsUpdatedArgs> args)
                 => DiagnosticsUpdated?.Invoke(this, args);
 

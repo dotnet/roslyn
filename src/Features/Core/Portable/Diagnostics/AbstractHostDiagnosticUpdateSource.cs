@@ -26,9 +26,6 @@ internal abstract class AbstractHostDiagnosticUpdateSource : IDiagnosticUpdateSo
 
     public bool SupportGetDiagnostics => false;
 
-    public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-        => new([]);
-
     public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
     public event EventHandler DiagnosticsCleared { add { } remove { } }
 
