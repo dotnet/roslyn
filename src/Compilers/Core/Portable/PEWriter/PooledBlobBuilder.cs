@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Operations;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Microsoft.Cci
 {
@@ -18,7 +19,7 @@ namespace Microsoft.Cci
         private const int PoolChunkSize = 1024;
 
 #if DEBUG
-        internal bool IsAlive { get; private set; }
+        private bool _isAlive;
 #endif
 
         private static readonly ObjectPool<PooledBlobBuilder> s_chunkPool = new ObjectPool<PooledBlobBuilder>(() => new PooledBlobBuilder(PoolChunkSize), PoolSize);
@@ -48,7 +49,7 @@ namespace Microsoft.Cci
                 builder.Clear();
             }
 #if DEBUG
-            builder.IsAlive = true;
+            builder._isAlive = true;
 #endif
 
             return builder;
@@ -66,6 +67,9 @@ namespace Microsoft.Cci
 
         protected override void FreeChunk()
         {
+#if DEBUG
+            Volatile.Write(ref _isAlive, false);
+#endif
             if (ChunkCapacity != PoolChunkSize)
             {
                 // The invariant of this builder is that it produces BlobBuilder instances that have a 
@@ -88,16 +92,13 @@ namespace Microsoft.Cci
             {
                 s_chunkPool.Free(this);
             }
-#if DEBUG
-            IsAlive = false;
-#endif
         }
 
         [Conditional("DEBUG")]
         public void AssertAlive()
         {
 #if DEBUG
-            Debug.Assert(IsAlive);
+            Debug.Assert(_isAlive);
 #endif
         }
 
