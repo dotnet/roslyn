@@ -9,55 +9,54 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+[ExportIncrementalAnalyzerProvider(
+    name: WellKnownSolutionCrawlerAnalyzers.Diagnostic,
+    workspaceKinds: [WorkspaceKind.Host, WorkspaceKind.Interactive],
+    highPriorityForActiveFile: true)]
+internal partial class DiagnosticAnalyzerService : IIncrementalAnalyzerProvider
 {
-    [ExportIncrementalAnalyzerProvider(
-        name: WellKnownSolutionCrawlerAnalyzers.Diagnostic,
-        workspaceKinds: [WorkspaceKind.Host, WorkspaceKind.Interactive],
-        highPriorityForActiveFile: true)]
-    internal partial class DiagnosticAnalyzerService : IIncrementalAnalyzerProvider
+    public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
     {
-        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-        {
-            var analyzer = _map.GetValue(workspace, _createIncrementalAnalyzer);
-            // We rely on LSP to query us for diagnostics when things have changed and poll us for changes that might
-            // have happened to the project or closed files outside of VS. However, we still need to create the analyzer
-            // so that the map contains the analyzer to run when pull diagnostics asks.
-            //
-            // Temporary code.  To keep tests running which test legacy behavior, we allow tests to configure this
-            // behavior.  This code will be removed when we remove the legacy behavior entirely.
-            return GlobalOptions.GetOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag) ? NoOpIncrementalAnalyzer.Instance : analyzer;
-        }
-
-        public void ShutdownAnalyzerFrom(Workspace workspace)
-        {
-            // this should be only called once analyzer associated with the workspace is done.
-            if (_map.TryGetValue(workspace, out var analyzer))
-            {
-                analyzer.Shutdown();
-            }
-        }
-
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        private DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzerCallback(Workspace workspace)
-        {
-            // subscribe to active context changed event for new workspace
-            workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
-
-            return new DiagnosticIncrementalAnalyzer(this, CorrelationIdFactory.GetNextId(), workspace, AnalyzerInfoCache);
-        }
-
-        private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)
-            => Reanalyze(e.Solution.Workspace, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable(e.NewActiveContextDocumentId), highPriority: true);
+        var analyzer = _map.GetValue(workspace, _createIncrementalAnalyzer);
+        // We rely on LSP to query us for diagnostics when things have changed and poll us for changes that might
+        // have happened to the project or closed files outside of VS. However, we still need to create the analyzer
+        // so that the map contains the analyzer to run when pull diagnostics asks.
+        //
+        // Temporary code.  To keep tests running which test legacy behavior, we allow tests to configure this
+        // behavior.  This code will be removed when we remove the legacy behavior entirely.
+        return GlobalOptions.GetOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag) ? NoOpIncrementalAnalyzer.Instance : analyzer;
     }
 
-    internal class NoOpIncrementalAnalyzer : IncrementalAnalyzerBase
+    public void ShutdownAnalyzerFrom(Workspace workspace)
     {
-        public static NoOpIncrementalAnalyzer Instance = new();
-
-        /// <summary>
-        /// Set to a low priority so everything else runs first.
-        /// </summary>
-        public override int Priority => 5;
+        // this should be only called once analyzer associated with the workspace is done.
+        if (_map.TryGetValue(workspace, out var analyzer))
+        {
+            analyzer.Shutdown();
+        }
     }
+
+    [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+    private DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzerCallback(Workspace workspace)
+    {
+        // subscribe to active context changed event for new workspace
+        workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
+
+        return new DiagnosticIncrementalAnalyzer(this, CorrelationIdFactory.GetNextId(), workspace, AnalyzerInfoCache);
+    }
+
+    private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)
+        => Reanalyze(e.Solution.Workspace, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable(e.NewActiveContextDocumentId), highPriority: true);
+}
+
+internal class NoOpIncrementalAnalyzer : IncrementalAnalyzerBase
+{
+    public static NoOpIncrementalAnalyzer Instance = new();
+
+    /// <summary>
+    /// Set to a low priority so everything else runs first.
+    /// </summary>
+    public override int Priority => 5;
 }
