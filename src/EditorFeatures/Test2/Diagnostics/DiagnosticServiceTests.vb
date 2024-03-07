@@ -2198,7 +2198,6 @@ class MyClass
                 Assert.Equal(1, descriptors.Length)
                 Assert.Equal(analyzer.Descriptor.Id, descriptors.Single().Id)
 
-
                 ' Get cached project diagnostics.
                 Dim diagnostics = Await diagnosticService.GetCachedDiagnosticsAsync(workspace, project.Id, documentId:=Nothing,
                                                                                     includeSuppressedDiagnostics:=False,

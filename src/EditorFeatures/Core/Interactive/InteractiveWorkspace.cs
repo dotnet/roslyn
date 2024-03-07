@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -16,7 +14,7 @@ internal partial class InteractiveWorkspace : Workspace
     private SourceTextContainer? _openTextContainer;
     private DocumentId? _openDocumentId;
 
-    internal InteractiveWorkspace(HostServices hostServices, IGlobalOptionService globalOptions)
+    internal InteractiveWorkspace(HostServices hostServices)
         : base(hostServices, WorkspaceKind.Interactive)
     {
     }
