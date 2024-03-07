@@ -65,7 +65,6 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
 
     protected abstract bool IsEnabled { get; }
 
-    protected abstract bool SupportsDiagnosticMode(DiagnosticMode mode);
     protected abstract bool IncludeDiagnostic(DiagnosticData data);
 
     protected abstract bool TagEquals(TTag tag1, TTag tag2);

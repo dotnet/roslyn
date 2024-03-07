@@ -57,12 +57,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             _classificationTypeRegistryService = classificationTypeRegistryService;
         }
 
-        protected sealed override bool SupportsDiagnosticMode(DiagnosticMode mode)
-        {
-            // We support inline diagnostics in both push and pull (since lsp doesn't support inline diagnostics yet).
-            return true;
-        }
-
         protected sealed override bool IncludeDiagnostic(DiagnosticData diagnostic)
         {
             return

@@ -94,10 +94,6 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
             if (!_callback.IsEnabled)
                 return;
 
-            var diagnosticMode = GlobalOptions.GetDiagnosticMode();
-            if (!_callback.SupportsDiagnosticMode(diagnosticMode))
-                return;
-
             var document = documentSpanToTag.Document;
             if (document == null)
                 return;
