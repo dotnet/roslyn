@@ -641,7 +641,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Private Class TestDiagnosticAnalyzerService
             Implements IDiagnosticAnalyzerService, IDiagnosticUpdateSource
 
-            Private ReadOnly _data As ImmutableArray(Of DiagnosticData)
             Private ReadOnly _analyzerInfoCache As DiagnosticAnalyzerInfoCache
 
             Public ReadOnly Property GlobalOptions As IGlobalOptionService Implements IDiagnosticAnalyzerService.GlobalOptions
@@ -679,6 +678,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Function
 
             Public Function GetCachedDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, includeSuppressedDiagnostics As Boolean, includeLocalDocumentDiagnostics As Boolean, includeNonLocalDocumentDiagnostics As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetCachedDiagnosticsAsync
+                Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
+            End Function
+
+            Public Function GetDiagnosticsAsync(solution As Solution, projectId As ProjectId, documentId As DocumentId, includeSuppressedDiagnostics As Boolean, includeNonLocalDocumentDiagnostics As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsAsync
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
             End Function
 
