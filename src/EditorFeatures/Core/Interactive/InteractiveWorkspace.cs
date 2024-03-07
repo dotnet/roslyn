@@ -9,83 +9,82 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Interactive
+namespace Microsoft.CodeAnalysis.Interactive;
+
+internal partial class InteractiveWorkspace : Workspace
 {
-    internal partial class InteractiveWorkspace : Workspace
+    private SourceTextContainer? _openTextContainer;
+    private DocumentId? _openDocumentId;
+
+    internal InteractiveWorkspace(HostServices hostServices, IGlobalOptionService globalOptions)
+        : base(hostServices, WorkspaceKind.Interactive)
     {
-        private SourceTextContainer? _openTextContainer;
-        private DocumentId? _openDocumentId;
-
-        internal InteractiveWorkspace(HostServices hostServices, IGlobalOptionService globalOptions)
-            : base(hostServices, WorkspaceKind.Interactive)
-        {
-            // register work coordinator for this workspace
+        // register work coordinator for this workspace
 #if false
-            if (globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-            {
-                Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(this);
-            }
-#endif
+        if (globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+        {
+            Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(this);
         }
+#endif
+    }
 
-        protected override void Dispose(bool finalize)
-        {
-            // workspace is going away. unregister this workspace from work coordinator
+    protected override void Dispose(bool finalize)
+    {
+        // workspace is going away. unregister this workspace from work coordinator
 #if false
-            Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Unregister(this, blockingShutdown: true);
+        Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Unregister(this, blockingShutdown: true);
 #endif
 
-            base.Dispose(finalize);
+        base.Dispose(finalize);
+    }
+
+    public override bool CanOpenDocuments
+        => true;
+
+    public override bool CanApplyChange(ApplyChangesKind feature)
+        => feature == ApplyChangesKind.ChangeDocument;
+
+    public void OpenDocument(DocumentId documentId, SourceTextContainer textContainer)
+    {
+        _openTextContainer = textContainer;
+        _openDocumentId = documentId;
+        OnDocumentOpened(documentId, textContainer);
+    }
+
+    protected override void ApplyDocumentTextChanged(DocumentId document, SourceText newText)
+    {
+        if (_openDocumentId != document)
+        {
+            return;
         }
 
-        public override bool CanOpenDocuments
-            => true;
+        Contract.ThrowIfNull(_openTextContainer);
 
-        public override bool CanApplyChange(ApplyChangesKind feature)
-            => feature == ApplyChangesKind.ChangeDocument;
-
-        public void OpenDocument(DocumentId documentId, SourceTextContainer textContainer)
+        ITextSnapshot appliedText;
+        using (var edit = _openTextContainer.GetTextBuffer().CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
         {
-            _openTextContainer = textContainer;
-            _openDocumentId = documentId;
-            OnDocumentOpened(documentId, textContainer);
-        }
+            var oldText = _openTextContainer.CurrentText;
+            var changes = newText.GetTextChanges(oldText);
 
-        protected override void ApplyDocumentTextChanged(DocumentId document, SourceText newText)
-        {
-            if (_openDocumentId != document)
+            foreach (var change in changes)
             {
-                return;
+                edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
             }
 
-            Contract.ThrowIfNull(_openTextContainer);
-
-            ITextSnapshot appliedText;
-            using (var edit = _openTextContainer.GetTextBuffer().CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
-            {
-                var oldText = _openTextContainer.CurrentText;
-                var changes = newText.GetTextChanges(oldText);
-
-                foreach (var change in changes)
-                {
-                    edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
-                }
-
-                appliedText = edit.Apply();
-            }
-
-            OnDocumentTextChanged(document, appliedText.AsText(), PreservationMode.PreserveIdentity);
+            appliedText = edit.Apply();
         }
 
-        /// <summary>
-        /// Closes all open documents and empties the solution but keeps all solution-level analyzers.
-        /// </summary>
-        public void ResetSolution()
-        {
-            ClearOpenDocuments();
+        OnDocumentTextChanged(document, appliedText.AsText(), PreservationMode.PreserveIdentity);
+    }
 
-            var emptySolution = CreateSolution(SolutionId.CreateNewId("InteractiveSolution"));
-            SetCurrentSolution(solution => emptySolution.WithAnalyzerReferences(solution.AnalyzerReferences), WorkspaceChangeKind.SolutionCleared);
-        }
+    /// <summary>
+    /// Closes all open documents and empties the solution but keeps all solution-level analyzers.
+    /// </summary>
+    public void ResetSolution()
+    {
+        ClearOpenDocuments();
+
+        var emptySolution = CreateSolution(SolutionId.CreateNewId("InteractiveSolution"));
+        SetCurrentSolution(solution => emptySolution.WithAnalyzerReferences(solution.AnalyzerReferences), WorkspaceChangeKind.SolutionCleared);
     }
 }
