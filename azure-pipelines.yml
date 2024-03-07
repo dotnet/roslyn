@@ -409,7 +409,6 @@ stages:
       - pwsh: |
           ./eng/generate-compiler-code.ps1 -test -configuration Release
         displayName: Generate Syntax Files
-        condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
 
       - pwsh: |
           ./eng/validate-code-formatting.ps1 -ci -rootDirectory $(Build.SourcesDirectory)\src -includeDirectories Compilers\CSharp\Portable\Generated\, Compilers\VisualBasic\Portable\Generated\, ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\ 
