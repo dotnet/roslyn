@@ -2198,10 +2198,6 @@ class MyClass
                 Assert.Equal(1, descriptors.Length)
                 Assert.Equal(analyzer.Descriptor.Id, descriptors.Single().Id)
 
-#If False Then
-                ' Force project analysis
-                incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged:=True, reasons:=InvocationReasons.Empty, cancellationToken:=CancellationToken.None).Wait()
-#End If
 
                 ' Get cached project diagnostics.
                 Dim diagnostics = Await diagnosticService.GetCachedDiagnosticsAsync(workspace, project.Id, documentId:=Nothing,
@@ -2503,25 +2499,6 @@ class MyClass
                 Assert.Equal("ID0002", diagnostic.Id)
             End Using
         End Function
-
-#If False Then
-        <WpfFact>
-        Public Sub ReanalysisScopeExcludesMissingDocuments()
-            Dim test = <Workspace>
-                           <Project Language="C#" CommonReferences="true">
-                           </Project>
-                       </Workspace>
-
-            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
-                Dim solution = workspace.CurrentSolution
-                Dim project = solution.Projects.Single()
-
-                Dim missingDocumentId = DocumentId.CreateNewId(project.Id, "Missing ID")
-                Dim reanalysisScope = New SolutionCrawlerRegistrationService.ReanalyzeScope(documentIds:={missingDocumentId})
-                Assert.Empty(reanalysisScope.GetDocumentIds(solution))
-            End Using
-        End Sub
-#End If
 
         <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
         Private NotInheritable Class AnalyzerWithCustomDiagnosticCategory
