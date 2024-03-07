@@ -45,11 +45,6 @@ internal sealed class EditAndContinueDiagnosticUpdateSource : IDiagnosticUpdateS
     public event EventHandler? DiagnosticsCleared;
 
     /// <summary>
-    /// This implementation reports diagnostics via <see cref="DiagnosticsUpdated"/> event.
-    /// </summary>
-    public bool SupportGetDiagnostics => false;
-
-    /// <summary>
     /// Clears all diagnostics reported thru this source.
     /// We do not track the particular reported diagnostics here since we can just clear all of them at once.
     /// </summary>

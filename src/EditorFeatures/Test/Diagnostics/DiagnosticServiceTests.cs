@@ -115,15 +115,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource
         {
             private readonly bool _support;
-            private readonly ImmutableArray<DiagnosticData> _diagnosticData;
 
             public TestDiagnosticUpdateSource(bool support, DiagnosticData[]? diagnosticData)
             {
                 _support = support;
-                _diagnosticData = (diagnosticData ?? []).ToImmutableArray();
             }
 
-            public bool SupportGetDiagnostics { get { return _support; } }
             public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
             public event EventHandler? DiagnosticsCleared;
 

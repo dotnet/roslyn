@@ -36,8 +36,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim service = New TestDiagnosticAnalyzerService(workspace.GlobalOptions)
                 Using source = New ExternalErrorDiagnosticUpdateSource(
                     workspace, service, workspace.GetService(Of IGlobalOperationNotificationService), waiter, CancellationToken.None)
-
-                    Assert.False(source.SupportGetDiagnostics)
                 End Using
             End Using
         End Sub
@@ -649,12 +647,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 _analyzerInfoCache = New DiagnosticAnalyzerInfoCache()
                 Me.GlobalOptions = globalOptions
             End Sub
-
-            Public ReadOnly Property SupportGetDiagnostics As Boolean Implements IDiagnosticUpdateSource.SupportGetDiagnostics
-                Get
-                    Return True
-                End Get
-            End Property
 
             Public ReadOnly Property AnalyzerInfoCache As DiagnosticAnalyzerInfoCache Implements IDiagnosticAnalyzerService.AnalyzerInfoCache
                 Get

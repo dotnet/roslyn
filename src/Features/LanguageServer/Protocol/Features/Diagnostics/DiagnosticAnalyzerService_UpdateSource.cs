@@ -99,7 +99,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _eventQueue.ScheduleTask(nameof(RaiseDiagnosticsUpdated), () => eventActionAsync(raiseEvents), CancellationToken.None);
             }
         }
-
-        bool IDiagnosticUpdateSource.SupportGetDiagnostics => true;
     }
 }

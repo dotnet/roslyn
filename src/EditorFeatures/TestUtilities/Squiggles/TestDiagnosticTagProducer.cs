@@ -86,8 +86,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
             public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
             public event EventHandler DiagnosticsCleared { add { } remove { } }
-
-            public bool SupportGetDiagnostics => false;
         }
     }
 }
