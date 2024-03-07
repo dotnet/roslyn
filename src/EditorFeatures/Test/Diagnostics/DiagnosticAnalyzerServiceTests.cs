@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var exportProvider = workspace.Services.SolutionServices.ExportProvider;
             Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
             var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
-            var analyzer = service.CreateIncrementalAnalyzer(workspace);
+            var analyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
             var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
 
             // listen to events
@@ -90,8 +90,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Assert.All(a, e => Assert.Empty(e.Diagnostics));
             };
 
-            // now call each analyze method. none of them should run.
-            await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
+            await analyzer.GetDiagnosticsAsync(
+                workspace.CurrentSolution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
 
             // wait for all events to raised
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
@@ -204,7 +204,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var exportProvider = workspace.Services.SolutionServices.ExportProvider;
             Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
             var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
-            var analyzer = service.CreateIncrementalAnalyzer(workspace);
+            var analyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
 
             // listen to events
             var syntaxDiagnostic = false;
@@ -235,12 +235,9 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
             // open document
             workspace.OpenDocument(document.Id);
-#if false
-            await analyzer.DocumentOpenAsync(document, CancellationToken.None).ConfigureAwait(false);
-#endif
 
-            // run analysis
-            await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
+            await analyzer.GetDiagnosticsAsync(
+                workspace.CurrentSolution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
 
             // wait for all events to raised
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
@@ -256,13 +253,14 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             Func<bool, bool, ImmutableArray<DiagnosticData>, (bool, bool)> resultSetter,
             bool expectedSyntax, bool expectedSemantic)
         {
+            _ = document;
             var exportProvider = workspace.Services.SolutionServices.ExportProvider;
 
             Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
             var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
             var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
 
-            var analyzer = service.CreateIncrementalAnalyzer(workspace);
+            var analyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
 
             var syntax = false;
             var semantic = false;
@@ -277,8 +275,8 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                 }
             };
 
-            // now call each analyze method. none of them should run.
-            await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
+            await analyzer.GetDiagnosticsAsync(
+                workspace.CurrentSolution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
 
             // wait for all events to raised
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
@@ -338,20 +336,9 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
             // open document
             workspace.OpenDocument(document.Id);
-#if false
-            await analyzer.DocumentOpenAsync(document, CancellationToken.None).ConfigureAwait(false);
-#endif
-
-            // cause analysis
-            await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
 
             // close document
             workspace.CloseDocument(document.Id);
-#if false
-            await analyzer.DocumentCloseAsync(document, CancellationToken.None).ConfigureAwait(false);
-#endif
-
-            await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
 
             // wait for all events to raised
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
@@ -463,22 +450,6 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
-#if false
-            var analyzers = incrementalAnalyzer.GetAnalyzersTestOnly(project).ToArray();
-
-            AssertEx.Equal(new[]
-            {
-                typeof(FileContentLoadAnalyzer),
-                typeof(GeneratorDiagnosticsPlaceholderAnalyzer),
-                typeof(CSharpCompilerDiagnosticAnalyzer),
-                typeof(Analyzer),
-                typeof(Priority0Analyzer),
-                typeof(Priority1Analyzer),
-                typeof(Priority10Analyzer),
-                typeof(Priority15Analyzer),
-                typeof(Priority20Analyzer)
-            }, analyzers.Select(a => a.GetType()));
-#endif 
         }
 
         [Fact]
@@ -534,9 +505,6 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
-#if false
-            await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
-#endif
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             Assert.True(called);
@@ -644,9 +612,6 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(project.Solution.Workspace);
-#if false
-            await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
-#endif
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             Assert.Equal(expectAnalyzerExecuted, called);
@@ -705,15 +670,9 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                 case BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics:
                 case BackgroundAnalysisScope.OpenFiles:
                     workspace.OpenAdditionalDocument(firstAdditionalDocument.Id);
-#if false
-                    await incrementalAnalyzer.AnalyzeNonSourceDocumentAsync(firstAdditionalDocument, InvocationReasons.SyntaxChanged, CancellationToken.None);
-#endif
                     break;
 
                 case BackgroundAnalysisScope.FullSolution:
-#if false
-                    await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
-#endif
                     break;
 
                 default:
@@ -826,22 +785,13 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     workspace.OpenDocument(document.Id);
                     var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetService<IDocumentTrackingService>();
                     documentTrackingService.SetActiveDocument(document.Id);
-#if false
-                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
-#endif
                     break;
 
                 case BackgroundAnalysisScope.OpenFiles:
                     workspace.OpenDocument(document.Id);
-#if false
-                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
-#endif
                     break;
 
                 case BackgroundAnalysisScope.FullSolution:
-#if false
-                    await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
-#endif
                     break;
 
                 default:
@@ -972,9 +922,6 @@ class A
 
                     var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetRequiredService<IDocumentTrackingService>();
                     documentTrackingService.SetActiveDocument(document.Id);
-#if false
-                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
-#endif
                     break;
 
                 case BackgroundAnalysisScope.OpenFiles:
@@ -983,15 +930,9 @@ class A
                     else
                         workspace.OpenDocument(document.Id);
 
-#if false
-                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
-#endif
                     break;
 
                 case BackgroundAnalysisScope.FullSolution:
-#if false
-                    await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
-#endif
                     break;
             }
 
@@ -1079,18 +1020,8 @@ class A
             Assert.Empty(analyzer.CanceledCompilations);
             try
             {
-                if (actionKind == AnalyzerRegisterActionKind.SyntaxTree)
-                {
-#if false
-                    await incrementalAnalyzer.AnalyzeSyntaxAsync(document, InvocationReasons.SyntaxChanged, analyzer.CancellationToken);
-#endif
-                }
-                else
-                {
-#if false
-                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, analyzer.CancellationToken);
-#endif
-                }
+                await incrementalAnalyzer.GetDiagnosticsAsync(
+                    workspace.CurrentSolution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, analyzer.CancellationToken);
 
                 throw ExceptionUtilities.Unreachable();
             }
@@ -1102,18 +1033,8 @@ class A
             Assert.Null(diagnostic);
 
             // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
-            if (actionKind == AnalyzerRegisterActionKind.SyntaxTree)
-            {
-#if false
-                await incrementalAnalyzer.AnalyzeSyntaxAsync(document, InvocationReasons.SyntaxChanged, CancellationToken.None);
-#endif
-            }
-            else
-            {
-#if false
-                await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
-#endif
-            }
+            await incrementalAnalyzer.GetDiagnosticsAsync(
+                workspace.CurrentSolution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
 
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
@@ -1327,18 +1248,8 @@ class A
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
-            if (analyzeProject)
-            {
-#if false
-                await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
-#endif
-            }
-            else
-            {
-#if false
-                await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
-#endif
-            }
+            await incrementalAnalyzer.GetDiagnosticsAsync(
+                workspace.CurrentSolution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
 
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
@@ -1382,23 +1293,6 @@ class A
             semantic |= diagnostics.Any(d => d.Properties["Origin"] != "Syntactic");
 
             return (syntax, semantic);
-        }
-
-        private static async Task RunAllAnalysisAsync(IIncrementalAnalyzer analyzer, TextDocument textDocument)
-        {
-#if false
-            if (textDocument is Document document)
-            {
-                await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None).ConfigureAwait(false);
-                await analyzer.AnalyzeDocumentAsync(document, bodyOpt: null, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
-            }
-            else
-            {
-                await analyzer.AnalyzeNonSourceDocumentAsync(textDocument, InvocationReasons.Empty, CancellationToken.None).ConfigureAwait(false);
-            }
-
-            await analyzer.AnalyzeProjectAsync(textDocument.Project, semanticsChanged: true, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
-#endif
         }
 
         private class Analyzer : DiagnosticAnalyzer
