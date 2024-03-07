@@ -91,35 +91,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             ClearAllDiagnostics(stateSets, project.Id);
         }
 
-#if false
-        public void Shutdown()
-        {
-            GlobalOptions.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
-
-        var stateSets = _stateManager.GetAllStateSets();
-
-            AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
-            {
-                var handleActiveFile = true;
-                using var _ = PooledHashSet<DocumentId>.GetInstance(out var documentSet);
-                using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
-
-                foreach (var stateSet in stateSets)
-                {
-                    var projectIds = stateSet.GetProjectsWithDiagnostics();
-                    foreach (var projectId in projectIds)
-                    {
-                        stateSet.CollectDocumentsWithDiagnostics(projectId, documentSet);
-                        AddProjectDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), stateSet, projectId, documentSet, handleActiveFile);
-                        documentSet.Clear();
-                    }
-                }
-
-                raiseEvents(argsBuilder.ToImmutableAndClear());
-            });
-        }
-#endif
-
         private void ClearAllDiagnostics(ImmutableArray<StateSet> stateSets, ProjectId projectId)
         {
             AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
@@ -221,14 +192,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             return DiagnosticAnalysisResult.CreateEmpty(projectId, version);
         }
-
-#if false
-        public void LogAnalyzerCountSummary()
-            => _telemetry.ReportAndClear(_correlationId);
-
-        internal IEnumerable<DiagnosticAnalyzer> GetAnalyzersTestOnly(Project project)
-            => _stateManager.GetOrCreateStateSets(project).Select(s => s.Analyzer);
-#endif
 
         private static string GetDocumentLogMessage(string title, TextDocument document, DiagnosticAnalyzer analyzer)
             => $"{title}: ({document.Id}, {document.Project.Id}), ({analyzer})";
