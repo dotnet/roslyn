@@ -48,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         private readonly IServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;
+        private readonly IGlobalOptionService _globalOptions;
         private readonly OpenTextBufferProvider _openTextBufferProvider;
         private readonly IVsFolderWorkspaceService _vsFolderWorkspaceService;
 
@@ -79,31 +80,28 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoteLanguageServiceWorkspace(
             ExportProvider exportProvider,
+            IGlobalOptionService globalOptions,
             OpenTextBufferProvider openTextBufferProvider,
             IVsFolderWorkspaceService vsFolderWorkspaceService,
             SVsServiceProvider serviceProvider,
             IDiagnosticService diagnosticService,
             ITableManagerProvider tableManagerProvider,
-            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext)
             : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.CloudEnvironmentClientWorkspace)
         {
             _serviceProvider = serviceProvider;
 
-            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(globalOptions, threadingContext, serviceProvider, this, diagnosticService, tableManagerProvider);
+            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(threadingContext, serviceProvider, this, diagnosticService, tableManagerProvider);
 
             _openTextBufferProvider = openTextBufferProvider;
             _openTextBufferProvider.AddListener(this);
             _threadingContext = threadingContext;
-
+            _globalOptions = globalOptions;
             _vsFolderWorkspaceService = vsFolderWorkspaceService;
 
             _remoteWorkspaceRootPaths = ImmutableHashSet<string>.Empty;
             _registeredExternalPaths = ImmutableHashSet<string>.Empty;
         }
-
-        private IGlobalOptionService GlobalOptions
-            => _remoteDiagnosticListTable.GlobalOptions;
 
         void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy) => NotifyOnDocumentOpened(moniker, textBuffer);
 
@@ -537,7 +535,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         private void StartSolutionCrawler()
         {
-            if (GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+            if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
                 DiagnosticProvider.Enable(this);
         }
 

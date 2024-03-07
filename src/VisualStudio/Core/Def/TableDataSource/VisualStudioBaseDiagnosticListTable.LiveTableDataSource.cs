@@ -59,7 +59,6 @@ internal abstract partial class VisualStudioBaseDiagnosticListTable
 
         public LiveTableDataSource(
             Workspace workspace,
-            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
             string identifier,
@@ -67,7 +66,6 @@ internal abstract partial class VisualStudioBaseDiagnosticListTable
             : base(workspace, threadingContext)
         {
             _workspace = workspace;
-            GlobalOptions = globalOptions;
             _identifier = identifier;
 
             _tracker = new OpenDocumentTracker<DiagnosticTableItem>(_workspace);
@@ -78,7 +76,6 @@ internal abstract partial class VisualStudioBaseDiagnosticListTable
             ConnectToBuildUpdateSource(buildUpdateSource);
         }
 
-        public IGlobalOptionService GlobalOptions { get; }
         public override string DisplayName => ServicesVSResources.CSharp_VB_Diagnostics_Table_Data_Source;
         public override string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
         public override string Identifier => _identifier;
@@ -175,17 +172,11 @@ internal abstract partial class VisualStudioBaseDiagnosticListTable
             return new AggregatedKey(documents, liveArgsId.Analyzer, liveArgsId.Kind);
         }
 
-        private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)
+        private void PopulateInitialData(Workspace _1, IDiagnosticService _2)
         {
-            var diagnosticMode = GlobalOptions.GetDiagnosticMode();
-
             // If we're not in Solution-Crawler mode, then don't add any diagnostics to the table.  Instead, the LSP
             // client will be handling everything.
-            var diagnostics = diagnosticMode != DiagnosticMode.SolutionCrawlerPush
-                ? ImmutableArray<DiagnosticBucket>.Empty
-                : diagnosticService.GetDiagnosticBuckets(
-                    workspace, projectId: null, documentId: null, cancellationToken: CancellationToken.None);
-
+            var diagnostics = ImmutableArray<DiagnosticBucket>.Empty;
             foreach (var bucket in diagnostics)
             {
                 // We only need to issue an event to VS that these docs have diagnostics associated with them.  So
@@ -208,12 +199,8 @@ internal abstract partial class VisualStudioBaseDiagnosticListTable
                         continue;
                     }
 
-                    // if we're in lsp mode we never respond to any diagnostics we hear about, lsp client is fully
-                    // responsible for populating the error list.
-                    var diagnostics = GlobalOptions.IsLspPullDiagnostics()
-                        ? ImmutableArray<DiagnosticData>.Empty
-                        : e.Diagnostics;
-
+                    // We no longer have solution-crawler mode.  So we don't do anything here.
+                    var diagnostics = ImmutableArray<DiagnosticData>.Empty;
                     if (diagnostics.Length == 0)
                     {
                         OnDataRemoved(e);
@@ -235,7 +222,7 @@ internal abstract partial class VisualStudioBaseDiagnosticListTable
         public override AbstractTableEntriesSource<DiagnosticTableItem> CreateTableEntriesSource(object data)
         {
             var item = (UpdatedEventArgs)data;
-            return new TableEntriesSource(this, item.Workspace, GlobalOptions, item.ProjectId, item.DocumentId, item.Id);
+            return new TableEntriesSource(this, item.Workspace, item.ProjectId, item.DocumentId, item.Id);
         }
 
         private void ConnectToDiagnosticService(Workspace workspace, IDiagnosticService diagnosticService)
@@ -298,17 +285,15 @@ internal abstract partial class VisualStudioBaseDiagnosticListTable
         {
             private readonly LiveTableDataSource _source;
             private readonly Workspace _workspace;
-            private readonly IGlobalOptionService _globalOptions;
             private readonly ProjectId? _projectId;
             private readonly DocumentId? _documentId;
             private readonly object _id;
             private readonly string _buildTool;
 
-            public TableEntriesSource(LiveTableDataSource source, Workspace workspace, IGlobalOptionService globalOptions, ProjectId? projectId, DocumentId? documentId, object id)
+            public TableEntriesSource(LiveTableDataSource source, Workspace workspace, ProjectId? projectId, DocumentId? documentId, object id)
             {
                 _source = source;
                 _workspace = workspace;
-                _globalOptions = globalOptions;
                 _projectId = projectId;
                 _documentId = documentId;
                 _id = id;
@@ -322,10 +307,10 @@ internal abstract partial class VisualStudioBaseDiagnosticListTable
 
             public override ImmutableArray<DiagnosticTableItem> GetItems()
             {
-                // If we're in lsp pull mode then lsp client owns the error list.
-                var diagnosticMode = _globalOptions.GetDiagnosticMode();
-                if (diagnosticMode == DiagnosticMode.LspPull)
-                    return ImmutableArray<DiagnosticTableItem>.Empty;
+                // Since we're in lsp pull mode the lsp client owns the error list.
+                var lspPullMode = true;
+                if (lspPullMode)
+                    return [];
 
                 var provider = _source._diagnosticService;
                 var items = provider.GetDiagnosticsAsync(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, CancellationToken.None)
