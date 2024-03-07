@@ -59,11 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var fixService = new CodeFixService(
                 diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>>());
 
-            var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
-
-            // register diagnostic engine to solution crawler
-            var analyzer = incrementalAnalyzer.CreateIncrementalAnalyzer(workspace);
-
             var reference = new MockAnalyzerReference();
             var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
             var document = project.Documents.Single();
@@ -302,8 +297,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             errorReportingService.OnError = message => errorReported = true;
 
             GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager);
-            var incrementalAnalyzer = (IIncrementalAnalyzerProvider)tuple.analyzerService;
-            var analyzer = incrementalAnalyzer.CreateIncrementalAnalyzer(workspace);
             var reference = new MockAnalyzerReference(codefix, ImmutableArray.Create(diagnosticAnalyzer));
             var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
             document = project.Documents.Single();

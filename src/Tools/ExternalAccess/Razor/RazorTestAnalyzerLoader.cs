@@ -27,7 +27,6 @@ internal class RazorTestAnalyzerLoader
 
     public void InitializeDiagnosticsServices(Workspace workspace)
     {
-        _ = ((IIncrementalAnalyzerProvider)_analyzerService).CreateIncrementalAnalyzer(workspace);
         _diagnosticService.Register((IDiagnosticUpdateSource)_analyzerService);
     }
 
