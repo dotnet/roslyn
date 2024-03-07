@@ -202,9 +202,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LookupMembersInExtension(tempResult, extension, name, arity, basesBeingResolved,
                     options, originalBinder, diagnose: false, ref useSiteInfo);
 
-                MergeHidingLookupResults(result, tempResult, basesBeingResolved, ref useSiteInfo);
+                MergeExtensionLookupResultsHidingLessSpecificNonMethods(result, tempResult, basesBeingResolved, ref useSiteInfo);
                 tempResult.Clear();
             }
+
+            CompleteMergeExtensionLookupResultsHidingLessSpecific(result, basesBeingResolved, ref useSiteInfo);
 
             tempResult.Free();
             compatibleExtensions.Free();
@@ -1373,7 +1375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupMembersInBasesWithoutInheritance(current, typeParameter.AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo), name, arity, basesBeingResolved: null, options, originalBinder, typeParameter, diagnose, ref useSiteInfo);
         }
 
-        private static bool IsDerivedType(NamedTypeSymbol baseType, NamedTypeSymbol derivedType, ConsList<TypeSymbol> basesBeingResolved, CSharpCompilation compilation, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private static bool IsDerivedType(TypeSymbol baseType, TypeSymbol derivedType, ConsList<TypeSymbol> basesBeingResolved, CSharpCompilation compilation, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(!TypeSymbol.Equals(baseType, derivedType, TypeCompareKind.ConsiderEverything2));
 
@@ -1404,9 +1406,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 visited?.Free();
             }
 
-            if (baseType.IsInterface)
+            if (baseType is NamedTypeSymbol { IsInterface: true } && derivedType is NamedTypeSymbol derivedNamedType)
             {
-                return GetBaseInterfaces(derivedType, basesBeingResolved, ref useSiteInfo).Contains(baseType);
+                return GetBaseInterfaces(derivedNamedType, basesBeingResolved, ref useSiteInfo).Contains(baseType);
             }
 
             return false;
@@ -1492,6 +1494,161 @@ symIsHidden:;
                 }
 
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// We remove non-methods that are "hidden" (based on extended type) by more specific members.
+        /// But we collect all the methods, because we'll only know if they are "hidden" after we have the complete set of extension members.
+        ///
+        /// Once we have the complete set of extension members, we'll call <see cref="CompleteMergeExtensionLookupResultsHidingLessSpecific(LookupResult, ConsList{TypeSymbol}, ref CompoundUseSiteInfo{AssemblySymbol})"/>
+        /// It will remove methods that are "hidden" by any remaining non-methods.
+        /// It will also compact the set (deal with any null entries left in the result).
+        /// </summary>
+        private void MergeExtensionLookupResultsHidingLessSpecificNonMethods(LookupResult current, LookupResult additional, ConsList<TypeSymbol> basesBeingResolved, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            if (!current.IsMultiViable || !additional.IsMultiViable)
+            {
+                current.MergePrioritized(additional);
+                return;
+            }
+
+            var currentSymbols = current.Symbols;
+            var additionalSymbols = additional.Symbols;
+
+            var currentCount = currentSymbols.Count;
+            var additionalCount = additionalSymbols.Count;
+            Debug.Assert(currentCount > 0);
+            Debug.Assert(additionalCount > 0);
+
+            for (int i = 0; i < additionalCount; i++)
+            {
+                var additionalSymbol = additionalSymbols[i];
+
+                removeLessSpecificNonMethodCurrentSymbols(additionalSymbol, currentSymbols, out bool isAdditionalSymbolHidden,
+                    currentCount, basesBeingResolved, ref useSiteInfo);
+
+                if (!isAdditionalSymbolHidden)
+                {
+                    currentSymbols.Add(additionalSymbol);
+                }
+            }
+
+            return;
+
+            // Determine whether we want to add the additional symbol
+            // and potentially remove some "hidden" non-method current symbols in the process
+            void removeLessSpecificNonMethodCurrentSymbols(Symbol additionalSymbol, ArrayBuilder<Symbol> currentSymbols, out bool isAdditionalSymbolHidden,
+                int currentCount, ConsList<TypeSymbol> basesBeingResolved, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                isAdditionalSymbolHidden = false;
+                for (int j = 0; j < currentCount; j++)
+                {
+                    var currentSymbol = currentSymbols[j];
+                    if (currentSymbol is null)
+                    {
+                        continue;
+                    }
+
+                    if (currentSymbol.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } currentContainerUnderlying
+                        || additionalSymbol.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } additionalContainerUnderlying)
+                    {
+                        // We wouldn't have gathered these members if we didn't have an extended type for them.
+                        throw ExceptionUtilities.Unreachable();
+                    }
+
+                    if (additionalContainerUnderlying.Equals(currentContainerUnderlying, TypeCompareKind.ConsiderEverything))
+                    {
+                        // neither underlying type is more specific
+                    }
+                    else if (IsDerivedType(baseType: additionalContainerUnderlying, derivedType: currentContainerUnderlying,
+                        basesBeingResolved, this.Compilation, ref useSiteInfo))
+                    {
+                        // current symbol is more specific, it "hides" a less specific non-method/non-indexer additional symbol
+                        if (!IsMethodOrIndexer(additionalSymbol))
+                        {
+                            isAdditionalSymbolHidden = true;
+                        }
+                    }
+                    else if (IsDerivedType(baseType: currentContainerUnderlying, derivedType: additionalContainerUnderlying,
+                        basesBeingResolved, this.Compilation, ref useSiteInfo))
+                    {
+                        // additional symbol is more specific, it "hides" a less specific non-method/non-indexer current symbol
+                        if (!IsMethodOrIndexer(currentSymbol))
+                        {
+                            currentSymbols[j] = null;
+                        }
+                    }
+                    else
+                    {
+                        // neither underlying type is more specific
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// After we've removed all the non-method/non-indexer symbols that are "hidden" by more specific members (of any kind),
+        /// if we have a non-method/non-indexer symbol left in a given hierarchy,
+        /// we should remove any method/indexer symbols that it "hides".
+        ///
+        /// Works in conjunction with <see cref="MergeExtensionLookupResultsHidingLessSpecificNonMethods(LookupResult, LookupResult, ConsList{TypeSymbol}, ref CompoundUseSiteInfo{AssemblySymbol})"/>
+        /// </summary>
+        private void CompleteMergeExtensionLookupResultsHidingLessSpecific(LookupResult result, ConsList<TypeSymbol> basesBeingResolved, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            var symbols = result.Symbols;
+            var count = symbols.Count;
+
+            for (int i = 0; i < count; i++)
+            {
+                var methodSymbol = symbols[i];
+
+                if (methodSymbol is null || !IsMethodOrIndexer(methodSymbol))
+                    continue;
+
+                for (int j = 0; j < count; j++)
+                {
+                    var nonMethodSymbol = symbols[j];
+
+                    if (nonMethodSymbol is null || IsMethodOrIndexer(nonMethodSymbol))
+                        continue;
+
+                    if (methodSymbol.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } methodUnderlying
+                        || nonMethodSymbol.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } nonMethodUnderlying)
+                    {
+                        // We wouldn't have gathered these members if we didn't have an extended type for them.
+                        throw ExceptionUtilities.Unreachable();
+                    }
+
+                    if (methodUnderlying.Equals(nonMethodUnderlying, TypeCompareKind.ConsiderEverything))
+                    {
+                        // neither underlying type is more specific
+                    }
+                    else if (IsDerivedType(baseType: methodUnderlying, derivedType: nonMethodUnderlying, basesBeingResolved, this.Compilation, useSiteInfo: ref useSiteInfo))
+                    {
+                        // When a non-method/non-indexer is more specific than a method/indexer, it "hides" the method/indexer.
+                        symbols[i] = null;
+                        break;
+                    }
+                }
+            }
+
+            // Remove null entries
+            int nullCount = symbols.Count(s => s is null);
+            if (nullCount > 0)
+            {
+                var updatedResult = ArrayBuilder<Symbol>.GetInstance(symbols.Count - nullCount);
+                foreach (var symbol in symbols)
+                {
+                    if (symbol is not null)
+                    {
+                        updatedResult.Add(symbol);
+                    }
+                }
+
+                result.Symbols.Clear();
+                result.Symbols.AddRange(updatedResult);
+                updatedResult.Free();
             }
         }
 

@@ -304,6 +304,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RemoveLessDerivedMembers(results, ref useSiteInfo);
             }
 
+            // PROTOTYPE(instance) The preference for more specific extension members should also apply to classic extension methods (without affecting back compat, somehow).
+            RemoveLessSpecificExtensionMembers(results, ref useSiteInfo);
+
             if (Compilation.LanguageVersion.AllowImprovedOverloadCandidates())
             {
                 RemoveStaticInstanceMismatches(results, arguments, receiver);
@@ -1305,6 +1308,28 @@ outerDefault:
             }
         }
 
+        private static void RemoveLessSpecificExtensionMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            where TMember : Symbol
+        {
+            for (int i = 0; i < results.Count; ++i)
+            {
+                var result = results[i];
+
+                if (result.Result.IsValid || result.HasUseSiteDiagnosticToReport)
+                {
+                    if (result.Member.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } extendedType)
+                    {
+                        continue;
+                    }
+
+                    if (IsLessSpecificThanAnyExtensionMember(index: i, extendedType, results, ref useSiteInfo))
+                    {
+                        results[i] = result.WithResult(MemberAnalysisResult.LessDerived());
+                    }
+                }
+            }
+        }
+
         // Is this type a base type (or base type of an extended type) of the containing type of any valid method on the list?
         private static bool IsLessDerivedThanAny<TMember>(int index, TypeSymbol type, ArrayBuilder<MemberResolutionResult<TMember>> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             where TMember : Symbol
@@ -1392,6 +1417,61 @@ outerDefault:
                             return true;
                         }
                     }
+                }
+
+                return false;
+            }
+        }
+
+        private static bool IsLessSpecificThanAnyExtensionMember<TMember>(int index, TypeSymbol extendedType, ArrayBuilder<MemberResolutionResult<TMember>> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            where TMember : Symbol
+        {
+            for (int j = 0; j < results.Count; ++j)
+            {
+                if (j == index)
+                {
+                    continue;
+                }
+
+                var result = results[j];
+
+                if (!result.Result.IsValid)
+                {
+                    continue;
+                }
+
+                if (result.Member.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } currentExtendedType)
+                {
+                    continue;
+                }
+
+                if (isExtendedTypeLessDerived(extendedType, currentExtendedType, ref useSiteInfo))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+
+            static bool isExtendedTypeLessDerived(TypeSymbol extendedType, TypeSymbol type, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                Debug.Assert(!extendedType.IsExtension);
+                Debug.Assert(!type.IsExtension);
+
+                var baseType = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
+                while (baseType is { })
+                {
+                    if (baseType.Equals(extendedType, TypeCompareKind.ConsiderEverything))
+                    {
+                        return true;
+                    }
+
+                    baseType = baseType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
+                }
+
+                if (extendedType.IsInterfaceType() && type.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo).Contains((NamedTypeSymbol)extendedType))
+                {
+                    return true;
                 }
 
                 return false;
