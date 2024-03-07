@@ -8,7 +8,7 @@ parameters:
   default: ''
 - name: configuration
   type: string
-  default: 'Debug'
+  default: 'Release'
 - name: poolParameters
   type: object
 
