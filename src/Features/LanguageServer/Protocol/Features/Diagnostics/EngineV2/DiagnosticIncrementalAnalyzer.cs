@@ -65,23 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
 
             _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, analyzerService.Listener);
-
-#if false
-            GlobalOptions.AddOptionChangedHandler(this, OnGlobalOptionChanged);
-#endif
         }
-
-#if false
-        private void OnGlobalOptionChanged(object? sender, OptionChangedEventArgs e)
-        {
-            if (DiagnosticAnalyzerService.IsGlobalOptionAffectingDiagnostics(e.Option) &&
-                GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-            {
-                var service = Workspace.Services.GetService<ISolutionCrawlerService>();
-                service?.Reanalyze(Workspace, this, projectIds: null, documentIds: null, highPriority: false);
-            }
-        }
-#endif
 
         internal IGlobalOptionService GlobalOptions => AnalyzerService.GlobalOptions;
         internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
