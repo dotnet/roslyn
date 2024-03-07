@@ -12,23 +12,4 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler;
 
 internal interface IIncrementalAnalyzer
 {
-#if false
-    Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken);
-    Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken);
-    Task DocumentCloseAsync(Document document, CancellationToken cancellationToken);
-    Task DocumentOpenAsync(Document document, CancellationToken cancellationToken);
-    Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken);
-    Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken);
-    Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken);
-
-    Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken);
-    Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken);
-
-    Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken);
-    Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken);
-
-    Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken);
-    void LogAnalyzerCountSummary();
-    void Shutdown();
-#endif
 }
