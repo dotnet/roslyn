@@ -22,18 +22,15 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents;
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
 internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : IEventListener<object>
 {
-    private readonly IGlobalOptionService _globalOptions;
     private readonly IThreadingContext _threadingContext;
     private readonly AsyncBatchingWorkQueue<WorkspaceChangeEventArgs> _eventQueue;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public HostLegacySolutionEventsWorkspaceEventListener(
-        IGlobalOptionService globalOptions,
         IThreadingContext threadingContext,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
-        _globalOptions = globalOptions;
         _threadingContext = threadingContext;
         _eventQueue = new AsyncBatchingWorkQueue<WorkspaceChangeEventArgs>(
             DelayTimeSpan.Short,
@@ -44,16 +41,11 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
 
     public void StartListening(Workspace workspace, object? serviceOpt)
     {
-#if false
-        if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+        workspace.WorkspaceChanged += OnWorkspaceChanged;
+        _threadingContext.DisposalToken.Register(() =>
         {
-            workspace.WorkspaceChanged += OnWorkspaceChanged;
-            _threadingContext.DisposalToken.Register(() =>
-            {
-                workspace.WorkspaceChanged -= OnWorkspaceChanged;
-            });
-        }
-#endif
+            workspace.WorkspaceChanged -= OnWorkspaceChanged;
+        });
     }
 
     private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
