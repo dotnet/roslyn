@@ -20,7 +20,7 @@ public abstract class BasicSquigglesCommon : AbstractEditorTest
 
     protected override string LanguageName => LanguageNames.VisualBasic;
 
-    [IdeFact, WorkItem("https://github.com/dotnet/roslyn-project-system/issues/1825")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/72428"), WorkItem("https://github.com/dotnet/roslyn-project-system/issues/1825")]
     public async Task VerifySyntaxErrorSquiggles()
     {
         await TestServices.Editor.SetTextAsync("""
