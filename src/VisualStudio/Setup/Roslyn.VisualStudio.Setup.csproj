@@ -347,6 +347,7 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <Visible>false</Visible>
     </Content>
+    <Content Include="csharpSettings.registration.json" IncludeInVSIX="true" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
