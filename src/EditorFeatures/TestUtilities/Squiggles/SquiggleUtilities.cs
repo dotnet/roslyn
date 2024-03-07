@@ -43,7 +43,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             using var disposable = tagger as IDisposable;
             await wrapper.WaitForTags();
 
-            var analyzerDiagnostics = await wrapper.AnalyzerService.GetDiagnosticsAsync(workspace.CurrentSolution,
+            var service = (DiagnosticAnalyzerService)workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
+            var analyzerDiagnostics = await service.GetDiagnosticsAsync(workspace.CurrentSolution,
                 projectId: null, documentId: null, includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
 
             var snapshot = textBuffer.CurrentSnapshot;

@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         where TTag : ITag
     {
         private readonly EditorTestWorkspace _workspace;
-        public readonly DiagnosticAnalyzerService? AnalyzerService;
         public readonly DiagnosticService DiagnosticService;
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
