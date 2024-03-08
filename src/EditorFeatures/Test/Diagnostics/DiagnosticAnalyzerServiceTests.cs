@@ -769,9 +769,10 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     throw ExceptionUtilities.UnexpectedValue(analysisScope);
             }
 
+            await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
-            if (includeAnalyzer && analysisScope != BackgroundAnalysisScope.None)
+            if (includeAnalyzer)
             {
                 Assert.True(diagnostic != null);
                 Assert.Equal(NamedTypeAnalyzer.DiagnosticId, diagnostic.Id);
