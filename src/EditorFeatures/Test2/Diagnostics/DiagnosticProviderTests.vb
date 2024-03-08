@@ -270,21 +270,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                     workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, language, BackgroundAnalysisScope.OpenFiles)
                 Next
 
-#If False Then
-                Dim registrationService = workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)()
-                registrationService.Register(workspace)
-#End If
-
                 Dim diagnosticProvider = GetDiagnosticProvider(workspace)
-                Dim actualDiagnostics = diagnosticProvider.GetCachedDiagnosticsAsync(workspace, projectId:=Nothing, documentId:=Nothing,
-                                                                                     includeSuppressedDiagnostics:=False,
-                                                                                     includeLocalDocumentDiagnostics:=True,
-                                                                                     includeNonLocalDocumentDiagnostics:=True,
-                                                                                     CancellationToken.None).Result
-
-#If False Then
-                registrationService.Unregister(workspace)
-#End If
+                Dim actualDiagnostics = diagnosticProvider.GetDiagnosticsAsync(
+                    workspace.CurrentSolution, projectId:=Nothing, documentId:=Nothing,
+                    includeSuppressedDiagnostics:=False,
+                    includeNonLocalDocumentDiagnostics:=True,
+                    CancellationToken.None).Result
 
                 If diagnostics Is Nothing Then
                     Assert.Equal(0, actualDiagnostics.Length)
@@ -309,12 +300,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
             Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
             Dim analyzerService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
-
-            ' CollectErrors generates interleaved background and foreground tasks.
-#If False Then
-            Dim service = DirectCast(workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)(), SolutionCrawlerRegistrationService)
-            service.GetTestAccessor().WaitUntilCompletion(workspace, SpecializedCollections.SingletonEnumerable(analyzerService.CreateIncrementalAnalyzer(workspace)).WhereNotNull().ToImmutableArray())
-#End If
 
             Return analyzerService
         End Function

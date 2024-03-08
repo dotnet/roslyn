@@ -3,19 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -27,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     /// 
     /// This one follows pattern compiler has set for diagnostic analyzer.
     /// </summary>
-    internal partial class DiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
+    internal partial class DiagnosticIncrementalAnalyzer
     {
         private readonly int _correlationId;
         private readonly DiagnosticAnalyzerTelemetry _telemetry = new();
@@ -65,23 +62,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
 
             _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, analyzerService.Listener);
-
-#if false
-            GlobalOptions.AddOptionChangedHandler(this, OnGlobalOptionChanged);
-#endif
         }
-
-#if false
-        private void OnGlobalOptionChanged(object? sender, OptionChangedEventArgs e)
-        {
-            if (DiagnosticAnalyzerService.IsGlobalOptionAffectingDiagnostics(e.Option) &&
-                GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-            {
-                var service = Workspace.Services.GetService<ISolutionCrawlerService>();
-                service?.Reanalyze(Workspace, this, projectIds: null, documentIds: null, highPriority: false);
-            }
-        }
-#endif
 
         internal IGlobalOptionService GlobalOptions => AnalyzerService.GlobalOptions;
         internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
@@ -106,35 +87,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             ClearAllDiagnostics(stateSets, project.Id);
         }
-
-#if false
-        public void Shutdown()
-        {
-            GlobalOptions.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
-
-        var stateSets = _stateManager.GetAllStateSets();
-
-            AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
-            {
-                var handleActiveFile = true;
-                using var _ = PooledHashSet<DocumentId>.GetInstance(out var documentSet);
-                using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
-
-                foreach (var stateSet in stateSets)
-                {
-                    var projectIds = stateSet.GetProjectsWithDiagnostics();
-                    foreach (var projectId in projectIds)
-                    {
-                        stateSet.CollectDocumentsWithDiagnostics(projectId, documentSet);
-                        AddProjectDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), stateSet, projectId, documentSet, handleActiveFile);
-                        documentSet.Clear();
-                    }
-                }
-
-                raiseEvents(argsBuilder.ToImmutableAndClear());
-            });
-        }
-#endif
 
         private void ClearAllDiagnostics(ImmutableArray<StateSet> stateSets, ProjectId projectId)
         {
@@ -237,14 +189,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             return DiagnosticAnalysisResult.CreateEmpty(projectId, version);
         }
-
-#if false
-        public void LogAnalyzerCountSummary()
-            => _telemetry.ReportAndClear(_correlationId);
-
-        internal IEnumerable<DiagnosticAnalyzer> GetAnalyzersTestOnly(Project project)
-            => _stateManager.GetOrCreateStateSets(project).Select(s => s.Analyzer);
-#endif
 
         private static string GetDocumentLogMessage(string title, TextDocument document, DiagnosticAnalyzer analyzer)
             => $"{title}: ({document.Id}, {document.Project.Id}), ({analyzer})";

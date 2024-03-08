@@ -134,18 +134,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider));
 
-#if false
-        _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() =>
-            new ExternalErrorDiagnosticUpdateSource(
-                this,
-                exportProvider.GetExportedValue<IDiagnosticAnalyzerService>(),
-                exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>(),
-                exportProvider.GetExportedValue<IGlobalOperationNotificationService>(),
-                exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
-                _threadingContext),
-            isThreadSafe: true);
-
-#endif
         _workspaceListener = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
     }
 

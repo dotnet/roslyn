@@ -58,16 +58,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Debug.Assert(!oldItems.IsDefault);
                 OldItems = oldItems;
             }
-
-#if false
-            public DocumentAnalysisData ToPersistData()
-                => new(Version, LineCount, Items);
-
-            public bool FromCache
-            {
-                get { return OldItems.IsDefault; }
-            }
-#endif
         }
 
         /// <summary>

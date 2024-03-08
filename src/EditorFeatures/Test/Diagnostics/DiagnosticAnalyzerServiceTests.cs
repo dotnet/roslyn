@@ -92,8 +92,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Assert.All(a, e => Assert.Empty(e.Diagnostics));
             };
 
-            // now call each analyze method. none of them should run.
-            await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
+            await analyzer.GetDiagnosticsAsync(
+                workspace.CurrentSolution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
 
             // wait for all events to raised
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
@@ -237,12 +237,8 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
             // open document
             workspace.OpenDocument(document.Id);
-#if false
-            await analyzer.DocumentOpenAsync(document, CancellationToken.None).ConfigureAwait(false);
-#endif
 
-            // run analysis
-            await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
+            await analyzer.ForceAnalyzeProjectAsync(document.Project, CancellationToken.None);
 
             // wait for all events to raised
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
@@ -279,8 +275,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                 }
             };
 
-            // now call each analyze method. none of them should run.
-            await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
+            await analyzer.ForceAnalyzeProjectAsync(document.Project, CancellationToken.None);
 
             // wait for all events to raised
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
@@ -340,20 +335,9 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
             // open document
             workspace.OpenDocument(document.Id);
-#if false
-            await analyzer.DocumentOpenAsync(document, CancellationToken.None).ConfigureAwait(false);
-#endif
-
-            // cause analysis
-            await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
 
             // close document
             workspace.CloseDocument(document.Id);
-#if false
-            await analyzer.DocumentCloseAsync(document, CancellationToken.None).ConfigureAwait(false);
-#endif
-
-            await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
 
             // wait for all events to raised
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
@@ -466,23 +450,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
             var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
 
-            var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
-#if false
-            var analyzers = incrementalAnalyzer.GetAnalyzersTestOnly(project).ToArray();
-
-            AssertEx.Equal(new[]
-            {
-                typeof(FileContentLoadAnalyzer),
-                typeof(GeneratorDiagnosticsPlaceholderAnalyzer),
-                typeof(CSharpCompilerDiagnosticAnalyzer),
-                typeof(Analyzer),
-                typeof(Priority0Analyzer),
-                typeof(Priority1Analyzer),
-                typeof(Priority10Analyzer),
-                typeof(Priority15Analyzer),
-                typeof(Priority20Analyzer)
-            }, analyzers.Select(a => a.GetType()));
-#endif
+            var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
         }
 
         [Fact]
@@ -537,10 +505,8 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                 }
             };
 
-            var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
-#if false
-            await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
-#endif
+            var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
+            await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             Assert.True(called);
@@ -647,17 +613,15 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                 }
             };
 
-            var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(project.Solution.Workspace);
-#if false
-            await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
-#endif
+            var incrementalAnalyzer = service.CreateIncrementalAnalyzer(project.Solution.Workspace);
+            await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             Assert.Equal(expectAnalyzerExecuted, called);
         }
 
         [Theory, CombinatorialData]
-        internal async Task TestAdditionalFileAnalyzer(bool registerFromInitialize, bool testMultiple, BackgroundAnalysisScope analysisScope)
+        internal async Task TestAdditionalFileAnalyzer(bool registerFromInitialize, bool testMultiple)
         {
             using var workspace = CreateWorkspace();
 #if false
@@ -666,7 +630,6 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 #endif
 
             var globalOptions = GetGlobalOptions(workspace);
-            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
 
             var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), "CSharpProject", "CSharpProject", LanguageNames.CSharp);
             var project = workspace.AddProject(projectInfo);
@@ -702,40 +665,15 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     diagnostics.AddRange(e.Diagnostics);
             };
 
-            var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
+            var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
             var firstAdditionalDocument = project.AdditionalDocuments.FirstOrDefault();
 
-            switch (analysisScope)
-            {
-                case BackgroundAnalysisScope.None:
-                case BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics:
-                case BackgroundAnalysisScope.OpenFiles:
-                    workspace.OpenAdditionalDocument(firstAdditionalDocument.Id);
-#if false
-                    await incrementalAnalyzer.AnalyzeNonSourceDocumentAsync(firstAdditionalDocument, InvocationReasons.SyntaxChanged, CancellationToken.None);
-#endif
-                    break;
+            workspace.OpenAdditionalDocument(firstAdditionalDocument.Id);
 
-                case BackgroundAnalysisScope.FullSolution:
-#if false
-                    await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
-#endif
-                    break;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(analysisScope);
-            }
-
+            await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
-            var expectedCount = (analysisScope, testMultiple) switch
-            {
-                (BackgroundAnalysisScope.None or BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, _) => 0,
-                (BackgroundAnalysisScope.OpenFiles or BackgroundAnalysisScope.FullSolution, false) => 1,
-                (BackgroundAnalysisScope.OpenFiles, true) => 2,
-                (BackgroundAnalysisScope.FullSolution, true) => 4,
-                _ => throw ExceptionUtilities.Unreachable(),
-            };
+            var expectedCount = testMultiple ? 4 : 1;
 
             Assert.Equal(expectedCount, diagnostics.Count);
 
@@ -748,21 +686,10 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                         d => d.Id == analyzer.Descriptor.Id && d.DataLocation.UnmappedFileSpan.Path == additionalDoc.FilePath);
 
                     var text = await additionalDoc.GetTextAsync();
-                    if (analysisScope is BackgroundAnalysisScope.None or BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics)
-                    {
-                        Assert.Empty(applicableDiagnostics);
-                    }
-                    else if (analysisScope == BackgroundAnalysisScope.OpenFiles &&
-                        firstAdditionalDocument != additionalDoc)
-                    {
-                        Assert.Empty(applicableDiagnostics);
-                    }
-                    else
-                    {
-                        var diagnostic = Assert.Single(applicableDiagnostics);
-                        Assert.Equal(diagnosticSpan, diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text));
-                        diagnostics.Remove(diagnostic);
-                    }
+
+                    var diagnostic = Assert.Single(applicableDiagnostics);
+                    Assert.Equal(diagnosticSpan, diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text));
+                    diagnostics.Remove(diagnostic);
                 }
             }
 
@@ -826,7 +753,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                 }
             };
 
-            var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
+            var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
 
             switch (analysisScope)
             {
@@ -835,31 +762,23 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     workspace.OpenDocument(document.Id);
                     var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetService<IDocumentTrackingService>();
                     documentTrackingService.SetActiveDocument(document.Id);
-#if false
-                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
-#endif
                     break;
 
                 case BackgroundAnalysisScope.OpenFiles:
                     workspace.OpenDocument(document.Id);
-#if false
-                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
-#endif
                     break;
 
                 case BackgroundAnalysisScope.FullSolution:
-#if false
-                    await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
-#endif
                     break;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(analysisScope);
             }
 
+            await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
-            if (includeAnalyzer && analysisScope != BackgroundAnalysisScope.None)
+            if (includeAnalyzer)
             {
                 Assert.True(diagnostic != null);
                 Assert.Equal(NamedTypeAnalyzer.DiagnosticId, diagnostic.Id);
@@ -971,7 +890,7 @@ class A
                 }
             };
 
-            var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
+            var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
 
             switch (analysisScope)
             {
@@ -984,9 +903,6 @@ class A
 
                     var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetRequiredService<IDocumentTrackingService>();
                     documentTrackingService.SetActiveDocument(document.Id);
-#if false
-                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
-#endif
                     break;
 
                 case BackgroundAnalysisScope.OpenFiles:
@@ -995,44 +911,32 @@ class A
                     else
                         workspace.OpenDocument(document.Id);
 
-#if false
-                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
-#endif
                     break;
 
                 case BackgroundAnalysisScope.FullSolution:
-#if false
-                    await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
-#endif
                     break;
             }
 
+            await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             var root = await document.GetSyntaxRootAsync();
             text = await document.GetTextAsync();
-            if (analysisScope == BackgroundAnalysisScope.None)
+
+            Assert.Equal(2, diagnostics.Count);
+            if (testPragma)
             {
-                // Anayzers are disabled for BackgroundAnalysisScope.None.
-                Assert.Empty(diagnostics);
+                var pragma1 = root.FindTrivia(diagnostics[0].DataLocation.UnmappedFileSpan.GetClampedTextSpan(text).Start).ToString();
+                Assert.Equal($"#pragma warning disable {NamedTypeAnalyzer.DiagnosticId} // Unnecessary", pragma1);
+                var pragma2 = root.FindTrivia(diagnostics[1].DataLocation.UnmappedFileSpan.GetClampedTextSpan(text).Start).ToString();
+                Assert.Equal($"#pragma warning disable CS0168 // Variable is declared but never used - Unnecessary", pragma2);
             }
             else
             {
-                Assert.Equal(2, diagnostics.Count);
-                if (testPragma)
-                {
-                    var pragma1 = root.FindTrivia(diagnostics[0].DataLocation.UnmappedFileSpan.GetClampedTextSpan(text).Start).ToString();
-                    Assert.Equal($"#pragma warning disable {NamedTypeAnalyzer.DiagnosticId} // Unnecessary", pragma1);
-                    var pragma2 = root.FindTrivia(diagnostics[1].DataLocation.UnmappedFileSpan.GetClampedTextSpan(text).Start).ToString();
-                    Assert.Equal($"#pragma warning disable CS0168 // Variable is declared but never used - Unnecessary", pragma2);
-                }
-                else
-                {
-                    var attribute1 = root.FindNode(diagnostics[0].DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)).ToString();
-                    Assert.Equal($@"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category2"", ""{NamedTypeAnalyzer.DiagnosticId}"")", attribute1);
-                    var attribute2 = root.FindNode(diagnostics[1].DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)).ToString();
-                    Assert.Equal($@"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category3"", ""CS0168"")", attribute2);
-                }
+                var attribute1 = root.FindNode(diagnostics[0].DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)).ToString();
+                Assert.Equal($@"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category2"", ""{NamedTypeAnalyzer.DiagnosticId}"")", attribute1);
+                var attribute2 = root.FindNode(diagnostics[1].DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)).ToString();
+                Assert.Equal($@"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category3"", ""CS0168"")", attribute2);
             }
         }
 
@@ -1086,7 +990,7 @@ class A
                 }
             };
 
-            var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
+            var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
 
             OpenDocumentAndMakeActive(document, workspace);
 
@@ -1094,18 +998,7 @@ class A
             Assert.Empty(analyzer.CanceledCompilations);
             try
             {
-                if (actionKind == AnalyzerRegisterActionKind.SyntaxTree)
-                {
-#if false
-                    await incrementalAnalyzer.AnalyzeSyntaxAsync(document, InvocationReasons.SyntaxChanged, analyzer.CancellationToken);
-#endif
-                }
-                else
-                {
-#if false
-                    await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, analyzer.CancellationToken);
-#endif
-                }
+                await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, analyzer.CancellationToken);
 
                 throw ExceptionUtilities.Unreachable();
             }
@@ -1117,18 +1010,7 @@ class A
             Assert.Null(diagnostic);
 
             // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
-            if (actionKind == AnalyzerRegisterActionKind.SyntaxTree)
-            {
-#if false
-                await incrementalAnalyzer.AnalyzeSyntaxAsync(document, InvocationReasons.SyntaxChanged, CancellationToken.None);
-#endif
-            }
-            else
-            {
-#if false
-                await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
-#endif
-            }
+            await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
 
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
@@ -1344,19 +1226,8 @@ class A
                 }
             };
 
-            var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
-            if (analyzeProject)
-            {
-#if false
-                await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
-#endif
-            }
-            else
-            {
-#if false
-                await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
-#endif
-            }
+            var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
+            await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
 
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
@@ -1400,23 +1271,6 @@ class A
             semantic |= diagnostics.Any(d => d.Properties["Origin"] != "Syntactic");
 
             return (syntax, semantic);
-        }
-
-        private static async Task RunAllAnalysisAsync(IIncrementalAnalyzer analyzer, TextDocument textDocument)
-        {
-#if false
-            if (textDocument is Document document)
-            {
-                await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None).ConfigureAwait(false);
-                await analyzer.AnalyzeDocumentAsync(document, bodyOpt: null, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
-            }
-            else
-            {
-                await analyzer.AnalyzeNonSourceDocumentAsync(textDocument, InvocationReasons.Empty, CancellationToken.None).ConfigureAwait(false);
-            }
-
-            await analyzer.AnalyzeProjectAsync(textDocument.Project, semanticsChanged: true, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
-#endif
         }
 
         private class Analyzer : DiagnosticAnalyzer
