@@ -2187,6 +2187,11 @@
         <target state="translated">глобальная директива using</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureImplicitIndexerInitializer">
+        <source>implicit indexer initializer</source>
+        <target state="new">implicit indexer initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
         <target state="translated">создание объекта с типом целевого объекта</target>
@@ -2235,6 +2240,11 @@
       <trans-unit id="IDS_FeatureListPattern">
         <source>list pattern</source>
         <target state="translated">шаблон списка</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLockObject">
+        <source>Lock object</source>
+        <target state="new">Lock object</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
@@ -2292,6 +2302,11 @@
         <target state="translated">запечатанный ToString в записи</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureStringEscapeCharacter">
+        <source>string escape character</source>
+        <target state="new">string escape character</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureStructFieldInitializers">
         <source>struct field initializers</source>
         <target state="translated">инициализаторы полей структуры</target>
@@ -2332,16 +2347,6 @@
         <target state="translated">сопоставление шаблонов ReadOnly/Span&lt;char&gt; в строке константы</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_ImplicitIndexerInitializer">
-        <source>implicit indexer initializer</source>
-        <target state="translated">неявный инициализатор индексатора</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_LockObject">
-        <source>Lock object</source>
-        <target state="new">Lock object</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;missing&gt;</target>
@@ -2370,11 +2375,6 @@
       <trans-unit id="IDS_SK_POINTER">
         <source>pointer</source>
         <target state="translated">указатель</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_StringEscapeCharacter">
-        <source>string escape character</source>
-        <target state="translated">escape-символ строки</target>
         <note />
       </trans-unit>
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">

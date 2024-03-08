@@ -11,9 +11,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class ValueSetFactory
     {
-        private struct IntTC : INumericTC<int>
+        private class IntTC : INumericTC<int>
         {
-            int INumericTC<int>.MinValue => int.MinValue;
+            // Note: whenever we intersect or union two sets of IntTCs,
+            // we just keep the nonNegative flag of the set we're merging into.
+            public bool nonNegative;
+
+            private IntTC(bool nonNegative)
+            {
+                this.nonNegative = nonNegative;
+            }
+
+            public static readonly IntTC DefaultInstance = new IntTC(nonNegative: false);
+            public static readonly IntTC NonNegativeInstance = new IntTC(nonNegative: true);
+
+            public int MinValue => nonNegative ? 0 : int.MinValue;
 
             int INumericTC<int>.MaxValue => int.MaxValue;
 
@@ -46,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int INumericTC<int>.Prev(int value)
             {
-                Debug.Assert(value != int.MinValue);
+                Debug.Assert(value != MinValue);
                 return value - 1;
             }
 
@@ -58,7 +70,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public int Random(Random random)
             {
-                return (random.Next() << 10) ^ random.Next();
+                if (nonNegative)
+                {
+                    return Math.Abs((random.Next() << 10) ^ random.Next());
+                }
+                else
+                {
+                    return (random.Next() << 10) ^ random.Next();
+                }
             }
         }
     }

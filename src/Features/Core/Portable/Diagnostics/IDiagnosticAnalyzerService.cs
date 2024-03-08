@@ -31,24 +31,6 @@ internal interface IDiagnosticAnalyzerService
     void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority);
 
     /// <summary>
-    /// Get specific diagnostics currently stored in the source. returned diagnostic might be out-of-date if solution has changed but analyzer hasn't run for the new solution.
-    /// </summary>
-    /// <param name="workspace">Workspace to fetch the diagnostics for.</param>
-    /// <param name="id">
-    /// Specific id to scope the returned diagnostics. This id must correspond to the
-    /// <see cref="Common.UpdatedEventArgs.Id"/> associated with <see cref="DiagnosticsUpdatedArgs"/> event.
-    /// </param>
-    /// <param name="includeSuppressedDiagnostics">Indicates if diagnostics suppressed in source via pragmas and SuppressMessageAttributes should be returned.</param>
-    /// <param name="includeNonLocalDocumentDiagnostics">
-    /// Indicates if non-local document diagnostics must be returned.
-    /// Non-local diagnostics are the ones reported by analyzers either at compilation end callback OR
-    /// in a different file from which the callback was made. Entire project must be analyzed to get the
-    /// complete set of non-local document diagnostics.
-    /// </param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Workspace workspace, object id, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
-
-    /// <summary>
     /// Get diagnostics currently stored in the source. returned diagnostic might be out-of-date if solution has changed but analyzer hasn't run for the new solution.
     /// </summary>
     /// <param name="workspace">Workspace for the document/project/solution to compute diagnostics for.</param>

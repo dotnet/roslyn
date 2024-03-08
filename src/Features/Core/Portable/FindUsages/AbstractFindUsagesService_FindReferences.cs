@@ -94,7 +94,7 @@ internal abstract partial class AbstractFindUsagesService
             document, position, cancellationToken).ConfigureAwait(false);
         if (symbolAndProject == null)
         {
-            await context.ReportMessageAsync(FeaturesResources.Find_All_References_not_invoked_on_applicable_symbol, cancellationToken).ConfigureAwait(false);
+            await context.ReportNoResultsAsync(FeaturesResources.Find_All_References_not_invoked_on_applicable_symbol, cancellationToken).ConfigureAwait(false);
             return;
         }
 

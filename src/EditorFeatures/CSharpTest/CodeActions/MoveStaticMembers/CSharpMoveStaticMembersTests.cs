@@ -3420,7 +3420,7 @@ static int Do[||]Something()
 
             private readonly bool _testPreselection;
 
-            protected override Workspace CreateWorkspaceImpl()
+            protected override Task<Workspace> CreateWorkspaceImplAsync()
             {
                 var hostServices = s_testServices.GetHostServices();
 
@@ -3432,7 +3432,7 @@ static int Do[||]Something()
                 testOptionsService.CreateNew = _createNew;
                 testOptionsService.ExpectedPrecheckedMembers = _testPreselection ? _selection : ImmutableArray<string>.Empty;
 
-                return workspace;
+                return Task.FromResult<Workspace>(workspace);
             }
         }
 

@@ -170,11 +170,10 @@ internal sealed partial class SolutionCompilationState
                 // translation action and store it in the tracker map.
                 if (trackerMap.TryGetValue(arg.projectId, out var tracker))
                 {
-                    trackerMap.Remove(arg.projectId);
+                    if (!arg.forkTracker)
+                        return trackerMap.Remove(arg.projectId);
 
-                    if (arg.forkTracker)
-                        trackerMap.Add(arg.projectId, tracker.Fork(arg.newProjectState, arg.translate));
-
+                    trackerMap[arg.projectId] = tracker.Fork(arg.newProjectState, arg.translate);
                     return true;
                 }
 
@@ -260,12 +259,15 @@ internal sealed partial class SolutionCompilationState
     {
         using var _ = PooledDictionary<ProjectId, ICompilationTracker>.GetInstance(out var newTrackerInfo);
 
+        // Keep _projectIdToTrackerMap in a local as it can change during the execution of this method
+        var projectIdToTrackerMap = _projectIdToTrackerMap;
+
 #if NETCOREAPP
-        newTrackerInfo.EnsureCapacity(_projectIdToTrackerMap.Count);
+        newTrackerInfo.EnsureCapacity(projectIdToTrackerMap.Count);
 #endif
 
         var allReused = true;
-        foreach (var (id, tracker) in _projectIdToTrackerMap)
+        foreach (var (id, tracker) in projectIdToTrackerMap)
         {
             var localTracker = tracker;
             if (!canReuse(id, argCanReuse))
@@ -280,7 +282,7 @@ internal sealed partial class SolutionCompilationState
         var isModified = modifyNewTrackerInfo(newTrackerInfo, argModifyNewTrackerInfo);
 
         if (allReused && !isModified)
-            return _projectIdToTrackerMap;
+            return projectIdToTrackerMap;
 
         return ImmutableSegmentedDictionary.CreateRange(newTrackerInfo);
     }
@@ -305,9 +307,7 @@ internal sealed partial class SolutionCompilationState
             newSolutionState.GetProjectDependencyGraph(),
             static (trackerMap, projectId) =>
             {
-                trackerMap.Remove(projectId);
-
-                return true;
+                return trackerMap.Remove(projectId);
             },
             projectId);
 
@@ -959,8 +959,7 @@ internal sealed partial class SolutionCompilationState
             using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_GetMetadataOnlyImage, cancellationToken))
             {
                 var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
-                return await tracker.SkeletonReferenceCache.GetOrBuildReferenceAsync(
-                    tracker, this, properties, cancellationToken).ConfigureAwait(false);
+                return await tracker.GetOrBuildSkeletonReferenceAsync(this, properties, cancellationToken).ConfigureAwait(false);
             }
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))

@@ -629,15 +629,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSou
     private void RaiseBuildProgressChanged(BuildProgress progress)
         => BuildProgressChanged?.Invoke(this, progress);
 
-    #region not supported
     public bool SupportGetDiagnostics { get { return false; } }
-
-    public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-        Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
-    {
-        return new ValueTask<ImmutableArray<DiagnosticData>>(ImmutableArray<DiagnosticData>.Empty);
-    }
-    #endregion
 
     internal TestAccessor GetTestAccessor()
         => new(this);

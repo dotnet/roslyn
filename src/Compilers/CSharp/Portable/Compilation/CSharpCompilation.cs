@@ -50,11 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         private readonly CSharpCompilationOptions _options;
-        private readonly Lazy<UsingsFromOptionsAndDiagnostics> _usingsFromOptions;
-        private readonly Lazy<ImmutableArray<NamespaceOrTypeAndUsingDirective>> _globalImports;
-        private readonly Lazy<Imports> _previousSubmissionImports;
-        private readonly Lazy<AliasSymbol> _globalNamespaceAlias;  // alias symbol used to resolve "global::".
-        private readonly Lazy<ImplicitNamedTypeSymbol?> _scriptClass;
+        private UsingsFromOptionsAndDiagnostics? _lazyUsingsFromOptions;
+        private ImmutableArray<NamespaceOrTypeAndUsingDirective> _lazyGlobalImports;
+        private Imports? _lazyPreviousSubmissionImports;
+        private AliasSymbol? _lazyGlobalNamespaceAlias;  // alias symbol used to resolve "global::".
+
+        private NamedTypeSymbol? _lazyScriptClass = ErrorTypeSymbol.UnknownResultType;
 
         // The type of host object model if available.
         private TypeSymbol? _lazyHostObjectTypeSymbol;
@@ -92,11 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Manages anonymous types declared in this compilation. Unifies types that are structurally equivalent.
         /// </summary>
-        private readonly AnonymousTypeManager _anonymousTypeManager;
+        private AnonymousTypeManager? _lazyAnonymousTypeManager;
 
         private NamespaceSymbol? _lazyGlobalNamespace;
 
-        internal readonly BuiltInOperators builtInOperators;
+        private BuiltInOperators? _lazyBuiltInOperators;
 
         /// <summary>
         /// The <see cref="SourceAssemblySymbol"/> for this compilation. Do not access directly, use Assembly property
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Cache of T to Nullable&lt;T&gt;.
         /// </summary>
-        private readonly ConcurrentCache<TypeSymbol, NamedTypeSymbol> _typeToNullableVersion = new ConcurrentCache<TypeSymbol, NamedTypeSymbol>(size: 100);
+        private ConcurrentCache<TypeSymbol, NamedTypeSymbol>? _lazyTypeToNullableVersion;
 
         /// <summary>Lazily caches SyntaxTrees by their mapped path. Used to look up the syntax tree referenced by an interceptor (temporary compat behavior).</summary>
         /// <remarks>Must be removed prior to interceptors stable release.</remarks>
@@ -188,11 +189,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal BuiltInOperators BuiltInOperators
+        {
+            get
+            {
+                return InterlockedOperations.Initialize(ref _lazyBuiltInOperators, static self => new BuiltInOperators(self), this);
+            }
+        }
+
         internal AnonymousTypeManager AnonymousTypeManager
         {
             get
             {
-                return _anonymousTypeManager;
+                return InterlockedOperations.Initialize(ref _lazyAnonymousTypeManager, static self => new AnonymousTypeManager(self), this);
             }
         }
 
@@ -469,16 +478,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AsyncQueue<CompilationEvent>? eventQueue = null)
             : base(assemblyName, references, features, isSubmission, semanticModelProvider, eventQueue)
         {
-            WellKnownMemberSignatureComparer = new WellKnownMembersSignatureComparer(this);
             _options = options;
 
-            this.builtInOperators = new BuiltInOperators(this);
-            _scriptClass = new Lazy<ImplicitNamedTypeSymbol?>(BindScriptClass);
-            _globalImports = new Lazy<ImmutableArray<NamespaceOrTypeAndUsingDirective>>(BindGlobalImports);
-            _usingsFromOptions = new Lazy<UsingsFromOptionsAndDiagnostics>(BindUsingsFromOptions);
-            _previousSubmissionImports = new Lazy<Imports>(ExpandPreviousSubmissionImports);
-            _globalNamespaceAlias = new Lazy<AliasSymbol>(CreateGlobalNamespaceAlias);
-            _anonymousTypeManager = new AnonymousTypeManager(this);
             this.LanguageVersion = CommonLanguageVersion(syntaxAndDeclarations.ExternalSyntaxTrees);
 
             if (isSubmission)
@@ -1503,7 +1504,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal new NamedTypeSymbol? ScriptClass
         {
-            get { return _scriptClass.Value; }
+            get
+            {
+                if (ReferenceEquals(_lazyScriptClass, ErrorTypeSymbol.UnknownResultType))
+                {
+                    Interlocked.CompareExchange(ref _lazyScriptClass, BindScriptClass()!, ErrorTypeSymbol.UnknownResultType);
+                }
+
+                return _lazyScriptClass;
+            }
         }
 
         /// <summary>
@@ -1526,7 +1535,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Global imports (including those from previous submissions, if there are any).
         /// </summary>
-        internal ImmutableArray<NamespaceOrTypeAndUsingDirective> GlobalImports => _globalImports.Value;
+        internal ImmutableArray<NamespaceOrTypeAndUsingDirective> GlobalImports
+            => InterlockedOperations.Initialize(ref _lazyGlobalImports, static self => self.BindGlobalImports(), arg: this);
 
         private ImmutableArray<NamespaceOrTypeAndUsingDirective> BindGlobalImports()
         {
@@ -1565,7 +1575,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Global imports not including those from previous submissions.
         /// </summary>
-        private UsingsFromOptionsAndDiagnostics UsingsFromOptions => _usingsFromOptions.Value;
+        private UsingsFromOptionsAndDiagnostics UsingsFromOptions
+            => InterlockedOperations.Initialize(ref _lazyUsingsFromOptions, static self => self.BindUsingsFromOptions(), this);
 
         private UsingsFromOptionsAndDiagnostics BindUsingsFromOptions() => UsingsFromOptionsAndDiagnostics.FromOptions(this);
 
@@ -1590,7 +1601,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Imports from all previous submissions.
         /// </summary>
-        internal Imports GetPreviousSubmissionImports() => _previousSubmissionImports.Value;
+        internal Imports GetPreviousSubmissionImports()
+            => InterlockedOperations.Initialize(ref _lazyPreviousSubmissionImports, static self => self.ExpandPreviousSubmissionImports(), this);
 
         private Imports ExpandPreviousSubmissionImports()
         {
@@ -1610,7 +1622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _globalNamespaceAlias.Value;
+                return InterlockedOperations.Initialize(ref _lazyGlobalNamespaceAlias, static self => self.CreateGlobalNamespaceAlias(), this);
             }
         }
 
@@ -1639,6 +1651,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        private ConcurrentCache<TypeSymbol, NamedTypeSymbol> TypeToNullableVersion
+        {
+            get
+            {
+                return InterlockedOperations.Initialize(ref _lazyTypeToNullableVersion, static () => new ConcurrentCache<TypeSymbol, NamedTypeSymbol>(size: 100));
+            }
+        }
+
         /// <summary>
         /// Given a provided <paramref name="typeArgument"/>, gives back <see cref="Nullable{T}"/> constructed with that
         /// argument.  This function is only intended to be used for very common instantiations produced heavily during
@@ -1653,10 +1673,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Fail($"Unsupported type argument: {typeArgument.ToDisplayString()}");
 #endif
 
-            if (!_typeToNullableVersion.TryGetValue(typeArgument, out var constructedNullableInstance))
+            var typeToNullableVersion = TypeToNullableVersion;
+            if (!typeToNullableVersion.TryGetValue(typeArgument, out var constructedNullableInstance))
             {
                 constructedNullableInstance = this.GetSpecialType(SpecialType.System_Nullable_T).Construct(typeArgument);
-                _typeToNullableVersion.TryAdd(typeArgument, constructedNullableInstance);
+                typeToNullableVersion.TryAdd(typeArgument, constructedNullableInstance);
             }
 
             return constructedNullableInstance;
@@ -4198,7 +4219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (easyOutBinaryKind != BinaryOperatorKind.Error)
                     {
-                        var signature = this.builtInOperators.GetSignature(easyOutBinaryKind);
+                        var signature = this.BuiltInOperators.GetSignature(easyOutBinaryKind);
                         if (csharpReturnType.SpecialType == signature.ReturnType.SpecialType &&
                             csharpLeftType.SpecialType == signature.LeftType.SpecialType &&
                             csharpRightType.SpecialType == signature.RightType.SpecialType)
@@ -4421,7 +4442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (easyOutUnaryKind != UnaryOperatorKind.Error)
                     {
-                        var signature = this.builtInOperators.GetSignature(easyOutUnaryKind);
+                        var signature = this.BuiltInOperators.GetSignature(easyOutUnaryKind);
                         if (csharpReturnType.SpecialType == signature.ReturnType.SpecialType &&
                             csharpOperandType.SpecialType == signature.OperandType.SpecialType)
                         {

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages;
@@ -32,11 +33,11 @@ internal abstract partial class AbstractFindUsagesService
         public IStreamingProgressTracker ProgressTracker
             => _underlyingContext.ProgressTracker;
 
-        public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
-            => _underlyingContext.ReportMessageAsync(message, cancellationToken);
+        public ValueTask ReportNoResultsAsync(string message, CancellationToken cancellationToken)
+            => _underlyingContext.ReportNoResultsAsync(message, cancellationToken);
 
-        public ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
-            => _underlyingContext.ReportInformationalMessageAsync(message, cancellationToken);
+        public ValueTask ReportMessageAsync(string message, NotificationSeverity severity, CancellationToken cancellationToken)
+            => _underlyingContext.ReportMessageAsync(message, severity, cancellationToken);
 
         public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
             => _underlyingContext.SetSearchTitleAsync(title, cancellationToken);
