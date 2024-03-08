@@ -275,6 +275,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                 }
             };
 
+            await analyzer.ForceAnalyzeProjectAsync(document.Project, CancellationToken.None);
             await analyzer.GetDiagnosticsAsync(
                 workspace.CurrentSolution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
 
@@ -938,6 +939,7 @@ class A
                     break;
             }
 
+            await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             var root = await document.GetSyntaxRootAsync();
@@ -1250,8 +1252,7 @@ class A
             };
 
             var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
-            await incrementalAnalyzer.GetDiagnosticsAsync(
-                workspace.CurrentSolution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
+            await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
 
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
