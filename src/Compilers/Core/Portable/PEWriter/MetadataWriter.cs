@@ -2524,24 +2524,24 @@ namespace Microsoft.Cci
                     implementation = default(EntityHandle);
                 }
 
-                resourceDataWriter ??= PooledBlobBuilder.GetInstance();
                 metadata.AddManifestResource(
                     attributes: resource.IsPublic ? ManifestResourceAttributes.Public : ManifestResourceAttributes.Private,
                     name: GetStringHandleForNameAndCheckLength(resource.Name),
                     implementation: implementation,
-                    offset: writeManagedResourceAndGetOffset(resource, resourceDataWriter));
+                    offset: writeManagedResourceAndGetOffset(resource, ref resourceDataWriter));
             }
 
             // the stream should be aligned:
             Debug.Assert(resourceDataWriter == null || (resourceDataWriter.Count % ManagedPEBuilder.ManagedResourcesDataAlignment) == 0);
 
-            static uint writeManagedResourceAndGetOffset(ManagedResource resource, BlobBuilder resourceWriter)
+            static uint writeManagedResourceAndGetOffset(ManagedResource resource, ref PooledBlobBuilder? resourceWriter)
             {
                 if (resource.ExternalFile != null)
                 {
                     return resource.Offset;
                 }
 
+                resourceWriter ??= PooledBlobBuilder.GetInstance();
                 int result = resourceWriter.Count;
                 resource.WriteData(resourceWriter);
                 return (uint)result;
