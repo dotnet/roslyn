@@ -47,7 +47,7 @@ catch {
 
 The rationale for these parts are:
 
-- `Set-StrictMode`: forces forces Powershell into a more strict mode of interpretation and
+- `Set-StrictMode`: forces Powershell into a stricter mode of interpretation and
 swaps out the "On Error Resume Next" approach for an "On Error Stop" model. Both of these 
 help with our goals of reliability as it makes errors hard stops (unless specifically stated otherwise)
 - `$prepareMachine = $ci`: is necessary to ensure `ExitWithExitCode` properly exits all
