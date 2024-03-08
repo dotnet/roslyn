@@ -67,26 +67,6 @@ function GetReleasePublishData([string]$releaseName) {
   }
 }
 
-# Handy function for executing a command in powershell and throwing if it 
-# fails.
-#
-# Use this when the full command is known at script authoring time and 
-# doesn't require any dynamic argument build up.  Example:
-#
-#   Exec-Block { & $msbuild Test.proj }
-# 
-# Original sample came from: http://jameskovacs.com/2010/02/25/the-exec-problem/
-function Exec-Block([scriptblock]$cmd) {
-  & $cmd
-
-  # Need to check both of these cases for errors as they represent different items
-  # - $?: did the powershell script block throw an error
-  # - $lastexitcode: did a windows command executed by the script block end in error
-  if ((-not $?) -or ($lastexitcode -ne 0)) {
-    throw "Command failed to execute: $cmd"
-  }
-}
-
 function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useConsole = $true, [switch]$echoCommand = $true) {
   if ($echoCommand) {
     Write-Host "$command $commandArgs"
@@ -162,19 +142,6 @@ function Exec-Command([string]$command, [string]$commandArgs, [switch]$useConsol
   Exec-CommandCore -command $command -commandArgs $commandArgs -useConsole:$useConsole -echoCommand:$echoCommand
 }
 
-# Handy function for executing a powershell script in a clean environment with 
-# arguments.  Prefer this over & sourcing a script as it will both use a clean
-# environment and do proper error checking
-# 
-# The -useConsole argument controls if the process should re-use the current
-# console for output or return output as a string
-function Exec-Script([string]$script, [string]$scriptArgs = "", [switch]$useConsole = $true, [switch]$echoCommand = $true) {
-  if ($args -ne "") {
-    throw "Extra arguments passed to Exec-Script: $args"
-  }
-  Exec-CommandCore -command "pwsh" -commandArgs "-noprofile -executionPolicy RemoteSigned -file `"$script`" $scriptArgs" -useConsole:$useConsole -echoCommand:$echoCommand
-}
-
 # Handy function for executing a dotnet command without having to track down the 
 # proper dotnet executable or ensure it's on the path.
 function Exec-DotNet([string]$commandArgs = "", [switch]$useConsole = $true, [switch]$echoCommand = $true) {
@@ -200,6 +167,12 @@ function Ensure-DotnetSdk() {
   }
 
   throw "Could not find dotnet executable in $dotnetInstallDir"
+}
+
+function Test-LastExitCode() {
+  if ($LASTEXITCODE -ne 0) {
+    throw "Last command failed with exit code $LASTEXITCODE"
+  }
 }
 
 # Walks up the source tree, starting at the given file's directory, and returns a FileInfo object for the first .csproj file it finds, if any.
