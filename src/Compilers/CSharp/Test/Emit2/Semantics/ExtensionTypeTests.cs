@@ -13705,6 +13705,38 @@ namespace N
         Assert.Equal("System.Func<System.Int32, System.Int32> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
     }
 
+    [Fact]
+    public void ExtensionMemberLookup_AsFunctionType_StaticMethod_FromStaticUsing()
+    {
+        // PROTOTYPE should a static using of extended type bring the static extension members in scope?
+        var src = """
+using static C;
+
+var x = Method;
+
+class C { }
+
+implicit extension E for C
+{
+    public static string Method() => throw null;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using static C;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static C;").WithLocation(1, 1),
+            // (3,9): error CS0103: The name 'Method' does not exist in the current context
+            // var x = Method;
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "Method").WithArguments("Method").WithLocation(3, 9)
+            );
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+        Assert.Equal("? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+    }
+
     [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionMemberLookup_AsFunctionType_StaticMethod_WithTypeArgument()
     {
@@ -13896,38 +13928,6 @@ namespace N
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Method");
         Assert.Equal("void E1.Method(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
-    }
-
-    [Fact]
-    public void ExtensionMemberLookup_AsFunctionType_StaticMethod_FromStaticUsing()
-    {
-        // PROTOTYPE should a static using of extended type bring the static extension members in scope?
-        var src = """
-using static C;
-
-var x = Method;
-
-class C { }
-
-implicit extension E for C
-{
-    public static string Method() => throw null;
-}
-""";
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using static C;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static C;").WithLocation(1, 1),
-            // (3,9): error CS0103: The name 'Method' does not exist in the current context
-            // var x = Method;
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "Method").WithArguments("Method").WithLocation(3, 9)
-            );
-
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
-        Assert.Equal("? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
     }
 
     [Fact]
