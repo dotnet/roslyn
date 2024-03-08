@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts
     /// <param name="LocalProcessId">local process running on a host device, if the process running on a different host (like mobile device), this will be null</param>
     /// <param name="Path">path to the process, this is guaranteed to not be null for local process, but could be null for mobile devices</param>
     /// <param name="ConnectionId">Connection Id identifying a data bridge connection to this process</param>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0051:Add internal types and members to the declared API", Justification = "False Positive, record is not well supported by the analyzer")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0051:Add internal types and members to the declared API", Justification = "https://github.com/dotnet/roslyn-analyzers/issues/7237")]
     internal record struct ProcessInfo(Guid ProcessId, uint? LocalProcessId, string? Path, string? ConnectionId);
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0051:Add internal types and members to the declared API", Justification = "False Positive, record is not well supported by the analyzer")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0051:Add internal types and members to the declared API", Justification = "https://github.com/dotnet/roslyn-analyzers/issues/7237")]
     internal record struct ConnectionInfo(string? ConnectionId, string? Handle, string? Address, uint? PortNumber);
 
     /// <summary>
