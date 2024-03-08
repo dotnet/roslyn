@@ -170,7 +170,7 @@ internal static partial class SyntaxGeneratorExtensions
                 if (operation is IIsTypeOperation { TypeOperand.SpecialType: SpecialType.None } isTypeOperation &&
                     syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
                 {
-                    var typeNode = generatorInternal.Type(isTypeOperation.TypeOperand, false);
+                    var typeNode = generatorInternal.Type(isTypeOperation.TypeOperand, typeContext: false);
                     return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.NotPattern(generatorInternal.ConstantPattern(typeNode)));
                 }
 
