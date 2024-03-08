@@ -43,7 +43,6 @@
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\TaskExtensions.cs" Link="Utilities\TaskExtensions.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\AsyncLazy.cs" Link="Utilities\AsyncLazy.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\AsyncLazyWithArg`2.cs" Link="Utilities\AsyncLazyWithArg`2.cs" />
-    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\AsyncLazyWithoutArg`1.cs" Link="Utilities\AsyncLazyWithoutArg`1.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\AsyncLazy`1.cs" Link="Utilities\AsyncLazy`1.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\NonReentrantLock.cs" Link="Utilities\NonReentrantLock.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" Link="Utilities\InterpolatedStringHandlerArgumentAttribute.cs" />
@@ -65,6 +64,7 @@
     <Compile Include="..\..\Dependencies\PooledObjects\ArrayBuilder.cs" Link="Utilities\ArrayBuilder.cs" />
     <Compile Include="..\..\Dependencies\PooledObjects\ArrayBuilder.Enumerator.cs" Link="Utilities\ArrayBuilder.Enumerator.cs" />
     <Compile Include="..\..\Dependencies\PooledObjects\ObjectPool`1.cs" Link="Utilities\ObjectPool`1.cs" />
+    <Compile Include="..\..\Dependencies\PooledObjects\PooledDelegates.cs" Link="Utilities\PooledDelegates.cs" />
     <Compile Include="..\..\Dependencies\PooledObjects\PooledHashSet.cs" Link="Utilities\PooledHashSet.cs" />
   </ItemGroup>
   <ItemGroup>

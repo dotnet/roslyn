@@ -20,14 +20,14 @@ internal static class AsyncLazy
         => new AsyncLazyWithArg<T, TArg>(asynchronousComputeFunction, synchronousComputeFunction, arg);
 
     public static AsyncLazy<T> Create<T>(Func<CancellationToken, Task<T>> asynchronousComputeFunction)
-        => new AsyncLazyWithoutArg<T>(asynchronousComputeFunction);
+        => new AsyncLazy<T>(asynchronousComputeFunction);
 
     public static AsyncLazy<T> Create<T>(Func<CancellationToken, T> synchronousComputeFunction)
-        => new AsyncLazyWithoutArg<T>(cancellationToken => Task.FromResult(synchronousComputeFunction(cancellationToken)), synchronousComputeFunction);
+        => new AsyncLazy<T>(cancellationToken => Task.FromResult(synchronousComputeFunction(cancellationToken)), synchronousComputeFunction);
 
     public static AsyncLazy<T> Create<T>(Func<CancellationToken, Task<T>> asynchronousComputeFunction, Func<CancellationToken, T> synchronousComputeFunction)
-        => new AsyncLazyWithoutArg<T>(asynchronousComputeFunction, synchronousComputeFunction);
+        => new AsyncLazy<T>(asynchronousComputeFunction, synchronousComputeFunction);
 
     public static AsyncLazy<T> Create<T>(T value)
-        => new AsyncLazyWithoutArg<T>(value);
+        => new AsyncLazy<T>(value);
 }

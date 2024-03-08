@@ -485,7 +485,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AnnotationTable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)utilities\AsyncLazy.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)utilities\AsyncLazyWithArg`2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)utilities\AsyncLazyWithoutArg`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncLazy`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\BidirectionalMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\BKTree.Builder.cs" />

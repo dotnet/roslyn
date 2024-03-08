@@ -5,6 +5,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities;
 
@@ -16,25 +18,10 @@ namespace Roslyn.Utilities;
 /// <typeparam name="TArg">Argument type to compute functions</typeparam>
 internal sealed class AsyncLazyWithArg<T, TArg> : AsyncLazy<T>
 {
-    /// <summary>
-    /// The underlying function that starts an asynchronous computation of the resulting value.
-    /// Null'ed out once we've computed the result and we've been asked to cache it.  Otherwise,
-    /// it is kept around in case the value needs to be computed again.
-    /// </summary>
-    private Func<TArg, CancellationToken, Task<T>>? _asynchronousComputeFunction;
-
-    /// <summary>
-    /// The underlying function that starts a synchronous computation of the resulting value.
-    /// Null'ed out once we've computed the result and we've been asked to cache it, or if we
-    /// didn't get any synchronous function given to us in the first place.
-    /// </summary>
-    private Func<TArg, CancellationToken, T>? _synchronousComputeFunction;
-
-    /// <summary>
-    /// Data passed to the compute functions. Typically allowed to prevent closures in calls to 
-    /// the <see cref="AsyncLazy"/> Create methods.
-    /// </summary>
-    private TArg? _arg;
+    private PooledDelegates.Releaser _asyncComputeFunctionReleaser;
+    private PooledDelegates.Releaser _syncComputeFunctionReleaser;
+    private bool _isAsyncComputeFunctionReleaserDisposed;
+    private bool _isSyncComputeFunctionReleaserDisposed;
 
     public AsyncLazyWithArg(Func<TArg, CancellationToken, Task<T>> asynchronousComputeFunction, TArg arg)
         : this(asynchronousComputeFunction, synchronousComputeFunction: null, arg)
@@ -44,32 +31,47 @@ internal sealed class AsyncLazyWithArg<T, TArg> : AsyncLazy<T>
     public AsyncLazyWithArg(Func<TArg, CancellationToken, Task<T>> asynchronousComputeFunction, Func<TArg, CancellationToken, T>? synchronousComputeFunction, TArg arg)
     {
         Contract.ThrowIfNull(asynchronousComputeFunction);
-        _asynchronousComputeFunction = asynchronousComputeFunction;
-        _synchronousComputeFunction = synchronousComputeFunction;
-        _arg = arg;
-    }
 
-    protected override bool HasAsynchronousComputeFunction => _asynchronousComputeFunction is not null;
-    protected override bool HasSynchronousComputeFunction => _synchronousComputeFunction is not null;
+        _asyncComputeFunctionReleaser = PooledDelegates.GetPooledFunction(
+            (ct, arg) => arg.asynchronousComputeFunction(arg.arg, ct),
+            (asynchronousComputeFunction, arg),
+            out Func<CancellationToken, Task<T>> translatedAsynchronousComputeFunction);
 
-    protected override T InvokeComputeFunction(CancellationToken cancellationToken)
-    {
-        Contract.ThrowIfNull(_synchronousComputeFunction);
+        Func<CancellationToken, T>? translatedSynchronousComputeFunction = null;
+        if (synchronousComputeFunction is not null)
+        {
+            _syncComputeFunctionReleaser = PooledDelegates.GetPooledFunction(
+                (ct, arg) => arg.synchronousComputeFunction(arg.arg, ct),
+                (synchronousComputeFunction, arg),
+                out translatedSynchronousComputeFunction);
+        }
+        else
+        {
+            // No need to dispose the synchronous releaser
+            _isSyncComputeFunctionReleaserDisposed = true;
+        }
 
-        return _synchronousComputeFunction(_arg!, cancellationToken);
-    }
-
-    protected override Task<T> InvokeComputeFunctionAsync(CancellationToken cancellationToken)
-    {
-        Contract.ThrowIfNull(_asynchronousComputeFunction);
-
-        return _asynchronousComputeFunction(_arg!, cancellationToken);
+        InitializeComputeFunctions(translatedAsynchronousComputeFunction, translatedSynchronousComputeFunction);
     }
 
     protected override void ClearComputeFunctions()
     {
-        _asynchronousComputeFunction = null;
-        _synchronousComputeFunction = null;
-        _arg = default;
+        if (!_isAsyncComputeFunctionReleaserDisposed)
+        {
+            _isAsyncComputeFunctionReleaserDisposed = true;
+
+            _asyncComputeFunctionReleaser.Dispose();
+            _asyncComputeFunctionReleaser = default;
+        }
+
+        if (!_isSyncComputeFunctionReleaserDisposed)
+        {
+            _isSyncComputeFunctionReleaserDisposed = true;
+
+            _syncComputeFunctionReleaser.Dispose();
+            _syncComputeFunctionReleaser = default;
+        }
+
+        base.ClearComputeFunctions();
     }
 }
