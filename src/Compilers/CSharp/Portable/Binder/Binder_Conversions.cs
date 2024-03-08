@@ -818,12 +818,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return element switch
                 {
-                    BoundCollectionElementInitializer collectionInitializer => collectionInitializer.Arguments[collectionInitializer.InvokedAsExtensionMethod ? 1 : 0],
+                    BoundCollectionElementInitializer collectionInitializer => getCollectionInitializerElement(collectionInitializer),
                     BoundDynamicCollectionElementInitializer dynamicInitializer => dynamicInitializer.Arguments[0],
                     _ => null,
                 };
             }
             return element;
+
+            static BoundExpression getCollectionInitializerElement(BoundCollectionElementInitializer collectionInitializer)
+            {
+                int argIndex = collectionInitializer.InvokedAsExtensionMethod ? 1 : 0;
+                var arg = collectionInitializer.Arguments[argIndex];
+                if (collectionInitializer.Expanded && collectionInitializer.AddMethod.Parameters[argIndex].IsParams)
+                {
+                    if (arg is BoundArrayCreation { IsParamsArray: true, InitializerOpt.Initializers: [var element] })
+                    {
+                        return element;
+                    }
+                    Debug.Assert(false);
+                }
+                return arg;
+            }
         }
 
         internal bool TryGetCollectionIterationType(ExpressionSyntax syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
