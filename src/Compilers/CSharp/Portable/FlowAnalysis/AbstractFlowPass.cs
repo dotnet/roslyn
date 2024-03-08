@@ -3041,6 +3041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
         {
+            VisitStatements(node.Statements);
             visitLabel(node.WhenTrueLabel);
             var stateWhenTrue = this.State.Clone();
             SetUnreachable();
