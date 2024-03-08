@@ -3,21 +3,24 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Composition;
-using System.Data.SqlTypes;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
+using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
+using Newtonsoft.Json.Linq;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -32,22 +35,25 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics;
 internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
 {
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
-    private readonly Lazy<IBrokeredDebuggerServices> _brokeredDebuggerServices;
+    private readonly Lazy<IVisualDiagnosticsBrokeredDebuggerServices> _brokeredDebuggerServices;
+    private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     [ImportingConstructor]
     public VisualDiagnosticsServiceFactory(
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-        Lazy<IBrokeredDebuggerServices> brokeredDebuggerServices)
+        Lazy<IVisualDiagnosticsBrokeredDebuggerServices> brokeredDebuggerServices,
+        IAsynchronousOperationListenerProvider listenerProvider)
     {
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
         _brokeredDebuggerServices = brokeredDebuggerServices;
+        _listenerProvider = listenerProvider;
     }
 
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
-        return new OnInitializedService(lspServices, lspWorkspaceManager, _lspWorkspaceRegistrationService, _brokeredDebuggerServices);
+        return new OnInitializedService(lspServices, lspWorkspaceManager, _lspWorkspaceRegistrationService, _brokeredDebuggerServices, _listenerProvider);
     }
 
     private class OnInitializedService : ILspService, IOnInitialized, IObserver<HotReloadNotificationType>, IDisposable
@@ -55,15 +61,20 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
         private readonly LspServices _lspServices;
         private readonly LspWorkspaceManager _lspWorkspaceManager;
         private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
-        private readonly Lazy<IBrokeredDebuggerServices> _brokeredDebuggerServices;
+        private readonly Lazy<IVisualDiagnosticsBrokeredDebuggerServices> _brokeredDebuggerServices;
         private readonly ConditionalWeakTable<Workspace, IVisualDiagnosticsLanguageService> _visualDiagnosticsLanguageServiceTable;
         private readonly System.Timers.Timer _timer;
         private readonly SemaphoreSlim _mutex = new SemaphoreSlim(1);
         private List<ProcessInfo> _debugProcesses;
         private CancellationToken _cancellationToken;
         private IDisposable? _adviseHotReloadSessionNotificationService;
+        private readonly IAsynchronousOperationListener _asyncListener;
 
-        public OnInitializedService(LspServices lspServices, LspWorkspaceManager lspWorkspaceManager, LspWorkspaceRegistrationService lspWorkspaceRegistrationService, Lazy<IBrokeredDebuggerServices> brokeredDebuggerServices)
+        public OnInitializedService(LspServices lspServices,
+        LspWorkspaceManager lspWorkspaceManager,
+        LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+        Lazy<IVisualDiagnosticsBrokeredDebuggerServices> brokeredDebuggerServices,
+        IAsynchronousOperationListenerProvider listenerProvider)
         {
             _lspServices = lspServices;
             _lspWorkspaceManager = lspWorkspaceManager;
@@ -74,12 +85,14 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
             _timer.Elapsed += Timer_Elapsed;
             _visualDiagnosticsLanguageServiceTable = new();
             _debugProcesses = new List<ProcessInfo>();
+            _asyncListener = listenerProvider.GetListener(nameof(VisualDiagnosticsBrokeredDebuggerServices));
         }
 
         private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             _timer.Stop();
-            _ = OnTimerElapsedAsync();
+            var token = _asyncListener.BeginAsyncOperation(nameof(OnInitializedService) + ".Timer_Elapsed");
+            _ = OnTimerElapsedAsync().CompletesAsyncOperation(token);
         }
 
         public void Dispose()
@@ -108,13 +121,13 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
 
         public void OnNext(HotReloadNotificationType value)
         {
-            _ = HandleNotificationAsync(value);
+            var token = _asyncListener.BeginAsyncOperation(nameof(OnInitializedService) + ".OnNext");
+            _ = HandleNotificationAsync(value).CompletesAsyncOperation(token);
         }
 
         private async Task OnTimerElapsedAsync()
         {
-            await _mutex.WaitAsync().ConfigureAwait(false);
-            try
+            using (await _mutex.DisposableWaitAsync().ConfigureAwait(false))
             {
                 // Already initialized
                 if (_adviseHotReloadSessionNotificationService != null)
@@ -122,7 +135,7 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
                     return;
                 }
 
-                IBrokeredDebuggerServices broker = _brokeredDebuggerServices.Value;
+                IVisualDiagnosticsBrokeredDebuggerServices broker = _brokeredDebuggerServices.Value;
 
                 if (broker != null)
                 {
@@ -141,10 +154,6 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
 
                 // We're not ready, re-start the timer
                 _timer.Start();
-            }
-            finally
-            {
-                _mutex.Release();
             }
         }
 

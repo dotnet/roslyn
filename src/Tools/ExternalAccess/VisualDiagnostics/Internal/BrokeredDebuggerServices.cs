@@ -16,8 +16,8 @@ using Nerdbank.Streams;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal
 {
-    [Export(typeof(IBrokeredDebuggerServices))]
-    internal sealed class BrokeredDebuggerServices : IBrokeredDebuggerServices, IDisposable
+    [Export(typeof(IVisualDiagnosticsBrokeredDebuggerServices))]
+    internal sealed class VisualDiagnosticsBrokeredDebuggerServices : IVisualDiagnosticsBrokeredDebuggerServices, IDisposable
     {
         // HotReloadSessionNotificationService
         private static readonly ServiceRpcDescriptor HotReloadSessionNotificationServiceDescriptor = CreateDescriptor(
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public BrokeredDebuggerServices(
+        public VisualDiagnosticsBrokeredDebuggerServices(
         [Import(typeof(SVsFullAccessServiceBroker))]
         IServiceBroker serviceBroker)
         {

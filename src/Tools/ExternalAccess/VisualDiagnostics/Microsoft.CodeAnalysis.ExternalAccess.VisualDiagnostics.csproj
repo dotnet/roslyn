@@ -10,15 +10,13 @@
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics</PackageId>
     <PackageDescription>
-      A supporting package for Visual Diagnostics:
-      https://github.com/dotnet/Roslyn
+      A supporting package for Visual Studio CodeAnalysisDiagnostics:
+      https://devdiv.visualstudio.com/DevDiv/_git/VS?path=/src/Xaml/Diagnostics/Source/CodeAnalysisDiagnostics
     </PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>
-    <!--
-      ⚠ ONLY XAML ASSEMBLIES MAY BE ADDED HERE ⚠
-    -->
+    <!-- Should only inlude the VisualStudio DesignTools assemblies below -->
     <InternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.CodeAnalysis" Key="$(VisualStudioKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.CodeAnalysis.Diagnostics" Key="$(VisualStudioKey)"/>
   </ItemGroup>
