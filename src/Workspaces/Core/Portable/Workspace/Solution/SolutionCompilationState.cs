@@ -69,8 +69,13 @@ internal sealed partial class SolutionCompilationState
         FrozenSourceGeneratedDocumentStates = frozenSourceGeneratedDocumentStates;
 
         // when solution state is changed, we recalculate its checksum
-        _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectId: null, c));
-        _cachedFrozenSnapshot = cachedFrozenSnapshot ?? AsyncLazy.Create(synchronousComputeFunction: ComputeFrozenSnapshot);
+        _lazyChecksums = AsyncLazy.Create(static (self, c) =>
+            self.ComputeChecksumsAsync(projectId: null, c),
+            arg: this);
+        _cachedFrozenSnapshot = cachedFrozenSnapshot ??
+            AsyncLazy.Create(synchronousComputeFunction: static (self, c) =>
+                self.ComputeFrozenSnapshot(c),
+                arg: this);
 
         CheckInvariants();
     }

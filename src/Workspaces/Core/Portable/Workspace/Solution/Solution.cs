@@ -48,7 +48,10 @@ public partial class Solution
         _projectIdToProjectMap = [];
         _compilationState = compilationState;
 
-        _cachedFrozenSolution = cachedFrozenSolution ?? AsyncLazy.Create(synchronousComputeFunction: ComputeFrozenSolution);
+        _cachedFrozenSolution = cachedFrozenSolution ??
+            AsyncLazy.Create(synchronousComputeFunction: static (self, c) =>
+                self.ComputeFrozenSolution(c),
+                this);
     }
 
     internal Solution(
@@ -1510,7 +1513,9 @@ public partial class Solution
         }
 
         static AsyncLazy<Solution> CreateLazyFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId)
-            => AsyncLazy.Create(synchronousComputeFunction: cancellationToken => ComputeFrozenSolution(compilationState, documentId, cancellationToken));
+            => AsyncLazy.Create(synchronousComputeFunction: static (arg, cancellationToken) =>
+                ComputeFrozenSolution(arg.compilationState, arg.documentId, cancellationToken),
+                arg: (compilationState, documentId));
 
         static Solution ComputeFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId, CancellationToken cancellationToken)
         {
