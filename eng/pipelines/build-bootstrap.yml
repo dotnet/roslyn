@@ -7,14 +7,11 @@ parameters:
 steps:
     - template: checkout-windows-task.yml
 
-    - pwsh: |
-        ./eng/make-bootstrap.ps1 -ci -toolset ${{parameters.toolset}} -output '$(Build.SourcesDirectory)/artifacts/bootstrap/ci-bootstrap'
-
+    - powershell: eng/make-bootstrap.ps1 -ci -toolset ${{parameters.toolset}} -output '$(Build.SourcesDirectory)/artifacts/bootstrap/ci-bootstrap'
       displayName: Build Bootstrap Compiler
 
-    - pwsh: |
-        ./eng/test-build-correctness.ps1 -ci -configuration Release -enableDumps -bootstrapDir '$(Build.SourcesDirectory)/artifacts/bootstrap/ci-bootstrap'
-      displayName: Build - Validate correctness
+    - powershell: eng/test-build-correctness.ps1 -ci -configuration Release -enableDumps -bootstrapDir '$(Build.SourcesDirectory)/artifacts/bootstrap/ci-bootstrap'
+      displayName: Build - Validate Correctness
 
     - template: publish-logs.yml
       parameters:
