@@ -75,20 +75,12 @@ internal sealed class TestDiagnosticTagProducer<TProvider, TTag>
 
     private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
-        private ImmutableArray<DiagnosticData> _diagnostics = ImmutableArray<DiagnosticData>.Empty;
-
         public void RaiseDiagnosticsUpdated(ImmutableArray<DiagnosticsUpdatedArgs> args)
         {
-            _diagnostics = args.SelectManyAsArray(e => e.Diagnostics);
             DiagnosticsUpdated?.Invoke(this, args);
         }
 
         public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
         public event EventHandler DiagnosticsCleared { add { } remove { } }
-
-        public bool SupportGetDiagnostics => false;
-
-        public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
-            => new(includeSuppressedDiagnostics ? _diagnostics : _diagnostics.WhereAsArray(d => !d.IsSuppressed));
     }
 }
