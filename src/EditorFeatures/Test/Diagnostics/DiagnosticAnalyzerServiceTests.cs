@@ -986,8 +986,7 @@ class A
             Assert.Empty(analyzer.CanceledCompilations);
             try
             {
-                await incrementalAnalyzer.GetDiagnosticsAsync(
-                    workspace.CurrentSolution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, analyzer.CancellationToken);
+                await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, analyzer.CancellationToken);
 
                 throw ExceptionUtilities.Unreachable();
             }
