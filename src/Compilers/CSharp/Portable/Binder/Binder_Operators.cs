@@ -637,8 +637,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)signature.LeftType != null);
                 Debug.Assert((object)signature.RightType != null);
 
-                resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, diagnostics);
-                resultRight = CreateConversion(right, best.RightConversion, signature.RightType, diagnostics);
+                // If this is an object equality operator, we will suppress Lock conversion warnings.
+                var needsFilterDiagnostics =
+                    resultOperatorKind is BinaryOperatorKind.ObjectEqual or BinaryOperatorKind.ObjectNotEqual &&
+                    diagnostics.DiagnosticBag is not null;
+                var conversionDiagnostics = needsFilterDiagnostics ? BindingDiagnosticBag.GetInstance(template: diagnostics) : diagnostics;
+
+                resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, conversionDiagnostics);
+                resultRight = CreateConversion(right, best.RightConversion, signature.RightType, conversionDiagnostics);
+
+                if (needsFilterDiagnostics)
+                {
+                    Debug.Assert(conversionDiagnostics != diagnostics);
+                    diagnostics.AddDependencies(conversionDiagnostics);
+
+                    var sourceBag = conversionDiagnostics.DiagnosticBag;
+                    Debug.Assert(sourceBag is not null);
+
+                    if (!sourceBag.IsEmptyWithoutResolution)
+                    {
+                        foreach (var diagnostic in sourceBag.AsEnumerableWithoutResolution())
+                        {
+                            if ((ErrorCode)diagnostic.Code is not ErrorCode.WRN_ConvertingLock)
+                            {
+                                diagnostics.Add(diagnostic);
+                            }
+                        }
+                    }
+
+                    conversionDiagnostics.Free();
+                }
+
                 resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType, diagnostics);
             }
             else

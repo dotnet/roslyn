@@ -38,8 +38,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             left = MakeRValue(left, diagnostics)
             right = MakeRValue(right, diagnostics)
 
-            left = ValidateAndConvertIsExpressionArgument(left, right, [isNot], diagnostics)
-            right = ValidateAndConvertIsExpressionArgument(right, left, [isNot], diagnostics)
+            ' Suppress Lock conversion warnings for Is operator.
+            Dim needsFilterDiagnostics = diagnostics.DiagnosticBag IsNot Nothing
+            Dim conversionDiagnostics = If(needsFilterDiagnostics, BindingDiagnosticBag.GetInstance(diagnostics), diagnostics)
+
+            left = ValidateAndConvertIsExpressionArgument(left, right, [isNot], conversionDiagnostics)
+            right = ValidateAndConvertIsExpressionArgument(right, left, [isNot], conversionDiagnostics)
+
+            If needsFilterDiagnostics Then
+                Debug.Assert(conversionDiagnostics IsNot diagnostics)
+                diagnostics.AddDependencies(conversionDiagnostics)
+
+                Dim sourceBag = conversionDiagnostics.DiagnosticBag
+                Debug.Assert(sourceBag IsNot Nothing)
+
+                If Not sourceBag.IsEmptyWithoutResolution Then
+                    For Each diagnostic In sourceBag.AsEnumerableWithoutResolution()
+                        If diagnostic.Code <> ERRID.WRN_ConvertingLock Then
+                            diagnostics.Add(diagnostic)
+                        End If
+                    Next
+                End If
+
+                conversionDiagnostics.Free()
+            End If
 
             Dim result As BoundExpression
             Dim booleanType = GetSpecialType(SpecialType.System_Boolean, node, diagnostics)
