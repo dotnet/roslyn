@@ -1131,22 +1131,21 @@ class C
                 bool addNewLineWithEdit)
             {
                 // We expect de-prioritization of analyzer from 'Normal' to 'Low' bucket only if following conditions are met:
-                //  1. There are no cached diagnostics from background analysis, i.e. 'testWithCachedDiagnostics == false'.
-                //  2. We have an expensive analyzer that registers SymbolStart/End or SemanticModel actions, both of which have a broad analysis scope.
-                //  3. Either of the below is true:
+                //  1. We have an expensive analyzer that registers SymbolStart/End or SemanticModel actions, both of which have a broad analysis scope.
+                //  2. Either of the below is true:
                 //     a. We do not have an analyzer diagnostic reported in the prior document snapshot on the edited line OR
                 //     b. Number of lines in the prior document snapshot differs from number of lines in the current document snapshot,
                 //        i.e. we added a new line with the edit and 'addNewLineWithEdit = true'.
-                // Condition 2
+
+                // Condition 1
                 if (actionKind is not (DeprioritizedAnalyzer.ActionKind.SymbolStartEnd or DeprioritizedAnalyzer.ActionKind.SemanticModel))
                     return false;
 
-                // Condition 3(a)
+                // Condition 2(a)
                 if (!diagnosticOnFixLineInPriorSnapshot)
                     return true;
 
-                //return true;
-                //// Condition 3(b)
+                // Condition 2(b)
                 return addNewLineWithEdit;
             }
 
