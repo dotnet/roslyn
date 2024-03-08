@@ -11,14 +11,17 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LegacySolutionEvents;
 
+/// <summary>
+/// Event listener that hears about workspaces and exists solely to let unit testing continue to work using their own
+/// fork of solution crawler.  Importantly, this is always active until the point that we can get unit testing to move
+/// to an entirely differently (ideally 'pull') model for test discovery.
+/// </summary>
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
 internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : IEventListener<object>
 {
