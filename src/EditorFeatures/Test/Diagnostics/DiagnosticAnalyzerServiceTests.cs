@@ -505,6 +505,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             };
 
             var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
+            await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             Assert.True(called);
@@ -679,6 +680,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     throw ExceptionUtilities.UnexpectedValue(analysisScope);
             }
 
+            await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             var expectedCount = (analysisScope, testMultiple) switch
