@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     /// 
     /// This one follows pattern compiler has set for diagnostic analyzer.
     /// </summary>
-    internal partial class DiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
+    internal partial class DiagnosticIncrementalAnalyzer
     {
         private readonly int _correlationId;
         private readonly DiagnosticAnalyzerTelemetry _telemetry = new();
