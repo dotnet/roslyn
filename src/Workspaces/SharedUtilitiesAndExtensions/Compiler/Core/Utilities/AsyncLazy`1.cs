@@ -11,30 +11,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Roslyn.Utilities;
 
-internal static class AsyncLazy
-{
-    public static AsyncLazyWithArg<T, TArg> Create<T, TArg>(Func<TArg, CancellationToken, Task<T>> asynchronousComputeFunction, TArg arg)
-        => new AsyncLazyWithArg<T, TArg>(asynchronousComputeFunction, arg);
-
-    public static AsyncLazyWithArg<T, TArg> Create<T, TArg>(Func<TArg, CancellationToken, T> synchronousComputeFunction, TArg arg)
-        => new AsyncLazyWithArg<T, TArg>((arg, cancellationToken) => Task.FromResult(synchronousComputeFunction(arg, cancellationToken)), synchronousComputeFunction, arg);
-
-    public static AsyncLazyWithArg<T, TArg> Create<T, TArg>(Func<TArg, CancellationToken, Task<T>> asynchronousComputeFunction, Func<TArg, CancellationToken, T> synchronousComputeFunction, TArg arg)
-        => new AsyncLazyWithArg<T, TArg>(asynchronousComputeFunction, synchronousComputeFunction, arg);
-
-    public static AsyncLazy<T> Create<T>(Func<CancellationToken, Task<T>> asynchronousComputeFunction)
-        => new AsyncLazyWithoutArg<T>(asynchronousComputeFunction);
-
-    public static AsyncLazy<T> Create<T>(Func<CancellationToken, T> synchronousComputeFunction)
-        => new AsyncLazyWithoutArg<T>(cancellationToken => Task.FromResult(synchronousComputeFunction(cancellationToken)), synchronousComputeFunction);
-
-    public static AsyncLazy<T> Create<T>(Func<CancellationToken, Task<T>> asynchronousComputeFunction, Func<CancellationToken, T> synchronousComputeFunction)
-        => new AsyncLazyWithoutArg<T>(asynchronousComputeFunction, synchronousComputeFunction);
-
-    public static AsyncLazy<T> Create<T>(T value)
-        => new AsyncLazyWithoutArg<T>(value);
-}
-
 /// <summary>
 /// Represents a value that can be retrieved synchronously or asynchronously by many clients.
 /// The value will be computed on-demand the moment the first client asks for it. While being
@@ -82,10 +58,10 @@ internal abstract class AsyncLazy<T>
     /// <summary>
     /// Creates an AsyncLazy that always returns the value, analogous to <see cref="Task.FromResult{T}" />.
     /// </summary>
-    public AsyncLazy(T value)
+    protected AsyncLazy(T value)
         => _cachedResult = Task.FromResult(value);
 
-    public AsyncLazy()
+    protected AsyncLazy()
     {
     }
 
@@ -116,7 +92,7 @@ internal abstract class AsyncLazy<T>
     protected abstract T InvokeComputeFunction(CancellationToken cancellationToken);
     protected abstract Task<T> InvokeComputeFunctionAsync(CancellationToken cancellationToken);
 
-    protected abstract void ResetComputeFunctions();
+    protected abstract void ClearComputeFunctions();
 
     private void AssertInvariants_NoLock()
     {
@@ -453,7 +429,7 @@ internal abstract class AsyncLazy<T>
             // Hold onto the completed task. We can get rid of the computation functions for good
             _cachedResult = task;
 
-            ResetComputeFunctions();
+            ClearComputeFunctions();
         }
 
         return task;
@@ -552,135 +528,5 @@ internal abstract class AsyncLazy<T>
 
         public void Cancel()
             => this.TrySetCanceled(_cancellationToken);
-    }
-}
-
-/// <summary>
-/// Represents an AsyncLazy instance holding compute functions and additional 
-/// argument data to pass to those functions
-/// </summary>
-/// <typeparam name="T">Return type of compute functions</typeparam>
-/// <typeparam name="TArg">Argument type to compute functions</typeparam>
-internal sealed class AsyncLazyWithArg<T, TArg> : AsyncLazy<T>
-{
-    /// <summary>
-    /// The underlying function that starts an asynchronous computation of the resulting value.
-    /// Null'ed out once we've computed the result and we've been asked to cache it.  Otherwise,
-    /// it is kept around in case the value needs to be computed again.
-    /// </summary>
-    private Func<TArg, CancellationToken, Task<T>>? _asynchronousComputeFunction;
-
-    /// <summary>
-    /// The underlying function that starts a synchronous computation of the resulting value.
-    /// Null'ed out once we've computed the result and we've been asked to cache it, or if we
-    /// didn't get any synchronous function given to us in the first place.
-    /// </summary>
-    private Func<TArg, CancellationToken, T>? _synchronousComputeFunction;
-
-    /// <summary>
-    /// Data passed to the compute functions. Typically allowed to prevent closures in calls to 
-    /// the <see cref="AsyncLazy"/> Create methods.
-    /// </summary>
-    private TArg? _arg;
-
-    public AsyncLazyWithArg(Func<TArg, CancellationToken, Task<T>> asynchronousComputeFunction, TArg arg)
-        : this(asynchronousComputeFunction, synchronousComputeFunction: null, arg)
-    {
-    }
-
-    public AsyncLazyWithArg(Func<TArg, CancellationToken, Task<T>> asynchronousComputeFunction, Func<TArg, CancellationToken, T>? synchronousComputeFunction, TArg arg)
-    {
-        Contract.ThrowIfNull(asynchronousComputeFunction);
-        _asynchronousComputeFunction = asynchronousComputeFunction;
-        _synchronousComputeFunction = synchronousComputeFunction;
-        _arg = arg;
-    }
-
-    protected override bool HasAsynchronousComputeFunction => _asynchronousComputeFunction is not null;
-    protected override bool HasSynchronousComputeFunction => _synchronousComputeFunction is not null;
-
-    protected override T InvokeComputeFunction(CancellationToken cancellationToken)
-    {
-        Contract.ThrowIfNull(_synchronousComputeFunction);
-
-        return _synchronousComputeFunction(_arg!, cancellationToken);
-    }
-
-    protected override Task<T> InvokeComputeFunctionAsync(CancellationToken cancellationToken)
-    {
-        Contract.ThrowIfNull(_asynchronousComputeFunction);
-
-        return _asynchronousComputeFunction(_arg!, cancellationToken);
-    }
-
-    protected override void ResetComputeFunctions()
-    {
-        _asynchronousComputeFunction = null;
-        _synchronousComputeFunction = null;
-        _arg = default;
-    }
-}
-
-/// <summary>
-/// Represents an AsyncLazy instance holding compute functions
-/// </summary>
-/// <typeparam name="T">Return type of compute functions</typeparam>
-internal sealed class AsyncLazyWithoutArg<T> : AsyncLazy<T>
-{
-    /// <summary>
-    /// The underlying function that starts an asynchronous computation of the resulting value.
-    /// Null'ed out once we've computed the result and we've been asked to cache it.  Otherwise,
-    /// it is kept around in case the value needs to be computed again.
-    /// </summary>
-    private Func<CancellationToken, Task<T>>? _asynchronousComputeFunction;
-
-    /// <summary>
-    /// The underlying function that starts a synchronous computation of the resulting value.
-    /// Null'ed out once we've computed the result and we've been asked to cache it, or if we
-    /// didn't get any synchronous function given to us in the first place.
-    /// </summary>
-    private Func<CancellationToken, T>? _synchronousComputeFunction;
-
-    /// <summary>
-    /// Creates an AsyncLazy that always returns the value, analogous to <see cref="Task.FromResult{T}" />.
-    /// </summary>
-    public AsyncLazyWithoutArg(T value)
-        : base(value)
-    {
-    }
-
-    public AsyncLazyWithoutArg(Func<CancellationToken, Task<T>> asynchronousComputeFunction)
-        : this(asynchronousComputeFunction, synchronousComputeFunction: null)
-    {
-    }
-
-    public AsyncLazyWithoutArg(Func<CancellationToken, Task<T>> asynchronousComputeFunction, Func<CancellationToken, T>? synchronousComputeFunction)
-    {
-        Contract.ThrowIfNull(asynchronousComputeFunction);
-        _asynchronousComputeFunction = asynchronousComputeFunction;
-        _synchronousComputeFunction = synchronousComputeFunction;
-    }
-
-    protected override bool HasAsynchronousComputeFunction => _asynchronousComputeFunction is not null;
-    protected override bool HasSynchronousComputeFunction => _synchronousComputeFunction is not null;
-
-    protected override T InvokeComputeFunction(CancellationToken cancellationToken)
-    {
-        Contract.ThrowIfNull(_synchronousComputeFunction);
-
-        return _synchronousComputeFunction(cancellationToken);
-    }
-
-    protected override Task<T> InvokeComputeFunctionAsync(CancellationToken cancellationToken)
-    {
-        Contract.ThrowIfNull(_asynchronousComputeFunction);
-
-        return _asynchronousComputeFunction(cancellationToken);
-    }
-
-    protected override void ResetComputeFunctions()
-    {
-        _asynchronousComputeFunction = null;
-        _synchronousComputeFunction = null;
     }
 }

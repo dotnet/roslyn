@@ -46,8 +46,8 @@ internal sealed partial class RenameTrackingTaggerProvider
             _refactorNotifyServices = refactorNotifyServices;
             _undoHistoryRegistry = undoHistoryRegistry;
             _displayText = displayText;
-            _renameSymbolResultGetter = AsyncLazy.Create(static (self, c) =>
-                self.RenameSymbolWorkerAsync(c),
+            _renameSymbolResultGetter = AsyncLazy.Create(
+                static (self, c) => self.RenameSymbolWorkerAsync(c),
                 arg: this);
         }
 

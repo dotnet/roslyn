@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var lazy = AsyncLazy.Create(
                 static (synchronousComputation, c) => Task.FromResult(synchronousComputation(c)),
-                includeSynchronousComputation ? static (synchronousComputation, c) => synchronousComputation : null!,
+                includeSynchronousComputation ? static (synchronousComputation, c) => synchronousComputation(c) : null!,
                 arg: synchronousComputation);
 
             var thrownException = Assert.Throws<OperationCanceledException>(() =>
