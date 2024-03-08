@@ -45,6 +45,7 @@ internal partial class SolutionCompilationState
         MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference);
         ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
         ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
+        ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(SolutionCompilationState solution, CancellationToken cancellationToken);
 
         Task<bool> HasSuccessfullyLoadedAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
         bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation);
