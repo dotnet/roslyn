@@ -620,14 +620,13 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
         }
 
         [Theory, CombinatorialData]
-        internal async Task TestAdditionalFileAnalyzer(bool registerFromInitialize, bool testMultiple, BackgroundAnalysisScope analysisScope)
+        internal async Task TestAdditionalFileAnalyzer(bool registerFromInitialize, bool testMultiple)
         {
             using var workspace = CreateWorkspace();
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
                 workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             var globalOptions = GetGlobalOptions(workspace);
-            globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
 
             var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), "CSharpProject", "CSharpProject", LanguageNames.CSharp);
             var project = workspace.AddProject(projectInfo);
@@ -666,32 +665,12 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
             var firstAdditionalDocument = project.AdditionalDocuments.FirstOrDefault();
 
-            switch (analysisScope)
-            {
-                case BackgroundAnalysisScope.None:
-                case BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics:
-                case BackgroundAnalysisScope.OpenFiles:
-                    workspace.OpenAdditionalDocument(firstAdditionalDocument.Id);
-                    break;
-
-                case BackgroundAnalysisScope.FullSolution:
-                    break;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(analysisScope);
-            }
+            workspace.OpenAdditionalDocument(firstAdditionalDocument.Id);
 
             await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
-            var expectedCount = (analysisScope, testMultiple) switch
-            {
-                (BackgroundAnalysisScope.None or BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics, _) => 0,
-                (BackgroundAnalysisScope.OpenFiles or BackgroundAnalysisScope.FullSolution, false) => 1,
-                (BackgroundAnalysisScope.OpenFiles, true) => 2,
-                (BackgroundAnalysisScope.FullSolution, true) => 4,
-                _ => throw ExceptionUtilities.Unreachable(),
-            };
+            var expectedCount = testMultiple ? 4 : 1;
 
             Assert.Equal(expectedCount, diagnostics.Count);
 
@@ -704,21 +683,10 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                         d => d.Id == analyzer.Descriptor.Id && d.DataLocation.UnmappedFileSpan.Path == additionalDoc.FilePath);
 
                     var text = await additionalDoc.GetTextAsync();
-                    if (analysisScope is BackgroundAnalysisScope.None or BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics)
-                    {
-                        Assert.Empty(applicableDiagnostics);
-                    }
-                    else if (analysisScope == BackgroundAnalysisScope.OpenFiles &&
-                        firstAdditionalDocument != additionalDoc)
-                    {
-                        Assert.Empty(applicableDiagnostics);
-                    }
-                    else
-                    {
-                        var diagnostic = Assert.Single(applicableDiagnostics);
-                        Assert.Equal(diagnosticSpan, diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text));
-                        diagnostics.Remove(diagnostic);
-                    }
+
+                    var diagnostic = Assert.Single(applicableDiagnostics);
+                    Assert.Equal(diagnosticSpan, diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text));
+                    diagnostics.Remove(diagnostic);
                 }
             }
 
