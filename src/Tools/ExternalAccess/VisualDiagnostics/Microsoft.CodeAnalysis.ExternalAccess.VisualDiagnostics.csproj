@@ -47,8 +47,4 @@
     <PublicAPI Include="InternalAPI.Shipped.txt" />
     <PublicAPI Include="InternalAPI.Unshipped.txt" />
   </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy /Y &quot;$(PkgMicrosoft_VisualStudio_Debugger_Contracts)\lib\netstandard2.0\Microsoft.VisualStudio.Debugger.Contracts.dll&quot; &quot;$(OutDir)&quot;" />
-  </Target>
 </Project>

@@ -58,7 +58,7 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
         private readonly Lazy<IBrokeredDebuggerServices> _brokeredDebuggerServices;
         private readonly ConditionalWeakTable<Workspace, IVisualDiagnosticsLanguageService> _visualDiagnosticsLanguageServiceTable;
         private readonly System.Timers.Timer _timer;
-        private static readonly object _lock = new object();
+        private readonly SemaphoreSlim _mutex = new SemaphoreSlim(1);
         private List<ProcessInfo> _debugProcesses;
         private CancellationToken _cancellationToken;
         private IDisposable? _adviseHotReloadSessionNotificationService;
@@ -78,10 +78,8 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
 
         private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            lock (_lock)
-            {
-                _ = OnTimerElapsedAsync();
-            }
+            _timer.Stop();
+            _ = OnTimerElapsedAsync();
         }
 
         public void Dispose()
@@ -115,27 +113,38 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
 
         private async Task OnTimerElapsedAsync()
         {
-            if (_adviseHotReloadSessionNotificationService != null)
+            await _mutex.WaitAsync().ConfigureAwait(false);
+            try
             {
-                // Already initialized, just double make sure the timer is stopped
-                _timer.Stop();
-                return;
-            }
-
-            IBrokeredDebuggerServices broker = _brokeredDebuggerServices.Value;
-
-            if (broker != null)
-            {
-                IHotReloadSessionNotificationService? hotReloadSessionNotificationService = await broker.GetHotReloadSessionNotificationServiceAsync().ConfigureAwait(false);
-                if (hotReloadSessionNotificationService != null)
+                // Already initialized
+                if (_adviseHotReloadSessionNotificationService != null)
                 {
-                    // We have the broker service, stop the timer
-                    _adviseHotReloadSessionNotificationService = await InitializeHotReloadSessionNotificationServiceAsync(hotReloadSessionNotificationService).ConfigureAwait(false);
-                    if (_adviseHotReloadSessionNotificationService != null)
+                    return;
+                }
+
+                IBrokeredDebuggerServices broker = _brokeredDebuggerServices.Value;
+
+                if (broker != null)
+                {
+                    IHotReloadSessionNotificationService? hotReloadSessionNotificationService = await broker.GetHotReloadSessionNotificationServiceAsync().ConfigureAwait(false);
+                    if (hotReloadSessionNotificationService != null)
                     {
-                        _timer.Stop();
+                        // We have the broker service, stop the timer
+                        _adviseHotReloadSessionNotificationService = await InitializeHotReloadSessionNotificationServiceAsync(hotReloadSessionNotificationService).ConfigureAwait(false);
+                        if (_adviseHotReloadSessionNotificationService != null)
+                        {
+                            // Initialized
+                            return;
+                        }
                     }
                 }
+
+                // We're not ready, re-start the timer
+                _timer.Start();
+            }
+            finally
+            {
+                _mutex.Release();
             }
         }
 
