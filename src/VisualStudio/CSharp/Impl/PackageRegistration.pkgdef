@@ -193,6 +193,8 @@
 "SortPriority"=dword:00000064
 @="Microsoft Visual C#"
 
+// CacheTag value should be changed everytime when the registration file get changed
+// See https://devdiv.visualstudio.com/DevDiv/_wiki/wikis/DevDiv.wiki/39345/Manifest-Build-Deployment-and-Setup-Authoring-In-Depth?anchor=example-pkgdef-key for more infomation
 [$RootKey$\SettingsManifests\{13c3bbb4-f18f-4111-9f54-a0fb010d9194}]
 @="Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService.CSharpPackage"
 "ManifestPath"="$PackageFolder$\UnifiedSettings\csharpSettings.registration.json"
