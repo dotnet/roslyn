@@ -5,11 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Access must be guarded by <see cref="_guard"/>
         /// </remarks>
-        private readonly Dictionary<string, (string RealAssemblyPath, ImmutableHashSet<string> SatelliteCultureNames)?> _analyzerSatelliteAssemblyInfoMap = new();
+        private readonly Dictionary<string, Dictionary<CultureInfo, string?>> _analyzerSatelliteAssemblyInfoMap = new();
 
         /// <summary>
         /// Maps analyzer dependency simple names to the set of original full paths it was loaded from. This _only_ 
@@ -106,7 +105,6 @@ namespace Microsoft.CodeAnalysis
                 // it's instance. Repeated calls to this method, even if the underlying 
                 // file system contents, should reuse the results of the first call.
                 _ = _analyzerAssemblyInfoMap.TryAdd(fullPath, null);
-                _ = _analyzerSatelliteAssemblyInfoMap.TryAdd(fullPath, null);
             }
         }
 
@@ -178,75 +176,60 @@ namespace Microsoft.CodeAnalysis
             return (assemblyName, realPath);
         }
 
-        protected (string RealAssemblyPath, ImmutableHashSet<string> SatelliteCultureNames) GetSatelliteAssemblyInfoForPath(string originalAnalyzerPath)
+        internal string? GetSatelliteInfoForPath(string originalAnalyzerPath, CultureInfo cultureInfo)
         {
-            lock (_guard)
-            {
-                if (!_analyzerSatelliteAssemblyInfoMap.TryGetValue(originalAnalyzerPath, out var tuple))
-                {
-                    throw new InvalidOperationException();
-                }
-
-                if (tuple is { } info)
-                {
-                    return info;
-                }
-            }
-
-            var (_, realPath) = GetAssemblyInfoForPath(originalAnalyzerPath);
-
-            var resourceAssemblyCultureNames = getResourceAssemblyCultureNames(originalAnalyzerPath);
-            PrepareSatelliteAssembliesToLoad(originalAnalyzerPath, resourceAssemblyCultureNames);
+            Dictionary<CultureInfo, string?>? satelliteDictionary;
+            string? satelliteAssemblyPath = null;
 
             lock (_guard)
             {
-                _analyzerSatelliteAssemblyInfoMap[originalAnalyzerPath] = (realPath, resourceAssemblyCultureNames);
-            }
-
-            return (realPath, resourceAssemblyCultureNames);
-
-            // Discover the culture names for any satellite dlls related to this analyzer. These 
-            // need to be understood when handling the resource loading in certain cases.
-            static ImmutableHashSet<string> getResourceAssemblyCultureNames(string originalAnalyzerPath)
-            {
-                var path = Path.GetDirectoryName(originalAnalyzerPath)!;
-                using var enumerator = Directory.EnumerateDirectories(path, "*").GetEnumerator();
-                if (!enumerator.MoveNext())
+                if (_analyzerSatelliteAssemblyInfoMap.TryGetValue(originalAnalyzerPath, out satelliteDictionary))
                 {
-                    return ImmutableHashSet<string>.Empty;
-                }
-
-                var resourceFileName = GetSatelliteFileName(Path.GetFileName(originalAnalyzerPath));
-                var builder = ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
-                do
-                {
-                    var resourceFilePath = Path.Combine(enumerator.Current, resourceFileName);
-                    if (File.Exists(resourceFilePath))
+                    if (satelliteDictionary.TryGetValue(cultureInfo, out satelliteAssemblyPath))
                     {
-                        builder.Add(Path.GetFileName(enumerator.Current));
+                        return satelliteAssemblyPath;
                     }
                 }
-                while (enumerator.MoveNext());
-
-                return builder.ToImmutableHashSet();
+                else
+                {
+                    satelliteDictionary = new Dictionary<CultureInfo, string?>();
+                    _analyzerSatelliteAssemblyInfoMap[originalAnalyzerPath] = satelliteDictionary;
+                }
             }
-        }
 
-        /// <summary>
-        /// Get the real load path of the satellite assembly given the original path to the analyzer 
-        /// and the desired culture name.
-        /// </summary>
-        protected string? GetSatelliteInfoForPath(string originalAnalyzerPath, string cultureName)
-        {
-            var (realAssemblyPath, satelliteCultureNames) = GetSatelliteAssemblyInfoForPath(originalAnalyzerPath);
-            if (!satelliteCultureNames.Contains(cultureName))
+            (satelliteAssemblyPath, var actualCultureName) = getSatelliteAssemblyLocation(originalAnalyzerPath, cultureInfo);
+            if (actualCultureName != null)
             {
-                return null;
+                PrepareSatelliteAssemblyToLoad(originalAnalyzerPath, actualCultureName);
             }
 
-            var satelliteFileName = GetSatelliteFileName(Path.GetFileName(realAssemblyPath));
-            var dir = Path.GetDirectoryName(realAssemblyPath)!;
-            return Path.Combine(dir, cultureName, satelliteFileName);
+            lock (_guard)
+            {
+                satelliteDictionary[cultureInfo] = satelliteAssemblyPath;
+            }
+
+            return satelliteAssemblyPath;
+
+            // Discover whether the specified satellite dll related to this analyzer exists.
+            static (string? SatelliteAssemblyPath, string? ActualCultureName) getSatelliteAssemblyLocation(string originalAnalyzerPath, CultureInfo cultureInfo)
+            {
+                var path = Path.GetDirectoryName(originalAnalyzerPath)!;
+                var resourceFileName = GetSatelliteFileName(Path.GetFileName(originalAnalyzerPath));
+
+                while (cultureInfo != CultureInfo.InvariantCulture)
+                {
+                    var resourceFilePath = Path.Combine(path, cultureInfo.Name, resourceFileName);
+
+                    if (File.Exists(resourceFilePath))
+                    {
+                        return (resourceFilePath, cultureInfo.Name);
+                    }
+
+                    cultureInfo = cultureInfo.Parent;
+                }
+
+                return (null, null);
+            }
         }
 
         /// <summary>
@@ -311,11 +294,11 @@ namespace Microsoft.CodeAnalysis
         protected abstract string PreparePathToLoad(string assemblyFilePath);
 
         /// <summary>
-        /// When overridden in a derived class, ensures satellite assemblies from the specified
-        /// path are prepared for loading. This is used to substitute out the original path with 
+        /// When overridden in a derived class, ensures the satellite assembly from the specified
+        /// path and cultureName are prepared for loading. This is used to substitute out the original path with 
         /// the shadow-copied version.
         /// </summary>
-        protected abstract void PrepareSatelliteAssembliesToLoad(string assemblyFilePath, ImmutableHashSet<string> resourceAssemblyCultureNames);
+        protected abstract void PrepareSatelliteAssemblyToLoad(string assemblyFilePath, string cultureName);
 
         /// <summary>
         /// When <see cref="PreparePathToLoad(string)"/> is overridden this returns the most recent
@@ -332,30 +315,6 @@ namespace Microsoft.CodeAnalysis
 
                 return tuple is { } value ? value.RealAssemblyPath : originalFullPath;
             }
-        }
-
-        /// <summary>
-        /// When <see cref="PreparePathToLoad(string)"/> is overridden this returns the most recent
-        /// real path for the given analyzer satellite assembly path
-        /// </summary>
-        internal string? GetRealSatelliteLoadPath(string originalSatelliteFullPath)
-        {
-            // This is a satellite assembly, need to find the mapped path of the real assembly, then 
-            // adjust that mapped path for the suffix of the satellite assembly
-            //
-            // Example of dll and it's corresponding satellite assembly
-            //
-            //  c:\some\path\en-GB\util.resources.dll
-            //  c:\some\path\util.dll
-            var assemblyFileName = Path.ChangeExtension(Path.GetFileNameWithoutExtension(originalSatelliteFullPath), ".dll");
-
-            var assemblyDir = Path.GetDirectoryName(originalSatelliteFullPath)!;
-            var cultureName = Path.GetFileName(assemblyDir);
-            assemblyDir = Path.GetDirectoryName(assemblyDir)!;
-
-            // Real assembly is located in the directory above this one
-            var assemblyPath = Path.Combine(assemblyDir, assemblyFileName);
-            return GetSatelliteInfoForPath(assemblyPath, cultureName);
         }
 
         internal (string OriginalAssemblyPath, string RealAssemblyPath)[] GetPathMapSnapshot()

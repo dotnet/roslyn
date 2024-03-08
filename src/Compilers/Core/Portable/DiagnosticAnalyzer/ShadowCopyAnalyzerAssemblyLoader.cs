@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         private readonly Lazy<(string directory, Mutex)> _shadowCopyDirectoryAndMutex;
 
         private readonly ConcurrentDictionary<Guid, Task<string>> _mvidPathMap = new ConcurrentDictionary<Guid, Task<string>>();
-        private readonly ConcurrentDictionary<Guid, Task> _mvidSatelliteAssemblyPathMap = new ConcurrentDictionary<Guid, Task>();
+        private readonly ConcurrentDictionary<(Guid, string), Task> _mvidSatelliteAssemblyPathMap = new ConcurrentDictionary<(Guid, string), Task>();
 
         internal string BaseDirectory => _baseDirectory;
 
@@ -172,23 +172,23 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected override void PrepareSatelliteAssembliesToLoad(string originalAnalyzerPath, ImmutableHashSet<string> cultureNames)
+        protected override void PrepareSatelliteAssemblyToLoad(string originalAnalyzerPath, string cultureName)
         {
             var mvid = AssemblyUtilities.ReadMvid(originalAnalyzerPath);
-            if (_mvidSatelliteAssemblyPathMap.TryGetValue(mvid, out Task? copyTask))
+            if (_mvidSatelliteAssemblyPathMap.TryGetValue((mvid, cultureName), out Task? copyTask))
             {
                 copyTask.Wait();
                 return;
             }
 
             var tcs = new TaskCompletionSource<bool>();
-            var task = _mvidSatelliteAssemblyPathMap.GetOrAdd(mvid, tcs.Task);
+            var task = _mvidSatelliteAssemblyPathMap.GetOrAdd((mvid, cultureName), tcs.Task);
             if (object.ReferenceEquals(task, tcs.Task))
             {
                 // This thread won and we need to do the copy.
                 try
                 {
-                    var shadowAnalyzerPath = copyAnalyzerContents();
+                    copyAnalyzerContents();
                     tcs.SetResult(true);
                     return;
                 }
@@ -205,27 +205,18 @@ namespace Microsoft.CodeAnalysis
                 return;
             }
 
-            string copyAnalyzerContents()
+            void copyAnalyzerContents()
             {
                 var analyzerFileName = Path.GetFileName(originalAnalyzerPath);
                 var shadowDirectory = Path.Combine(_shadowCopyDirectoryAndMutex.Value.directory, mvid.ToString());
                 var shadowAnalyzerPath = Path.Combine(shadowDirectory, analyzerFileName);
 
-                if (cultureNames.IsEmpty)
-                {
-                    return shadowAnalyzerPath;
-                }
-
                 var originalDirectory = Path.GetDirectoryName(originalAnalyzerPath)!;
                 var satelliteFileName = GetSatelliteFileName(analyzerFileName);
-                foreach (var cultureName in cultureNames)
-                {
-                    var originalSatellitePath = Path.Combine(originalDirectory, cultureName, satelliteFileName);
-                    var shadowSatellitePath = Path.Combine(shadowDirectory, cultureName, satelliteFileName);
-                    CopyFile(originalSatellitePath, shadowSatellitePath);
-                }
 
-                return shadowAnalyzerPath;
+                var originalSatellitePath = Path.Combine(originalDirectory, cultureName, satelliteFileName);
+                var shadowSatellitePath = Path.Combine(shadowDirectory, cultureName, satelliteFileName);
+                CopyFile(originalSatellitePath, shadowSatellitePath);
             }
         }
 

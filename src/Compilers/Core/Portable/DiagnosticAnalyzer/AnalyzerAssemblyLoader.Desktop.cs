@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
                 var assemblyName = new AssemblyName(args.Name);
                 var simpleName = assemblyName.Name;
                 var isSatelliteAssembly =
-                    !string.IsNullOrEmpty(assemblyName.CultureName) &&
+                    assemblyName.CultureInfo is not null &&
                     simpleName.EndsWith(".resources", StringComparison.Ordinal);
 
                 if (isSatelliteAssembly)
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis
                 var (originalPath, realPath) = GetBestPath(assemblyName);
                 if (isSatelliteAssembly && originalPath is not null)
                 {
-                    realPath = GetSatelliteInfoForPath(originalPath, assemblyName.CultureName);
+                    realPath = GetSatelliteInfoForPath(originalPath, assemblyName.CultureInfo);
                 }
 
                 if (realPath is not null)

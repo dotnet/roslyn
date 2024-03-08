@@ -712,7 +712,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             protected override string PreparePathToLoad(string fullPath)
                 => throw new FileNotFoundException(fullPath);
 
-            protected override void PrepareSatelliteAssembliesToLoad(string fullPath, ImmutableHashSet<string> resourceAssemblyCultureNames)
+            protected override void PrepareSatelliteAssemblyToLoad(string fullPath, string cultureName)
                 => throw new FileNotFoundException(fullPath);
         }
 

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             return File.Exists(fixedPath) ? fixedPath : fullPath;
         }
 
-        protected override void PrepareSatelliteAssembliesToLoad(string fullPath, ImmutableHashSet<string> resourceAssemblyCultureNames)
+        protected override void PrepareSatelliteAssemblyToLoad(string fullPath, string cultureName)
         {
         }
     }

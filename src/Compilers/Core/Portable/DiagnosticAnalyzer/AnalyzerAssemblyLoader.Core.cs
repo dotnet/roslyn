@@ -149,11 +149,11 @@ namespace Microsoft.CodeAnalysis
                 // loader has a mode where it loads from Stream though and the runtime will not handle
                 // that automatically. Rather than bifurate our loading behavior between Disk and
                 // Stream both modes just handle satellite loading directly
-                if (!string.IsNullOrEmpty(assemblyName.CultureName) && simpleName.EndsWith(".resources", StringComparison.Ordinal))
+                if (assemblyName.CultureInfo is not null && simpleName.EndsWith(".resources", StringComparison.Ordinal))
                 {
                     var analyzerFileName = Path.ChangeExtension(simpleName, ".dll");
                     var analyzerFilePath = Path.Combine(Directory, analyzerFileName);
-                    var satelliteLoadPath = _loader.GetSatelliteInfoForPath(analyzerFilePath, assemblyName.CultureName);
+                    var satelliteLoadPath = _loader.GetSatelliteInfoForPath(analyzerFilePath, assemblyName.CultureInfo);
                     if (satelliteLoadPath is not null)
                     {
                         return loadCore(satelliteLoadPath);

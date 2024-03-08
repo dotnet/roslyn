@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected override string PreparePathToLoad(string fullPath) => fullPath;
 
-        protected override void PrepareSatelliteAssembliesToLoad(string assemblyFilePath, ImmutableHashSet<string> resourceAssemblyCultureNames)
+        protected override void PrepareSatelliteAssemblyToLoad(string assemblyFilePath, string cultureName)
         {
         }
 
