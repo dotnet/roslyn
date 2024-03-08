@@ -8,9 +8,9 @@
       <SourceBuild RepoName="source-build-externals" ManagedOnly="true" />
     </Dependency>
     <!-- Intermediate is necessary for source build. -->
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-reference-packages" Version="9.0.0-alpha.1.24127.2">
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-reference-packages" Version="9.0.0-alpha.1.24155.1">
       <Uri>https://github.com/dotnet/source-build-reference-packages</Uri>
-      <Sha>6d28b5a26876f8f22dadb8f6cdee878faaa88464</Sha>
+      <Sha>768378e775fc5ddc99d41f2c4d1c78182f326ea7</Sha>
       <SourceBuild RepoName="source-build-reference-packages" ManagedOnly="true" />
     </Dependency>
     <Dependency Name="System.CommandLine" Version="2.0.0-beta4.24126.1">
@@ -106,14 +106,14 @@
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="8.0.0-beta.24151.4">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="8.0.0-beta.24156.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>cbb61c3a9a42e7c3cce17ee453ff5ecdc7f69282</Sha>
+      <Sha>1307d3e675219bf384f17764651f46767a07960b</Sha>
     </Dependency>
     <!-- Intermediate is necessary for source build. -->
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.arcade" Version="8.0.0-beta.24151.4">
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.arcade" Version="8.0.0-beta.24156.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>cbb61c3a9a42e7c3cce17ee453ff5ecdc7f69282</Sha>
+      <Sha>1307d3e675219bf384f17764651f46767a07960b</Sha>
       <SourceBuild RepoName="arcade" ManagedOnly="true" />
     </Dependency>
     <Dependency Name="Microsoft.DotNet.XliffTasks" Version="1.0.0-beta.23475.1" CoherentParentDependency="Microsoft.DotNet.Arcade.Sdk">
@@ -140,9 +140,9 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>5d10d428050c0d6afef30a072c4ae68776621877</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="8.0.0-beta.24151.4">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="8.0.0-beta.24156.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>cbb61c3a9a42e7c3cce17ee453ff5ecdc7f69282</Sha>
+      <Sha>1307d3e675219bf384f17764651f46767a07960b</Sha>
     </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0-preview.23468.1">
       <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
