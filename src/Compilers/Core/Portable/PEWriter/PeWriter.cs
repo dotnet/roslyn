@@ -36,53 +36,41 @@ namespace Microsoft.Cci
         internal struct EmitBuilders
         {
             internal BlobBuilder IlBlobBuilder;
-            internal PooledBlobBuilder MappedFieldDataBlobBuilder;
-            internal PooledBlobBuilder ManagedResourceBlobBuilder;
+            internal PooledBlobBuilder? MappedFieldDataBlobBuilder;
+            internal PooledBlobBuilder? ManagedResourceBlobBuilder;
             internal PooledBlobBuilder? PortableExecutableBlobBuilder;
             internal PooledBlobBuilder? PortablePdbBlobBuilder;
 
             public EmitBuilders()
             {
                 IlBlobBuilder = new BlobBuilder(32 * 1024);
-                MappedFieldDataBlobBuilder = PooledBlobBuilder.GetInstance();
-                ManagedResourceBlobBuilder = PooledBlobBuilder.GetInstance();
+                MappedFieldDataBlobBuilder = null;
+                ManagedResourceBlobBuilder = null;
                 PortableExecutableBlobBuilder = null;
                 PortablePdbBlobBuilder = null;
             }
 
             internal void Free()
             {
+                // There is a bug in LinkSuffix / LinkPrefix which causes the ownership to not
+                // transfer when these have Count of 0. To avoid this problem we should not be
+                // creating these builders unless we will actually put content into them.
+                //
+                // https://github.com/dotnet/runtime/issues/99266
+                Debug.Assert(ManagedResourceBlobBuilder == null || ManagedResourceBlobBuilder.Count > 0);
+                Debug.Assert(MappedFieldDataBlobBuilder == null || MappedFieldDataBlobBuilder.Count > 0);
+
                 if (PortableExecutableBlobBuilder is null)
                 {
-                    MappedFieldDataBlobBuilder.Free();
-                    ManagedResourceBlobBuilder.Free();
+                    MappedFieldDataBlobBuilder?.Free();
+                    ManagedResourceBlobBuilder?.Free();
                 }
                 else
                 {
-                    var mappedCount = MappedFieldDataBlobBuilder.Count;
-                    var resourceCount = ManagedResourceBlobBuilder.Count;
-
-                    PortableExecutableBlobBuilder.Free();
-
                     // Once PortableExecutableBuilder is created it becomes the owner of the 
                     // MappedFieldDataBuilder and ManagedResourceBuilder instances. Freeing 
                     // it is sufficient to free both of them.
-                    //
-                    // However there is a bug in LinkSuffix / LinkPrefix which causes the
-                    // ownership to not happen when these are length 0. Need to handle that
-                    // specially until this is fixed.
-                    // https://github.com/dotnet/runtime/issues/99266
-                    if (mappedCount == 0)
-                    {
-                        MappedFieldDataBlobBuilder.AssertAlive();
-                        MappedFieldDataBlobBuilder.Free();
-                    }
-
-                    if (resourceCount == 0)
-                    {
-                        ManagedResourceBlobBuilder.AssertAlive();
-                        ManagedResourceBlobBuilder.Free();
-                    }
+                    PortableExecutableBlobBuilder.Free();
                 }
 
                 PortablePdbBlobBuilder?.Free();
@@ -123,8 +111,8 @@ namespace Microsoft.Cci
             mdWriter.BuildMetadataAndIL(
                 nativePdbWriterOpt,
                 emitBuilders.IlBlobBuilder,
-                emitBuilders.MappedFieldDataBlobBuilder,
-                emitBuilders.ManagedResourceBlobBuilder,
+                ref emitBuilders.MappedFieldDataBlobBuilder,
+                ref emitBuilders.ManagedResourceBlobBuilder,
                 out mvidFixup,
                 out mvidStringFixup);
 
