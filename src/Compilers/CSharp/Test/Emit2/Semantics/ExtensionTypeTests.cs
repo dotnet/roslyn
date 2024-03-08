@@ -13705,6 +13705,85 @@ namespace N
         Assert.Equal("System.Func<System.Int32, System.Int32> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
     }
 
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void ExtensionMemberLookup_AsFunctionType_StaticMethod_WithTypeArgument()
+    {
+        var src = """
+var x = C.Method<int>;
+x();
+
+class C { }
+
+implicit extension E for C
+{
+    public static T Method<T>() { System.Console.Write("ran"); return default; }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+        Assert.Equal("System.Func<System.Int32> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_AsFunctionType_StaticMethod_WithTypeArgument_WrongArity()
+    {
+        var src = """
+class C
+{
+    void M()
+    {
+        var x = C.Method<int>;
+    }
+}
+
+implicit extension E for C
+{
+    public static T Method<T, U>(U u) => throw null;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (5,19): error CS0117: 'C' does not contain a definition for 'Method'
+            //         var x = C.Method<int>;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Method<int>").WithArguments("C", "Method").WithLocation(5, 19)
+            );
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+        Assert.Equal("? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+    }
+
+    [ConditionalFact(typeof(NoUsedAssembliesValidation), typeof(CoreClrOnly))] // PROTOTYPE enable and execute once we can lower/emit for non-static scenarios
+    public void ExtensionMemberLookup_AsFunctionType_InstanceMethod()
+    {
+        var src = """
+class C
+{
+    void M()
+    {
+        var x = this.Method;
+    }
+}
+
+implicit extension E for C
+{
+    public string Method() => throw null;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+        Assert.Equal("System.Func<System.String> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+    }
+
     [Fact]
     public void InferredVariable_TypeReceiver_StaticMethod_DifferentSignatures()
     {
@@ -17922,7 +18001,6 @@ class X
         comp.VerifyDiagnostics();
     }
 
-
     [ConditionalFact(typeof(CoreClrOnly))]
     public void ExtensionMethodGroup_TypeReceiver_StaticExtension()
     {
@@ -17942,7 +18020,7 @@ implicit extension E for C
 """;
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
         // PROTOTYPE need to infer delegate type
-        comp.VerifyDiagnostics( );
+        comp.VerifyDiagnostics();
         CompileAndVerify(comp, expectedOutput: "E.M");
 
         var tree = comp.SyntaxTrees.First();
