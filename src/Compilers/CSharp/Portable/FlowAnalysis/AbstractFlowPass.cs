@@ -3041,10 +3041,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
         {
-            var savedState = this.State.Clone();
-            VisitStatements(node.Statements);
-            SetState(savedState);
+            visitLabel(node.WhenTrueLabel);
+            var stateWhenTrue = this.State.Clone();
+            SetUnreachable();
+            visitLabel(node.WhenFalseLabel);
+            Join(ref this.State, ref stateWhenTrue);
             return null;
+
+            void visitLabel(LabelSymbol label)
+            {
+                ResolveBranches(label, null);
+                var state = LabelState(label);
+                Join(ref this.State, ref state);
+                _labels[label] = this.State.Clone();
+            }
         }
 
         public override BoundNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node)
