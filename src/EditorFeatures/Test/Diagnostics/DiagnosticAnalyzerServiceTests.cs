@@ -1005,8 +1005,7 @@ class A
             Assert.Null(diagnostic);
 
             // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
-            await incrementalAnalyzer.GetDiagnosticsAsync(
-                workspace.CurrentSolution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
+            await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
 
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
