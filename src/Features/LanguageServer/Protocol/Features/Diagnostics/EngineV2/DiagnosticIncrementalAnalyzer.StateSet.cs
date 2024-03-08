@@ -126,58 +126,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            public async Task<bool> OnDocumentClosedAsync(TextDocument document, IGlobalOptionService globalOptions)
-            {
-                // can not be cancelled
-                // remove active file state and put it in project state
-                if (!_activeFileStates.TryRemove(document.Id, out var activeFileState))
-                {
-                    return false;
-                }
-
-                // active file exist, put it in the project state
-                var projectState = GetOrCreateProjectState(document.Project.Id);
-                await projectState.MergeAsync(activeFileState, document, globalOptions).ConfigureAwait(false);
-                return true;
-            }
-
-            public bool OnDocumentReset(TextDocument document)
-            {
-                var changed = false;
-                // can not be cancelled
-                // remove active file state and put it in project state
-                if (TryGetActiveFileState(document.Id, out var activeFileState))
-                {
-                    activeFileState.ResetVersion();
-                    changed |= true;
-                }
-
-                if (TryGetProjectState(document.Project.Id, out var projectState))
-                {
-                    projectState.ResetVersion();
-                    changed |= true;
-                }
-
-                return changed;
-            }
-
-            public bool OnDocumentRemoved(DocumentId id)
-            {
-                // remove active file state for removed document
-                var removed = false;
-                if (_activeFileStates.TryRemove(id, out _))
-                {
-                    removed = true;
-                }
-                // remove state for the file that got removed.
-                if (_projectStates.TryGetValue(id.ProjectId, out var state))
-                {
-                    removed |= state.OnDocumentRemoved(id);
-                }
-
-                return removed;
-            }
-
             public bool OnProjectRemoved(ProjectId id)
             {
                 // remove state for project that got removed.
