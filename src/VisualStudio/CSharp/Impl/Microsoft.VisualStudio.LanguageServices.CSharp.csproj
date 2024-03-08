@@ -17,6 +17,11 @@
     <VssdkCompatibleExtension>true</VssdkCompatibleExtension>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="UnifiedSettings\csharpSettings.registration.json">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
     <Content Update=".vsextension/string-resources.json" XlfPreserveFileName="true" />
     <Content Include="UnifiedSettings/csharpSettings.registration.json" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
