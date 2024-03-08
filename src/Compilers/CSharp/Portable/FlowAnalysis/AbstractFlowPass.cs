@@ -1462,10 +1462,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+#nullable enable
         /// <summary>
         /// Do not call for a local function.
         /// </summary>
-        protected virtual void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
+        protected virtual void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol? method)
         {
             Debug.Assert(method?.OriginalDefinition.MethodKind != MethodKind.LocalFunction);
             VisitArgumentsBeforeCall(arguments, refKindsOpt);
@@ -1492,7 +1493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Writes ref and out parameters
         /// </summary>
-        private void VisitArgumentsAfterCall(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
+        private void VisitArgumentsAfterCall(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol? method)
         {
             for (int i = 0; i < arguments.Length; i++)
             {
@@ -1510,9 +1511,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return refKindsOpt.IsDefault || refKindsOpt.Length <= index ? RefKind.None : refKindsOpt[index];
         }
 
-        protected virtual void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol method)
+        protected virtual void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol? method)
         {
         }
+#nullable disable
 
         public override BoundNode VisitBadExpression(BoundBadExpression node)
         {
@@ -3355,7 +3357,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
         {
-            throw ExceptionUtilities.Unreachable();
+            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, method: null);
+            return null;
         }
 
         public override BoundNode VisitTypeOfOperator(BoundTypeOfOperator node)

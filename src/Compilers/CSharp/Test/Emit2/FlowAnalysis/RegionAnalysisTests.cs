@@ -14144,5 +14144,96 @@ class B
             Assert.Null(GetSymbolNamesJoined(flowAnalysis.ReadInside));
             Assert.Equal("this", GetSymbolNamesJoined(flowAnalysis.WrittenInside));
         }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72448")]
+        [Fact]
+        public void UnconvertedExpression_01()
+        {
+            string source = """
+                stackalloc X[new(), new()];
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (1,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // stackalloc X[new(), new()];
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "stackalloc X[new(), new()]").WithLocation(1, 1),
+                // (1,12): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                // stackalloc X[new(), new()];
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(1, 12),
+                // (1,12): error CS1575: A stackalloc expression requires [] after type
+                // stackalloc X[new(), new()];
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "X[new(), new()]").WithLocation(1, 12));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72448")]
+        [Theory]
+        [InlineData("new(1, 2)")]
+        [InlineData("default")]
+        [InlineData("args.Length > 0 ? default : default")]
+        [InlineData("args.Length > 0 switch { true => default, false => default }")]
+        [InlineData("$\"str\"")]
+        [InlineData("(default, 1)")]
+        [InlineData("[]")]
+        public void UnconvertedExpression_02(string expr)
+        {
+            string source = $$"""
+                stackalloc X[0, {{expr}}];
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (1,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // stackalloc X[0, default];
+                Diagnostic(ErrorCode.ERR_IllegalStatement, $"stackalloc X[0, {expr}]").WithLocation(1, 1),
+                // (1,12): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                // stackalloc X[0, default];
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(1, 12),
+                // (1,12): error CS1575: A stackalloc expression requires [] after type
+                // stackalloc X[0, default];
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, $"X[0, {expr}]").WithLocation(1, 12));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72448")]
+        [Fact]
+        public void UnconvertedExpression_03()
+        {
+            string source = """
+                object x;
+                stackalloc X[0, new(x = 1)];
+                object y = x;
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // stackalloc X[0, new(x = 1)];
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "stackalloc X[0, new(x = 1)]").WithLocation(2, 1),
+                // (2,12): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                // stackalloc X[0, new(x = 1)];
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(2, 12),
+                // (2,12): error CS1575: A stackalloc expression requires [] after type
+                // stackalloc X[0, new(x = 1)];
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "X[0, new(x = 1)]").WithLocation(2, 12));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72448")]
+        [Fact]
+        public void UnconvertedExpression_04()
+        {
+            string source = """
+                object x;
+                stackalloc X[0, new(out x)];
+                object y = x;
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // stackalloc X[0, new(out x)];
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "stackalloc X[0, new(out x)]").WithLocation(2, 1),
+                // (2,12): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                // stackalloc X[0, new(out x)];
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(2, 12),
+                // (2,12): error CS1575: A stackalloc expression requires [] after type
+                // stackalloc X[0, new(out x)];
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "X[0, new(out x)]").WithLocation(2, 12));
+        }
     }
 }
