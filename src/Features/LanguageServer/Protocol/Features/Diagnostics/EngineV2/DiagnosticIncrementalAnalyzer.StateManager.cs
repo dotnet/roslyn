@@ -191,6 +191,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return stateSets.ToImmutable();
             }
 
+            public bool OnProjectRemoved(IEnumerable<StateSet> stateSets, ProjectId projectId)
+            {
+                var removed = false;
+                foreach (var stateSet in stateSets)
+                {
+                    removed |= stateSet.OnProjectRemoved(projectId);
+                }
+
+                _projectAnalyzerStateMap.TryRemove(projectId, out _);
+                return removed;
+            }
+
             private void RaiseProjectAnalyzerReferenceChanged(ProjectAnalyzerReferenceChangedEventArgs args)
                 => ProjectAnalyzerReferenceChanged?.Invoke(this, args);
 
