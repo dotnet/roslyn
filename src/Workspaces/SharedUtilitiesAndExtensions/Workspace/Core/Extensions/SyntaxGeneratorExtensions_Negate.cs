@@ -158,6 +158,22 @@ internal static partial class SyntaxGeneratorExtensions
                     return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.ConstantPattern(generator.NullLiteralExpression()));
                 }
 
+                // With a not pattern, it is possible to have an ambiguity between a type name or a local identifier.
+                // For example, if a class is named C and we have:
+                // C C = new();
+                // object O = C;
+                // if (O is not C)
+                // ...
+                // Then there is an ambiguity between the type C and the local named C.
+                // To address this, we use an expression with the fully qualified type name which the simplifier
+                // will shorten to the shortest possible without ambiguity
+                if (operation is IIsTypeOperation { TypeOperand.SpecialType: SpecialType.None } isTypeOperation &&
+                    syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
+                {
+                    var typeNode = generatorInternal.Type(isTypeOperation.TypeOperand, false);
+                    return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.NotPattern(generatorInternal.ConstantPattern(typeNode)));
+                }
+
                 // `is y`   ->    `is not y`
                 if (syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
                     return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.NotPattern(generatorInternal.TypePattern(rightOperand)));

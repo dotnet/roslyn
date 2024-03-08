@@ -174,6 +174,49 @@ public partial class CSharpUseNotPatternTests
         }.RunAsync();
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72370")]
+    public async Task UseNotPattern2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                       public class Program
+                       {
+                           public class C
+                           {
+                           }
+                           public static void Main()
+                           {
+                               C C = new();
+                               object O = C;
+                               
+                               if (!(O [|is|] C))
+                               {
+                               }
+                           }
+                       }
+                       """,
+            FixedCode = """
+                        public class Program
+                        {
+                            public class C
+                            {
+                            }
+                            public static void Main()
+                            {
+                                C C = new();
+                                object O = C;
+                                
+                                if (O is not Program.C)
+                                {
+                                }
+                            }
+                        }
+                        """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
+
     [Fact]
     public async Task UnavailableInCSharp8()
     {
