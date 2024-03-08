@@ -252,7 +252,6 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             Func<bool, bool, ImmutableArray<DiagnosticData>, (bool, bool)> resultSetter,
             bool expectedSyntax, bool expectedSemantic)
         {
-            _ = document;
             var exportProvider = workspace.Services.SolutionServices.ExportProvider;
 
             Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
@@ -275,8 +274,6 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             };
 
             await analyzer.ForceAnalyzeProjectAsync(document.Project, CancellationToken.None);
-            await analyzer.GetDiagnosticsAsync(
-                workspace.CurrentSolution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
 
             // wait for all events to raised
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
