@@ -33543,6 +33543,81 @@ partial class Program
                 """);
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72461")]
+        [Fact]
+        public void Add_ParamsArray_08()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable<object>
+                {
+                    private List<object> _list = new();
+                    public void Add(params object[] x) => _list.AddRange(x);
+                    public IEnumerator<object> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                """;
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        object x = 1;
+                        object[] y = [2, 3];
+                        MyCollection z = /*<bind>*/[x, ..y]/*</bind>*/;
+                        z.Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([sourceB1, sourceA, s_collectionExtensions], options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[1, 2, 3], ");
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection) (Syntax: '[x, ..y]')
+                  Elements(2):
+                      ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Object) (Syntax: 'x')
+                      ISpreadOperation (ElementType: System.Object) (OperationKind.Spread, Type: null) (Syntax: '..y')
+                        Operand:
+                          ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Object[]) (Syntax: 'y')
+                        ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (Identity)
+                """);
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        object[] x = [1];
+                        object[][] y = [[2, 3]];
+                        MyCollection z = /*<bind>*/[x, ..y]/*</bind>*/;
+                        z.Report();
+                    }
+                }
+                """;
+
+            comp = CreateCompilation([sourceB2, sourceA, s_collectionExtensions], options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "[1, 2, 3], ");
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection) (Syntax: '[x, ..y]')
+                  Elements(2):
+                      ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Object[]) (Syntax: 'x')
+                      ISpreadOperation (ElementType: System.Object[]) (OperationKind.Spread, Type: null) (Syntax: '..y')
+                        Operand:
+                          ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Object[][]) (Syntax: 'y')
+                        ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (Identity)
+                """);
+        }
+
         [Fact]
         public void SynthesizedReadOnlyList_SingleElement()
         {
