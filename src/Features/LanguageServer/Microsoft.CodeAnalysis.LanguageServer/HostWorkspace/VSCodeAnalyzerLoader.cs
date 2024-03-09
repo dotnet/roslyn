@@ -28,7 +28,7 @@ internal class VSCodeAnalyzerLoader
         _diagnosticService = (DiagnosticService)diagnosticService;
     }
 
-    public void InitializeDiagnosticsServices(Workspace workspace)
+    public void InitializeDiagnosticsServices()
     {
         _diagnosticService.Register((IDiagnosticUpdateSource)_analyzerService);
     }
