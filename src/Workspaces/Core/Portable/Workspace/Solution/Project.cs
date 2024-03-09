@@ -357,6 +357,11 @@ public partial class Project
         return _solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(this.State, cancellationToken);
     }
 
+    internal ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(CancellationToken cancellationToken)
+    {
+        return _solution.CompilationState.GetSourceGeneratorRunResultAsync(this.State, cancellationToken);
+    }
+
     internal Task<bool> ContainsSymbolsWithNameAsync(
         string name, CancellationToken cancellationToken)
     {
