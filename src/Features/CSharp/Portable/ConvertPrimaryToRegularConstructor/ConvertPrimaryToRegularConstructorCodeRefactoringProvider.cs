@@ -311,6 +311,13 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                     var currentTypeDeclaration = (TypeDeclarationSyntax)current;
                     currentTypeDeclaration = RemoveParamXmlElements(currentTypeDeclaration);
 
+                    // Check if the current type declaration has no open or close brace tokens
+                    if (currentTypeDeclaration.OpenBraceToken.IsKind(SyntaxKind.None) || currentTypeDeclaration.CloseBraceToken.IsKind(SyntaxKind.None))
+                    {
+                        // Call the method to ensure open and close brace tokens are present
+                        currentTypeDeclaration = currentTypeDeclaration.EnsureOpenAndCloseBraceTokens().WithoutTrailingTrivia();
+                    }
+
                     var constructorDeclaration = CreateConstructorDeclaration().WithAdditionalAnnotations(constructorAnnotation);
 
                     // If there is an existing non-static constructor, place it before that
