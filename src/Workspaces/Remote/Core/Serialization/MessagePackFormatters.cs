@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Remote
             new ForceTypelessFormatter<IdeCodeStyleOptions>(),
         ];
 
-        private static readonly ImmutableArray<IFormatterResolver> s_resolvers = [StandardResolverAllowPrivate.Instance];
+        private static readonly ImmutableArray<IFormatterResolver> s_resolvers = [RoslynImmutableCollectionFormatterResolver.Instance, StandardResolverAllowPrivate.Instance];
 
         internal static readonly IFormatterResolver DefaultResolver = CompositeResolver.Create(Formatters, s_resolvers);
 

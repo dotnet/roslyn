@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
@@ -25,6 +26,9 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     private readonly ISerializerService _serializerService = serializerService;
     private readonly SolutionAssetCache _assetCache = assetCache;
     private readonly IAssetSource _assetSource = assetSource;
+
+    // Don't trim on free as these can commonly exceed the threshold size
+    private static readonly ObjectPool<SegmentedList<Checksum>> s_checksumListPool = new(() => new(), trimOnFree: false);
 
     private T GetRequiredAsset<T>(Checksum checksum)
     {
@@ -118,28 +122,33 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
         using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
         {
-            using var _1 = ArrayBuilder<Checksum>.GetInstance(checksums.Count, out var missingChecksums);
+            using var missingChecksumsObject = s_checksumListPool.GetPooledObject();
+            var missingChecksums = missingChecksumsObject.Object;
+
             foreach (var checksum in checksums)
             {
                 if (!_assetCache.TryGetAsset<object>(checksum, out _))
                     missingChecksums.Add(checksum);
             }
 
-            var checksumsArray = missingChecksums.ToImmutableAndClear();
-            var assets = await RequestAssetsAsync(assetHint, checksumsArray, cancellationToken).ConfigureAwait(false);
+            // Perf: We can convert this SegmentedList to an ImmutableSegmentedList as we know that missingChecksums will not be modified
+            // during the lifetime of the immutableMissingChecksums.
+            var immutableMissingChecksums = ImmutableSegmentedList<Checksum>.ImmutableCollectionsMarshal.ToImmutableSegmentedList(missingChecksums);
 
-            Contract.ThrowIfTrue(checksumsArray.Length != assets.Length);
+            var assets = await RequestAssetsAsync(assetHint, immutableMissingChecksums, cancellationToken).ConfigureAwait(false);
+
+            Contract.ThrowIfTrue(missingChecksums.Count != assets.Length);
 
             for (int i = 0, n = assets.Length; i < n; i++)
-                _assetCache.GetOrAdd(checksumsArray[i], assets[i]);
+                _assetCache.GetOrAdd(missingChecksums[i], assets[i]);
         }
     }
 
     private async Task<ImmutableArray<object>> RequestAssetsAsync(
-        AssetHint assetHint, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
+        AssetHint assetHint, ImmutableSegmentedList<Checksum> checksums, CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
-        if (checksums.Length == 0)
+        if (checksums.Count == 0)
             return [];
 
         return await _assetSource.GetAssetsAsync(_solutionChecksum, assetHint, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
