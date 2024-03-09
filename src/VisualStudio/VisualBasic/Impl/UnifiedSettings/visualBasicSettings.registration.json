@@ -65,7 +65,7 @@
       "title": "@Snippets_behavior;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
       "type": "string",
       "enum": [ "neverInclude", "alwaysInclude", "includeAfterTypingIdentifierQuestionTab" ],
-      "enumItemLabels": [ "@Never_include_snippets;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll", "@Always_include_snippets;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll", "@Include_snippets_when_Tab_is_typed_after_an_identifier;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll" ],
+      "enumItemLabels": [ "@Never_include_snippets;{574fc912-f74f-4b4e-92c3-f695c208a2bb}", "@Always_include_snippets;{574fc912-f74f-4b4e-92c3-f695c208a2bb}", "@Include_snippets_when_Tab_is_typed_after_an_identifier;{574fc912-f74f-4b4e-92c3-f695c208a2bb}" ],
       "default": "includeAfterTypingIdentifierQuestionTab",
       "order": 30,
       "migration": {
@@ -79,7 +79,7 @@
               "result": "neverInclude",
               "match": 1
             },
-            // '0' matches to SnippetsRule.Default. Means the behavior is decided by langauge.
+            // '0' matches to SnippetsRule.Default. Means the behavior is decided by language.
             // '3' matches to SnippetsRule.IncludeAfterTypingIdentifierQuestionTab. It's the default behavior for Visual Basic
             // Put both mapping here, so it's possible for unified setting to load '0' from the storage.
             // Put '3' in front, so unifed settings would persist '3' to storage when 'includeAfterTypingIdentifierQuestionTab' is selected.
@@ -104,7 +104,7 @@
       "title": "@Enter_key_behavior_colon;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
       "type": "string",
       "enum": [ "never", "afterFullyTypedWord", "always" ],
-      "enumItemLabels": [ "@Never_add_new_line_on_enter;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Only_add_new_line_on_enter_after_end_of_fully_typed_word;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Always_add_new_line_on_enter;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}" ],
+      "enumItemLabels": [ "@Never_add_new_line_on_enter;{574fc912-f74f-4b4e-92c3-f695c208a2bb}", "@Only_add_new_line_on_enter_after_end_of_fully_typed_word;{574fc912-f74f-4b4e-92c3-f695c208a2bb}", "@Always_add_new_line_on_enter;{574fc912-f74f-4b4e-92c3-f695c208a2bb}" ],
       "default": "always",
       "order": 40,
       "migration": {
