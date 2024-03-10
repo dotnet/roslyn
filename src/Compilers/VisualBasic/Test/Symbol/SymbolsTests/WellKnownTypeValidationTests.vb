@@ -892,7 +892,9 @@ End Namespace
                          WellKnownMember.Microsoft_VisualBasic_Conversion__FixSingle,
                          WellKnownMember.Microsoft_VisualBasic_Conversion__FixDouble,
                          WellKnownMember.Microsoft_VisualBasic_Conversion__IntSingle,
-                         WellKnownMember.Microsoft_VisualBasic_Conversion__IntDouble
+                         WellKnownMember.Microsoft_VisualBasic_Conversion__IntDouble,
+                         WellKnownMember.Microsoft_VisualBasic_Conversion__FixDecimal,
+                         WellKnownMember.Microsoft_VisualBasic_Conversion__IntDecimal
                         ' The type is not embedded, so the member is not available.
                         Continue For
                     Case WellKnownMember.System_Array__Empty,

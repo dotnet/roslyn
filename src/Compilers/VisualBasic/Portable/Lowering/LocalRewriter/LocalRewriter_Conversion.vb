@@ -1226,6 +1226,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result As BoundExpression = node
             Dim member As WellKnownMember
 
+            Dim operand = node.Operand
+
+            ' Use C# explicit cast to integral types (=Decimal.ToIntNN) instead of Convert.ToIntNN
+            ' when the value has just been rounded using several rounding methods in Math.
+            ' Convert.ToIntNN execute an extra Decimal.Round (=Math.Round) in addition to Decimal.ToIntNN.
+            ' e.g. Convert.ToInt32: https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/Convert.cs,11fd4940860023d5
+
+            If operand.Kind = BoundKind.Call AndAlso underlyingTypeTo.IsIntegralType() Then
+                Dim callOperand = DirectCast(operand, BoundCall)
+                Dim target As BoundExpression = Nothing
+                If IsDecimalTruncation(callOperand) Then
+                    ' CInt(Fix(number)) and the like can be simplified to just truncate the number to the integral type
+                    target = callOperand.Arguments(0)
+                ElseIf ReturnsWholeNumberDecimal(callOperand) Then
+                    ' CInt(Math.Floor(number)) and the like can omit rounding the result of Floor, which is already a whole number
+                    target = operand
+                End If
+                If target IsNot Nothing Then
+                    Dim castMember As SpecialMember = SpecialMember.Count
+                    Select Case underlyingTypeTo.SpecialType
+                        Case SpecialType.System_SByte : castMember = SpecialMember.System_Decimal__op_Explicit_ToSByte
+                        Case SpecialType.System_Byte : castMember = SpecialMember.System_Decimal__op_Explicit_ToByte
+                        Case SpecialType.System_Int16 : castMember = SpecialMember.System_Decimal__op_Explicit_ToInt16
+                        Case SpecialType.System_UInt16 : castMember = SpecialMember.System_Decimal__op_Explicit_ToUInt16
+                        Case SpecialType.System_Int32 : castMember = SpecialMember.System_Decimal__op_Explicit_ToInt32
+                        Case SpecialType.System_UInt32 : castMember = SpecialMember.System_Decimal__op_Explicit_ToUInt32
+                        Case SpecialType.System_Int64 : castMember = SpecialMember.System_Decimal__op_Explicit_ToInt64
+                        Case SpecialType.System_UInt64 : castMember = SpecialMember.System_Decimal__op_Explicit_ToUInt64
+                    End Select
+                    If castMember <> SpecialMember.Count Then
+                        Dim castMemberSymbol As MethodSymbol = Nothing
+                        If TryGetSpecialMember(castMemberSymbol, castMember, node.Syntax, True) Then
+                            Return New BoundCall(node.Syntax, castMemberSymbol, Nothing, Nothing, ImmutableArray.Create(target), Nothing, underlyingTypeTo)
+                        End If
+                    End If
+                End If
+            End If
+
             Select Case underlyingTypeTo.SpecialType
                 Case SpecialType.System_Boolean : member = WellKnownMember.System_Convert__ToBooleanDecimal
                 Case SpecialType.System_SByte : member = WellKnownMember.System_Convert__ToSByteDecimal
@@ -1249,7 +1287,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             memberSymbol = DirectCast(Compilation.GetWellKnownTypeMember(member), MethodSymbol)
 
             If Not ReportMissingOrBadRuntimeHelper(node, member, memberSymbol) Then
-                Dim operand = node.Operand
 
                 Debug.Assert(memberSymbol.ReturnType Is underlyingTypeTo)
                 Debug.Assert(memberSymbol.Parameters(0).Type Is typeFrom)
@@ -1329,7 +1366,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ElseIf "Floor".Equals(methodName) Then
                 Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Math__FloorDouble)
             ElseIf "Round".Equals(methodName) Then
-                Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Math__RoundDouble)
+                Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Math__RoundDouble) OrElse
+                    node.Method = Compilation.GetWellKnownTypeMember(WellKnownMember.System_Math__RoundDoubleMidpointRounding)
             ElseIf "Int".Equals(methodName) Then
                 Select Case node.Type.SpecialType
                     Case SpecialType.System_Single
@@ -1360,6 +1398,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Select
             ElseIf "Truncate".Equals(methodName) Then
                 Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Math__TruncateDouble)
+            End If
+
+            Return False
+        End Function
+
+        ''' <summary>
+        ''' Is this a decimal operation that results in a whole number, rendering a following rounding operation redundant?
+        ''' </summary>
+        Private Function ReturnsWholeNumberDecimal(node As BoundCall) As Boolean
+            Dim methodName As String = node.Method.Name
+            If "Ceiling".Equals(methodName) Then
+                Return node.Method = Compilation.GetWellKnownTypeMember(WellKnownMember.System_Math__CeilingDecimal)
+            ElseIf "Floor".Equals(methodName) Then
+                Return node.Method = Compilation.GetWellKnownTypeMember(WellKnownMember.System_Math__FloorDecimal)
+            ElseIf "Round".Equals(methodName) Then
+                Return node.Method = Compilation.GetWellKnownTypeMember(WellKnownMember.System_Math__RoundDecimal) OrElse
+                    node.Method = Compilation.GetWellKnownTypeMember(WellKnownMember.System_Math__RoundDecimalMidpointRounding)
+            ElseIf "Int".Equals(methodName) Then
+                Return node.Method = Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Conversion__IntDecimal)
+            End If
+
+            Return False
+        End Function
+
+        ''' <summary>
+        ''' Is this a decimal truncation operation that would be redundant if followed by a truncation to an integral type?
+        ''' </summary>
+        Private Function IsDecimalTruncation(node As BoundCall) As Boolean
+            Dim methodName As String = node.Method.Name
+            If "Fix".Equals(methodName) Then
+                Return node.Method = Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Conversion__FixDecimal)
+            ElseIf "Truncate".Equals(methodName) Then
+                Return node.Method = Compilation.GetWellKnownTypeMember(WellKnownMember.System_Math__TruncateDecimal)
             End If
 
             Return False

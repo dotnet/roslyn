@@ -642,6 +642,15 @@ namespace Microsoft.CodeAnalysis
         System_Collections_Immutable_ImmutableArray_T__AsSpan,
         System_Collections_Generic_List_T__AddRange,
 
+        System_Math__RoundDoubleMidpointRounding,
+        System_Math__RoundDecimal,
+        System_Math__RoundDecimalMidpointRounding,
+        System_Math__CeilingDecimal,
+        System_Math__FloorDecimal,
+        System_Math__TruncateDecimal,
+        Microsoft_VisualBasic_Conversion__FixDecimal,
+        Microsoft_VisualBasic_Conversion__IntDecimal,
+
         Count,
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here
