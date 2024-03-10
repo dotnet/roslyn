@@ -450,6 +450,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundLambda Bind(NamedTypeSymbol delegateType, bool isExpressionTree)
             => SuppressIfNeeded(Data.Bind(delegateType, isExpressionTree));
 
+        public bool HasBoundForErrorRecovery => Data.HasBoundForErrorRecovery;
+
         public BoundLambda BindForErrorRecovery()
             => SuppressIfNeeded(Data.BindForErrorRecovery());
 
@@ -494,6 +496,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Number of lambdas bound.
         /// </summary>
         internal int LambdaBindingCount;
+
+        internal int UnboundLambdaStateCount;
     }
 
     internal abstract class UnboundLambdaState
@@ -517,6 +521,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(binder != null);
             Debug.Assert(binder.ContainingMemberOrLambda != null);
+
+            if (binder.Compilation.TestOnlyCompilationData is LambdaBindingData data)
+            {
+                Interlocked.Increment(ref data.UnboundLambdaStateCount);
+            }
 
             if (includeCache)
             {
@@ -1117,6 +1126,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new WithLambdaParametersBinder(lambdaSymbol, binder);
         }
+
+        public bool HasBoundForErrorRecovery => _errorBinding is { };
 
         // UNDONE: [MattWar]
         // UNDONE: Here we enable the consumer of an unbound lambda that could not be 
