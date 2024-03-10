@@ -416,8 +416,7 @@ internal sealed partial class SolutionState
 
     private static void AddDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, FilePathToDocumentIdsMap.Builder builder)
     {
-        foreach (var documentState in documentStates)
-            builder.Add(documentState.FilePath, documentState.Id);
+        builder.AddRange(documentStates);
     }
 
     public FilePathToDocumentIdsMap CreateFilePathToDocumentIdsMapWithRemovedDocuments(IEnumerable<TextDocumentState> documentStates)
@@ -429,8 +428,7 @@ internal sealed partial class SolutionState
 
     private static void RemoveDocumentFilePaths(IEnumerable<TextDocumentState> documentStates, FilePathToDocumentIdsMap.Builder builder)
     {
-        foreach (var documentState in documentStates)
-            builder.Remove(documentState.FilePath, documentState.Id);
+        builder.RemoveRange(documentStates);
     }
 
     private FilePathToDocumentIdsMap CreateFilePathToDocumentIdsMapWithFilePath(DocumentId documentId, string? oldFilePath, string? newFilePath)
