@@ -35,7 +35,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
+    <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
       <Aliases>global,workspaces</Aliases>
     </ProjectReference>
   </ItemGroup>
