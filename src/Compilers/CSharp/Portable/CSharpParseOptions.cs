@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -186,19 +187,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // e.g. [["System", "Threading"], ["System", "Collections"]]
-                ImmutableArray<ImmutableArray<string>> previewNamespaces;
-                if (Features.TryGetValue("InterceptorsPreviewNamespaces", out var namespaces))
-                {
-                    previewNamespaces = namespaces
-                        .Split(';')
-                        .SelectAsArray(segment => segment.Split('.').ToImmutableArray());
-                }
-                else
-                {
-                    previewNamespaces = ImmutableArray<ImmutableArray<string>>.Empty;
-                }
+                ImmutableArray<ImmutableArray<string>> previewNamespaces = Features.TryGetValue("InterceptorsPreviewNamespaces", out var namespaces) && namespaces.Length > 0
+                    ? makeNamespaces(namespaces)
+                    : ImmutableArray<ImmutableArray<string>>.Empty;
+
                 ImmutableInterlocked.InterlockedInitialize(ref _interceptorsPreviewNamespaces, previewNamespaces);
                 return previewNamespaces;
+
+                ImmutableArray<ImmutableArray<string>> makeNamespaces(string namespaces)
+                {
+                    var builder = ArrayBuilder<ImmutableArray<string>>.GetInstance();
+                    var singleNamespaceBuilder = ArrayBuilder<string>.GetInstance();
+                    int currentIndex = 0;
+                    while (currentIndex < namespaces.Length && namespaces.IndexOf(';', currentIndex) is not -1 and var semicolonIndex)
+                    {
+                        var namespaceParts = makeSingleNamespaceParts(singleNamespaceBuilder, namespaces.AsSpan(currentIndex, semicolonIndex - currentIndex));
+                        if (!builder.Any(ns => ns.SequenceEqual(namespaceParts)))
+                        {
+                            builder.Add(namespaceParts);
+                        }
+                        currentIndex = semicolonIndex + 1;
+                    }
+
+                    var namespaceParts1 = makeSingleNamespaceParts(singleNamespaceBuilder, namespaces.AsSpan(currentIndex));
+                    if (!builder.Any(ns => ns.SequenceEqual(namespaceParts1)))
+                    {
+                        builder.Add(namespaceParts1);
+                    }
+
+                    singleNamespaceBuilder.Free();
+                    return builder.ToImmutableAndFree();
+                }
+
+                ImmutableArray<string> makeSingleNamespaceParts(ArrayBuilder<string> singleNamespaceBuilder, ReadOnlySpan<char> @namespace)
+                {
+                    int currentIndex = 0;
+                    while (currentIndex < @namespace.Length && @namespace.IndexOf('.', currentIndex) is not -1 and var dotIndex)
+                    {
+                        singleNamespaceBuilder.Add(@namespace.Slice(currentIndex, dotIndex - currentIndex).ToString());
+                        currentIndex = dotIndex + 1;
+                    }
+                    singleNamespaceBuilder.Add(@namespace.Slice(currentIndex).ToString());
+                    return singleNamespaceBuilder.ToImmutableAndClear();
+                }
             }
         }
 

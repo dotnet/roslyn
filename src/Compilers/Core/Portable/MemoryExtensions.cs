@@ -10,6 +10,20 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class MemoryExtensions
     {
+        public static int IndexOf(this ReadOnlySpan<char> span, char target, int startIndex)
+        {
+            for (int i = startIndex; i < span.Length; i++)
+            {
+                var c = span[i];
+                if (c == target)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
         public static int IndexOfAny(this ReadOnlySpan<char> span, char[] characters)
         {
             for (int i = 0; i < span.Length; i++)
