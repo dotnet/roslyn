@@ -658,7 +658,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         foreach (var diagnostic in sourceBag.AsEnumerableWithoutResolution())
                         {
-                            if ((ErrorCode)diagnostic.Code is not ErrorCode.WRN_ConvertingLock)
+                            var code = diagnostic is DiagnosticWithInfo { HasLazyInfo: true, LazyInfo.Code: var lazyCode } ? lazyCode : diagnostic.Code;
+                            if ((ErrorCode)code is not ErrorCode.WRN_ConvertingLock)
                             {
                                 diagnostics.Add(diagnostic);
                             }

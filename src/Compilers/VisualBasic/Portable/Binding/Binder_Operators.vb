@@ -54,7 +54,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If Not sourceBag.IsEmptyWithoutResolution Then
                     For Each diagnostic In sourceBag.AsEnumerableWithoutResolution()
-                        If diagnostic.Code <> ERRID.WRN_ConvertingLock Then
+                        Dim code As Integer
+                        Dim diagnosticWithInfo = TryCast(diagnostic, DiagnosticWithInfo)
+                        If diagnosticWithInfo IsNot Nothing AndAlso diagnosticWithInfo.HasLazyInfo Then
+                            code = diagnosticWithInfo.LazyInfo.Code
+                        Else
+                            code = diagnostic.Code
+                        End If
+
+                        If code <> ERRID.WRN_ConvertingLock Then
                             diagnostics.Add(diagnostic)
                         End If
                     Next
