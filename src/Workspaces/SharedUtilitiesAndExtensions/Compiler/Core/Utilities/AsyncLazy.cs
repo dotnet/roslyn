@@ -11,7 +11,7 @@ namespace Roslyn.Utilities;
 internal static class AsyncLazy
 {
     public static AsyncLazy<T> Create<T, TArg>(Func<TArg, CancellationToken, Task<T>> asynchronousComputeFunction, Func<TArg, CancellationToken, T>? synchronousComputeFunction, TArg arg)
-        => new AsyncLazy<T, TArg>(asynchronousComputeFunction, synchronousComputeFunction, arg);
+        => AsyncLazy<T>.Create(asynchronousComputeFunction, synchronousComputeFunction, arg);
 
     public static AsyncLazy<T> Create<T, TArg>(Func<TArg, CancellationToken, Task<T>> asynchronousComputeFunction, TArg arg)
         => Create(
@@ -42,5 +42,5 @@ internal static class AsyncLazy
             arg: (asynchronousComputeFunction, synchronousComputeFunction));
 
     public static AsyncLazy<T> Create<T>(T value)
-        => new AsyncLazy<T, VoidResult>(value);
+        => AsyncLazy<T>.Create<T>(value);
 }
