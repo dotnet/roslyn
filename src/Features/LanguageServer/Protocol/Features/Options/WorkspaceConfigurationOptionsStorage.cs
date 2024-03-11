@@ -39,5 +39,5 @@ internal static class WorkspaceConfigurationOptionsStorage
         "dotnet_enable_opening_source_generated_files_in_workspace_feature_flag", WorkspaceConfigurationOptions.Default.EnableOpeningSourceGeneratedFiles);
 
     public static readonly Option2<bool> RunSourceGeneratorsExplicitly = new(
-        "dotnet_run_source_generators_explicitly", defaultValue: true);
+        "dotnet_run_source_generators_explicitly", WorkspaceConfigurationOptions.Default.RunSourceGeneratorsExplicitly);
 }
