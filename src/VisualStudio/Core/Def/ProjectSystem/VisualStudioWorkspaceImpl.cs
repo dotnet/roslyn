@@ -178,6 +178,14 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
                     // A real build just finished.  Clear out any results from the last "run code analysis" command.
                     this.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>().Clear();
                     ExternalErrorDiagnosticUpdateSource.OnSolutionBuildCompleted();
+
+                    // After a build occurs, transition the solution to a new source generator version.  This will
+                    // ensure that any cached SG documents will be re-generated.
+                    this.SetCurrentSolution(
+                        oldSolution => oldSolution.WithSourceGeneratorVersion(oldSolution.SourceGeneratorVersion + 1),
+                        (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
+                        onBeforeUpdate: null,
+                        onAfterUpdate: null);
                 }
             };
 
