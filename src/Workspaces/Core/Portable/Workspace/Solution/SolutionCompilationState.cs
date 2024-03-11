@@ -1144,6 +1144,9 @@ internal sealed partial class SolutionCompilationState
             // Let the tracker know that the source generator version has changed. We do this by unfreezing the tracker.
             // By moving it out of the frozen state if it is there, it will then recompute generators when next asked.
             var newTracker = tracker.UnfreezeState();
+            if (newTracker == tracker)
+                continue;
+
             newIdToTrackerMapBuilder[projectId] = newTracker;
         }
 
@@ -1185,7 +1188,7 @@ internal sealed partial class SolutionCompilationState
                 continue;
 
             var oldTracker = GetCompilationTracker(projectId);
-            var newTracker = oldTracker.FreezePartialState(cancellationToken);
+            var newTracker = oldTracker.FreezeState(cancellationToken);
             if (oldTracker == newTracker)
                 continue;
 

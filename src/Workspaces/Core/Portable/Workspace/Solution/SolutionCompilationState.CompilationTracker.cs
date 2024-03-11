@@ -790,11 +790,41 @@ namespace Microsoft.CodeAnalysis
             {
                 var state = this.ReadState();
 
-                var newState = state?.WithIsFrozen(false);
-
-                // If updating our state didn't do anything, we weren't frozen to begin with.  So we can just return ourselves as is.
-                if (state == newState)
+                // If we've computed no state yet, we can't be frozen, so there's nothing to unfreeze. Just return
+                // ourselves.  The next request to create the compilation will do so fully, including running
+                // generators.
+                if (state is null)
                     return this;
+
+                // If we're not frozen to begin with, then there's nothing to do.  Just return ourselves. The next
+                // request to create the compilation will do so fully, including running generators.
+                if (!state.IsFrozen)
+                    return this;
+
+                InProgressState newState;
+                if (state is InProgressState inProgressState)
+                {
+                    newState = new InProgressState(
+                        isFrozen: false,
+                        inProgressState.LazyCompilationWithoutGeneratedDocuments,
+                        inProgressState.GeneratorInfo,
+                        inProgressState.LazyStaleCompilationWithGeneratedDocuments,
+                        inProgressState.PendingTranslationActions);
+                }
+                else if (state is FinalCompilationTrackerState finalState)
+                {
+                    // Transition the final frozen state we have back to an in-progress state that will then compute generators.
+                    newState = new InProgressState(
+                        isFrozen: false,
+                        finalState.CompilationWithoutGeneratedDocuments,
+                        finalState.GeneratorInfo,
+                        finalState.FinalCompilationWithGeneratedDocuments,
+                        pendingTranslationActions: []);
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(state.GetType());
+                }
 
                 return new CompilationTracker(
                     this.ProjectState,

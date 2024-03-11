@@ -53,16 +53,6 @@ internal partial class SolutionCompilationState
                 IsFrozen = isFrozen;
                 GeneratorInfo = generatorInfo;
             }
-
-            public CompilationTrackerState WithIsFrozen(bool isFrozen)
-            {
-                if (this.IsFrozen == isFrozen)
-                    return this;
-
-                return WithIsFrozenWorker(isFrozen);
-            }
-
-            protected abstract CompilationTrackerState WithIsFrozenWorker(bool isFrozen);
         }
 
         /// <summary>
@@ -132,14 +122,6 @@ internal partial class SolutionCompilationState
 
             private static Lazy<Compilation?> CreateLazyCompilation(Compilation? staleCompilationWithGeneratedDocuments)
                 => new(() => staleCompilationWithGeneratedDocuments);
-
-            protected override CompilationTrackerState WithIsFrozenWorker(bool isFrozen)
-                => new InProgressState(
-                    isFrozen,
-                    LazyCompilationWithoutGeneratedDocuments,
-                    GeneratorInfo,
-                    LazyStaleCompilationWithGeneratedDocuments,
-                    PendingTranslationActions);
         }
 
         /// <summary>
@@ -243,8 +225,13 @@ internal partial class SolutionCompilationState
                     unrootedSymbolSet);
             }
 
-            protected override CompilationTrackerState WithIsFrozenWorker(bool isFrozen)
-                =
+            public FinalCompilationTrackerState WithIsFrozen()
+                => new(isFrozen: true,
+                    FinalCompilationWithGeneratedDocuments,
+                    CompilationWithoutGeneratedDocuments,
+                    HasSuccessfullyLoaded,
+                    GeneratorInfo,
+                    UnrootedSymbolSet);
 
             private static void RecordAssemblySymbols(ProjectId projectId, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
             {

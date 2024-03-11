@@ -72,10 +72,16 @@ internal partial class SolutionCompilationState
             throw new NotImplementedException();
         }
 
-        public ICompilationTracker FreezePartialState(CancellationToken cancellationToken)
+        public ICompilationTracker FreezeState(CancellationToken cancellationToken)
         {
             // Ensure the underlying tracker is totally frozen, and then ensure our replaced generated doc is present.
-            return new GeneratedFileReplacingCompilationTracker(UnderlyingTracker.FreezePartialState(cancellationToken), _replacementDocumentStates);
+            return new GeneratedFileReplacingCompilationTracker(UnderlyingTracker.FreezeState(cancellationToken), _replacementDocumentStates);
+        }
+
+        public ICompilationTracker UnfreezeState()
+        {
+            // Ensure the underlying tracker is unfrozen, and then ensure our replaced generated doc is present.
+            return new GeneratedFileReplacingCompilationTracker(UnderlyingTracker.UnfreezeState(), _replacementDocumentStates);
         }
 
         public async Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
