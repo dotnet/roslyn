@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis
                 return finalState.HasSuccessfullyLoaded;
             }
 
-            public ICompilationTracker FreezePartialState(CancellationToken cancellationToken)
+            public ICompilationTracker FreezeState(CancellationToken cancellationToken)
             {
                 var state = this.ReadState();
 
@@ -784,6 +784,22 @@ namespace Microsoft.CodeAnalysis
                 {
                     throw ExceptionUtilities.UnexpectedValue(state.GetType());
                 }
+            }
+
+            public ICompilationTracker UnfreezeState()
+            {
+                var state = this.ReadState();
+
+                var newState = state?.WithIsFrozen(false);
+
+                // If updating our state didn't do anything, we weren't frozen to begin with.  So we can just return ourselves as is.
+                if (state == newState)
+                    return this;
+
+                return new CompilationTracker(
+                    this.ProjectState,
+                    newState,
+                    skeletonReferenceCacheToClone: _skeletonReferenceCache);
             }
 
             public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
