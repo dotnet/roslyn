@@ -33432,12 +33432,19 @@ partial class Program
         public void Add_ParamsArray_06()
         {
             string sourceA = """
+                using System;
                 using System.Collections;
                 using System.Collections.Generic;
                 class MyCollection : IEnumerable
                 {
                     private List<MyCollection> _list = new();
-                    public void Add(params MyCollection[] x) => _list.AddRange(x);
+                    public void Add(params MyCollection[] x)
+                    {
+                        Console.Write("Add: ");
+                        x.Report();
+                        Console.WriteLine();
+                        _list.AddRange(x);
+                    }
                     public IEnumerator<MyCollection> GetEnumerator() => _list.GetEnumerator();
                     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
                 }
@@ -33458,7 +33465,10 @@ partial class Program
 
             var comp = CreateCompilation([sourceB1, sourceA, s_collectionExtensions], options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "[[]], ");
+            CompileAndVerify(comp, expectedOutput: """
+                Add: [[]], 
+                [[]], 
+                """);
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
@@ -33485,7 +33495,10 @@ partial class Program
 
             comp = CreateCompilation([sourceB2, sourceA, s_collectionExtensions], options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "[], ");
+            CompileAndVerify(comp, expectedOutput: """
+                Add: [], 
+                [], 
+                """);
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
