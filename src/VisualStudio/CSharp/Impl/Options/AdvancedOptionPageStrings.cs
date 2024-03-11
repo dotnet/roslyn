@@ -401,5 +401,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Enable_document_outline_experimental_requires_restart
             => ServicesVSResources.Enable_document_outline_experimental_requires_restart;
+
+        public static string Option_Source_Generators
+            => ServicesVSResources.Source_Generators;
+
+        public static string Option_Run_source_generators
+            => ServicesVSResources.Run_source_generators;
+
+        public static string Option_automatically_after_any_change
+            => ServicesVSResources.automatically_after_any_change;
+
+        public static string Option_only_after_a_build_finishes
+            => ServicesVSResources.only_after_a_build_finishes;
     }
 }

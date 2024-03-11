@@ -61,9 +61,6 @@
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_on_dotnet}" />
                     </StackPanel>
                     
-                    <CheckBox x:Name="Analyze_source_generated_files"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_analyze_source_generated_files}" />
-
                     <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental}" />
 
@@ -74,7 +71,30 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Skip_analyzers_for_implicitly_triggered_builds}" />
                 </StackPanel>
             </GroupBox>
-            
+
+            <GroupBox x:Uid="SourceGeneratorsGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Source_Generators}">
+                <StackPanel>
+  
+                    <StackPanel Margin="0, -5, 0, 5">
+                        <Label x:Name="Run_source_generators_label" Content="{x:Static local:AdvancedOptionPageStrings.Option_Run_source_generators}"/>
+
+                        <StackPanel Margin="15, 0, 0, 0">
+                            <RadioButton GroupName="Run_source_generators_location"
+                                     x:Name="automatically_after_any_change"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_automatically_after_any_change}"/>
+                            <RadioButton GroupName="Run_source_generators_location"
+                                     x:Name="only_after_a_build_finishes"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_only_after_a_build_finishes}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <CheckBox x:Name="Analyze_source_generated_files"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_analyze_source_generated_files}" />
+
+                </StackPanel>
+            </GroupBox>
+
             <GroupBox x:Uid="GoToDefinitionGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Go_To_Definition}">
                 <StackPanel>

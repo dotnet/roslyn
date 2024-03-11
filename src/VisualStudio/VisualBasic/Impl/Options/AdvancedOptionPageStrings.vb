@@ -386,5 +386,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Enable_document_outline_experimental_requires_restart As String =
             ServicesVSResources.Enable_document_outline_experimental_requires_restart
+
+        Public ReadOnly Property Option_Source_Generators As String =
+            ServicesVSResources.Source_Generators
+
+        Public ReadOnly Property Option_Run_source_generators As String =
+            ServicesVSResources.Run_source_generators
+
+        Public ReadOnly Property Option_automatically_after_any_change As String =
+            ServicesVSResources.automatically_after_any_change
+
+        Public ReadOnly Property Option_only_after_a_build_finishes As String =
+            ServicesVSResources.only_after_a_build_finishes
+
     End Module
 End Namespace
