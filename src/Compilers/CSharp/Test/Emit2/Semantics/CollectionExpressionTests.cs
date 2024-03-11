@@ -33191,7 +33191,39 @@ partial class Program
 
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "(a, b), (c, d), ");
+            var verifier = CompileAndVerify(comp, expectedOutput: "(a, b), (c, d), ");
+
+            verifier.VerifyIL("Extensions.Add<T>(this System.Collections.Generic.ICollection<T>, params T[])", """
+                {
+                  // Code size       32 (0x20)
+                  .maxstack  2
+                  .locals init (T[] V_0,
+                                int V_1,
+                                T V_2) //element
+                  IL_0000:  ldarg.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.i4.0
+                  IL_0003:  stloc.1
+                  IL_0004:  br.s       IL_0019
+                  IL_0006:  ldloc.0
+                  IL_0007:  ldloc.1
+                  IL_0008:  ldelem     "T"
+                  IL_000d:  stloc.2
+                  IL_000e:  ldarg.0
+                  IL_000f:  ldloc.2
+                  IL_0010:  callvirt   "void System.Collections.Generic.ICollection<T>.Add(T)"
+                  IL_0015:  ldloc.1
+                  IL_0016:  ldc.i4.1
+                  IL_0017:  add
+                  IL_0018:  stloc.1
+                  IL_0019:  ldloc.1
+                  IL_001a:  ldloc.0
+                  IL_001b:  ldlen
+                  IL_001c:  conv.i4
+                  IL_001d:  blt.s      IL_0006
+                  IL_001f:  ret
+                }
+                """);
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
