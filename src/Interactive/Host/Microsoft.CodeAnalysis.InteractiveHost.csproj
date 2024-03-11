@@ -42,7 +42,6 @@
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\Contract.InterpolatedStringHandlers.cs" Link="Utilities\Contract.InterpolatedStringHandlers.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\TaskExtensions.cs" Link="Utilities\TaskExtensions.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\AsyncLazy.cs" Link="Utilities\AsyncLazy.cs" />
-    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\AsyncLazyWithoutArg.cs" Link="Utilities\AsyncLazyWithArg`2.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\AsyncLazy`1.cs" Link="Utilities\AsyncLazy`1.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\NonReentrantLock.cs" Link="Utilities\NonReentrantLock.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" Link="Utilities\InterpolatedStringHandlerArgumentAttribute.cs" />

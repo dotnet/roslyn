@@ -87,11 +87,6 @@ internal class AsyncLazy<T, TData> : AsyncLazy<T>
         _data = default!;
     }
 
-    public AsyncLazy(Func<TData, CancellationToken, Task<T>> asynchronousComputeFunction, TData data)
-        : this(asynchronousComputeFunction, synchronousComputeFunction: null, data)
-    {
-    }
-
     /// <summary>
     /// Creates an AsyncLazy that supports both asynchronous computation and inline synchronous
     /// computation.
