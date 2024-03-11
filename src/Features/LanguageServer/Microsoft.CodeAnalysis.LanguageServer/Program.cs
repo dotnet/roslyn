@@ -198,6 +198,12 @@ static CliRootCommand CreateCommandLineParser()
         Required = false
     };
 
+    var devKitRazorOutputPathOption = new CliOption<string?>("--devKitRazorOutputPath")
+    {
+        Description = "Full path to the Razor output path used with DevKit (optional).",
+        Required = false
+    };
+
     var rootCommand = new CliRootCommand()
     {
         debugOption,
@@ -208,6 +214,7 @@ static CliRootCommand CreateCommandLineParser()
         sessionIdOption,
         extensionAssemblyPathsOption,
         devKitDependencyPathOption,
+        devKitRazorOutputPathOption,
         extensionLogDirectoryOption
     };
     rootCommand.SetAction((parseResult, cancellationToken) =>
@@ -219,6 +226,7 @@ static CliRootCommand CreateCommandLineParser()
         var sessionId = parseResult.GetValue(sessionIdOption);
         var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
         var devKitDependencyPath = parseResult.GetValue(devKitDependencyPathOption);
+        var devKitRazorOutputPath = parseResult.GetValue(devKitRazorOutputPathOption);
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
 
         var serverConfiguration = new ServerConfiguration(
@@ -229,6 +237,7 @@ static CliRootCommand CreateCommandLineParser()
             SessionId: sessionId,
             ExtensionAssemblyPaths: extensionAssemblyPaths,
             DevKitDependencyPath: devKitDependencyPath,
+            DevKitRazorOutputPath: devKitRazorOutputPath,
             ExtensionLogDirectory: extensionLogDirectory);
 
         return RunAsync(serverConfiguration, cancellationToken);
