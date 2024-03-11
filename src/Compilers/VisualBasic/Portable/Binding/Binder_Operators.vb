@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             right = MakeRValue(right, diagnostics)
 
             ' Suppress Lock conversion warnings for Is operator.
-            Dim needsFilterDiagnostics = diagnostics.DiagnosticBag IsNot Nothing
+            Dim needsFilterDiagnostics = diagnostics.AccumulatesDiagnostics
             Dim conversionDiagnostics = If(needsFilterDiagnostics, BindingDiagnosticBag.GetInstance(diagnostics), diagnostics)
 
             left = ValidateAndConvertIsExpressionArgument(left, right, [isNot], conversionDiagnostics)

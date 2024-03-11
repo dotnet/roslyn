@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If this is an object equality operator, we will suppress Lock conversion warnings.
                 var needsFilterDiagnostics =
                     resultOperatorKind is BinaryOperatorKind.ObjectEqual or BinaryOperatorKind.ObjectNotEqual &&
-                    diagnostics.DiagnosticBag is not null;
+                    diagnostics.AccumulatesDiagnostics;
                 var conversionDiagnostics = needsFilterDiagnostics ? BindingDiagnosticBag.GetInstance(template: diagnostics) : diagnostics;
 
                 resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, conversionDiagnostics);
