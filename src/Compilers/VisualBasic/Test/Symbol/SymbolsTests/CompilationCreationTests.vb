@@ -2150,6 +2150,40 @@ End Class
             CheckCompilationSyntaxTrees(compilation4, tree2, tree3)
         End Sub
 
+        <Fact>
+        Public Sub CompilationDiagnosticsWorkForUndeclaredClassInLambdaFunction()
+            'Expected: error BC30002: Type 'UndeclaredClass' is not defined.
+            Dim source = "
+Imports System
+Imports System.Linq.Expressions
+Public Class Library
+    Public Function CreateExpression() As Expression(Of Func(Of Object))
+        Return Function() (New UndeclaredClass() With {.Name = ""testName""})
+    End Function
+End Class"
+
+            ' Create a syntax tree from the code
+            Dim syntaxTree As SyntaxTree = VisualBasicSyntaxTree.ParseText(source)
+
+            ' Add required metadata references
+            Dim references As MetadataReference() = {MscorlibRef, LinqAssemblyRef}
+
+            ' Define compilation options
+            Dim options As New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+
+            ' Create a compilation
+            Dim compilation As VisualBasicCompilation = VisualBasicCompilation.Create("VB", {syntaxTree}, references, options)
+
+            ' Get Diagnostics
+            Dim diagnostics As ImmutableArray(Of Diagnostic) = compilation.GetDiagnostics()
+
+            ' Assert
+            Assert.Equal(1, diagnostics.Length)
+            Dim diagnostic = diagnostics.First()
+            Assert.Equal("BC30002", diagnostic.Id)
+            Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity)
+        End Sub
+
         <WorkItem(578706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578706")>
         <Fact>
         Public Sub DeclaringCompilationOfAddedModule()
