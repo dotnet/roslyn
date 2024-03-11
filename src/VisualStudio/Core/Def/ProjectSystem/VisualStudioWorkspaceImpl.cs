@@ -183,7 +183,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
                     // ensure that any cached SG documents will be re-generated.
                     this.SetCurrentSolution(
                         oldSolution => oldSolution.WithSourceGeneratorVersion(oldSolution.SourceGeneratorVersion + 1),
-                        (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
+                        static (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
                         onBeforeUpdate: null,
                         onAfterUpdate: null);
                 }
