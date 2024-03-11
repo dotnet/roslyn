@@ -36,7 +36,18 @@ internal partial class SolutionCompilationState
 
         Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
 
-        ICompilationTracker FreezePartialState(CancellationToken cancellationToken);
+        /// <summary>
+        /// Freezes this tracker.  A frozen tracker will capture whatever data it can at this point that has already
+        /// been computed, and will not do any more expensive computation (like parsing documents or running
+        /// generators).
+        /// </summary>
+        ICompilationTracker FreezeState(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Unfreezes this tracker.  This will produce a new tracker with all the same data as this one, but which will
+        /// then run generators the next time it is asked for a compilation.
+        /// </summary>
+        ICompilationTracker UnfreezeState();
 
         Task<VersionStamp> GetDependentVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
         Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);

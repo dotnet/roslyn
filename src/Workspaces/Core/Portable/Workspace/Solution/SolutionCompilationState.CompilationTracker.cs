@@ -592,6 +592,12 @@ namespace Microsoft.CodeAnalysis
                     // After producing the sg documents, we must always be in the final state for the generator data.
                     var nextGeneratorInfo = new CompilationTrackerGeneratorInfo(generatedDocuments, generatorDriver);
 
+                    // If the user has the option set to only run generators on 'build' (or other explicit actions),
+                    // then we want to set ourselves to 'frozen' here now that generators have run.  That way, any
+                    // further *autmatic* changes to the solution will not run generators again.  Instead, when one of
+                    // those external events happen, we'll grab the workspace's solution, transition all states *out* of
+                    // the frozen state and then let the next 'GetCompilationAsync' operation cause generators to run.
+
                     var finalState = FinalCompilationTrackerState.Create(
                         isFrozen,
                         compilationWithGeneratedDocuments,

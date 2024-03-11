@@ -1133,6 +1133,27 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithOptions(options));
     }
 
+    public SolutionCompilationState WithSourceGeneratorVersion(int sourceGeneratorVersion)
+    {
+        if (this.SolutionState.SolutionAttributes.SourceGeneratorVersion == sourceGeneratorVersion)
+            return this;
+
+        var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
+        foreach (var (projectId, tracker) in _projectIdToTrackerMap)
+        {
+            // Let the tracker know that the source generator version has changed. We do this by unfreezing the tracker.
+            // By moving it out of the frozen state if it is there, it will then recompute generators when next asked.
+            var newTracker = tracker.UnfreezeState();
+            newIdToTrackerMapBuilder[projectId] = newTracker;
+        }
+
+        var newSolutionState = this.SolutionState.Branch(
+            this.SolutionState.SolutionAttributes.With(sourceGeneratorVersion: sourceGeneratorVersion));
+        return this.Branch(
+            newSolutionState,
+            newIdToTrackerMapBuilder.ToImmutable());
+    }
+
     public SolutionCompilationState WithFrozenPartialCompilations(CancellationToken cancellationToken)
         => _cachedFrozenSnapshot.GetValue(cancellationToken);
 

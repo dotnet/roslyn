@@ -72,6 +72,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
                         // if either id or file path has changed, then this is not update
                         Contract.ThrowIfFalse(solution.Id == newSolutionInfo.Id && solution.FilePath == newSolutionInfo.FilePath);
+
+                        // If the source-generator-version changed, update the remote solution so that all source
+                        // generators re-run the next time someone asks for compilations.
+                        if (solution.SolutionState.SolutionAttributes.SourceGeneratorVersion != newSolutionInfo.SourceGeneratorVersion)
+                            solution = solution.WithSourceGeneratorVersion(newSolutionInfo.SourceGeneratorVersion);
                     }
 
                     if (oldSolutionChecksums.Projects.Checksum != newSolutionChecksums.Projects.Checksum)

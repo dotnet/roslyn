@@ -109,6 +109,9 @@ public partial class Solution
     /// </summary>
     public VersionStamp Version => this.SolutionState.Version;
 
+    /// <inheritdoc cref="SolutionInfo.SolutionAttributes.SourceGeneratorVersion"/>
+    internal int SourceGeneratorVersion => this.SolutionState.SolutionAttributes.SourceGeneratorVersion;
+
     /// <summary>
     /// A list of all the ids for all the projects contained by the solution.
     /// </summary>
@@ -1599,6 +1602,14 @@ public partial class Solution
     internal Solution WithFrozenSourceGeneratedDocuments(ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)> documents)
     {
         var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments(documents);
+        return newCompilationState != _compilationState
+            ? new Solution(newCompilationState)
+            : this;
+    }
+
+    internal Solution WithSourceGeneratorVersion(int sourceGeneratorVersion)
+    {
+        var newCompilationState = _compilationState.WithSourceGeneratorVersion(sourceGeneratorVersion);
         return newCompilationState != _compilationState
             ? new Solution(newCompilationState)
             : this;

@@ -78,7 +78,8 @@ public sealed class SolutionInfo
                 id ?? throw new ArgumentNullException(nameof(id)),
                 version,
                 filePath,
-                telemetryId: default),
+                telemetryId: default,
+                sourceGeneratorVersion: 0),
             PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projects, nameof(projects)),
             PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
     }
@@ -90,7 +91,12 @@ public sealed class SolutionInfo
     /// type that contains information regarding this solution itself but
     /// no tree information such as project info
     /// </summary>
-    internal sealed class SolutionAttributes(SolutionId id, VersionStamp version, string? filePath, Guid telemetryId)
+    internal sealed class SolutionAttributes(
+        SolutionId id,
+        VersionStamp version,
+        string? filePath,
+        Guid telemetryId,
+        int sourceGeneratorVersion)
     {
         private SingleInitNullable<Checksum> _lazyChecksum;
 
@@ -114,23 +120,34 @@ public sealed class SolutionInfo
         /// </summary>
         public Guid TelemetryId { get; } = telemetryId;
 
+        /// <summary>
+        /// The current version of source generator execution that we're on.  Source generator results are kept around
+        /// as long as this version stays the same (though this can be controlled by
+        /// WorkspaceConfigurationOptions.RunSourceGeneratorsExplicitly).  When this version changes, all source
+        /// generators are rerun.  This should effectively be used as a monotonically increasing value.
+        /// </summary>
+        public int SourceGeneratorVersion { get; } = sourceGeneratorVersion;
+
         public SolutionAttributes With(
             VersionStamp? version = null,
             Optional<string?> filePath = default,
-            Optional<Guid> telemetryId = default)
+            Optional<Guid> telemetryId = default,
+            Optional<int> sourceGeneratorVersion = default)
         {
             var newVersion = version ?? Version;
             var newFilePath = filePath.HasValue ? filePath.Value : FilePath;
             var newTelemetryId = telemetryId.HasValue ? telemetryId.Value : TelemetryId;
+            var newSourceGeneratorVersion = sourceGeneratorVersion.HasValue ? sourceGeneratorVersion.Value : SourceGeneratorVersion;
 
             if (newVersion == Version &&
                 newFilePath == FilePath &&
-                newTelemetryId == TelemetryId)
+                newTelemetryId == TelemetryId &&
+                newSourceGeneratorVersion == SourceGeneratorVersion)
             {
                 return this;
             }
 
-            return new SolutionAttributes(Id, newVersion, newFilePath, newTelemetryId);
+            return new SolutionAttributes(Id, newVersion, newFilePath, newTelemetryId, newSourceGeneratorVersion);
         }
 
         public void WriteTo(ObjectWriter writer)
@@ -143,17 +160,16 @@ public sealed class SolutionInfo
 
             writer.WriteString(FilePath);
             writer.WriteGuid(TelemetryId);
+            writer.WriteInt32(SourceGeneratorVersion);
         }
 
         public static SolutionAttributes ReadFrom(ObjectReader reader)
-        {
-            var solutionId = SolutionId.ReadFrom(reader);
-            // var version = VersionStamp.ReadFrom(reader);
-            var filePath = reader.ReadString();
-            var telemetryId = reader.ReadGuid();
-
-            return new SolutionAttributes(solutionId, VersionStamp.Create(), filePath, telemetryId);
-        }
+            => new SolutionAttributes(
+                SolutionId.ReadFrom(reader),
+                VersionStamp.Create(),
+                reader.ReadString(),
+                reader.ReadGuid(),
+                reader.ReadInt32());
 
         public Checksum Checksum
             => _lazyChecksum.Initialize(static @this => Checksum.Create(@this, static (@this, writer) => @this.WriteTo(writer)), this);
