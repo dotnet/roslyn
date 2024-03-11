@@ -39,6 +39,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 {
                     await nonMutatingRequestTask.ConfigureAwait(false);
                 }
+                catch (StreamJsonRpc.LocalRpcException localRpcException) when (localRpcException.ErrorCode == LspErrorCodes.ContentModified)
+                {
+                    // Content modified exceptions are expected and should not be reported as NFWs.
+                    throw;
+                }
                 // If we had an exception, we want to record a NFW for it AND propogate it out to the queue so it can be handled appropriately.
                 catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Critical))
                 {

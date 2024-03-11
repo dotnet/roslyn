@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     {
                         return notificationManager.SendRequestAsync(GetWorkspaceRefreshName(), cancellationToken);
                     }
-                    catch (StreamJsonRpc.ConnectionLostException)
+                    catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
                     {
                         // It is entirely possible that we're shutting down and the connection is lost while we're trying to send a notification
                         // as this runs outside of the guaranteed ordering in the queue. We can safely ignore this exception.
