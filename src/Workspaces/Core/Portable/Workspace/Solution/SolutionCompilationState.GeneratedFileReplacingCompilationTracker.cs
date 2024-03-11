@@ -213,6 +213,13 @@ internal partial class SolutionCompilationState
             return UnderlyingTracker.GetSourceGeneratorDiagnosticsAsync(compilationState, cancellationToken);
         }
 
+        public ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(SolutionCompilationState solution, CancellationToken cancellationToken)
+        {
+            // The provided run result would be out of sync with the replaced documents.
+            // Currently this is only used by razor to get the HostOutputs, which should never be used here.
+            throw new NotImplementedException();
+        }
+
         public SkeletonReferenceCache GetClonedSkeletonReferenceCache()
             => _skeletonReferenceCache.Clone();
 
