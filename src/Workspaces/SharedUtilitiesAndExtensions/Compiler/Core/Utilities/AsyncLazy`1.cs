@@ -39,7 +39,7 @@ internal abstract class AsyncLazy<T>
     /// cached for future requests or not. Choosing to not cache means the computation functions are kept
     /// alive, whereas caching means the value (but not functions) are kept alive once complete.
     /// </summary>
-    private class AsyncLazyImpl<TData> : AsyncLazy<T>
+    private sealed class AsyncLazyImpl<TData> : AsyncLazy<T>
     {
         /// <summary>
         /// The underlying function that starts an asynchronous computation of the resulting value.
