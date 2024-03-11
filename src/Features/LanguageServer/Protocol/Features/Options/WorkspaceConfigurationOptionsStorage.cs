@@ -16,6 +16,7 @@ internal static class WorkspaceConfigurationOptionsStorage
             EnableOpeningSourceGeneratedFiles: globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
                                                globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
             DisableRecoverableText: globalOptions.GetOption(DisableRecoverableText),
+            RunSourceGeneratorsExplicitly: globalOptions.GetOption(RunSourceGeneratorsExplicitly),
             ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates));
 
     public static readonly Option2<StorageDatabase> Database = new(
@@ -36,4 +37,7 @@ internal static class WorkspaceConfigurationOptionsStorage
 
     public static readonly Option2<bool> EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag = new(
         "dotnet_enable_opening_source_generated_files_in_workspace_feature_flag", WorkspaceConfigurationOptions.Default.EnableOpeningSourceGeneratedFiles);
+
+    public static readonly Option2<bool> RunSourceGeneratorsExplicitly = new(
+        "dotnet_run_source_generators_explicitly", defaultValue: true);
 }
