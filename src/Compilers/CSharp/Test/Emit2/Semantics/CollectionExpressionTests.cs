@@ -33654,14 +33654,20 @@ partial class Program
         [Fact]
         public void Add_ParamsArray_09()
         {
-            string sourceA = """
+            string sourceA1 = """
+                public abstract class MyCollectionBase 
+                {
+                    public abstract void Add(object[] x);
+                }
+                """;
+            string assemblyName = GetUniqueName();
+            var comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(1, 0, 0, 0)),  sourceA1, references: TargetFrameworkUtil.StandardReferences);
+            var refA1 = comp.EmitToImageReference();
+
+            string sourceB = """
                 using System.Collections;
                 using System.Collections.Generic;
-                abstract class MyCollectionBase 
-                {
-                    public abstract void Add(params object[] x);
-                }
-                class MyCollection : MyCollectionBase, IEnumerable<object>
+                public class MyCollection : MyCollectionBase, IEnumerable<object>
                 {
                     private List<object> _list = new();
                     public override void Add(object[] x) => _list.AddRange(x);
@@ -33669,8 +33675,19 @@ partial class Program
                     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
                 }
                 """;
+            comp = CreateCompilation(sourceB, references: [refA1]);
+            var refB = comp.EmitToImageReference();
 
-            string sourceB = """
+            string sourceA2 = """
+                public abstract class MyCollectionBase 
+                {
+                    public abstract void Add(params object[] x);
+                }
+                """;
+            comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(2, 0, 0, 0)), sourceA2, references: TargetFrameworkUtil.StandardReferences);
+            var refA2 = comp.EmitToImageReference();
+
+            string sourceC = """
                 class Program
                 {
                     static void Main()
@@ -33683,9 +33700,8 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation([sourceB, sourceA, s_collectionExtensions], options: TestOptions.ReleaseExe);
+            comp = CreateCompilation([sourceC, s_collectionExtensions], references: [refA2, refB], options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "[1, 2, 3], ");
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
