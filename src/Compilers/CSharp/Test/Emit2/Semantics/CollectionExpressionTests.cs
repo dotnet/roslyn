@@ -33678,7 +33678,7 @@ partial class Program
                 }
                 """;
             string assemblyName = GetUniqueName();
-            var comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(1, 0, 0, 0)),  sourceA1, references: TargetFrameworkUtil.StandardReferences);
+            var comp = CreateCompilation(new AssemblyIdentity(assemblyName, new Version(1, 0, 0, 0)), sourceA1, references: TargetFrameworkUtil.StandardReferences);
             var refA1 = comp.EmitToImageReference();
 
             string sourceB = """
