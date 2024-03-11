@@ -41,5 +41,6 @@
     <UsagePattern IdentityGlob="Microsoft.Extensions.Configuration*/7.0*" />
     <UsagePattern IdentityGlob="Microsoft.Extensions.Logging*/7.0*" />
     <UsagePattern IdentityGlob="Microsoft.Extensions.Options.ConfigurationExtension*/7.0*" />
+    
   </IgnorePatterns>
 </UsageData>
