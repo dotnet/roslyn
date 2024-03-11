@@ -507,14 +507,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Build an object creation expression without performing any rewriting
         /// </summary>
-        internal BoundObjectCreationExpression UpdateArgumentsAndInitializer(
+        internal BoundObjectCreationExpression Update(
+            MethodSymbol constructor,
             ImmutableArray<BoundExpression> newArguments,
             ImmutableArray<RefKind> newRefKinds,
             BoundObjectInitializerExpressionBase? newInitializerExpression,
             TypeSymbol? changeTypeOpt = null)
         {
             return Update(
-                constructor: Constructor,
+                constructor: constructor,
                 arguments: newArguments,
                 argumentNamesOpt: default(ImmutableArray<string?>),
                 argumentRefKindsOpt: newRefKinds,

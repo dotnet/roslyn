@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -16,8 +15,6 @@ internal partial class SolutionCompilationState
     {
         ProjectState ProjectState { get; }
         GeneratorDriver? GeneratorDriver { get; }
-
-        SkeletonReferenceCache SkeletonReferenceCache { get; }
 
         /// <summary>
         /// Returns <see langword="true"/> if this <see cref="Project"/>/<see cref="Compilation"/> could produce the
@@ -48,9 +45,13 @@ internal partial class SolutionCompilationState
         MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference);
         ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
         ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
+        ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(SolutionCompilationState solution, CancellationToken cancellationToken);
 
         Task<bool> HasSuccessfullyLoadedAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
         bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation);
         SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId);
+
+        SkeletonReferenceCache GetClonedSkeletonReferenceCache();
+        Task<MetadataReference?> GetOrBuildSkeletonReferenceAsync(SolutionCompilationState compilationState, MetadataReferenceProperties properties, CancellationToken cancellationToken);
     }
 }

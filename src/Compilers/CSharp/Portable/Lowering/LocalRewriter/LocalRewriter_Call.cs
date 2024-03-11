@@ -404,6 +404,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     invokedAsExtensionMethod);
 
                 InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, invokedAsExtensionMethod, node.InterceptableNameSyntax);
+
+                if (Instrument)
+                {
+                    Instrumenter.InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt);
+                }
+
                 var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, node.Type, temps.ToImmutableAndFree());
 
                 if (Instrument)

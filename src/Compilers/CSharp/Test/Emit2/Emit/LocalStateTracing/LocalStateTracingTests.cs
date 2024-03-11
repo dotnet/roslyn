@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         // arrays (stloc, stelem),
         // collections, anonymous types, tuples
         // LogLocalStoreUnmanaged with local/parameter typed to a generic parameter
+        // Primary constructor with field initializers
 
         private static readonly EmitOptions s_emitOptions = GetEmitOptions(InstrumentationKindExtensions.LocalStateTracing);
 
@@ -211,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Runtime
         }
 
         [Fact]
-        public void Composition_LocalStateTracing_TestCoverage()
+        public void Composition_AllInstrumentations()
         {
             var source = WithHelpers(@"
 class C
@@ -227,93 +228,111 @@ class C
             var verifier = CompileAndVerify(
                 source,
                 options: TestOptions.UnsafeDebugExe,
-                emitOptions: GetEmitOptions(InstrumentationKindExtensions.LocalStateTracing, InstrumentationKind.TestCoverage),
+                emitOptions: GetEmitOptions(
+                    InstrumentationKindExtensions.LocalStateTracing,
+                    InstrumentationKind.TestCoverage,
+                    InstrumentationKind.ModuleCancellation,
+                    InstrumentationKind.StackOverflowProbing),
                 verify: s_verification with
                 {
-                    ILVerifyMessage = s_verification.ILVerifyMessage + Environment.NewLine + """
-                    [CreatePayload]: Expected numeric type on the stack. { Offset = 0xf, Found = address of '[System.Runtime]System.Guid' }
-                    [CreatePayload]: Expected numeric type on the stack. { Offset = 0xf, Found = address of '[System.Runtime]System.Guid' }
+                    ILVerifyMessage = """
+                    [LogMethodEntry]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x19 }
+                    [LogLambdaEntry]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x19 }
+                    [LogStateMachineMethodEntry]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x18 }
+                    [LogStateMachineLambdaEntry]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x18 }
+                    [Entry]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xcc }
+                    [MemoryToString]: Unmanaged pointers are not a verifiable type. { Offset = 0x15 }
+                    [LogLocalStore]: Unmanaged pointers are not a verifiable type. { Offset = 0x11 }
+                    [LogLocalStoreUnmanaged]: Unmanaged pointers are not a verifiable type. { Offset = 0x11 }
+                    [LogParameterStore]: Unmanaged pointers are not a verifiable type. { Offset = 0x11 }
+                    [LogParameterStoreUnmanaged]: Unmanaged pointers are not a verifiable type. { Offset = 0x11 }
+                    [CreatePayload]: Expected numeric type on the stack. { Offset = 0x1f, Found = address of '[System.Runtime]System.Guid' }
+                    [CreatePayload]: Expected numeric type on the stack. { Offset = 0x1f, Found = address of '[System.Runtime]System.Guid' }
                     """
                 },
                 targetFramework: s_targetFramework);
 
             verifier.VerifyMethodBody("C.Main", @"
 {
-  // Code size      128 (0x80)
+  // Code size      144 (0x90)
   .maxstack  5
   .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0,
                 string[] V_1, //a
                 bool[] V_2)
   // sequence point: <hidden>
-  IL_0000:  ldtoken    ""void C.Main(string[])""
-  IL_0005:  call       ""Microsoft.CodeAnalysis.Runtime.LocalStoreTracker Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry(int)""
-  IL_000a:  stloc.0
+  IL_0000:  ldsflda    ""System.Threading.CancellationToken <PrivateImplementationDetails>.ModuleCancellationToken""
+  IL_0005:  call       ""void System.Threading.CancellationToken.ThrowIfCancellationRequested()""
+  IL_000a:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack()""
+  IL_000f:  nop
+  IL_0010:  ldtoken    ""void C.Main(string[])""
+  IL_0015:  call       ""Microsoft.CodeAnalysis.Runtime.LocalStoreTracker Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry(int)""
+  IL_001a:  stloc.0
   .try
   {
     // sequence point: {
-    IL_000b:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
-    IL_0010:  ldtoken    ""void C.Main(string[])""
-    IL_0015:  ldelem.ref
-    IL_0016:  stloc.2
-    IL_0017:  ldloc.2
-    IL_0018:  brtrue.s   IL_003f
-    IL_001a:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
-    IL_001f:  ldtoken    ""void C.Main(string[])""
-    IL_0024:  ldtoken    Source Document 0
-    IL_0029:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
-    IL_002e:  ldtoken    ""void C.Main(string[])""
-    IL_0033:  ldelema    ""bool[]""
-    IL_0038:  ldc.i4.3
-    IL_0039:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)""
-    IL_003e:  stloc.2
-    IL_003f:  ldloc.2
-    IL_0040:  ldc.i4.0
-    IL_0041:  ldc.i4.1
-    IL_0042:  stelem.i1
-    IL_0043:  ldloca.s   V_0
-    IL_0045:  ldarg.0
-    IL_0046:  ldc.i4.0
-    IL_0047:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(object, int)""
-    IL_004c:  nop
-    // sequence point: string[] a = p = null;
-    IL_004d:  ldloc.2
-    IL_004e:  ldc.i4.1
-    IL_004f:  ldc.i4.1
-    IL_0050:  stelem.i1
-    IL_0051:  ldloca.s   V_0
+    IL_001b:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+    IL_0020:  ldtoken    ""void C.Main(string[])""
+    IL_0025:  ldelem.ref
+    IL_0026:  stloc.2
+    IL_0027:  ldloc.2
+    IL_0028:  brtrue.s   IL_004f
+    IL_002a:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+    IL_002f:  ldtoken    ""void C.Main(string[])""
+    IL_0034:  ldtoken    Source Document 0
+    IL_0039:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+    IL_003e:  ldtoken    ""void C.Main(string[])""
+    IL_0043:  ldelema    ""bool[]""
+    IL_0048:  ldc.i4.3
+    IL_0049:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)""
+    IL_004e:  stloc.2
+    IL_004f:  ldloc.2
+    IL_0050:  ldc.i4.0
+    IL_0051:  ldc.i4.1
+    IL_0052:  stelem.i1
     IL_0053:  ldloca.s   V_0
-    IL_0055:  ldnull
-    IL_0056:  dup
-    IL_0057:  starg.s    V_0
-    IL_0059:  ldc.i4.0
-    IL_005a:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(object, int)""
-    IL_005f:  nop
-    IL_0060:  ldarg.0
-    IL_0061:  dup
-    IL_0062:  stloc.1
-    IL_0063:  ldc.i4.1
-    IL_0064:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(object, int)""
-    IL_0069:  nop
+    IL_0055:  ldarg.0
+    IL_0056:  ldc.i4.0
+    IL_0057:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(object, int)""
+    IL_005c:  nop
+    // sequence point: string[] a = p = null;
+    IL_005d:  ldloc.2
+    IL_005e:  ldc.i4.1
+    IL_005f:  ldc.i4.1
+    IL_0060:  stelem.i1
+    IL_0061:  ldloca.s   V_0
+    IL_0063:  ldloca.s   V_0
+    IL_0065:  ldnull
+    IL_0066:  dup
+    IL_0067:  starg.s    V_0
+    IL_0069:  ldc.i4.0
+    IL_006a:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(object, int)""
+    IL_006f:  nop
+    IL_0070:  ldarg.0
+    IL_0071:  dup
+    IL_0072:  stloc.1
+    IL_0073:  ldc.i4.1
+    IL_0074:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(object, int)""
+    IL_0079:  nop
     // sequence point: Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
-    IL_006a:  ldloc.2
-    IL_006b:  ldc.i4.2
-    IL_006c:  ldc.i4.1
-    IL_006d:  stelem.i1
-    IL_006e:  call       ""void Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()""
-    IL_0073:  nop
+    IL_007a:  ldloc.2
+    IL_007b:  ldc.i4.2
+    IL_007c:  ldc.i4.1
+    IL_007d:  stelem.i1
+    IL_007e:  call       ""void Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()""
+    IL_0083:  nop
     // sequence point: }
-    IL_0074:  leave.s    IL_007f
+    IL_0084:  leave.s    IL_008f
   }
   finally
   {
     // sequence point: <hidden>
-    IL_0076:  ldloca.s   V_0
-    IL_0078:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()""
-    IL_007d:  nop
-    IL_007e:  endfinally
+    IL_0086:  ldloca.s   V_0
+    IL_0088:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()""
+    IL_008d:  nop
+    IL_008e:  endfinally
   }
   // sequence point: }
-  IL_007f:  ret
+  IL_008f:  ret
 }
 ");
         }
@@ -2925,7 +2944,7 @@ unsafe class C
         }
 
         [Fact]
-        public void Initializers()
+        public void Initializers_NoConstructorBody_Static()
         {
             var source = WithHelpers(@"
 C.F(out var _);
@@ -3109,6 +3128,81 @@ Main: Returned
   IL_0028:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void Initializers_NoContructorBody()
+        {
+            var source = WithHelpers(@"
+var _ = new C();
+
+class C
+{
+    int A = F(out var x) + (x = 2);
+
+    public static int F(out int a) => a = 1;
+}
+");
+            var verifier = CompileAndVerify(source, expectedOutput: @"
+<Main>$: Entered
+<Main>$: P'args'[0] = System.String[]
+.ctor: Entered
+F: Entered
+F: P'a'[0] = 1
+F: Returned
+.ctor: L1 = 1
+.ctor: L1 = 2
+.ctor: Returned
+<Main>$: L1 = C
+<Main>$: Returned
+");
+            verifier.VerifyMethodBody("C..ctor", @"
+{
+  // Code size       67 (0x43)
+  .maxstack  5
+  .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0,
+                int V_1) //x
+  // sequence point: <hidden>
+  IL_0000:  ldtoken    ""C..ctor()""
+  IL_0005:  call       ""Microsoft.CodeAnalysis.Runtime.LocalStoreTracker Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry(int)""
+  IL_000a:  stloc.0
+  .try
+  {
+    // sequence point: int A = F(out var x) + (x = 2);
+    IL_000b:  ldarg.0
+    IL_000c:  ldloca.s   V_1
+    IL_000e:  call       ""int C.F(out int)""
+    IL_0013:  ldloca.s   V_0
+    IL_0015:  ldloc.1
+    IL_0016:  ldc.i4.1
+    IL_0017:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+    IL_001c:  nop
+    IL_001d:  ldloca.s   V_0
+    IL_001f:  ldc.i4.2
+    IL_0020:  dup
+    IL_0021:  stloc.1
+    IL_0022:  ldc.i4.1
+    IL_0023:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+    IL_0028:  nop
+    IL_0029:  ldloc.1
+    IL_002a:  add
+    IL_002b:  stfld      ""int C.A""
+    IL_0030:  ldarg.0
+    IL_0031:  call       ""object..ctor()""
+    IL_0036:  nop
+    IL_0037:  leave.s    IL_0042
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_0039:  ldloca.s   V_0
+    IL_003b:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()""
+    IL_0040:  nop
+    IL_0041:  endfinally
+  }
+  // sequence point: <hidden>
+  IL_0042:  ret
+}");
         }
 
         [Fact]
