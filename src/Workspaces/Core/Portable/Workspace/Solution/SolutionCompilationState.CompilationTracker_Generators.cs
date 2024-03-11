@@ -102,9 +102,6 @@ internal partial class SolutionCompilationState
             CancellationToken cancellationToken)
         {
             var solution = compilationState.SolutionState;
-            var options = solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
-            if (options.RunSourceGeneratorsInSameProcessOnly)
-                return null;
 
             var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client is null)
