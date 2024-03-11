@@ -69,17 +69,16 @@ internal partial class SolutionCompilationState
         {
             if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums))
             {
-                checksums = Compute(projectId);
+                checksums = AsyncLazy.Create(static (arg, c) =>
+                    arg.self.ComputeChecksumsAsync(arg.projectId, c),
+                    arg: (self: this, projectId));
+
                 _lazyProjectChecksums.Add(projectId, checksums);
             }
         }
 
         var collection = await checksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
         return collection;
-
-        // Extracted as a local function to prevent delegate allocations when not needed.
-        AsyncLazy<SolutionCompilationStateChecksums> Compute(ProjectId projectId)
-            => AsyncLazy.Create(c => ComputeChecksumsAsync(projectId, c));
     }
 
     /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
