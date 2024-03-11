@@ -890,14 +890,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundObjectCreationExpression rewrittenReceiver;
             if (useKnownLength && elements.Length > 0)
             {
-                // int knownLengthTemp = N + s1.Length + ...;
-                knownLengthTemp = _factory.StoreToTemp(GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder), out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
-                localsBuilder.Add(knownLengthTemp);
-                sideEffects.Add(assignmentToTemp);
-
-                // List<ElementType> list = new(knownLengthTemp);
                 var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32)).AsMember(collectionType);
-                rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create<BoundExpression>(knownLengthTemp));
+
+                if (useOptimizations)
+                {
+                    // If we use optimizations, we know the length of the resulting list, and we store it in a temp so we can pass it to List.ctor(int32) and to CollectionsMarshal.SetCount
+
+                    // int knownLengthTemp = N + s1.Length + ...;
+                    knownLengthTemp = _factory.StoreToTemp(GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder), out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
+                    localsBuilder.Add(knownLengthTemp);
+                    sideEffects.Add(assignmentToTemp);
+
+                    // List<ElementType> list = new(knownLengthTemp);
+                    rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create<BoundExpression>(knownLengthTemp));
+                }
+                else
+                {
+                    // List<ElementType> list = new(N + s1.Length + ...)
+                    rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create(GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder)));
+                }
             }
             else
             {
