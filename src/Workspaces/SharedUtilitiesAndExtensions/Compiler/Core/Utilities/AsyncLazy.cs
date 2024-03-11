@@ -10,24 +10,24 @@ namespace Roslyn.Utilities;
 
 internal static class AsyncLazy
 {
-    public static AsyncLazyWithArg<T, TArg> Create<T, TArg>(Func<TArg, CancellationToken, Task<T>> asynchronousComputeFunction, TArg arg)
-        => new AsyncLazyWithArg<T, TArg>(asynchronousComputeFunction, arg);
+    public static AsyncLazy<T, TArg> Create<T, TArg>(Func<TArg, CancellationToken, Task<T>> asynchronousComputeFunction, TArg arg)
+        => new AsyncLazy<T, TArg>(asynchronousComputeFunction, arg);
 
-    public static AsyncLazyWithArg<T, TArg> Create<T, TArg>(Func<TArg, CancellationToken, T> synchronousComputeFunction, TArg arg)
-        => new AsyncLazyWithArg<T, TArg>((arg, cancellationToken) => Task.FromResult(synchronousComputeFunction(arg, cancellationToken)), synchronousComputeFunction, arg);
+    public static AsyncLazy<T, TArg> Create<T, TArg>(Func<TArg, CancellationToken, T> synchronousComputeFunction, TArg arg)
+        => new AsyncLazy<T, TArg>((arg, cancellationToken) => Task.FromResult(synchronousComputeFunction(arg, cancellationToken)), synchronousComputeFunction, arg);
 
-    public static AsyncLazyWithArg<T, TArg> Create<T, TArg>(Func<TArg, CancellationToken, Task<T>> asynchronousComputeFunction, Func<TArg, CancellationToken, T> synchronousComputeFunction, TArg arg)
-        => new AsyncLazyWithArg<T, TArg>(asynchronousComputeFunction, synchronousComputeFunction, arg);
+    public static AsyncLazy<T, TArg> Create<T, TArg>(Func<TArg, CancellationToken, Task<T>> asynchronousComputeFunction, Func<TArg, CancellationToken, T> synchronousComputeFunction, TArg arg)
+        => new AsyncLazy<T, TArg>(asynchronousComputeFunction, synchronousComputeFunction, arg);
 
     public static AsyncLazy<T> Create<T>(Func<CancellationToken, Task<T>> asynchronousComputeFunction)
-        => new AsyncLazy<T>(asynchronousComputeFunction);
+        => new AsyncLazyWithoutArg<T>(asynchronousComputeFunction);
 
     public static AsyncLazy<T> Create<T>(Func<CancellationToken, T> synchronousComputeFunction)
-        => new AsyncLazy<T>(cancellationToken => Task.FromResult(synchronousComputeFunction(cancellationToken)), synchronousComputeFunction);
+        => new AsyncLazyWithoutArg<T>(cancellationToken => Task.FromResult(synchronousComputeFunction(cancellationToken)), synchronousComputeFunction);
 
     public static AsyncLazy<T> Create<T>(Func<CancellationToken, Task<T>> asynchronousComputeFunction, Func<CancellationToken, T> synchronousComputeFunction)
-        => new AsyncLazy<T>(asynchronousComputeFunction, synchronousComputeFunction);
+        => new AsyncLazyWithoutArg<T>(asynchronousComputeFunction, synchronousComputeFunction);
 
     public static AsyncLazy<T> Create<T>(T value)
-        => new AsyncLazy<T>(value);
+        => new AsyncLazyWithoutArg<T>(value);
 }
