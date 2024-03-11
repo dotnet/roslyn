@@ -42,5 +42,5 @@ internal static class AsyncLazy
             arg: (asynchronousComputeFunction, synchronousComputeFunction));
 
     public static AsyncLazy<T> Create<T>(T value)
-        => new AsyncLazy<T, bool>(value);
+        => new AsyncLazy<T, VoidResult>(value);
 }
