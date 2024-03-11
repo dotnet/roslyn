@@ -18345,5 +18345,64 @@ class C
                 //     public A(int x, A a = M($"{1}")) { }
                 Diagnostic(ErrorCode.ERR_BadArgRef, @"$""{1}""").WithArguments("1", "ref").WithLocation(8, 29));
         }
+
+        [Theory]
+        [InlineData(@"$""{ConstChar}l{ConstString}l{varString}""")]
+        public void MixStringCharConstantsToConcat(string expression)
+        {
+            var code = @"
+const char ConstChar = 'c';
+const string ConstString = ""s"";
+string varString = ""s"";
+System.Console.WriteLine(" + expression + @");";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+
+            var verifier = CompileAndVerify(comp, expectedOutput: """
+                clsls
+                """);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (string V_0) //varString
+  IL_0000:  ldstr      ""s""
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      ""clsl""
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""string string.Concat(string, string)""
+  IL_0011:  call       ""void System.Console.WriteLine(string)""
+  IL_0016:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData(@"$""{ConstChar}l{ConstString}l{ConstString}""", "clsls")]
+        [InlineData(@"$""{ConstChar}""", "c")]
+        [InlineData(@"$""{ConstChar}{ConstChar}""", "cc")]
+        [InlineData(@"$""{ConstString}{ConstString}""", "ss")]
+        public void MixStringCharConstantsToLiteral(string expression, string output)
+        {
+            var code = @"
+const char ConstChar = 'c';
+const string ConstString = ""s"";
+System.Console.Write(" + expression + @");";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+
+            var verifier = CompileAndVerify(comp, expectedOutput: output);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @$"
+{{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldstr      ""{output}""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ret
+}}
+");
+        }
     }
 }
