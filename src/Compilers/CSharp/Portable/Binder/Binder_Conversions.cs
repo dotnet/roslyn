@@ -830,7 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int argIndex = collectionInitializer.InvokedAsExtensionMethod ? 1 : 0;
                 var arg = collectionInitializer.Arguments[argIndex];
                 Debug.Assert(!collectionInitializer.DefaultArguments[argIndex]);
-                if (collectionInitializer.Expanded && collectionInitializer.AddMethod.Parameters[argIndex].IsParams)
+                if (collectionInitializer.Expanded && argIndex == collectionInitializer.AddMethod.ParameterCount - 1)
                 {
                     if (arg is BoundArrayCreation { IsParamsArray: true, InitializerOpt.Initializers: [var element] })
                     {
