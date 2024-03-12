@@ -295,7 +295,7 @@ function BuildSolution {
     /p:Pack=$pack \
     /p:Publish=$publish \
     /p:RunAnalyzersDuringBuild=$run_analyzers \
-    /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
+    /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \
