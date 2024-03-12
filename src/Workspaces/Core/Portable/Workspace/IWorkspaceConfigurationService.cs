@@ -60,6 +60,5 @@ internal readonly record struct WorkspaceConfigurationOptions(
     public static readonly WorkspaceConfigurationOptions RemoteDefault = new(
         CacheStorage: StorageDatabase.None,
         EnableOpeningSourceGeneratedFiles: false,
-        DisableRecoverableText: false,
-        RunSourceGenerators: RunSourceGeneratorsPreference.WhenBuildsComplete);
+        DisableRecoverableText: false);
 }
