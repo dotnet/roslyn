@@ -1852,9 +1852,9 @@
         <target state="translated">al final de la línea de código</target>
         <note />
       </trans-unit>
-      <trans-unit id="automatically_after_any_change">
-        <source>automatically after any change</source>
-        <target state="new">automatically after any change</target>
+      <trans-unit id="automatically_may_degrade_performance">
+        <source>automatically (may degrade performance)</source>
+        <target state="new">automatically (may degrade performance)</target>
         <note />
       </trans-unit>
       <trans-unit id="generated_by_0_suffix">
@@ -2883,9 +2883,9 @@ Información adicional: {1}</target>
         <target state="translated">En el borde derecho de la ventana del editor</target>
         <note />
       </trans-unit>
-      <trans-unit id="only_after_a_build_finishes">
-        <source>only after a build finishes</source>
-        <target state="new">only after a build finishes</target>
+      <trans-unit id="when_builds_complete">
+        <source>when builds complete</source>
+        <target state="new">when builds complete</target>
         <note />
       </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">

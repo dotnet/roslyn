@@ -408,10 +408,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Run_source_generators
             => ServicesVSResources.Run_source_generators;
 
-        public static string Option_automatically_after_any_change
-            => ServicesVSResources.automatically_after_any_change;
+        public static string Option_automatically_may_degrade_performance
+            => ServicesVSResources.automatically_may_degrade_performance;
 
-        public static string Option_only_after_a_build_finishes
-            => ServicesVSResources.only_after_a_build_finishes;
+        public static string Option_when_builds_complete
+            => ServicesVSResources.when_builds_complete;
     }
 }

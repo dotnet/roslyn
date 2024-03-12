@@ -2038,16 +2038,16 @@ Additional information: {1}</value>
   <data name="AssemblyNameAndVersionDisplay" xml:space="preserve">
     <value>{0} ({1})</value>
   </data>
-  <data name="automatically_after_any_change" xml:space="preserve">
-    <value>automatically after any change</value>
-  </data>
-  <data name="only_after_a_build_finishes" xml:space="preserve">
-    <value>only after a build finishes</value>
+  <data name="automatically_may_degrade_performance" xml:space="preserve">
+    <value>automatically (may degrade performance)</value>
   </data>
   <data name="Run_source_generators" xml:space="preserve">
     <value>Run source generators:</value>
   </data>
   <data name="Source_Generators" xml:space="preserve">
     <value>Source Generators</value>
+  </data>
+  <data name="when_builds_complete" xml:space="preserve">
+    <value>when builds complete</value>
   </data>
 </root>
