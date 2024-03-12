@@ -393,11 +393,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Run_source_generators As String =
             ServicesVSResources.Run_source_generators
 
-        Public ReadOnly Property Option_automatically_after_any_change As String =
-            ServicesVSResources.automatically_after_any_change
+        Public ReadOnly Property Option_automatically_may_degrade_performance As String =
+            ServicesVSResources.automatically_may_degrade_performance
 
-        Public ReadOnly Property Option_only_after_a_build_finishes As String =
-            ServicesVSResources.only_after_a_build_finishes
+        Public ReadOnly Property Option_when_builds_complete As String =
+            ServicesVSResources.when_builds_complete
 
     End Module
 End Namespace

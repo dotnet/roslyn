@@ -83,6 +83,7 @@
                             <RadioButton GroupName="Run_source_generators_location"
                                      x:Name="automatically_may_degrade_performance"
                                      Content="{x:Static local:AdvancedOptionPageStrings.Option_automatically_may_degrade_performance}"/>
+                            
                             <RadioButton GroupName="Run_source_generators_location"
                                      x:Name="when_builds_complete"
                                      Content="{x:Static local:AdvancedOptionPageStrings.Option_when_builds_complete}"/>

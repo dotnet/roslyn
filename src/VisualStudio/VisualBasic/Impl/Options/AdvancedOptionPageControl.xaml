@@ -81,12 +81,12 @@
 
                         <StackPanel Margin="15, 0, 0, 0">
                             <RadioButton GroupName="Run_source_generators_location"
-                                     x:Name="automatically_after_any_change"
-                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_automatically_after_any_change}" />
+                                     x:Name="automatically_may_degrade_performance"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_automatically_may_degrade_performance}" />
   
                             <RadioButton GroupName="Run_source_generators_location"
-                                     x:Name="only_after_a_build_finishes"
-                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_only_after_a_build_finishes}" />
+                                     x:Name="when_builds_complete"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_when_builds_complete}" />
                         </StackPanel>
                     </StackPanel>
 
