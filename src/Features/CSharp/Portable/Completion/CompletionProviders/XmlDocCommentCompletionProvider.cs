@@ -85,7 +85,7 @@ internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompl
 
             if (IsAttributeNameContext(token, position, out var elementName, out var existingAttributes))
             {
-                return GetAttributeItems(elementName, existingAttributes);
+                return GetAttributeItems(elementName, existingAttributes, !token.GetNextToken().IsKind(SyntaxKind.EqualsToken));
             }
 
             var wasTriggeredAfterSpace = trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character == ' ';
