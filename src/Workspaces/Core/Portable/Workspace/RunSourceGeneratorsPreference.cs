@@ -8,35 +8,35 @@ namespace Microsoft.CodeAnalysis.Host;
 
 internal enum RunSourceGeneratorsPreference
 {
-    WhenBuildsComplete,
     Automatically,
+    WhenBuildsComplete,
 }
 
 internal static class RunSourceGeneratorsPreferenceUtilities
 {
-    private const string when_builds_complete = "when_builds_complete";
     private const string automatically = "automatically";
+    private const string when_builds_complete = "when_builds_complete";
 
     // Default to beginning_of_line if we don't know the value.
-    public static string GetEditorConfigString(
-        RunSourceGeneratorsPreference value)
+    public static string GetEditorConfigString(RunSourceGeneratorsPreference? value)
     {
         return value switch
         {
-            RunSourceGeneratorsPreference.WhenBuildsComplete => when_builds_complete,
             RunSourceGeneratorsPreference.Automatically => automatically,
+            RunSourceGeneratorsPreference.WhenBuildsComplete => when_builds_complete,
+            null => "",
             _ => throw ExceptionUtilities.UnexpectedValue(value),
         };
     }
 
-    public static RunSourceGeneratorsPreference Parse(
-        string optionString, RunSourceGeneratorsPreference defaultValue)
+    public static RunSourceGeneratorsPreference? Parse(
+        string optionString)
     {
         return optionString switch
         {
-            when_builds_complete => RunSourceGeneratorsPreference.WhenBuildsComplete,
             automatically => RunSourceGeneratorsPreference.Automatically,
-            _ => defaultValue,
+            when_builds_complete => RunSourceGeneratorsPreference.WhenBuildsComplete,
+            _ => null,
         };
     }
 }

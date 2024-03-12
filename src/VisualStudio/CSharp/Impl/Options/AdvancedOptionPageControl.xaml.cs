@@ -79,9 +79,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             });
 
             // Source Generators
-
-            BindToOption(automatically_may_degrade_performance, WorkspaceConfigurationOptionsStorage.RunSourceGenerators, RunSourceGeneratorsPreference.Automatically);
-            BindToOption(when_builds_complete, WorkspaceConfigurationOptionsStorage.RunSourceGenerators, RunSourceGeneratorsPreference.WhenBuildsComplete);
+            BindToOption(automatically_may_degrade_performance, WorkspaceConfigurationOptionsStorage.RunSourceGenerators, RunSourceGeneratorsPreference.Automatically, () =>
+            {
+                // If the option hasn't been set by the user, then check the feature flag.  If the feature flag has set
+                // us to only run when builds complete, then we're not in automatic mode.  So we `!` the result.
+                return !optionStore.GetOption(WorkspaceConfigurationOptionsStorage.RunSourceGeneratorsWhenBuildsCompleteFeatureFlag);
+            });
+            BindToOption(when_builds_complete, WorkspaceConfigurationOptionsStorage.RunSourceGenerators, RunSourceGeneratorsPreference.WhenBuildsComplete, () =>
+            {
+                // If the option hasn't been set by the user, then check the feature flag.  If the feature flag has set
+                // us to only run when builds complete, then we're in `when_builds_complete` mode and directly return it.
+                return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.RunSourceGeneratorsWhenBuildsCompleteFeatureFlag);
+            });
             BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, () =>
             {
                 // If the option has not been set by the user, check if the option is enabled from experimentation. If so, default to that.
