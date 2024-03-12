@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
         public override bool IsDiscard => false;
-        public override bool IsParams => false;
+        public override bool IsParamsArray => false;
+        public override bool IsParamsCollection => false;
         public override bool IsImplicitlyDeclared => true;
         internal override MarshalPseudoCustomAttributeData? MarshallingInformation => null;
         internal override bool IsMetadataOptional => false;

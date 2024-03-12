@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> args,
             BindingDiagnosticBag diagnostics,
             ImmutableArray<TypeSymbol> typeArgs = default(ImmutableArray<TypeSymbol>),
-            bool allowUnexpandedForm = true)
+            bool ignoreNormalFormIfHasValidParamsParameter = false)
         {
             if (_binder is null || _binder.Flags != flags)
             {
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 typeArgs: typeArgs.IsDefault ? default(ImmutableArray<TypeWithAnnotations>) : typeArgs.SelectAsArray(t => TypeWithAnnotations.Create(t)),
                 allowFieldsAndProperties: false,
-                allowUnexpandedForm: allowUnexpandedForm);
+                ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter);
         }
 
         /// <summary>
@@ -791,9 +791,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeInvocationExpression(BinderFlags.None, this.Syntax, this.Type(receiver), name, args.ToImmutableArray(), this.Diagnostics);
         }
 
-        public BoundExpression StaticCall(TypeSymbol receiver, string name, ImmutableArray<BoundExpression> args, bool allowUnexpandedForm)
+        public BoundExpression StaticCall(TypeSymbol receiver, string name, ImmutableArray<BoundExpression> args, bool ignoreNormalFormIfHasValidParamsParameter)
         {
-            return MakeInvocationExpression(BinderFlags.None, this.Syntax, this.Type(receiver), name, args, this.Diagnostics, allowUnexpandedForm: allowUnexpandedForm);
+            return MakeInvocationExpression(BinderFlags.None, this.Syntax, this.Type(receiver), name, args, this.Diagnostics, ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter);
         }
 
         public BoundExpression StaticCall(BinderFlags flags, TypeSymbol receiver, string name, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] args)

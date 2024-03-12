@@ -325,6 +325,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLambda(BoundLambda node)
         {
+            Debug.Assert(_factory.ModuleBuilderOpt is { });
+
+            var delegateType = node.Type.GetDelegateType();
+
+            if (delegateType?.IsAnonymousType == true && delegateType.ContainingModule == _compilation.SourceModule &&
+                delegateType.DelegateInvokeMethod() is MethodSymbol delegateInvoke &&
+                delegateInvoke.Parameters.Any(static (p) => p.IsParamsCollection))
+            {
+                Location location;
+                if (node.Symbol.Parameters.LastOrDefault(static (p) => p.IsParamsCollection) is { } parameter)
+                {
+                    location = ParameterHelpers.GetParameterLocation(parameter);
+                }
+                else
+                {
+                    location = node.Syntax.Location;
+                }
+
+                _factory.ModuleBuilderOpt.EnsureParamCollectionAttributeExists(_diagnostics, location);
+            }
+
             _sawLambdas = true;
 
             var lambda = node.Symbol;
