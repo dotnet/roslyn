@@ -891,13 +891,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (useKnownLength && elements.Length > 0)
             {
                 var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32)).AsMember(collectionType);
+                var knownLengthExpression = GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder);
 
                 if (useOptimizations)
                 {
                     // If we use optimizations, we know the length of the resulting list, and we store it in a temp so we can pass it to List.ctor(int32) and to CollectionsMarshal.SetCount
 
                     // int knownLengthTemp = N + s1.Length + ...;
-                    knownLengthTemp = _factory.StoreToTemp(GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder), out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
+                    knownLengthTemp = _factory.StoreToTemp(knownLengthExpression, out assignmentToTemp, isKnownToReferToTempIfReferenceType: true);
                     localsBuilder.Add(knownLengthTemp);
                     sideEffects.Add(assignmentToTemp);
 
@@ -907,7 +908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // List<ElementType> list = new(N + s1.Length + ...)
-                    rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create(GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder)));
+                    rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create(knownLengthExpression));
                 }
             }
             else
