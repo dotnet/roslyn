@@ -54,7 +54,7 @@ internal partial class SolutionState
             }
         }
 
-        if (lazyChecksums.TryGetValue(out var checksumsAndProjectCone))
+        if (!lazyChecksums.TryGetValue(out var checksumsAndProjectCone))
         {
             stateChecksums = null;
             return false;
