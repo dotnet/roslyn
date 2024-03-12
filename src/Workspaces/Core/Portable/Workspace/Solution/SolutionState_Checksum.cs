@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -102,7 +103,7 @@ internal partial class SolutionState
         ProjectId? projectConeId,
         CancellationToken cancellationToken)
     {
-        using var _1 = PooledHashSet<ProjectId>.GetInstance(out var projectCone);
+        using var _1 = PooledHashSet<ProjectId>.GetInstance(out var projectConeSet);
         AddProjectCone(projectConeId);
 
         try
@@ -121,7 +122,7 @@ internal partial class SolutionState
                     if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
                         continue;
 
-                    if (projectConeId != null && !projectCone.Contains(orderedProjectId))
+                    if (projectConeId != null && !projectConeSet.Contains(orderedProjectId))
                         continue;
 
                     projectChecksumTasks.Add(projectState.GetStateChecksumsAsync(cancellationToken));
@@ -135,11 +136,18 @@ internal partial class SolutionState
                 var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(
                     this.AnalyzerReferences, this.Services.GetRequiredService<ISerializerService>(), cancellationToken);
 
-                return new SolutionStateChecksums(
+                var stateChecksums = new SolutionStateChecksums(
                     projectConeId,
                     this.SolutionAttributes.Checksum,
                     new(new ChecksumCollection(projectChecksums), projectIds),
                     analyzerReferenceChecksums);
+
+#if DEBUG
+                var projectCone = projectConeId is null ? null : new ProjectCone(projectConeId, projectConeSet.ToFrozenSet());
+                RoslynDebug.Assert(Equals(projectCone, stateChecksums.ProjectCone));
+#endif
+
+                return stateChecksums;
             }
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
@@ -152,7 +160,7 @@ internal partial class SolutionState
             if (projectConeId is null)
                 return;
 
-            if (!projectCone.Add(projectConeId))
+            if (!projectConeSet.Add(projectConeId))
                 return;
 
             var projectState = this.GetProjectState(projectConeId);

@@ -80,7 +80,7 @@ internal partial class SolutionAssetStorage
             else
             {
                 // Otherwise, grab the top-most state checksum for this cone and search within that.
-                Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(this.ProjectCone.Value.RootProjectId, out var stateChecksums));
+                Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(this.ProjectCone.RootProjectId, out var stateChecksums));
                 await stateChecksums.FindAsync(solutionState, this.ProjectCone, assetHint, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
             }
         }
