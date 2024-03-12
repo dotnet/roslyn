@@ -80,7 +80,6 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteInheritanceMarginService), null),
             (typeof(IRemoteUnusedReferenceAnalysisService), null),
             (typeof(IRemoteProcessTelemetryService), null),
-            (typeof(IRemoteCompilationAvailableService), null),
             (typeof(IRemoteLegacySolutionEventsAggregationService), null),
             (typeof(IRemoteStackTraceExplorerService), null),
             (typeof(IRemoteUnitTestingSearchService), null),

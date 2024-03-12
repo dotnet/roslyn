@@ -11,26 +11,22 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
 [Export(typeof(IVSTypeScriptDiagnosticService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class VSTypeScriptDiagnosticService(IDiagnosticService service, IGlobalOptionService globalOptions) : IVSTypeScriptDiagnosticService
+internal sealed class VSTypeScriptDiagnosticService(IDiagnosticService service) : IVSTypeScriptDiagnosticService
 {
     private readonly IDiagnosticService _service = service;
-    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-    public async Task<ImmutableArray<VSTypeScriptDiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+    public Task<ImmutableArray<VSTypeScriptDiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
     {
-        // this is the TS entrypoint to get push diagnostics.  Only return diagnostics if we're actually in push-mode.
-        var diagnosticMode = _globalOptions.GetDiagnosticMode();
-        if (diagnosticMode != DiagnosticMode.SolutionCrawlerPush)
-            return [];
-
-        var result = await _service.GetDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-        return result.SelectAsArray(data => new VSTypeScriptDiagnosticData(data));
+        // This type is only for push diagnostics, which is now no longer how any of our diagnostic systems work. So
+        // this just returns nothing.
+        return SpecializedTasks.EmptyImmutableArray<VSTypeScriptDiagnosticData>();
     }
 
     [Obsolete]

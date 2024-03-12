@@ -559,6 +559,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
 
         System_Threading_CancellationToken__Equals,
+        System_Threading_CancellationToken__ThrowIfCancellationRequested,
         System_Threading_CancellationTokenSource__CreateLinkedTokenSource,
         System_Threading_CancellationTokenSource__Token,
         System_Threading_CancellationTokenSource__Dispose,

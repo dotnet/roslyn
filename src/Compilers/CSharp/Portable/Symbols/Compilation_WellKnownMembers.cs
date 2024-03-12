@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     public partial class CSharpCompilation
     {
-        internal readonly WellKnownMembersSignatureComparer WellKnownMemberSignatureComparer;
+        private WellKnownMembersSignatureComparer? _lazyWellKnownMemberSignatureComparer;
 
         /// <summary>
         /// An array of cached well known types available for use in this Compilation.
@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _usesNullableAttributes;
         private int _needsGeneratedAttributes;
         private bool _needsGeneratedAttributes_IsFrozen;
+
+        internal WellKnownMembersSignatureComparer WellKnownMemberSignatureComparer
+            => InterlockedOperations.Initialize(ref _lazyWellKnownMemberSignatureComparer, static self => new WellKnownMembersSignatureComparer(self), this);
 
         /// <summary>
         /// Returns a value indicating which embedded attributes should be generated during emit phase.
