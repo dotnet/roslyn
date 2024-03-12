@@ -15,21 +15,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal sealed class ProjectCone(ProjectId rootProjectId, FrozenSet<ProjectId> projectIds) : IEquatable<ProjectCone>
-{
-    public readonly ProjectId RootProjectId = rootProjectId;
-    public readonly FrozenSet<ProjectId> ProjectIds = projectIds;
-
-    public override bool Equals(object? obj)
-        => obj is ProjectCone cone && Equals(cone);
-
-    public bool Equals(ProjectCone? other)
-        => other is not null && this.RootProjectId == other.RootProjectId && this.ProjectIds.SetEquals(other.ProjectIds);
-
-    public override int GetHashCode()
-        => throw new NotImplementedException();
-}
-
 internal partial class SolutionCompilationState
 {
     /// <summary>
