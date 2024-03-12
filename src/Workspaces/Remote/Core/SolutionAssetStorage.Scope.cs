@@ -69,17 +69,16 @@ internal partial class SolutionAssetStorage
             AssetHint assetHint, HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, object> result, CancellationToken cancellationToken)
         {
             var solutionState = this.CompilationState;
-            if (ProjectId is null)
-            {
-                if (solutionState.TryGetStateChecksums(out var stateChecksums))
-                    await stateChecksums.FindAsync(solutionState, assetHint, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(ProjectId, out var stateChecksums));
+            SolutionCompilationStateChecksums? stateChecksums;
 
-                await stateChecksums.FindAsync(solutionState, assetHint, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
-            }
+            if (ProjectId is null)
+                solutionState.TryGetStateChecksums(out stateChecksums);
+            else
+                solutionState.TryGetStateChecksums(ProjectId, out stateChecksums);
+
+            Contract.ThrowIfNull(stateChecksums);
+
+            await stateChecksums.FindAsync(solutionState, assetHint, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
         }
 
         public TestAccessor GetTestAccessor()
