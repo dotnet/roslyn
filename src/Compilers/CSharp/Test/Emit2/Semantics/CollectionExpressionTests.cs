@@ -19754,112 +19754,117 @@ partial class Program
             verifier.VerifyIL("Program.F1",
                 """
                 {
-                  // Code size       68 (0x44)
-                  .maxstack  5
-                  .locals init (System.Collections.Generic.List<dynamic> V_0,
-                                System.Span<object> V_1,
-                                int V_2,
-                                System.Span<dynamic> V_3)
+                  // Code size       72 (0x48)
+                  .maxstack  4
+                  .locals init (int V_0,
+                                System.Collections.Generic.List<object> V_1,
+                                System.Span<object> V_2,
+                                int V_3,
+                                System.Span<dynamic> V_4)
                   IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  newobj     "System.Collections.Generic.List<object>..ctor()"
-                  IL_0007:  dup
+                  IL_0001:  dup
+                  IL_0002:  callvirt   "int System.Collections.Generic.List<dynamic>.Count.get"
+                  IL_0007:  stloc.0
                   IL_0008:  ldloc.0
-                  IL_0009:  callvirt   "int System.Collections.Generic.List<dynamic>.Count.get"
-                  IL_000e:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<object>(System.Collections.Generic.List<object>, int)"
-                  IL_0013:  dup
-                  IL_0014:  call       "System.Span<object> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<object>(System.Collections.Generic.List<object>)"
-                  IL_0019:  stloc.1
-                  IL_001a:  ldc.i4.0
-                  IL_001b:  stloc.2
-                  IL_001c:  ldloc.0
-                  IL_001d:  call       "System.Span<dynamic> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<dynamic>(System.Collections.Generic.List<dynamic>)"
-                  IL_0022:  stloc.3
-                  IL_0023:  ldloca.s   V_3
-                  IL_0025:  ldloca.s   V_1
-                  IL_0027:  ldloc.2
-                  IL_0028:  ldloca.s   V_3
-                  IL_002a:  call       "int System.Span<dynamic>.Length.get"
-                  IL_002f:  call       "System.Span<object> System.Span<object>.Slice(int, int)"
-                  IL_0034:  call       "void System.Span<dynamic>.CopyTo(System.Span<dynamic>)"
-                  IL_0039:  ldloc.2
-                  IL_003a:  ldloca.s   V_3
-                  IL_003c:  call       "int System.Span<dynamic>.Length.get"
-                  IL_0041:  add
-                  IL_0042:  stloc.2
-                  IL_0043:  ret
+                  IL_0009:  newobj     "System.Collections.Generic.List<object>..ctor(int)"
+                  IL_000e:  stloc.1
+                  IL_000f:  ldloc.1
+                  IL_0010:  ldloc.0
+                  IL_0011:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<object>(System.Collections.Generic.List<object>, int)"
+                  IL_0016:  ldloc.1
+                  IL_0017:  call       "System.Span<object> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<object>(System.Collections.Generic.List<object>)"
+                  IL_001c:  stloc.2
+                  IL_001d:  ldc.i4.0
+                  IL_001e:  stloc.3
+                  IL_001f:  call       "System.Span<dynamic> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<dynamic>(System.Collections.Generic.List<dynamic>)"
+                  IL_0024:  stloc.s    V_4
+                  IL_0026:  ldloca.s   V_4
+                  IL_0028:  ldloca.s   V_2
+                  IL_002a:  ldloc.3
+                  IL_002b:  ldloca.s   V_4
+                  IL_002d:  call       "int System.Span<dynamic>.Length.get"
+                  IL_0032:  call       "System.Span<object> System.Span<object>.Slice(int, int)"
+                  IL_0037:  call       "void System.Span<dynamic>.CopyTo(System.Span<dynamic>)"
+                  IL_003c:  ldloc.3
+                  IL_003d:  ldloca.s   V_4
+                  IL_003f:  call       "int System.Span<dynamic>.Length.get"
+                  IL_0044:  add
+                  IL_0045:  stloc.3
+                  IL_0046:  ldloc.1
+                  IL_0047:  ret
                 }
                 """);
             verifier.VerifyIL("Program.F2",
                 """
                 {
-                  // Code size      153 (0x99)
+                  // Code size      154 (0x9a)
                   .maxstack  4
-                  .locals init (System.Collections.Generic.List<dynamic> V_0,
-                            System.Collections.Generic.List<int> V_1,
-                            System.Span<int> V_2,
-                            int V_3,
-                            System.Collections.Generic.List<dynamic>.Enumerator V_4,
-                            object V_5)
+                  .locals init (int V_0,
+                                System.Collections.Generic.List<int> V_1,
+                                System.Span<int> V_2,
+                                int V_3,
+                                System.Collections.Generic.List<dynamic>.Enumerator V_4,
+                                object V_5)
                   IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  newobj     "System.Collections.Generic.List<int>..ctor()"
-                  IL_0007:  stloc.1
-                  IL_0008:  ldloc.1
-                  IL_0009:  ldloc.0
-                  IL_000a:  callvirt   "int System.Collections.Generic.List<dynamic>.Count.get"
-                  IL_000f:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
-                  IL_0014:  ldloc.1
-                  IL_0015:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
-                  IL_001a:  stloc.2
-                  IL_001b:  ldc.i4.0
-                  IL_001c:  stloc.3
-                  IL_001d:  ldloc.0
-                  IL_001e:  callvirt   "System.Collections.Generic.List<dynamic>.Enumerator System.Collections.Generic.List<dynamic>.GetEnumerator()"
-                  IL_0023:  stloc.s    V_4
+                  IL_0001:  dup
+                  IL_0002:  callvirt   "int System.Collections.Generic.List<dynamic>.Count.get"
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloc.0
+                  IL_0009:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+                  IL_000e:  stloc.1
+                  IL_000f:  ldloc.1
+                  IL_0010:  ldloc.0
+                  IL_0011:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
+                  IL_0016:  ldloc.1
+                  IL_0017:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_001c:  stloc.2
+                  IL_001d:  ldc.i4.0
+                  IL_001e:  stloc.3
+                  IL_001f:  callvirt   "System.Collections.Generic.List<dynamic>.Enumerator System.Collections.Generic.List<dynamic>.GetEnumerator()"
+                  IL_0024:  stloc.s    V_4
                   .try
                   {
-                    IL_0025:  br.s       IL_007e
-                    IL_0027:  ldloca.s   V_4
-                    IL_0029:  call       "dynamic System.Collections.Generic.List<dynamic>.Enumerator.Current.get"
-                    IL_002e:  stloc.s    V_5
-                    IL_0030:  ldloca.s   V_2
-                    IL_0032:  ldloc.3
-                    IL_0033:  call       "ref int System.Span<int>.this[int].get"
-                    IL_0038:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__1.<>p__0"
-                    IL_003d:  brtrue.s   IL_0063
-                    IL_003f:  ldc.i4.0
-                    IL_0040:  ldtoken    "int"
-                    IL_0045:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                    IL_004a:  ldtoken    "Program"
-                    IL_004f:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                    IL_0054:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
-                    IL_0059:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                    IL_005e:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__1.<>p__0"
-                    IL_0063:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__1.<>p__0"
-                    IL_0068:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target"
-                    IL_006d:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__1.<>p__0"
-                    IL_0072:  ldloc.s    V_5
-                    IL_0074:  callvirt   "int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                    IL_0079:  stind.i4
-                    IL_007a:  ldloc.3
-                    IL_007b:  ldc.i4.1
-                    IL_007c:  add
-                    IL_007d:  stloc.3
-                    IL_007e:  ldloca.s   V_4
-                    IL_0080:  call       "bool System.Collections.Generic.List<dynamic>.Enumerator.MoveNext()"
-                    IL_0085:  brtrue.s   IL_0027
-                    IL_0087:  leave.s    IL_0097
+                    IL_0026:  br.s       IL_007f
+                    IL_0028:  ldloca.s   V_4
+                    IL_002a:  call       "dynamic System.Collections.Generic.List<dynamic>.Enumerator.Current.get"
+                    IL_002f:  stloc.s    V_5
+                    IL_0031:  ldloca.s   V_2
+                    IL_0033:  ldloc.3
+                    IL_0034:  call       "ref int System.Span<int>.this[int].get"
+                    IL_0039:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__1.<>p__0"
+                    IL_003e:  brtrue.s   IL_0064
+                    IL_0040:  ldc.i4.0
+                    IL_0041:  ldtoken    "int"
+                    IL_0046:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                    IL_004b:  ldtoken    "Program"
+                    IL_0050:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                    IL_0055:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
+                    IL_005a:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                    IL_005f:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__1.<>p__0"
+                    IL_0064:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__1.<>p__0"
+                    IL_0069:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target"
+                    IL_006e:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__1.<>p__0"
+                    IL_0073:  ldloc.s    V_5
+                    IL_0075:  callvirt   "int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                    IL_007a:  stind.i4
+                    IL_007b:  ldloc.3
+                    IL_007c:  ldc.i4.1
+                    IL_007d:  add
+                    IL_007e:  stloc.3
+                    IL_007f:  ldloca.s   V_4
+                    IL_0081:  call       "bool System.Collections.Generic.List<dynamic>.Enumerator.MoveNext()"
+                    IL_0086:  brtrue.s   IL_0028
+                    IL_0088:  leave.s    IL_0098
                   }
                   finally
                   {
-                    IL_0089:  ldloca.s   V_4
-                    IL_008b:  constrained. "System.Collections.Generic.List<dynamic>.Enumerator"
-                    IL_0091:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_0096:  endfinally
+                    IL_008a:  ldloca.s   V_4
+                    IL_008c:  constrained. "System.Collections.Generic.List<dynamic>.Enumerator"
+                    IL_0092:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0097:  endfinally
                   }
-                  IL_0097:  ldloc.1
-                  IL_0098:  ret
+                  IL_0098:  ldloc.1
+                  IL_0099:  ret
                 }
                 """);
         }
@@ -20109,71 +20114,79 @@ partial class Program
             verifier.VerifyIL("Program.F1",
                 """
                 {
-                  // Code size       36 (0x24)
+                  // Code size       39 (0x27)
                   .maxstack  3
-                  .locals init (System.Span<object> V_0,
-                                int V_1)
-                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
-                  IL_0005:  dup
-                  IL_0006:  ldc.i4.1
-                  IL_0007:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<object>(System.Collections.Generic.List<object>, int)"
-                  IL_000c:  dup
-                  IL_000d:  call       "System.Span<object> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<object>(System.Collections.Generic.List<object>)"
-                  IL_0012:  stloc.0
-                  IL_0013:  ldc.i4.0
-                  IL_0014:  stloc.1
-                  IL_0015:  ldloca.s   V_0
-                  IL_0017:  ldloc.1
-                  IL_0018:  call       "ref object System.Span<object>.this[int].get"
-                  IL_001d:  ldarg.0
-                  IL_001e:  stind.ref
-                  IL_001f:  ldloc.1
-                  IL_0020:  ldc.i4.1
-                  IL_0021:  add
-                  IL_0022:  stloc.1
-                  IL_0023:  ret
+                  .locals init (int V_0,
+                                System.Span<object> V_1,
+                                int V_2)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloc.0
+                  IL_0003:  newobj     "System.Collections.Generic.List<object>..ctor(int)"
+                  IL_0008:  dup
+                  IL_0009:  ldloc.0
+                  IL_000a:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<object>(System.Collections.Generic.List<object>, int)"
+                  IL_000f:  dup
+                  IL_0010:  call       "System.Span<object> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<object>(System.Collections.Generic.List<object>)"
+                  IL_0015:  stloc.1
+                  IL_0016:  ldc.i4.0
+                  IL_0017:  stloc.2
+                  IL_0018:  ldloca.s   V_1
+                  IL_001a:  ldloc.2
+                  IL_001b:  call       "ref object System.Span<object>.this[int].get"
+                  IL_0020:  ldarg.0
+                  IL_0021:  stind.ref
+                  IL_0022:  ldloc.2
+                  IL_0023:  ldc.i4.1
+                  IL_0024:  add
+                  IL_0025:  stloc.2
+                  IL_0026:  ret
                 }
                 """);
             verifier.VerifyIL("Program.F2",
                 """
                 {
-                  // Code size       99 (0x63)
+                  // Code size      102 (0x66)
                   .maxstack  5
-                  .locals init (System.Span<int> V_0,
-                                int V_1)
-                  IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
-                  IL_0005:  dup
-                  IL_0006:  ldc.i4.1
-                  IL_0007:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
-                  IL_000c:  dup
-                  IL_000d:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
-                  IL_0012:  stloc.0
-                  IL_0013:  ldc.i4.0
-                  IL_0014:  stloc.1
-                  IL_0015:  ldloca.s   V_0
-                  IL_0017:  ldloc.1
-                  IL_0018:  call       "ref int System.Span<int>.this[int].get"
-                  IL_001d:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__1.<>p__0"
-                  IL_0022:  brtrue.s   IL_0048
-                  IL_0024:  ldc.i4.0
-                  IL_0025:  ldtoken    "int"
-                  IL_002a:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                  IL_002f:  ldtoken    "Program"
-                  IL_0034:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                  IL_0039:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
-                  IL_003e:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                  IL_0043:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__1.<>p__0"
-                  IL_0048:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__1.<>p__0"
-                  IL_004d:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target"
-                  IL_0052:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__1.<>p__0"
-                  IL_0057:  ldarg.0
-                  IL_0058:  callvirt   "int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                  IL_005d:  stind.i4
-                  IL_005e:  ldloc.1
-                  IL_005f:  ldc.i4.1
-                  IL_0060:  add
-                  IL_0061:  stloc.1
-                  IL_0062:  ret
+                  .locals init (int V_0,
+                                System.Span<int> V_1,
+                                int V_2)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloc.0
+                  IL_0003:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+                  IL_0008:  dup
+                  IL_0009:  ldloc.0
+                  IL_000a:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
+                  IL_000f:  dup
+                  IL_0010:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_0015:  stloc.1
+                  IL_0016:  ldc.i4.0
+                  IL_0017:  stloc.2
+                  IL_0018:  ldloca.s   V_1
+                  IL_001a:  ldloc.2
+                  IL_001b:  call       "ref int System.Span<int>.this[int].get"
+                  IL_0020:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__1.<>p__0"
+                  IL_0025:  brtrue.s   IL_004b
+                  IL_0027:  ldc.i4.0
+                  IL_0028:  ldtoken    "int"
+                  IL_002d:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_0032:  ldtoken    "Program"
+                  IL_0037:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_003c:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
+                  IL_0041:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_0046:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__1.<>p__0"
+                  IL_004b:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__1.<>p__0"
+                  IL_0050:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target"
+                  IL_0055:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__1.<>p__0"
+                  IL_005a:  ldarg.0
+                  IL_005b:  callvirt   "int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_0060:  stind.i4
+                  IL_0061:  ldloc.2
+                  IL_0062:  ldc.i4.1
+                  IL_0063:  add
+                  IL_0064:  stloc.2
+                  IL_0065:  ret
                 }
                 """);
         }
