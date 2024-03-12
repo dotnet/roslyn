@@ -18,11 +18,13 @@ internal partial class SolutionAssetStorage
     internal sealed partial class Scope(
         SolutionAssetStorage storage,
         Checksum solutionChecksum,
+        ProjectId? projectId,
         SolutionCompilationState compilationState) : IDisposable
     {
         private readonly SolutionAssetStorage _storage = storage;
 
         public readonly Checksum SolutionChecksum = solutionChecksum;
+        public readonly ProjectId? ProjectId = projectId;
         public readonly SolutionCompilationState CompilationState = compilationState;
 
         /// <summary>
@@ -67,17 +69,16 @@ internal partial class SolutionAssetStorage
             AssetHint assetHint, HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, object> result, CancellationToken cancellationToken)
         {
             var solutionState = this.CompilationState;
-            if (solutionState.TryGetStateChecksums(out var stateChecksums))
-                await stateChecksums.FindAsync(solutionState, assetHint, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+            SolutionCompilationStateChecksums? stateChecksums;
 
-            foreach (var projectId in solutionState.SolutionState.ProjectIds)
-            {
-                if (remainingChecksumsToFind.Count == 0)
-                    break;
+            if (ProjectId is null)
+                solutionState.TryGetStateChecksums(out stateChecksums);
+            else
+                solutionState.TryGetStateChecksums(ProjectId, out stateChecksums);
 
-                if (solutionState.TryGetStateChecksums(projectId, out stateChecksums))
-                    await stateChecksums.FindAsync(solutionState, assetHint, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
-            }
+            Contract.ThrowIfNull(stateChecksums);
+
+            await stateChecksums.FindAsync(solutionState, assetHint, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
         }
 
         public TestAccessor GetTestAccessor()

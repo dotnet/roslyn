@@ -30,7 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        public sealed override bool IsParams
+        public sealed override bool IsParamsArray
+        {
+            get { return false; }
+        }
+
+        public sealed override bool IsParamsCollection
         {
             get { return false; }
         }

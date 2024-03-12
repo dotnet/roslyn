@@ -76,7 +76,7 @@ internal partial class SolutionAssetStorage
                 return scope;
             }
 
-            scope = new Scope(this, checksum, compilationState);
+            scope = new Scope(this, checksum, projectId, compilationState);
             _checksumToScope[checksum] = scope;
             return scope;
         }
