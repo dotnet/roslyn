@@ -799,7 +799,7 @@ public class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyEmitDiagnostics(
-                // (24,29): error CS9507: Method 'MyCollectionBuilder.Create(ReadOnlySpan<long>)' cannot be less visible than the member with params collection 'Program.Test(params MyCollection)'.
+                // (24,29): error CS9224: Method 'MyCollectionBuilder.Create(ReadOnlySpan<long>)' cannot be less visible than the member with params collection 'Program.Test(params MyCollection)'.
                 //     public static void Test(params MyCollection a)
                 Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection a").WithArguments("MyCollectionBuilder.Create(System.ReadOnlySpan<long>)", "Program.Test(params MyCollection)").WithLocation(24, 29)
                 );
@@ -858,7 +858,7 @@ public class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
             comp.VerifyEmitDiagnostics(
-                // (38,30): error CS9507: Method 'MyCollectionBuilder1.Create(ReadOnlySpan<long>)' cannot be less visible than the member with params collection 'Program.Test1(params MyCollection1)'.
+                // (38,30): error CS9224: Method 'MyCollectionBuilder1.Create(ReadOnlySpan<long>)' cannot be less visible than the member with params collection 'Program.Test1(params MyCollection1)'.
                 //     public static void Test1(params MyCollection1 a)
                 Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection1 a").WithArguments("MyCollectionBuilder1.Create(System.ReadOnlySpan<long>)", "Program.Test1(params MyCollection1)").WithLocation(38, 30)
                 );
@@ -1380,7 +1380,7 @@ class Program
                 // (20,9): error CS1501: No overload for method 'Test' takes 2 arguments
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Test").WithArguments("Test", "2").WithLocation(20, 9),
-                // (23,22): error CS9511: Non-array params collection type must have an applicable constructor that can be called with no arguments.
+                // (23,22): error CS9228: Non-array params collection type must have an applicable constructor that can be called with no arguments.
                 //     static void Test(params MyCollection a)
                 Diagnostic(ErrorCode.ERR_ParamsCollectionMissingConstructor, "params MyCollection a").WithLocation(23, 22)
                 );
@@ -1469,7 +1469,7 @@ public class Program
             var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
 
             comp.VerifyEmitDiagnostics(
-                // (23,29): error CS9507: Method 'MyCollection.MyCollection()' cannot be less visible than the member with params collection 'Program.Test(params MyCollection)'.
+                // (23,29): error CS9224: Method 'MyCollection.MyCollection()' cannot be less visible than the member with params collection 'Program.Test(params MyCollection)'.
                 //     public static void Test(params MyCollection a)
                 Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection a").WithArguments("MyCollection.MyCollection()", "Program.Test(params MyCollection)").WithLocation(23, 29)
                 );
@@ -1602,7 +1602,7 @@ public class Program
             var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
 
             comp.VerifyEmitDiagnostics(
-                // (22,29): error CS9507: Method 'MyCollection.Add(long)' cannot be less visible than the member with params collection 'Program.Test(params MyCollection)'.
+                // (22,29): error CS9224: Method 'MyCollection.Add(long)' cannot be less visible than the member with params collection 'Program.Test(params MyCollection)'.
                 //     public static void Test(params MyCollection a)
                 Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection a").WithArguments("MyCollection.Add(long)", "Program.Test(params MyCollection)").WithLocation(22, 29)
                 );
@@ -1803,7 +1803,7 @@ public class Program
             var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (26,29): error CS9507: Method 'MyCollection.Add(long)' cannot be less visible than the member with params collection 'Program.Test(params MyCollection)'.
+                // (26,29): error CS9224: Method 'MyCollection.Add(long)' cannot be less visible than the member with params collection 'Program.Test(params MyCollection)'.
                 //     public static void Test(params MyCollection a)
                 Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection a").WithArguments("MyCollection.Add(long)", "Program.Test(params MyCollection)").WithLocation(26, 29)
                 );
@@ -1848,7 +1848,7 @@ public class Program
             var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (28,29): error CS9507: Method 'MyCollection.Add(int)' cannot be less visible than the member with params collection 'Program.Test(params MyCollection)'.
+                // (28,29): error CS9224: Method 'MyCollection.Add(int)' cannot be less visible than the member with params collection 'Program.Test(params MyCollection)'.
                 //     public static void Test(params MyCollection a)
                 Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection a").WithArguments("MyCollection.Add(int)", "Program.Test(params MyCollection)").WithLocation(28, 29)
                 );
@@ -1892,7 +1892,7 @@ public class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (27,29): error CS9507: Method 'MyCollection.Add(long)' cannot be less visible than the member with params collection 'Program.Test(params MyCollection)'.
+                // (27,29): error CS9224: Method 'MyCollection.Add(long)' cannot be less visible than the member with params collection 'Program.Test(params MyCollection)'.
                 //     public static void Test(params MyCollection a)
                 Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection a").WithArguments("MyCollection.Add(long)", "Program.Test(params MyCollection)").WithLocation(27, 29)
                 );
@@ -2103,10 +2103,10 @@ public class Program
             var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
 
             comp.VerifyEmitDiagnostics(
-                // (25,23): error CS9507: Method 'MyCollection.MyCollection()' cannot be less visible than the member with params collection 'Program.Test2(params MyCollection)'.
+                // (25,23): error CS9224: Method 'MyCollection.MyCollection()' cannot be less visible than the member with params collection 'Program.Test2(params MyCollection)'.
                 //     public void Test2(params MyCollection collection)
                 Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection collection").WithArguments("MyCollection.MyCollection()", "Program.Test2(params MyCollection)").WithLocation(25, 23),
-                // (25,23): error CS9507: Method 'MyCollection.Add(string)' cannot be less visible than the member with params collection 'Program.Test2(params MyCollection)'.
+                // (25,23): error CS9224: Method 'MyCollection.Add(string)' cannot be less visible than the member with params collection 'Program.Test2(params MyCollection)'.
                 //     public void Test2(params MyCollection collection)
                 Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection collection").WithArguments("MyCollection.Add(string)", "Program.Test2(params MyCollection)").WithLocation(25, 23)
                 );
@@ -2152,7 +2152,7 @@ class Program
             var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (24,22): error CS9510: 'MyCollection' does not contain a definition for a suitable instance 'Add' method
+                // (24,22): error CS9227: 'MyCollection' does not contain a definition for a suitable instance 'Add' method
                 //     static void Test(params MyCollection a)
                 Diagnostic(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, "params MyCollection a").WithArguments("MyCollection").WithLocation(24, 22)
                 );
@@ -5826,7 +5826,7 @@ class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,14): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test(params IEnumerable<int>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
+                // (8,14): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test(params IEnumerable<int>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
                 //         Test(d);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Program.Test(params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 14)
                 );
@@ -5884,25 +5884,25 @@ class Program
                 comp,
                 expectedOutput: @"Called2Called1Called3Called5Called3Called4Called7Called6Called8Called9Called9").
             VerifyDiagnostics(
-                // (8,9): warning CS9503: One or more overloads of method 'Test1' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (8,9): warning CS9220: One or more overloads of method 'Test1' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         Test1(d1);                  // Called2
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test1(d1)").WithArguments("Test1").WithLocation(8, 9),
-                // (11,9): warning CS9503: One or more overloads of method 'Test1' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (11,9): warning CS9220: One or more overloads of method 'Test1' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         Test1(d2);                  // Called1
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test1(d2)").WithArguments("Test1").WithLocation(11, 9),
-                // (12,9): warning CS9503: One or more overloads of method 'Test2' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (12,9): warning CS9220: One or more overloads of method 'Test2' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         Test2(1, d1);               // Called3
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test2(1, d1)").WithArguments("Test2").WithLocation(12, 9),
-                // (13,9): warning CS9503: One or more overloads of method 'Test2' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (13,9): warning CS9220: One or more overloads of method 'Test2' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         Test2(1, d2);               // Called5
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test2(1, d2)").WithArguments("Test2").WithLocation(13, 9),
-                // (20,9): warning CS9503: One or more overloads of method 'Test3' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (20,9): warning CS9220: One or more overloads of method 'Test3' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         Test3(d3, 1, 2);            // Called7
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test3(d3, 1, 2)").WithArguments("Test3").WithLocation(20, 9),
-                // (25,9): warning CS9503: One or more overloads of method 'Test4' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (25,9): warning CS9220: One or more overloads of method 'Test4' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         Test4(d3, x, x);            // Called9
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test4(d3, x, x)").WithArguments("Test4").WithLocation(25, 9),
-                // (26,9): warning CS9503: One or more overloads of method 'Test4' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (26,9): warning CS9220: One or more overloads of method 'Test4' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         Test4(d3, d4, d4);          // Called9
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test4(d3, d4, d4)").WithArguments("Test4").WithLocation(26, 9)
                 );
@@ -5989,7 +5989,7 @@ class Program
             var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
             comp1.VerifyDiagnostics(
-                // (8,9): error CS9501: The type arguments for method 'Program.Test<T>(params IEnumerable<T>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
+                // (8,9): error CS9218: The type arguments for method 'Program.Test<T>(params IEnumerable<T>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
                 //         Test(d, 2, 3);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections, "Test(d, 2, 3)").WithArguments("Program.Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(8, 9)
                 );
@@ -6041,7 +6041,7 @@ class Program
             var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
             comp1.VerifyDiagnostics(
-                // (8,9): error CS9501: The type arguments for method 'Program.Test<T>(T, params IEnumerable<long>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
+                // (8,9): error CS9218: The type arguments for method 'Program.Test<T>(T, params IEnumerable<long>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
                 //         Test(0, d, 2, 3);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections, "Test(0, d, 2, 3)").WithArguments("Program.Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(8, 9)
                 );
@@ -6331,7 +6331,7 @@ class C1
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,9): warning CS9503: One or more overloads of method 'Test' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (8,9): warning CS9220: One or more overloads of method 'Test' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         new C1().Test(1, d, 2);
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "new C1().Test(1, d, 2)").WithArguments("Test").WithLocation(8, 9)
                 );
@@ -6369,7 +6369,7 @@ class Program
                 comp,
                 expectedOutput: @"Called1Failed").
             VerifyDiagnostics(
-                // (11,13): warning CS9503: One or more overloads of method 'Test1' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (11,13): warning CS9220: One or more overloads of method 'Test1' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //             Test1(d1);
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod, "Test1(d1)").WithArguments("Test1").WithLocation(11, 13)
                 );
@@ -6442,7 +6442,7 @@ class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,14): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Test(params IEnumerable<int>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
+                // (8,14): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Test(params IEnumerable<int>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
                 //         Test(d);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Test(params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 14)
                 );
@@ -6471,7 +6471,7 @@ class Program
             var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
             comp1.VerifyDiagnostics(
-                // (8,9): error CS9501: The type arguments for method 'Test<T>(params IEnumerable<T>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
+                // (8,9): error CS9218: The type arguments for method 'Test<T>(params IEnumerable<T>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
                 //         Test(d, 2, 3);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections, "Test(d, 2, 3)").WithArguments("Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(8, 9)
                 );
@@ -6523,7 +6523,7 @@ class Program
             var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
             comp1.VerifyDiagnostics(
-                // (8,9): error CS9501: The type arguments for method 'Test<T>(T, params IEnumerable<long>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
+                // (8,9): error CS9218: The type arguments for method 'Test<T>(T, params IEnumerable<long>)' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.
                 //         Test(0, d, 2, 3);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections, "Test(0, d, 2, 3)").WithArguments("Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(8, 9)
                 );
@@ -6627,7 +6627,7 @@ delegate void D(params IEnumerable<int> b);
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (9,14): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'D.Invoke(params IEnumerable<int>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
+                // (9,14): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'D.Invoke(params IEnumerable<int>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
                 //         test(d);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("D.Invoke(params System.Collections.Generic.IEnumerable<int>)").WithLocation(9, 14)
                 );
@@ -6721,7 +6721,7 @@ class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,27): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.this[params IEnumerable<int>]', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
+                // (8,27): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.this[params IEnumerable<int>]', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
                 //         _ = new Program()[d];
                 Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Program.this[params System.Collections.Generic.IEnumerable<int>]").WithLocation(8, 27)
                 );
@@ -6788,25 +6788,25 @@ class Program
                 comp,
                 expectedOutput: @"Called2Called1Called3Called5Called3Called4Called7Called6Called8Called9Called9").
             VerifyDiagnostics(
-                // (8,13): warning CS9504: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (8,13): warning CS9221: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         _ = new Test1()[d1];                  // Called2
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test1()[d1]").WithLocation(8, 13),
-                // (11,13): warning CS9504: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (11,13): warning CS9221: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         _ = new Test1()[d2];                  // Called1
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test1()[d2]").WithLocation(11, 13),
-                // (12,13): warning CS9504: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (12,13): warning CS9221: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         _ = new Test2()[1, d1];               // Called3
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test2()[1, d1]").WithLocation(12, 13),
-                // (13,13): warning CS9504: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (13,13): warning CS9221: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         _ = new Test2()[1, d2];               // Called5
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test2()[1, d2]").WithLocation(13, 13),
-                // (20,13): warning CS9504: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (20,13): warning CS9221: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         _ = new Test3()[d3, 1, 2];            // Called7
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test3()[d3, 1, 2]").WithLocation(20, 13),
-                // (25,13): warning CS9504: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (25,13): warning CS9221: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         _ = new Test4()[d3, x, x];            // Called9
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test4()[d3, x, x]").WithLocation(25, 13),
-                // (26,13): warning CS9504: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (26,13): warning CS9221: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         _ = new Test4()[d3, d4, d4];          // Called9
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new Test4()[d3, d4, d4]").WithLocation(26, 13)
                 );
@@ -7172,7 +7172,7 @@ class C1
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,13): warning CS9504: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (8,13): warning CS9221: One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         _ = new C1()[1, d, 2];
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer, "new C1()[1, d, 2]").WithLocation(8, 13)
                 );
@@ -7255,7 +7255,7 @@ class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,18): error CS9502: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test.Test(params IEnumerable<int>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
+                // (8,18): error CS9219: Ambiguity between expanded and normal forms of non-array params collection parameter of 'Program.Test.Test(params IEnumerable<int>)', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.
                 //         new Test(d);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument, "d").WithArguments("Program.Test.Test(params System.Collections.Generic.IEnumerable<int>)").WithLocation(8, 18)
                 );
@@ -7325,25 +7325,25 @@ class Program
                 comp,
                 expectedOutput: @"Called2Called1Called3Called5Called3Called4Called7Called6Called8Called9Called9").
             VerifyDiagnostics(
-                // (8,9): warning CS9505: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (8,9): warning CS9222: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         new Test1(d1);                  // Called2
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test1(d1)").WithLocation(8, 9),
-                // (11,9): warning CS9505: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (11,9): warning CS9222: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         new Test1(d2);                  // Called1
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test1(d2)").WithLocation(11, 9),
-                // (12,9): warning CS9505: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (12,9): warning CS9222: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         new Test2(1, d1);               // Called3
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test2(1, d1)").WithLocation(12, 9),
-                // (13,9): warning CS9505: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (13,9): warning CS9222: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         new Test2(1, d2);               // Called5
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test2(1, d2)").WithLocation(13, 9),
-                // (20,9): warning CS9505: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (20,9): warning CS9222: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         new Test3(d3, 1, 2);            // Called7
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test3(d3, 1, 2)").WithLocation(20, 9),
-                // (25,9): warning CS9505: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (25,9): warning CS9222: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         new Test4(d3, x, x);            // Called9
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test4(d3, x, x)").WithLocation(25, 9),
-                // (26,9): warning CS9505: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (26,9): warning CS9222: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         new Test4(d3, d4, d4);          // Called9
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test4(d3, d4, d4)").WithLocation(26, 9)
                 );
@@ -7444,7 +7444,7 @@ class Test
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,9): warning CS9505: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
+                // (8,9): warning CS9222: One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.
                 //         new Test(1, d, 2);
                 Diagnostic(ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor, "new Test(1, d, 2)").WithLocation(8, 9)
                 );
@@ -9483,13 +9483,13 @@ class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,46): error CS9509: An expression tree may not contain an expanded form of non-array params collection parameter.
+                // (8,46): error CS9226: An expression tree may not contain an expanded form of non-array params collection parameter.
                 //         Expression<System.Action> e1 = () => Test();
                 Diagnostic(ErrorCode.ERR_ParamsCollectionExpressionTree, "Test()").WithLocation(8, 46),
-                // (9,46): error CS9509: An expression tree may not contain an expanded form of non-array params collection parameter.
+                // (9,46): error CS9226: An expression tree may not contain an expanded form of non-array params collection parameter.
                 //         Expression<System.Action> e2 = () => Test(1);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionExpressionTree, "Test(1)").WithLocation(9, 46),
-                // (10,46): error CS9509: An expression tree may not contain an expanded form of non-array params collection parameter.
+                // (10,46): error CS9226: An expression tree may not contain an expanded form of non-array params collection parameter.
                 //         Expression<System.Action> e3 = () => Test(2, 3);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionExpressionTree, "Test(2, 3)").WithLocation(10, 46),
                 // (11,51): error CS9175: An expression tree may not contain a collection expression.
@@ -12907,13 +12907,13 @@ class Program
             var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (20,9): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                // (20,9): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
                 //         Test();
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test()").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(20, 9),
-                // (21,9): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                // (21,9): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
                 //         Test(1);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(1)").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(21, 9),
-                // (22,9): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                // (22,9): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(2, 3)").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(22, 9)
                 );
@@ -12955,13 +12955,13 @@ class Program
             var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (20,9): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                // (20,9): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
                 //         Test();
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test()").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(20, 9),
-                // (21,9): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                // (21,9): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
                 //         Test(1);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(1)").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(21, 9),
-                // (22,9): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                // (22,9): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(2, 3)").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(22, 9)
                 );
@@ -13053,22 +13053,22 @@ class Program
             var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (20,14): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                // (20,14): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
                 //         Test([]);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[]").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(20, 14),
-                // (21,14): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                // (21,14): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
                 //         Test([1]);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[1]").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(21, 14),
-                // (21,15): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                // (21,15): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
                 //         Test([1]);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "1").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(21, 15),
-                // (22,14): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                // (22,14): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
                 //         Test([2, 3]);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[2, 3]").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(22, 14),
-                // (22,15): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                // (22,15): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
                 //         Test([2, 3]);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "2").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(22, 15),
-                // (22,18): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                // (22,18): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
                 //         Test([2, 3]);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "3").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(22, 18)
                 );
@@ -13110,13 +13110,13 @@ class Program
             var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (20,14): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                // (20,14): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
                 //         Test([]);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[]").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(20, 14),
-                // (21,14): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                // (21,14): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
                 //         Test([1]);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[1]").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(21, 14),
-                // (22,14): error CS9506: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
+                // (22,14): error CS9223: Creation of params collection 'MyCollection' results in an infinite chain of invocation of constructor 'MyCollection.MyCollection(params MyCollection)'.
                 //         Test([2, 3]);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[2, 3]").WithArguments("MyCollection", "MyCollection.MyCollection(params MyCollection)").WithLocation(22, 14)
                 );
@@ -13208,13 +13208,13 @@ class Program
             var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (20,9): error CS9506: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)'.
+                // (20,9): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)'.
                 //         Test();
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test()").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)").WithLocation(20, 9),
-                // (21,9): error CS9506: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)'.
+                // (21,9): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)'.
                 //         Test(1);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(1)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)").WithLocation(21, 9),
-                // (22,9): error CS9506: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)'.
+                // (22,9): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)'.
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(2, 3)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)").WithLocation(22, 9)
                 );
@@ -13306,13 +13306,13 @@ class Program
             var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (20,9): error CS9506: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)'.
+                // (20,9): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)'.
                 //         Test();
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test()").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)").WithLocation(20, 9),
-                // (21,9): error CS9506: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)'.
+                // (21,9): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)'.
                 //         Test(1);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(1)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)").WithLocation(21, 9),
-                // (22,9): error CS9506: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)'.
+                // (22,9): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)'.
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(2, 3)").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<MyCollection<T>>)").WithLocation(22, 9)
                 );
@@ -13378,13 +13378,13 @@ class Program
             var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (44,9): error CS9506: Creation of params collection 'MyCollection3' results in an infinite chain of invocation of constructor 'MyCollection2.MyCollection2(params MyCollection1)'.
+                // (44,9): error CS9223: Creation of params collection 'MyCollection3' results in an infinite chain of invocation of constructor 'MyCollection2.MyCollection2(params MyCollection1)'.
                 //         Test();
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test()").WithArguments("MyCollection3", "MyCollection2.MyCollection2(params MyCollection1)").WithLocation(44, 9),
-                // (45,9): error CS9506: Creation of params collection 'MyCollection3' results in an infinite chain of invocation of constructor 'MyCollection2.MyCollection2(params MyCollection1)'.
+                // (45,9): error CS9223: Creation of params collection 'MyCollection3' results in an infinite chain of invocation of constructor 'MyCollection2.MyCollection2(params MyCollection1)'.
                 //         Test(1);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(1)").WithArguments("MyCollection3", "MyCollection2.MyCollection2(params MyCollection1)").WithLocation(45, 9),
-                // (46,9): error CS9506: Creation of params collection 'MyCollection3' results in an infinite chain of invocation of constructor 'MyCollection2.MyCollection2(params MyCollection1)'.
+                // (46,9): error CS9223: Creation of params collection 'MyCollection3' results in an infinite chain of invocation of constructor 'MyCollection2.MyCollection2(params MyCollection1)'.
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Test(2, 3)").WithArguments("MyCollection3", "MyCollection2.MyCollection2(params MyCollection1)").WithLocation(46, 9)
                 );
@@ -13866,7 +13866,7 @@ class Program
                 // (26,9): error CS9035: Required member 'MyCollection1.F' must be set in the object initializer or attribute constructor.
                 //         Test(2, 3);
                 Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Test(2, 3)").WithArguments("MyCollection1.F").WithLocation(26, 9),
-                // (29,22): error CS9508: Constructor 'MyCollection1.MyCollection1()' leaves required member 'MyCollection1.F' uninitialized.
+                // (29,22): error CS9225: Constructor 'MyCollection1.MyCollection1()' leaves required member 'MyCollection1.F' uninitialized.
                 //     static void Test(params MyCollection1 a)
                 Diagnostic(ErrorCode.ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember, "params").WithArguments("MyCollection1.MyCollection1()", "MyCollection1.F").WithLocation(29, 22),
                 // (44,27): error CS9035: Required member 'MyCollection1.F' must be set in the object initializer or attribute constructor.

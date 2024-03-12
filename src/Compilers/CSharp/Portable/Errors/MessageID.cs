@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureImplicitIndexerInitializer = MessageBase + 12840,
         IDS_FeatureLockObject = MessageBase + 12841,
 
-        IDS_FeatureParamsCollections = MessageBase + 12900, // PROTOTYPE(ParamsCollections): pack numbers
+        IDS_FeatureParamsCollections = MessageBase + 12842,
     }
 
     // Message IDs may refer to strings that need to be localized.
