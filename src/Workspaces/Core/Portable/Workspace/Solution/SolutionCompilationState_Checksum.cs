@@ -67,24 +67,24 @@ internal partial class SolutionCompilationState
 
     /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
     public async Task<(SolutionCompilationStateChecksums checksums, ProjectCone projectCone)> GetStateChecksumsAsync(
-        ProjectId projectConeId,
+        ProjectId projectId,
         CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(projectConeId);
+        Contract.ThrowIfNull(projectId);
 
         AsyncLazy<(SolutionCompilationStateChecksums checksums, ProjectCone projectCone)>? checksums;
         lock (_lazyProjectChecksums)
         {
-            if (!_lazyProjectChecksums.TryGetValue(projectConeId, out checksums))
+            if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums))
             {
                 checksums = AsyncLazy.Create(static async (arg, cancellationToken) =>
                 {
                     var (checksum, projectCone) = await arg.self.ComputeChecksumsAsync(arg.projectConeId, cancellationToken).ConfigureAwait(false);
                     Contract.ThrowIfNull(projectCone);
                     return (checksum, projectCone);
-                }, arg: (self: this, projectConeId));
+                }, arg: (self: this, projectId));
 
-                _lazyProjectChecksums.Add(projectConeId, checksums);
+                _lazyProjectChecksums.Add(projectId, checksums);
             }
         }
 
