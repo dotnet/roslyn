@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             return tokensData;
         }
 
-        public static async Task<int[]> HandleRequestHelperAsync( Document document, ImmutableArray<LinePositionSpan> spans, bool supportsVisualStudioExtensions, ClassificationOptions options, CancellationToken cancellationToken)
+        public static async Task<int[]> HandleRequestHelperAsync(Document document, ImmutableArray<LinePositionSpan> spans, bool supportsVisualStudioExtensions, ClassificationOptions options, CancellationToken cancellationToken)
         {
             // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
             // results but will speed up how quickly we can respond to the client's request.
