@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -70,10 +69,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <exception cref="ArgumentOutOfRangeException">When given span is outside of the text range.</exception>
         public override string ToString(TextSpan span)
         {
-            if (span.End > this.Source.Length)
-            {
-                throw new ArgumentOutOfRangeException(nameof(span));
-            }
+            ValidateSubSpan(span);
 
             if (span.Start == 0 && span.Length == this.Length)
             {
@@ -85,18 +81,22 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
+            ValidateCopyToArguments(sourceIndex, destination, destinationIndex, count);
+
             this.Source.CopyTo(sourceIndex, destination, destinationIndex, count);
         }
 
-        public override void Write(TextWriter textWriter, TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
+        public override void Write(TextWriter writer, TextSpan span, CancellationToken cancellationToken = default)
         {
             if (span.Start == 0 && span.End == this.Length)
             {
-                textWriter.Write(this.Source);
+                ValidateWriteArguments(writer, span);
+
+                writer.Write(this.Source);
             }
             else
             {
-                base.Write(textWriter, span, cancellationToken);
+                base.Write(writer, span, cancellationToken);
             }
         }
     }
