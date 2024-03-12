@@ -1,14 +1,19 @@
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12 = 1200 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.Conversion.IsCollectionExpression.get -> bool
-Microsoft.CodeAnalysis.CSharp.SourceTextLexer
-Microsoft.CodeAnalysis.CSharp.SourceTextLexer.Dispose() -> void
-Microsoft.CodeAnalysis.CSharp.SourceTextLexer.LexSyntax(int position) -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.SourceTextLexer.SourceTextLexer() -> void
+Microsoft.CodeAnalysis.CSharp.SourceTextTokenParser
+Microsoft.CodeAnalysis.CSharp.SourceTextTokenParser.Dispose() -> void
+Microsoft.CodeAnalysis.CSharp.SourceTextTokenParser.LexSyntax() -> Microsoft.CodeAnalysis.CSharp.SourceTextTokenParser.Result
+Microsoft.CodeAnalysis.CSharp.SourceTextTokenParser.ResetTo(Microsoft.CodeAnalysis.CSharp.SourceTextTokenParser.Result context) -> void
+Microsoft.CodeAnalysis.CSharp.SourceTextTokenParser.Result
+Microsoft.CodeAnalysis.CSharp.SourceTextTokenParser.Result.ContextualKind.get -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SourceTextTokenParser.Result.Result() -> void
+Microsoft.CodeAnalysis.CSharp.SourceTextTokenParser.SkipForwardTo(int position) -> void
+Microsoft.CodeAnalysis.CSharp.SourceTextTokenParser.SourceTextTokenParser() -> void
 Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.ReadOnlyKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken refKindKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.WithReadOnlyKeyword(Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!
+readonly Microsoft.CodeAnalysis.CSharp.SourceTextTokenParser.Result.Token -> Microsoft.CodeAnalysis.SyntaxToken
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(this Microsoft.CodeAnalysis.SemanticModel? semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax! node, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IMethodSymbol?
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetElementConversion(this Microsoft.CodeAnalysis.Operations.ISpreadOperation! spread) -> Microsoft.CodeAnalysis.CSharp.Conversion
-static Microsoft.CodeAnalysis.CSharp.SourceTextLexer.GetContextualKind(Microsoft.CodeAnalysis.SyntaxToken token) -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CreateLexer(Microsoft.CodeAnalysis.Text.SourceText! sourceText, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions? options) -> Microsoft.CodeAnalysis.CSharp.SourceTextLexer
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CreateTokenParser(Microsoft.CodeAnalysis.Text.SourceText! sourceText, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions? options) -> Microsoft.CodeAnalysis.CSharp.SourceTextTokenParser
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CrefParameter(Microsoft.CodeAnalysis.SyntaxToken refKindKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!
