@@ -683,7 +683,7 @@ namespace Roslyn.Utilities
                 return ImmutableDictionary.Create<K, V>(keyComparer);
             }
 
-            return ImmutableDictionary.CreateRange(keyComparer, items);
+            return items.ToImmutableDictionary(keyComparer);
         }
 
 #nullable disable // Transpose doesn't handle empty arrays. Needs to be updated as appropriate.

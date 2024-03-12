@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -657,11 +658,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type is object ? type.SpecialType : SpecialType.None;
         }
 
-        public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public static unsafe bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             CompoundUseSiteInfo<AssemblySymbol> localUseSiteInfo = useSiteInfo;
-            var result = type.VisitType((type1, symbol, unused) => IsTypeLessVisibleThan(type1, symbol, ref localUseSiteInfo), sym,
-                                        canDigThroughNullable: true); // System.Nullable is public
+            var localUseSiteInfoPtr = (nint)Unsafe.AsPointer(ref localUseSiteInfo);
+            var result = type.VisitType(
+                static (type1, arg, _) =>
+                {
+                    ref var localUseSiteInfo = ref Unsafe.AsRef<CompoundUseSiteInfo<AssemblySymbol>>((void*)arg.localUseSiteInfoPtr);
+                    return IsTypeLessVisibleThan(type1, arg.sym, ref localUseSiteInfo);
+                },
+                (sym, localUseSiteInfoPtr),
+                canDigThroughNullable: true); // System.Nullable is public
             useSiteInfo = localUseSiteInfo;
             return result is null;
         }

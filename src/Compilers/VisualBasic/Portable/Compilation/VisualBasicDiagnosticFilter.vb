@@ -34,8 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             cancellationToken As CancellationToken) As Diagnostic
 
             ' Diagnostic ids must be processed in case-insensitive fashion in VB.
-            Dim caseInsensitiveSpecificDiagnosticOptions =
-            ImmutableDictionary.Create(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer).AddRange(specificDiagnosticOptions)
+            Dim caseInsensitiveSpecificDiagnosticOptions = specificDiagnosticOptions.ToImmutableDictionary(CaseInsensitiveComparison.Comparer)
 
             ' Filter void diagnostics so that our callers don't have to perform resolution
             ' (which might copy the list of diagnostics).

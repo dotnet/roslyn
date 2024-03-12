@@ -111,7 +111,7 @@ namespace Microsoft.Cci
 
             // EDMAURER provide some reasonable size estimates for these that will avoid
             // much of the reallocation that would occur when growing these from empty.
-            _signatureIndex = new Dictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>>(module.HintNumberOfMethodDefinitions, ReferenceEqualityComparer.Instance); //ignores field signatures
+            _signatureIndex = new SegmentedDictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>>(module.HintNumberOfMethodDefinitions, ReferenceEqualityComparer.Instance); //ignores field signatures
 
             this.Context = context;
             this.messageProvider = messageProvider;
@@ -436,14 +436,14 @@ namespace Microsoft.Cci
 
         private readonly DynamicAnalysisDataWriter _dynamicAnalysisDataWriterOpt;
 
-        private readonly Dictionary<ICustomAttribute, BlobHandle> _customAttributeSignatureIndex = new Dictionary<ICustomAttribute, BlobHandle>();
+        private readonly SegmentedDictionary<ICustomAttribute, BlobHandle> _customAttributeSignatureIndex = new SegmentedDictionary<ICustomAttribute, BlobHandle>();
         private readonly Dictionary<ITypeReference, BlobHandle> _typeSpecSignatureIndex = new Dictionary<ITypeReference, BlobHandle>(ReferenceEqualityComparer.Instance);
         private readonly Dictionary<string, int> _fileRefIndex = new Dictionary<string, int>(32);  // more than enough in most cases, value is a RowId
         private readonly List<IFileReference> _fileRefList = new List<IFileReference>(32);
-        private readonly Dictionary<IFieldReference, BlobHandle> _fieldSignatureIndex = new Dictionary<IFieldReference, BlobHandle>(ReferenceEqualityComparer.Instance);
+        private readonly SegmentedDictionary<IFieldReference, BlobHandle> _fieldSignatureIndex = new SegmentedDictionary<IFieldReference, BlobHandle>(ReferenceEqualityComparer.Instance);
 
         // We need to keep track of both the index of the signature and the actual blob to support VB static local naming scheme.
-        private readonly Dictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>> _signatureIndex;
+        private readonly SegmentedDictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>> _signatureIndex;
 
         private readonly Dictionary<IMarshallingInformation, BlobHandle> _marshallingDescriptorIndex = new Dictionary<IMarshallingInformation, BlobHandle>();
         protected readonly List<MethodImplementation> methodImplList = new List<MethodImplementation>();
