@@ -191,6 +191,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
+        private protected void BindToOption<T>(RadioButton radiobutton, Option2<T> optionKey, T optionValue)
+        {
+            var binding = new Binding()
+            {
+                Source = new OptionBinding<T>(OptionStore, optionKey),
+                Path = new PropertyPath("Value"),
+                UpdateSourceTrigger = UpdateSourceTrigger.Default,
+                Converter = new RadioButtonCheckedConverter(),
+                ConverterParameter = optionValue
+            };
+
+            AddSearchHandler(radiobutton);
+
+            var bindingExpression = radiobutton.SetBinding(RadioButton.IsCheckedProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
         private protected void BindToOption<T>(RadioButton radiobutton, PerLanguageOption2<T> optionKey, T optionValue, string languageName)
         {
             var binding = new Binding()

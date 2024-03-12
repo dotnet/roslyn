@@ -69,12 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Run_code_analysis_in_separate_process, RemoteHostOptionsStorage.OOP64Bit);
             BindToOption(Run_code_analysis_on_dotnet, RemoteHostOptionsStorage.OOPCoreClr);
 
-            BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, () =>
-            {
-                // If the option has not been set by the user, check if the option is enabled from experimentation. If so, default to that.
-                return optionStore.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFilesFeatureFlag);
-            });
-
             BindToOption(Enable_file_logging_for_diagnostics, VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics);
             BindToOption(Skip_analyzers_for_implicitly_triggered_builds, FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds);
             BindToOption(Show_Remove_Unused_References_command_in_Solution_Explorer_experimental, FeatureOnOffOptions.OfferRemoveUnusedReferences, () =>
@@ -82,6 +76,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 // If the option has not been set by the user, check if the option to remove unused references
                 // is enabled from experimentation. If so, default to that.
                 return optionStore.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag);
+            });
+
+            // Source Generators
+
+            BindToOption(automatically_after_any_change, WorkspaceConfigurationOptionsStorage.RunSourceGeneratorsExplicitly, optionValue: false);
+            BindToOption(only_after_a_build_finishes, WorkspaceConfigurationOptionsStorage.RunSourceGeneratorsExplicitly, optionValue: true);
+            BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, () =>
+            {
+                // If the option has not been set by the user, check if the option is enabled from experimentation. If so, default to that.
+                return optionStore.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFilesFeatureFlag);
             });
 
             // Go To Definition

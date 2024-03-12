@@ -82,15 +82,11 @@
                         <StackPanel Margin="15, 0, 0, 0">
                             <RadioButton GroupName="Run_source_generators_location"
                                      x:Name="automatically_after_any_change"
-                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_automatically_after_any_change}"
-                                     Checked="automatically_after_any_change_Checked"
-                                     Unchecked="automatically_after_any_change_Unchecked" />
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_automatically_after_any_change}" />
   
                             <RadioButton GroupName="Run_source_generators_location"
                                      x:Name="only_after_a_build_finishes"
-                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_only_after_a_build_finishes}"
-                                     Checked="only_after_a_build_finishes_Checked"
-                                     Unchecked="only_after_a_build_finishes_Unchecked" />
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_only_after_a_build_finishes}" />
                         </StackPanel>
                     </StackPanel>
 
