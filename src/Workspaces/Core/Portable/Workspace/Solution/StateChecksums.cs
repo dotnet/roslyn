@@ -232,7 +232,7 @@ internal sealed class SolutionStateChecksums(
         if (assetHint.ProjectId != null)
         {
             Contract.ThrowIfTrue(
-                projectCone != null && !projectCone.ProjectIds.Contains(assetHint.ProjectId),
+                projectCone != null && !projectCone.Contains(assetHint.ProjectId),
                 "Requesting an asset outside of the cone explicitly being asked for!");
 
             var projectState = solution.GetProjectState(assetHint.ProjectId);
@@ -257,7 +257,7 @@ internal sealed class SolutionStateChecksums(
 
                 // If we're syncing a project cone, no point at all at looking at child projects of the solution that
                 // are not in that cone.
-                if (projectCone != null && !projectCone.ProjectIds.Contains(projectId))
+                if (projectCone != null && !projectCone.Contains(projectId))
                     continue;
 
                 if (projectState.TryGetStateChecksums(out var projectStateChecksums) &&
@@ -276,7 +276,7 @@ internal sealed class SolutionStateChecksums(
 
                 // If we're syncing a project cone, no point at all at looking at child projects of the solution that
                 // are not in that cone.
-                if (projectCone != null && !projectCone.ProjectIds.Contains(projectId))
+                if (projectCone != null && !projectCone.Contains(projectId))
                     continue;
 
                 // It's possible not all all our projects have checksums.  Specifically, we may have only been asked to
