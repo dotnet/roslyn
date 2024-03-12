@@ -103,7 +103,7 @@ internal partial class SolutionState
         ProjectId? projectConeId,
         CancellationToken cancellationToken)
     {
-        using var _1 = PooledHashSet<ProjectId>.GetInstance(out var projectConeSet);
+        using var projectConeSet = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
         AddProjectCone(projectConeId);
 
         try
@@ -114,7 +114,7 @@ internal partial class SolutionState
                 // requested set of projects if applicable.
                 var orderedProjectIds = GetOrCreateSortedProjectIds(this.ProjectIds);
 
-                using var _2 = ArrayBuilder<Task<ProjectStateChecksums>>.GetInstance(out var projectChecksumTasks);
+                using var _ = ArrayBuilder<Task<ProjectStateChecksums>>.GetInstance(out var projectChecksumTasks);
 
                 foreach (var orderedProjectId in orderedProjectIds)
                 {
@@ -122,7 +122,7 @@ internal partial class SolutionState
                     if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
                         continue;
 
-                    if (projectConeId != null && !projectConeSet.Contains(orderedProjectId))
+                    if (projectConeId != null && !projectConeSet.Object.Contains(orderedProjectId))
                         continue;
 
                     projectChecksumTasks.Add(projectState.GetStateChecksumsAsync(cancellationToken));
@@ -143,7 +143,7 @@ internal partial class SolutionState
                     analyzerReferenceChecksums);
 
 #if DEBUG
-                var projectCone = projectConeId is null ? null : new ProjectCone(projectConeId, projectConeSet.ToFrozenSet());
+                var projectCone = projectConeId is null ? null : new ProjectCone(projectConeId, projectConeSet.Object.ToFrozenSet());
                 RoslynDebug.Assert(Equals(projectCone, stateChecksums.ProjectCone));
 #endif
 
@@ -160,7 +160,7 @@ internal partial class SolutionState
             if (projectConeId is null)
                 return;
 
-            if (!projectConeSet.Add(projectConeId))
+            if (!projectConeSet.Object.Add(projectConeId))
                 return;
 
             var projectState = this.GetProjectState(projectConeId);
