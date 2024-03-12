@@ -18,13 +18,13 @@ internal partial class SolutionAssetStorage
     internal sealed partial class Scope(
         SolutionAssetStorage storage,
         Checksum solutionChecksum,
-        ProjectCone projectCone,
+        ProjectCone? projectCone,
         SolutionCompilationState compilationState) : IDisposable
     {
         private readonly SolutionAssetStorage _storage = storage;
 
         public readonly Checksum SolutionChecksum = solutionChecksum;
-        public readonly ProjectId? ProjectId = projectId;
+        public readonly ProjectCone? ProjectCone = projectCone;
         public readonly SolutionCompilationState CompilationState = compilationState;
 
         /// <summary>
@@ -70,15 +70,18 @@ internal partial class SolutionAssetStorage
         {
             var solutionState = this.CompilationState;
 
-            if (ProjectId is null)
+            if (this.ProjectCone is null)
             {
+                // If we're not in a project cone, start the search at the top most state-checksum corresponding to the
+                // entire solution.
                 Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(out var stateChecksums));
-                await stateChecksums.FindAsync(solutionState, assetHint, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(solutionState, this.ProjectCone, assetHint, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(ProjectId, out var stateChecksums));
-                await stateChecksums.FindAsync(solutionState, assetHint, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+                // Otherwise, grab the top-most state checksum for this cone and search within that.
+                Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(this.ProjectCone.Value.RootProjectId, out var stateChecksums));
+                await stateChecksums.FindAsync(solutionState, this.ProjectCone, assetHint, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
             }
         }
 

@@ -33,7 +33,7 @@ internal partial class SolutionState
     /// Mapping from project-id to the checksums needed to synchronize it (and the projects it depends on) over 
     /// to an OOP host.  Lock this specific field before reading/writing to it.
     /// </summary>
-    private readonly Dictionary<ProjectId, AsyncLazy<(SolutionStateChecksums stateChecksums, ProjectCone projectCone)>> _lazyProjectChecksums = [];
+    private readonly Dictionary<ProjectId, AsyncLazy<(SolutionStateChecksums checksums, ProjectCone projectCone)>> _lazyProjectChecksums = [];
 
     public static IReadOnlyList<ProjectId> GetOrCreateSortedProjectIds(IReadOnlyList<ProjectId> unorderedList)
         => s_projectIdToSortedProjectsMap.GetValue(unorderedList, projectIds => projectIds.OrderBy(id => id.Id).ToImmutableArray());
@@ -74,13 +74,13 @@ internal partial class SolutionState
     }
 
     /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
-    public async Task<(SolutionStateChecksums stateChecksums, ProjectCone projectCone)> GetStateChecksumsAsync(
+    public async Task<(SolutionStateChecksums checksums, ProjectCone projectCone)> GetStateChecksumsAsync(
         ProjectId projectConeId,
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(projectConeId);
 
-        AsyncLazy<(SolutionStateChecksums stateChecksums, ProjectCone projectCone)>? checksums;
+        AsyncLazy<(SolutionStateChecksums checksums, ProjectCone projectCone)>? checksums;
         lock (_lazyProjectChecksums)
         {
             if (!_lazyProjectChecksums.TryGetValue(projectConeId, out checksums))
@@ -108,7 +108,7 @@ internal partial class SolutionState
 
     /// <param name="projectConeId">Cone of projects to compute a checksum for.  Pass in <see langword="null"/> to get a
     /// checksum for the entire solution</param>
-    private async Task<(SolutionStateChecksums stateChecksums, ProjectCone? projectCone)> ComputeChecksumsAsync(
+    private async Task<(SolutionStateChecksums checksums, ProjectCone? projectCone)> ComputeChecksumsAsync(
         ProjectId? projectConeId,
         CancellationToken cancellationToken)
     {

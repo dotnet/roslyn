@@ -104,10 +104,10 @@ internal partial class SolutionCompilationState
     }
 
     /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
-    public async Task<(Checksum checksum, ProjectCone projectCone)> GetChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
+    public async Task<Checksum> GetChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
     {
-        var (checksums, projectCone) = await GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
-        return (checksums.Checksum, projectCone);
+        var (checksums, _) = await GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
+        return checksums.Checksum;
     }
 
     private async Task<(SolutionCompilationStateChecksums checksums, ProjectCone? projectCone)> ComputeChecksumsAsync(
