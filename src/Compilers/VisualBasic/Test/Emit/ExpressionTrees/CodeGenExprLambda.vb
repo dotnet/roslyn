@@ -2016,6 +2016,31 @@ End Module
         End Sub
 
         <Fact>
+        Public Sub UndeclaredClassInLambdaFunction()
+            Dim source =
+<compilation>
+    <file name="expr.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Module Program
+    Public Function CreateExpression() As Expression(Of Func(Of Object))
+        Return Function() (New UndeclaredClass() With {.Name = "testName"})
+    End Function
+End Module
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, {LinqAssemblyRef})
+            AssertTheseDiagnostics(compilation.GetDiagnostics(),
+<expected>
+BC30002: Type 'UndeclaredClass' is not defined.
+        Return Function() (New UndeclaredClass() With {.Name = "testName"})
+                               ~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
         <WorkItem(577271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577271")>
         Public Sub Bug577271()
             Dim file = <file name="expr.vb"><![CDATA[
