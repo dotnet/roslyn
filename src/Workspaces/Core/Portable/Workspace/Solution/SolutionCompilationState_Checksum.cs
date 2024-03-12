@@ -79,7 +79,7 @@ internal partial class SolutionCompilationState
             {
                 checksums = AsyncLazy.Create(static async (arg, cancellationToken) =>
                 {
-                    var (checksum, projectCone) = await arg.self.ComputeChecksumsAsync(arg.projectConeId, cancellationToken).ConfigureAwait(false);
+                    var (checksum, projectCone) = await arg.self.ComputeChecksumsAsync(arg.projectId, cancellationToken).ConfigureAwait(false);
                     Contract.ThrowIfNull(projectCone);
                     return (checksum, projectCone);
                 }, arg: (self: this, projectId));

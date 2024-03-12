@@ -80,7 +80,7 @@ internal partial class SolutionState
             if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums))
             {
                 checksums = AsyncLazy.Create(
-                    static (arg, cancellationToken) => arg.self.ComputeChecksumsAsync(arg.projectConeId, cancellationToken),
+                    static (arg, cancellationToken) => arg.self.ComputeChecksumsAsync(arg.projectId, cancellationToken),
                     arg: (self: this, projectId));
                 _lazyProjectChecksums.Add(projectId, checksums);
             }
