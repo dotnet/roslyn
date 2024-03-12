@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Text
     {
         private readonly Encoding? _encoding;
         private readonly SourceHashAlgorithm _checksumAlgorithm;
-        private readonly ArrayBuilder<char[]> _chunks;
+        private ArrayBuilder<char[]> _chunks;
 
         private readonly int _bufferSize;
         private char[]? _buffer;
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Text
         public override SourceText ToSourceText()
         {
             this.Flush();
-            return new LargeText(_chunks.ToImmutableAndFree(), _encoding, default(ImmutableArray<byte>), _checksumAlgorithm, default(ImmutableArray<byte>));
+            return new LargeText(_chunks.ToImmutable(), _encoding, default(ImmutableArray<byte>), _checksumAlgorithm, default(ImmutableArray<byte>));
         }
 
         // https://github.com/dotnet/roslyn/issues/40830
@@ -153,6 +153,17 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 _buffer = new char[_bufferSize];
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && _chunks is not null)
+            {
+                _chunks.Free();
+                _chunks = null!;
+            }
+
+            base.Dispose(disposing);
         }
     }
 }
