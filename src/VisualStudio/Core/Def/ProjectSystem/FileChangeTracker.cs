@@ -20,7 +20,7 @@ internal sealed class FileChangeTracker : IVsFreeThreadedFileChangeEvents2, IDis
 {
     internal const _VSFILECHANGEFLAGS DefaultFileChangeFlags = _VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Add | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Size;
 
-    private static readonly AsyncLazy<uint?> s_none = new(value: null);
+    private static readonly AsyncLazy<uint?> s_none = AsyncLazy.Create(value: (uint?)null);
 
     private readonly IVsFileChangeEx _fileChangeService;
     private readonly string _filePath;
@@ -107,30 +107,34 @@ internal sealed class FileChangeTracker : IVsFreeThreadedFileChangeEvents2, IDis
 
         Contract.ThrowIfTrue(_fileChangeCookie != s_none);
 
-        _fileChangeCookie = new AsyncLazy<uint?>(async cancellationToken =>
-        {
-            try
+        _fileChangeCookie = AsyncLazy.Create(
+            static async (self, cancellationToken) =>
             {
-                // TODO: Should we pass in cancellationToken here insead of CancellationToken.None?
-                return await ((IVsAsyncFileChangeEx2)_fileChangeService).AdviseFileChangeAsync(_filePath, _fileChangeFlags, this, CancellationToken.None).ConfigureAwait(false);
-            }
-            catch (Exception e) when (ReportException(e))
+                try
+                {
+                    // TODO: Should we pass in cancellationToken here instead of CancellationToken.None?
+                    uint? result = await ((IVsAsyncFileChangeEx2)self._fileChangeService).AdviseFileChangeAsync(self._filePath, self._fileChangeFlags, self, CancellationToken.None).ConfigureAwait(false);
+                    return result;
+                }
+                catch (Exception e) when (ReportException(e))
+                {
+                    return null;
+                }
+            },
+            static (self, cancellationToken) =>
             {
-                return null;
-            }
-        }, cancellationToken =>
-        {
-            try
-            {
-                Marshal.ThrowExceptionForHR(
-                    _fileChangeService.AdviseFileChange(_filePath, (uint)_fileChangeFlags, this, out var newCookie));
-                return newCookie;
-            }
-            catch (Exception e) when (ReportException(e))
-            {
-                return null;
-            }
-        });
+                try
+                {
+                    Marshal.ThrowExceptionForHR(
+                        self._fileChangeService.AdviseFileChange(self._filePath, (uint)self._fileChangeFlags, self, out var newCookie));
+                    return newCookie;
+                }
+                catch (Exception e) when (ReportException(e))
+                {
+                    return null;
+                }
+            },
+            arg: this);
 
         lock (s_lastBackgroundTaskGate)
         {

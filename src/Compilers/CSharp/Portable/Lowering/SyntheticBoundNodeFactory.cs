@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -506,6 +508,51 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundStatementList StatementList(BoundStatement first, BoundStatement second)
         {
             return new BoundStatementList(Syntax, ImmutableArray.Create(first, second)) { WasCompilerGenerated = true };
+        }
+
+        [return: NotNullIfNotNull(nameof(first)), NotNullIfNotNull(nameof(second))]
+        public BoundStatement? Concat(BoundStatement? first, BoundStatement? second)
+            => (first == null) ? second : (second == null) ? first : StatementList(first, second);
+
+        public BoundBlockInstrumentation CombineInstrumentation(BoundBlockInstrumentation? innerInstrumentation = null, LocalSymbol? local = null, BoundStatement? prologue = null, BoundStatement? epilogue = null)
+        {
+            return (innerInstrumentation != null)
+                ? new BoundBlockInstrumentation(
+                    innerInstrumentation.Syntax,
+                    (local != null) ? innerInstrumentation.Locals.Add(local) : innerInstrumentation.Locals,
+                    (prologue != null) ? Concat(prologue, innerInstrumentation.Prologue) : innerInstrumentation.Prologue,
+                    (epilogue != null) ? Concat(innerInstrumentation.Epilogue, epilogue) : innerInstrumentation.Epilogue)
+                : new BoundBlockInstrumentation(
+                    Syntax,
+                    OneOrMany.OneOrNone(local),
+                    prologue,
+                    epilogue);
+        }
+
+        public BoundStatement Instrument(BoundStatement statement, BoundBlockInstrumentation? instrumentation)
+        {
+            if (instrumentation == null)
+            {
+                return statement;
+            }
+
+            var statements = new TemporaryArray<BoundStatement>();
+
+            if (instrumentation.Prologue != null)
+            {
+                statements.Add(instrumentation.Prologue);
+            }
+
+            if (instrumentation.Epilogue != null)
+            {
+                statements.Add(Try(Block(statement), ImmutableArray<BoundCatchBlock>.Empty, Block(instrumentation.Epilogue)));
+            }
+            else
+            {
+                statements.Add(statement);
+            }
+
+            return Block(instrumentation.Locals.ToImmutable(), statements.ToImmutableAndClear());
         }
 
         public BoundReturnStatement Return(BoundExpression? expression = null)
@@ -1303,6 +1350,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundInstrumentationPayloadRoot(Syntax, analysisKind, payloadType) { WasCompilerGenerated = true };
         }
+
+        public BoundExpression ThrowIfModuleCancellationRequested()
+            => new BoundThrowIfModuleCancellationRequested(Syntax, SpecialType(CodeAnalysis.SpecialType.System_Void)) { WasCompilerGenerated = true };
+
+        public BoundExpression ModuleCancellationToken()
+            => new ModuleCancellationTokenExpression(Syntax, WellKnownType(CodeAnalysis.WellKnownType.System_Threading_CancellationToken)) { WasCompilerGenerated = true };
 
         public BoundExpression MaximumMethodDefIndex()
         {

@@ -102,9 +102,6 @@ internal partial class SolutionCompilationState
             CancellationToken cancellationToken)
         {
             var solution = compilationState.SolutionState;
-            var options = solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
-            if (options.RunSourceGeneratorsInSameProcessOnly)
-                return null;
 
             var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client is null)
@@ -160,7 +157,11 @@ internal partial class SolutionCompilationState
                 compilationWithStaleGeneratedTrees != null &&
                 oldGeneratedDocuments.States.All(kvp => kvp.Value.ParseOptions.Equals(this.ProjectState.ParseOptions)))
             {
-                return (compilationWithStaleGeneratedTrees, oldGeneratedDocuments);
+                // If there are no generated documents though, then just use the compilationWithoutGeneratedFiles so we
+                // only hold onto that single compilation from this point on.
+                return oldGeneratedDocuments.Count == 0
+                    ? (compilationWithoutGeneratedFiles, oldGeneratedDocuments)
+                    : (compilationWithStaleGeneratedTrees, oldGeneratedDocuments);
             }
 
             // Either we generated a different number of files, and/or we had contents of files that changed. Ensure
