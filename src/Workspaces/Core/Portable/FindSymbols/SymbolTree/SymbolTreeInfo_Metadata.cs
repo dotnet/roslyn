@@ -158,8 +158,9 @@ internal partial class SymbolTreeInfo
             // CreateMetadataSymbolTreeInfoAsync
             var asyncLazy = s_peReferenceToInfo.GetValue(
                 reference,
-                id => AsyncLazy.Create(
-                    c => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, reference, checksum, c)));
+                id => AsyncLazy.Create(static (arg, c) =>
+                    CreateMetadataSymbolTreeInfoAsync(arg.services, arg.solutionKey, arg.reference, arg.checksum, c),
+                    arg: (services, solutionKey, reference, checksum)));
 
             return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -177,14 +178,15 @@ internal partial class SymbolTreeInfo
 
             var asyncLazy = s_metadataIdToSymbolTreeInfo.GetValue(
                 metadataId,
-                metadataId => AsyncLazy.Create(
-                    cancellationToken => LoadOrCreateAsync(
-                        services,
-                        solutionKey,
-                        checksum,
-                        createAsync: checksum => new ValueTask<SymbolTreeInfo>(new MetadataInfoCreator(checksum, GetMetadataNoThrow(reference)).Create()),
-                        keySuffix: GetMetadataKeySuffix(reference),
-                        cancellationToken)));
+                metadataId => AsyncLazy.Create(static (arg, cancellationToken) =>
+                        LoadOrCreateAsync(
+                        arg.services,
+                        arg.solutionKey,
+                        arg.checksum,
+                        createAsync: checksum => new ValueTask<SymbolTreeInfo>(new MetadataInfoCreator(checksum, GetMetadataNoThrow(arg.reference)).Create()),
+                        keySuffix: GetMetadataKeySuffix(arg.reference),
+                        cancellationToken),
+                    arg: (services, solutionKey, checksum, reference)));
 
             var metadataIdSymbolTreeInfo = await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
 

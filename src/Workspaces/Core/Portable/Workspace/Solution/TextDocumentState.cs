@@ -52,7 +52,7 @@ internal partial class TextDocumentState
         // a new AsyncLazy to compute the checksum though, and that's because there's no practical way for
         // the newly created TextDocumentState to have the same checksum as a previous TextDocumentState:
         // if we're creating a new state, it's because something changed, and we'll have to create a new checksum.
-        _lazyChecksums = AsyncLazy.Create(ComputeChecksumsAsync);
+        _lazyChecksums = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this);
     }
 
     public TextDocumentState(SolutionServices solutionServices, DocumentInfo info, LoadTextOptions loadTextOptions)

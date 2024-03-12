@@ -123,6 +123,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     instrumenter = codeCoverageInstrumenter;
                 }
 
+                StackOverflowProbingInstrumenter? stackOverflowProbingInstrumenter = null;
+                if (instrumentation.Kinds.Contains(InstrumentationKind.StackOverflowProbing) &&
+                    StackOverflowProbingInstrumenter.TryCreate(method, factory, instrumenter, out stackOverflowProbingInstrumenter))
+                {
+                    instrumenter = stackOverflowProbingInstrumenter;
+                }
+
+                ModuleCancellationInstrumenter? moduleCancellationInstrumenter = null;
+                if (instrumentation.Kinds.Contains(InstrumentationKind.ModuleCancellation) &&
+                    ModuleCancellationInstrumenter.TryCreate(method, factory, instrumenter, out moduleCancellationInstrumenter))
+                {
+                    instrumenter = moduleCancellationInstrumenter;
+                }
+
                 instrumentationState.Instrumenter = DebugInfoInjector.Create(instrumenter);
 
                 // We don't want IL to differ based upon whether we write the PDB to a file/stream or not.
