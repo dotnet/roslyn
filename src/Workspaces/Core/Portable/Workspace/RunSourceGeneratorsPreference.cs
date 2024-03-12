@@ -8,13 +8,13 @@ namespace Microsoft.CodeAnalysis.Host;
 
 internal enum RunSourceGeneratorsPreference
 {
-    AfterBuildCompletes,
+    AfterBuildFinishes,
     Automatically,
 }
 
 internal static class RunSourceGeneratorsPreferenceUtilities
 {
-    private const string after_build_completes = "after_build_completes";
+    private const string after_build_finishes = "after_build_finishes";
     private const string automatically = "automatically";
 
     // Default to beginning_of_line if we don't know the value.
@@ -23,7 +23,7 @@ internal static class RunSourceGeneratorsPreferenceUtilities
     {
         return value switch
         {
-            RunSourceGeneratorsPreference.AfterBuildCompletes => after_build_completes,
+            RunSourceGeneratorsPreference.AfterBuildFinishes => after_build_finishes,
             RunSourceGeneratorsPreference.Automatically => automatically,
             _ => throw ExceptionUtilities.UnexpectedValue(value),
         };
@@ -34,7 +34,7 @@ internal static class RunSourceGeneratorsPreferenceUtilities
     {
         return optionString switch
         {
-            after_build_completes => RunSourceGeneratorsPreference.AfterBuildCompletes,
+            after_build_finishes => RunSourceGeneratorsPreference.AfterBuildFinishes,
             automatically => RunSourceGeneratorsPreference.Automatically,
             _ => defaultValue,
         };

@@ -77,8 +77,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                          End Function)
 
             ' Source Generators
-            BindToOption(automatically_after_any_change, WorkspaceConfigurationOptionsStorage.RunSourceGeneratorsExplicitly, optionValue:=False)
-            BindToOption(only_after_a_build_finishes, WorkspaceConfigurationOptionsStorage.RunSourceGeneratorsExplicitly, optionValue:=True)
+            BindToOption(automatically_after_any_change, WorkspaceConfigurationOptionsStorage.RunSourceGenerators, RunSourceGeneratorsPreference.Automatically)
+            BindToOption(only_after_a_build_finishes, WorkspaceConfigurationOptionsStorage.RunSourceGenerators, RunSourceGeneratorsPreference.AfterBuildCompletes)
             BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles,
                          Function()
                              ' If the option has not been set by the user, check if the option is enabled from experimentation.
