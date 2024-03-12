@@ -447,6 +447,20 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
 
             var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
+            var analyzers = incrementalAnalyzer.GetAnalyzersTestOnly(project).ToArray();
+
+            AssertEx.Equal(new[]
+            {
+                typeof(FileContentLoadAnalyzer),
+                typeof(GeneratorDiagnosticsPlaceholderAnalyzer),
+                typeof(CSharpCompilerDiagnosticAnalyzer),
+                typeof(Analyzer),
+                typeof(Priority0Analyzer),
+                typeof(Priority1Analyzer),
+                typeof(Priority10Analyzer),
+                typeof(Priority15Analyzer),
+                typeof(Priority20Analyzer)
+            }, analyzers.Select(a => a.GetType()));
         }
 
         [Fact]

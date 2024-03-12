@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -189,6 +190,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             return DiagnosticAnalysisResult.CreateEmpty(projectId, version);
         }
+
+        internal IEnumerable<DiagnosticAnalyzer> GetAnalyzersTestOnly(Project project)
+            => _stateManager.GetOrCreateStateSets(project).Select(s => s.Analyzer);
 
         private static string GetDocumentLogMessage(string title, TextDocument document, DiagnosticAnalyzer analyzer)
             => $"{title}: ({document.Id}, {document.Project.Id}), ({analyzer})";
