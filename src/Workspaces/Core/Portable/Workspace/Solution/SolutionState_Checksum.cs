@@ -44,18 +44,18 @@ internal partial class SolutionState
 
     public bool TryGetStateChecksums(ProjectId projectId, [NotNullWhen(true)] out SolutionStateChecksums? stateChecksums)
     {
-        AsyncLazy<SolutionStateChecksums>? lazyChecksums;
+        AsyncLazy<SolutionStateChecksums>? checksums;
         lock (_lazyProjectChecksums)
         {
-            if (!_lazyProjectChecksums.TryGetValue(projectId, out lazyChecksums) ||
-                lazyChecksums == null)
+            if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums) ||
+                checksums == null)
             {
                 stateChecksums = null;
                 return false;
             }
         }
 
-        return lazyChecksums.TryGetValue(out stateChecksums);
+        return checksums.TryGetValue(out stateChecksums);
     }
 
     public Task<SolutionStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
