@@ -14,16 +14,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal readonly struct ProjectCone
+internal readonly struct ProjectCone(ProjectId rootProjectId, IReadOnlySet<ProjectId> projectIds) : IEquatable<ProjectCone>
 {
-    public readonly ProjectId RootProjectId;
-    public readonly IReadOnlySet<ProjectId> ProjectIds;
+    public readonly ProjectId RootProjectId = rootProjectId;
+    public readonly IReadOnlySet<ProjectId> ProjectIds = projectIds;
 
-    public ProjectCone(ProjectId rootProjectId, IReadOnlySet<ProjectId> projectIds)
-    {
-        RootProjectId = rootProjectId;
-        ProjectIds = projectIds;
-    }
+    public override bool Equals(object obj)
+        => obj is ProjectCone cone && Equals(cone);
+
+    public bool Equals(ProjectCone other)
+        => this.RootProjectId == other.RootProjectId && this.ProjectIds.SetEquals(other.ProjectIds);
+
+    public override int GetHashCode()
+        => throw new NotImplementedException();
 }
 
 internal partial class SolutionCompilationState

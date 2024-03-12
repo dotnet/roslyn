@@ -189,35 +189,35 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public static Task AppendAssetMapAsync(this Solution solution, Dictionary<Checksum, object> map, CancellationToken cancellationToken)
-            => AppendAssetMapAsync(solution, projectCone: null, map, cancellationToken);
+            => AppendAssetMapAsync(solution, map, projectId: null, cancellationToken);
 
         public static async Task AppendAssetMapAsync(
-            this Solution solution, ProjectCone? projectCone, Dictionary<Checksum, object> map, CancellationToken cancellationToken)
+            this Solution solution, Dictionary<Checksum, object> map, ProjectId? projectId, CancellationToken cancellationToken)
         {
-            if (projectCone == null)
+            if (projectId == null)
             {
                 var compilationChecksums = await solution.CompilationState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                await compilationChecksums.FindAsync(solution.CompilationState, projectCone, assetHint: AssetHint.None, Flatten(compilationChecksums), map, cancellationToken).ConfigureAwait(false);
+                await compilationChecksums.FindAsync(solution.CompilationState, projectCone: null, assetHint: AssetHint.None, Flatten(compilationChecksums), map, cancellationToken).ConfigureAwait(false);
 
                 foreach (var frozenSourceGeneratedDocumentState in solution.CompilationState.FrozenSourceGeneratedDocumentStates?.States.Values ?? [])
                 {
                     var documentChecksums = await frozenSourceGeneratedDocumentState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                    await compilationChecksums.FindAsync(solution.CompilationState, projectCone, assetHint: AssetHint.None, Flatten(documentChecksums), map, cancellationToken).ConfigureAwait(false);
+                    await compilationChecksums.FindAsync(solution.CompilationState, projectCone: null, assetHint: AssetHint.None, Flatten(documentChecksums), map, cancellationToken).ConfigureAwait(false);
                 }
 
                 var solutionChecksums = await solution.CompilationState.SolutionState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                await solutionChecksums.FindAsync(solution.CompilationState.SolutionState, projectCone, assetHint: AssetHint.None, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
+                await solutionChecksums.FindAsync(solution.CompilationState.SolutionState, projectCone: null, assetHint: AssetHint.None, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
 
                 foreach (var project in solution.Projects)
                     await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                var projectId = projectCone.Value.RootProjectId;
-                var compilationChecksums = await solution.CompilationState.GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
-                await compilationChecksums.checksums.FindAsync(solution.CompilationState, projectCone, assetHint: projectId, Flatten(compilationChecksums.checksums), map, cancellationToken).ConfigureAwait(false);
+                var (compilationChecksums, projectCone) = await solution.CompilationState.GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
+                await compilationChecksums.FindAsync(solution.CompilationState, projectCone, assetHint: projectId, Flatten(compilationChecksums), map, cancellationToken).ConfigureAwait(false);
 
                 var solutionChecksums = await solution.CompilationState.SolutionState.GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfFalse(projectCone.Equals(solutionChecksums.projectCone));
                 await solutionChecksums.checksums.FindAsync(solution.CompilationState.SolutionState, projectCone, assetHint: projectId, Flatten(solutionChecksums.checksums), map, cancellationToken).ConfigureAwait(false);
 
                 var project = solution.GetRequiredProject(projectId);
