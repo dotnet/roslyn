@@ -194,32 +194,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableInterlocked.InterlockedInitialize(ref _interceptorsPreviewNamespaces, previewNamespaces);
                 return previewNamespaces;
 
-                ImmutableArray<ImmutableArray<string>> makeNamespaces(string namespaces)
+                static ImmutableArray<ImmutableArray<string>> makeNamespaces(string namespaces)
                 {
                     var builder = ArrayBuilder<ImmutableArray<string>>.GetInstance();
                     var singleNamespaceBuilder = ArrayBuilder<string>.GetInstance();
                     int currentIndex = 0;
                     while (currentIndex < namespaces.Length && namespaces.IndexOf(';', currentIndex) is not -1 and var semicolonIndex)
                     {
-                        var namespaceParts = makeSingleNamespaceParts(singleNamespaceBuilder, namespaces.AsSpan(currentIndex, semicolonIndex - currentIndex));
-                        if (!builder.Any(ns => ns.SequenceEqual(namespaceParts)))
-                        {
-                            builder.Add(namespaceParts);
-                        }
+                        addSingleNamespaceParts(builder, singleNamespaceBuilder, namespaces.AsSpan(currentIndex, semicolonIndex - currentIndex));
                         currentIndex = semicolonIndex + 1;
                     }
 
-                    var namespaceParts1 = makeSingleNamespaceParts(singleNamespaceBuilder, namespaces.AsSpan(currentIndex));
-                    if (!builder.Any(ns => ns.SequenceEqual(namespaceParts1)))
-                    {
-                        builder.Add(namespaceParts1);
-                    }
-
+                    addSingleNamespaceParts(builder, singleNamespaceBuilder, namespaces.AsSpan(currentIndex));
                     singleNamespaceBuilder.Free();
                     return builder.ToImmutableAndFree();
                 }
 
-                ImmutableArray<string> makeSingleNamespaceParts(ArrayBuilder<string> singleNamespaceBuilder, ReadOnlySpan<char> @namespace)
+                static void addSingleNamespaceParts(ArrayBuilder<ImmutableArray<string>> namespacesBuilder, ArrayBuilder<string> singleNamespaceBuilder, ReadOnlySpan<char> @namespace)
                 {
                     int currentIndex = 0;
                     while (currentIndex < @namespace.Length && @namespace.IndexOf('.', currentIndex) is not -1 and var dotIndex)
@@ -228,7 +219,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         currentIndex = dotIndex + 1;
                     }
                     singleNamespaceBuilder.Add(@namespace.Slice(currentIndex).ToString());
-                    return singleNamespaceBuilder.ToImmutableAndClear();
+
+                    if (!namespacesBuilder.Any(ns => ns.SequenceEqual(singleNamespaceBuilder)))
+                    {
+                        namespacesBuilder.Add(singleNamespaceBuilder.ToImmutable());
+                    }
+
+                    singleNamespaceBuilder.Clear();
                 }
             }
         }

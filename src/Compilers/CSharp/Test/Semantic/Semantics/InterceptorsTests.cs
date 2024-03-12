@@ -155,6 +155,7 @@ public class InterceptorsTests : CSharpTestBase
         sadCase("true");
         sadCase(" NS1");
         sadCase(";");
+        sadCase(";;");
         sadCase("");
         sadCase("NS1 ;");
         sadCase("NS1..NS2;");
@@ -167,6 +168,7 @@ public class InterceptorsTests : CSharpTestBase
         happyCase(";NS1");
         happyCase("NS1.NS2");
         happyCase("NS2;NS1.NS2");
+        happyCase("NS2;;NS1.NS2");
 
         void sadCase(string featureValue)
         {
