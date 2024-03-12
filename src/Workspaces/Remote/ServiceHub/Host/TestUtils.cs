@@ -217,8 +217,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 await compilationChecksums.FindAsync(solution.CompilationState, projectCone, assetHint: projectId, Flatten(compilationChecksums), map, cancellationToken).ConfigureAwait(false);
 
                 var solutionChecksums = await solution.CompilationState.SolutionState.GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfFalse(projectCone.Equals(solutionChecksums.projectCone));
-                await solutionChecksums.checksums.FindAsync(solution.CompilationState.SolutionState, projectCone, assetHint: projectId, Flatten(solutionChecksums.checksums), map, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfFalse(projectCone.Equals(solutionChecksums.ProjectCone));
+                await solutionChecksums.FindAsync(solution.CompilationState.SolutionState, projectCone, assetHint: projectId, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
 
                 var project = solution.GetRequiredProject(projectId);
                 await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
