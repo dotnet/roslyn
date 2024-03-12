@@ -164,6 +164,9 @@ internal sealed class SolutionStateChecksums(
     public ChecksumsAndIds<ProjectId> Projects { get; } = projects;
     public ChecksumCollection AnalyzerReferences { get; } = analyzerReferences;
 
+    // Acceptably not threadsafe.  ProjectCone is a class, and the runtime guarantees anyone will see this field fully
+    // initialized.  It's acceptable to have multiple instances of this in a race condition as the data will be same
+    // (and our asserts don't check for reference equality, only value equality).
     public ProjectCone? ProjectCone => _projectCone ??= ComputeProjectCone();
 
     private ProjectCone? ComputeProjectCone()
