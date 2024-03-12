@@ -5,6 +5,8 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -277,25 +279,18 @@ void goo()
             }
         }
 
-        [Fact]
-        public void TestNoKind8441InKeywordKinds()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72300")]
+        public void TestAllKindsReturnedFromGetKindsMethodsExist()
         {
-            var reservedKeywords = SyntaxFacts.GetReservedKeywordKinds();
-            Assert.DoesNotContain((SyntaxKind)8441, reservedKeywords);
-
-            var contextualKeywords = SyntaxFacts.GetContextualKeywordKinds();
-            Assert.DoesNotContain((SyntaxKind)8441, contextualKeywords);
-
-            var keywords = SyntaxFacts.GetKeywordKinds();
-            Assert.DoesNotContain((SyntaxKind)8441, keywords);
-        }
-
-        [Fact]
-        public void TestAllPunctuationKindsExist()
-        {
-            foreach (var punctuationKind in SyntaxFacts.GetPunctuationKinds())
+            foreach (var method in typeof(SyntaxFacts).GetMethods(BindingFlags.Public | BindingFlags.Static))
             {
-                Assert.True(Enum.IsDefined(typeof(SyntaxKind), punctuationKind));
+                if (method.ReturnType == typeof(IEnumerable<SyntaxKind>) && method.GetParameters() is [])
+                {
+                    foreach (var kind in (IEnumerable<SyntaxKind>)method.Invoke(null, null))
+                    {
+                        Assert.True(Enum.IsDefined(typeof(SyntaxKind), kind), $"Nonexistent kind '{kind}' returned from method '{method.Name}'");
+                    }
+                }
             }
         }
     }
