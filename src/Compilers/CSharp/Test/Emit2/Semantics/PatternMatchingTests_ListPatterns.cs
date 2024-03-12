@@ -6393,23 +6393,25 @@ class C
         CompileAndVerify(comp, expectedOutput: expectedOutput);
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [16]
+@"[0]: t0 != null ? [1] : [18]
 [1]: t1 = t0.Length; [2]
-[2]: t1 == 3 ? [3] : [10]
+[2]: t1 == 3 ? [3] : [12]
 [3]: t2 = t0[0]; [4]
-[4]: t2 == 1 ? [5] : [16]
+[4]: t2 == 1 ? [5] : [18]
 [5]: t3 = t0[1]; [6]
-[6]: t3 == 2 ? [7] : [13]
+[6]: t3 == 2 ? [7] : [15]
 [7]: t4 = t0[2]; [8]
-[8]: t4 == 3 ? [9] : [16]
+[8]: t4 == 3 ? [9] : [10]
 [9]: leaf `case [1, 2, 3]:`
-[10]: t1 >= 2 ? [11] : [16]
-[11]: t2 = t0[0]; [12]
-[12]: t2 == 1 ? [13] : [16]
-[13]: t5 = t0[-1]; [14]
-[14]: t5 == 3 ? [15] : [16]
-[15]: leaf `case [1, .., 3]:`
-[16]: leaf `default`
+[10]: t5 = t0[-1]; [11]
+[11]: t5 <-- t4; [18]
+[12]: t1 >= 2 ? [13] : [18]
+[13]: t2 = t0[0]; [14]
+[14]: t2 == 1 ? [15] : [18]
+[15]: t5 = t0[-1]; [16]
+[16]: t5 == 3 ? [17] : [18]
+[17]: leaf `case [1, .., 3]:`
+[18]: leaf `default`
 ");
     }
 
@@ -6446,17 +6448,19 @@ class C
         CompileAndVerify(comp, expectedOutput: expectedOutput);
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [10]
+@"[0]: t0 != null ? [1] : [12]
 [1]: t1 = t0.Length; [2]
-[2]: t1 == 1 ? [3] : [6]
+[2]: t1 == 1 ? [3] : [8]
 [3]: t2 = t0[0]; [4]
-[4]: t2 == 42 ? [5] : [10]
+[4]: t2 == 42 ? [5] : [6]
 [5]: leaf `case [42]:`
-[6]: t1 >= 1 ? [7] : [10]
-[7]: t3 = t0[-1]; [8]
-[8]: t3 == 42 ? [9] : [10]
-[9]: leaf `case [..,42]:`
-[10]: leaf `default`
+[6]: t3 = t0[-1]; [7]
+[7]: t3 <-- t2; [12]
+[8]: t1 >= 1 ? [9] : [12]
+[9]: t3 = t0[-1]; [10]
+[10]: t3 == 42 ? [11] : [12]
+[11]: leaf `case [..,42]:`
+[12]: leaf `default`
 ");
     }
 
@@ -6836,33 +6840,34 @@ class C
             Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[[42]]").WithLocation(9, 18));
 
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [26]
+@"[0]: t0 != null ? [1] : [27]
 [1]: t1 = t0.Length; [2]
-[2]: t1 >= 1 ? [3] : [26]
+[2]: t1 >= 1 ? [3] : [27]
 [3]: t2 = t0[-1]; [4]
-[4]: t2 != null ? [5] : [23]
+[4]: t2 != null ? [5] : [24]
 [5]: t3 = t2.Length; [6]
-[6]: t3 >= 1 ? [7] : [18]
+[6]: t3 >= 1 ? [7] : [19]
 [7]: t4 = t2[-1]; [8]
 [8]: t4 == 42 ? [9] : [10]
 [9]: leaf `case [.., [.., 42]]:`
-[10]: t1 == 1 ? [11] : [26]
+[10]: t1 == 1 ? [11] : [27]
 [11]: t5 = t0[0]; [12]
 [12]: t5 <-- t2; [13]
 [13]: t7 = t5.Length; [14]
 [14]: t7 <-- t3; [15]
-[15]: t7 == 1 ? [16] : [26]
+[15]: t7 == 1 ? [16] : [27]
 [16]: t9 = t5[0]; [17]
-[17]: t9 <-- t4; [26]
-[18]: t1 == 1 ? [19] : [26]
-[19]: t5 = t0[0]; [20]
-[20]: t5 <-- t2; [21]
-[21]: t7 = t5.Length; [22]
-[22]: t7 <-- t3; [26]
-[23]: t1 == 1 ? [24] : [26]
-[24]: t5 = t0[0]; [25]
-[25]: t5 <-- t2; [26]
-[26]: leaf <break> `switch (a)
+[17]: t3 <-- t7; [18]
+[18]: t9 <-- t4; [27]
+[19]: t1 == 1 ? [20] : [27]
+[20]: t5 = t0[0]; [21]
+[21]: t5 <-- t2; [22]
+[22]: t7 = t5.Length; [23]
+[23]: t7 <-- t3; [27]
+[24]: t1 == 1 ? [25] : [27]
+[25]: t5 = t0[0]; [26]
+[26]: t5 <-- t2; [27]
+[27]: leaf <break> `switch (a)
         {
             case [.., [.., 42]]:
             case [[42]]:
@@ -7152,21 +7157,22 @@ class C
                 //             case [_]:         
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[_]").WithLocation(11, 18));
         VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
-@"[0]: t0 != null ? [1] : [14]
+@"[0]: t0 != null ? [1] : [15]
 [1]: t1 = t0.Length; [2]
-[2]: t1 >= 1 ? [3] : [14]
+[2]: t1 >= 1 ? [3] : [15]
 [3]: t2 = t0[-1]; [4]
 [4]: t2 == 0 ? [5] : [6]
 [5]: leaf `case [.., 0]:`
 [6]: t3 = t0[0]; [7]
-[7]: t1 == 1 ? [8] : [10]
+[7]: t1 == 1 ? [8] : [11]
 [8]: t3 <-- t2; [9]
-[9]: t3 < 0 ? [11] : [13]
-[10]: t3 < 0 ? [11] : [12]
-[11]: leaf `case [<0, ..]:`
-[12]: t2 > 0 ? [13] : [14]
-[13]: leaf `case [.., >0]:`
-[14]: leaf <break> `switch (a)
+[9]: t3 < 0 ? [12] : [10]
+[10]: t2 <-- t3; [14]
+[11]: t3 < 0 ? [12] : [13]
+[12]: leaf `case [<0, ..]:`
+[13]: t2 > 0 ? [14] : [15]
+[14]: leaf `case [.., >0]:`
+[15]: leaf <break> `switch (a)
         {
             case [.., 0]:
             case [<0, ..]:
@@ -7175,6 +7181,31 @@ class C
                 break;
         }`
 ");
+    }
+
+    [Fact]
+    public void Subsumption_19()
+    {
+        var src = @"
+class C
+{
+    void Test(int[] a)
+    {
+        switch (a)
+        {
+            case [_] and [.., 0]:
+            case [_] and [<0, ..]:
+            case [_] and [.., >0]:
+            case [_]:
+                break;
+        };
+    }
+}";
+        var comp = CreateCompilation(new[] { src, TestSources.Index });
+        comp.VerifyEmitDiagnostics(
+            // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+            //             case [_]:
+            Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[_]").WithLocation(11, 18));
     }
 
     [Fact]
