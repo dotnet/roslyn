@@ -1701,8 +1701,8 @@ namespace Microsoft.Cci
             BuildMetadataAndIL(
                 nativePdbWriterOpt,
                 ilBuilder,
-                ref mappedFieldDataBuilder,
-                ref managedResourceDataBuilder,
+                out mappedFieldDataBuilder,
+                out managedResourceDataBuilder,
                 out Blob mvidFixup,
                 out Blob mvidStringFixup);
 
@@ -1765,8 +1765,8 @@ namespace Microsoft.Cci
         public void BuildMetadataAndIL(
             PdbWriter? nativePdbWriterOpt,
             BlobBuilder ilBuilder,
-            ref PooledBlobBuilder? mappedFieldDataBuilder,
-            ref PooledBlobBuilder? managedResourceDataBuilder,
+            out PooledBlobBuilder? mappedFieldDataBuilder,
+            out PooledBlobBuilder? managedResourceDataBuilder,
             out Blob mvidFixup,
             out Blob mvidStringFixup)
         {
@@ -1836,7 +1836,7 @@ namespace Microsoft.Cci
                 _dynamicAnalysisDataWriterOpt.SerializeMetadataTables(dynamicAnalysisData);
             }
 
-            PopulateTypeSystemTables(methodBodyOffsets, ref mappedFieldDataBuilder, ref managedResourceDataBuilder, dynamicAnalysisData, out mvidFixup);
+            PopulateTypeSystemTables(methodBodyOffsets, out mappedFieldDataBuilder, out managedResourceDataBuilder, dynamicAnalysisData, out mvidFixup);
             dynamicAnalysisData?.Free();
         }
 #nullable disable
@@ -1899,7 +1899,7 @@ namespace Microsoft.Cci
         }
 
 #nullable enable
-        private void PopulateTypeSystemTables(int[] methodBodyOffsets, ref PooledBlobBuilder? mappedFieldDataWriter, ref PooledBlobBuilder? resourceWriter, BlobBuilder? dynamicAnalysisData, out Blob mvidFixup)
+        private void PopulateTypeSystemTables(int[] methodBodyOffsets, out PooledBlobBuilder? mappedFieldDataWriter, out PooledBlobBuilder? resourceWriter, BlobBuilder? dynamicAnalysisData, out Blob mvidFixup)
         {
             var sortedGenericParameters = GetSortedGenericParameters();
 
@@ -1913,13 +1913,13 @@ namespace Microsoft.Cci
             this.PopulateExportedTypeTableRows();
             this.PopulateFieldLayoutTableRows();
             this.PopulateFieldMarshalTableRows();
-            this.PopulateFieldRvaTableRows(ref mappedFieldDataWriter);
+            this.PopulateFieldRvaTableRows(out mappedFieldDataWriter);
             this.PopulateFieldTableRows();
             this.PopulateFileTableRows();
             this.PopulateGenericParameters(sortedGenericParameters);
             this.PopulateImplMapTableRows();
             this.PopulateInterfaceImplTableRows();
-            this.PopulateManifestResourceTableRows(ref resourceWriter, dynamicAnalysisData);
+            this.PopulateManifestResourceTableRows(out resourceWriter, dynamicAnalysisData);
             this.PopulateMemberRefTableRows();
             this.PopulateMethodImplTableRows();
             this.PopulateMethodTableRows(methodBodyOffsets);
@@ -2321,8 +2321,10 @@ namespace Microsoft.Cci
         }
 
 #nullable enable
-        private void PopulateFieldRvaTableRows(ref PooledBlobBuilder? mappedFieldDataWriter)
+        private void PopulateFieldRvaTableRows(out PooledBlobBuilder? mappedFieldDataWriter)
         {
+            mappedFieldDataWriter = null;
+
             foreach (IFieldDefinition fieldDef in this.GetFieldDefs())
             {
                 if (fieldDef.MappedData.IsDefault)
@@ -2496,9 +2498,10 @@ namespace Microsoft.Cci
         }
 
 #nullable enable
-        private void PopulateManifestResourceTableRows(ref PooledBlobBuilder? resourceDataWriter, BlobBuilder? dynamicAnalysisData)
+        private void PopulateManifestResourceTableRows(out PooledBlobBuilder? resourceDataWriter, BlobBuilder? dynamicAnalysisData)
         {
-            Debug.Assert(resourceDataWriter == null);
+            resourceDataWriter = null;
+
             if (dynamicAnalysisData != null)
             {
                 resourceDataWriter = PooledBlobBuilder.GetInstance();

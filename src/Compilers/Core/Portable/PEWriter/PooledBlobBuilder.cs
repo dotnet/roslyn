@@ -61,7 +61,7 @@ namespace Microsoft.Cci
             if (ChunkCapacity != PoolChunkSize)
             {
                 // The invariant of this builder is that it produces BlobBuilder instances that have a 
-                // ChunkCapacity of at least 1024. Essentially inside AllocateChuck the pool must be able
+                // ChunkCapacity of exactly 1024. Essentially inside AllocateChuck the pool must be able
                 // to mindlessly allocate a BlobBuilder where ChunkCapacity is at least 1024.
                 //
                 // To maintain this the code must verify that the returned BlobBuilder instances have 
@@ -73,7 +73,7 @@ namespace Microsoft.Cci
                 //      builder.Free(); // calls FreeChunk where ChunkCapacity is 256
                 //
                 // This shouldn't happen much in practice due to convention of how builders are used but
-                // it is a legal use of the APIs.
+                // it is a legal use of the APIs and must be accounted for.
                 s_chunkPool.ForgetTrackedObject(this);
             }
             else

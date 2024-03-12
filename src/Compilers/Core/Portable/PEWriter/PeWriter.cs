@@ -111,8 +111,8 @@ namespace Microsoft.Cci
             mdWriter.BuildMetadataAndIL(
                 nativePdbWriterOpt,
                 emitBuilders.IlBlobBuilder,
-                ref emitBuilders.MappedFieldDataBlobBuilder,
-                ref emitBuilders.ManagedResourceBlobBuilder,
+                out emitBuilders.MappedFieldDataBlobBuilder,
+                out emitBuilders.ManagedResourceBlobBuilder,
                 out mvidFixup,
                 out mvidStringFixup);
 
