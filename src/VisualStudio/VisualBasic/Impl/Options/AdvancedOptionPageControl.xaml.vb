@@ -60,11 +60,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Analysis
             BindToOption(Run_background_code_analysis_for, SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, label:=Run_background_code_analysis_for_label)
-            BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles,
-                         Function()
-                             ' If the option has not been set by the user, check if the option is enabled from experimentation.
-                             Return optionStore.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFilesFeatureFlag)
-                         End Function)
 
             BindToOption(Show_compiler_errors_and_warnings_for, SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.VisualBasic)
             BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptionsStorage.EnableInlineDiagnostics, LanguageNames.VisualBasic)
@@ -79,6 +74,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                          Function()
                              ' If the option has not been set by the user, check if the option is enabled from experimentation.
                              Return optionStore.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag)
+                         End Function)
+
+            ' Source Generators
+            BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles,
+                         Function()
+                             ' If the option has not been set by the user, check if the option is enabled from experimentation.
+                             Return optionStore.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFilesFeatureFlag)
                          End Function)
 
             ' Rename
@@ -202,9 +204,35 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             Customized_Theme_Warning.Visibility = If(isSupportedTheme AndAlso isCustomized, Visibility.Visible, Visibility.Collapsed)
             Custom_VS_Theme_Warning.Visibility = If(isSupportedTheme, Visibility.Collapsed, Visibility.Visible)
 
+            UpdateSourceGeneratorOptions()
             UpdateInlineHintsOptions()
 
             MyBase.OnLoad()
+        End Sub
+
+        Private Sub UpdateSourceGeneratorOptions()
+            automatically_after_any_change.IsChecked = Not Me.OptionStore.GetOption(WorkspaceConfigurationOptionsStorage.RunSourceGeneratorsExplicitly)
+            only_after_a_build_finishes.IsChecked = Me.OptionStore.GetOption(WorkspaceConfigurationOptionsStorage.RunSourceGeneratorsExplicitly)
+        End Sub
+
+        Private Sub automatically_after_any_change_Checked(sender As Object, e As RoutedEventArgs)
+            Me.OptionStore.SetOption(WorkspaceConfigurationOptionsStorage.RunSourceGeneratorsExplicitly, False)
+            UpdateSourceGeneratorOptions()
+        End Sub
+
+        Private Sub automatically_after_any_change_Unchecked(sender As Object, e As RoutedEventArgs)
+            Me.OptionStore.SetOption(WorkspaceConfigurationOptionsStorage.RunSourceGeneratorsExplicitly, True)
+            UpdateSourceGeneratorOptions()
+        End Sub
+
+        Private Sub only_after_a_build_finishes_Checked(sender As Object, e As RoutedEventArgs)
+            Me.OptionStore.SetOption(WorkspaceConfigurationOptionsStorage.RunSourceGeneratorsExplicitly, True)
+            UpdateSourceGeneratorOptions()
+        End Sub
+
+        Private Sub only_after_a_build_finishes_Unchecked(sender As Object, e As RoutedEventArgs)
+            Me.OptionStore.SetOption(WorkspaceConfigurationOptionsStorage.RunSourceGeneratorsExplicitly, False)
+            UpdateSourceGeneratorOptions()
         End Sub
 
         Private Sub UpdateInlineHintsOptions()
