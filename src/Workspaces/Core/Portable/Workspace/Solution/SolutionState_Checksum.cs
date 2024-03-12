@@ -93,8 +93,8 @@ internal partial class SolutionState
     /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
     public async Task<Checksum> GetChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
     {
-        var stateChecksums = await GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
-        return stateChecksums.Checksum;
+        var checksums = await GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
+        return checksums.Checksum;
     }
 
     /// <param name="projectConeId">Cone of projects to compute a checksum for.  Pass in <see langword="null"/> to get a
