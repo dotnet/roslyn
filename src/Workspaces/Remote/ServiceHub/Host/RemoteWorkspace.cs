@@ -3,14 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using static Microsoft.VisualStudio.Threading.ThreadingTools;
@@ -37,12 +35,6 @@ namespace Microsoft.CodeAnalysis.Remote
         internal RemoteWorkspace(HostServices hostServices)
             : base(hostServices, WorkspaceKind.RemoteWorkspace)
         {
-        }
-
-        protected override void Dispose(bool finalize)
-        {
-            base.Dispose(finalize);
-            Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Unregister(this);
         }
 
         public AssetProvider CreateAssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource)

@@ -11,10 +11,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed class DiagnosticsUpdatedArgs : UpdatedEventArgs
 {
-    public DiagnosticsUpdatedKind Kind { get; }
-    public Solution? Solution { get; }
-
-    private readonly ImmutableArray<DiagnosticData> _diagnostics;
+    public readonly DiagnosticsUpdatedKind Kind;
+    public readonly Solution? Solution;
+    public readonly ImmutableArray<DiagnosticData> Diagnostics;
 
     private DiagnosticsUpdatedArgs(
         object id,
@@ -31,10 +30,8 @@ internal sealed class DiagnosticsUpdatedArgs : UpdatedEventArgs
 
         Solution = solution;
         Kind = kind;
-        _diagnostics = diagnostics;
+        Diagnostics = diagnostics;
     }
-
-    public ImmutableArray<DiagnosticData> Diagnostics => _diagnostics;
 
     public static DiagnosticsUpdatedArgs DiagnosticsCreated(
         object id,

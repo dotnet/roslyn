@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -63,13 +64,11 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
     protected abstract ImmutableArray<IOption2> Options { get; }
     protected virtual ImmutableArray<IOption2> FeatureOptions { get; } = [];
 
-    protected abstract bool IsEnabled { get; }
-
-    protected abstract bool SupportsDiagnosticMode(DiagnosticMode mode);
     protected abstract bool IncludeDiagnostic(DiagnosticData data);
 
     protected abstract bool TagEquals(TTag tag1, TTag tag2);
-    protected abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data);
+
+    protected abstract TTag? CreateTag(Workspace workspace, DiagnosticData diagnostic);
 
     /// <summary>
     /// Get the <see cref="DiagnosticDataLocation"/> that should have the tag applied to it.
@@ -111,5 +110,37 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
             TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
             TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, diagnosticService),
             TaggerEventSources.OnTextChanged(subjectBuffer));
+    }
+
+    protected ITagSpan<TTag>? CreateTagSpan(Workspace workspace, SnapshotSpan span, DiagnosticData data)
+    {
+        var errorTag = CreateTag(workspace, data);
+        if (errorTag == null)
+            return null;
+
+        // Ensure the diagnostic has at least length 1.  Tags must have a non-empty length in order to actually show
+        // up in the editor.
+        var adjustedSpan = AdjustSnapshotSpan(span, minimumLength: 1);
+        if (adjustedSpan.Length == 0)
+            return null;
+
+        return new TagSpan<TTag>(adjustedSpan, errorTag);
+    }
+
+    protected virtual SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength)
+        => AdjustSnapshotSpan(span, minimumLength, maximumLength: int.MaxValue);
+
+    protected static SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength, int maximumLength)
+    {
+        var snapshot = span.Snapshot;
+
+        // new length
+        var length = Math.Min(Math.Max(span.Length, minimumLength), maximumLength);
+
+        // make sure start + length is smaller than snapshot.Length and start is >= 0
+        var start = Math.Max(0, Math.Min(span.Start, snapshot.Length - length));
+
+        // make sure length is smaller than snapshot.Length which can happen if start == 0
+        return new SnapshotSpan(snapshot, start, Math.Min(start + length, snapshot.Length) - start);
     }
 }
