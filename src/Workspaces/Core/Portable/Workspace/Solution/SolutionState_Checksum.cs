@@ -103,7 +103,7 @@ internal partial class SolutionState
         ProjectId? projectConeId,
         CancellationToken cancellationToken)
     {
-        using var projectConeSet = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+        using var projectCone = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
         AddProjectCone(projectConeId);
 
         try
@@ -122,7 +122,7 @@ internal partial class SolutionState
                     if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
                         continue;
 
-                    if (projectConeId != null && !projectConeSet.Object.Contains(orderedProjectId))
+                    if (projectConeId != null && !projectCone.Object.Contains(orderedProjectId))
                         continue;
 
                     projectChecksumTasks.Add(projectState.GetStateChecksumsAsync(cancellationToken));
@@ -143,8 +143,8 @@ internal partial class SolutionState
                     analyzerReferenceChecksums);
 
 #if DEBUG
-                var projectCone = projectConeId is null ? null : new ProjectCone(projectConeId, projectConeSet.Object.ToFrozenSet());
-                RoslynDebug.Assert(Equals(projectCone, stateChecksums.ProjectCone));
+                var projectConeTemp = projectConeId is null ? null : new ProjectCone(projectConeId, projectCone.Object.ToFrozenSet());
+                RoslynDebug.Assert(Equals(projectConeTemp, stateChecksums.ProjectCone));
 #endif
 
                 return stateChecksums;
@@ -160,7 +160,7 @@ internal partial class SolutionState
             if (projectConeId is null)
                 return;
 
-            if (!projectConeSet.Object.Add(projectConeId))
+            if (!projectCone.Object.Add(projectConeId))
                 return;
 
             var projectState = this.GetProjectState(projectConeId);
