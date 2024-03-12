@@ -2882,8 +2882,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 return ImmutableArray<IArgumentOperation>.Empty;
             }
 
-            Debug.Assert(!patternDisposeInfo.Expanded || patternDisposeInfo.Method.GetParameters().Last().OriginalDefinition.Type.IsSZArray());
-
             var args = DeriveArguments(
                             patternDisposeInfo.Method,
                             patternDisposeInfo.Arguments,
