@@ -14,6 +14,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
+internal readonly struct ProjectCone
+{
+    public readonly ProjectId RootProjectId;
+    public readonly IReadOnlySet<ProjectId> ProjectIds;
+
+    public ProjectCone(ProjectId rootProjectId, IReadOnlySet<ProjectId> projectIds)
+    {
+        RootProjectId = rootProjectId;
+        ProjectIds = projectIds;
+    }
+}
+
 internal partial class SolutionCompilationState
 {
     /// <summary>
@@ -27,25 +39,32 @@ internal partial class SolutionCompilationState
     /// Mapping from project-id to the checksums needed to synchronize it over to an OOP host.  Lock this specific
     /// field before reading/writing to it.
     /// </summary>
-    private readonly Dictionary<ProjectId, AsyncLazy<SolutionCompilationStateChecksums>> _lazyProjectChecksums = [];
+    private readonly Dictionary<ProjectId, AsyncLazy<(SolutionCompilationStateChecksums checksums, ProjectCone projectCone)>> _lazyProjectChecksums = [];
 
     public bool TryGetStateChecksums([NotNullWhen(true)] out SolutionCompilationStateChecksums? stateChecksums)
         => _lazyChecksums.TryGetValue(out stateChecksums);
 
     public bool TryGetStateChecksums(ProjectId projectId, [NotNullWhen(true)] out SolutionCompilationStateChecksums? stateChecksums)
     {
-        AsyncLazy<SolutionCompilationStateChecksums>? checksums;
+        AsyncLazy<(SolutionCompilationStateChecksums checksums, ProjectCone projectCone)>? lazyChecksums;
         lock (_lazyProjectChecksums)
         {
-            if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums) ||
-                checksums == null)
+            if (!_lazyProjectChecksums.TryGetValue(projectId, out lazyChecksums) ||
+                lazyChecksums == null)
             {
                 stateChecksums = null;
                 return false;
             }
         }
 
-        return checksums.TryGetValue(out stateChecksums);
+        if (lazyChecksums.TryGetValue(out var checksumsAndCone))
+        {
+            stateChecksums = null;
+            return false;
+        }
+
+        stateChecksums = checksumsAndCone.checksums;
+        return true;
     }
 
     public Task<SolutionCompilationStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
@@ -58,22 +77,25 @@ internal partial class SolutionCompilationState
     }
 
     /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
-    public async Task<SolutionCompilationStateChecksums> GetStateChecksumsAsync(
-        ProjectId projectId,
+    public async Task<(SolutionCompilationStateChecksums checksums, ProjectCone projectCone)> GetStateChecksumsAsync(
+        ProjectId projectConeId,
         CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(projectId);
+        Contract.ThrowIfNull(projectConeId);
 
-        AsyncLazy<SolutionCompilationStateChecksums>? checksums;
+        AsyncLazy<(SolutionCompilationStateChecksums checksums, ProjectCone projectCone)>? checksums;
         lock (_lazyProjectChecksums)
         {
-            if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums))
+            if (!_lazyProjectChecksums.TryGetValue(projectConeId, out checksums))
             {
-                checksums = AsyncLazy.Create(static (arg, c) =>
-                    arg.self.ComputeChecksumsAsync(arg.projectId, c),
-                    arg: (self: this, projectId));
+                checksums = AsyncLazy.Create(static async (arg, cancellationToken) =>
+                {
+                    var (checksum, projectCone) = await arg.self.ComputeChecksumsAsync(arg.projectConeId, cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(projectCone);
+                    return (checksum, projectCone.Value);
+                }, arg: (self: this, projectConeId));
 
-                _lazyProjectChecksums.Add(projectId, checksums);
+                _lazyProjectChecksums.Add(projectConeId, checksums);
             }
         }
 
@@ -82,13 +104,13 @@ internal partial class SolutionCompilationState
     }
 
     /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
-    public async Task<Checksum> GetChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
+    public async Task<(Checksum checksum, ProjectCone projectCone)> GetChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
     {
-        var checksums = await GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
-        return checksums.Checksum;
+        var (checksums, projectCone) = await GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
+        return (checksums.Checksum, projectCone);
     }
 
-    private async Task<SolutionCompilationStateChecksums> ComputeChecksumsAsync(
+    private async Task<(SolutionCompilationStateChecksums checksums, ProjectCone? projectCone)> ComputeChecksumsAsync(
         ProjectId? projectId,
         CancellationToken cancellationToken)
     {
@@ -96,9 +118,19 @@ internal partial class SolutionCompilationState
         {
             using (Logger.LogBlock(FunctionId.SolutionCompilationState_ComputeChecksumsAsync, this.SolutionState.FilePath, cancellationToken))
             {
-                var solutionStateChecksum = projectId == null
-                    ? await this.SolutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false)
-                    : await this.SolutionState.GetChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);
+                Checksum solutionStateChecksum;
+                ProjectCone? projectCone;
+
+                if (projectId is null)
+                {
+                    solutionStateChecksum = await this.SolutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                    projectCone = null;
+                }
+                else
+                {
+                    (var stateChecksums, projectCone) = await this.SolutionState.GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
+                    solutionStateChecksum = stateChecksums.Checksum;
+                }
 
                 ChecksumCollection? frozenSourceGeneratedDocumentIdentities = null;
                 ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocuments = null;
@@ -112,10 +144,11 @@ internal partial class SolutionCompilationState
                     frozenSourceGeneratedDocuments = await FrozenSourceGeneratedDocumentStates.Value.GetChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false);
                 }
 
-                return new SolutionCompilationStateChecksums(
+                var compilationStateChecksums = new SolutionCompilationStateChecksums(
                     solutionStateChecksum,
                     frozenSourceGeneratedDocumentIdentities,
                     frozenSourceGeneratedDocuments);
+                return (compilationStateChecksums, projectCone);
             }
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))

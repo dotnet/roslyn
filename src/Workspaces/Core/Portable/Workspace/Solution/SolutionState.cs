@@ -74,9 +74,12 @@ internal sealed partial class SolutionState
         _lazyAnalyzers = lazyAnalyzers ?? CreateLazyHostDiagnosticAnalyzers(analyzerReferences);
 
         // when solution state is changed, we recalculate its checksum
-        _lazyChecksums = AsyncLazy.Create(static (self, c) =>
-            self.ComputeChecksumsAsync(projectConeId: null, c),
-            arg: this);
+        _lazyChecksums = AsyncLazy.Create(static async (self, cancellationToken) =>
+        {
+            var (checksums, projectCone) = await self.ComputeChecksumsAsync(projectConeId: null, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfTrue(projectCone != null);
+            return checksums;
+        }, arg: this);
 
         CheckInvariants();
 

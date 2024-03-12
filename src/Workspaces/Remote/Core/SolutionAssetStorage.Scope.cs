@@ -18,7 +18,7 @@ internal partial class SolutionAssetStorage
     internal sealed partial class Scope(
         SolutionAssetStorage storage,
         Checksum solutionChecksum,
-        ProjectId? projectId,
+        ProjectCone projectCone,
         SolutionCompilationState compilationState) : IDisposable
     {
         private readonly SolutionAssetStorage _storage = storage;
@@ -69,16 +69,17 @@ internal partial class SolutionAssetStorage
             AssetHint assetHint, HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, object> result, CancellationToken cancellationToken)
         {
             var solutionState = this.CompilationState;
-            SolutionCompilationStateChecksums? stateChecksums;
 
             if (ProjectId is null)
-                solutionState.TryGetStateChecksums(out stateChecksums);
+            {
+                Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(out var stateChecksums));
+                await stateChecksums.FindAsync(solutionState, assetHint, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+            }
             else
-                solutionState.TryGetStateChecksums(ProjectId, out stateChecksums);
-
-            Contract.ThrowIfNull(stateChecksums);
-
-            await stateChecksums.FindAsync(solutionState, assetHint, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+            {
+                Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(ProjectId, out var stateChecksums));
+                await stateChecksums.FindAsync(solutionState, assetHint, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         public TestAccessor GetTestAccessor()

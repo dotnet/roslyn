@@ -33,7 +33,7 @@ internal partial class SolutionState
     /// Mapping from project-id to the checksums needed to synchronize it (and the projects it depends on) over 
     /// to an OOP host.  Lock this specific field before reading/writing to it.
     /// </summary>
-    private readonly Dictionary<ProjectId, AsyncLazy<SolutionStateChecksums>> _lazyProjectChecksums = [];
+    private readonly Dictionary<ProjectId, AsyncLazy<(SolutionStateChecksums stateChecksums, ProjectCone projectCone)>> _lazyProjectChecksums = [];
 
     public static IReadOnlyList<ProjectId> GetOrCreateSortedProjectIds(IReadOnlyList<ProjectId> unorderedList)
         => s_projectIdToSortedProjectsMap.GetValue(unorderedList, projectIds => projectIds.OrderBy(id => id.Id).ToImmutableArray());
@@ -43,18 +43,25 @@ internal partial class SolutionState
 
     public bool TryGetStateChecksums(ProjectId projectId, [NotNullWhen(true)] out SolutionStateChecksums? stateChecksums)
     {
-        AsyncLazy<SolutionStateChecksums>? checksums;
+        AsyncLazy<(SolutionStateChecksums checksums, ProjectCone projectCone)>? lazyChecksums;
         lock (_lazyProjectChecksums)
         {
-            if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums) ||
-                checksums == null)
+            if (!_lazyProjectChecksums.TryGetValue(projectId, out lazyChecksums) ||
+                lazyChecksums == null)
             {
                 stateChecksums = null;
                 return false;
             }
         }
 
-        return checksums.TryGetValue(out stateChecksums);
+        if (lazyChecksums.TryGetValue(out var checksumsAndProjectCone))
+        {
+            stateChecksums = null;
+            return false;
+        }
+
+        stateChecksums = checksumsAndProjectCone.checksums;
+        return true;
     }
 
     public Task<SolutionStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
@@ -67,49 +74,50 @@ internal partial class SolutionState
     }
 
     /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
-    public async Task<SolutionStateChecksums> GetStateChecksumsAsync(
-        ProjectId projectId,
+    public async Task<(SolutionStateChecksums stateChecksums, ProjectCone projectCone)> GetStateChecksumsAsync(
+        ProjectId projectConeId,
         CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(projectId);
+        Contract.ThrowIfNull(projectConeId);
 
-        AsyncLazy<SolutionStateChecksums>? checksums;
+        AsyncLazy<(SolutionStateChecksums stateChecksums, ProjectCone projectCone)>? checksums;
         lock (_lazyProjectChecksums)
         {
-            if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums))
+            if (!_lazyProjectChecksums.TryGetValue(projectConeId, out checksums))
             {
-                checksums = Compute(projectId);
-                _lazyProjectChecksums.Add(projectId, checksums);
+                checksums = AsyncLazy.Create(static async (arg, cancellationToken) =>
+                {
+                    var (checksums, projectCone) = await arg.self.ComputeChecksumsAsync(arg.projectConeId, cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(projectCone);
+                    return (checksums, projectCone.Value);
+                }, arg: (self: this, projectConeId));
+                _lazyProjectChecksums.Add(projectConeId, checksums);
             }
         }
 
         var collection = await checksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
         return collection;
-
-        // Extracted as a local function to prevent delegate allocations when not needed.
-        AsyncLazy<SolutionStateChecksums> Compute(ProjectId projectConeId)
-        {
-            return AsyncLazy.Create(static (arg, c) =>
-                arg.self.ComputeChecksumsAsync(arg.projectConeId, c),
-                arg: (self: this, projectConeId));
-        }
     }
 
     /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
     public async Task<Checksum> GetChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
     {
-        var checksums = await GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
+        var (checksums, _) = await GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
         return checksums.Checksum;
     }
 
     /// <param name="projectConeId">Cone of projects to compute a checksum for.  Pass in <see langword="null"/> to get a
     /// checksum for the entire solution</param>
-    private async Task<SolutionStateChecksums> ComputeChecksumsAsync(
+    private async Task<(SolutionStateChecksums stateChecksums, ProjectCone? projectCone)> ComputeChecksumsAsync(
         ProjectId? projectConeId,
         CancellationToken cancellationToken)
     {
-        using var projectCone = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+        var projectConeSet = projectConeId is null ? null : new HashSet<ProjectId>();
         AddProjectCone(projectConeId);
+
+        ProjectCone? projectCone = projectConeId is null
+            ? null
+            : new ProjectCone(projectConeId, SpecializedCollections.StronglyTypedReadOnlySet(projectConeSet!));
 
         try
         {
@@ -127,7 +135,7 @@ internal partial class SolutionState
                     if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
                         continue;
 
-                    if (projectConeId != null && !projectCone.Object.Contains(orderedProjectId))
+                    if (projectConeId != null && !projectConeSet!.Contains(orderedProjectId))
                         continue;
 
                     projectChecksumTasks.Add(projectState.GetStateChecksumsAsync(cancellationToken));
@@ -141,11 +149,13 @@ internal partial class SolutionState
                 var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(
                     this.AnalyzerReferences, this.Services.GetRequiredService<ISerializerService>(), cancellationToken);
 
-                return new SolutionStateChecksums(
+                var stateChecksums = new SolutionStateChecksums(
                     projectConeId,
                     this.SolutionAttributes.Checksum,
                     new(new ChecksumCollection(projectChecksums), projectIds),
                     analyzerReferenceChecksums);
+
+                return (stateChecksums, projectCone);
             }
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
@@ -155,10 +165,10 @@ internal partial class SolutionState
 
         void AddProjectCone(ProjectId? projectConeId)
         {
-            if (projectConeId is null)
+            if (projectConeId is null || projectConeSet is null)
                 return;
 
-            if (!projectCone.Object.Add(projectConeId))
+            if (!projectConeSet.Add(projectConeId))
                 return;
 
             var projectState = this.GetProjectState(projectConeId);
