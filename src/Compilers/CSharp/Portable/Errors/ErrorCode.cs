@@ -2285,22 +2285,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CollectionExpressionMissingConstructor = 9214,
         ERR_CollectionExpressionMissingAdd = 9215,
 
-        ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections = 9501, // PROTOTYPE(ParamsCollections): Pack numbers
-        ERR_ParamsCollectionAmbiguousDynamicArgument = 9502,
-        WRN_DynamicDispatchToParamsCollectionMethod = 9503,
-        WRN_DynamicDispatchToParamsCollectionIndexer = 9504,
-        WRN_DynamicDispatchToParamsCollectionConstructor = 9505,
-        ERR_ParamsCollectionInfiniteChainOfConstructorCalls = 9506,
-        ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember = 9507,
-        ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember = 9508,
-        ERR_ParamsCollectionExpressionTree = 9509,
-        ERR_ParamsCollectionExtensionAddMethod = 9510,
-        ERR_ParamsCollectionMissingConstructor = 9511,
-
-        #endregion
-
         WRN_ConvertingLock = 9216,
         ERR_BadSpecialByRefLock = 9217,
+
+        ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections = 9218,
+        ERR_ParamsCollectionAmbiguousDynamicArgument = 9219,
+        WRN_DynamicDispatchToParamsCollectionMethod = 9220,
+        WRN_DynamicDispatchToParamsCollectionIndexer = 9221,
+        WRN_DynamicDispatchToParamsCollectionConstructor = 9222,
+        ERR_ParamsCollectionInfiniteChainOfConstructorCalls = 9223,
+        ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember = 9224,
+        ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember = 9225,
+        ERR_ParamsCollectionExpressionTree = 9226,
+        ERR_ParamsCollectionExtensionAddMethod = 9227,
+        ERR_ParamsCollectionMissingConstructor = 9228,
+
+        #endregion
 
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
