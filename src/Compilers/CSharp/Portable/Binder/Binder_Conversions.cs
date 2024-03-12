@@ -1310,10 +1310,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!collectionInitializer.DefaultArguments[argIndex]);
                 if (collectionInitializer.Expanded && argIndex == collectionInitializer.AddMethod.ParameterCount - 1)
                 {
-                    if (arg is BoundArrayCreation { IsParamsArrayOrCollection: true, InitializerOpt.Initializers: [var element] })
+                    if (arg.IsParamsArrayOrCollection)
                     {
-                        return element;
+                        if (arg is BoundArrayCreation { InitializerOpt.Initializers: [var arrayElement] })
+                        {
+                            return arrayElement;
+                        }
+                        else if (arg is BoundConversion { Operand: BoundCollectionExpression { Elements: [BoundExpression collectionElement] } })
+                        {
+                            return collectionElement;
+                        }
                     }
+
                     Debug.Assert(false);
                 }
                 return arg;

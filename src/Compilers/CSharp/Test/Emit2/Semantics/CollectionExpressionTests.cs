@@ -33668,6 +33668,52 @@ partial class Program
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/72461")]
         [Fact]
+        public void Add_ParamsCollection_01()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                static class Extensions
+                {
+                    public static void Add<T>(this ICollection<T> collection, params IEnumerable<T> elements)
+                    {
+                        foreach (T element in elements)
+                            collection.Add(element);
+                    }
+                }
+                class Program
+                {
+                    static Dictionary<K, V> CreateDictionary<K, V>(ICollection<KeyValuePair<K, V>> collection)
+                    {
+                        return /*<bind>*/[..collection]/*</bind>*/;
+                    }
+                    static void Main()
+                    {
+                        var v = new KeyValuePair<string, string>[] { new("a", "b"), new("c", "d") };
+                        var d = CreateDictionary(v);
+                        foreach (var kvp in d)
+                            Console.Write("({0}, {1}), ", kvp.Key, kvp.Value);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "(a, b), (c, d), ").VerifyDiagnostics();
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: System.Collections.Generic.Dictionary<K, V>..ctor()) (OperationKind.CollectionExpression, Type: System.Collections.Generic.Dictionary<K, V>) (Syntax: '[..collection]')
+                  Elements(1):
+                      ISpreadOperation (ElementType: System.Collections.Generic.KeyValuePair<K, V>) (OperationKind.Spread, Type: null) (Syntax: '..collection')
+                        Operand:
+                          IParameterReferenceOperation: collection (OperationKind.ParameterReference, Type: System.Collections.Generic.ICollection<System.Collections.Generic.KeyValuePair<K, V>>) (Syntax: 'collection')
+                        ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (Identity)
+                """);
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72461")]
+        [Fact]
         public void Add_ParamsArray_02()
         {
             string source = """
