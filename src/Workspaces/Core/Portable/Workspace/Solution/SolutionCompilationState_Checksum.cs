@@ -60,7 +60,7 @@ internal partial class SolutionCompilationState
             }
         }
 
-        if (lazyChecksums.TryGetValue(out var checksumsAndCone))
+        if (!lazyChecksums.TryGetValue(out var checksumsAndCone))
         {
             stateChecksums = null;
             return false;
