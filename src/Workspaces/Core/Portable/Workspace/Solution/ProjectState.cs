@@ -88,7 +88,7 @@ internal partial class ProjectState
         // the info has changed by DocumentState.
         _projectInfo = ClearAllDocumentsFromProjectInfo(projectInfo);
 
-        _lazyChecksums = AsyncLazy.Create(ComputeChecksumsAsync);
+        _lazyChecksums = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this);
     }
 
     public ProjectState(LanguageServices languageServices, ProjectInfo projectInfo)
@@ -119,8 +119,8 @@ internal partial class ProjectState
         DocumentStates = new TextDocumentStates<DocumentState>(projectInfoFixed.Documents, info => CreateDocument(info, parseOptions, loadTextOptions));
         AdditionalDocumentStates = new TextDocumentStates<AdditionalDocumentState>(projectInfoFixed.AdditionalDocuments, info => new AdditionalDocumentState(languageServices.SolutionServices, info, loadTextOptions));
 
-        _lazyLatestDocumentVersion = AsyncLazy.Create(c => ComputeLatestDocumentVersionAsync(DocumentStates, AdditionalDocumentStates, c));
-        _lazyLatestDocumentTopLevelChangeVersion = AsyncLazy.Create(c => ComputeLatestDocumentTopLevelChangeVersionAsync(DocumentStates, AdditionalDocumentStates, c));
+        _lazyLatestDocumentVersion = AsyncLazy.Create(static (self, c) => ComputeLatestDocumentVersionAsync(self.DocumentStates, self.AdditionalDocumentStates, c), arg: this);
+        _lazyLatestDocumentTopLevelChangeVersion = AsyncLazy.Create(static (self, c) => ComputeLatestDocumentTopLevelChangeVersionAsync(self.DocumentStates, self.AdditionalDocumentStates, c), arg: this);
 
         // ownership of information on document has moved to project state. clear out documentInfo the state is
         // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
@@ -128,7 +128,7 @@ internal partial class ProjectState
         // we hold onto the info so that we don't need to duplicate all information info already has in the state
         _projectInfo = ClearAllDocumentsFromProjectInfo(projectInfoFixed);
 
-        _lazyChecksums = AsyncLazy.Create(ComputeChecksumsAsync);
+        _lazyChecksums = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this);
     }
 
     private static ProjectInfo ClearAllDocumentsFromProjectInfo(ProjectInfo projectInfo)
@@ -195,11 +195,15 @@ internal partial class ProjectState
     {
         if (_lazyLatestDocumentTopLevelChangeVersion.TryGetValue(out var oldVersion))
         {
-            return AsyncLazy.Create(c => ComputeTopLevelChangeTextVersionAsync(oldVersion, newDocument, c));
+            return AsyncLazy.Create(static (arg, c) =>
+                ComputeTopLevelChangeTextVersionAsync(arg.oldVersion, arg.newDocument, c),
+                arg: (oldVersion, newDocument));
         }
         else
         {
-            return AsyncLazy.Create(c => ComputeLatestDocumentTopLevelChangeVersionAsync(newDocumentStates, newAdditionalDocumentStates, c));
+            return AsyncLazy.Create(static (arg, c) =>
+                ComputeLatestDocumentTopLevelChangeVersionAsync(arg.newDocumentStates, arg.newAdditionalDocumentStates, c),
+                arg: (newDocumentStates, newAdditionalDocumentStates));
         }
     }
 
@@ -463,8 +467,8 @@ internal partial class ProjectState
 
     private static AsyncLazy<AnalyzerConfigOptionsCache> ComputeAnalyzerConfigOptionsValueSource(TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates)
     {
-        return new AsyncLazy<AnalyzerConfigOptionsCache>(
-            asynchronousComputeFunction: async cancellationToken =>
+        return AsyncLazy.Create(
+            asynchronousComputeFunction: static async (analyzerConfigDocumentStates, cancellationToken) =>
             {
                 var tasks = analyzerConfigDocumentStates.States.Values.Select(a => a.GetAnalyzerConfigAsync(cancellationToken));
                 var analyzerConfigs = await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -473,11 +477,12 @@ internal partial class ProjectState
 
                 return new AnalyzerConfigOptionsCache(AnalyzerConfigSet.Create(analyzerConfigs));
             },
-            synchronousComputeFunction: cancellationToken =>
+            synchronousComputeFunction: static (analyzerConfigDocumentStates, cancellationToken) =>
             {
                 var analyzerConfigs = analyzerConfigDocumentStates.SelectAsArray(a => a.GetAnalyzerConfig(cancellationToken));
                 return new AnalyzerConfigOptionsCache(AnalyzerConfigSet.Create(analyzerConfigs));
-            });
+            },
+            arg: analyzerConfigDocumentStates);
     }
 
     private readonly struct AnalyzerConfigOptionsCache(AnalyzerConfigSet configSet)
@@ -954,13 +959,19 @@ internal partial class ProjectState
         }
 
         dependentDocumentVersion = recalculateDocumentVersion
-            ? AsyncLazy.Create(c => ComputeLatestDocumentVersionAsync(newDocumentStates, newAdditionalDocumentStates, c))
+            ? AsyncLazy.Create(static (arg, c) =>
+                ComputeLatestDocumentVersionAsync(arg.newDocumentStates, arg.newAdditionalDocumentStates, c),
+                arg: (newDocumentStates, newAdditionalDocumentStates))
             : contentChanged
-                ? AsyncLazy.Create(newDocument.GetTextVersionAsync)
+                ? AsyncLazy.Create(static (newDocument, c) =>
+                    newDocument.GetTextVersionAsync(c),
+                    arg: newDocument)
                 : _lazyLatestDocumentVersion;
 
         dependentSemanticVersion = recalculateSemanticVersion
-            ? AsyncLazy.Create(c => ComputeLatestDocumentTopLevelChangeVersionAsync(newDocumentStates, newAdditionalDocumentStates, c))
+            ? AsyncLazy.Create(static (arg, c) =>
+                ComputeLatestDocumentTopLevelChangeVersionAsync(arg.newDocumentStates, arg.newAdditionalDocumentStates, c),
+                arg: (newDocumentStates, newAdditionalDocumentStates))
             : contentChanged
                 ? CreateLazyLatestDocumentTopLevelChangeVersion(newDocument, newDocumentStates, newAdditionalDocumentStates)
                 : _lazyLatestDocumentTopLevelChangeVersion;

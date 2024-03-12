@@ -201,6 +201,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return initializer.Update(addMethod, rewrittenArguments, rewrittenReceiver, expanded: false, argsToParamsOpt: default, defaultArguments: default, invokedAsExtensionMethod: false, initializer.ResultKind, rewrittenType);
             }
 
+            if (Instrument)
+            {
+                Instrumenter.InterceptCallAndAdjustArguments(ref addMethod, ref rewrittenReceiver, ref rewrittenArguments, ref argumentRefKindsOpt);
+            }
+
             return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, argumentRefKindsOpt, initializer.ResultKind, addMethod.ReturnType, temps.ToImmutableAndFree());
         }
 

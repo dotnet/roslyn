@@ -69,8 +69,13 @@ internal sealed partial class SolutionCompilationState
         FrozenSourceGeneratedDocumentStates = frozenSourceGeneratedDocumentStates;
 
         // when solution state is changed, we recalculate its checksum
-        _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectId: null, c));
-        _cachedFrozenSnapshot = cachedFrozenSnapshot ?? AsyncLazy.Create(synchronousComputeFunction: ComputeFrozenSnapshot);
+        _lazyChecksums = AsyncLazy.Create(static (self, c) =>
+            self.ComputeChecksumsAsync(projectId: null, c),
+            arg: this);
+        _cachedFrozenSnapshot = cachedFrozenSnapshot ??
+            AsyncLazy.Create(synchronousComputeFunction: static (self, c) =>
+                self.ComputeFrozenSnapshot(c),
+                arg: this);
 
         CheckInvariants();
     }
@@ -903,6 +908,14 @@ internal sealed partial class SolutionCompilationState
             : new([]);
     }
 
+    public ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(
+    ProjectState project, CancellationToken cancellationToken)
+    {
+        return project.SupportsCompilation
+            ? GetCompilationTracker(project.Id).GetSourceGeneratorRunResultAsync(this, cancellationToken)
+            : new();
+    }
+
     /// <summary>
     /// Returns the <see cref="SourceGeneratedDocumentState"/> for a source generated document that has already been generated and observed.
     /// </summary>
@@ -959,8 +972,7 @@ internal sealed partial class SolutionCompilationState
             using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_GetMetadataOnlyImage, cancellationToken))
             {
                 var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
-                return await tracker.SkeletonReferenceCache.GetOrBuildReferenceAsync(
-                    tracker, this, properties, cancellationToken).ConfigureAwait(false);
+                return await tracker.GetOrBuildSkeletonReferenceAsync(this, properties, cancellationToken).ConfigureAwait(false);
             }
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))

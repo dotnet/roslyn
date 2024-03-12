@@ -706,9 +706,15 @@
 
   <!-- Instrumentation info attached to BoundBlock -->
   <Node Name="BoundBlockInstrumentation" Base="BoundNode">
-    <Field Name="Local" Type="LocalSymbol" Null="disallow"/>
-    <Field Name="Prologue" Type="BoundStatement" Null="disallow"/>
-    <Field Name="Epilogue" Type="BoundStatement" Null="disallow"/>
+    <!-- Local variables with scope that cover the entire block including the instrumentation prologue and epilogue. -->
+    <Field Name="Locals" Type="OneOrMany&lt;LocalSymbol&gt;" Null="disallow"/>
+    <!-- Optional prologue emitted in front of any instructions of the block, so that it always executes. -->
+    <Field Name="Prologue" Type="BoundStatement?" Null="allow"/>
+    <!--
+      If specified, a try-finally block is emitted around the instrumented block. The epilogue is emitted to the finally clause,
+      so that it always executes when the execution leaves the instrumented block.
+     -->
+    <Field Name="Epilogue" Type="BoundStatement?" Null="allow"/>
   </Node>
   
   <!-- Represents the raw metadata RowId value for a method definition.
@@ -756,6 +762,17 @@
   <Node Name="BoundInstrumentationPayloadRoot" Base="BoundExpression">
     <Field Name="AnalysisKind" Type="int"/>
     <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
+  <!-- Call to PrivateImplementationDetails.ModuleCancellationToken.ThrowIfCancellationRequested().
+       PrivateImplementationDetails.ModuleCancellationToken has no language-level symbol. -->
+  <Node Name="BoundThrowIfModuleCancellationRequested" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
+  <!-- Returns the value of PrivateImplementationDetails.ModuleCancellationToken. It has no language-level symbol. -->
+  <Node Name="ModuleCancellationTokenExpression" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
