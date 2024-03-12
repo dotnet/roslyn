@@ -84,6 +84,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                              ' If the option has not been set by the user, check if the option is enabled from experimentation.
                              Return optionStore.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFilesFeatureFlag)
                          End Function)
+            BindToOption(Enable_all_features_in_opened_files_from_source_generators, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace,
+                         Function()
+                             ' If the option has Not been set by the user, check if the option is enabled from experimentation.
+                             Return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag)
+                         End Function)
 
             ' Rename
             BindToOption(Rename_asynchronously_exerimental, InlineRenameSessionOptionsStorage.RenameAsynchronously)
@@ -134,11 +139,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Go To Definition
             BindToOption(NavigateToObjectBrowser, VisualStudioNavigationOptionsStorage.NavigateToObjectBrowser, LanguageNames.VisualBasic)
-            BindToOption(Enable_all_features_in_opened_files_from_source_generators, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace,
-                         Function()
-                             ' If the option has Not been set by the user, check if the option is enabled from experimentation.
-                             Return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag)
-                         End Function)
 
             ' Regular expressions
             BindToOption(Colorize_regular_expressions, ClassificationOptionsStorage.ColorizeRegexPatterns, LanguageNames.VisualBasic)
