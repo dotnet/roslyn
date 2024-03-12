@@ -165,9 +165,9 @@ internal partial class SolutionCompilationState
 
             private FinalCompilationTrackerState(
                 bool isFrozen,
+                bool hasSuccessfullyLoaded,
                 Compilation finalCompilationWithGeneratedDocuments,
                 Compilation compilationWithoutGeneratedDocuments,
-                bool hasSuccessfullyLoaded,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 UnrootedSymbolSet unrootedSymbolSet)
                 : base(isFrozen, generatorInfo)
@@ -177,7 +177,7 @@ internal partial class SolutionCompilationState
                 // As a policy, all partial-state projects are said to have incomplete references, since the
                 // state has no guarantees.
                 this.CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
-                HasSuccessfullyLoaded = hasSuccessfullyLoaded && !isFrozen;
+                HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                 FinalCompilationWithGeneratedDocuments = finalCompilationWithGeneratedDocuments;
                 UnrootedSymbolSet = unrootedSymbolSet;
 
@@ -203,9 +203,9 @@ internal partial class SolutionCompilationState
             /// <param name="metadataReferenceToProjectId">Not held onto</param>
             public static FinalCompilationTrackerState Create(
                 bool isFrozen,
+                bool hasSuccessfullyLoaded,
                 Compilation finalCompilationWithGeneratedDocuments,
                 Compilation compilationWithoutGeneratedDocuments,
-                bool hasSuccessfullyLoaded,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 ProjectId projectId,
                 Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
@@ -218,18 +218,18 @@ internal partial class SolutionCompilationState
 
                 return new FinalCompilationTrackerState(
                     isFrozen,
+                    hasSuccessfullyLoaded,
                     finalCompilationWithGeneratedDocuments,
                     compilationWithoutGeneratedDocuments,
-                    hasSuccessfullyLoaded,
                     generatorInfo,
                     unrootedSymbolSet);
             }
 
             public FinalCompilationTrackerState WithIsFrozen()
                 => new(isFrozen: true,
+                    HasSuccessfullyLoaded,
                     FinalCompilationWithGeneratedDocuments,
                     CompilationWithoutGeneratedDocuments,
-                    HasSuccessfullyLoaded,
                     GeneratorInfo,
                     UnrootedSymbolSet);
 

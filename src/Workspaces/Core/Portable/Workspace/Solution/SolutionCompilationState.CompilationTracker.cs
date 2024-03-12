@@ -607,9 +607,9 @@ namespace Microsoft.CodeAnalysis
 
                     var finalState = FinalCompilationTrackerState.Create(
                         isFrozen,
+                        hasSuccessfullyLoaded,
                         compilationWithGeneratedDocuments,
                         compilationWithoutGeneratedDocuments,
-                        hasSuccessfullyLoaded,
                         nextGeneratorInfo,
                         this.ProjectState.Id,
                         metadataReferenceToProjectId);
