@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Storage;
 
@@ -16,7 +15,7 @@ internal static class WorkspaceConfigurationOptionsStorage
             EnableOpeningSourceGeneratedFiles: globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
                                                globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
             DisableRecoverableText: globalOptions.GetOption(DisableRecoverableText),
-            RunSourceGeneratorsExplicitly: globalOptions.GetOption(RunSourceGeneratorsExplicitly),
+            RunSourceGenerators: globalOptions.GetOption(RunSourceGenerators),
             ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates));
 
     public static readonly Option2<StorageDatabase> Database = new(
@@ -38,6 +37,11 @@ internal static class WorkspaceConfigurationOptionsStorage
     public static readonly Option2<bool> EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag = new(
         "dotnet_enable_opening_source_generated_files_in_workspace_feature_flag", WorkspaceConfigurationOptions.Default.EnableOpeningSourceGeneratedFiles);
 
-    public static readonly Option2<bool> RunSourceGeneratorsExplicitly = new(
-        "dotnet_run_source_generators_explicitly", WorkspaceConfigurationOptions.Default.RunSourceGeneratorsExplicitly);
+    public static readonly Option2<RunSourceGeneratorsPreference> RunSourceGenerators = new(
+        "dotnet_run_source_generators",
+        WorkspaceConfigurationOptions.Default.RunSourceGenerators,
+        isEditorConfigOption: true,
+        serializer: new EditorConfigValueSerializer<RunSourceGeneratorsPreference>(
+            s => RunSourceGeneratorsPreferenceUtilities.Parse(s, WorkspaceConfigurationOptions.Default.RunSourceGenerators),
+            RunSourceGeneratorsPreferenceUtilities.GetEditorConfigString));
 }
