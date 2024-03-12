@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -14,16 +15,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal readonly struct ProjectCone(ProjectId rootProjectId, IReadOnlySet<ProjectId> projectIds) : IEquatable<ProjectCone>
+internal sealed class ProjectCone(ProjectId rootProjectId, FrozenSet<ProjectId> projectIds) : IEquatable<ProjectCone>
 {
     public readonly ProjectId RootProjectId = rootProjectId;
-    public readonly IReadOnlySet<ProjectId> ProjectIds = projectIds;
+    public readonly FrozenSet<ProjectId> ProjectIds = projectIds;
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
         => obj is ProjectCone cone && Equals(cone);
 
-    public bool Equals(ProjectCone other)
-        => this.RootProjectId == other.RootProjectId && this.ProjectIds.SetEquals(other.ProjectIds);
+    public bool Equals(ProjectCone? other)
+        => other is not null && this.RootProjectId == other.RootProjectId && this.ProjectIds.SetEquals(other.ProjectIds);
 
     public override int GetHashCode()
         => throw new NotImplementedException();
@@ -95,7 +96,7 @@ internal partial class SolutionCompilationState
                 {
                     var (checksum, projectCone) = await arg.self.ComputeChecksumsAsync(arg.projectConeId, cancellationToken).ConfigureAwait(false);
                     Contract.ThrowIfNull(projectCone);
-                    return (checksum, projectCone.Value);
+                    return (checksum, projectCone);
                 }, arg: (self: this, projectConeId));
 
                 _lazyProjectChecksums.Add(projectConeId, checksums);
@@ -131,8 +132,9 @@ internal partial class SolutionCompilationState
                 }
                 else
                 {
-                    (var stateChecksums, projectCone) = await this.SolutionState.GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
+                    var stateChecksums = await this.SolutionState.GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
                     solutionStateChecksum = stateChecksums.Checksum;
+                    projectCone = stateChecksums.ProjectCone;
                 }
 
                 ChecksumCollection? frozenSourceGeneratedDocumentIdentities = null;

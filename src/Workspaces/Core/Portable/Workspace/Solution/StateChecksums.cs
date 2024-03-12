@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -134,7 +135,7 @@ internal sealed class SolutionCompilationStateChecksums
         else
         {
             // Otherwise, grab the top-most state checksum for this cone and search within that.
-            Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(projectCone.Value.RootProjectId, out var solutionChecksums));
+            Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(projectCone.RootProjectId, out var solutionChecksums));
             await solutionChecksums.FindAsync(solutionState, projectCone, assetHint, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
         }
     }
@@ -148,6 +149,8 @@ internal sealed class SolutionStateChecksums(
     ChecksumsAndIds<ProjectId> projects,
     ChecksumCollection analyzerReferences)
 {
+    private ProjectCone? _projectCone;
+
     public Checksum Checksum { get; } = Checksum.Create(stackalloc[]
     {
         projectConeId == null ? Checksum.Null : projectConeId.Checksum,
@@ -160,6 +163,11 @@ internal sealed class SolutionStateChecksums(
     public Checksum Attributes { get; } = attributes;
     public ChecksumsAndIds<ProjectId> Projects { get; } = projects;
     public ChecksumCollection AnalyzerReferences { get; } = analyzerReferences;
+
+    public ProjectCone? ProjectCone => _projectCone ??= ComputeProjectCone();
+
+    private ProjectCone? ComputeProjectCone()
+        => ProjectConeId == null ? null : new ProjectCone(ProjectConeId, Projects.Ids.ToFrozenSet());
 
     public void AddAllTo(HashSet<Checksum> checksums)
     {
@@ -221,7 +229,7 @@ internal sealed class SolutionStateChecksums(
         if (assetHint.ProjectId != null)
         {
             Contract.ThrowIfTrue(
-                projectCone != null && !projectCone.Value.ProjectIds.Contains(assetHint.ProjectId),
+                projectCone != null && !projectCone.ProjectIds.Contains(assetHint.ProjectId),
                 "Requesting an asset outside of the cone explicitly being asked for!");
 
             var projectState = solution.GetProjectState(assetHint.ProjectId);
@@ -246,7 +254,7 @@ internal sealed class SolutionStateChecksums(
 
                 // If we're syncing a project cone, no point at all at looking at child projects of the solution that
                 // are not in that cone.
-                if (projectCone != null && !projectCone.Value.ProjectIds.Contains(projectId))
+                if (projectCone != null && !projectCone.ProjectIds.Contains(projectId))
                     continue;
 
                 if (projectState.TryGetStateChecksums(out var projectStateChecksums) &&
@@ -265,7 +273,7 @@ internal sealed class SolutionStateChecksums(
 
                 // If we're syncing a project cone, no point at all at looking at child projects of the solution that
                 // are not in that cone.
-                if (projectCone != null && !projectCone.Value.ProjectIds.Contains(projectId))
+                if (projectCone != null && !projectCone.ProjectIds.Contains(projectId))
                     continue;
 
                 // It's possible not all all our projects have checksums.  Specifically, we may have only been asked to

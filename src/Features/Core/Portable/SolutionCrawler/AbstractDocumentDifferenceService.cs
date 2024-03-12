@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler;
 
 internal abstract class AbstractDocumentDifferenceService : IDocumentDifferenceService
 {
-    public async Task<DocumentDifferenceResult?> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+    public async Task<SyntaxNode?> GetChangedMemberAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
     {
         try
         {
@@ -23,7 +23,7 @@ internal abstract class AbstractDocumentDifferenceService : IDocumentDifferenceS
             if (syntaxFactsService == null)
             {
                 // somehow, we can't get the service. without it, there is nothing we can do.
-                return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
+                return null;
             }
             // this is based on the implementation detail where opened documents use strong references
             // to tree and text rather than recoverable versions.
@@ -31,7 +31,7 @@ internal abstract class AbstractDocumentDifferenceService : IDocumentDifferenceS
                 !newDocument.TryGetText(out var newText))
             {
                 // no cheap way to determine top level changes. assumes top level has changed
-                return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
+                return null;
             }
             // quick check whether two tree versions are same
             if (oldDocument.TryGetSyntaxVersion(out var oldVersion) &&
@@ -58,7 +58,7 @@ internal abstract class AbstractDocumentDifferenceService : IDocumentDifferenceS
                 if (!incrementalParsingCandidate)
                 {
                     // no cheap way to determine top level changes. assumes top level has changed
-                    return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
+                    return null;
                 }
 
                 // explicitly parse them
@@ -81,18 +81,18 @@ internal abstract class AbstractDocumentDifferenceService : IDocumentDifferenceS
             {
                 if (oldTopLevelChangeVersion.Equals(newTopLevelChangeVersion))
                 {
-                    return new DocumentDifferenceResult(InvocationReasons.SyntaxChanged, GetChangedMember(syntaxFactsService, oldRoot, newRoot, range));
+                    return GetChangedMember(syntaxFactsService, oldRoot, newRoot, range);
                 }
 
-                return new DocumentDifferenceResult(InvocationReasons.DocumentChanged, GetBestGuessChangedMember(syntaxFactsService, oldRoot, newRoot, range));
+                return GetBestGuessChangedMember(syntaxFactsService, oldRoot, newRoot, range);
             }
 
             if (oldTopLevelChangeVersion.Equals(newTopLevelChangeVersion))
             {
-                return new DocumentDifferenceResult(InvocationReasons.SyntaxChanged);
+                return null;
             }
 
-            return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
+            return null;
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
         {
