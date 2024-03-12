@@ -439,6 +439,7 @@ namespace Analyzer.Utilities
         public const string SystemThreadingTasksValueTask = "System.Threading.Tasks.ValueTask";
         public const string SystemThreadingTasksValueTask1 = "System.Threading.Tasks.ValueTask`1";
         public const string SystemThreadingThread = "System.Threading.Thread";
+        public const string SystemThreadingVolatile = "System.Threading.Volatile";
         public const string SystemTimeSpan = "System.TimeSpan";
         public const string SystemType = "System.Type";
         public const string SystemUri = "System.Uri";
