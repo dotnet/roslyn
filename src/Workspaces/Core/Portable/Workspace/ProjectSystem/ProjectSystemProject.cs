@@ -989,7 +989,7 @@ internal sealed partial class ProjectSystemProject
         }
     }
 
-    private const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
+    internal const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
     private static readonly string s_razorSourceGeneratorSdkDirectory = Path.Combine("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators") + PathUtilities.DirectorySeparatorStr;
     private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames =
     [

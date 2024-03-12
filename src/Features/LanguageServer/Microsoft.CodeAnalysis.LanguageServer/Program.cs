@@ -198,9 +198,9 @@ static CliRootCommand CreateCommandLineParser()
         Required = false
     };
 
-    var devKitRazorOutputPathOption = new CliOption<string?>("--devKitRazorOutputPath")
+    var razorSourceGeneratorOption = new CliOption<string?>("--razorSourceGenerator")
     {
-        Description = "Full path to the Razor output path used with DevKit (optional).",
+        Description = "Full path to the Razor source generator (optional).",
         Required = false
     };
 
@@ -214,7 +214,7 @@ static CliRootCommand CreateCommandLineParser()
         sessionIdOption,
         extensionAssemblyPathsOption,
         devKitDependencyPathOption,
-        devKitRazorOutputPathOption,
+        razorSourceGeneratorOption,
         extensionLogDirectoryOption
     };
     rootCommand.SetAction((parseResult, cancellationToken) =>
@@ -226,7 +226,7 @@ static CliRootCommand CreateCommandLineParser()
         var sessionId = parseResult.GetValue(sessionIdOption);
         var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
         var devKitDependencyPath = parseResult.GetValue(devKitDependencyPathOption);
-        var devKitRazorOutputPath = parseResult.GetValue(devKitRazorOutputPathOption);
+        var razorSourceGenerator = parseResult.GetValue(razorSourceGeneratorOption);
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
 
         var serverConfiguration = new ServerConfiguration(
@@ -237,7 +237,7 @@ static CliRootCommand CreateCommandLineParser()
             SessionId: sessionId,
             ExtensionAssemblyPaths: extensionAssemblyPaths,
             DevKitDependencyPath: devKitDependencyPath,
-            DevKitRazorOutputPath: devKitRazorOutputPath,
+            RazorSourceGenerator: razorSourceGenerator,
             ExtensionLogDirectory: extensionLogDirectory);
 
         return RunAsync(serverConfiguration, cancellationToken);

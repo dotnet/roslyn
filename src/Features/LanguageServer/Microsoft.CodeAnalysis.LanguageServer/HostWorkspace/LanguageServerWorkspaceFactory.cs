@@ -41,11 +41,11 @@ internal sealed class LanguageServerWorkspaceFactory
 
         analyzerLoader.InitializeDiagnosticsServices(Workspace);
 
-        var devKitRazorOutputPath = serverConfigurationFactory?.ServerConfiguration?.DevKitRazorOutputPath;
+        var razorSourceGenerator = serverConfigurationFactory?.ServerConfiguration?.RazorSourceGenerator;
         ProjectSystemHostInfo = new ProjectSystemHostInfo(
             DynamicFileInfoProviders: dynamicFileInfoProviders.ToImmutableArray(),
             new ProjectSystemDiagnosticSource(),
-            new HostDiagnosticAnalyzerProvider(devKitRazorOutputPath));
+            new HostDiagnosticAnalyzerProvider(razorSourceGenerator));
 
         TargetFrameworkManager = projectTargetFrameworkManager;
     }

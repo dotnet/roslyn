@@ -49,5 +49,5 @@ internal record class ServerConfiguration(
     string? SessionId,
     IEnumerable<string> ExtensionAssemblyPaths,
     string? DevKitDependencyPath,
-    string? DevKitRazorOutputPath,
+    string? RazorSourceGenerator,
     string ExtensionLogDirectory);

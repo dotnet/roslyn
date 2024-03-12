@@ -32,7 +32,7 @@ internal sealed class LanguageServerTestComposition
             SessionId: null,
             ExtensionAssemblyPaths: [],
             DevKitDependencyPath: devKitDependencyPath,
-            DevKitRazorOutputPath: null,
+            RazorSourceGenerator: null,
             ExtensionLogDirectory: string.Empty);
         var extensionAssemblyManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
         return ExportProviderBuilder.CreateExportProviderAsync(extensionAssemblyManager, devKitDependencyPath, loggerFactory: loggerFactory);

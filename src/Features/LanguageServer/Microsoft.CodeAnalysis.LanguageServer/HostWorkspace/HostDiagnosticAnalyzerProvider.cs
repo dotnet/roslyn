@@ -12,48 +12,40 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal class HostDiagnosticAnalyzerProvider : IHostDiagnosticAnalyzerProvider
 {
     /// <summary>
-    /// The directory where the analyzers are located
+    /// The full path to the Razor source generator
     /// </summary>
-    public string? AnalyzerDirectory { get; set; }
+    public string? RazorSourceGenerator { get; set; }
 
-    private const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
-    private static readonly HashSet<string> s_razorSourceGeneratorAssemblyNames = new[] {
-        "Microsoft.NET.Sdk.Razor.SourceGenerators",
-        "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators",
-        "Microsoft.CodeAnalysis.Razor.Compiler",
-    }.ToHashSet<string>();
+    private ImmutableArray<(AnalyzerFileReference reference, string extensionId)>? _cachedAnalyzerReferences;
 
-    public HostDiagnosticAnalyzerProvider(string? analyzerDirectory)
+    public HostDiagnosticAnalyzerProvider(string? razorSourceGenerator)
     {
-        AnalyzerDirectory = analyzerDirectory;
+        RazorSourceGenerator = razorSourceGenerator;
     }
 
     public ImmutableArray<(AnalyzerFileReference reference, string extensionId)> GetAnalyzerReferencesInExtensions()
     {
-        if (AnalyzerDirectory == null)
+        if (_cachedAnalyzerReferences != null)
         {
-            return ImmutableArray<(AnalyzerFileReference reference, string extensionId)>.Empty;
+            return _cachedAnalyzerReferences.Value;
+        }
+
+        if (RazorSourceGenerator == null)
+        {
+            _cachedAnalyzerReferences = ImmutableArray<(AnalyzerFileReference reference, string extensionId)>.Empty;
+            return _cachedAnalyzerReferences.Value;
         }
 
         var analyzerReferences = new List<(AnalyzerFileReference, string)>();
 
-        // Get all the .dll files in the directory
-        var analyzerFiles = Directory.GetFiles(AnalyzerDirectory, "*.dll");
+        // Create an AnalyzerFileReference for each file
+        var analyzerReference = new AnalyzerFileReference(RazorSourceGenerator, new SimpleAnalyzerAssemblyLoader());
 
-        foreach (var analyzerFile in analyzerFiles)
-        {
-            // Create an AnalyzerFileReference for each file
-            var analyzerReference = new AnalyzerFileReference(analyzerFile, new SimpleAnalyzerAssemblyLoader());
+        // Add the reference to the list, using the file name as the extension ID
+        analyzerReferences.Add((analyzerReference, ProjectSystemProject.RazorVsixExtensionId));
 
-            if (s_razorSourceGeneratorAssemblyNames.Any(
-                name => analyzerReference.FullPath.Contains(name, StringComparison.OrdinalIgnoreCase)))
-            {
-                // Add the reference to the list, using the file name as the extension ID
-                analyzerReferences.Add((analyzerReference, RazorVsixExtensionId));
-            }
-        }
-
-        return analyzerReferences.ToImmutableArray();
+        _cachedAnalyzerReferences = analyzerReferences.ToImmutableArray();
+        return _cachedAnalyzerReferences.Value;
     }
 
     private class SimpleAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
