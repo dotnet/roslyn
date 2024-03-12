@@ -135,7 +135,7 @@ internal partial class SolutionState
                     if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
                         continue;
 
-                    if (projectConeId != null && !projectConeSet!.Contains(orderedProjectId))
+                    if (projectConeSet != null && !projectConeSet.Contains(orderedProjectId))
                         continue;
 
                     projectChecksumTasks.Add(projectState.GetStateChecksumsAsync(cancellationToken));
