@@ -206,6 +206,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 var solutionChecksums = await solution.CompilationState.SolutionState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfTrue(solutionChecksums.ProjectCone != null);
                 await solutionChecksums.FindAsync(solution.CompilationState.SolutionState, projectCone: null, assetHint: AssetHint.None, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
 
                 foreach (var project in solution.Projects)
