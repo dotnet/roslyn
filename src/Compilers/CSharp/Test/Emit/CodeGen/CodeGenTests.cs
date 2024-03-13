@@ -15568,6 +15568,7 @@ class M
     object a = Test((dynamic)2);
 
     static object Test(object obj) => obj;
+    static object Test(string obj) => obj;
 
     static void Main()
     {
@@ -15584,7 +15585,7 @@ class M
   // Code size      115 (0x73)
   .maxstack  10
   IL_0000:  ldarg.0
-  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__4.<>p__0""
   IL_0006:  brtrue.s   IL_0043
   IL_0008:  ldc.i4.0
   IL_0009:  ldstr      ""Test""
@@ -15607,10 +15608,10 @@ class M
   IL_0033:  stelem.ref
   IL_0034:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
   IL_0039:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_003e:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
-  IL_0043:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_003e:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__4.<>p__0""
+  IL_0043:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__4.<>p__0""
   IL_0048:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>>.Target""
-  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__4.<>p__0""
   IL_0052:  ldtoken    ""M""
   IL_0057:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_005c:  ldc.i4.2
@@ -15634,9 +15635,11 @@ class M
 {
     // inner call is dynamic parameter, static argument
     // outer call is dynamic parameter, dynamic argument
-    object a = Test(Test(2));
+    object a = Test2(Test(2));
 
     static dynamic Test(dynamic obj) => obj;
+    static dynamic Test2(int obj) => obj;
+    static dynamic Test2(long obj) => obj;
 
     static void Main()
     {
@@ -15652,10 +15655,10 @@ class M
   // Code size      120 (0x78)
   .maxstack  10
   IL_0000:  ldarg.0
-  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__5.<>p__0""
   IL_0006:  brtrue.s   IL_0043
   IL_0008:  ldc.i4.0
-  IL_0009:  ldstr      ""Test""
+  IL_0009:  ldstr      ""Test2""
   IL_000e:  ldnull
   IL_000f:  ldtoken    ""M""
   IL_0014:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -15675,10 +15678,10 @@ class M
   IL_0033:  stelem.ref
   IL_0034:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
   IL_0039:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_003e:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
-  IL_0043:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_003e:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__5.<>p__0""
+  IL_0043:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__5.<>p__0""
   IL_0048:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>>.Target""
-  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__5.<>p__0""
   IL_0052:  ldtoken    ""M""
   IL_0057:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_005c:  ldc.i4.2
@@ -15722,7 +15725,7 @@ class M
 
         [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]
         [Fact]
-        public void FieldInitializerDynamicBothStaticInstance()
+        public void FieldInitializerDynamicBothStaticInstance_01()
         {
             string source = @"
 using System;
@@ -15741,6 +15744,52 @@ class M
     object Test(int obj)
     {
         Console.Write(""int."");
+        return obj;
+    }
+
+    static void Main()
+    {
+        try
+        {
+            Console.Write(new M().a);
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException ex)
+        {
+            Console.Write(""ex caught"");
+        }
+    }
+}
+";
+
+            var compilation = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "long.long.2");
+        }
+
+        [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]
+        [Fact]
+        public void FieldInitializerDynamicBothStaticInstance_02()
+        {
+            string source = @"
+using System;
+
+class M
+{
+    object a = Test((dynamic)2L);
+    object b = Test((dynamic)2);
+
+    static object Test(long obj)
+    {
+        Console.Write(""long."");
+        return obj;
+    }
+
+    object Test(int obj)
+    {
+        Console.Write(""int."");
+        return obj;
+    }
+
+    static object Test(byte obj)
+    {
         return obj;
     }
 
