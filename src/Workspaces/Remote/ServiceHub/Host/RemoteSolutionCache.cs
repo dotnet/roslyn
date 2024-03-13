@@ -96,7 +96,7 @@ internal sealed class RemoteSolutionCache<TChecksum, TSolution>
         var index = 0;
         for (var current = _cacheNodes.First; current != null; current = current.Next, index++)
         {
-            if (index > _maxCapacity)
+            if (index >= _maxCapacity)
             {
                 current.Value.Solution = null;
                 break;
@@ -104,8 +104,9 @@ internal sealed class RemoteSolutionCache<TChecksum, TSolution>
         }
     }
 
-    public TSolution? Find(Checksum checksum)
+    public TSolution? Find(TChecksum checksum)
     {
+        // Note: we intentionally do not move an item when we find it.  That's because 
         var index = 0;
         for (var current = _cacheNodes.First; current != null; current = current.Next, index++)
         {
