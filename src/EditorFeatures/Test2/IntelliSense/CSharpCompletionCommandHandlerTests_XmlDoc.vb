@@ -626,8 +626,31 @@ class c
         End Function
 
         <WpfTheory, CombinatorialData>
-        Public Async Function InvokeWithOpenAngleSeeCommitLangwordWithEqualsQuotes(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function InvokeWithOpenAngleSeeCommitSeeWithEqualsQuotes(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+class c
+{
+    /// <summary>
+    /// <see $$=""
+    /// </summary>
+    void goo() { }
+}
+            ]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
+                state.SendInvokeCompletionList()
+                state.AssertItemsInOrder({"!--", "![CDATA[", "inheritdoc", "see", "seealso"})
+                state.SendTypeChars("see")
+                Await state.AssertSelectedCompletionItem(displayText:="see")
+                state.SendReturn()
+
+                ' /// <see <see cref=""/$$>=""
+                Await state.AssertLineTextAroundCaret("    /// <see <see cref=""""/", ">=""""")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function InvokeWithOpenAngleSeeCommitLangwordWithEqualsQuotes(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 class c
@@ -644,14 +667,13 @@ class c
                 Await state.AssertSelectedCompletionItem(displayText:="langword")
                 state.SendReturn()
 
-                ' /// <see langword="$$"/>
+                ' /// <see langword="$$"
                 Await state.AssertLineTextAroundCaret("    /// <see langword=""", """")
             End Using
         End Function
 
         <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleSeeCommitLangwordWithSpaceEqualsQuotes(showCompletionInArgumentLists As Boolean) As Task
-
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 class c
@@ -668,7 +690,7 @@ class c
                 Await state.AssertSelectedCompletionItem(displayText:="langword")
                 state.SendReturn()
 
-                ' /// <see langword="$$"/>
+                ' /// <see langword="$$" =""
                 Await state.AssertLineTextAroundCaret("    /// <see langword=""", """ =""""")
             End Using
         End Function

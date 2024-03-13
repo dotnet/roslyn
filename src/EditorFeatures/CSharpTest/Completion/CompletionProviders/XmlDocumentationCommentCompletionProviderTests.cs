@@ -1044,6 +1044,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyItemExistsAsync(text, "langword");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11489")]
+        public async Task AttributeValueOnQuote()
+        {
+            var text = """
+                class C
+                {
+                    /// <summary>
+                    /// <see langword="$$
+                    /// </summary>
+                    static void Goo()
+                    {
+                    }
+                }
+                """;
+            await VerifyItemExistsAsync(text, "await", usePreviousCharAsTrigger: true);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/757")]
         public async Task TermAndDescriptionInsideItem()
         {
