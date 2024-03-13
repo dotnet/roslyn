@@ -106,7 +106,7 @@ namespace AnalyzerRunner
             {
                 if (!string.IsNullOrEmpty(options.ProfileRoot))
                 {
-                    ProfileOptimization.StartProfile("IncrementalAnalyzer");
+                    ProfileOptimization.StartProfile(nameof(Microsoft.CodeAnalysis.SolutionCrawler.IIncrementalAnalyzer));
                 }
 
                 await incrementalAnalyzerRunner.RunAsync(cancellationToken).ConfigureAwait(false);

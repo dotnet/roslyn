@@ -8,7 +8,13 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler;
 
+internal class DocumentDifferenceResult(InvocationReasons changeType, SyntaxNode? changedMember = null)
+{
+    public InvocationReasons ChangeType { get; } = changeType;
+    public SyntaxNode? ChangedMember { get; } = changedMember;
+}
+
 internal interface IDocumentDifferenceService : ILanguageService
 {
-    Task<SyntaxNode?> GetChangedMemberAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken);
+    Task<DocumentDifferenceResult?> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken);
 }

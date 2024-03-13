@@ -59,6 +59,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var fixService = new CodeFixService(
                 diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>>());
 
+            var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
+
+            // register diagnostic engine to solution crawler
+            var analyzer = incrementalAnalyzer.CreateIncrementalAnalyzer(workspace);
+
             var reference = new MockAnalyzerReference();
             var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
             var document = project.Documents.Single();
@@ -297,6 +302,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             errorReportingService.OnError = message => errorReported = true;
 
             GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager);
+            var incrementalAnalyzer = (IIncrementalAnalyzerProvider)tuple.analyzerService;
+            var analyzer = incrementalAnalyzer.CreateIncrementalAnalyzer(workspace);
             var reference = new MockAnalyzerReference(codefix, ImmutableArray.Create(diagnosticAnalyzer));
             var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
             document = project.Documents.Single();
@@ -401,8 +408,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             MockAnalyzerReference? analyzerReference = null,
             TextDocumentKind documentKind = TextDocumentKind.Document)
         {
+            var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
+
             // register diagnostic engine to solution crawler
-            diagnosticIncrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)!;
+            diagnosticIncrementalAnalyzer = (DiagnosticIncrementalAnalyzer)incrementalAnalyzer.CreateIncrementalAnalyzer(workspace)!;
 
             var reference = analyzerReference ?? new MockAnalyzerReference();
             var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
@@ -785,6 +794,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var fixService = new CodeFixService(
                 diagnosticService, logger, vsixFixers, SpecializedCollections.EmptyEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>>());
 
+            var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
+
+            // register diagnostic engine to solution crawler
+            var analyzer = incrementalAnalyzer.CreateIncrementalAnalyzer(workspace);
+
             diagnosticAnalyzer ??= new MockAnalyzerReference.MockDiagnosticAnalyzer();
             var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(diagnosticAnalyzer);
             var reference = new MockAnalyzerReference(nugetFixer, analyzers);
@@ -1008,6 +1022,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         [Theory, CombinatorialData]
         public async Task TestGetFixesWithDeprioritizedAnalyzerAsync(
             DeprioritizedAnalyzer.ActionKind actionKind,
+            bool testWithCachedDiagnostics,
             bool diagnosticOnFixLineInPriorSnapshot,
             bool editOnFixLine,
             bool addNewLineWithEdit)
@@ -1027,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             //     of the heuristic where we compare intersecting diagnostics across document snapshots only if both
             //     snapshots have the same number of lines.
 
-            var expectDeprioritization = GetExpectDeprioritization(actionKind, diagnosticOnFixLineInPriorSnapshot, addNewLineWithEdit);
+            var expectDeprioritization = GetExpectDeprioritization(actionKind, testWithCachedDiagnostics, diagnosticOnFixLineInPriorSnapshot, addNewLineWithEdit);
 
             var priorSnapshotFixLine = diagnosticOnFixLineInPriorSnapshot ? "int x1 = 0;" : "System.Console.WriteLine();";
             var code = $@"
@@ -1058,8 +1073,7 @@ class C
             // Trigger background analysis to ensure analyzer diagnostics are computed and cached. 
             // We enable full solution analysis so the 'AnalyzeDocumentAsync' doesn't skip analysis based on whether the document is active/open.
             workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
-
-            await diagnosticIncrementalAnalyzer.ForceAnalyzeProjectAsync(sourceDocument.Project, CancellationToken.None);
+            await diagnosticIncrementalAnalyzer.AnalyzeDocumentAsync(sourceDocument, bodyOpt: null!, InvocationReasons.DocumentChanged, CancellationToken.None);
             await VerifyCachedDiagnosticsAsync(sourceDocument, expectedCachedDiagnostic: diagnosticOnFixLineInPriorSnapshot, testSpan, diagnosticIncrementalAnalyzer);
 
             // Compute and apply code edit
@@ -1089,9 +1103,12 @@ class C
                 ? root.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax>().First().Span
                 : root.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax>().First().Span;
 
-            await diagnosticIncrementalAnalyzer.GetDiagnosticsAsync(
-                sourceDocument.Project.Solution, sourceDocument.Project.Id, sourceDocument.Id, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
-            await diagnosticIncrementalAnalyzer.GetTestAccessor().TextDocumentOpenAsync(sourceDocument);
+            if (testWithCachedDiagnostics)
+            {
+                // Trigger background analysis to ensure analyzer diagnostics are computed and cached. 
+                await diagnosticIncrementalAnalyzer.AnalyzeDocumentAsync(sourceDocument, bodyOpt: null!, InvocationReasons.DocumentChanged, CancellationToken.None);
+                await VerifyCachedDiagnosticsAsync(sourceDocument, expectedCachedDiagnostic: !expectedNoFixes, testSpan, diagnosticIncrementalAnalyzer);
+            }
 
             var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
             var priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Default, lowPriorityAnalyzers);
@@ -1127,25 +1144,31 @@ class C
 
             static bool GetExpectDeprioritization(
                 DeprioritizedAnalyzer.ActionKind actionKind,
+                bool testWithCachedDiagnostics,
                 bool diagnosticOnFixLineInPriorSnapshot,
                 bool addNewLineWithEdit)
             {
                 // We expect de-prioritization of analyzer from 'Normal' to 'Low' bucket only if following conditions are met:
-                //  1. We have an expensive analyzer that registers SymbolStart/End or SemanticModel actions, both of which have a broad analysis scope.
-                //  2. Either of the below is true:
+                //  1. There are no cached diagnostics from background analysis, i.e. 'testWithCachedDiagnostics == false'.
+                //  2. We have an expensive analyzer that registers SymbolStart/End or SemanticModel actions, both of which have a broad analysis scope.
+                //  3. Either of the below is true:
                 //     a. We do not have an analyzer diagnostic reported in the prior document snapshot on the edited line OR
                 //     b. Number of lines in the prior document snapshot differs from number of lines in the current document snapshot,
                 //        i.e. we added a new line with the edit and 'addNewLineWithEdit = true'.
 
                 // Condition 1
+                if (testWithCachedDiagnostics)
+                    return false;
+
+                // Condition 2
                 if (actionKind is not (DeprioritizedAnalyzer.ActionKind.SymbolStartEnd or DeprioritizedAnalyzer.ActionKind.SemanticModel))
                     return false;
 
-                // Condition 2(a)
+                // Condition 3(a)
                 if (!diagnosticOnFixLineInPriorSnapshot)
                     return true;
 
-                // Condition 2(b)
+                // Condition 3(b)
                 return addNewLineWithEdit;
             }
 

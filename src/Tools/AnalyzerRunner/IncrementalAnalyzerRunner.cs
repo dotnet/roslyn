@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -50,6 +49,9 @@ namespace AnalyzerRunner
             var workspaceConfigurationService = (AnalyzerRunnerWorkspaceConfigurationService)_workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
             workspaceConfigurationService.Options = new(CacheStorage: usePersistentStorage ? StorageDatabase.SQLite : StorageDatabase.None);
 
+            var solutionCrawlerRegistrationService = (SolutionCrawlerRegistrationService)_workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
+            solutionCrawlerRegistrationService.Register(_workspace);
+
             if (usePersistentStorage)
             {
                 var persistentStorageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
@@ -58,6 +60,17 @@ namespace AnalyzerRunner
                 {
                     throw new InvalidOperationException("Benchmark is not configured to use persistent storage.");
                 }
+            }
+
+            var incrementalAnalyzerProviders = exportProvider.GetExports<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>();
+            foreach (var incrementalAnalyzerName in _options.IncrementalAnalyzerNames)
+            {
+                var incrementalAnalyzerProvider = incrementalAnalyzerProviders.Where(x => x.Metadata.Name == incrementalAnalyzerName).SingleOrDefault(provider => provider.Metadata.WorkspaceKinds.Contains(_workspace.Kind))?.Value;
+                incrementalAnalyzerProvider ??= incrementalAnalyzerProviders.Where(x => x.Metadata.Name == incrementalAnalyzerName).SingleOrDefault(provider => provider.Metadata.WorkspaceKinds.Contains(WorkspaceKind.Host))?.Value;
+                incrementalAnalyzerProvider ??= incrementalAnalyzerProviders.Where(x => x.Metadata.Name == incrementalAnalyzerName).SingleOrDefault(provider => provider.Metadata.WorkspaceKinds.Contains(WorkspaceKind.RemoteWorkspace))?.Value;
+                incrementalAnalyzerProvider ??= incrementalAnalyzerProviders.Where(x => x.Metadata.Name == incrementalAnalyzerName).Single(provider => provider.Metadata.WorkspaceKinds is []).Value;
+                var incrementalAnalyzer = incrementalAnalyzerProvider.CreateIncrementalAnalyzer(_workspace);
+                solutionCrawlerRegistrationService.GetTestAccessor().WaitUntilCompletion(_workspace, ImmutableArray.Create(incrementalAnalyzer));
             }
         }
     }

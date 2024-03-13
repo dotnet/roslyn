@@ -210,8 +210,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var documentDifferenceService = document.GetRequiredLanguageService<IDocumentDifferenceService>();
-                var changedMember = await documentDifferenceService.GetChangedMemberAsync(lastDocument, document, cancellationToken).ConfigureAwait(false);
-                if (changedMember is null)
+                var differenceResult = await documentDifferenceService.GetDifferenceAsync(lastDocument, document, cancellationToken).ConfigureAwait(false);
+                if (differenceResult?.ChangedMember is not { } changedMember)
                 {
                     return null;
                 }

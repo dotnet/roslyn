@@ -48,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         private readonly IServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;
+        private readonly IGlobalOptionService _globalOptions;
         private readonly OpenTextBufferProvider _openTextBufferProvider;
         private readonly IVsFolderWorkspaceService _vsFolderWorkspaceService;
 
@@ -77,6 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoteLanguageServiceWorkspace(
             ExportProvider exportProvider,
+            IGlobalOptionService globalOptions,
             OpenTextBufferProvider openTextBufferProvider,
             IVsFolderWorkspaceService vsFolderWorkspaceService,
             SVsServiceProvider serviceProvider,
@@ -90,6 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             _openTextBufferProvider = openTextBufferProvider;
             _openTextBufferProvider.AddListener(this);
             _threadingContext = threadingContext;
+            _globalOptions = globalOptions;
             _vsFolderWorkspaceService = vsFolderWorkspaceService;
 
             _remoteWorkspaceRootPaths = ImmutableHashSet<string>.Empty;
@@ -115,6 +118,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         public async Task SetSessionAsync(CollaborationSession session)
         {
             _session = session;
+
+            StartSolutionCrawler();
 
             // Get the initial workspace roots and update any files that have been opened.
             await UpdatePathsToRemoteFilesAsync(session).ConfigureAwait(false);
@@ -190,6 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         {
             _session = null;
             _vsFolderWorkspaceService.OnActiveWorkspaceChanged -= OnActiveWorkspaceChangedAsync;
+            StopSolutionCrawler();
 
             // Clear the remote paths on end of session.  Live share handles closing all the files.
             using (s_RemotePathsGate.DisposableWait())
@@ -518,5 +524,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 edit.Apply();
             }
         }
+
+        private void StartSolutionCrawler()
+        {
+            if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+                DiagnosticProvider.Enable(this);
+        }
+
+        private void StopSolutionCrawler()
+            => DiagnosticProvider.Disable(this);
     }
 }
