@@ -115,8 +115,12 @@ internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : LSPCompl
 
     protected IEnumerable<CompletionItem> GetAttributeItems(string tagName, ISet<string> existingAttributes, bool addEqualsAndQuotes)
     {
-        return s_attributeMap.Where(x => x.elementName == tagName && !existingAttributes.Contains(x.attributeName))
-                             .Select(x => CreateCompletionItem(x.attributeName, beforeCaretText: addEqualsAndQuotes ? x.text : x.text[..^2], afterCaretText: addEqualsAndQuotes ? "\"" : ""));
+        return s_attributeMap
+            .Where(x => x.elementName == tagName && !existingAttributes.Contains(x.attributeName))
+            .Select(x => CreateCompletionItem(
+                x.attributeName,
+                beforeCaretText: addEqualsAndQuotes ? x.text : x.text[..^2],
+                afterCaretText: addEqualsAndQuotes ? "\"" : ""));
     }
 
     protected IEnumerable<CompletionItem> GetAlwaysVisibleItems()

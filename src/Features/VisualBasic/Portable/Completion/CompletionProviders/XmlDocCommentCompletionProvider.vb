@@ -332,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Function GetAttributes(tagName As String, attributes As SyntaxList(Of XmlNodeSyntax)) As IEnumerable(Of CompletionItem)
             Dim existingAttributeNames = attributes.Select(AddressOf GetAttributeName).WhereNotNull().ToSet()
-            Return GetAttributeItems(tagName, existingAttributeNames, false)
+            Return GetAttributeItems(tagName, existingAttributeNames, addEqualsAndQuotes := false)
         End Function
 
         Private Shared Function GetAttributeName(node As XmlNodeSyntax) As String
