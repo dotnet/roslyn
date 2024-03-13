@@ -71,9 +71,14 @@ internal sealed class RemoteSolutionCache<TChecksum, TSolution>
         {
             if (current.Value.Checksum.Equals(checksum))
             {
-                // Found the item.  Take it, move it to the front.
-                _cacheNodes.Remove(current);
-                _cacheNodes.AddFirst(current);
+                // Found the item.  
+                if (index > 0)
+                {
+                    // If it's not already at the front, move it there.
+                    _cacheNodes.Remove(current);
+                    _cacheNodes.AddFirst(current);
+                }
+
                 return;
             }
         }
