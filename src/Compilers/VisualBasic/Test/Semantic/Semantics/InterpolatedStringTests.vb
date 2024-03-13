@@ -401,6 +401,102 @@ End Module
         End Sub
 
         <Fact>
+        Public Sub ExpressionTreeAsIs()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Linq.Expressions
+Imports Microsoft.VisualBasic
+
+Module Program
+    Sub Main()
+        Dim ex As Expression(Of Func(Of String, String)) = Function(str) $"{str}{vbLf}{NameOf(Main)}{str}"
+        Console.Write(ex)
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:="str => Format(""{0}{1}{2}{3}"", new [] {Convert(str), Convert(""" & vbLf & """), Convert(""Main""), Convert(str)})").VerifyIL("Program.Main", <![CDATA[
+    {
+  // Code size      230 (0xe6)
+  .maxstack  11
+  .locals init (System.Linq.Expressions.ParameterExpression V_0)
+  IL_0000:  ldtoken    "String"
+  IL_0005:  call       "Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type"
+  IL_000a:  ldstr      "str"
+  IL_000f:  call       "Function System.Linq.Expressions.Expression.Parameter(System.Type, String) As System.Linq.Expressions.ParameterExpression"
+  IL_0014:  stloc.0
+  IL_0015:  ldnull
+  IL_0016:  ldtoken    "Function String.Format(String, ParamArray Object()) As String"
+  IL_001b:  call       "Function System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle) As System.Reflection.MethodBase"
+  IL_0020:  castclass  "System.Reflection.MethodInfo"
+  IL_0025:  ldc.i4.2
+  IL_0026:  newarr     "System.Linq.Expressions.Expression"
+  IL_002b:  dup
+  IL_002c:  ldc.i4.0
+  IL_002d:  ldstr      "{0}{1}{2}{3}"
+  IL_0032:  ldtoken    "String"
+  IL_0037:  call       "Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type"
+  IL_003c:  call       "Function System.Linq.Expressions.Expression.Constant(Object, System.Type) As System.Linq.Expressions.ConstantExpression"
+  IL_0041:  stelem.ref
+  IL_0042:  dup
+  IL_0043:  ldc.i4.1
+  IL_0044:  ldtoken    "Object"
+  IL_0049:  call       "Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type"
+  IL_004e:  ldc.i4.4
+  IL_004f:  newarr     "System.Linq.Expressions.Expression"
+  IL_0054:  dup
+  IL_0055:  ldc.i4.0
+  IL_0056:  ldloc.0
+  IL_0057:  ldtoken    "Object"
+  IL_005c:  call       "Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type"
+  IL_0061:  call       "Function System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type) As System.Linq.Expressions.UnaryExpression"
+  IL_0066:  stelem.ref
+  IL_0067:  dup
+  IL_0068:  ldc.i4.1
+  IL_0069:  ldstr      "
+"
+  IL_006e:  ldtoken    "String"
+  IL_0073:  call       "Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type"
+  IL_0078:  call       "Function System.Linq.Expressions.Expression.Constant(Object, System.Type) As System.Linq.Expressions.ConstantExpression"
+  IL_007d:  ldtoken    "Object"
+  IL_0082:  call       "Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type"
+  IL_0087:  call       "Function System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type) As System.Linq.Expressions.UnaryExpression"
+  IL_008c:  stelem.ref
+  IL_008d:  dup
+  IL_008e:  ldc.i4.2
+  IL_008f:  ldstr      "Main"
+  IL_0094:  ldtoken    "String"
+  IL_0099:  call       "Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type"
+  IL_009e:  call       "Function System.Linq.Expressions.Expression.Constant(Object, System.Type) As System.Linq.Expressions.ConstantExpression"
+  IL_00a3:  ldtoken    "Object"
+  IL_00a8:  call       "Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type"
+  IL_00ad:  call       "Function System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type) As System.Linq.Expressions.UnaryExpression"
+  IL_00b2:  stelem.ref
+  IL_00b3:  dup
+  IL_00b4:  ldc.i4.3
+  IL_00b5:  ldloc.0
+  IL_00b6:  ldtoken    "Object"
+  IL_00bb:  call       "Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type"
+  IL_00c0:  call       "Function System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type) As System.Linq.Expressions.UnaryExpression"
+  IL_00c5:  stelem.ref
+  IL_00c6:  call       "Function System.Linq.Expressions.Expression.NewArrayInit(System.Type, ParamArray System.Linq.Expressions.Expression()) As System.Linq.Expressions.NewArrayExpression"
+  IL_00cb:  stelem.ref
+  IL_00cc:  call       "Function System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, ParamArray System.Linq.Expressions.Expression()) As System.Linq.Expressions.MethodCallExpression"
+  IL_00d1:  ldc.i4.1
+  IL_00d2:  newarr     "System.Linq.Expressions.ParameterExpression"
+  IL_00d7:  dup
+  IL_00d8:  ldc.i4.0
+  IL_00d9:  ldloc.0
+  IL_00da:  stelem.ref
+  IL_00db:  call       "Function System.Linq.Expressions.Expression.Lambda(Of System.Func(Of String, String))(System.Linq.Expressions.Expression, ParamArray System.Linq.Expressions.ParameterExpression()) As System.Linq.Expressions.Expression(Of System.Func(Of String, String))"
+  IL_00e0:  call       "Sub System.Console.Write(Object)"
+  IL_00e5:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
         Public Sub StringToCharArrayConversion()
             Dim verifier = CompileAndVerify(
 <compilation>

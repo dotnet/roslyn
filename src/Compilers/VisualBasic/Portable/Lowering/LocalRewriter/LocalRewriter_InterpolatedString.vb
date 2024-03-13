@@ -44,8 +44,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return factory.StringLiteral(ConstantValue.Create(UnescapeLiteralInterpolatedString(valueWithEscapes)))
 
             Else
-                ' If all the interpolations can be interpreted as strings (including char constants)
-                ' and there is no alignment or format string,
+                ' If all the interpolations can be interpreted as strings (including char constants),
+                ' there is no alignment or format string,
+                ' and we are not in an expression tree definition,
                 ' We can use String.Concat by interpreting them as string concatenations.
                 ' For example, we translate the expression:
                 '     $"Jenny, don't change your number: {phoneNumberString}."
@@ -54,7 +55,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' via
                 '     "Jenny, don't change your number: " & phoneNumberString
                 ' This optimization has been adopted in C# for .NET Framework.
-                If node.Contents.Where(
+                Dim canHideOptimization = Not _inExpressionLambda
+                If canHideOptimization AndAlso node.Contents.Where(
                     Function(item) item.Kind = BoundKind.Interpolation
                 ).All(
                     Function(item) IsOneInterpolationLowerableToConcat(DirectCast(item, BoundInterpolation))
@@ -62,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return ConvertToConcatenationNode(node.Contents, node.Type, factory)
                 End If
 
-                Return InvokeInterpolatedStringFactory(node, node.Type, "Format", node.Type, factory, True)
+                Return InvokeInterpolatedStringFactory(node, node.Type, "Format", node.Type, factory, canHideOptimization)
             End If
 
         End Function
@@ -302,17 +304,17 @@ ReturnBadExpression:
         End Function
 
         Private Function ConvertToConcatenationNode(contents As ImmutableArray(Of BoundNode), factoryType As TypeSymbol, factory As SyntheticBoundNodeFactory) As BoundExpression
-            Return contents.AsEnumerable().Reverse().Aggregate(Of BoundExpression)(
+            Return contents.AsEnumerable().Aggregate(Of BoundExpression)(
                     Nothing,
-                    Function(right, left)
-                        If right Is Nothing Then
+                    Function(left, right)
+                        If left Is Nothing Then
                             Return ConvertElementToConcatenationOperand(left, factory)
                         End If
                         Return RewriteConcatenateOperator(
                             factory.Binary(
                                 BinaryOperatorKind.Concatenate,
-                                factoryType, ConvertElementToConcatenationOperand(left, factory),
-                                right
+                                factoryType, left,
+                                ConvertElementToConcatenationOperand(right, factory)
                             )
                         )
                     End Function
