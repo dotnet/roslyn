@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the name of this symbol.
         /// </summary>
-        [DataMember(IsRequired = true, Name = "name")]
+        [System.Text.Json.Serialization.JsonPropertyName("name"), System.Text.Json.Serialization.JsonRequired]
         public string Name
         {
             get;
@@ -64,7 +64,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// like comments.This information is typically used to determine if the clients cursor is
         /// inside the symbol to reveal in the symbol in the UI.
         /// </summary>
-        [DataMember(IsRequired = true, Name = "range")]
+        [System.Text.Json.Serialization.JsonPropertyName("range"), System.Text.Json.Serialization.JsonRequired]
         public Range Range
         {
             get;
@@ -75,7 +75,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the range that should be selected and revealed when this symbol is being picked, e.g the name of a function.
         /// Must be contained by the `range`.
         /// </summary>
-        [DataMember(IsRequired = true, Name = "selectionRange")]
+        [System.Text.Json.Serialization.JsonPropertyName("selectionRange"), System.Text.Json.Serialization.JsonRequired]
         public Range SelectionRange
         {
             get;

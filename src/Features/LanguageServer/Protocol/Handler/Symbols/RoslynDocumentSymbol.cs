@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     internal sealed class RoslynDocumentSymbol : DocumentSymbol
     {
-        [DataMember(IsRequired = false, Name = "glyph")]
+        [System.Text.Json.Serialization.JsonPropertyName("glyph")]
         public int Glyph { get; set; }
 
         // Deliberately override the value in the base so that our serializers/deserializers know to include the custom
