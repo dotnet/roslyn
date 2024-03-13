@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Keep track of when we find a checksum in the history, but we've dropped the solution for it.  This will help
         /// us determine what benefit we would get from expanding this cache.
         /// </summary>
-        private readonly HistogramLogAggregator<int>.HistogramCounter _cacheMissAggregator =
+        private readonly HistogramLogAggregator<int>.HistogramCounter _cacheMissCounter =
             new(bucketSize: 1, maxBucketValue: int.MaxValue, bucketCount: TotalHistory + 1);
 
         /// <summary>
@@ -71,27 +71,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     // Found the item.  Take it, move it to the front, and ensure it's pointing at this solution.
                     _cacheNodes.Remove(current);
                     _cacheNodes.AddFirst(current);
-
-                    // Keep track if we would have found this if the cache was larger
-                    if (current.Value.Solution == null)
-                    {
-                        _cacheHits++;
-                    }
-                    else
-                    {
-                        _cacheMissesInHistory++;
-                        _cacheMissAggregator.IncreaseCount(index);
-                    }
                     return;
                 }
             }
 
             // Didn't find the item at all.  Just add to the front.
-            //
-            // Note: we don't record 
             _cacheNodes.AddFirst(new SolutionCacheNode(checksum));
-            _cacheMissesNotInHistory++;
-            return;
         }
 
         public void Add(Checksum checksum, Solution solution)
@@ -121,6 +106,35 @@ namespace Microsoft.CodeAnalysis.Remote
                     break;
                 }
             }
+        }
+
+        public Solution? Find(Checksum checksum)
+        {
+            var index = 0;
+            for (var current = _cacheNodes.First; current != null; current = current.Next, index++)
+            {
+                if (current.Value.Checksum == checksum)
+                {
+                    // Found it!
+                    if (current.Value.Solution is null)
+                    {
+                        // Track that we would have been able to return this if our history was longer.
+                        _cacheMissesInHistory++;
+                        _cacheMissCounter.IncreaseCount(index);
+                    }
+                    else
+                    {
+                        // Success!
+                        _cacheHits++;
+                    }
+
+                    return current.Value.Solution;
+                }
+            }
+
+            // Couldn't find it at all, even in the history.
+            _cacheMissesNotInHistory++;
+            return null;
         }
     }
 
