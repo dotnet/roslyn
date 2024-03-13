@@ -283,6 +283,13 @@ internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : LSPCompl
         var replacementText = beforeCaretText;
         var newPosition = replacementSpan.Start + beforeCaretText.Length;
 
+        if (text.Length > replacementSpan.End + 1
+            && text[replacementSpan.End] == '='
+            && text[replacementSpan.End + 1] == '"')
+        {
+            newPosition += 2;
+        }
+
         if (commitChar.HasValue && !char.IsWhiteSpace(commitChar.Value) && commitChar.Value != replacementText[^1])
         {
             // include the commit character
