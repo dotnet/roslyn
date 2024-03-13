@@ -17,7 +17,7 @@ internal record RunTestsParams(
     [property: System.Text.Json.Serialization.JsonPropertyName("runSettingsPath")] string? RunSettingsPath
 ) : LSP.IPartialResultParams<RunTestsPartialResult>
 {
-    [DataMember(Name = LSP.Methods.PartialResultTokenName)]
+    [System.Text.Json.Serialization.JsonPropertyName(LSP.Methods.PartialResultTokenName)]
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public IProgress<RunTestsPartialResult>? PartialResultToken { get; set; }
 }

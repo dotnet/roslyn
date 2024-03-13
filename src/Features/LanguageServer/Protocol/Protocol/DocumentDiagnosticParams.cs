@@ -23,7 +23,7 @@ internal class DocumentDiagnosticParams : ITextDocumentParams, IPartialResultPar
     /// Note that the first literal send needs to be either the <see cref="RelatedUnchangedDocumentDiagnosticReport"/> or <see cref="RelatedUnchangedDocumentDiagnosticReport"/>
     /// followed by n <see cref="DocumentDiagnosticReportPartialResult"/> literals.
     /// </remarks>
-    [DataMember(Name = Methods.PartialResultTokenName, IsRequired = false)]
+    [System.Text.Json.Serialization.JsonPropertyName(Methods.PartialResultTokenName)]
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public IProgress<SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>>? PartialResultToken
     {

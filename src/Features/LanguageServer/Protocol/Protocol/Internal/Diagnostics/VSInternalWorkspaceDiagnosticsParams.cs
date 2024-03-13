@@ -24,14 +24,14 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets an optional token that a server can use to report work done progress.
         /// </summary>
-        [DataMember(Name = Methods.WorkDoneTokenName)]
+        [System.Text.Json.Serialization.JsonPropertyName(Methods.WorkDoneTokenName)]
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public IProgress<VSInternalWorkspaceDiagnosticReport[]>? WorkDoneToken { get; set; }
 
         /// <summary>
         /// Gets or sets an optional token that a server can use to report partial results (e.g. streaming) to the client.
         /// </summary>
-        [DataMember(Name = Methods.PartialResultTokenName)]
+        [System.Text.Json.Serialization.JsonPropertyName(Methods.PartialResultTokenName)]
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public IProgress<VSInternalWorkspaceDiagnosticReport[]>? PartialResultToken { get; set; }
 
