@@ -3,7 +3,7 @@
     <!-- Versions used by several individual references below -->
     <RoslynDiagnosticsNugetPackageVersion>3.11.0-beta1.24081.1</RoslynDiagnosticsNugetPackageVersion>
     <MicrosoftCodeAnalysisNetAnalyzersVersion>8.0.0-preview.23468.1</MicrosoftCodeAnalysisNetAnalyzersVersion>
-    <MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.23411.1</MicrosoftCodeAnalysisTestingVersion>
+    <MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.24121.1</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.187-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.8.0-3.final</CodeStyleAnalyzerVersion>
@@ -195,6 +195,7 @@
     <PackageVersion Include="System.IO.Pipelines" Version="$(SystemIOPipelinesVersion)" />
     <PackageVersion Include="System.IO.Pipes.AccessControl" Version="5.0.0" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
+    <PackageVersion Include="System.Numerics.Vectors" Version="4.5.0" />
     <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
     <PackageVersion Include="System.Runtime.Loader" Version="4.3.0" />
     <PackageVersion Include="System.Resources.Extensions" Version="7.0.0" />
@@ -274,7 +275,7 @@
     <PackageVersion Include="System.CodeDom" Version="7.0.0" />
     <PackageVersion Include="InputSimulatorPlus" Version="1.0.7" />
     <PackageVersion Include="UIAComWrapper" Version="1.1.0.14" />
-    <PackageVersion Include="DiffPlex" Version="1.5.0" />
+    <PackageVersion Include="DiffPlex" Version="1.7.2" />
     <PackageVersion Include="xunit" Version="$(xunitVersion)" />
     <PackageVersion Include="xunit.analyzers" Version="0.12.0-pre.20" />
     <PackageVersion Include="xunit.assert" Version="$(xunitVersion)" />
@@ -305,6 +306,8 @@
     When it updates its referenced System.Data.SqlClient version this should be removed
     -->
     <PackageVersion Include="System.Data.SqlClient" Version="4.8.6" />
+    <!-- fix of vulnerability in 6.0.0 coming via Microsoft.TeamFoundationServer.Client -->
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="7.0.1" />
     <!--
       Infra
     -->

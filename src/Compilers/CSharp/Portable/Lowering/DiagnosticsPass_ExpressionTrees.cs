@@ -1036,7 +1036,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_inExpressionLambda)
             {
-                Error(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, node);
+                Error(
+                    node.IsParamsArrayOrCollection ?
+                        ErrorCode.ERR_ParamsCollectionExpressionTree :
+                        ErrorCode.ERR_ExpressionTreeContainsCollectionExpression,
+                    node);
             }
 
             return base.VisitCollectionExpression(node);

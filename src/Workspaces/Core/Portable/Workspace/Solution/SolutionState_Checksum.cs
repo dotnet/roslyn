@@ -89,7 +89,9 @@ internal partial class SolutionState
         // Extracted as a local function to prevent delegate allocations when not needed.
         AsyncLazy<SolutionStateChecksums> Compute(ProjectId projectConeId)
         {
-            return AsyncLazy.Create(c => ComputeChecksumsAsync(projectConeId, c));
+            return AsyncLazy.Create(static (arg, c) =>
+                arg.self.ComputeChecksumsAsync(arg.projectConeId, c),
+                arg: (self: this, projectConeId));
         }
     }
 

@@ -276,10 +276,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInlineArrays = MessageBase + 12836,
         IDS_FeatureCollectionExpressions = MessageBase + 12837,
         IDS_FeatureRefReadonlyParameters = MessageBase + 12838,
-        IDS_StringEscapeCharacter = MessageBase + 12839,
+        IDS_FeatureStringEscapeCharacter = MessageBase + 12839,
 
-        IDS_ImplicitIndexerInitializer = MessageBase + 12840,
-        IDS_LockObject = MessageBase + 12841,
+        IDS_FeatureImplicitIndexerInitializer = MessageBase + 12840,
+        IDS_FeatureLockObject = MessageBase + 12841,
+
+        IDS_FeatureParamsCollections = MessageBase + 12842,
 
         IDS_FeatureRefStructInterfaces = MessageBase + 12950, // PROTOTYPE(RefStructInterfaces): Pack numbers
     }
@@ -462,9 +464,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PREFER reporting diagnostics in binding when diagnostics do not affect the shape of the syntax tree
 
                 // C# preview features.
-                case MessageID.IDS_StringEscapeCharacter:
-                case MessageID.IDS_ImplicitIndexerInitializer:
-                case MessageID.IDS_LockObject:
+                case MessageID.IDS_FeatureStringEscapeCharacter:
+                case MessageID.IDS_FeatureImplicitIndexerInitializer:
+                case MessageID.IDS_FeatureLockObject:
+                case MessageID.IDS_FeatureParamsCollections:
                 case MessageID.IDS_FeatureRefStructInterfaces:
                     return LanguageVersion.Preview;
 

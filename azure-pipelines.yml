@@ -385,34 +385,22 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
-      - task: PowerShell@2
+      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -restore -binaryLogName Restore.binlog 
         displayName: Restore
-        inputs:
-          pwsh: true
-          filePath: eng/build.ps1
-          arguments: -configuration Release -prepareMachine -ci -restore -binaryLogName Restore.binlog 
 
-      - task: PowerShell@2
+      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLogName Build.binlog
         displayName: Build
-        inputs:
-          pwsh: true
-          filePath: eng/build.ps1
-          arguments: -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLogName Build.binlog
 
       - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.sln
         displayName: Validate Build Artifacts
 
-      - pwsh: |
-          ./eng/validate-rules-missing-documentation.ps1 -ci
+      - powershell: eng/validate-rules-missing-documentation.ps1 -ci
         displayName: Validate rules missing documentation
 
-      - pwsh: |
-          ./eng/generate-compiler-code.ps1 -test -configuration Release
+      - powershell: eng/generate-compiler-code.ps1 -test -configuration Release
         displayName: Generate Syntax Files
-        condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
 
-      - pwsh: |
-          ./eng/validate-code-formatting.ps1 -ci -rootDirectory $(Build.SourcesDirectory)\src -includeDirectories Compilers\CSharp\Portable\Generated\, Compilers\VisualBasic\Portable\Generated\, ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\ 
+      - powershell: eng/validate-code-formatting.ps1 -ci -rootDirectory $(Build.SourcesDirectory)\src -includeDirectories Compilers\CSharp\Portable\Generated\, Compilers\VisualBasic\Portable\Generated\, ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\ 
         displayName: Validate Generated Syntax Files
         condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
 
@@ -435,10 +423,10 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
-      - pwsh: eng/make-bootstrap.ps1 -output $(bootstrapDir)
+      - powershell: eng/make-bootstrap.ps1 -output $(bootstrapDir)
         displayName: Build Bootstrap Compiler
 
-      - pwsh: eng/test-determinism.ps1 -configuration Debug -bootstrapDir $(bootstrapDir)
+      - powershell: eng/test-determinism.ps1 -configuration Debug -bootstrapDir $(bootstrapDir) -ci
         displayName: Build - Validate determinism
 
       - template: eng/pipelines/publish-logs.yml
@@ -480,7 +468,7 @@ stages:
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
 
-      - pwsh: eng/todo-check.ps1
+      - powershell: eng/todo-check.ps1
         displayName: Validate TODO/PROTOTYPE comments are not present
 
   - job: Correctness_Rebuild

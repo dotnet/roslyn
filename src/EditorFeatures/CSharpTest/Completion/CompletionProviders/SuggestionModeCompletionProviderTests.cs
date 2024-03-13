@@ -817,6 +817,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyBuilderAsync(markup);
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/72225")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72225")]
+        public async Task UnwrapParamsCollection()
+        {
+            var markup = """
+                using System;
+                using System.Collections.Generic;
+
+                class C {
+                    C(params IEnumerable<Action<int>> a) {
+                        new C($$
+                    }
+                }
+                """;
+            await VerifyBuilderAsync(markup);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12818")]
         public async Task DoNotUnwrapRegularArray()
         {
