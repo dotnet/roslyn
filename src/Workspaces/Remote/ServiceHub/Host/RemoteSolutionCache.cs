@@ -9,6 +9,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Remote;
 
 /// <summary>
+/// LRU cache of checksum+solution pairs.  Used to keep track of the last few solutions the remote server knows about,
+/// helping to avoid unnecessary syncs/recreations of those solutions while many requests are coming into the server.
 /// Not threadsafe.  Only use while under a lock.
 /// </summary>
 internal sealed class RemoteSolutionCache<TChecksum, TSolution>
@@ -48,6 +50,11 @@ internal sealed class RemoteSolutionCache<TChecksum, TSolution>
     /// </summary>
     private int _cacheMissesNotInHistory;
 
+    /// <summary>
+    /// The list of checksum+solution pairs.  Note: only the first <see cref="_maxCapacity"/> items will actually point
+    /// at a non-null solution.  The ones after that will point at <see langword="null"/>.  We store both so that we can
+    /// collect useful telemetry on how much benefit we would get by having a larger history.
+    /// </summary>
     private readonly LinkedList<CacheNode> _cacheNodes = new();
 
     public RemoteSolutionCache(int maxCapacity = 4, int totalHistory = 16)
