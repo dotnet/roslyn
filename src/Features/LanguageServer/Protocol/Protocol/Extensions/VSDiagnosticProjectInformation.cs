@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a human-readable identifier for the project in which the diagnostic was generated.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_projectName")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? ProjectName { get; set; }
 
         /// <summary>
@@ -25,14 +25,14 @@ namespace Roslyn.LanguageServer.Protocol
         /// in which the diagnostic was generated.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_context")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? Context { get; set; }
 
         /// <summary>
         /// Gets or sets the unique identifier for the project in which the diagnostic was generated.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_projectIdentifier")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? ProjectIdentifier { get; set; }
     }
 }

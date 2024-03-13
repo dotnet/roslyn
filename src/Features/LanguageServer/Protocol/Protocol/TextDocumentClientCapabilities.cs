@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the synchronization setting.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("synchronization")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public SynchronizationSetting? Synchronization
         {
             get;
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the completion setting.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("completion")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public CompletionSetting? Completion
         {
             get;
@@ -41,7 +41,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the setting which determines if hover can be dynamically registered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("hover")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public HoverSetting? Hover
         {
             get;
@@ -52,7 +52,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the setting which determines if signature help can be dynamically registered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("signatureHelp")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public SignatureHelpSetting? SignatureHelp
         {
             get;
@@ -63,7 +63,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the setting which determines if definition can be dynamically registered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("definition")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public DynamicRegistrationSetting? Definition
         {
             get;
@@ -74,7 +74,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the settings which determines if type definition can be dynamically registered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("typeDefinition")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public DynamicRegistrationSetting? TypeDefinition
         {
             get;
@@ -85,7 +85,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the settings which determines if implementation can be dynamically registered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("implementation")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public DynamicRegistrationSetting? Implementation
         {
             get;
@@ -96,7 +96,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the setting which determines if references can be dynamically registered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("references")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public DynamicRegistrationSetting? References
         {
             get;
@@ -107,7 +107,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the setting which determines if document highlight can be dynamically registered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("documentHighlight")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public DynamicRegistrationSetting? DocumentHighlight
         {
             get;
@@ -118,7 +118,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the setting which determines if document symbol can be dynamically registered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("documentSymbol")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public DocumentSymbolSetting? DocumentSymbol
         {
             get;
@@ -129,7 +129,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the setting which determines if code action can be dynamically registered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("codeAction")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public CodeActionSetting? CodeAction
         {
             get;
@@ -140,7 +140,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the setting which determines if code lens can be dynamically registered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("codeLens")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public DynamicRegistrationSetting? CodeLens
         {
             get;
@@ -151,7 +151,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the setting which determines if document link can be dynamically registered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("documentLink")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public DynamicRegistrationSetting? DocumentLink
         {
             get;
@@ -162,7 +162,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the setting which determines if formatting can be dynamically registered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("formatting")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public DynamicRegistrationSetting? Formatting
         {
             get;
@@ -173,7 +173,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the setting which determines if range formatting can be dynamically registered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("rangeFormatting")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public DynamicRegistrationSetting? RangeFormatting
         {
             get;
@@ -184,7 +184,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the setting which determines if on type formatting can be dynamically registered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("onTypeFormatting")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public DynamicRegistrationSetting? OnTypeFormatting
         {
             get;
@@ -195,7 +195,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the setting which determines if rename can be dynamically registered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("rename")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public RenameClientCapabilities? Rename
         {
             get;
@@ -206,7 +206,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the setting publish diagnostics setting.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("publishDiagnostics")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public PublishDiagnosticsSetting? PublishDiagnostics
         {
             get;
@@ -227,7 +227,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the setting which determines if linked editing range can be dynamically registered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("linkedEditingRange")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public DynamicRegistrationSetting LinkedEditingRange
         {
             get;
@@ -238,7 +238,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a setting indicating whether semantic tokens is supported.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("semanticTokens")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public SemanticTokensSetting? SemanticTokens
         {
             get;
@@ -249,7 +249,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the setting which determines what support the client has for pull diagnostics.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("diagnostic")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public DiagnosticSetting? Diagnostic
         {
             get;
@@ -260,7 +260,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the setting which determines what support the client has for pull diagnostics.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("inlayHint")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public InlayHintSetting? InlayHint
         {
             get;

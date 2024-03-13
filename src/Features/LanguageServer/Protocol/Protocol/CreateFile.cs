@@ -39,7 +39,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the additional options.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("options")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public CreateFileOptions? Options
         {
             get;

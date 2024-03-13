@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets an optional string which is rendered less prominently directly after label, without any spacing.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("detail")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? Detail
         {
             get;
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets an optional string which is rendered less prominently after detail.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("description")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? Description
         {
             get;

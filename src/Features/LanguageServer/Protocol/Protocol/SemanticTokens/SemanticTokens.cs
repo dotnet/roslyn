@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a property that identifies this version of the document's semantic tokens.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("resultId")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? ResultId { get; set; }
 
         /// <summary>

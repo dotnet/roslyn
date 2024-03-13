@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// If there is no selection this would be a Zero-length range for the caret position.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_selectionRange")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public Range? SelectionRange
         {
             get;

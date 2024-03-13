@@ -51,7 +51,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the name of the symbol containing this symbol.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("containerName")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? ContainerName
         {
             get;

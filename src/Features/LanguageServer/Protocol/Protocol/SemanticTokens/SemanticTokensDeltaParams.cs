@@ -34,7 +34,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the value of the Progress instance.
         /// </summary>
         [DataMember(Name = Methods.PartialResultTokenName, IsRequired = false)]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public IProgress<SemanticTokensDeltaPartialResult>? PartialResultToken
         {
             get;

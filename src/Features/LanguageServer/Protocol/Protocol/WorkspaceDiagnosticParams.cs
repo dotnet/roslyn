@@ -24,7 +24,7 @@ internal class WorkspaceDiagnosticParams : IPartialResultParams<SumType<Workspac
     /// Gets or sets the value of the Progress instance.
     /// </summary>
     [DataMember(Name = Methods.PartialResultTokenName, IsRequired = false)]
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public IProgress<SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>>? PartialResultToken
     {
         get;
@@ -35,7 +35,7 @@ internal class WorkspaceDiagnosticParams : IPartialResultParams<SumType<Workspac
     /// Gets or sets the identifier for which the client is requesting diagnostics for.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("identifier")]
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public string? Identifier
     {
         get;

@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets completion list setting.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_completionList")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalCompletionListSetting? CompletionList
         {
             get;

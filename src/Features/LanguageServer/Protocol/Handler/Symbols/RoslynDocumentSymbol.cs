@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         // Deliberately override the value in the base so that our serializers/deserializers know to include the custom
         // data we have on the children as well.
         [System.Text.Json.Serialization.JsonPropertyName("children")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public new RoslynDocumentSymbol[]? Children
         {
             get => (RoslynDocumentSymbol[]?)base.Children;

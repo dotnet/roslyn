@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// resolving lazily on an inlay hint.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("resolveSupport")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public InlayHintResolveSupportSetting? ResolveSupport
         {
             get;

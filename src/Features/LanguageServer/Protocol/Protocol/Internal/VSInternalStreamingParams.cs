@@ -41,7 +41,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// previousResultId.</para>
         /// </remarks>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_previousResultId")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? PreviousResultId { get; set; }
     }
 }

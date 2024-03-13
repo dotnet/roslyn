@@ -39,7 +39,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the InlayHintKind associated with this inlay hint.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("kind")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public InlayHintKind? Kind
         {
             get;
@@ -50,7 +50,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the TextEdits associated with this inlay hint.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("textEdits")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public TextEdit[]? TextEdits
         {
             get;
@@ -61,7 +61,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the tooltip of this inlay hint.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("tooltip")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public SumType<string, MarkupContent>? ToolTip
         {
             get;
@@ -94,7 +94,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the data that should be preserved between a textDocument/inlayHint request and a inlayHint/resolve request.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("data")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public object? Data
         {
             get;

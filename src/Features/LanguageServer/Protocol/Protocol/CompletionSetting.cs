@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets completion item setting.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("completionItem")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public CompletionItemSetting? CompletionItem
         {
             get;
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets <see cref="Protocol.CompletionItemKind"/> specific settings.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("completionItemKind")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public CompletionItemKindSetting? CompletionItemKind
         {
             get;
@@ -52,7 +52,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value indicating client's default when the completion item doesn't provide an `insertTextMode` property.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("insertTextMode")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public InsertTextMode? InsertTextMode
         {
             get;
@@ -63,7 +63,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value indicating whether the client supports capabilities on the completion list.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("completionList")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public CompletionListSetting? CompletionListSetting
         {
             get;

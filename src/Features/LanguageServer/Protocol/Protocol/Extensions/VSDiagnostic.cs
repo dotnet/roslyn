@@ -17,14 +17,14 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the project and context (e.g. Win32, MacOS, etc.) in which the diagnostic was generated.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_projects")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public VSDiagnosticProjectInformation[]? Projects { get; set; }
 
         /// <summary>
         /// Gets or sets an expanded description of the diagnostic.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_expandedMessage")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? ExpandedMessage { get; set; }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// is used (use <see cref="VSDiagnosticTags.SuppressEditorToolTip"/> to prevent a tool tip from being shown).
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_toolTip")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? ToolTip { get; set; }
 
         /// <summary>
@@ -40,14 +40,14 @@ namespace Roslyn.LanguageServer.Protocol
         /// (e.g. the same syntax error from builds targeting different platforms).
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_identifier")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? Identifier { get; set; }
 
         /// <summary>
         /// Gets or sets a string describing the diagnostic types (e.g. Security, Performance, Style, etc.).
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_diagnosticType")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? DiagnosticType { get; set; }
 
         /// <summary>
@@ -55,14 +55,14 @@ namespace Roslyn.LanguageServer.Protocol
         /// <see cref="VSDiagnosticRank.Default"/> will be used if no rank is specified.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_diagnosticRank")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public VSDiagnosticRank? DiagnosticRank { get; set; }
 
         /// <summary>
         /// Gets or sets an ID used to associate this diagnostic with a corresponding line in the output window.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_outputId")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? OutputId { get; set; }
     }
 }

@@ -37,7 +37,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// into a previous response.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("data")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int[]? Data { get; set; }
 
         /// <summary>

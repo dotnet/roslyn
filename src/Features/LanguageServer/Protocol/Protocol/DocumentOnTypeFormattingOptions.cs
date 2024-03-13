@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets additional trigger characters.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("moreTriggerCharacter")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string[]? MoreTriggerCharacter
         {
             get;

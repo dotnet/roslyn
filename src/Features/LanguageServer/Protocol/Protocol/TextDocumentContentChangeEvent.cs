@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the length of the range that got replaced.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("rangeLength")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? RangeLength
         {
             get;

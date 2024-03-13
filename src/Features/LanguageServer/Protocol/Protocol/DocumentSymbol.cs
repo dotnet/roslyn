@@ -31,7 +31,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets more detail for this symbol, e.g the signature of a function.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("detail")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? Detail
         {
             get;
@@ -86,7 +86,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the children of this symbol, e.g. properties of a class.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("children")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public DocumentSymbol[]? Children
         {
             get;

@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the project name to be displayed to user.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_projectName")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? ProjectName { get; set; }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// This doesn't have to correspond to a real file path, but must be parsable by the <see cref="System.IO.Path.GetFileName(string)" /> method.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_displayPath")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? DisplayPath { get; set; }
     }
 }

@@ -22,7 +22,7 @@ internal class RelatedFullDocumentDiagnosticReport : FullDocumentDiagnosticRepor
     /// Gets or sets the map of related document diagnostic reports.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("relatedDocuments")]
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<Uri, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>? RelatedDocuments
     {
         get;

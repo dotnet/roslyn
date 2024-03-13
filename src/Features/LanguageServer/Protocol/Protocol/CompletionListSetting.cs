@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// If omitted, no properties are supported.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("itemDefaults")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string[]? ItemDefaults
         {
             get;

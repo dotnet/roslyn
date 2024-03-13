@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the project context of the text document.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_projectContext")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public VSProjectContext? ProjectContext
         {
             get;

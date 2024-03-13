@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a language id for the filter (e.g. 'typescript').
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("language")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? Language
         {
             get;
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a Uri scheme (e.g. 'file' or 'untitled').
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("scheme")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? Scheme
         {
             get;
@@ -41,7 +41,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a glob pattern (e.g. '*.cs').
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("pattern")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? Pattern
         {
             get;

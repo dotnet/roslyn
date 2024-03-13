@@ -21,14 +21,14 @@ namespace Roslyn.LanguageServer.Protocol
         /// Maps to <see cref="VSDiagnostic.Identifier"/>.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_buildOnlyDiagnosticIds")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string[]? BuildOnlyDiagnosticIds { get; init; }
 
         /// <summary>
         /// Gets or sets a list of diagnostic kinds used to query diagnostics in each context.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_diagnosticKinds")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalDiagnosticKind[]? DiagnosticKinds { get; init; }
 
         /// <summary>

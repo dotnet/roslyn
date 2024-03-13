@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets trigger characters for on auto insert.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_triggerCharacters")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string[]? TriggerCharacters
         {
             get;

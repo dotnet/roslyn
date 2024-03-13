@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the active signature. If the value is omitted or falls outside the range of Signatures it defaults to zero.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("activeSignature")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? ActiveSignature
         {
             get;
@@ -41,7 +41,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the active parameter. If the value is omitted or falls outside the range of Signatures[ActiveSignature].Parameters it defaults to zero.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("activeParameter")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? ActiveParameter
         {
             get;

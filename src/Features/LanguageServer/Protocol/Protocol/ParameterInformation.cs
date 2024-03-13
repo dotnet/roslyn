@@ -31,7 +31,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the human-readable documentation of the parameter.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("documentation")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public SumType<string, MarkupContent>? Documentation
         {
             get;

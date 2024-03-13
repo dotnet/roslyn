@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the group this CodeAction belongs to.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_group")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? Group
         {
             get;
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the priority level of the code action.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_priority")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalPriorityLevel? Priority
         {
             get;
@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the range of the span this action is applicable to.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_applicableRange")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public Range? ApplicableRange
         {
             get;
@@ -51,7 +51,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the children of this action.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_children")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalCodeAction[]? Children
         {
             get;
@@ -62,7 +62,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the telemetry id of this action.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_telemetryId")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public Guid? TelemetryId
         {
             get;

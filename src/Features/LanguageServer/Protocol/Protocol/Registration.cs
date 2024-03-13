@@ -39,7 +39,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the options necessary for registration.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("registerOptions")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public object? RegisterOptions
         {
             get;

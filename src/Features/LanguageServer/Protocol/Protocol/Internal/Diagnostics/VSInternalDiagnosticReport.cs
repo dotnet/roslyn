@@ -22,7 +22,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// diagnostics that had previously been sent.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_resultId")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? ResultId { get; set; }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Is null if no changes in the diagnostics. Is empty if there is no diagnostic.
         /// </remarks>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_diagnostics")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public Diagnostic[]? Diagnostics { get; set; }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// be hidden in the editor.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_identifier")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? Identifier { get; set; }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Diagnostics in a superseded report will be hidden if they have the PotentialDuplicate VSDiagnosticTag.
         /// </remarks>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_supersedes")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? Supersedes { get; set; }
 
         /// <summary>
@@ -64,14 +64,14 @@ namespace Roslyn.LanguageServer.Protocol
         /// a line of text in the output window).
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_outputKey")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public Guid? OutputKey { get; set; }
 
         /// <summary>
         /// Gets or sets the document version.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_version")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? Version { get; set; }
     }
 }

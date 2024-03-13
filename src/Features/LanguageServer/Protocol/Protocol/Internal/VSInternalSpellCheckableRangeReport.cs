@@ -22,7 +22,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// spell checkable ranges that had previously been sent.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_resultId")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? ResultId { get; set; }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// ]
         /// </example>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_ranges")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int[]? Ranges
         {
             get;

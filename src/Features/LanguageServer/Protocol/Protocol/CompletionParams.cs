@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the completion context.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("context")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public CompletionContext? Context
         {
             get;
@@ -31,7 +31,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the value of the PartialResultToken instance.
         /// </summary>
         [DataMember(Name = Methods.PartialResultTokenName)]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public IProgress<SumType<CompletionItem[], CompletionList>?>? PartialResultToken
         {
             get;

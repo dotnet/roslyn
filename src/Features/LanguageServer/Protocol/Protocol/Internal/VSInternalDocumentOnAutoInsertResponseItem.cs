@@ -33,7 +33,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the text edit.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_textEdit")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public TextEdit TextEdit
         {
             get;

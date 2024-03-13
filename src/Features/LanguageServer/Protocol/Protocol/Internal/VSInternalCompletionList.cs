@@ -22,7 +22,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value indicating whether the completion list should use suggestion mode. In suggestion mode items are "soft-selected" by default.
         /// </summary>
         [DataMember(Name = SuggestionModeSerializedName)]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public bool SuggestionMode
         {
             get;
@@ -33,7 +33,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the continue characters for the completion list.
         /// </summary>
         [DataMember(Name = ContinueCharactersSerializedName)]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public SumType<VSInternalContinueCharacterSingle, VSInternalContinueCharacterRange, VSInternalContinueCharacterClass>[]? ContinueCharacters
         {
             get;
@@ -44,7 +44,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the default <see cref="CompletionItem.Data"/> used for completion items.
         /// </summary>
         [DataMember(Name = DataSerializedName)]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public object? Data
         {
             get;
@@ -58,7 +58,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// If set, overrides <see cref="CompletionOptions.AllCommitCharacters" />.
         /// </remarks>
         [DataMember(Name = CommitCharactersSerializedName)]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public SumType<string[], VSInternalCommitCharacter[]>? CommitCharacters { get; set; }
 
         // NOTE: Any changes that are added to this file may need to be reflected in its "optimized" counterparts JsonConverter (OptomizedVSCompletionListJsonConverter).

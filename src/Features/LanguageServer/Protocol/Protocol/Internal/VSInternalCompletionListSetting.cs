@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// onto underlying completion items unless they have their own data bags.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_data")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public bool Data
         {
             get;
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// onto underlying valid completion items unless they have their own commit characters.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_commitCharacters")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public bool CommitCharacters
         {
             get;

@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// the mapping operation.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_updates")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public WorkspaceEdit? Updates
         {
             get;

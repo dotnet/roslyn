@@ -31,7 +31,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets additional details for the label.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("labelDetails")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public CompletionItemLabelDetails? LabelDetails
         {
             get;
@@ -56,7 +56,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the completion detail.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("detail")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? Detail
         {
             get;
@@ -89,7 +89,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the custom sort text.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("sortText")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? SortText
         {
             get;
@@ -100,7 +100,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the custom filter text.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("filterText")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? FilterText
         {
             get;
@@ -111,7 +111,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the insert text.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("insertText")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? InsertText
         {
             get;
@@ -136,7 +136,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the text edit.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("textEdit")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public SumType<TextEdit, InsertReplaceEdit>? TextEdit
         {
             get;
@@ -147,7 +147,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the text edit text.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("textEditText")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? TextEditText
         {
             get;
@@ -161,7 +161,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Additional text edits must not interfere with the main text edit.
         /// </remarks>
         [System.Text.Json.Serialization.JsonPropertyName("additionalTextEdits")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public TextEdit[]? AdditionalTextEdits
         {
             get;
@@ -174,7 +174,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// If absent, <see cref="CompletionOptions.AllCommitCharacters"/> will be used instead.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("commitCharacters")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string[]? CommitCharacters
         {
             get;
@@ -188,7 +188,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// This feature is not supported in VS.
         /// </remarks>
         [System.Text.Json.Serialization.JsonPropertyName("command")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public Command? Command
         {
             get;
@@ -199,7 +199,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets any additional data that links the unresolve completion item and the resolved completion item.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("data")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public object? Data
         {
             get;

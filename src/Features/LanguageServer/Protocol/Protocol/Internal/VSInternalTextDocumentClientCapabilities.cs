@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the setting which determines if on auto insert can be dynamically registered.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_onAutoInsert")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public DynamicRegistrationSetting? OnAutoInsert
         {
             get;

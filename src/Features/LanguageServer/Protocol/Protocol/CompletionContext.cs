@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the character that triggered code completion.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("triggerCharacter")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? TriggerCharacter
         {
             get;

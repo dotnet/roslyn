@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the <see cref="SignatureInformationSetting"/> information.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("signatureInformation")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public SignatureInformationSetting? SignatureInformation
         {
             get;

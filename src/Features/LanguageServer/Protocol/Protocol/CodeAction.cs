@@ -31,7 +31,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the kind of code action this instance represents.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("kind")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public CodeActionKind? Kind
         {
             get;
@@ -42,7 +42,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the diagnostics that this code action resolves.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("diagnostics")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public Diagnostic[]? Diagnostics
         {
             get;
@@ -53,7 +53,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the workspace edit that this code action performs.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("edit")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public WorkspaceEdit? Edit
         {
             get;
@@ -64,7 +64,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the command that this code action executes.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("command")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public Command? Command
         {
             get;
@@ -75,7 +75,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the data that will be resend to the server if the code action is selected to be resolved.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("data")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public object? Data
         {
             get;

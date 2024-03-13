@@ -31,7 +31,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the value indicating how text documents are synced with the server.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("change")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [DefaultValue(TextDocumentSyncKind.None)]
         public TextDocumentSyncKind? Change
         {
@@ -65,7 +65,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value indicating whether save notifications are sent to the server.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("save")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public SumType<bool, SaveOptions>? Save
         {
             get;

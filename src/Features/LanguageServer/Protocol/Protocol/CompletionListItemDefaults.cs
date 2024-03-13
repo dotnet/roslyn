@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the default commit character set.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("commitCharacters")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string[]? CommitCharacters
         {
             get;
@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the default edit range.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("editRange")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public SumType<Range, InsertReplaceRange>? EditRange
         {
             get;
@@ -39,7 +39,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the default <see cref="InsertTextFormat"/>.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("insertTextFormat")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public InsertTextFormat? InsertTextFormat
         {
             get;
@@ -50,7 +50,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the default <see cref="InsertTextMode"/>.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("insertTextMode")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public InsertTextMode? InsertTextMode
         {
             get;
@@ -61,7 +61,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the default completion item data.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("data")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public object? Data
         {
             get;

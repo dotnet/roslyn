@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets an array of code action kinds to filter for.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("only")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public CodeActionKind[]? Only
         {
             get;
@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the <see cref="CodeActionTriggerKind"/> indicating how the code action was triggered..
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("triggerKind")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public CodeActionTriggerKind? TriggerKind
         {
             get;

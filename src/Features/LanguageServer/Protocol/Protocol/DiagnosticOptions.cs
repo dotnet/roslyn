@@ -26,7 +26,7 @@ internal class DiagnosticOptions : IWorkDoneProgressOptions
     /// Gets or sets the identifier in which the diagnostics are bucketed by the client.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("identifier")]
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public string? Identifier
     {
         get;

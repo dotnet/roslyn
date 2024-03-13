@@ -36,7 +36,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// (See https://en.wikipedia.org/wiki/IETF_language_tag)
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("locale")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? Locale
         {
             get;
@@ -47,7 +47,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the workspace root path.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("rootPath")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [Obsolete("Deprecated in favour of RootUri")]
         public string? RootPath
         {
@@ -74,7 +74,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the initialization options as specified by the client.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("initializationOptions")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public object? InitializationOptions
         {
             get;

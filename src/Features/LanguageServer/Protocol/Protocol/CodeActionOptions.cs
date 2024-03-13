@@ -23,7 +23,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// may list out every specific kind they provide.
         /// </remarks>
         [System.Text.Json.Serialization.JsonPropertyName("codeActionKinds")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public CodeActionKind[]? CodeActionKinds
         {
             get;

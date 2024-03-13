@@ -24,7 +24,7 @@ internal class DocumentDiagnosticParams : ITextDocumentParams, IPartialResultPar
     /// followed by n <see cref="DocumentDiagnosticReportPartialResult"/> literals.
     /// </remarks>
     [DataMember(Name = Methods.PartialResultTokenName, IsRequired = false)]
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public IProgress<SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>>? PartialResultToken
     {
         get;
@@ -45,7 +45,7 @@ internal class DocumentDiagnosticParams : ITextDocumentParams, IPartialResultPar
     /// Gets or sets the identifier for which the client is requesting diagnostics for.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("identifier")]
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public string? Identifier
     {
         get;
@@ -56,7 +56,7 @@ internal class DocumentDiagnosticParams : ITextDocumentParams, IPartialResultPar
     /// Gets or sets the result id of a previous diagnostics response if provided.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("previousResultId")]
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public string? PreviousResultId
     {
         get;

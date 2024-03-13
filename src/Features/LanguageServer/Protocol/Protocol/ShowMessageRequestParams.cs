@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets an array of <see cref="MessageActionItem"/>s to present.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("actions")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public MessageActionItem[]? Actions
         {
             get;

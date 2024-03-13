@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the <see cref="MarkupKind"/> values supported.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("contentFormat")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public MarkupKind[]? ContentFormat
         {
             get;

@@ -34,7 +34,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// result is used in the 'textDocument/prepareRename' request.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("prepareSupportDefaultBehavior")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public PrepareSupportDefaultBehavior? PrepareSupportDefaultBehavior
         {
             get;

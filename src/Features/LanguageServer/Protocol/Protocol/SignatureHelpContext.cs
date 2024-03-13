@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// This value is null when triggerKind is not TriggerCharacter.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("triggerCharacter")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? TriggerCharacter
         {
             get;
@@ -51,7 +51,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the currently active <see cref="SignatureHelp"/>.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("activeSignatureHelp")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public SignatureHelp? ActiveSignatureHelp
         {
             get;

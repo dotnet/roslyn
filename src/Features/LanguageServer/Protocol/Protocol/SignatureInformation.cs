@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the human-readable documentation of this signature.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("documentation")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public SumType<string, MarkupContent>? Documentation
         {
             get;
@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the parameters of this signature.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("parameters")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public ParameterInformation[]? Parameters
         {
             get;

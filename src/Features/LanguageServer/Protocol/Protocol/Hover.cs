@@ -32,7 +32,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the range over which the hover applies.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("range")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public Range? Range
         {
             get;

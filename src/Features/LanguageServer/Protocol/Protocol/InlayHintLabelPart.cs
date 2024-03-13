@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the location of this label part.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("location")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public Location? Location
         {
             get;
@@ -51,7 +51,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the command of this label part.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("command")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public Command? Command
         {
             get;

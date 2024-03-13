@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// GEts or sets the resource operations the client supports.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("resourceOperations")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public ResourceOperationKind[]? ResourceOperations
         {
             get;

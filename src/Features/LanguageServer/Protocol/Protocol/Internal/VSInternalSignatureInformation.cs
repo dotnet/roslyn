@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_colorizedLabel")]
         [JsonConverter(typeof(ClassifiedTextElementConverter))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public ClassifiedTextElement? ColorizedLabel
         {
             get;

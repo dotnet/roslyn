@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_rawContent")]
         [JsonConverter(typeof(ObjectContentConverter))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public object? RawContent
         {
             get;

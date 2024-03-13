@@ -41,7 +41,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the content formats supported for documentation.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("documentationFormat")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public MarkupKind[]? DocumentationFormat
         {
             get;
@@ -74,7 +74,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the a value indicating whether the client supports the tag property on a completion item.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("tagSupport")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public CompletionItemTagSupportSetting? TagSupport
         {
             get;
@@ -96,7 +96,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the a value indicating which properties a client can resolve lazily on a completion item.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("resolveSupport")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public ResolveSupportSetting? ResolveSupport
         {
             get;
@@ -107,7 +107,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the a value indicating whether the client supports the `insertTextMode` property on   a completion item to override the whitespace handling mode as defined by the client.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("insertTextModeSupport")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public InsertTextModeSupportSetting? InsertTextModeSupport
         {
             get;

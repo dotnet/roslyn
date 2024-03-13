@@ -41,7 +41,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the arguments that the command should be invoked with.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("arguments")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public object[]? Arguments
         {
             get;

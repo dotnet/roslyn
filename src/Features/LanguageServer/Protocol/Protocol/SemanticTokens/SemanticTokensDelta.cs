@@ -21,7 +21,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// edits to their current semantic tokens data.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("resultId")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? ResultId { get; set; }
 
         /// <summary>

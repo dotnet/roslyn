@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the start character value.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("startCharacter")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? StartCharacter
         {
             get;
@@ -50,7 +50,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the end character value.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("endCharacter")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? EndCharacter
         {
             get;
@@ -61,7 +61,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the folding range kind.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("kind")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public FoldingRangeKind? Kind
         {
             get;
@@ -72,7 +72,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the collapsedText.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("collapsedText")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? CollapsedText
         {
             get;

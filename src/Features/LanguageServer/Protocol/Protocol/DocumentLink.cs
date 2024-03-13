@@ -31,7 +31,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("target")]
         [JsonConverter(typeof(DocumentUriConverter))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public Uri? Target
         {
             get;

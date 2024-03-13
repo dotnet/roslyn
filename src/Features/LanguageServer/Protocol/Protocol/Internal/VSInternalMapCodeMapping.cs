@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets identifier for the document the contents are supposed to be mapped into.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_textDocument")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public TextDocumentIdentifier? TextDocument
         {
             get;
@@ -37,7 +37,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// higher priority.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_focusLocations")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public Location[][]? FocusLocations
         {
             get;

@@ -24,7 +24,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [DataMember(Name = IconSerializedName)]
         [JsonConverter(typeof(ImageElementConverter))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public ImageElement? Icon { get; set; }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [DataMember(Name = DescriptionSerializedName)]
         [JsonConverter(typeof(ClassifiedTextElementConverter))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public ClassifiedTextElement? Description { get; set; }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// If absent, client will default to <see cref="CompletionOptions.AllCommitCharacters"/>.
         /// </summary>
         [DataMember(Name = VsCommitCharactersSerializedName)]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public SumType<string[], VSInternalCommitCharacter[]>? VsCommitCharacters { get; set; }
 
         /// <summary>

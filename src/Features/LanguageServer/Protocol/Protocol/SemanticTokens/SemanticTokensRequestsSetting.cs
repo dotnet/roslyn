@@ -21,7 +21,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// corresponding handler.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("range")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public SumType<bool, object>? Range { get; set; }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// corresponding handler.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("full")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public SumType<bool, SemanticTokensRequestsFullSetting>? Full { get; set; }
     }
 }

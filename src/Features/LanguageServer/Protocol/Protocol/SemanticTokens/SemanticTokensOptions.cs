@@ -25,14 +25,14 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value indicating whether semantic tokens Range provider requests are supported.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("range")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public SumType<bool, object>? Range { get; set; }
 
         /// <summary>
         /// Gets or sets whether or not the server supports providing semantic tokens for a full document.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("full")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public SumType<bool, SemanticTokensFullOptions>? Full { get; set; }
 
         /// <summary>

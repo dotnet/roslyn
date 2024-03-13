@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a string with textual description for why the edit was not applied.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("failureReason")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? FailureReason
         {
             get;

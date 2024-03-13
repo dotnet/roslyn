@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the string kind used for icons.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_vsKind")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalKindAndModifier? VSKind { get; set; }
     }
 }

@@ -28,7 +28,7 @@ internal class FullDocumentDiagnosticReport
     /// Gets or sets the optional result id.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("resultId")]
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public string? ResultId
     {
         get;

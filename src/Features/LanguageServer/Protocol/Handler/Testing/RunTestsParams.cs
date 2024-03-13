@@ -18,6 +18,6 @@ internal record RunTestsParams(
 ) : LSP.IPartialResultParams<RunTestsPartialResult>
 {
     [DataMember(Name = LSP.Methods.PartialResultTokenName)]
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public IProgress<RunTestsPartialResult>? PartialResultToken { get; set; }
 }

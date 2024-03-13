@@ -41,7 +41,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the completion list item defaults.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("itemDefaults")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public CompletionListItemDefaults? ItemDefaults
         {
             get;

@@ -24,7 +24,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value indicating what kind of diagnostic this request is querying for.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_queryingDiagnosticKind")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalDiagnosticKind? QueryingDiagnosticKind { get; set; }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// previousResultId.</para>
         /// </remarks>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_previousResultId")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? PreviousResultId { get; set; }
     }
 }

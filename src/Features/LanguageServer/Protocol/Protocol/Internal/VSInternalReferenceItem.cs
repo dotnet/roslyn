@@ -42,7 +42,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the definition Id.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_definitionId")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? DefinitionId
         {
             get;
@@ -59,7 +59,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </remarks>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_definitionText")]
         [JsonConverter(typeof(ObjectContentConverter))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public object? DefinitionText
         {
             get
@@ -105,28 +105,28 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the document name to be displayed to user when needed.This can be used in cases where URI doesn't have a user friendly file name or it is a remote URI.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_documentName")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? DocumentName { get; set; }
 
         /// <summary>
         /// Gets or sets the project name.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_projectName")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? ProjectName { get; set; }
 
         /// <summary>
         /// Gets or sets the containing type.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_containingType")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? ContainingType { get; set; }
 
         /// <summary>
         /// Gets or sets the containing member.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_containingMember")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? ContainingMember { get; set; }
 
         /// <summary>
@@ -148,7 +148,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </remarks>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_text")]
         [JsonConverter(typeof(ObjectContentConverter))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public object? Text
         {
             get
@@ -174,14 +174,14 @@ namespace Roslyn.LanguageServer.Protocol
         /// This doesn't have to correspond to a real file path, but does need to be parsable by the various Path.GetFileName() methods.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_displayPath")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? DisplayPath { get; set; }
 
         /// <summary>
         /// Gets or sets the origin of the item.The origin is used to filter remote results.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_origin")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalItemOrigin? Origin { get; set; }
 
         /// <summary>
@@ -189,7 +189,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_definitionIcon")]
         [JsonConverter(typeof(ImageElementConverter))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public ImageElement? DefinitionIcon { get; set; }
     }
 }

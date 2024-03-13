@@ -22,7 +22,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_text")]
         [JsonConverter(typeof(ObjectContentConverter))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public object? Text
         {
             get

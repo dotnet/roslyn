@@ -17,21 +17,21 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the icon associated with the symbol. If specified, this icon is used instead of <see cref="SymbolKind" />.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_icon")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public VSImageId? Icon { get; set; }
 
         /// <summary>
         /// Gets or sets the description of the symbol.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_description")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? Description { get; set; }
 
         /// <summary>
         /// Gets or sets the hint text for the symbol.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_hintText")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? HintText { get; set; }
     }
 }

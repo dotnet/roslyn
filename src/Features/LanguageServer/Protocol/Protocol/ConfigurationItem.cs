@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the scope to get the configuration section for.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("scopeUri")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [JsonConverter(typeof(DocumentUriConverter))]
         public Uri? ScopeUri
         {
@@ -32,7 +32,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the requested configuration section.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("section")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? Section
         {
             get;

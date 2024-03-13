@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the characters that trigger signature help automatically.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("triggerCharacters")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string[]? TriggerCharacters
         {
             get;
@@ -31,7 +31,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// when signature help is already showing.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("retriggerCharacters")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string[]? RetriggerCharacters
         {
             get;

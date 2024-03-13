@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// v1.0 refers to only default tab stop support i.e. support for $0 which manipualtes the cursor position.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_supportedSnippetVersion")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalSnippetSupportLevel? SupportedSnippetVersion
         {
             get;

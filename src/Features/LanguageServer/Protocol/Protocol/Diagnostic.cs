@@ -31,7 +31,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the diagnostic severity.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("severity")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public DiagnosticSeverity? Severity
         {
             get;
@@ -45,7 +45,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// The value can be an <see cref="int"/>, <see cref="string"/>.
         /// </remarks>
         [System.Text.Json.Serialization.JsonPropertyName("code")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public SumType<int, string>? Code
         {
             get;
@@ -56,7 +56,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets an optional value that describes the error code.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("codeDescription")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public CodeDescription? CodeDescription
         {
             get;
@@ -68,7 +68,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// diagnostic, e.g. 'typescript' or 'super lint'. It usually appears in the user interface.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("source")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? Source
         {
             get;
@@ -89,7 +89,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the diagnostic's tags.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("tags")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public DiagnosticTag[]? Tags
         {
             get;
@@ -100,7 +100,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the diagnostic related information
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("relatedInformation")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public DiagnosticRelatedInformation[]? RelatedInformation
         {
             get;

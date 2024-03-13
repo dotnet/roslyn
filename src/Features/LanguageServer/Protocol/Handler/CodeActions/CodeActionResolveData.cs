@@ -33,10 +33,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
         public string[] CodeActionPath { get; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string[]? FixAllFlavors { get; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public ImmutableArray<LSP.CodeAction>? NestedCodeActions { get; }
 
         public CodeActionResolveData(

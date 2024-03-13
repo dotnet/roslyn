@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the trigger characters.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("triggerCharacters")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string[]? TriggerCharacters
         {
             get;
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value indicating all the possible commit characters associated with the language server.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("allCommitCharacters")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string[]? AllCommitCharacters
         {
             get;
@@ -59,7 +59,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets completion item setting.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("completionItem")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public CompletionItemOptions? CompletionItemOptions
         {
             get;

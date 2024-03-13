@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the <see cref="string"/> which represents the content of the text document when it was saved.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("text")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? Text
         {
             get;

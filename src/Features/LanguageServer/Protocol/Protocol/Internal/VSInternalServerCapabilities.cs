@@ -47,7 +47,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value indicating whether the server supports OnAutoInsert.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_onAutoInsertProvider")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalDocumentOnAutoInsertOptions? OnAutoInsertProvider
         {
             get;
@@ -92,7 +92,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets server specified options for diagnostic pull requests.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_diagnosticProvider")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalDiagnosticOptions? DiagnosticProvider
         {
             get;
@@ -103,7 +103,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value indicating whether the server provides support for inline completion requests.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("_vs_inlineCompletionOptions")]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalInlineCompletionOptions? InlineCompletionOptions
         {
             get;
