@@ -53,6 +53,27 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
+            public override object? VisitConditional(IConditionalOperation operation, Dictionary<SyntaxNode, IOperation> argument)
+            {
+                while (true)
+                {
+                    RecordOperation(operation, argument);
+                    Visit(operation.Condition, argument);
+                    Visit(operation.WhenTrue, argument);
+                    if (operation.WhenFalse is IConditionalOperation nested)
+                    {
+                        operation = nested;
+                    }
+                    else
+                    {
+                        Visit(operation.WhenFalse, argument);
+                        break;
+                    }
+                }
+
+                return null;
+            }
+
             internal override object? VisitNoneOperation(IOperation operation, Dictionary<SyntaxNode, IOperation> argument)
             {
                 // OperationWalker skips these nodes by default, to avoid having public consumers deal with NoneOperation.

@@ -9357,16 +9357,64 @@ done:;
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword);
 
-            return _syntaxFactory.IfStatement(
-                attributes,
-                this.EatToken(SyntaxKind.IfKeyword),
-                this.EatToken(SyntaxKind.OpenParenToken),
-                this.ParseExpressionCore(),
-                this.EatToken(SyntaxKind.CloseParenToken),
-                this.ParseEmbeddedStatement(),
-                this.ParseElseClauseOpt());
+            var stack = ArrayBuilder<(SyntaxList<AttributeListSyntax>, SyntaxToken, SyntaxToken, ExpressionSyntax, SyntaxToken, StatementSyntax, SyntaxToken)>.GetInstance();
+
+            StatementSyntax alternative = null;
+            while (true)
+            {
+                var ifKeyword = this.EatToken(SyntaxKind.IfKeyword);
+                var openParen = this.EatToken(SyntaxKind.OpenParenToken);
+                var condition = this.ParseExpressionCore();
+                var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+                var consequence = this.ParseEmbeddedStatement();
+
+                var elseKeyword = this.CurrentToken.Kind != SyntaxKind.ElseKeyword ?
+                    null :
+                    this.EatToken(SyntaxKind.ElseKeyword);
+                stack.Push((attributes, ifKeyword, openParen, condition, closeParen, consequence, elseKeyword));
+
+                if (elseKeyword is null)
+                {
+                    alternative = null;
+                    break;
+                }
+
+                if (this.CurrentToken.Kind != SyntaxKind.IfKeyword)
+                {
+                    alternative = this.ParseEmbeddedStatement();
+                    break;
+                }
+
+                attributes = default;
+            }
+
+            IfStatementSyntax ifStatement;
+            do
+            {
+                var (attr, ifKeyword, openParen, condition, closeParen, consequence, elseKeyword) = stack.Pop();
+                var elseClause = alternative is null ?
+                    null :
+                    _syntaxFactory.ElseClause(
+                        elseKeyword,
+                        alternative);
+                ifStatement = _syntaxFactory.IfStatement(
+                    attr,
+                    ifKeyword,
+                    openParen,
+                    condition,
+                    closeParen,
+                    consequence,
+                    elseClause);
+                alternative = ifStatement;
+            }
+            while (stack.Any());
+
+            stack.Free();
+
+            return ifStatement;
         }
 
+        // PROTOTYPE: This method is similar to the original implementation of ParseIfStatement. Can we share code?
         private IfStatementSyntax ParseMisplacedElse(SyntaxList<AttributeListSyntax> attributes)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ElseKeyword);

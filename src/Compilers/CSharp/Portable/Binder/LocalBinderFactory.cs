@@ -798,9 +798,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitIfStatement(IfStatementSyntax node)
         {
-            Visit(node.Condition, _enclosing);
-            VisitPossibleEmbeddedStatement(node.Statement, _enclosing);
-            Visit(node.Else, _enclosing);
+            while (true)
+            {
+                Visit(node.Condition, _enclosing);
+                VisitPossibleEmbeddedStatement(node.Statement, _enclosing);
+
+                if (node.Else == null)
+                {
+                    break;
+                }
+
+                var elseStatementSyntax = node.Else.Statement;
+                if (elseStatementSyntax is IfStatementSyntax ifStatementSyntax)
+                {
+                    node = ifStatementSyntax;
+                }
+                else
+                {
+                    VisitPossibleEmbeddedStatement(elseStatementSyntax, _enclosing);
+                    break;
+                }
+            }
         }
 
         public override void VisitElseClause(ElseClauseSyntax node)

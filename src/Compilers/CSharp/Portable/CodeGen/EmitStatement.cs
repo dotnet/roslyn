@@ -124,10 +124,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitStatementList(BoundStatementList list)
         {
-            for (int i = 0, n = list.Statements.Length; i < n; i++)
+            var stack = ArrayBuilder<(BoundStatementList, int, BoundSequencePointWithSpan, int)>.GetInstance();
+
+            stack.Push((list, 0, null, 0));
+
+            while (stack.Any())
             {
-                EmitStatement(list.Statements[i]);
+                int i;
+                BoundSequencePointWithSpan sequencePointWithSpan;
+                int instructionsEmittedBegin;
+                (list, i, sequencePointWithSpan, instructionsEmittedBegin) = stack.Pop();
+                for (int n = list.Statements.Length; i < n; i++)
+                {
+                    var statement = list.Statements[i];
+                    if (statement is BoundSequencePointWithSpan { StatementOpt: BoundStatementList nestedList } nestedSequencePointWithSpan)
+                    {
+                        EmitSequencePointStatementBegin(nestedSequencePointWithSpan);
+                        stack.Push((list, i + 1, sequencePointWithSpan, instructionsEmittedBegin));
+                        stack.Push((nestedList, 0, nestedSequencePointWithSpan, _builder.InstructionsEmitted));
+                        goto endOfLoop;
+                    }
+                    EmitStatement(statement);
+                }
+                if (sequencePointWithSpan is { })
+                {
+                    EmitSequencePointStatementEnd(sequencePointWithSpan, _builder.InstructionsEmitted - instructionsEmittedBegin);
+                }
+endOfLoop: continue;
             }
+
+            stack.Free();
         }
 
         private void EmitNoOpStatement(BoundNoOpStatement statement)

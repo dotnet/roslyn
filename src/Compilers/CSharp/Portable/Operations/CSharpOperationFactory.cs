@@ -1801,15 +1801,50 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IConditionalOperation CreateBoundIfStatementOperation(BoundIfStatement boundIfStatement)
         {
-            IOperation condition = Create(boundIfStatement.Condition);
-            IOperation whenTrue = Create(boundIfStatement.Consequence);
-            IOperation? whenFalse = Create(boundIfStatement.AlternativeOpt);
-            bool isRef = false;
-            SyntaxNode syntax = boundIfStatement.Syntax;
-            ITypeSymbol? type = null;
-            ConstantValue? constantValue = null;
-            bool isImplicit = boundIfStatement.WasCompilerGenerated;
-            return new ConditionalOperation(condition, whenTrue, whenFalse, isRef, _semanticModel, syntax, type, constantValue, isImplicit);
+            var stack = ArrayBuilder<(BoundIfStatement, IOperation, IOperation)>.GetInstance();
+
+            IOperation? whenFalse;
+            while (true)
+            {
+                IOperation condition = Create(boundIfStatement.Condition);
+                IOperation whenTrue = Create(boundIfStatement.Consequence);
+                Debug.Assert(whenTrue is { });
+                stack.Push((boundIfStatement, condition, whenTrue));
+
+                var alternative = boundIfStatement.AlternativeOpt;
+                if (alternative is null)
+                {
+                    whenFalse = null;
+                    break;
+                }
+
+                if (alternative is BoundIfStatement elseIfStatement)
+                {
+                    boundIfStatement = elseIfStatement;
+                }
+                else
+                {
+                    whenFalse = Create(alternative);
+                    break;
+                }
+            }
+
+            ConditionalOperation result;
+            do
+            {
+                var (ifStatement, condition, whenTrue) = stack.Pop();
+                bool isRef = false;
+                SyntaxNode syntax = ifStatement.Syntax;
+                ITypeSymbol? type = null;
+                ConstantValue? constantValue = null;
+                bool isImplicit = ifStatement.WasCompilerGenerated;
+                result = new ConditionalOperation(condition, whenTrue, whenFalse, isRef, _semanticModel, syntax, type, constantValue, isImplicit);
+                whenFalse = result;
+            }
+            while (stack.Any());
+
+            stack.Free();
+            return result;
         }
 
         private IWhileLoopOperation CreateBoundWhileStatementOperation(BoundWhileStatement boundWhileStatement)

@@ -6,8 +6,6 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -16,27 +14,63 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIfStatement(BoundIfStatement node)
         {
             Debug.Assert(node != null);
-            var rewrittenCondition = VisitExpression(node.Condition);
-            var rewrittenConsequence = VisitStatement(node.Consequence);
-            Debug.Assert(rewrittenConsequence is { });
-            var rewrittenAlternative = VisitStatement(node.AlternativeOpt);
-            var syntax = (IfStatementSyntax)node.Syntax;
 
-            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
-            // the containing method is edited while methods invoked in the condition are being executed.
-            if (this.Instrument && !node.WasCompilerGenerated)
+            var stack = ArrayBuilder<(BoundIfStatement, BoundExpression, BoundStatement)>.GetInstance();
+
+            BoundStatement? rewrittenAlternative;
+            while (true)
             {
-                rewrittenCondition = Instrumenter.InstrumentIfStatementCondition(node, rewrittenCondition, _factory);
+                var rewrittenCondition = VisitExpression(node.Condition);
+                var rewrittenConsequence = VisitStatement(node.Consequence);
+                Debug.Assert(rewrittenConsequence is { });
+                stack.Push((node, rewrittenCondition, rewrittenConsequence));
+
+                var alternative = node.AlternativeOpt;
+                if (alternative is null)
+                {
+                    rewrittenAlternative = null;
+                    break;
+                }
+
+                if (alternative is BoundIfStatement elseIfStatement)
+                {
+                    node = elseIfStatement;
+                }
+                else
+                {
+                    rewrittenAlternative = VisitStatement(alternative);
+                    break;
+                }
             }
 
-            var result = RewriteIfStatement(syntax, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.HasErrors);
-
-            // add sequence point before the whole statement
-            if (this.Instrument && !node.WasCompilerGenerated)
+            BoundStatement result;
+            do
             {
-                result = Instrumenter.InstrumentIfStatement(node, result);
-            }
+                var (ifStatement, rewrittenCondition, rewrittenConsequence) = stack.Pop();
+                node = ifStatement;
 
+                var syntax = (IfStatementSyntax)node.Syntax;
+
+                // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+                // the containing method is edited while methods invoked in the condition are being executed.
+                if (this.Instrument && !node.WasCompilerGenerated)
+                {
+                    rewrittenCondition = Instrumenter.InstrumentIfStatementCondition(node, rewrittenCondition, _factory);
+                }
+
+                result = RewriteIfStatement(syntax, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.HasErrors);
+
+                // add sequence point before the whole statement
+                if (this.Instrument && !node.WasCompilerGenerated)
+                {
+                    result = Instrumenter.InstrumentIfStatement(node, result);
+                }
+
+                rewrittenAlternative = result;
+            }
+            while (stack.Any());
+
+            stack.Free();
             return result;
         }
 

@@ -1058,6 +1058,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode? VisitIfStatement(BoundIfStatement node)
+        {
+            while (true)
+            {
+                this.Visit(node.Condition);
+                this.Visit(node.Consequence);
+
+                var alternative = node.AlternativeOpt;
+                if (alternative is null)
+                {
+                    break;
+                }
+
+                if (alternative is BoundIfStatement elseIfStatement)
+                {
+                    node = elseIfStatement;
+                }
+                else
+                {
+                    this.Visit(alternative);
+                    break;
+                }
+            }
+
+            return null;
+        }
+
         private static void Error(BindingDiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax, params object[] args)
         {
             var location = syntax.GetLocation();

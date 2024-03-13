@@ -2494,15 +2494,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         private BoundStatement BindIfStatement(IfStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
-            var condition = BindBooleanExpression(node.Condition, diagnostics);
-            var consequence = BindPossibleEmbeddedStatement(node.Statement, diagnostics);
-            BoundStatement alternative = (node.Else == null) ? null : BindPossibleEmbeddedStatement(node.Else.Statement, diagnostics);
+            var stack = ArrayBuilder<(IfStatementSyntax IfStatementSyntax, BoundExpression Condition, BoundStatement Consequence)>.GetInstance();
 
-            BoundStatement result = new BoundIfStatement(node, condition, consequence, alternative);
+            BoundStatement? alternative;
+            while (true)
+            {
+                var condition = BindBooleanExpression(node.Condition, diagnostics);
+                var consequence = BindPossibleEmbeddedStatement(node.Statement, diagnostics);
+                stack.Push((node, condition, consequence));
+
+                if (node.Else == null)
+                {
+                    alternative = null;
+                    break;
+                }
+
+                var elseStatementSyntax = node.Else.Statement;
+                if (elseStatementSyntax is IfStatementSyntax ifStatementSyntax)
+                {
+                    node = ifStatementSyntax;
+                }
+                else
+                {
+                    alternative = BindPossibleEmbeddedStatement(elseStatementSyntax, diagnostics);
+                    break;
+                }
+            }
+
+            BoundStatement result;
+            do
+            {
+                var (ifStatementSyntax, condition, consequence) = stack.Pop();
+                result = new BoundIfStatement(ifStatementSyntax, condition, consequence, alternative);
+                alternative = result;
+            }
+            while (stack.Any());
+
+            stack.Free();
+
             return result;
         }
+#nullable disable
 
         internal BoundExpression BindBooleanExpression(ExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {

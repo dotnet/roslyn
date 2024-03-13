@@ -1438,6 +1438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return bodyWithoutLambdas;
                 }
 
+                // PROTOTYPE: What about IteratorRewriter?
                 BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, methodOrdinal, stateMachineStateDebugInfoBuilder, lazyVariableSlotAllocator, compilationState, diagnostics,
                     out IteratorStateMachine iteratorStateMachine);
 
@@ -1446,6 +1447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return bodyWithoutIterators;
                 }
 
+                // PROTOTYPE: What about AsyncRewriter?
                 BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, stateMachineStateDebugInfoBuilder, lazyVariableSlotAllocator, compilationState, diagnostics,
                     out AsyncStateMachine asyncStateMachine);
 
@@ -2166,6 +2168,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private sealed class EmptyRewriter : BoundTreeRewriterWithStackGuard
         {
+            // PROTOTYPE: This override shouldn't be necessary. The base class should use a stack.
+            public override BoundNode? VisitIfStatement(BoundIfStatement node)
+            {
+                return node; // PROTOTYPE: Not implemented.
+            }
         }
 
         private sealed class UnboundLambdaFinder : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator

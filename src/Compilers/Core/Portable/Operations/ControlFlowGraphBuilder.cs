@@ -1568,18 +1568,39 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     // alternative;
                     // afterif:
 
-                    BasicBlockBuilder? whenFalse = null;
-                    VisitConditionalBranch(operation.Condition, ref whenFalse, jumpIfTrue: false);
+                    var stack = ArrayBuilder<(IConditionalOperation, BasicBlockBuilder)>.GetInstance();
 
-                    VisitStatement(operation.WhenTrue);
+                    while (true)
+                    {
+                        BasicBlockBuilder? whenFalse = null;
+                        VisitConditionalBranch(operation.Condition, ref whenFalse, jumpIfTrue: false);
+                        Debug.Assert(whenFalse is { });
+                        VisitStatement(operation.WhenTrue);
+                        var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
+                        UnconditionalBranch(afterIf);
 
-                    var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
-                    UnconditionalBranch(afterIf);
+                        AppendNewBlock(whenFalse);
+                        stack.Push((operation, afterIf));
 
-                    AppendNewBlock(whenFalse);
+                        if (operation.WhenFalse is IConditionalOperation { WhenFalse: not null } nested)
+                        {
+                            operation = nested;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
                     VisitStatement(operation.WhenFalse);
+                    do
+                    {
+                        var (conditional, afterIf) = stack.Pop();
+                        AppendNewBlock(afterIf);
+                    }
+                    while (stack.Any());
 
-                    AppendNewBlock(afterIf);
+                    stack.Free();
                 }
 
                 return null;
