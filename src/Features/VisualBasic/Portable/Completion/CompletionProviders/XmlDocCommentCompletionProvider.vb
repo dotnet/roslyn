@@ -333,7 +333,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private Function GetAttributes(token As SyntaxToken, tagName As String, attributes As SyntaxList(Of XmlNodeSyntax)) As IEnumerable(Of CompletionItem)
             Dim existingAttributeNames = attributes.Select(AddressOf GetAttributeName).WhereNotNull().ToSet()
             Dim nextToken = token.GetNextToken()
-            Return GetAttributeItems(tagName, existingAttributeNames, addEqualsAndQuotes := Not nextToken.IsKind(SyntaxKind.EqualsToken) Or nextToken.HasLeadingTrivia)
+            Return GetAttributeItems(tagName, existingAttributeNames,
+                                     addEqualsAndQuotes:=Not nextToken.IsKind(SyntaxKind.EqualsToken) Or nextToken.HasLeadingTrivia)
         End Function
 
         Private Shared Function GetAttributeName(node As XmlNodeSyntax) As String
