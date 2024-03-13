@@ -9,6 +9,7 @@
       Reduce the parallelism from the default (16) so that we can avoid OOMs.
     -->
     <SignToolRepackParallelism>10</SignToolRepackParallelism>
+    <SignToolRepackMaximumParallelFileSize>64</SignToolRepackMaximumParallelFileSize>
   </PropertyGroup>
 
   <!--

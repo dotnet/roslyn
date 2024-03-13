@@ -339,6 +339,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
         System_Runtime_CompilerServices_Unsafe,
 
+        System_Runtime_CompilerServices_ParamCollectionAttribute,
+
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
     }
@@ -665,6 +667,8 @@ namespace Microsoft.CodeAnalysis
             "System.IndexOutOfRangeException",
             "System.Runtime.CompilerServices.MetadataUpdateOriginalTypeAttribute",
             "System.Runtime.CompilerServices.Unsafe",
+
+            "System.Runtime.CompilerServices.ParamCollectionAttribute",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

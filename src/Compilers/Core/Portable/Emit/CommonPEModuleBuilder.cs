@@ -747,6 +747,9 @@ namespace Microsoft.CodeAnalysis.Emit
             return details.GetModuleVersionId(mvidType);
         }
 
+        internal Cci.IFieldReference GetModuleCancellationToken(Cci.ITypeReference cancellationTokenType, TSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
+            => GetPrivateImplClass(syntaxOpt, diagnostics).GetModuleCancellationToken(cancellationTokenType);
+
         internal Cci.IFieldReference GetInstrumentationPayloadRoot(int analysisKind, Cci.ITypeReference payloadType, TSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
             PrivateImplementationDetails details = GetPrivateImplClass(syntaxOpt, diagnostics);

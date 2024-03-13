@@ -82,8 +82,9 @@ internal sealed partial class DesignerAttributeDiscoveryService() : IDesignerAtt
             }
 
             var asyncLazy = s_metadataIdToDesignerAttributeInfo.GetValue(
-                metadataId, _ => AsyncLazy.Create(cancellationToken =>
-                    ComputeHasDesignerCategoryTypeAsync(solutionServices, solutionKey, peReference, cancellationToken)));
+                metadataId, _ => AsyncLazy.Create(static (arg, cancellationToken) =>
+                    ComputeHasDesignerCategoryTypeAsync(arg.solutionServices, arg.solutionKey, arg.peReference, cancellationToken),
+                    arg: (solutionServices, solutionKey, peReference)));
             return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
         }
 
@@ -124,7 +125,9 @@ internal sealed partial class DesignerAttributeDiscoveryService() : IDesignerAtt
 
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            var lazyProjectVersion = AsyncLazy.Create(frozenProject.GetSemanticVersionAsync);
+            var lazyProjectVersion = AsyncLazy.Create(static (frozenProject, c) =>
+                frozenProject.GetSemanticVersionAsync(c),
+                arg: frozenProject);
 
             await ScanForDesignerCategoryUsageAsync(
                 frozenProject, frozenDocument, callback, lazyProjectVersion, cancellationToken).ConfigureAwait(false);
@@ -170,7 +173,9 @@ internal sealed partial class DesignerAttributeDiscoveryService() : IDesignerAtt
         // The top level project version for this project.  We only care if anything top level changes here.
         // Downstream impact will already happen due to us keying off of the references a project has (which will
         // change if anything it depends on changes).
-        var lazyProjectVersion = AsyncLazy.Create(project.GetSemanticVersionAsync);
+        var lazyProjectVersion = AsyncLazy.Create(static (project, c) =>
+            project.GetSemanticVersionAsync(c),
+            arg: project);
 
         await ScanForDesignerCategoryUsageAsync(
             project, specificDocument: null, callback, lazyProjectVersion, cancellationToken).ConfigureAwait(false);
