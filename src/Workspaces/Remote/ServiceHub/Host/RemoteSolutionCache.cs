@@ -106,7 +106,8 @@ internal sealed class RemoteSolutionCache<TChecksum, TSolution>
 
     public TSolution? Find(TChecksum checksum)
     {
-        // Note: we intentionally do not move an item when we find it.  That's because 
+        // Note: we intentionally do not move an item when we find it.  That's because our caller will always call 'Add'
+        // with the found solution afterwards.  This will ensure that that solution makes it to the front of the line.
         var index = 0;
         for (var current = _cacheNodes.First; current != null; current = current.Next, index++)
         {
