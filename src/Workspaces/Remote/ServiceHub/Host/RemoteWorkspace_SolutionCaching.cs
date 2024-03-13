@@ -8,6 +8,76 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
+    /// <summary>
+    /// Not threadsafe.  Only use while under a lock.
+    /// </summary>
+    internal sealed class RemoteSolutionCache
+    {
+        private sealed class SolutionCacheNode
+        {
+            public readonly Checksum Checksum;
+            public Solution? Solution;
+
+            public SolutionCacheNode(Checksum checksum)
+            {
+                Checksum = checksum;
+            }
+        }
+
+        /// <summary>
+        /// The max number of solution instances we'll hold onto at a time.
+        /// </summary>
+        private const int MaxCapacity = 4;
+
+        /// <summary>
+        /// The total history kept.  Used to record telemetry about how useful it would be to increase the max capacity.
+        /// </summary>
+        private const int TotalHistory = 16;
+
+        private readonly LinkedList<SolutionCacheNode> _cacheNodes = new();
+
+        public void Add(Checksum checksum, Solution solution)
+        {
+            var index = 0;
+            for (var current = _cacheNodes.First; current != null; current = current.Next, index++)
+            {
+                if (current.Value.Checksum == checksum)
+                {
+                    // Found the item.  Take it, move it to the front, and ensure it's pointing at this solution.
+                    _cacheNodes.Remove(current);
+                    _cacheNodes.AddFirst(current);
+
+                    // Keep track if we would have found this if the cache was larger
+                    var cacheMiss = current.Value.Solution == null;
+                    current.Value.Solution = solution;
+
+                    DropExcessItems();
+                    return;
+                }
+            }
+
+            // Didn't find the item at all.  Just add to the front.
+            _cacheNodes.AddFirst(new SolutionCacheNode(checksum) { Solution = solution });
+            DropExcessItems();
+
+            // Ensure we're not storing too much history.
+            if (_cacheNodes.Count > TotalHistory)
+                _cacheNodes.RemoveLast();
+        }
+
+        private void DropExcessItems()
+        {
+            var index = 0;
+            for (var current = _cacheNodes.First; current != null; current = current.Next, index++)
+            {
+                // Don't have to keep going once we stop having solutions.
+                if (current.Value.Solution is null)
+                    return;
+
+                if (index == MaxCapacity)
+            }
+        }
+
     internal sealed partial class RemoteWorkspace
     {
         /// <summary>
