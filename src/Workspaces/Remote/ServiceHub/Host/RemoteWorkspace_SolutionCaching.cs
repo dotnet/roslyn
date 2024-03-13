@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -13,6 +14,40 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class RemoteSolutionCache
     {
+        /// <summary>
+        /// The max number of solution instances we'll hold onto at a time.
+        /// </summary>
+        private const int MaxCapacity = 4;
+
+        /// <summary>
+        /// The total history kept.  Used to record telemetry about how useful it would be to increase the max capacity.
+        /// </summary>
+        private const int TotalHistory = 16;
+
+        /// <summary>
+        /// Keep track of when we find a checksum in the history, but we've dropped the solution for it.  This will help
+        /// us determine what benefit we would get from expanding this cache.
+        /// </summary>
+        private readonly HistogramLogAggregator<int>.HistogramCounter _cacheMissAggregator =
+            new(bucketSize: 1, maxBucketValue: int.MaxValue, bucketCount: TotalHistory + 1);
+
+        /// <summary>
+        /// The number of times we successfully found a solution.
+        /// </summary>
+        private int _cacheHits;
+
+        /// <summary>
+        /// The number of times we failed to find a solution, but could have found it if we cached more items (up to
+        /// TotalHistory).  When this happens, we also store in <see cref="_cacheMissAggregator"/> which bucket it was
+        /// found in to help us decide what a good cache value is.
+        /// </summary>
+        private int _cacheMissesInHistory;
+
+        /// <summary>
+        /// The number of times we failed to find a solution, and would not have found it even if we didn't cache more items.
+        /// </summary>
+        private int _cacheMissesNotInHistory;
+
         private sealed class SolutionCacheNode
         {
             public readonly Checksum Checksum;
@@ -24,19 +59,9 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        /// <summary>
-        /// The max number of solution instances we'll hold onto at a time.
-        /// </summary>
-        private const int MaxCapacity = 4;
-
-        /// <summary>
-        /// The total history kept.  Used to record telemetry about how useful it would be to increase the max capacity.
-        /// </summary>
-        private const int TotalHistory = 16;
-
         private readonly LinkedList<SolutionCacheNode> _cacheNodes = new();
 
-        public void Add(Checksum checksum, Solution solution)
+        private void FindAndMoveNodeToFront(Checksum checksum)
         {
             var index = 0;
             for (var current = _cacheNodes.First; current != null; current = current.Next, index++)
@@ -48,35 +73,56 @@ namespace Microsoft.CodeAnalysis.Remote
                     _cacheNodes.AddFirst(current);
 
                     // Keep track if we would have found this if the cache was larger
-                    var cacheMiss = current.Value.Solution == null;
-                    current.Value.Solution = solution;
-
-                    DropExcessItems();
+                    if (current.Value.Solution == null)
+                    {
+                        _cacheHits++;
+                    }
+                    else
+                    {
+                        _cacheMissesInHistory++;
+                        _cacheMissAggregator.IncreaseCount(index);
+                    }
                     return;
                 }
             }
 
             // Didn't find the item at all.  Just add to the front.
-            _cacheNodes.AddFirst(new SolutionCacheNode(checksum) { Solution = solution });
-            DropExcessItems();
-
-            // Ensure we're not storing too much history.
-            if (_cacheNodes.Count > TotalHistory)
-                _cacheNodes.RemoveLast();
+            //
+            // Note: we don't record 
+            _cacheNodes.AddFirst(new SolutionCacheNode(checksum));
+            _cacheMissesNotInHistory++;
+            return;
         }
 
-        private void DropExcessItems()
+        public void Add(Checksum checksum, Solution solution)
         {
+            Contract.ThrowIfTrue(_cacheNodes.Count > TotalHistory);
+
+            FindAndMoveNodeToFront(checksum);
+
+            Contract.ThrowIfTrue(_cacheNodes.Count > TotalHistory + 1);
+            Contract.ThrowIfNull(_cacheNodes.First);
+            Contract.ThrowIfTrue(_cacheNodes.First.Value.Checksum != checksum);
+
+            // Ensure we're holding onto the solution.
+            _cacheNodes.First.Value.Solution = solution;
+
+            // Now, if our history is too long, remove the last item.
+            if (_cacheNodes.Count == TotalHistory + 1)
+                _cacheNodes.RemoveLast();
+
+            // Finally, ensure that only the first `MaxCapacity` are pointing at solutions and the rest are not.
             var index = 0;
             for (var current = _cacheNodes.First; current != null; current = current.Next, index++)
             {
-                // Don't have to keep going once we stop having solutions.
-                if (current.Value.Solution is null)
-                    return;
-
-                if (index == MaxCapacity)
+                if (index > MaxCapacity)
+                {
+                    current.Value.Solution = null;
+                    break;
+                }
             }
         }
+    }
 
     internal sealed partial class RemoteWorkspace
     {
