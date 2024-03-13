@@ -2015,7 +2015,7 @@ End Module
             CompileAndVerify(source, references:={Net40.SystemCore}).VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72456")>
         Public Sub UndeclaredClassInLambdaFunction()
             Dim source =
 <compilation>
