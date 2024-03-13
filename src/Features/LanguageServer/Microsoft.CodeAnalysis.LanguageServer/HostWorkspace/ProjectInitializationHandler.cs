@@ -31,9 +31,9 @@ internal sealed class ProjectInitializationHandler : IDisposable
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ProjectInitializationHandler(IServiceBrokerProvider serviceBrokerProvider, ILoggerFactory loggerFactory)
+    public ProjectInitializationHandler([Import(ServiceBrokerContracts.SVsFullAccessServiceBroker)] IServiceBroker serviceBroker, ILoggerFactory loggerFactory)
     {
-        _serviceBroker = serviceBrokerProvider.ServiceBroker;
+        _serviceBroker = serviceBroker;
         _serviceBroker.AvailabilityChanged += AvailabilityChanged;
         _serviceBrokerClient = new ServiceBrokerClient(_serviceBroker, joinableTaskFactory: null);
 

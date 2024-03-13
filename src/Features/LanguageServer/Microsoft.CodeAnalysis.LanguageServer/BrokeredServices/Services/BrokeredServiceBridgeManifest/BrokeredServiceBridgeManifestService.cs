@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.Shell.ServiceBroker;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.BrokeredServiceBridgeManifest;
 
-#pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
 [ExportBrokeredService(MonikerName, MonikerVersion, Audience = ServiceAudience.Local)]
 internal class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeManifest, IExportedBrokeredService
 {
@@ -56,4 +55,3 @@ internal class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeManifest, I
         return Task.CompletedTask;
     }
 }
-#pragma warning restore RS0030 // Do not used banned APIs

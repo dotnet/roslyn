@@ -8,13 +8,13 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BrokeredServices;
-using Microsoft.CodeAnalysis.Contracts.Client;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class ManagedHotReloadLanguageService(
-    IServiceBrokerProvider serviceBrokerProvider,
+    [Import(ServiceBrokerContracts.SVsFullAccessServiceBroker)] IServiceBroker serviceBroker,
     IEditAndContinueService encService,
     SolutionSnapshotRegistry solutionSnapshotRegistry) : IManagedHotReloadLanguageService
 {
@@ -39,8 +39,8 @@ internal sealed partial class ManagedHotReloadLanguageService(
     private static readonly ActiveStatementSpanProvider s_emptyActiveStatementProvider =
         (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
-    private readonly ManagedHotReloadServiceProxy _debuggerService = new(serviceBrokerProvider.ServiceBroker);
-    private readonly SolutionSnapshotProviderProxy _solutionSnapshotProvider = new(serviceBrokerProvider.ServiceBroker);
+    private readonly ManagedHotReloadServiceProxy _debuggerService = new(serviceBroker);
+    private readonly SolutionSnapshotProviderProxy _solutionSnapshotProvider = new(serviceBroker);
 
     private bool _disabled;
     private DebuggingSessionId? _debuggingSession;
