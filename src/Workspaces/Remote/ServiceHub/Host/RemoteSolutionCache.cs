@@ -28,20 +28,20 @@ internal sealed class RemoteSolutionCache<TChecksum, TSolution>
     private readonly int _totalHistory;
 
     /// <summary>
-    /// Keep track of when we find a checksum in the history, but we've dropped the solution for it.  This will help
-    /// us determine what benefit we would get from expanding this cache.
+    /// Keep track of what index we found find a checksum at in the history.  This will help us tell both if the cache
+    /// is too large, or if it's too small.
     /// </summary>
-    private readonly HistogramLogAggregator<int>.HistogramCounter _cacheMissCounter;
+    private readonly HistogramLogAggregator<int>.HistogramCounter _cacheHitIndexHistogram;
 
     /// <summary>
-    /// The number of times we successfully found a solution.
+    /// The number of times we successfully found a solution.  When this happens we'll increment <see
+    /// cref="_cacheHitIndexHistogram"/>.
     /// </summary>
     private int _cacheHits;
 
     /// <summary>
     /// The number of times we failed to find a solution, but could have found it if we cached more items (up to
-    /// TotalHistory).  When this happens, we also store in <see cref="_cacheMissCounter"/> which bucket it was
-    /// found in to help us decide what a good cache value is.
+    /// TotalHistory).  When this happens we'll increment <see cref="_cacheHitIndexHistogram"/>.
     /// </summary>
     private int _cacheMissesInHistory;
 
@@ -61,7 +61,7 @@ internal sealed class RemoteSolutionCache<TChecksum, TSolution>
     {
         _maxCapacity = maxCapacity;
         _totalHistory = totalHistory;
-        _cacheMissCounter = new(bucketSize: 1, maxBucketValue: int.MaxValue, bucketCount: _totalHistory + 1);
+        _cacheHitIndexHistogram = new(bucketSize: 1, maxBucketValue: int.MaxValue, bucketCount: _totalHistory + 1);
     }
 
     private void FindAndMoveNodeToFront(TChecksum checksum)
@@ -125,7 +125,6 @@ internal sealed class RemoteSolutionCache<TChecksum, TSolution>
                 {
                     // Track that we would have been able to return this if our history was longer.
                     _cacheMissesInHistory++;
-                    _cacheMissCounter.IncreaseCount(index);
                 }
                 else
                 {
@@ -133,6 +132,7 @@ internal sealed class RemoteSolutionCache<TChecksum, TSolution>
                     _cacheHits++;
                 }
 
+                _cacheHitIndexHistogram.IncreaseCount(index);
                 return current.Value.Solution;
             }
         }
@@ -149,7 +149,7 @@ internal sealed class RemoteSolutionCache<TChecksum, TSolution>
             m.Add(nameof(_cacheHits), _cacheHits);
             m.Add(nameof(_cacheMissesInHistory), _cacheMissesInHistory);
             m.Add(nameof(_cacheMissesNotInHistory), _cacheMissesNotInHistory);
-            _cacheMissCounter.WriteTelemetryPropertiesTo(m, prefix: nameof(_cacheMissCounter));
+            _cacheHitIndexHistogram.WriteTelemetryPropertiesTo(m, prefix: nameof(_cacheHitIndexHistogram));
         }));
     }
 
