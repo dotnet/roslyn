@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     if (updatePrimaryBranch)
                         _lastRequestedPrimaryBranchSolution = (solutionChecksum, solution);
                     else
-                        _lastRequestedAnyBranchSolution = (solutionChecksum, solution);
+                        _lastRequestedAnyBranchSolutions.Add(solutionChecksum, solution);
                 }
 
                 // Now, pass it to the callback to do the work.  Any other callers into us will be able to benefit from
