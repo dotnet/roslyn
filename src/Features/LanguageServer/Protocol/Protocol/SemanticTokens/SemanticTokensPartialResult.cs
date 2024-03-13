@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets and array containing encoded semantic tokens data.
         /// </summary>
-        [DataMember(Name = "data", IsRequired = true)]
+        [System.Text.Json.Serialization.JsonPropertyName("data"), System.Text.Json.Serialization.JsonRequired]
         public int[] Data { get; set; }
     }
 }

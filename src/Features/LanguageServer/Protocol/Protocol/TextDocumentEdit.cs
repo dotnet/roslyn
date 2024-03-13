@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a document identifier indication which document to apply the edits to.
         /// </summary>
-        [DataMember(Name = "textDocument", IsRequired = true)]
+        [System.Text.Json.Serialization.JsonPropertyName("textDocument"), System.Text.Json.Serialization.JsonRequired]
         public OptionalVersionedTextDocumentIdentifier TextDocument
         {
             get;
@@ -27,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the array of edits to be applied to the document.
         /// </summary>
-        [DataMember(Name = "edits", IsRequired = true)]
+        [System.Text.Json.Serialization.JsonPropertyName("edits"), System.Text.Json.Serialization.JsonRequired]
         public TextEdit[] Edits
         {
             get;

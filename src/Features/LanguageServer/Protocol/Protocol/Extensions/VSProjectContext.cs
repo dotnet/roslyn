@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the label for the project context.
         /// </summary>
-        [DataMember(Name = "_vs_label", IsRequired = true)]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_label"), System.Text.Json.Serialization.JsonRequired]
         public string Label
         {
             get;
@@ -26,7 +26,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the unique identifier of the project context.
         /// </summary>
-        [DataMember(Name = "_vs_id", IsRequired = true)]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_id"), System.Text.Json.Serialization.JsonRequired]
         public string Id
         {
             get;

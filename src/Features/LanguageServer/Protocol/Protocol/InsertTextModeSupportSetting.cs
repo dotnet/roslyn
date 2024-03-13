@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating the client supports the `insertTextMode` property on a completion item to override the whitespace handling mode as defined by the client.
         /// </summary>
-        [DataMember(Name = "valueSet", IsRequired = true)]
+        [System.Text.Json.Serialization.JsonPropertyName("valueSet"), System.Text.Json.Serialization.JsonRequired]
         public InsertTextMode[] ValueSet
         {
             get;

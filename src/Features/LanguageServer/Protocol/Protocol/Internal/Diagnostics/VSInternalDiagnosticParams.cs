@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the document for which diagnostics are desired.
         /// </summary>
-        [DataMember(Name = "_vs_textDocument", IsRequired = true)]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_textDocument"), System.Text.Json.Serialization.JsonRequired]
         public TextDocumentIdentifier? TextDocument { get; set; }
 
         /// <summary>

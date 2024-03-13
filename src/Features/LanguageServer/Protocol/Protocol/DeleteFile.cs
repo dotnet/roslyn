@@ -27,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the file to delete.
         /// </summary>
-        [DataMember(Name = "uri", IsRequired = true)]
+        [System.Text.Json.Serialization.JsonPropertyName("uri"), System.Text.Json.Serialization.JsonRequired]
         [JsonConverter(typeof(DocumentUriConverter))]
         public Uri Uri
         {

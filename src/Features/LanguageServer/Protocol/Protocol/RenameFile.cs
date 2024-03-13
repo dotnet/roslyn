@@ -27,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the old (existing) location.
         /// </summary>
-        [DataMember(Name = "oldUri", IsRequired = true)]
+        [System.Text.Json.Serialization.JsonPropertyName("oldUri"), System.Text.Json.Serialization.JsonRequired]
         [JsonConverter(typeof(DocumentUriConverter))]
         public Uri OldUri
         {
@@ -38,7 +38,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the new location.
         /// </summary>
-        [DataMember(Name = "newUri", IsRequired = true)]
+        [System.Text.Json.Serialization.JsonPropertyName("newUri"), System.Text.Json.Serialization.JsonRequired]
         [JsonConverter(typeof(DocumentUriConverter))]
         public Uri NewUri
         {

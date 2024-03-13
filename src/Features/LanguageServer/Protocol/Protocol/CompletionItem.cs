@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the label value, i.e. display text to users.
         /// </summary>
-        [DataMember(Name = "label", IsRequired = true)]
+        [System.Text.Json.Serialization.JsonPropertyName("label"), System.Text.Json.Serialization.JsonRequired]
         public string Label
         {
             get;

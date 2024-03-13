@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a string that describes clipboard format types, for example, "text/plain".
         /// </summary>
-        [DataMember(Name = "_vs_mime", IsRequired = true)]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_mime"), System.Text.Json.Serialization.JsonRequired]
         public string MimeType
         {
             get;
@@ -25,7 +25,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the content of the clipboard.
         /// </summary>
-        [DataMember(Name = "_vs_content", IsRequired = true)]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_content"), System.Text.Json.Serialization.JsonRequired]
         public string Content
         {
             get;

@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value which indicates the range of the text edit.
         /// </summary>
-        [DataMember(Name = "range", IsRequired = true)]
+        [System.Text.Json.Serialization.JsonPropertyName("range"), System.Text.Json.Serialization.JsonRequired]
         public Range Range
         {
             get;

@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating the tags supported by the client.
         /// </summary>
-        [DataMember(Name = "valueSet", IsRequired = true)]
+        [System.Text.Json.Serialization.JsonPropertyName("valueSet"), System.Text.Json.Serialization.JsonRequired]
         public CompletionItemTag[] ValueSet
         {
             get;

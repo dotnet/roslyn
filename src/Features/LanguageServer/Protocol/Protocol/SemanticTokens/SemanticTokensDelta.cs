@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets an array of edits to apply to a previous response from a
         /// semantic tokens Document provider.
         /// </summary>
-        [DataMember(Name = "edits", IsRequired = true)]
+        [System.Text.Json.Serialization.JsonPropertyName("edits"), System.Text.Json.Serialization.JsonRequired]
         public SemanticTokensEdit[] Edits { get; set; }
     }
 }

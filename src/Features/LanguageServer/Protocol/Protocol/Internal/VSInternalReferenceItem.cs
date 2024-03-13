@@ -21,7 +21,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the reference id.
         /// </summary>
-        [DataMember(Name = "_vs_id", IsRequired = true)]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_id"), System.Text.Json.Serialization.JsonRequired]
         public int Id
         {
             get;

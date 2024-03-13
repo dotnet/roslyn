@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the insert range.
         /// </summary>
-        [DataMember(Name = "insert", IsRequired = true)]
+        [System.Text.Json.Serialization.JsonPropertyName("insert"), System.Text.Json.Serialization.JsonRequired]
         public Range Insert
         {
             get;
@@ -25,7 +25,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the replace edit range.
         /// </summary>
-        [DataMember(Name = "replace", IsRequired = true)]
+        [System.Text.Json.Serialization.JsonPropertyName("replace"), System.Text.Json.Serialization.JsonRequired]
         public Range Replace
         {
             get;
