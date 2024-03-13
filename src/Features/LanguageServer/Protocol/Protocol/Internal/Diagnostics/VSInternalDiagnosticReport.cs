@@ -21,7 +21,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// diagnostics.The server can use this result ID to avoid resending
         /// diagnostics that had previously been sent.
         /// </summary>
-        [DataMember(Name = "_vs_resultId")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_resultId")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? ResultId { get; set; }
 
@@ -32,7 +32,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <remarks>
         /// Is null if no changes in the diagnostics. Is empty if there is no diagnostic.
         /// </remarks>
-        [DataMember(Name = "_vs_diagnostics")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_diagnostics")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public Diagnostic[]? Diagnostics { get; set; }
 
@@ -43,7 +43,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <see cref="Diagnostic" /> entries tagged with <see cref="VSDiagnosticTags.PotentialDuplicate" /> will
         /// be hidden in the editor.
         /// </summary>
-        [DataMember(Name = "_vs_identifier")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_identifier")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? Identifier { get; set; }
 
@@ -53,7 +53,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <remarks>
         /// Diagnostics in a superseded report will be hidden if they have the PotentialDuplicate VSDiagnosticTag.
         /// </remarks>
-        [DataMember(Name = "_vs_supersedes")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_supersedes")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? Supersedes { get; set; }
 
@@ -63,14 +63,14 @@ namespace Roslyn.LanguageServer.Protocol
         /// outputId and the (outputKey, outputId) uniquely identify
         /// a line of text in the output window).
         /// </summary>
-        [DataMember(Name = "_vs_outputKey")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_outputKey")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public Guid? OutputKey { get; set; }
 
         /// <summary>
         /// Gets or sets the document version.
         /// </summary>
-        [DataMember(Name = "_vs_version")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_version")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? Version { get; set; }
     }

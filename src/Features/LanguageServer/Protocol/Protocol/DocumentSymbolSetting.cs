@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="SymbolKindSetting"/> capabilities.
         /// </summary>
-        [DataMember(Name = "symbolKind")]
+        [System.Text.Json.Serialization.JsonPropertyName("symbolKind")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SymbolKindSetting? SymbolKind
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the document has hierarchical symbol support.
         /// </summary>
-        [DataMember(Name = "hierarchicalDocumentSymbolSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("hierarchicalDocumentSymbolSupport")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool HierarchicalDocumentSymbolSupport
         {

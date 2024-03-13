@@ -34,7 +34,7 @@ internal class DocumentDiagnosticParams : ITextDocumentParams, IPartialResultPar
     /// <summary>
     /// Gets or sets the <see cref="TextDocumentIdentifier"/> to provide diagnostics for.
     /// </summary>
-    [DataMember(Name = "textDocument")]
+    [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
     public TextDocumentIdentifier TextDocument
     {
         get;
@@ -44,7 +44,7 @@ internal class DocumentDiagnosticParams : ITextDocumentParams, IPartialResultPar
     /// <summary>
     /// Gets or sets the identifier for which the client is requesting diagnostics for.
     /// </summary>
-    [DataMember(Name = "identifier")]
+    [System.Text.Json.Serialization.JsonPropertyName("identifier")]
     [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
     public string? Identifier
     {
@@ -55,7 +55,7 @@ internal class DocumentDiagnosticParams : ITextDocumentParams, IPartialResultPar
     /// <summary>
     /// Gets or sets the result id of a previous diagnostics response if provided.
     /// </summary>
-    [DataMember(Name = "previousResultId")]
+    [System.Text.Json.Serialization.JsonPropertyName("previousResultId")]
     [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
     public string? PreviousResultId
     {

@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the range of the text that was changed.
         /// </summary>
-        [DataMember(Name = "range")]
+        [System.Text.Json.Serialization.JsonPropertyName("range")]
         public Range Range
         {
             get;
@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the length of the range that got replaced.
         /// </summary>
-        [DataMember(Name = "rangeLength")]
+        [System.Text.Json.Serialization.JsonPropertyName("rangeLength")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? RangeLength
         {
@@ -39,7 +39,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the new text of the range/document.
         /// </summary>
-        [DataMember(Name = "text")]
+        [System.Text.Json.Serialization.JsonPropertyName("text")]
         public string Text
         {
             get;

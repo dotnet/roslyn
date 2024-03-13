@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the client supports label offset.
         /// </summary>
-        [DataMember(Name = "labelOffsetSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("labelOffsetSupport")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool LabelOffsetSupport
         {

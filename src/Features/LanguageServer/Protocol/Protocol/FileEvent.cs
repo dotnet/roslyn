@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the URI of the file.
         /// </summary>
-        [DataMember(Name = "uri")]
+        [System.Text.Json.Serialization.JsonPropertyName("uri")]
         [JsonConverter(typeof(DocumentUriConverter))]
         public Uri Uri
         {
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the file change type.
         /// </summary>
-        [DataMember(Name = "type")]
+        [System.Text.Json.Serialization.JsonPropertyName("type")]
         public FileChangeType FileChangeType
         {
             get;

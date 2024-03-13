@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the start line value.
         /// </summary>
-        [DataMember(Name = "startLine")]
+        [System.Text.Json.Serialization.JsonPropertyName("startLine")]
         public int StartLine
         {
             get;
@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the start character value.
         /// </summary>
-        [DataMember(Name = "startCharacter")]
+        [System.Text.Json.Serialization.JsonPropertyName("startCharacter")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? StartCharacter
         {
@@ -39,7 +39,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the end line value.
         /// </summary>
-        [DataMember(Name = "endLine")]
+        [System.Text.Json.Serialization.JsonPropertyName("endLine")]
         public int EndLine
         {
             get;
@@ -49,7 +49,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the end character value.
         /// </summary>
-        [DataMember(Name = "endCharacter")]
+        [System.Text.Json.Serialization.JsonPropertyName("endCharacter")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? EndCharacter
         {
@@ -60,7 +60,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the folding range kind.
         /// </summary>
-        [DataMember(Name = "kind")]
+        [System.Text.Json.Serialization.JsonPropertyName("kind")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public FoldingRangeKind? Kind
         {
@@ -71,7 +71,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the collapsedText.
         /// </summary>
-        [DataMember(Name = "collapsedText")]
+        [System.Text.Json.Serialization.JsonPropertyName("collapsedText")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? CollapsedText
         {

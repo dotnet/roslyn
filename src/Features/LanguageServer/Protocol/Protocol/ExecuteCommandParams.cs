@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the command identifier associated with the command handler.
         /// </summary>
-        [DataMember(Name = "command")]
+        [System.Text.Json.Serialization.JsonPropertyName("command")]
         public string Command
         {
             get;
@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the arguments that the command should be invoked with.
         /// </summary>
-        [DataMember(Name = "arguments")]
+        [System.Text.Json.Serialization.JsonPropertyName("arguments")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public object[]? Arguments
         {

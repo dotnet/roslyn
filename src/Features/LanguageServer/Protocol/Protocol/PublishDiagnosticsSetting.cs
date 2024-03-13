@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether gets or sets the <see cref="TagSupport"/> capabilities.
         /// </summary>
-        [DataMember(Name = "tagSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("tagSupport")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TagSupport? TagSupport
         {

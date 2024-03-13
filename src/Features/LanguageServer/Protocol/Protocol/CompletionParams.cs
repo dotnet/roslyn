@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the completion context.
         /// </summary>
-        [DataMember(Name = "context")]
+        [System.Text.Json.Serialization.JsonPropertyName("context")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public CompletionContext? Context
         {

@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the document filters for this registration option.
         /// </summary>
-        [DataMember(Name = "documentSelector")]
+        [System.Text.Json.Serialization.JsonPropertyName("documentSelector")]
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
         public DocumentFilter[]? DocumentSelector
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether work done progress is supported.
         /// </summary>
-        [DataMember(Name = "id")]
+        [System.Text.Json.Serialization.JsonPropertyName("id")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? Id
         {

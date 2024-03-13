@@ -21,7 +21,7 @@ internal class RelatedUnchangedDocumentDiagnosticReport : UnchangedDocumentDiagn
     /// <summary>
     /// Gets or sets the map of related document diagnostic reports.
     /// </summary>
-    [DataMember(Name = "relatedDocuments")]
+    [System.Text.Json.Serialization.JsonPropertyName("relatedDocuments")]
     [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
     public Dictionary<Uri, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>? RelatedDocuments
     {

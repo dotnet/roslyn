@@ -10,6 +10,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 [DataContract]
 internal class SemanticTokensRangesParams : SemanticTokensParams
 {
-    [DataMember(Name = "ranges")]
+    [System.Text.Json.Serialization.JsonPropertyName("ranges")]
     public required Range[] Ranges { get; set; }
 }

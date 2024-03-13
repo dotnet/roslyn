@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the project name to be displayed to user.
         /// </summary>
-        [DataMember(Name = "_vs_projectName")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_projectName")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? ProjectName { get; set; }
 
@@ -25,7 +25,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// In case the actual path on disk would be confusing for users, this should be a friendly display name.
         /// This doesn't have to correspond to a real file path, but must be parsable by the <see cref="System.IO.Path.GetFileName(string)" /> method.
         /// </summary>
-        [DataMember(Name = "_vs_displayPath")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_displayPath")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? DisplayPath { get; set; }
     }

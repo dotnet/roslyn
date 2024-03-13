@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the number of spaces to be inserted per tab.
         /// </summary>
-        [DataMember(Name = "tabSize")]
+        [System.Text.Json.Serialization.JsonPropertyName("tabSize")]
         public int TabSize
         {
             get;
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether tabs should be spaces.
         /// </summary>
-        [DataMember(Name = "insertSpaces")]
+        [System.Text.Json.Serialization.JsonPropertyName("insertSpaces")]
         public bool InsertSpaces
         {
             get;

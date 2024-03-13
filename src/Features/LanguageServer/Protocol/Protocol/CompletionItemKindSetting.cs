@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="CompletionItemKind"/> values that the client supports.
         /// </summary>
-        [DataMember(Name = "valueSet")]
+        [System.Text.Json.Serialization.JsonPropertyName("valueSet")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public CompletionItemKind[]? ValueSet
         {

@@ -25,7 +25,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// and is useful for situation where a server for example detect a project
         /// wide change that requires such a calculation.
         /// </remarks>
-        [DataMember(Name = "refreshSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("refreshSupport")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool RefreshSupport { get; set; }
     }

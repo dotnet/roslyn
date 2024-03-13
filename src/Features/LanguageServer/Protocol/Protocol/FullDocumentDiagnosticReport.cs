@@ -19,7 +19,7 @@ internal class FullDocumentDiagnosticReport
     /// <summary>
     /// Gets the kind of this report.
     /// </summary>
-    [DataMember(Name = "kind")]
+    [System.Text.Json.Serialization.JsonPropertyName("kind")]
 #pragma warning disable CA1822 // Mark members as static
     public string Kind => DocumentDiagnosticReportKind.Full;
 #pragma warning restore CA1822 // Mark members as static
@@ -27,7 +27,7 @@ internal class FullDocumentDiagnosticReport
     /// <summary>
     /// Gets or sets the optional result id.
     /// </summary>
-    [DataMember(Name = "resultId")]
+    [System.Text.Json.Serialization.JsonPropertyName("resultId")]
     [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
     public string? ResultId
     {
@@ -38,7 +38,7 @@ internal class FullDocumentDiagnosticReport
     /// <summary>
     /// Gets or sets the diagnostics in this report.
     /// </summary>
-    [DataMember(Name = "items")]
+    [System.Text.Json.Serialization.JsonPropertyName("items")]
     public Diagnostic[] Items
     {
         get;

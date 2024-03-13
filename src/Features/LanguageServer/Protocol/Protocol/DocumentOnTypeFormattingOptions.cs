@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the first trigger character.
         /// </summary>
-        [DataMember(Name = "firstTriggerCharacter")]
+        [System.Text.Json.Serialization.JsonPropertyName("firstTriggerCharacter")]
         public string FirstTriggerCharacter
         {
             get;
@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets additional trigger characters.
         /// </summary>
-        [DataMember(Name = "moreTriggerCharacter")]
+        [System.Text.Json.Serialization.JsonPropertyName("moreTriggerCharacter")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[]? MoreTriggerCharacter
         {

@@ -19,7 +19,7 @@ internal class WorkspaceDiagnosticReport
     /// <summary>
     /// Gets or sets the items in this diagnostic report.
     /// </summary>
-    [DataMember(Name = "items")]
+    [System.Text.Json.Serialization.JsonPropertyName("items")]
     public SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>[] Items
     {
         get;

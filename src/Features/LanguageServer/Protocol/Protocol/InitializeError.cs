@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether or not to retry.
         /// </summary>
-        [DataMember(Name = "retry")]
+        [System.Text.Json.Serialization.JsonPropertyName("retry")]
         public bool Retry
         {
             get;

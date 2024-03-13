@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the title.
         /// </summary>
-        [DataMember(Name = "title")]
+        [System.Text.Json.Serialization.JsonPropertyName("title")]
         public string Title
         {
             get;

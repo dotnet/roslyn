@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether declaration should be included.
         /// </summary>
-        [DataMember(Name = "includeDeclaration")]
+        [System.Text.Json.Serialization.JsonPropertyName("includeDeclaration")]
         public bool IncludeDeclaration
         {
             get;

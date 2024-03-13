@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the inline completion items.
         /// </summary>
-        [DataMember(Name = "_vs_items")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_items")]
         [JsonProperty(Required = Required.Always)]
         public VSInternalInlineCompletionItem[] Items { get; set; }
     }

@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the insert text format of the primary text edit. <see cref="TextEditFormat"/> for supported formats.
         /// </summary>
-        [DataMember(Name = "_vs_textEditFormat")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_textEditFormat")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         [DefaultValue(InsertTextFormat.Plaintext)]
         [SuppressMessage("Microsoft.StyleCop.CSharp.LayoutRules", "SA1513:ClosingCurlyBracketMustBeFollowedByBlankLine", Justification = "There are no issues with this code")]
@@ -32,7 +32,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the text edit.
         /// </summary>
-        [DataMember(Name = "_vs_textEdit")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_textEdit")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TextEdit TextEdit
         {

@@ -31,7 +31,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a set of well-known commands name the given VS-LSP client supports.
         /// </summary>
-        [DataMember(Name = "_vs_supportedCommands")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_supportedCommands")]
         public string[] SupportedCommands
         {
             get;

@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the commands that are to be executed on the server.
         /// </summary>
-        [DataMember(Name = "commands")]
+        [System.Text.Json.Serialization.JsonPropertyName("commands")]
         public string[] Commands
         {
             get;
@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether work done progress is supported.
         /// </summary>
-        [DataMember(Name = "workDoneProgress")]
+        [System.Text.Json.Serialization.JsonPropertyName("workDoneProgress")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool WorkDoneProgress { get; init; }
     }

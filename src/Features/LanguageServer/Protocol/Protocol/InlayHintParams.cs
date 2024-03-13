@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the document identifier to fetch inlay hints results for.
         /// </summary>
-        [DataMember(Name = "textDocument")]
+        [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
         public TextDocumentIdentifier TextDocument
         {
             get;
@@ -27,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the range to fetch inlay hints results for.
         /// </summary>
-        [DataMember(Name = "range")]
+        [System.Text.Json.Serialization.JsonPropertyName("range")]
         public Range Range
         {
             get;

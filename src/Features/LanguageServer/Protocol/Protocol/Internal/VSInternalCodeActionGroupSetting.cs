@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the code actions default group names the client supports.
         /// </summary>
-        [DataMember(Name = "_vs_valueSet")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_valueSet")]
         public string[] ValueSet
         {
             get;

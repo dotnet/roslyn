@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the name of this symbol.
         /// </summary>
-        [DataMember(Name = "name")]
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
         public string Name
         {
             get;
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="SymbolKind"/> of this symbol.
         /// </summary>
-        [DataMember(Name = "kind")]
+        [System.Text.Json.Serialization.JsonPropertyName("kind")]
         public SymbolKind Kind
         {
             get;
@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="Protocol.Location"/> of this symbol.
         /// </summary>
-        [DataMember(Name = "location")]
+        [System.Text.Json.Serialization.JsonPropertyName("location")]
         public Location Location
         {
             get;
@@ -50,7 +50,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the name of the symbol containing this symbol.
         /// </summary>
-        [DataMember(Name = "containerName")]
+        [System.Text.Json.Serialization.JsonPropertyName("containerName")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? ContainerName
         {

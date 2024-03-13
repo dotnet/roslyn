@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the id used to register the request. This can be used to deregister later.
         /// </summary>
-        [DataMember(Name = "id")]
+        [System.Text.Json.Serialization.JsonPropertyName("id")]
         public string Id
         {
             get;
@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the method / capability to register for.
         /// </summary>
-        [DataMember(Name = "method")]
+        [System.Text.Json.Serialization.JsonPropertyName("method")]
         public string Method
         {
             get;
@@ -38,7 +38,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the options necessary for registration.
         /// </summary>
-        [DataMember(Name = "registerOptions")]
+        [System.Text.Json.Serialization.JsonPropertyName("registerOptions")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public object? RegisterOptions
         {

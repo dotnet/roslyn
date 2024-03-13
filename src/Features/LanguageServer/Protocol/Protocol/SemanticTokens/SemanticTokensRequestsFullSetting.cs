@@ -21,7 +21,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <c>textDocument/semanticTokens/full/delta</c> request if the server
         /// provides a corresponding handler.
         /// </summary>
-        [DataMember(Name = "range")]
+        [System.Text.Json.Serialization.JsonPropertyName("range")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool Delta { get; set; }
     }

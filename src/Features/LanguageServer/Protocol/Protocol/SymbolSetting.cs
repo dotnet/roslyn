@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="SymbolKindSetting"/> information.
         /// </summary>
-        [DataMember(Name = "symbolKind")]
+        [System.Text.Json.Serialization.JsonPropertyName("symbolKind")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SymbolKindSetting? SymbolKind
         {

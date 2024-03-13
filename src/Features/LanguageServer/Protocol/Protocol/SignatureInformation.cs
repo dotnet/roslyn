@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the label of this signature.
         /// </summary>
-        [DataMember(Name = "label")]
+        [System.Text.Json.Serialization.JsonPropertyName("label")]
         public string Label
         {
             get;
@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the human-readable documentation of this signature.
         /// </summary>
-        [DataMember(Name = "documentation")]
+        [System.Text.Json.Serialization.JsonPropertyName("documentation")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<string, MarkupContent>? Documentation
         {
@@ -39,7 +39,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the parameters of this signature.
         /// </summary>
-        [DataMember(Name = "parameters")]
+        [System.Text.Json.Serialization.JsonPropertyName("parameters")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ParameterInformation[]? Parameters
         {

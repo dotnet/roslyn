@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether open and close notifications are sent to the server.
         /// </summary>
-        [DataMember(Name = "openClose")]
+        [System.Text.Json.Serialization.JsonPropertyName("openClose")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool OpenClose
         {
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value indicating how text documents are synced with the server.
         /// </summary>
-        [DataMember(Name = "change")]
+        [System.Text.Json.Serialization.JsonPropertyName("change")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(TextDocumentSyncKind.None)]
         public TextDocumentSyncKind? Change
@@ -42,7 +42,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether 'will save' notifications are sent to the server.
         /// </summary>
-        [DataMember(Name = "willSave")]
+        [System.Text.Json.Serialization.JsonPropertyName("willSave")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool WillSave
         {
@@ -53,7 +53,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether 'will save until' notifications are sent to the server.
         /// </summary>
-        [DataMember(Name = "willSaveWaitUntil")]
+        [System.Text.Json.Serialization.JsonPropertyName("willSaveWaitUntil")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool WillSaveWaitUntil
         {
@@ -64,7 +64,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether save notifications are sent to the server.
         /// </summary>
-        [DataMember(Name = "save")]
+        [System.Text.Json.Serialization.JsonPropertyName("save")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, SaveOptions>? Save
         {

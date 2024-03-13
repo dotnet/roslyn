@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the range of the current selection in the document for which the command was invoked.
         /// If there is no selection this would be a Zero-length range for the caret position.
         /// </summary>
-        [DataMember(Name = "_vs_selectionRange")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_selectionRange")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public Range? SelectionRange
         {

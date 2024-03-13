@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 [DataContract]
 internal sealed record FormatNewFileParams
 {
-    [DataMember(Name = "document")]
+    [System.Text.Json.Serialization.JsonPropertyName("document")]
     public required TextDocumentIdentifier Document { get; init; }
 
-    [DataMember(Name = "project")]
+    [System.Text.Json.Serialization.JsonPropertyName("project")]
     public required TextDocumentIdentifier Project { get; init; }
 
-    [DataMember(Name = "contents")]
+    [System.Text.Json.Serialization.JsonPropertyName("contents")]
     public required string Contents { get; init; }
 }

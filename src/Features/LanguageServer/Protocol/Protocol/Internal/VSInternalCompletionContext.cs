@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="CompletionTriggerKind"/> indicating how the completion was triggered.
         /// </summary>
-        [DataMember(Name = "_vs_invokeKind")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_invokeKind")]
         [SuppressMessage("Microsoft.StyleCop.CSharp.LayoutRules", "SA1513:ClosingCurlyBracketMustBeFollowedByBlankLine", Justification = "There are no issues with this code")]
         [SuppressMessage("Microsoft.StyleCop.CSharp.LayoutRules", "SA1500:BracesForMultiLineStatementsShouldNotShareLine", Justification = "There are no issues with this code")]
         [DefaultValue(VSInternalCompletionInvokeKind.Explicit)]

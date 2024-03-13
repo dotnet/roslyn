@@ -21,7 +21,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// spell checkable ranges. The server can use this result ID to avoid resending
         /// spell checkable ranges that had previously been sent.
         /// </summary>
-        [DataMember(Name = "_vs_resultId")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_resultId")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? ResultId { get; set; }
 
@@ -56,7 +56,7 @@ namespace Roslyn.LanguageServer.Protocol
         ///     5    // Span length
         /// ]
         /// </example>
-        [DataMember(Name = "_vs_ranges")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_ranges")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int[]? Ranges
         {

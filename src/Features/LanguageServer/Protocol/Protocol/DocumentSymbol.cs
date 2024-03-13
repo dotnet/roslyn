@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets more detail for this symbol, e.g the signature of a function.
         /// </summary>
-        [DataMember(Name = "detail")]
+        [System.Text.Json.Serialization.JsonPropertyName("detail")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? Detail
         {
@@ -41,7 +41,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="SymbolKind" /> of this symbol.
         /// </summary>
-        [DataMember(Name = "kind")]
+        [System.Text.Json.Serialization.JsonPropertyName("kind")]
         public SymbolKind Kind
         {
             get;
@@ -51,7 +51,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether this symbol is deprecated.
         /// </summary>
-        [DataMember(Name = "deprecated")]
+        [System.Text.Json.Serialization.JsonPropertyName("deprecated")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool Deprecated
         {
@@ -85,7 +85,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the children of this symbol, e.g. properties of a class.
         /// </summary>
-        [DataMember(Name = "children")]
+        [System.Text.Json.Serialization.JsonPropertyName("children")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public DocumentSymbol[]? Children
         {

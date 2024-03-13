@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether WillSave event is supported.
         /// </summary>
-        [DataMember(Name = "willSave")]
+        [System.Text.Json.Serialization.JsonPropertyName("willSave")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool WillSave
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether WillSaveWaitUntil event is supported.
         /// </summary>
-        [DataMember(Name = "willSaveWaitUntil")]
+        [System.Text.Json.Serialization.JsonPropertyName("willSaveWaitUntil")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool WillSaveWaitUntil
         {
@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether DidSave event is supported.
         /// </summary>
-        [DataMember(Name = "didSave")]
+        [System.Text.Json.Serialization.JsonPropertyName("didSave")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool DidSave
         {

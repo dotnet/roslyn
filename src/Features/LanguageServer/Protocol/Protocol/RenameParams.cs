@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the new name of the renamed symbol.
         /// </summary>
-        [DataMember(Name = "newName")]
+        [System.Text.Json.Serialization.JsonPropertyName("newName")]
         public string NewName
         {
             get;

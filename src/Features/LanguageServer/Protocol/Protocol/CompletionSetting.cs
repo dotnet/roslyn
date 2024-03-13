@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets completion item setting.
         /// </summary>
-        [DataMember(Name = "completionItem")]
+        [System.Text.Json.Serialization.JsonPropertyName("completionItem")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public CompletionItemSetting? CompletionItem
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets <see cref="Protocol.CompletionItemKind"/> specific settings.
         /// </summary>
-        [DataMember(Name = "completionItemKind")]
+        [System.Text.Json.Serialization.JsonPropertyName("completionItemKind")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public CompletionItemKindSetting? CompletionItemKind
         {
@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the client supports sending additional context.
         /// </summary>
-        [DataMember(Name = "contextSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("contextSupport")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool ContextSupport
         {
@@ -51,7 +51,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating client's default when the completion item doesn't provide an `insertTextMode` property.
         /// </summary>
-        [DataMember(Name = "insertTextMode")]
+        [System.Text.Json.Serialization.JsonPropertyName("insertTextMode")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public InsertTextMode? InsertTextMode
         {
@@ -62,7 +62,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the client supports capabilities on the completion list.
         /// </summary>
-        [DataMember(Name = "completionList")]
+        [System.Text.Json.Serialization.JsonPropertyName("completionList")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public CompletionListSetting? CompletionListSetting
         {

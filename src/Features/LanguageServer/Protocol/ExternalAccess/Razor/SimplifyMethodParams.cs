@@ -17,12 +17,12 @@ internal record SimplifyMethodParams : ITextDocumentParams
     //
     // Summary:
     //     Gets or sets the value which identifies the document where the text edit will be placed.
-    [DataMember(Name = "textDocument")]
+    [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
     public required TextDocumentIdentifier TextDocument { get; set; }
 
     //
     // Summary:
     //     Gets or sets the value which identifies the text edit to be simplified.
-    [DataMember(Name = "textEdit")]
+    [System.Text.Json.Serialization.JsonPropertyName("textEdit")]
     public required TextEdit TextEdit { get; set; }
 }

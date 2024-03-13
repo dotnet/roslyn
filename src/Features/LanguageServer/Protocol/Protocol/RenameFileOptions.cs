@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the rename should overwrite the target if it already exists. (Overwrite wins over ignoreIfExists).
         /// </summary>
-        [DataMember(Name = "overwrite")]
+        [System.Text.Json.Serialization.JsonPropertyName("overwrite")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool Overwrite
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the action should be ignored if the file already exists.
         /// </summary>
-        [DataMember(Name = "ignoreIfExists")]
+        [System.Text.Json.Serialization.JsonPropertyName("ignoreIfExists")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool IgnoreIfExists
         {

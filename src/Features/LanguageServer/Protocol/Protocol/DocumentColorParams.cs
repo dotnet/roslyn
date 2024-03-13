@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="TextDocumentIdentifier"/> to provide links for.
         /// </summary>
-        [DataMember(Name = "textDocument")]
+        [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
         public TextDocumentIdentifier TextDocument
         {
             get;

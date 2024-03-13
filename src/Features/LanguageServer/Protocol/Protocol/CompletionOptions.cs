@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the trigger characters.
         /// </summary>
-        [DataMember(Name = "triggerCharacters")]
+        [System.Text.Json.Serialization.JsonPropertyName("triggerCharacters")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[]? TriggerCharacters
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating all the possible commit characters associated with the language server.
         /// </summary>
-        [DataMember(Name = "allCommitCharacters")]
+        [System.Text.Json.Serialization.JsonPropertyName("allCommitCharacters")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[]? AllCommitCharacters
         {
@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether server provides completion item resolve capabilities.
         /// </summary>
-        [DataMember(Name = "resolveProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("resolveProvider")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool ResolveProvider
         {
@@ -51,14 +51,14 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether work done progress is supported.
         /// </summary>
-        [DataMember(Name = "workDoneProgress")]
+        [System.Text.Json.Serialization.JsonPropertyName("workDoneProgress")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool WorkDoneProgress { get; init; }
 
         /// <summary>
         /// Gets or sets completion item setting.
         /// </summary>
-        [DataMember(Name = "completionItem")]
+        [System.Text.Json.Serialization.JsonPropertyName("completionItem")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public CompletionItemOptions? CompletionItemOptions
         {

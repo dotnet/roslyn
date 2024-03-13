@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the title of the command.
         /// </summary>
-        [DataMember(Name = "title")]
+        [System.Text.Json.Serialization.JsonPropertyName("title")]
         [JsonProperty(Required = Required.Always)]
         public string Title
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the identifier associated with the command.
         /// </summary>
-        [DataMember(Name = "command")]
+        [System.Text.Json.Serialization.JsonPropertyName("command")]
         [JsonProperty(Required = Required.Always)]
         public string CommandIdentifier
         {
@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the arguments that the command should be invoked with.
         /// </summary>
-        [DataMember(Name = "arguments")]
+        [System.Text.Json.Serialization.JsonPropertyName("arguments")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public object[]? Arguments
         {

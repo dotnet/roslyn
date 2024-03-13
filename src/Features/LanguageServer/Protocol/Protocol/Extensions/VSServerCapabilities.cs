@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value indicating whether the server supports the
         /// 'textDocument/_vs_getProjectContexts' request.
         /// </summary>
-        [DataMember(Name = "_vs_projectContextProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_projectContextProvider")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool ProjectContextProvider
         {

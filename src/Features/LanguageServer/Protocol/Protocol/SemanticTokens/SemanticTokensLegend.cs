@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets an array of token types that can be encoded in semantic tokens responses.
         /// </summary>
-        [DataMember(Name = "tokenTypes")]
+        [System.Text.Json.Serialization.JsonPropertyName("tokenTypes")]
         public string[] TokenTypes
         {
             get;
@@ -27,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets an array of token modfiers that can be encoded in semantic tokens responses.
         /// </summary>
-        [DataMember(Name = "tokenModifiers")]
+        [System.Text.Json.Serialization.JsonPropertyName("tokenModifiers")]
         public string[] TokenModifiers
         {
             get;

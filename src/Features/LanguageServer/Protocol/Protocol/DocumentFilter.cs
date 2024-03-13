@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a language id for the filter (e.g. 'typescript').
         /// </summary>
-        [DataMember(Name = "language")]
+        [System.Text.Json.Serialization.JsonPropertyName("language")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? Language
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a Uri scheme (e.g. 'file' or 'untitled').
         /// </summary>
-        [DataMember(Name = "scheme")]
+        [System.Text.Json.Serialization.JsonPropertyName("scheme")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? Scheme
         {
@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a glob pattern (e.g. '*.cs').
         /// </summary>
-        [DataMember(Name = "pattern")]
+        [System.Text.Json.Serialization.JsonPropertyName("pattern")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? Pattern
         {

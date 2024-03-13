@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the workspace capabilities.
         /// </summary>
-        [DataMember(Name = "workspace")]
+        [System.Text.Json.Serialization.JsonPropertyName("workspace")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public WorkspaceClientCapabilities? Workspace
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the text document capabilities.
         /// </summary>
-        [DataMember(Name = "textDocument")]
+        [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TextDocumentClientCapabilities? TextDocument
         {
@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the experimental capabilities.
         /// </summary>
-        [DataMember(Name = "experimental")]
+        [System.Text.Json.Serialization.JsonPropertyName("experimental")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public object? Experimental
         {

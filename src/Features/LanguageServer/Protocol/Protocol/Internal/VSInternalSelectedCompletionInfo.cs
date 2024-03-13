@@ -17,28 +17,28 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the range of the selected completion item.
         /// </summary>
-        [DataMember(Name = "_vs_range")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_range")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public Range Range { get; set; }
 
         /// <summary>
         /// Gets or sets the text of the selected completion item.
         /// </summary>
-        [DataMember(Name = "_vs_text")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_text")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public string Text { get; set; }
 
         /// <summary>
         /// Gets or sets the completion item kind of the selected completion item.
         /// </summary>
-        [DataMember(Name = "_vs_completionKind")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_completionKind")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public CompletionItemKind CompletionKind { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the completion item is a snippet.
         /// </summary>
-        [DataMember(Name = "_vs_isSnippetText")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_isSnippetText")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool IsSnippetText { get; set; }
     }

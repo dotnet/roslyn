@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="TextDocumentItem"/> which represents the text document that was opened.
         /// </summary>
-        [DataMember(Name = "textDocument")]
+        [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
         public TextDocumentItem TextDocument
         {
             get;

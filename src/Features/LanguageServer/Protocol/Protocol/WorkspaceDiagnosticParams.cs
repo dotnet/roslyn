@@ -34,7 +34,7 @@ internal class WorkspaceDiagnosticParams : IPartialResultParams<SumType<Workspac
     /// <summary>
     /// Gets or sets the identifier for which the client is requesting diagnostics for.
     /// </summary>
-    [DataMember(Name = "identifier")]
+    [System.Text.Json.Serialization.JsonPropertyName("identifier")]
     [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
     public string? Identifier
     {
@@ -45,7 +45,7 @@ internal class WorkspaceDiagnosticParams : IPartialResultParams<SumType<Workspac
     /// <summary>
     /// Gets or sets the result id of a previous diagnostics response if provided.
     /// </summary>
-    [DataMember(Name = "previousResultIds")]
+    [System.Text.Json.Serialization.JsonPropertyName("previousResultIds")]
     public PreviousResultId[] PreviousResultId
     {
         get;

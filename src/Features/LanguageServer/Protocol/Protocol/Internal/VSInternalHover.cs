@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// of objects from the Microsoft.VisualStudio.Text.Adornments namespace,
         /// such as ContainerElements, ClassifiedTextElements and ClassifiedTextRuns.
         /// </summary>
-        [DataMember(Name = "_vs_rawContent")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_rawContent")]
         [JsonConverter(typeof(ObjectContentConverter))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public object? RawContent

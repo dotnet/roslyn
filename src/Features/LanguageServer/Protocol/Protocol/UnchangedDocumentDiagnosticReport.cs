@@ -18,7 +18,7 @@ internal class UnchangedDocumentDiagnosticReport
     /// <summary>
     /// Gets the kind of this report.
     /// </summary>
-    [DataMember(Name = "kind")]
+    [System.Text.Json.Serialization.JsonPropertyName("kind")]
 #pragma warning disable CA1822 // Mark members as static
     public string Kind => DocumentDiagnosticReportKind.Unchanged;
 #pragma warning restore CA1822 // Mark members as static
@@ -26,7 +26,7 @@ internal class UnchangedDocumentDiagnosticReport
     /// <summary>
     /// Gets or sets the optional result id.
     /// </summary>
-    [DataMember(Name = "resultId")]
+    [System.Text.Json.Serialization.JsonPropertyName("resultId")]
     public string ResultId
     {
         get;

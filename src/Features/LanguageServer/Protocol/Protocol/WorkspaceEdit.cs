@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a dictionary holding changes to existing resources.
         /// </summary>
-        [DataMember(Name = "changes")]
+        [System.Text.Json.Serialization.JsonPropertyName("changes")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, TextEdit[]>? Changes
         {
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets an array representing versioned document changes.
         /// </summary>
-        [DataMember(Name = "documentChanges")]
+        [System.Text.Json.Serialization.JsonPropertyName("documentChanges")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]>? DocumentChanges
         {

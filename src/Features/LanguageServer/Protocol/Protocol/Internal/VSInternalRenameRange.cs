@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the supported options for the rename request.
         /// </summary>
-        [DataMember(Name = "_vs_supportedOptions")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_supportedOptions")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public VSInternalRenameOptionSupport[]? SupportedOptions
         {

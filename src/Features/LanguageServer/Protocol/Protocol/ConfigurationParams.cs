@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the ConfigurationItems being requested.
         /// </summary>
-        [DataMember(Name = "items")]
+        [System.Text.Json.Serialization.JsonPropertyName("items")]
         public ConfigurationItem[] Items
         {
             get;

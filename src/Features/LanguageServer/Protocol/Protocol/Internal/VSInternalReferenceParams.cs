@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating the scope of returned items.
         /// </summary>
-        [DataMember(Name = "_vs_scope")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_scope")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public VSInternalItemOrigin? Scope
         {

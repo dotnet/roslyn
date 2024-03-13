@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the rename option values as selected by the user.
         /// </summary>
-        [DataMember(Name = "_vs_optionSelections")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_optionSelections")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public VSInternalRenameOptionSelection[]? OptionSelections
         {

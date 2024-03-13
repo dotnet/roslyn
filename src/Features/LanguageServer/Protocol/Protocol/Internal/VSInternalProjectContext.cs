@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the string context kind of the project context.
         /// </summary>
-        [DataMember(Name = "_vs_vsKind")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_vsKind")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public VSInternalKindAndModifier? VSKind
         {

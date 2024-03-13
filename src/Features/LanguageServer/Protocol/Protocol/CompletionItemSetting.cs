@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether completion items can contain snippets.
         /// </summary>
-        [DataMember(Name = "snippetSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("snippetSupport")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool SnippetSupport
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the client supports commit characters.
         /// </summary>
-        [DataMember(Name = "commitCharactersSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("commitCharactersSupport")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool CommitCharactersSupport
         {
@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the content formats supported for documentation.
         /// </summary>
-        [DataMember(Name = "documentationFormat")]
+        [System.Text.Json.Serialization.JsonPropertyName("documentationFormat")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public MarkupKind[]? DocumentationFormat
         {
@@ -51,7 +51,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the a value indicating whether the client supports the deprecated property on a completion item.
         /// </summary>
-        [DataMember(Name = "deprecatedSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("deprecatedSupport")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool DeprecatedSupport
         {
@@ -62,7 +62,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the a value indicating whether the client supports the preselect property on a completion item.
         /// </summary>
-        [DataMember(Name = "preselectSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("preselectSupport")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool PreselectSupport
         {
@@ -73,7 +73,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the a value indicating whether the client supports the tag property on a completion item.
         /// </summary>
-        [DataMember(Name = "tagSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("tagSupport")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public CompletionItemTagSupportSetting? TagSupport
         {
@@ -84,7 +84,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the a value indicating whether the client supports insert replace edit.
         /// </summary>
-        [DataMember(Name = "insertReplaceSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("insertReplaceSupport")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool InsertReplaceSupport
         {
@@ -95,7 +95,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the a value indicating which properties a client can resolve lazily on a completion item.
         /// </summary>
-        [DataMember(Name = "resolveSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("resolveSupport")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ResolveSupportSetting? ResolveSupport
         {
@@ -106,7 +106,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the a value indicating whether the client supports the `insertTextMode` property on   a completion item to override the whitespace handling mode as defined by the client.
         /// </summary>
-        [DataMember(Name = "insertTextModeSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("insertTextModeSupport")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public InsertTextModeSupportSetting? InsertTextModeSupport
         {
@@ -117,7 +117,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the a value indicating whether the client supports completion item label details.
         /// </summary>
-        [DataMember(Name = "labelDetailsSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("labelDetailsSupport")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool LabelDetailsSupport
         {

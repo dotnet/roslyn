@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the text value for a location reference. Must be of type <see cref="ImageElement"/> or <see cref="ContainerElement"/> or <see cref="ClassifiedTextElement"/> or <see cref="string"/>.
         /// </summary>
-        [DataMember(Name = "_vs_text")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_text")]
         [JsonConverter(typeof(ObjectContentConverter))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public object? Text

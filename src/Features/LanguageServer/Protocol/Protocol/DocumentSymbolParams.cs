@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the text document.
         /// </summary>
-        [DataMember(Name = "textDocument")]
+        [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
         public TextDocumentIdentifier TextDocument
         {
             get;

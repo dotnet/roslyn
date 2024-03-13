@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the server supports deltas for full documents.
         /// </summary>
-        [DataMember(Name = "delta")]
+        [System.Text.Json.Serialization.JsonPropertyName("delta")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool Delta
         {

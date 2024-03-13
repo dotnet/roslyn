@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the range that the highlight applies to.
         /// </summary>
-        [DataMember(Name = "range")]
+        [System.Text.Json.Serialization.JsonPropertyName("range")]
         public Range Range
         {
             get;
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the kind of highlight.
         /// </summary>
-        [DataMember(Name = "kind")]
+        [System.Text.Json.Serialization.JsonPropertyName("kind")]
         [SuppressMessage("Microsoft.StyleCop.CSharp.LayoutRules", "SA1513:ClosingCurlyBracketMustBeFollowedByBlankLine", Justification = "There are no issues with this code")]
         [SuppressMessage("Microsoft.StyleCop.CSharp.LayoutRules", "SA1500:BracesForMultiLineStatementsShouldNotShareLine", Justification = "There are no issues with this code")]
         [DefaultValue(DocumentHighlightKind.Text)]

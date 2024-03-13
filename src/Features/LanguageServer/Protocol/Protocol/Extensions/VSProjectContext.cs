@@ -36,7 +36,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the context kind of the project context which is used to determine its associated icon.
         /// </summary>
-        [DataMember(Name = "_vs_kind")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_kind")]
         public VSProjectKind Kind
         {
             get;

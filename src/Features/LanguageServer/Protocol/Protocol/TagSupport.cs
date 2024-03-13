@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating the tags supported by the client.
         /// </summary>
-        [DataMember(Name = "valueSet")]
+        [System.Text.Json.Serialization.JsonPropertyName("valueSet")]
         public DiagnosticTag[] ValueSet
         {
             get;

@@ -22,7 +22,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// The list of kinds may be generic, such as `CodeActionKind.Refactor`, or the server
         /// may list out every specific kind they provide.
         /// </remarks>
-        [DataMember(Name = "codeActionKinds")]
+        [System.Text.Json.Serialization.JsonPropertyName("codeActionKinds")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public CodeActionKind[]? CodeActionKinds
         {
@@ -33,7 +33,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether work done progress is supported.
         /// </summary>
-        [DataMember(Name = "workDoneProgress")]
+        [System.Text.Json.Serialization.JsonPropertyName("workDoneProgress")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool WorkDoneProgress { get; init; }
 
@@ -41,7 +41,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value indicating whether the server provides support to resolve
         /// additional information for a code action.
         /// </summary>
-        [DataMember(Name = "resolveProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("resolveProvider")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool ResolveProvider
         {

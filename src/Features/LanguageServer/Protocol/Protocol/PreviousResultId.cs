@@ -19,7 +19,7 @@ internal class PreviousResultId
     /// <summary>
     /// Gets or sets the URI for which the client knows a result id.
     /// </summary>
-    [DataMember(Name = "uri")]
+    [System.Text.Json.Serialization.JsonPropertyName("uri")]
     [JsonConverter(typeof(DocumentUriConverter))]
     public Uri Uri
     {
@@ -30,7 +30,7 @@ internal class PreviousResultId
     /// <summary>
     /// Gets or sets the value of the previous result id.
     /// </summary>
-    [DataMember(Name = "value")]
+    [System.Text.Json.Serialization.JsonPropertyName("value")]
     public string Value
     {
         get;

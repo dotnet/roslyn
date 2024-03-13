@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the capabilities to unregister.
         /// </summary>
-        [DataMember(Name = "unregistrations")]
+        [System.Text.Json.Serialization.JsonPropertyName("unregistrations")]
         public Unregistration[] Unregistrations
         {
             get;

@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether document changes event is supported.
         /// </summary>
-        [DataMember(Name = "documentChanges")]
+        [System.Text.Json.Serialization.JsonPropertyName("documentChanges")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool DocumentChanges
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// GEts or sets the resource operations the client supports.
         /// </summary>
-        [DataMember(Name = "resourceOperations")]
+        [System.Text.Json.Serialization.JsonPropertyName("resourceOperations")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ResourceOperationKind[]? ResourceOperations
         {

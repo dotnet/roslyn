@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets an array of signatures associated with the callable item.
         /// </summary>
-        [DataMember(Name = "signatures")]
+        [System.Text.Json.Serialization.JsonPropertyName("signatures")]
         [JsonProperty(Required = Required.Always)]
         public SignatureInformation[] Signatures
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the active signature. If the value is omitted or falls outside the range of Signatures it defaults to zero.
         /// </summary>
-        [DataMember(Name = "activeSignature")]
+        [System.Text.Json.Serialization.JsonPropertyName("activeSignature")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? ActiveSignature
         {
@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the active parameter. If the value is omitted or falls outside the range of Signatures[ActiveSignature].Parameters it defaults to zero.
         /// </summary>
-        [DataMember(Name = "activeParameter")]
+        [System.Text.Json.Serialization.JsonPropertyName("activeParameter")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? ActiveParameter
         {

@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="CompletionTriggerKind"/> indicating how the completion was triggered.
         /// </summary>
-        [DataMember(Name = "triggerKind")]
+        [System.Text.Json.Serialization.JsonPropertyName("triggerKind")]
         public CompletionTriggerKind TriggerKind
         {
             get;
@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the character that triggered code completion.
         /// </summary>
-        [DataMember(Name = "triggerCharacter")]
+        [System.Text.Json.Serialization.JsonPropertyName("triggerCharacter")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? TriggerCharacter
         {

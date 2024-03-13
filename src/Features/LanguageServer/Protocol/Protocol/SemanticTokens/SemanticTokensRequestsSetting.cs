@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// `textDocument/semanticTokens/range` request if the server provides a
         /// corresponding handler.
         /// </summary>
-        [DataMember(Name = "range")]
+        [System.Text.Json.Serialization.JsonPropertyName("range")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, object>? Range { get; set; }
 
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// `textDocument/semanticTokens/full` request if the server provides a
         /// corresponding handler.
         /// </summary>
-        [DataMember(Name = "full")]
+        [System.Text.Json.Serialization.JsonPropertyName("full")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, SemanticTokensRequestsFullSetting>? Full { get; set; }
     }

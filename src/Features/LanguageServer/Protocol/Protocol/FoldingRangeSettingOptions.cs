@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether if client supports collapsedText on folding ranges.
         /// </summary>
-        [DataMember(Name = "collapsedText")]
+        [System.Text.Json.Serialization.JsonPropertyName("collapsedText")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool CollapsedText
         {

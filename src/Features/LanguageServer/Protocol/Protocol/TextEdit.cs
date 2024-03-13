@@ -27,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value of the new text.
         /// </summary>
-        [DataMember(Name = "newText")]
+        [System.Text.Json.Serialization.JsonPropertyName("newText")]
         public string NewText
         {
             get;

@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating what code action kinds are supported.
         /// </summary>
-        [DataMember(Name = "codeActionKind")]
+        [System.Text.Json.Serialization.JsonPropertyName("codeActionKind")]
         public CodeActionKindSetting CodeActionKind
         {
             get;

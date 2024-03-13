@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the ranges for the type rename.
         /// </summary>
-        [DataMember(Name = "ranges")]
+        [System.Text.Json.Serialization.JsonPropertyName("ranges")]
         public Range[] Ranges
         {
             get;
@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the word pattern for the type rename.
         /// </summary>
-        [DataMember(Name = "wordPattern")]
+        [System.Text.Json.Serialization.JsonPropertyName("wordPattern")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? WordPattern
         {

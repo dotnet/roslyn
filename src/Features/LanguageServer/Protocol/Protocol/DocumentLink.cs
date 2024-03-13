@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the range the link applies to.
         /// </summary>
-        [DataMember(Name = "range")]
+        [System.Text.Json.Serialization.JsonPropertyName("range")]
         public Range Range
         {
             get;
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the uri that the link points to.
         /// </summary>
-        [DataMember(Name = "target")]
+        [System.Text.Json.Serialization.JsonPropertyName("target")]
         [JsonConverter(typeof(DocumentUriConverter))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public Uri? Target

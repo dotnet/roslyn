@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value representing the colorized label.
         /// </summary>
-        [DataMember(Name = "_vs_colorizedLabel")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_colorizedLabel")]
         [JsonConverter(typeof(ClassifiedTextElementConverter))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ClassifiedTextElement? ColorizedLabel

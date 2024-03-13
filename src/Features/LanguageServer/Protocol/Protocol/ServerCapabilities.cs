@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value which indicates how text document are synced.
         /// </summary>
-        [DataMember(Name = "textDocumentSync")]
+        [System.Text.Json.Serialization.JsonPropertyName("textDocumentSync")]
         [JsonConverter(typeof(TextDocumentSyncConverter))]
         [SuppressMessage("Microsoft.StyleCop.CSharp.LayoutRules", "SA1513:ClosingCurlyBracketMustBeFollowedByBlankLine", Justification = "There are no issues with this code")]
         [SuppressMessage("Microsoft.StyleCop.CSharp.LayoutRules", "SA1500:BracesForMultiLineStatementsShouldNotShareLine", Justification = "There are no issues with this code")]
@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value which indicates if completions are supported.
         /// </summary>
-        [DataMember(Name = "completionProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("completionProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public CompletionOptions? CompletionProvider
         {
@@ -51,7 +51,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the server provides hover support.
         /// </summary>
-        [DataMember(Name = "hoverProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("hoverProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, HoverOptions>? HoverProvider
         {
@@ -62,7 +62,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value which indicates if signature help is supported.
         /// </summary>
-        [DataMember(Name = "signatureHelpProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("signatureHelpProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SignatureHelpOptions? SignatureHelpProvider
         {
@@ -73,7 +73,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether go to definition is supported.
         /// </summary>
-        [DataMember(Name = "definitionProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("definitionProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, DefinitionOptions>? DefinitionProvider
         {
@@ -84,7 +84,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether go to type definition is supported.
         /// </summary>
-        [DataMember(Name = "typeDefinitionProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("typeDefinitionProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, TypeDefinitionOptions>? TypeDefinitionProvider
         {
@@ -95,7 +95,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether go to implementation is supported.
         /// </summary>
-        [DataMember(Name = "implementationProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("implementationProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, ImplementationOptions>? ImplementationProvider
         {
@@ -106,7 +106,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether find all references is supported.
         /// </summary>
-        [DataMember(Name = "referencesProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("referencesProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, ReferenceOptions>? ReferencesProvider
         {
@@ -117,7 +117,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the server supports document highlight.
         /// </summary>
-        [DataMember(Name = "documentHighlightProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("documentHighlightProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, DocumentHighlightOptions>? DocumentHighlightProvider
         {
@@ -128,7 +128,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether document symbols are supported.
         /// </summary>
-        [DataMember(Name = "documentSymbolProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("documentSymbolProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, DocumentSymbolOptions>? DocumentSymbolProvider
         {
@@ -139,7 +139,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether code actions are supported.
         /// </summary>
-        [DataMember(Name = "codeActionProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("codeActionProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, CodeActionOptions>? CodeActionProvider
         {
@@ -150,7 +150,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value which indicates if code lens is supported.
         /// </summary>
-        [DataMember(Name = "codeLensProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("codeLensProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public CodeLensOptions? CodeLensProvider
         {
@@ -161,7 +161,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value which indicates if document link is supported.
         /// </summary>
-        [DataMember(Name = "documentLinkProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("documentLinkProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public DocumentLinkOptions? DocumentLinkProvider
         {
@@ -172,7 +172,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value which indicates if document color is supported.
         /// </summary>
-        [DataMember(Name = "colorProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("colorProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, DocumentColorOptions>? DocumentColorProvider
         {
@@ -183,7 +183,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether document formatting is supported.
         /// </summary>
-        [DataMember(Name = "documentFormattingProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("documentFormattingProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, DocumentFormattingOptions>? DocumentFormattingProvider
         {
@@ -194,7 +194,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether document range formatting is supported.
         /// </summary>
-        [DataMember(Name = "documentRangeFormattingProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("documentRangeFormattingProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, DocumentRangeFormattingOptions>? DocumentRangeFormattingProvider
         {
@@ -205,7 +205,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value which indicates if document on type formatting is supported.
         /// </summary>
-        [DataMember(Name = "documentOnTypeFormattingProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("documentOnTypeFormattingProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public DocumentOnTypeFormattingOptions? DocumentOnTypeFormattingProvider
         {
@@ -216,7 +216,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether rename is supported.
         /// </summary>
-        [DataMember(Name = "renameProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("renameProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, RenameOptions>? RenameProvider
         {
@@ -227,7 +227,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value which indicates if folding range is supported.
         /// </summary>
-        [DataMember(Name = "foldingRangeProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("foldingRangeProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, FoldingRangeOptions>? FoldingRangeProvider
         {
@@ -238,7 +238,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value which indicates if execute command is supported.
         /// </summary>
-        [DataMember(Name = "executeCommandProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("executeCommandProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ExecuteCommandOptions? ExecuteCommandProvider
         {
@@ -249,7 +249,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether workspace symbols are supported.
         /// </summary>
-        [DataMember(Name = "workspaceSymbolProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("workspaceSymbolProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, WorkspaceSymbolOptions>? WorkspaceSymbolProvider
         {
@@ -260,7 +260,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets experimental server capabilities.
         /// </summary>
-        [DataMember(Name = "experimental")]
+        [System.Text.Json.Serialization.JsonPropertyName("experimental")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public object? Experimental
         {
@@ -271,7 +271,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the server supports linked editing range.
         /// </summary>
-        [DataMember(Name = "linkedEditingRangeProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("linkedEditingRangeProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, LinkedEditingRangeOptions>? LinkedEditingRangeProvider
         {
@@ -282,7 +282,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value which indicates if semantic tokens is supported.
         /// </summary>
-        [DataMember(Name = "semanticTokensProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("semanticTokensProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SemanticTokensOptions? SemanticTokensOptions
         {
@@ -293,7 +293,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value which indicates what support the server has for pull diagnostics.
         /// </summary>
-        [DataMember(Name = "diagnosticProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("diagnosticProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public DiagnosticOptions? DiagnosticOptions
         {
@@ -304,7 +304,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value which indicates what support the server has for inlay hints.
         /// </summary>
-        [DataMember(Name = "inlayHintProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("inlayHintProvider")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, InlayHintOptions>? InlayHintOptions
         {

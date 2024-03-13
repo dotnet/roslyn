@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the text start position.
         /// </summary>
-        [DataMember(Name = "start")]
+        [System.Text.Json.Serialization.JsonPropertyName("start")]
         [JsonProperty(Required = Required.Always)]
         public Position Start
         {
@@ -31,7 +31,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the text end position.
         /// </summary>
-        [DataMember(Name = "end")]
+        [System.Text.Json.Serialization.JsonPropertyName("end")]
         [JsonProperty(Required = Required.Always)]
         public Position End
         {

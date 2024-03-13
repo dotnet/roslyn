@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating the client supports code action literals.
         /// </summary>
-        [DataMember(Name = "codeActionLiteralSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("codeActionLiteralSupport")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public CodeActionLiteralSetting? CodeActionLiteralSupport
         {
@@ -31,7 +31,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// additional code action properties via a separate `codeAction/resolve`
         /// request.
         /// </summary>
-        [DataMember(Name = "resolveSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("resolveSupport")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public CodeActionResolveSupportSetting? ResolveSupport
         {
@@ -44,7 +44,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// property which is preserved between a `textDocument/codeAction` and a
         /// `codeAction/resolve` request.
         /// </summary>
-        [DataMember(Name = "dataSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("dataSupport")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool DataSupport
         {

@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the label of the parameter.
         /// </summary>
-        [DataMember(Name = "label")]
+        [System.Text.Json.Serialization.JsonPropertyName("label")]
         public SumType<string, Tuple<int, int>> Label
         {
             get;
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the human-readable documentation of the parameter.
         /// </summary>
-        [DataMember(Name = "documentation")]
+        [System.Text.Json.Serialization.JsonPropertyName("documentation")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<string, MarkupContent>? Documentation
         {

@@ -19,14 +19,14 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the current state of the documents the client already has received.
         /// </summary>
-        [DataMember(Name = "_vs_previousResults")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_previousResults")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public VSInternalStreamingParams[]? PreviousResults { get; set; }
 
         /// <summary>
         /// Gets or sets an optional token that a server can use to report partial results (e.g. streaming) to the client.
         /// </summary>
-        [DataMember(Name = "_vs_partialResultToken")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_partialResultToken")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public IProgress<VSInternalWorkspaceSpellCheckableReport[]>? PartialResultToken
         {

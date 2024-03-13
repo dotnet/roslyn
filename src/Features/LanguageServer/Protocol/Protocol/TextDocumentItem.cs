@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the document URI.
         /// </summary>
-        [DataMember(Name = "uri")]
+        [System.Text.Json.Serialization.JsonPropertyName("uri")]
         [JsonConverter(typeof(DocumentUriConverter))]
         public Uri Uri
         {
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the document language identifier.
         /// </summary>
-        [DataMember(Name = "languageId")]
+        [System.Text.Json.Serialization.JsonPropertyName("languageId")]
         public string LanguageId
         {
             get;
@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the document version.
         /// </summary>
-        [DataMember(Name = "version")]
+        [System.Text.Json.Serialization.JsonPropertyName("version")]
         public int Version
         {
             get;
@@ -50,7 +50,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the content of the opened text document.
         /// </summary>
-        [DataMember(Name = "text")]
+        [System.Text.Json.Serialization.JsonPropertyName("text")]
         public string Text
         {
             get;

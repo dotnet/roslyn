@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value indicating whether the rename position is valid and the client should use its
         /// default behavior to compute the rename range.
         /// </summary>
-        [DataMember(Name = "defaultBehavior")]
+        [System.Text.Json.Serialization.JsonPropertyName("defaultBehavior")]
         [JsonProperty(Required = Required.Always)]
         public bool DefaultBehavior
         {

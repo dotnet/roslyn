@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether renames should be checked and tested before being executed.
         /// </summary>
-        [DataMember(Name = "prepareProvider")]
+        [System.Text.Json.Serialization.JsonPropertyName("prepareProvider")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool PrepareProvider
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether work done progress is supported.
         /// </summary>
-        [DataMember(Name = "workDoneProgress")]
+        [System.Text.Json.Serialization.JsonPropertyName("workDoneProgress")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool WorkDoneProgress { get; init; }
     }

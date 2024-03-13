@@ -16,14 +16,14 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets the type value.
         /// </summary>
-        [DataMember(Name = "_vs_type")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_type")]
         [JsonProperty(Required = Required.Always)]
         public const string Type = "singleChar";
 
         /// <summary>
         /// Gets or sets the completion character.
         /// </summary>
-        [DataMember(Name = "_vs_char")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_char")]
         [JsonProperty(Required = Required.Always)]
         public string Character { get; set; }
     }

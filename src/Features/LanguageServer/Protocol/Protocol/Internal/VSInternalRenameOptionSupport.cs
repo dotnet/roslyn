@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the name that identifies the option.
         /// </summary>
-        [DataMember(Name = "_vs_name")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_name")]
         [JsonProperty(Required = Required.Always)]
         public string Name
         {
@@ -27,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the user-facing option label.
         /// </summary>
-        [DataMember(Name = "_vs_label")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_label")]
         [JsonProperty(Required = Required.Always)]
         public string Label
         {
@@ -38,7 +38,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the option has a default value of <c>true</c>.
         /// </summary>
-        [DataMember(Name = "_vs_default")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_default")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool Default
         {

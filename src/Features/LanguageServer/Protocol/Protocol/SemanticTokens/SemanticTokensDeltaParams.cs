@@ -20,14 +20,14 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets an identifier for the document to fetch semantic tokens from.
         /// </summary>
-        [DataMember(Name = "textDocument")]
+        [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
         public TextDocumentIdentifier TextDocument { get; set; }
 
         /// <summary>
         /// Gets or sets a property indicating the version of the semantic
         /// tokens Document provider response that the edits will be applied to.
         /// </summary>
-        [DataMember(Name = "previousResultId")]
+        [System.Text.Json.Serialization.JsonPropertyName("previousResultId")]
         public string PreviousResultId { get; set; }
 
         /// <summary>

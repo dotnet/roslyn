@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the document filters for this registration option.
         /// </summary>
-        [DataMember(Name = "documentSelector")]
+        [System.Text.Json.Serialization.JsonPropertyName("documentSelector")]
         [JsonProperty(NullValueHandling = NullValueHandling.Include)]
         public DocumentFilter[]? DocumentSelector
         {

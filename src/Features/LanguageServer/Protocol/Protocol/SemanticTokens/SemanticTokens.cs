@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a property that identifies this version of the document's semantic tokens.
         /// </summary>
-        [DataMember(Name = "resultId")]
+        [System.Text.Json.Serialization.JsonPropertyName("resultId")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? ResultId { get; set; }
 

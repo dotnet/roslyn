@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the document identifier indicating where the command was invoked.
         /// </summary>
-        [DataMember(Name = "textDocument")]
+        [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
         public TextDocumentIdentifier TextDocument
         {
             get;
@@ -27,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the range in the document for which the command was invoked.
         /// </summary>
-        [DataMember(Name = "range")]
+        [System.Text.Json.Serialization.JsonPropertyName("range")]
         public Range Range
         {
             get;
@@ -37,7 +37,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the additional diagnostic information about the code action context.
         /// </summary>
-        [DataMember(Name = "context")]
+        [System.Text.Json.Serialization.JsonPropertyName("context")]
         public CodeActionContext Context
         {
             get;

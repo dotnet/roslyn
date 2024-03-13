@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the current state of the documents the client already has received.
         /// </summary>
-        [DataMember(Name = "_vs_previousResults")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_previousResults")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public VSInternalDiagnosticParams[]? PreviousResults { get; set; }
 
@@ -38,7 +38,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating what kind of diagnostic this request is querying for.
         /// </summary>
-        [DataMember(Name = "_vs_queryingDiagnosticKind")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_queryingDiagnosticKind")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public VSInternalDiagnosticKind? QueryingDiagnosticKind { get; set; }
     }

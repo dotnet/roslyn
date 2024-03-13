@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether apply edit is supported.
         /// </summary>
-        [DataMember(Name = "applyEdit")]
+        [System.Text.Json.Serialization.JsonPropertyName("applyEdit")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool ApplyEdit
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the workspace edit setting.
         /// </summary>
-        [DataMember(Name = "workspaceEdit")]
+        [System.Text.Json.Serialization.JsonPropertyName("workspaceEdit")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public WorkspaceEditSetting? WorkspaceEdit
         {
@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the setting which determines if did change configuration can be dynamically registered.
         /// </summary>
-        [DataMember(Name = "didChangeConfiguration")]
+        [System.Text.Json.Serialization.JsonPropertyName("didChangeConfiguration")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public DynamicRegistrationSetting? DidChangeConfiguration
         {
@@ -51,7 +51,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the setting which determines if did change watched files can be dynamically registered.
         /// </summary>
-        [DataMember(Name = "didChangeWatchedFiles")]
+        [System.Text.Json.Serialization.JsonPropertyName("didChangeWatchedFiles")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public DynamicRegistrationSetting? DidChangeWatchedFiles
         {
@@ -62,7 +62,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the setting which determines if symbols can be dynamically registered.
         /// </summary>
-        [DataMember(Name = "symbol")]
+        [System.Text.Json.Serialization.JsonPropertyName("symbol")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SymbolSetting? Symbol
         {
@@ -73,7 +73,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the setting which determines if execute command can be dynamically registered.
         /// </summary>
-        [DataMember(Name = "executeCommand")]
+        [System.Text.Json.Serialization.JsonPropertyName("executeCommand")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public DynamicRegistrationSetting? ExecuteCommand
         {
@@ -84,7 +84,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets capabilities specific to the semantic token requests scoped to the workspace.
         /// </summary>
-        [DataMember(Name = "semanticTokens")]
+        [System.Text.Json.Serialization.JsonPropertyName("semanticTokens")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SemanticTokensWorkspaceSetting? SemanticTokens
         {
@@ -95,7 +95,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets capabilities indicating what support the client has for workspace pull diagnostics.
         /// </summary>
-        [DataMember(Name = "diagnostics")]
+        [System.Text.Json.Serialization.JsonPropertyName("diagnostics")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public DiagnosticWorkspaceSetting? Diagnostics
         {
@@ -106,7 +106,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the capabilities if client support 'workspace/configuration' requests.
         /// </summary>
-        [DataMember(Name = "configuration")]
+        [System.Text.Json.Serialization.JsonPropertyName("configuration")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool Configuration
         {
@@ -117,7 +117,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets of sets capabilities specific to the inlay hint requests scoped to the workspace.
         /// </summary>
-        [DataMember(Name = "inlayHint")]
+        [System.Text.Json.Serialization.JsonPropertyName("inlayHint")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public InlayHintWorkspaceSetting? InlayHint
         {
@@ -128,7 +128,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets of sets capabilities specific to the code lens requests scoped to the workspace.
         /// </summary>
-        [DataMember(Name = "codeLens")]
+        [System.Text.Json.Serialization.JsonPropertyName("codeLens")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public CodeLensWorkspaceSetting? CodeLens
         {

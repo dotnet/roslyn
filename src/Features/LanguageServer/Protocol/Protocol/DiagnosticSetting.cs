@@ -18,7 +18,7 @@ internal class DiagnosticSetting : DynamicRegistrationSetting
     /// <summary>
     /// Gets or sets a value indicating whether the client supports related documents for document diagnostic pulls.
     /// </summary>
-    [DataMember(Name = "relatedDocumentSupport")]
+    [System.Text.Json.Serialization.JsonPropertyName("relatedDocumentSupport")]
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
     public bool RelatedDocumentSupport { get; set; }
 }

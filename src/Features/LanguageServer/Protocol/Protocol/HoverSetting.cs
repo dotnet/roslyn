@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="MarkupKind"/> values supported.
         /// </summary>
-        [DataMember(Name = "contentFormat")]
+        [System.Text.Json.Serialization.JsonPropertyName("contentFormat")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public MarkupKind[]? ContentFormat
         {

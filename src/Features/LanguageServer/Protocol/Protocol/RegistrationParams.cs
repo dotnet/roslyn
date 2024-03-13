@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the set of capabilities that are being registered.
         /// </summary>
-        [DataMember(Name = "registrations")]
+        [System.Text.Json.Serialization.JsonPropertyName("registrations")]
         public Registration[] Registrations
         {
             get;

@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value associated with this label part.
         /// </summary>
-        [DataMember(Name = "value")]
+        [System.Text.Json.Serialization.JsonPropertyName("value")]
         public string Value
         {
             get;
@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the tooltip of this label part.
         /// </summary>
-        [DataMember(Name = "tooltip")]
+        [System.Text.Json.Serialization.JsonPropertyName("tooltip")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public SumType<string, MarkupContent>? ToolTip
         {
@@ -39,7 +39,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the location of this label part.
         /// </summary>
-        [DataMember(Name = "location")]
+        [System.Text.Json.Serialization.JsonPropertyName("location")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public Location? Location
         {
@@ -50,7 +50,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the command of this label part.
         /// </summary>
-        [DataMember(Name = "command")]
+        [System.Text.Json.Serialization.JsonPropertyName("command")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public Command? Command
         {

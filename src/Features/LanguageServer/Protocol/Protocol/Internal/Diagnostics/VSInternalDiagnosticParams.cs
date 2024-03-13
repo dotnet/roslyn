@@ -23,7 +23,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating what kind of diagnostic this request is querying for.
         /// </summary>
-        [DataMember(Name = "_vs_queryingDiagnosticKind")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_queryingDiagnosticKind")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public VSInternalDiagnosticKind? QueryingDiagnosticKind { get; set; }
 
@@ -46,7 +46,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// document, then all reports are expected to have the same
         /// previousResultId.</para>
         /// </remarks>
-        [DataMember(Name = "_vs_previousResultId")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_previousResultId")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? PreviousResultId { get; set; }
     }

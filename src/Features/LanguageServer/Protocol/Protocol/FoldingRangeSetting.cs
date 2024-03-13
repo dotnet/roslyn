@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the range limit for folding ranges.
         /// </summary>
-        [DataMember(Name = "rangeLimit")]
+        [System.Text.Json.Serialization.JsonPropertyName("rangeLimit")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? RangeLimit
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether if client only supports entire line folding only.
         /// </summary>
-        [DataMember(Name = "lineFoldingOnly")]
+        [System.Text.Json.Serialization.JsonPropertyName("lineFoldingOnly")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool LineFoldingOnly
         {
@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating the specific options for the folding range.
         /// </summary>
-        [DataMember(Name = "foldingRange")]
+        [System.Text.Json.Serialization.JsonPropertyName("foldingRange")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public FoldingRangeSettingOptions? FoldingRange
         {

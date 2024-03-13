@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets additional details for the label.
         /// </summary>
-        [DataMember(Name = "labelDetails")]
+        [System.Text.Json.Serialization.JsonPropertyName("labelDetails")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public CompletionItemLabelDetails? LabelDetails
         {
@@ -41,7 +41,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the completion kind.
         /// </summary>
-        [DataMember(Name = "kind")]
+        [System.Text.Json.Serialization.JsonPropertyName("kind")]
         [SuppressMessage("Microsoft.StyleCop.CSharp.LayoutRules", "SA1513:ClosingCurlyBracketMustBeFollowedByBlankLine", Justification = "There are no issues with this code")]
         [SuppressMessage("Microsoft.StyleCop.CSharp.LayoutRules", "SA1500:BracesForMultiLineStatementsShouldNotShareLine", Justification = "There are no issues with this code")]
         [DefaultValue(CompletionItemKind.None)]
@@ -55,7 +55,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the completion detail.
         /// </summary>
-        [DataMember(Name = "detail")]
+        [System.Text.Json.Serialization.JsonPropertyName("detail")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? Detail
         {
@@ -66,7 +66,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the documentation comment.
         /// </summary>
-        [DataMember(Name = "documentation")]
+        [System.Text.Json.Serialization.JsonPropertyName("documentation")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public SumType<string, MarkupContent>? Documentation
         {
@@ -77,7 +77,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether this should be the selected item when showing.
         /// </summary>
-        [DataMember(Name = "preselect")]
+        [System.Text.Json.Serialization.JsonPropertyName("preselect")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool Preselect
         {
@@ -88,7 +88,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the custom sort text.
         /// </summary>
-        [DataMember(Name = "sortText")]
+        [System.Text.Json.Serialization.JsonPropertyName("sortText")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? SortText
         {
@@ -99,7 +99,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the custom filter text.
         /// </summary>
-        [DataMember(Name = "filterText")]
+        [System.Text.Json.Serialization.JsonPropertyName("filterText")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? FilterText
         {
@@ -110,7 +110,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the insert text.
         /// </summary>
-        [DataMember(Name = "insertText")]
+        [System.Text.Json.Serialization.JsonPropertyName("insertText")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? InsertText
         {
@@ -121,7 +121,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the insert text format.
         /// </summary>
-        [DataMember(Name = "insertTextFormat")]
+        [System.Text.Json.Serialization.JsonPropertyName("insertTextFormat")]
         [SuppressMessage("Microsoft.StyleCop.CSharp.LayoutRules", "SA1513:ClosingCurlyBracketMustBeFollowedByBlankLine", Justification = "There are no issues with this code")]
         [SuppressMessage("Microsoft.StyleCop.CSharp.LayoutRules", "SA1500:BracesForMultiLineStatementsShouldNotShareLine", Justification = "There are no issues with this code")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
@@ -135,7 +135,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the text edit.
         /// </summary>
-        [DataMember(Name = "textEdit")]
+        [System.Text.Json.Serialization.JsonPropertyName("textEdit")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<TextEdit, InsertReplaceEdit>? TextEdit
         {
@@ -146,7 +146,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the text edit text.
         /// </summary>
-        [DataMember(Name = "textEditText")]
+        [System.Text.Json.Serialization.JsonPropertyName("textEditText")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? TextEditText
         {
@@ -160,7 +160,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <remarks>
         /// Additional text edits must not interfere with the main text edit.
         /// </remarks>
-        [DataMember(Name = "additionalTextEdits")]
+        [System.Text.Json.Serialization.JsonPropertyName("additionalTextEdits")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public TextEdit[]? AdditionalTextEdits
         {
@@ -173,7 +173,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// If present, this will override <see cref="CompletionOptions.AllCommitCharacters"/>.
         /// If absent, <see cref="CompletionOptions.AllCommitCharacters"/> will be used instead.
         /// </summary>
-        [DataMember(Name = "commitCharacters")]
+        [System.Text.Json.Serialization.JsonPropertyName("commitCharacters")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[]? CommitCharacters
         {
@@ -187,7 +187,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <remarks>
         /// This feature is not supported in VS.
         /// </remarks>
-        [DataMember(Name = "command")]
+        [System.Text.Json.Serialization.JsonPropertyName("command")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public Command? Command
         {
@@ -198,7 +198,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets any additional data that links the unresolve completion item and the resolved completion item.
         /// </summary>
-        [DataMember(Name = "data")]
+        [System.Text.Json.Serialization.JsonPropertyName("data")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public object? Data
         {

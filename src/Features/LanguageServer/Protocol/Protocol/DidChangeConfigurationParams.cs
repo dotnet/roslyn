@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the settings that are applicable to the language server.
         /// </summary>
-        [DataMember(Name = "settings")]
+        [System.Text.Json.Serialization.JsonPropertyName("settings")]
         public object Settings
         {
             get;

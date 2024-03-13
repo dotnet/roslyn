@@ -17,7 +17,7 @@ internal class DiagnosticServerCancellationData
     /// <summary>
     /// Gets or sets a value indicating whether the client should re-trigger the request.
     /// </summary>
-    [DataMember(Name = "retriggerRequest")]
+    [System.Text.Json.Serialization.JsonPropertyName("retriggerRequest")]
     public bool RetriggerRequest
     {
         get;

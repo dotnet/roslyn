@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Set of code blocks, associated with documents and regions, to map.
         /// </summary>
-        [DataMember(Name = "_vs_mappings")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_mappings")]
         public VSInternalMapCodeMapping[] Mappings
         {
             get;
@@ -27,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Changes that should be applied to the workspace by the mapper before performing
         /// the mapping operation.
         /// </summary>
-        [DataMember(Name = "_vs_updates")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_updates")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public WorkspaceEdit? Updates
         {

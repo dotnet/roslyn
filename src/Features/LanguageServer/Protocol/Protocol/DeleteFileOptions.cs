@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the delete operation should be applied recursively if a folder is denoted. (Overwrite wins over ignoreIfNotExists).
         /// </summary>
-        [DataMember(Name = "recursive")]
+        [System.Text.Json.Serialization.JsonPropertyName("recursive")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool Recursive
         {
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the action should be ignored if the file doesn't exists.
         /// </summary>
-        [DataMember(Name = "ignoreIfNotExists")]
+        [System.Text.Json.Serialization.JsonPropertyName("ignoreIfNotExists")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool IgnoreIfNotExists
         {

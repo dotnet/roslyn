@@ -15,13 +15,13 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the commit character.
         /// </summary>
-        [DataMember(Name = "_vs_character")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_character")]
         public string Character { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the commit character should be inserted or not.
         /// </summary>
-        [DataMember(Name = "_vs_insert")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_insert")]
         public bool Insert { get; set; }
     }
 }

@@ -19,13 +19,13 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the location for the related information.
         /// </summary>
-        [DataMember(Name = "location")]
+        [System.Text.Json.Serialization.JsonPropertyName("location")]
         public Location Location { get; set; }
 
         /// <summary>
         /// Gets or sets the message for the related information.
         /// </summary>
-        [DataMember(Name = "message")]
+        [System.Text.Json.Serialization.JsonPropertyName("message")]
         public string Message { get; set; }
     }
 }

@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the identifier for the text document to be operate on.
         /// </summary>
-        [DataMember(Name = "_vs_textDocument")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_textDocument")]
         [JsonProperty(Required = Required.Always)]
         public TextDocumentIdentifier TextDocument
         {
@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the range.
         /// </summary>
-        [DataMember(Name = "_vs_range")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_range")]
         [JsonProperty(Required = Required.Always)]
         public Range Range
         {
@@ -39,7 +39,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the URI values. Valid for DropKind.Uris.
         /// </summary>
-        [DataMember(Name = "_vs_uris")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_uris")]
         [JsonProperty(ItemConverterType = typeof(DocumentUriConverter))]
         public Uri[]? Uris
         {

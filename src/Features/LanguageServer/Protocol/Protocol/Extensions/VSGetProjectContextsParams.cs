@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the document for which project contexts are queried.
         /// </summary>
-        [DataMember(Name = "_vs_textDocument")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_textDocument")]
         public TextDocumentItem TextDocument
         {
             get;

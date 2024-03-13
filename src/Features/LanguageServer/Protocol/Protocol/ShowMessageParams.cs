@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the type of message.
         /// </summary>
-        [DataMember(Name = "type")]
+        [System.Text.Json.Serialization.JsonPropertyName("type")]
         public MessageType MessageType
         {
             get;
@@ -27,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the message.
         /// </summary>
-        [DataMember(Name = "message")]
+        [System.Text.Json.Serialization.JsonPropertyName("message")]
         public string Message
         {
             get;

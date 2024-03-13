@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating The server has support for completion item label details
         /// </summary>
-        [DataMember(Name = "labelDetailsSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("labelDetailsSupport")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool LabelDetailsSupport
         {

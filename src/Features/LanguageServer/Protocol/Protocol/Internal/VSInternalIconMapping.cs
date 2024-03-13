@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the ImageElements for a certain kind.
         /// </summary>
-        [DataMember(Name = "_vs_images")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_images")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public VSImageId[]? Images
         {
@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the tags for a certain kind. To be used in the absence of ImageIds.
         /// </summary>
-        [DataMember(Name = "_vs_tags")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_tags")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[]? Tags
         {

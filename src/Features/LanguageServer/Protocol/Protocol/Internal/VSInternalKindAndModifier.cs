@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the ImageIds for a certain kind.
         /// </summary>
-        [DataMember(Name = "_vs_kind")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_kind")]
         public string Kind
         {
             get;
@@ -27,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the modifier of the kind.
         /// </summary>
-        [DataMember(Name = "_vs_modifier")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_modifier")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[]? Modifier
         {

@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a human-readable identifier for the project in which the diagnostic was generated.
         /// </summary>
-        [DataMember(Name = "_vs_projectName")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_projectName")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? ProjectName { get; set; }
 
@@ -24,14 +24,14 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a human-readable identifier for the build context (e.g. Win32 or MacOS)
         /// in which the diagnostic was generated.
         /// </summary>
-        [DataMember(Name = "_vs_context")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_context")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? Context { get; set; }
 
         /// <summary>
         /// Gets or sets the unique identifier for the project in which the diagnostic was generated.
         /// </summary>
-        [DataMember(Name = "_vs_projectIdentifier")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_projectIdentifier")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? ProjectIdentifier { get; set; }
     }

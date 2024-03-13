@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the signature help context.
         /// </summary>
-        [DataMember(Name = "context")]
+        [System.Text.Json.Serialization.JsonPropertyName("context")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SignatureHelpContext? Context
         {

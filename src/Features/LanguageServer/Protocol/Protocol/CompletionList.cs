@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value indicating whether Items is the complete list of items or not.  If incomplete is true, then
         /// filtering should ask the server again for completion item.
         /// </summary>
-        [DataMember(Name = "isIncomplete")]
+        [System.Text.Json.Serialization.JsonPropertyName("isIncomplete")]
         public bool IsIncomplete
         {
             get;
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the list of completion items.
         /// </summary>
-        [DataMember(Name = "items")]
+        [System.Text.Json.Serialization.JsonPropertyName("items")]
         public CompletionItem[] Items
         {
             get;
@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the completion list item defaults.
         /// </summary>
-        [DataMember(Name = "itemDefaults")]
+        [System.Text.Json.Serialization.JsonPropertyName("itemDefaults")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public CompletionListItemDefaults? ItemDefaults
         {

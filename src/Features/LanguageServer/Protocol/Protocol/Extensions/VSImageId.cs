@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="Guid" /> component of the unique identifier.
         /// </summary>
-        [DataMember(Name = "_vs_guid")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_guid")]
         public Guid Guid
         {
             get;
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the integer component of the unique identifier.
         /// </summary>
-        [DataMember(Name = "_vs_id")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_id")]
         public int Id
         {
             get;

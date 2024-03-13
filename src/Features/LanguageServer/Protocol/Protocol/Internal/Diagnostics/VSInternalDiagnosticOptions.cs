@@ -20,28 +20,28 @@ namespace Roslyn.LanguageServer.Protocol
         /// VS client will then use the information to do any merging logic in the Error List.
         /// Maps to <see cref="VSDiagnostic.Identifier"/>.
         /// </summary>
-        [DataMember(Name = "_vs_buildOnlyDiagnosticIds")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_buildOnlyDiagnosticIds")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[]? BuildOnlyDiagnosticIds { get; init; }
 
         /// <summary>
         /// Gets or sets a list of diagnostic kinds used to query diagnostics in each context.
         /// </summary>
-        [DataMember(Name = "_vs_diagnosticKinds")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_diagnosticKinds")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public VSInternalDiagnosticKind[]? DiagnosticKinds { get; init; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the server provides support for sending diagnostics requests for all project contexts.
         /// </summary>
-        [DataMember(Name = "_vs_supportsMultipleContextDiagnostics")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_supportsMultipleContextDiagnostics")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool SupportsMultipleContextsDiagnostics { get; init; }
 
         /// <summary>
         /// Gets or sets a value indicating whether work done progress is supported.
         /// </summary>
-        [DataMember(Name = "_vs_workDoneProgress")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_workDoneProgress")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool WorkDoneProgress { get; init; }
     }

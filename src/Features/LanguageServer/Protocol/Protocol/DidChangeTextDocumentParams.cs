@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the document that changed.
         /// </summary>
-        [DataMember(Name = "textDocument")]
+        [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
         public VersionedTextDocumentIdentifier TextDocument
         {
             get;
@@ -27,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the content changes.
         /// </summary>
-        [DataMember(Name = "contentChanges")]
+        [System.Text.Json.Serialization.JsonPropertyName("contentChanges")]
         public TextDocumentContentChangeEvent[] ContentChanges
         {
             get;

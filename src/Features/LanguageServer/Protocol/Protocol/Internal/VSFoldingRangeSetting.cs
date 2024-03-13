@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether if client only supports entire line folding only.
         /// </summary>
-        [DataMember(Name = "_vs_refreshSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_refreshSupport")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool RefreshSupport
         {

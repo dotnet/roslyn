@@ -22,7 +22,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the reference context.
         /// </summary>
-        [DataMember(Name = "context")]
+        [System.Text.Json.Serialization.JsonPropertyName("context")]
         public ReferenceContext Context
         {
             get;

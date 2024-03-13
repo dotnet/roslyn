@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the id of the unregistration.
         /// </summary>
-        [DataMember(Name = "id")]
+        [System.Text.Json.Serialization.JsonPropertyName("id")]
         public string Id
         {
             get;
@@ -27,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the method to unregister.
         /// </summary>
-        [DataMember(Name = "method")]
+        [System.Text.Json.Serialization.JsonPropertyName("method")]
         public string Method
         {
             get;

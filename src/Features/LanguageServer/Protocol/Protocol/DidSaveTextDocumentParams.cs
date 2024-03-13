@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="TextDocumentIdentifier"/> which represents the text document that was saved.
         /// </summary>
-        [DataMember(Name = "textDocument")]
+        [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
         public TextDocumentIdentifier TextDocument
         {
             get;
@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="string"/> which represents the content of the text document when it was saved.
         /// </summary>
-        [DataMember(Name = "text")]
+        [System.Text.Json.Serialization.JsonPropertyName("text")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? Text
         {

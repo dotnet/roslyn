@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value containing the supported property names of the <see cref="CompletionList.ItemDefaults"/> object.
         /// If omitted, no properties are supported.
         /// </summary>
-        [DataMember(Name = "itemDefaults")]
+        [System.Text.Json.Serialization.JsonPropertyName("itemDefaults")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[]? ItemDefaults
         {

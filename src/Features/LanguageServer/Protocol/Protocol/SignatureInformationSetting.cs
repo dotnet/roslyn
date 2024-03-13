@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the set of documentation formats the client supports.
         /// </summary>
-        [DataMember(Name = "documentationFormat")]
+        [System.Text.Json.Serialization.JsonPropertyName("documentationFormat")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public MarkupKind[]? DocumentationFormat
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the parameter information the client supports.
         /// </summary>
-        [DataMember(Name = "parameterInformation")]
+        [System.Text.Json.Serialization.JsonPropertyName("parameterInformation")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ParameterInformationSetting? ParameterInformation
         {

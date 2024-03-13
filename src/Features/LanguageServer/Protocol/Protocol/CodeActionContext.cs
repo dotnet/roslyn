@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets an array of diagnostics relevant to a code action.
         /// </summary>
-        [DataMember(Name = "diagnostics")]
+        [System.Text.Json.Serialization.JsonPropertyName("diagnostics")]
         public Diagnostic[] Diagnostics
         {
             get;
@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets an array of code action kinds to filter for.
         /// </summary>
-        [DataMember(Name = "only")]
+        [System.Text.Json.Serialization.JsonPropertyName("only")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public CodeActionKind[]? Only
         {
@@ -39,7 +39,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="CodeActionTriggerKind"/> indicating how the code action was triggered..
         /// </summary>
-        [DataMember(Name = "triggerKind")]
+        [System.Text.Json.Serialization.JsonPropertyName("triggerKind")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public CodeActionTriggerKind? TriggerKind
         {

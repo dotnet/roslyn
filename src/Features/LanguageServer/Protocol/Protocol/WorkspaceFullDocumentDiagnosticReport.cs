@@ -20,7 +20,7 @@ internal class WorkspaceFullDocumentDiagnosticReport : FullDocumentDiagnosticRep
     /// <summary>
     /// Gets or sets the URI associated with this diagnostic report.
     /// </summary>
-    [DataMember(Name = "uri")]
+    [System.Text.Json.Serialization.JsonPropertyName("uri")]
     [JsonConverter(typeof(DocumentUriConverter))]
     public Uri Uri
     {
@@ -32,7 +32,7 @@ internal class WorkspaceFullDocumentDiagnosticReport : FullDocumentDiagnosticRep
     /// Gets or sets the version number for which the diagnostics are reported.
     /// If the document is not marked as open 'null' can be provided.
     /// </summary>
-    [DataMember(Name = "version")]
+    [System.Text.Json.Serialization.JsonPropertyName("version")]
     public int? Version
     {
         get;

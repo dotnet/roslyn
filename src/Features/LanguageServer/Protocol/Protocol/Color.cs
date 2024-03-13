@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <remarks>
         /// Value should be clamped to [0,1].
         /// </remarks>
-        [DataMember(Name = "red")]
+        [System.Text.Json.Serialization.JsonPropertyName("red")]
         public decimal Red { get; set; }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <remarks>
         /// Value should be clamped to [0,1].
         /// </remarks>
-        [DataMember(Name = "green")]
+        [System.Text.Json.Serialization.JsonPropertyName("green")]
         public decimal Green { get; set; }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <remarks>
         /// Value should be clamped to [0,1].
         /// </remarks>
-        [DataMember(Name = "blue")]
+        [System.Text.Json.Serialization.JsonPropertyName("blue")]
         public decimal Blue { get; set; }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <remarks>
         /// Value should be clamped to [0,1].
         /// </remarks>
-        [DataMember(Name = "alpha")]
+        [System.Text.Json.Serialization.JsonPropertyName("alpha")]
         public decimal Alpha { get; set; }
     }
 }

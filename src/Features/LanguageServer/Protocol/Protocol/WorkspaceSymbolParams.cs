@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the query (a non-empty string).
         /// </summary>
-        [DataMember(Name = "query")]
+        [System.Text.Json.Serialization.JsonPropertyName("query")]
         public string Query
         {
             get;

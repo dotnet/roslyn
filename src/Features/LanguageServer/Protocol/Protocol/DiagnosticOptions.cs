@@ -18,14 +18,14 @@ internal class DiagnosticOptions : IWorkDoneProgressOptions
     /// <summary>
     /// Gets or sets a value indicating whether work done progress is supported.
     /// </summary>
-    [DataMember(Name = "workDoneProgress")]
+    [System.Text.Json.Serialization.JsonPropertyName("workDoneProgress")]
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
     public bool WorkDoneProgress { get; init; }
 
     /// <summary>
     /// Gets or sets the identifier in which the diagnostics are bucketed by the client.
     /// </summary>
-    [DataMember(Name = "identifier")]
+    [System.Text.Json.Serialization.JsonPropertyName("identifier")]
     [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
     public string? Identifier
     {
@@ -36,7 +36,7 @@ internal class DiagnosticOptions : IWorkDoneProgressOptions
     /// <summary>
     /// Gets or sets a value indicating whether the language has inter file dependencies.
     /// </summary>
-    [DataMember(Name = "interFileDependencies")]
+    [System.Text.Json.Serialization.JsonPropertyName("interFileDependencies")]
     public bool InterFileDependencies
     {
         get;
@@ -46,7 +46,7 @@ internal class DiagnosticOptions : IWorkDoneProgressOptions
     /// <summary>
     /// Gets or sets a value indicating whether the server provides support for workspace diagnostics as well.
     /// </summary>
-    [DataMember(Name = "workspaceDiagnostics")]
+    [System.Text.Json.Serialization.JsonPropertyName("workspaceDiagnostics")]
     public bool WorkspaceDiagnostics
     {
         get;

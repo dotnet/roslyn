@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value indicating whether the client supports
         /// resolving lazily on an inlay hint.
         /// </summary>
-        [DataMember(Name = "resolveSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("resolveSupport")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public InlayHintResolveSupportSetting? ResolveSupport
         {

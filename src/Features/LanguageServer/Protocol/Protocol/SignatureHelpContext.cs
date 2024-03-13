@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="SignatureHelpTriggerKind"/> indicating how the signature help was triggered.
         /// </summary>
-        [DataMember(Name = "triggerKind")]
+        [System.Text.Json.Serialization.JsonPropertyName("triggerKind")]
         public SignatureHelpTriggerKind TriggerKind
         {
             get;
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the character that caused signature help to be triggered.
         /// This value is null when triggerKind is not TriggerCharacter.
         /// </summary>
-        [DataMember(Name = "triggerCharacter")]
+        [System.Text.Json.Serialization.JsonPropertyName("triggerCharacter")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? TriggerCharacter
         {
@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether signature help was already showing when it was triggered.
         /// </summary>
-        [DataMember(Name = "isRetrigger")]
+        [System.Text.Json.Serialization.JsonPropertyName("isRetrigger")]
         public bool IsRetrigger
         {
             get;
@@ -50,7 +50,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the currently active <see cref="SignatureHelp"/>.
         /// </summary>
-        [DataMember(Name = "activeSignatureHelp")]
+        [System.Text.Json.Serialization.JsonPropertyName("activeSignatureHelp")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SignatureHelp? ActiveSignatureHelp
         {

@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating what code action default groups are supported.
         /// </summary>
-        [DataMember(Name = "_vs_codeActionGroup")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_codeActionGroup")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public VSInternalCodeActionGroupSetting? CodeActionGroup
         {

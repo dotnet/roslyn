@@ -17,13 +17,13 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the text range representing the color.
         /// </summary>
-        [DataMember(Name = "range")]
+        [System.Text.Json.Serialization.JsonPropertyName("range")]
         public Range Range { get; set; }
 
         /// <summary>
         /// Gets or sets the color.
         /// </summary>
-        [DataMember(Name = "color")]
+        [System.Text.Json.Serialization.JsonPropertyName("color")]
         public Color Color { get; set; }
     }
 }

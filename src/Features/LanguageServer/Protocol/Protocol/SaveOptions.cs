@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether clients include text content on save.
         /// </summary>
-        [DataMember(Name = "includeText")]
+        [System.Text.Json.Serialization.JsonPropertyName("includeText")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool IncludeText
         {

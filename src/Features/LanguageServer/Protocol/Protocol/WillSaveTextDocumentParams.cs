@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="TextDocumentIdentifier"/> representing the document to be saved.
         /// </summary>
-        [DataMember(Name = "textDocument")]
+        [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
         public TextDocumentIdentifier TextDocument
         {
             get;
@@ -27,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the reason that the text document was saved.
         /// </summary>
-        [DataMember(Name = "reason")]
+        [System.Text.Json.Serialization.JsonPropertyName("reason")]
         public TextDocumentSaveReason Reason
         {
             get;

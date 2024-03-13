@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets of the collection of file change events.
         /// </summary>
-        [DataMember(Name = "changes")]
+        [System.Text.Json.Serialization.JsonPropertyName("changes")]
         public FileEvent[] Changes
         {
             get;

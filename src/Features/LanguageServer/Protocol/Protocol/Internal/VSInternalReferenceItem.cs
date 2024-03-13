@@ -31,7 +31,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the reference location.
         /// </summary>
-        [DataMember(Name = "_vs_location")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_location")]
         public Location Location
         {
             get;
@@ -41,7 +41,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the definition Id.
         /// </summary>
-        [DataMember(Name = "_vs_definitionId")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_definitionId")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int? DefinitionId
         {
@@ -57,7 +57,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// This element should colorize syntax, but should not contain highlighting, e.g. <see cref="ClassifiedTextRun"/>
         /// embedded within <see cref="ClassifiedTextElement"/> should not define <see cref="ClassifiedTextRun.MarkerTagType"/>.
         /// </remarks>
-        [DataMember(Name = "_vs_definitionText")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_definitionText")]
         [JsonConverter(typeof(ObjectContentConverter))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public object? DefinitionText
@@ -84,7 +84,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the resolution status.
         /// </summary>
-        [DataMember(Name = "_vs_resolutionStatus")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_resolutionStatus")]
         public VSInternalResolutionStatusKind ResolutionStatus
         {
             get;
@@ -94,7 +94,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the reference kind.
         /// </summary>
-        [DataMember(Name = "_vs_kind")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_kind")]
         public VSInternalReferenceKind[] Kind
         {
             get;
@@ -104,28 +104,28 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the document name to be displayed to user when needed.This can be used in cases where URI doesn't have a user friendly file name or it is a remote URI.
         /// </summary>
-        [DataMember(Name = "_vs_documentName")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_documentName")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? DocumentName { get; set; }
 
         /// <summary>
         /// Gets or sets the project name.
         /// </summary>
-        [DataMember(Name = "_vs_projectName")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_projectName")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? ProjectName { get; set; }
 
         /// <summary>
         /// Gets or sets the containing type.
         /// </summary>
-        [DataMember(Name = "_vs_containingType")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_containingType")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? ContainingType { get; set; }
 
         /// <summary>
         /// Gets or sets the containing member.
         /// </summary>
-        [DataMember(Name = "_vs_containingMember")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_containingMember")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? ContainingMember { get; set; }
 
@@ -146,7 +146,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <c>"MarkerFormatDefinition/HighlightedDefinition"</c> for definitions.
         /// </para>
         /// </remarks>
-        [DataMember(Name = "_vs_text")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_text")]
         [JsonConverter(typeof(ObjectContentConverter))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public object? Text
@@ -173,21 +173,21 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the text value for display path.This would be a friendly display name for scenarios where the actual path on disk may be confusing for users.
         /// This doesn't have to correspond to a real file path, but does need to be parsable by the various Path.GetFileName() methods.
         /// </summary>
-        [DataMember(Name = "_vs_displayPath")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_displayPath")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? DisplayPath { get; set; }
 
         /// <summary>
         /// Gets or sets the origin of the item.The origin is used to filter remote results.
         /// </summary>
-        [DataMember(Name = "_vs_origin")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_origin")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public VSInternalItemOrigin? Origin { get; set; }
 
         /// <summary>
         /// Gets or sets the icon to show for the definition header.
         /// </summary>
-        [DataMember(Name = "_vs_definitionIcon")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_definitionIcon")]
         [JsonConverter(typeof(ImageElementConverter))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ImageElement? DefinitionIcon { get; set; }

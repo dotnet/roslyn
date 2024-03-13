@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the range of the string to rename.
         /// </summary>
-        [DataMember(Name = "range")]
+        [System.Text.Json.Serialization.JsonPropertyName("range")]
         [JsonProperty(Required = Required.Always)]
         public Range Range
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the placeholder text of the string content to be renamed.
         /// </summary>
-        [DataMember(Name = "placeholder")]
+        [System.Text.Json.Serialization.JsonPropertyName("placeholder")]
         [JsonProperty(Required = Required.Always)]
         public string Placeholder
         {

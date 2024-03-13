@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the range that the code lens applies to.
         /// </summary>
-        [DataMember(Name = "range")]
+        [System.Text.Json.Serialization.JsonPropertyName("range")]
         public Range Range
         {
             get;
@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the command associated with this code lens.
         /// </summary>
-        [DataMember(Name = "command")]
+        [System.Text.Json.Serialization.JsonPropertyName("command")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public Command? Command
         {
@@ -39,7 +39,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the data that should be preserved between a textDocument/codeLens request and a codeLens/resolve request.
         /// </summary>
-        [DataMember(Name = "data")]
+        [System.Text.Json.Serialization.JsonPropertyName("data")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public object? Data
         {

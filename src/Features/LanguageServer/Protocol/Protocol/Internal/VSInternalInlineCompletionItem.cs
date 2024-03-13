@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the text to replace the range with.
         /// </summary>
-        [DataMember(Name = "_vs_text")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_text")]
         [JsonProperty(Required = Required.Always)]
         public string Text { get; set; }
 
@@ -27,21 +27,21 @@ namespace Roslyn.LanguageServer.Protocol
         ///
         /// See https://github.com/microsoft/vscode/blob/075ba020e8493f40dba89891b1a08453f2c067e9/src/vscode-dts/vscode.proposed.inlineCompletions.d.ts#L94.
         /// </summary>
-        [DataMember(Name = "_vs_range")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_range")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public Range? Range { get; set; }
 
         /// <summary>
         /// Gets or sets the command that is executed after inserting this completion item.
         /// </summary>
-        [DataMember(Name = "_vs_command")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_command")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public Command? Command { get; set; }
 
         /// <summary>
         /// Gets or sets the format of the insert text.
         /// </summary>
-        [DataMember(Name = "_vs_insertTextFormat")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_insertTextFormat")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public InsertTextFormat? TextFormat { get; set; } = InsertTextFormat.Plaintext;
     }

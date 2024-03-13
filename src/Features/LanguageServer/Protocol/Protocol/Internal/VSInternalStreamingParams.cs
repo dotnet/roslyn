@@ -40,7 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// document, then all reports are expected to have the same
         /// previousResultId.</para>
         /// </remarks>
-        [DataMember(Name = "_vs_previousResultId")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_previousResultId")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? PreviousResultId { get; set; }
     }

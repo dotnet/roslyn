@@ -37,7 +37,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the line number.
         /// </summary>
-        [DataMember(Name = "line")]
+        [System.Text.Json.Serialization.JsonPropertyName("line")]
         public int Line
         {
             get;
@@ -47,7 +47,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the character number.
         /// </summary>
-        [DataMember(Name = "character")]
+        [System.Text.Json.Serialization.JsonPropertyName("character")]
         public int Character
         {
             get;

@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="SignatureInformationSetting"/> information.
         /// </summary>
-        [DataMember(Name = "signatureInformation")]
+        [System.Text.Json.Serialization.JsonPropertyName("signatureInformation")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SignatureInformationSetting? SignatureInformation
         {
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value indicating whether additional context information
         /// is supported for the `textDocument/signatureHelp` request.
         /// </summary>
-        [DataMember(Name = "contextSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("contextSupport")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool ContextSupport
         {

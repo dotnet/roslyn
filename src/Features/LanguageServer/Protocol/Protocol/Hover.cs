@@ -21,7 +21,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// If the object is not an array it can be of type <see cref="MarkedString"/>, <see cref="string"/>, or <see cref="MarkupContent"/>.
         /// </summary>
         // This is nullable because in VS we allow null when VSInternalHover.RawContent is specified instead of Contents
-        [DataMember(Name = "contents")]
+        [System.Text.Json.Serialization.JsonPropertyName("contents")]
         public SumType<string, MarkedString, SumType<string, MarkedString>[], MarkupContent>? Contents
         {
             get;
@@ -31,7 +31,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the range over which the hover applies.
         /// </summary>
-        [DataMember(Name = "range")]
+        [System.Text.Json.Serialization.JsonPropertyName("range")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public Range? Range
         {

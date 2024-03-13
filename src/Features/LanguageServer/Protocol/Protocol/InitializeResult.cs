@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the server capabilities.
         /// </summary>
-        [DataMember(Name = "capabilities")]
+        [System.Text.Json.Serialization.JsonPropertyName("capabilities")]
         public ServerCapabilities Capabilities
         {
             get;

@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the version of the document.
         /// </summary>
-        [DataMember(Name = "version")]
+        [System.Text.Json.Serialization.JsonPropertyName("version")]
         public int Version
         {
             get;

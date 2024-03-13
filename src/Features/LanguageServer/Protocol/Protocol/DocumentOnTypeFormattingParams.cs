@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the character that was typed.
         /// </summary>
-        [DataMember(Name = "ch")]
+        [System.Text.Json.Serialization.JsonPropertyName("ch")]
         public string Character
         {
             get;
@@ -27,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="FormattingOptions"/> for the request.
         /// </summary>
-        [DataMember(Name = "options")]
+        [System.Text.Json.Serialization.JsonPropertyName("options")]
         public FormattingOptions Options
         {
             get;

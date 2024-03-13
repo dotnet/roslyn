@@ -19,7 +19,7 @@ internal class DocumentDiagnosticReportPartialResult
     /// <summary>
     /// Gets or sets the map of related document diagnostic reports.
     /// </summary>
-    [DataMember(Name = "relatedDocuments")]
+    [System.Text.Json.Serialization.JsonPropertyName("relatedDocuments")]
     public Dictionary<Uri, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>> RelatedDocuments
     {
         get;

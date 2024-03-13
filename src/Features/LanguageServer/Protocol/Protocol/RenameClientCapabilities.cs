@@ -21,7 +21,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the client supports testing for validity of rename operations before execution.
         /// </summary>
-        [DataMember(Name = "prepareSupport")]
+        [System.Text.Json.Serialization.JsonPropertyName("prepareSupport")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool PrepareSupport
         {
@@ -33,7 +33,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the value indicating the default behavior used by the client when the (`{ defaultBehavior: boolean }`)
         /// result is used in the 'textDocument/prepareRename' request.
         /// </summary>
-        [DataMember(Name = "prepareSupportDefaultBehavior")]
+        [System.Text.Json.Serialization.JsonPropertyName("prepareSupportDefaultBehavior")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public PrepareSupportDefaultBehavior? PrepareSupportDefaultBehavior
         {
@@ -46,7 +46,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// operations returned via the rename request's workspace edit, by for example presenting the workspace edit in
         /// the user interface and asking for confirmation.
         /// </summary>
-        [DataMember(Name = "honorsChangeAnnotations")]
+        [System.Text.Json.Serialization.JsonPropertyName("honorsChangeAnnotations")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool HonorsChangeAnnotations
         {

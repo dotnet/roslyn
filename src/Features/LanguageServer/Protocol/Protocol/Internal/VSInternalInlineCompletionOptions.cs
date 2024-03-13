@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a regex used by the client to determine when to ask the server for snippets.
         /// </summary>
-        [DataMember(Name = "_vs_pattern")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_pattern")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         [JsonConverter(typeof(RegexConverter))]
         public Regex Pattern { get; set; }

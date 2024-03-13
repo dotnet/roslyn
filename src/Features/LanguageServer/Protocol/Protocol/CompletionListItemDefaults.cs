@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the default commit character set.
         /// </summary>
-        [DataMember(Name = "commitCharacters")]
+        [System.Text.Json.Serialization.JsonPropertyName("commitCharacters")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[]? CommitCharacters
         {
@@ -27,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the default edit range.
         /// </summary>
-        [DataMember(Name = "editRange")]
+        [System.Text.Json.Serialization.JsonPropertyName("editRange")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<Range, InsertReplaceRange>? EditRange
         {
@@ -38,7 +38,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the default <see cref="InsertTextFormat"/>.
         /// </summary>
-        [DataMember(Name = "insertTextFormat")]
+        [System.Text.Json.Serialization.JsonPropertyName("insertTextFormat")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public InsertTextFormat? InsertTextFormat
         {
@@ -49,7 +49,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the default <see cref="InsertTextMode"/>.
         /// </summary>
-        [DataMember(Name = "insertTextMode")]
+        [System.Text.Json.Serialization.JsonPropertyName("insertTextMode")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public InsertTextMode? InsertTextMode
         {
@@ -60,7 +60,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the default completion item data.
         /// </summary>
-        [DataMember(Name = "data")]
+        [System.Text.Json.Serialization.JsonPropertyName("data")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public object? Data
         {

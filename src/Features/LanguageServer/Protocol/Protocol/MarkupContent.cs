@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the <see cref="MarkupKind"/> representing the text's format.
         /// </summary>
-        [DataMember(Name = "kind")]
+        [System.Text.Json.Serialization.JsonPropertyName("kind")]
         public MarkupKind Kind
         {
             get;
@@ -27,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the text that should be rendered.
         /// </summary>
-        [DataMember(Name = "value")]
+        [System.Text.Json.Serialization.JsonPropertyName("value")]
         public string Value
         {
             get;

@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the types of symbol kind the client supports.
         /// </summary>
-        [DataMember(Name = "valueSet")]
+        [System.Text.Json.Serialization.JsonPropertyName("valueSet")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SymbolKind[]? ValueSet
         {

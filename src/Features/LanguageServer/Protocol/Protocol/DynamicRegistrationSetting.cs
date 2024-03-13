@@ -32,7 +32,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether setting can be dynamically registered.
         /// </summary>
-        [DataMember(Name = "dynamicRegistration")]
+        [System.Text.Json.Serialization.JsonPropertyName("dynamicRegistration")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool DynamicRegistration
         {

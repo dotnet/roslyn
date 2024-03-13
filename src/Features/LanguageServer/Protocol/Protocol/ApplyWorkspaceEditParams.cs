@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the label associated with this edit.
         /// </summary>
-        [DataMember(Name = "label")]
+        [System.Text.Json.Serialization.JsonPropertyName("label")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? Label
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the edit to be applied to the workspace.
         /// </summary>
-        [DataMember(Name = "edit")]
+        [System.Text.Json.Serialization.JsonPropertyName("edit")]
         public WorkspaceEdit Edit
         {
             get;

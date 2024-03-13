@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the human readable title for this code action.
         /// </summary>
-        [DataMember(Name = "title")]
+        [System.Text.Json.Serialization.JsonPropertyName("title")]
         public string Title
         {
             get;
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the kind of code action this instance represents.
         /// </summary>
-        [DataMember(Name = "kind")]
+        [System.Text.Json.Serialization.JsonPropertyName("kind")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public CodeActionKind? Kind
         {
@@ -41,7 +41,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the diagnostics that this code action resolves.
         /// </summary>
-        [DataMember(Name = "diagnostics")]
+        [System.Text.Json.Serialization.JsonPropertyName("diagnostics")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public Diagnostic[]? Diagnostics
         {
@@ -52,7 +52,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the workspace edit that this code action performs.
         /// </summary>
-        [DataMember(Name = "edit")]
+        [System.Text.Json.Serialization.JsonPropertyName("edit")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public WorkspaceEdit? Edit
         {
@@ -63,7 +63,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the command that this code action executes.
         /// </summary>
-        [DataMember(Name = "command")]
+        [System.Text.Json.Serialization.JsonPropertyName("command")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public Command? Command
         {
@@ -74,7 +74,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the data that will be resend to the server if the code action is selected to be resolved.
         /// </summary>
-        [DataMember(Name = "data")]
+        [System.Text.Json.Serialization.JsonPropertyName("data")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public object? Data
         {

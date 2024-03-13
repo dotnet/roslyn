@@ -16,14 +16,14 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets the type value.
         /// </summary>
-        [DataMember(Name = "_vs_type")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_type")]
         [JsonProperty(Required = Required.Always)]
         public const string Type = "unicodeClass";
 
         /// <summary>
         /// Gets or sets the unicode class.
         /// </summary>
-        [DataMember(Name = "_vs_unicodeClass")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_unicodeClass")]
         [JsonProperty(Required = Required.Always)]
         public string UnicodeClass { get; set; }
     }

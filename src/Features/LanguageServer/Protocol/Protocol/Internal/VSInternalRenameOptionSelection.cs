@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the name that identifies the option.
         /// </summary>
-        [DataMember(Name = "_vs_name")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_name")]
         [JsonProperty(Required = Required.Always)]
         public string Name
         {
@@ -27,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the user selected the option.
         /// </summary>
-        [DataMember(Name = "_vs_value")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_value")]
         [JsonProperty(Required = Required.Always)]
         public bool Value
         {

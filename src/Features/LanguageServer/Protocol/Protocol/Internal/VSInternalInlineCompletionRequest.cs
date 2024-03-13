@@ -17,28 +17,28 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the text document.
         /// </summary>
-        [DataMember(Name = "_vs_textDocument")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_textDocument")]
         [JsonProperty(Required = Required.Always)]
         public TextDocumentIdentifier TextDocument { get; set; }
 
         /// <summary>
         /// Gets or sets the position where inline completions are being requested.
         /// </summary>
-        [DataMember(Name = "_vs_position")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_position")]
         [JsonProperty(Required = Required.Always)]
         public Position Position { get; set; }
 
         /// <summary>
         /// Gets or sets the context for the inline completions request.
         /// </summary>
-        [DataMember(Name = "_vs_context")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_context")]
         [JsonProperty(Required = Required.Always)]
         public VSInternalInlineCompletionContext Context { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="FormattingOptions"/> for the request.
         /// </summary>
-        [DataMember(Name = "_vs_options")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_options")]
         public FormattingOptions Options { get; set; }
     }
 }

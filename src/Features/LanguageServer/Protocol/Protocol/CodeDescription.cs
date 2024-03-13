@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets URI to open with more information about the diagnostic error.
         /// </summary>
-        [DataMember(Name = "href")]
+        [System.Text.Json.Serialization.JsonPropertyName("href")]
         [JsonConverter(typeof(DocumentUriConverter))]
         public Uri Href
         {

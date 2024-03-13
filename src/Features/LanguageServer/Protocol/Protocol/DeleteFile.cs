@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets the kind value.
         /// </summary>
-        [DataMember(Name = "kind")]
+        [System.Text.Json.Serialization.JsonPropertyName("kind")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Member can't be static since it's part of the protocol")]
         public string Kind => "delete";
 
@@ -38,7 +38,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the additional options.
         /// </summary>
-        [DataMember(Name = "options")]
+        [System.Text.Json.Serialization.JsonPropertyName("options")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public DeleteFileOptions? Options
         {

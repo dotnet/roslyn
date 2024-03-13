@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the value of the PartialResultToken instance.
         /// </summary>
-        [DataMember(Name = "partialResultToken")]
+        [System.Text.Json.Serialization.JsonPropertyName("partialResultToken")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public IProgress<DocumentHighlight[]>? PartialResultToken
         {

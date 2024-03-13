@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating the properties that a client can resolve lazily.
         /// </summary>
-        [DataMember(Name = "properties")]
+        [System.Text.Json.Serialization.JsonPropertyName("properties")]
         public string[] Properties
         {
             get;

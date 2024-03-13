@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets an optional string which is rendered less prominently directly after label, without any spacing.
         /// </summary>
-        [DataMember(Name = "detail")]
+        [System.Text.Json.Serialization.JsonPropertyName("detail")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? Detail
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets an optional string which is rendered less prominently after detail.
         /// </summary>
-        [DataMember(Name = "description")]
+        [System.Text.Json.Serialization.JsonPropertyName("description")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? Description
         {

@@ -18,7 +18,7 @@ internal class DiagnosticWorkspaceSetting
     /// <summary>
     /// Gets or sets a value indicating whether the client supports a refresh request sent from the server to the client.
     /// </summary>
-    [DataMember(Name = "refreshSupport")]
+    [System.Text.Json.Serialization.JsonPropertyName("refreshSupport")]
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
     public bool RefreshSupport { get; set; }
 }

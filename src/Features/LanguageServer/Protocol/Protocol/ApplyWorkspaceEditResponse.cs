@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether edits were applied or not.
         /// </summary>
-        [DataMember(Name = "applied")]
+        [System.Text.Json.Serialization.JsonPropertyName("applied")]
         public bool Applied
         {
             get;
@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a string with textual description for why the edit was not applied.
         /// </summary>
-        [DataMember(Name = "failureReason")]
+        [System.Text.Json.Serialization.JsonPropertyName("failureReason")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? FailureReason
         {

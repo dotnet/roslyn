@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the Id for the client's new version after applying all
         /// edits to their current semantic tokens data.
         /// </summary>
-        [DataMember(Name = "resultId")]
+        [System.Text.Json.Serialization.JsonPropertyName("resultId")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? ResultId { get; set; }
 

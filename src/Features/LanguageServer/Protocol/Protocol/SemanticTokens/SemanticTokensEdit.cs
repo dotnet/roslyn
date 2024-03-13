@@ -22,21 +22,21 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the position in the previous response's <see cref="SemanticTokens.Data"/>
         /// to begin the edit.
         /// </summary>
-        [DataMember(Name = "start")]
+        [System.Text.Json.Serialization.JsonPropertyName("start")]
         public int Start { get; set; }
 
         /// <summary>
         /// Gets or sets the number of numbers to delete in the <see cref="SemanticTokens.Data"/>
         /// from the previous response.
         /// </summary>
-        [DataMember(Name = "deleteCount")]
+        [System.Text.Json.Serialization.JsonPropertyName("deleteCount")]
         public int DeleteCount { get; set; }
 
         /// <summary>
         /// Gets or sets an array containing the encoded semantic tokens information to insert
         /// into a previous response.
         /// </summary>
-        [DataMember(Name = "data")]
+        [System.Text.Json.Serialization.JsonPropertyName("data")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int[]? Data { get; set; }
 

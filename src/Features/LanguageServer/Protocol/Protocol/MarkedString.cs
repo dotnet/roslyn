@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the language of the code stored in <see cref="Value" />.
         /// </summary>
-        [DataMember(Name = "language")]
+        [System.Text.Json.Serialization.JsonPropertyName("language")]
         [JsonProperty(Required = Required.Always)]
         public string Language
         {
@@ -29,7 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the code.
         /// </summary>
-        [DataMember(Name = "value")]
+        [System.Text.Json.Serialization.JsonPropertyName("value")]
         [JsonProperty(Required = Required.Always)]
         public string Value
         {

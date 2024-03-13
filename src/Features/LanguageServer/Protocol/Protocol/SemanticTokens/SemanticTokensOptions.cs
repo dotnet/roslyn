@@ -18,27 +18,27 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a legend describing how semantic token types and modifiers are encoded in responses.
         /// </summary>
-        [DataMember(Name = "legend")]
+        [System.Text.Json.Serialization.JsonPropertyName("legend")]
         public SemanticTokensLegend Legend { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether semantic tokens Range provider requests are supported.
         /// </summary>
-        [DataMember(Name = "range")]
+        [System.Text.Json.Serialization.JsonPropertyName("range")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, object>? Range { get; set; }
 
         /// <summary>
         /// Gets or sets whether or not the server supports providing semantic tokens for a full document.
         /// </summary>
-        [DataMember(Name = "full")]
+        [System.Text.Json.Serialization.JsonPropertyName("full")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public SumType<bool, SemanticTokensFullOptions>? Full { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether work done progress is supported.
         /// </summary>
-        [DataMember(Name = "workDoneProgress")]
+        [System.Text.Json.Serialization.JsonPropertyName("workDoneProgress")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool WorkDoneProgress { get; init; }
     }

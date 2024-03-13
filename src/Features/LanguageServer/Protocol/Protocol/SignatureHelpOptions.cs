@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the characters that trigger signature help automatically.
         /// </summary>
-        [DataMember(Name = "triggerCharacters")]
+        [System.Text.Json.Serialization.JsonPropertyName("triggerCharacters")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[]? TriggerCharacters
         {
@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the characters that re-trigger signature help
         /// when signature help is already showing.
         /// </summary>
-        [DataMember(Name = "retriggerCharacters")]
+        [System.Text.Json.Serialization.JsonPropertyName("retriggerCharacters")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[]? RetriggerCharacters
         {
@@ -41,7 +41,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether work done progress is supported.
         /// </summary>
-        [DataMember(Name = "workDoneProgress")]
+        [System.Text.Json.Serialization.JsonPropertyName("workDoneProgress")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool WorkDoneProgress { get; init; }
     }

@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the group this CodeAction belongs to.
         /// </summary>
-        [DataMember(Name = "_vs_group")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_group")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string? Group
         {
@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the priority level of the code action.
         /// </summary>
-        [DataMember(Name = "_vs_priority")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_priority")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public VSInternalPriorityLevel? Priority
         {
@@ -39,7 +39,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the range of the span this action is applicable to.
         /// </summary>
-        [DataMember(Name = "_vs_applicableRange")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_applicableRange")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public Range? ApplicableRange
         {
@@ -50,7 +50,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the children of this action.
         /// </summary>
-        [DataMember(Name = "_vs_children")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_children")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public VSInternalCodeAction[]? Children
         {
@@ -61,7 +61,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the telemetry id of this action.
         /// </summary>
-        [DataMember(Name = "_vs_telemetryId")]
+        [System.Text.Json.Serialization.JsonPropertyName("_vs_telemetryId")]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public Guid? TelemetryId
         {
