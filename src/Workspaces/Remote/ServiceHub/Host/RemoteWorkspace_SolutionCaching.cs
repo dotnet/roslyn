@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         /// <summary>
         /// The number of times we failed to find a solution, but could have found it if we cached more items (up to
-        /// TotalHistory).  When this happens, we also store in <see cref="_cacheMissAggregator"/> which bucket it was
+        /// TotalHistory).  When this happens, we also store in <see cref="_cacheMissCounter"/> which bucket it was
         /// found in to help us decide what a good cache value is.
         /// </summary>
         private int _cacheMissesInHistory;
@@ -136,6 +136,17 @@ namespace Microsoft.CodeAnalysis.Remote
             _cacheMissesNotInHistory++;
             return null;
         }
+
+        public void ReportTelemetry()
+        {
+            Logger.Log(FunctionId.RemoteWorkspace_SolutionCachingStatistics, KeyValueLogMessage.Create(m =>
+            {
+                m.Add(nameof(_cacheHits), _cacheHits);
+                m.Add(nameof(_cacheMissesInHistory), _cacheMissesInHistory);
+                m.Add(nameof(_cacheMissesNotInHistory), _cacheMissesNotInHistory);
+                _cacheMissCounter.WriteTelemetryPropertiesTo(m, prefix: nameof(_cacheMissCounter));
+            }));
+        }
     }
 
     internal sealed partial class RemoteWorkspace
@@ -148,8 +159,8 @@ namespace Microsoft.CodeAnalysis.Remote
         private (Checksum checksum, Solution solution) _lastRequestedPrimaryBranchSolution;
 
         /// <summary>
-        /// The last solution requested by a service.  Cached as it's very common to have a flurry of requests for the
-        /// same checksum that don't run concurrently.  Only read/write while holding <see cref="_gate"/>.
+        /// Cache of last N solutions requested by a service.  Cached as it's very common to have a flurry of requests
+        /// for the same few checksum that don't run concurrently.  Only read/write while holding <see cref="_gate"/>.
         /// </summary>
         private readonly RemoteSolutionCache _lastRequestedAnyBranchSolutions = new();
 
