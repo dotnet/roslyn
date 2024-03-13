@@ -6,13 +6,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Immutable;
 using Roslyn.Utilities;
-using System.Reflection.PortableExecutable;
-using System.Reflection.Metadata;
 
 #if NETCOREAPP
 using System.Runtime.Loader;
@@ -39,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         private readonly Lazy<(string directory, Mutex)> _shadowCopyDirectoryAndMutex;
 
         private readonly ConcurrentDictionary<Guid, Task<string>> _mvidPathMap = new ConcurrentDictionary<Guid, Task<string>>();
-        private readonly ConcurrentDictionary<(Guid, string), Task> _mvidSatelliteAssemblyPathMap = new ConcurrentDictionary<(Guid, string), Task>();
+        private readonly ConcurrentDictionary<(Guid, string), Task<string>> _mvidSatelliteAssemblyPathMap = new ConcurrentDictionary<(Guid, string), Task<string>>();
 
         internal string BaseDirectory => _baseDirectory;
 
@@ -133,33 +129,8 @@ namespace Microsoft.CodeAnalysis
         protected override string PreparePathToLoad(string originalAnalyzerPath)
         {
             var mvid = AssemblyUtilities.ReadMvid(originalAnalyzerPath);
-            if (_mvidPathMap.TryGetValue(mvid, out Task<string>? copyTask))
-            {
-                return copyTask.Result;
-            }
 
-            var tcs = new TaskCompletionSource<string>();
-            var task = _mvidPathMap.GetOrAdd(mvid, tcs.Task);
-            if (object.ReferenceEquals(task, tcs.Task))
-            {
-                // This thread won and we need to do the copy.
-                try
-                {
-                    var shadowAnalyzerPath = copyAnalyzerContents();
-                    tcs.SetResult(shadowAnalyzerPath);
-                    return shadowAnalyzerPath;
-                }
-                catch (Exception ex)
-                {
-                    tcs.SetException(ex);
-                    throw;
-                }
-            }
-            else
-            {
-                // This thread lost and we need to wait for the winner to finish the copy.
-                return task.Result;
-            }
+            return PrepareLoad(_mvidPathMap, mvid, copyAnalyzerContents);
 
             string copyAnalyzerContents()
             {
@@ -175,37 +146,12 @@ namespace Microsoft.CodeAnalysis
         protected override void PrepareSatelliteAssemblyToLoad(string originalAnalyzerPath, string cultureName)
         {
             var mvid = AssemblyUtilities.ReadMvid(originalAnalyzerPath);
-            if (_mvidSatelliteAssemblyPathMap.TryGetValue((mvid, cultureName), out Task? copyTask))
-            {
-                copyTask.Wait();
-                return;
-            }
 
-            var tcs = new TaskCompletionSource<bool>();
-            var task = _mvidSatelliteAssemblyPathMap.GetOrAdd((mvid, cultureName), tcs.Task);
-            if (object.ReferenceEquals(task, tcs.Task))
-            {
-                // This thread won and we need to do the copy.
-                try
-                {
-                    copyAnalyzerContents();
-                    tcs.SetResult(true);
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    tcs.SetException(ex);
-                    throw;
-                }
-            }
-            else
-            {
-                // This thread lost and we need to wait for the winner to finish the copy.
-                task.Wait();
-                return;
-            }
+            PrepareLoad(_mvidSatelliteAssemblyPathMap, (mvid, cultureName), copyAnalyzerContents);
 
-            void copyAnalyzerContents()
+            return;
+
+            string copyAnalyzerContents()
             {
                 var analyzerFileName = Path.GetFileName(originalAnalyzerPath);
                 var shadowDirectory = Path.Combine(_shadowCopyDirectoryAndMutex.Value.directory, mvid.ToString());
@@ -217,6 +163,40 @@ namespace Microsoft.CodeAnalysis
                 var originalSatellitePath = Path.Combine(originalDirectory, cultureName, satelliteFileName);
                 var shadowSatellitePath = Path.Combine(shadowDirectory, cultureName, satelliteFileName);
                 CopyFile(originalSatellitePath, shadowSatellitePath);
+
+                return shadowAnalyzerPath;
+            }
+        }
+
+        private static string PrepareLoad<TKey>(ConcurrentDictionary<TKey, Task<string>> mvidPathMap, TKey mvidKey, Func<string> copyContents)
+            where TKey : notnull
+        {
+            if (mvidPathMap.TryGetValue(mvidKey, out Task<string>? copyTask))
+            {
+                return copyTask.Result;
+            }
+
+            var tcs = new TaskCompletionSource<string>();
+            var task = mvidPathMap.GetOrAdd(mvidKey, tcs.Task);
+            if (object.ReferenceEquals(task, tcs.Task))
+            {
+                // This thread won and we need to do the copy.
+                try
+                {
+                    var shadowAnalyzerPath = copyContents();
+                    tcs.SetResult(shadowAnalyzerPath);
+                    return shadowAnalyzerPath;
+                }
+                catch (Exception ex)
+                {
+                    tcs.SetException(ex);
+                    throw;
+                }
+            }
+            else
+            {
+                // This thread lost and we need to wait for the winner to finish the copy.
+                return task.Result;
             }
         }
 
