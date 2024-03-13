@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,8 +31,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             globalOptions), ITextDocumentIdentifierHandler<TDiagnosticsParams, TextDocumentIdentifier?>
         where TDiagnosticsParams : IPartialResultParams<TReport>
     {
-        protected sealed override bool IsWorkspacePullDiagnosticsHandler => false;
-
         public abstract LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
     }
 
@@ -81,8 +80,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             GlobalOptions = globalOptions;
         }
 
-        protected abstract bool IsWorkspacePullDiagnosticsHandler { get; }
-
         protected virtual string? GetDiagnosticSourceIdentifier(TDiagnosticsParams diagnosticsParams) => null;
 
         /// <summary>
@@ -103,9 +100,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected abstract TReport CreateReport(TextDocumentIdentifier identifier, LSP.Diagnostic[] diagnostics, string resultId);
 
         /// <summary>
-        /// Creates the appropriate LSP type to report unchanged diagnostics.
+        /// Creates the appropriate LSP type to report unchanged diagnostics. Can return <see langword="false"/> to
+        /// indicate nothing should be reported.  This should be done for workspace requests to avoiding sending a huge
+        /// amount of "nothing changed" responses for most files.
         /// </summary>
-        protected abstract TReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId);
+        protected abstract bool TryCreateUnchangedReport(TextDocumentIdentifier identifier, string resultId, [NotNullWhen(true)] out TReport? report);
 
         /// <summary>
         /// Creates the appropriate LSP type to report a removed file.
@@ -193,11 +192,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     //
                     // Note: if this is a workspace request, we can do nothing, as that will be interpreted by the
                     // client as nothing having been changed for that document.
-                    if (!this.IsWorkspacePullDiagnosticsHandler)
-                    {
-                        var previousParams = documentToPreviousDiagnosticParams[diagnosticSource.GetId()];
-                        progress.Report(CreateUnchangedReport(previousParams.TextDocument, previousParams.PreviousResultId));
-                    }
+                    var previousParams = documentToPreviousDiagnosticParams[diagnosticSource.GetId()];
+                    if (TryCreateUnchangedReport(previousParams.TextDocument, previousParams.PreviousResultId, out var report))
+                        progress.Report(report);
                 }
             }
 

@@ -34,8 +34,6 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
     /// </summary>
     private int _lspChanged = 0;
 
-    protected sealed override bool IsWorkspacePullDiagnosticsHandler => true;
-
     protected AbstractWorkspacePullDiagnosticsHandler(
         LspWorkspaceManager workspaceManager,
         LspWorkspaceRegistrationService registrationService,
