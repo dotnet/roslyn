@@ -20,16 +20,17 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>
-        : AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>, ITextDocumentIdentifierHandler<TDiagnosticsParams, TextDocumentIdentifier?>
+    internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>(
+        IDiagnosticAnalyzerService diagnosticAnalyzerService,
+        IDiagnosticsRefresher diagnosticRefresher,
+        IGlobalOptionService globalOptions)
+        : AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>(
+            diagnosticAnalyzerService,
+            diagnosticRefresher,
+            globalOptions), ITextDocumentIdentifierHandler<TDiagnosticsParams, TextDocumentIdentifier?>
         where TDiagnosticsParams : IPartialResultParams<TReport>
     {
-        public AbstractDocumentPullDiagnosticHandler(
-            IDiagnosticAnalyzerService diagnosticAnalyzerService,
-            IDiagnosticsRefresher diagnosticRefresher,
-            IGlobalOptionService globalOptions) : base(diagnosticAnalyzerService, diagnosticRefresher, globalOptions)
-        {
-        }
+        protected sealed override bool IsWorkspacePullDiagnosticsHandler => false;
 
         public abstract LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
     }
@@ -79,6 +80,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             _diagnosticRefresher = diagnosticRefresher;
             GlobalOptions = globalOptions;
         }
+
+        protected abstract bool IsWorkspacePullDiagnosticsHandler { get; }
 
         protected virtual string? GetDiagnosticSourceIdentifier(TDiagnosticsParams diagnosticsParams) => null;
 
@@ -187,8 +190,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     // Nothing changed between the last request and this one.  Report a (null-diagnostics,
                     // same-result-id) response to the client as that means they should just preserve the current
                     // diagnostics they have for this file.
-                    var previousParams = documentToPreviousDiagnosticParams[diagnosticSource.GetId()];
-                    progress.Report(CreateUnchangedReport(previousParams.TextDocument, previousParams.PreviousResultId));
+                    //
+                    // Note: if this is a workspace request, we can do nothing, as that will be interpreted by the
+                    // client as nothing having been changed for that document.
+                    if (!this.IsWorkspacePullDiagnosticsHandler)
+                    {
+                        var previousParams = documentToPreviousDiagnosticParams[diagnosticSource.GetId()];
+                        progress.Report(CreateUnchangedReport(previousParams.TextDocument, previousParams.PreviousResultId));
+                    }
                 }
             }
 

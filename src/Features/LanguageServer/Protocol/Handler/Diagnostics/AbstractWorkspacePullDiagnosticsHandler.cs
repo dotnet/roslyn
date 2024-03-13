@@ -18,6 +18,7 @@ using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+
 internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsParams, TReport, TReturn>
     : AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>, IDisposable
     where TDiagnosticsParams : IPartialResultParams<TReport>
@@ -32,6 +33,8 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
     /// until something has changed.
     /// </summary>
     private int _lspChanged = 0;
+
+    protected sealed override bool IsWorkspacePullDiagnosticsHandler => true;
 
     protected AbstractWorkspacePullDiagnosticsHandler(
         LspWorkspaceManager workspaceManager,
