@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 
 [DataContract]
 internal record RunTestsPartialResult(
-    [property: DataMember(Name = "stage")] string Stage,
-    [property: DataMember(Name = "message")] string Message,
-    [property: DataMember(Name = "progress"), JsonProperty(NullValueHandling = NullValueHandling.Ignore)] TestProgress? Progress
+    [property: System.Text.Json.Serialization.JsonPropertyName("stage")] string Stage,
+    [property: System.Text.Json.Serialization.JsonPropertyName("message")] string Message,
+    [property: System.Text.Json.Serialization.JsonPropertyName("progress"), JsonProperty(NullValueHandling = NullValueHandling.Ignore)] TestProgress? Progress
 );

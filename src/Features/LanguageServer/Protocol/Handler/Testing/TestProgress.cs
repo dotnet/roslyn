@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 
 [DataContract]
 internal record struct TestProgress(
-    [property: DataMember(Name = "testsPassed")] long TestsPassed,
-    [property: DataMember(Name = "testsFailed")] long TestsFailed,
-    [property: DataMember(Name = "testsSkipped")] long TestsSkipped,
-    [property: DataMember(Name = "totalTests")] long TotalTests
+    [property: System.Text.Json.Serialization.JsonPropertyName("testsPassed")] long TestsPassed,
+    [property: System.Text.Json.Serialization.JsonPropertyName("testsFailed")] long TestsFailed,
+    [property: System.Text.Json.Serialization.JsonPropertyName("testsSkipped")] long TestsSkipped,
+    [property: System.Text.Json.Serialization.JsonPropertyName("totalTests")] long TotalTests
 );

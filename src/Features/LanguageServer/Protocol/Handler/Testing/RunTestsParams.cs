@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 
 [DataContract]
 internal record RunTestsParams(
-    [property: DataMember(Name = "textDocument")] LSP.TextDocumentIdentifier TextDocument,
-    [property: DataMember(Name = "range")] LSP.Range Range,
-    [property: DataMember(Name = "attachDebugger")] bool AttachDebugger,
-    [property: DataMember(Name = "runSettingsPath")] string? RunSettingsPath
+    [property: System.Text.Json.Serialization.JsonPropertyName("textDocument")] LSP.TextDocumentIdentifier TextDocument,
+    [property: System.Text.Json.Serialization.JsonPropertyName("range")] LSP.Range Range,
+    [property: System.Text.Json.Serialization.JsonPropertyName("attachDebugger")] bool AttachDebugger,
+    [property: System.Text.Json.Serialization.JsonPropertyName("runSettingsPath")] string? RunSettingsPath
 ) : LSP.IPartialResultParams<RunTestsPartialResult>
 {
     [DataMember(Name = LSP.Methods.PartialResultTokenName)]

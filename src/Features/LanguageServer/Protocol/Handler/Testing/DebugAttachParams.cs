@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 
 [DataContract]
 internal record DebugAttachParams(
-    [property: DataMember(Name = "processId")] int ProcessId
+    [property: System.Text.Json.Serialization.JsonPropertyName("processId")] int ProcessId
 );
 

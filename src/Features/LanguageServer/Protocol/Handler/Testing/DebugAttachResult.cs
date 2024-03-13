@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 
 [DataContract]
 internal record DebugAttachResult(
-    [property: DataMember(Name = "didAttach")] bool DidAttach
+    [property: System.Text.Json.Serialization.JsonPropertyName("didAttach")] bool DidAttach
 );
 
