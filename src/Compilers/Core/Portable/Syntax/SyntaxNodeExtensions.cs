@@ -338,8 +338,8 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new token from this token without leading or trailing trivia.
         /// </summary>
         public static SyntaxToken WithoutTrivia(this SyntaxToken token)
-            => token.WithTrailingTrivia(default(SyntaxTriviaList))
-                    .WithLeadingTrivia(default(SyntaxTriviaList));
+            => token.WithTrailingTrivia((IEnumerable<SyntaxTrivia>?)null)
+                    .WithLeadingTrivia((IEnumerable<SyntaxTrivia>?)null);
 
         /// <summary>
         /// Creates a new node from this node with the leading trivia replaced.
