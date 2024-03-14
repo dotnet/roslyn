@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (member1.GetParameterCount() > 0 && !HaveSameParameterTypes(member1.GetParameters().AsSpan(), typeMap1, member2.GetParameters().AsSpan(), typeMap2,
-                                                                           _refKindCompareMode, _typeComparison))
+                                                                           _refKindCompareMode, considerParamsAndDefaultValues: _considerParamsAndDefaultValues, _typeComparison))
             {
                 return false;
             }
@@ -755,12 +755,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool HaveSameParameterTypes(
+        internal static bool HaveSameParameterTypes(
             ReadOnlySpan<ParameterSymbol> params1,
             TypeMap? typeMap1,
             ReadOnlySpan<ParameterSymbol> params2,
             TypeMap? typeMap2,
             RefKindCompareMode refKindCompareMode,
+            bool considerParamsAndDefaultValues,
             TypeCompareKind typeComparison)
         {
             Debug.Assert(params1.Length == params2.Length);
@@ -780,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                if (_considerParamsAndDefaultValues && (param1.IsParams != param2.IsParams ||
+                if (considerParamsAndDefaultValues && (param1.IsParams != param2.IsParams ||
                     param1.ExplicitDefaultConstantValue?.Value != param2.ExplicitDefaultConstantValue?.Value))
                 {
                     return false;
