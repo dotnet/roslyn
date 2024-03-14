@@ -57,6 +57,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     var logger = loggerFactory.CreateLogger<Program>();
 
+    logger.Log(serverConfiguration.LaunchDebugger ? LogLevel.Critical : LogLevel.Trace, "Server started with process ID {processId}", Environment.ProcessId);
     if (serverConfiguration.LaunchDebugger)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -66,8 +67,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         }
         else
         {
-            var timeout = TimeSpan.FromMinutes(1);
-            logger.LogCritical($"Server started with process ID {Environment.ProcessId}");
+            var timeout = TimeSpan.FromMinutes(2);
             logger.LogCritical($"Waiting {timeout:g} for a debugger to attach");
             using var timeoutSource = new CancellationTokenSource(timeout);
             while (!Debugger.IsAttached && !timeoutSource.Token.IsCancellationRequested)
