@@ -13543,6 +13543,78 @@ Expression<Func<string, string>> e = o => $""{o.Length}"" + $""literal"";";
 ");
         }
 
+        [Fact, WorkItem(72308, "https://github.com/dotnet/roslyn/issues/72308")]
+        public void AsStringInExpressionTrees_06()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+const char sp = ' ';
+Expression<Func<string, string>> e = o => $""{o}l{sp}{nameof(sp)}"";";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size      155 (0x9b)
+  .maxstack  7
+  .locals init (System.Linq.Expressions.ParameterExpression V_0)
+  IL_0000:  ldtoken    ""string""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""o""
+  IL_000f:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0014:  stloc.0
+  IL_0015:  ldnull
+  IL_0016:  ldtoken    ""string string.Format(string, object, object, object)""
+  IL_001b:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0020:  castclass  ""System.Reflection.MethodInfo""
+  IL_0025:  ldc.i4.4
+  IL_0026:  newarr     ""System.Linq.Expressions.Expression""
+  IL_002b:  dup
+  IL_002c:  ldc.i4.0
+  IL_002d:  ldstr      ""{0}l{1}{2}""
+  IL_0032:  ldtoken    ""string""
+  IL_0037:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_003c:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_0041:  stelem.ref
+  IL_0042:  dup
+  IL_0043:  ldc.i4.1
+  IL_0044:  ldloc.0
+  IL_0045:  stelem.ref
+  IL_0046:  dup
+  IL_0047:  ldc.i4.2
+  IL_0048:  ldc.i4.s   32
+  IL_004a:  box        ""char""
+  IL_004f:  ldtoken    ""char""
+  IL_0054:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0059:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_005e:  ldtoken    ""object""
+  IL_0063:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0068:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+  IL_006d:  stelem.ref
+  IL_006e:  dup
+  IL_006f:  ldc.i4.3
+  IL_0070:  ldstr      ""sp""
+  IL_0075:  ldtoken    ""string""
+  IL_007a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_007f:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_0084:  stelem.ref
+  IL_0085:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+  IL_008a:  ldc.i4.1
+  IL_008b:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0090:  dup
+  IL_0091:  ldc.i4.0
+  IL_0092:  ldloc.0
+  IL_0093:  stelem.ref
+  IL_0094:  call       ""System.Linq.Expressions.Expression<System.Func<string, string>> System.Linq.Expressions.Expression.Lambda<System.Func<string, string>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0099:  pop
+  IL_009a:  ret
+}
+");
+        }
+
         [Theory]
         [CombinatorialData]
         public void CustomHandlerUsedAsArgumentToCustomHandler(bool useBoolReturns, bool validityParameter, [CombinatorialValues(@"$""""", @"$"""" + $""""")] string expression)

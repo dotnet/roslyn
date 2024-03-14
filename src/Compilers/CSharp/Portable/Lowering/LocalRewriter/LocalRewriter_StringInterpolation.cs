@@ -366,6 +366,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // Generally, we can merge string or char literals into the format string.
+                //
+                //     $"{nameof(argument)}'s value is: {argument}"
+                //
+                // However, in expression trees, we mustn't apply such optimizations because we can't disguise the result as unoptimized one.
+
+                bool canHideOptimization = !_inExpressionLambda;
+
                 //
                 // We lower an interpolated string into an invocation of String.Format.  For example, we translate the expression
                 //
@@ -376,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     String.Format("Jenny don\'t change your number {0}", new object[] { 8675309 })
                 //
 
-                MakeInterpolatedStringFormat(node, out BoundExpression format, out ArrayBuilder<BoundExpression> expressions, true);
+                MakeInterpolatedStringFormat(node, out BoundExpression format, out ArrayBuilder<BoundExpression> expressions, canHideOptimization);
 
                 // The normal pattern for lowering is to lower subtrees before the enclosing tree. However we cannot lower
                 // the arguments first in this situation because we do not know what conversions will be
