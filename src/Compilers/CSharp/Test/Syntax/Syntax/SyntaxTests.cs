@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -292,6 +293,40 @@ void goo()
                     }
                 }
             }
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72300")]
+        [InlineData(nameof(SyntaxFacts.GetContextualKeywordKinds), SyntaxKind.YieldKeyword, SyntaxKind.FileKeyword)]
+        [InlineData(nameof(SyntaxFacts.GetPreprocessorKeywordKinds), SyntaxKind.ElifKeyword, SyntaxKind.RestoreKeyword)] // This case doesn't cover all possible preprocessor kinds
+        [InlineData(nameof(SyntaxFacts.GetPunctuationKinds), SyntaxKind.TildeToken, SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        [InlineData(nameof(SyntaxFacts.GetReservedKeywordKinds), SyntaxKind.BoolKeyword, SyntaxKind.ImplicitKeyword)]
+        public void TestRangeBasedGetKindsMethodsReturnExpectedResults(string methodName, SyntaxKind firstExpectedKind, SyntaxKind lastExpectedKind)
+        {
+            var method = typeof(SyntaxFacts).GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
+
+            Assert.NotNull(method);
+            Assert.Equal(0, method.GetParameters().Length);
+            Assert.Equal(typeof(IEnumerable<SyntaxKind>), method.ReturnType);
+
+            var kindsFromMethod = ((IEnumerable<SyntaxKind>)method.Invoke(null, null)).ToArray();
+
+            // Check that the value right before the expected lower bound isn't contained in the enumerable returned from the target method
+            Assert.DoesNotContain((SyntaxKind)((int)firstExpectedKind - 1), kindsFromMethod);
+
+            for (int i = (int)firstExpectedKind; i <= (int)lastExpectedKind; i++)
+            {
+                if (Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i))
+                {
+                    Assert.Contains((SyntaxKind)i, kindsFromMethod);
+                }
+                else
+                {
+                    Assert.DoesNotContain((SyntaxKind)i, kindsFromMethod);
+                }
+            }
+
+            // Check that the value right after the expected upper bound isn't contained in the enumerable returned from the target method
+            Assert.DoesNotContain((SyntaxKind)((int)lastExpectedKind + 1), kindsFromMethod);
         }
     }
 }
