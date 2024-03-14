@@ -312,6 +312,29 @@ public class Test
         }
 
         [Fact]
+        public void ExpressionsAreNotOptimized2()
+        {
+            var source = @"
+using System;
+using System.Linq.Expressions;
+
+public class Test
+{
+    static void Main()
+    {
+        const char c = 'c';
+        Expression<Func<string, string>> f = a => $""a: {a} c: {c} f: {nameof(f)}"";
+
+        Console.Write(f);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"a => Format(""a: {0} c: {1} f: {2}"", a, Convert(c, Object), ""f"")");
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void CombinationWithNonConcatenationAndStringConstants()
         {
             var source = @"
