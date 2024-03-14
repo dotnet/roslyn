@@ -2922,6 +2922,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasAnyBaseInterfaceConversion(TypeSymbol derivedType, TypeSymbol baseType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            return ImplementsVarianceCompatibleInterface(derivedType, baseType, ref useSiteInfo);
+        }
+
+        internal bool ImplementsVarianceCompatibleInterface(TypeSymbol derivedType, TypeSymbol baseType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
             Debug.Assert((object)derivedType != null);
             Debug.Assert((object)baseType != null);
             if (!baseType.IsInterfaceType())

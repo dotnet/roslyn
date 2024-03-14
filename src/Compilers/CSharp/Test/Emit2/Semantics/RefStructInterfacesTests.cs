@@ -5316,5 +5316,846 @@ class C<T, U>
                 Assert.False(u.AllowByRefLike);
             }
         }
+
+        [Fact]
+        public void ImplementAnInterface_01()
+        {
+            var src = @"
+interface I1
+{}
+
+ref struct S1 : I1
+{}
+";
+            var comp = CreateCompilation(src);
+
+            CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var s1 = m.GlobalNamespace.GetMember<NamedTypeSymbol>("S1");
+                Assert.Equal("I1", s1.InterfacesNoUseSiteDiagnostics().Single().ToTestDisplayString());
+            }
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (5,17): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // ref struct S1 : I1
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1").WithArguments("ref struct interfaces").WithLocation(5, 17)
+                );
+        }
+
+        [Fact]
+        public void ImplementAnInterface_02_IllegalBoxing()
+        {
+            var src = @"
+interface I1
+{}
+
+ref struct S1 : I1
+{}
+
+class C
+{
+    static I1 Test1(S1 x) => x;
+    static I1 Test2(S1 x) => (I1)x;
+}
+";
+            var comp = CreateCompilation(src);
+
+            comp.VerifyDiagnostics(
+                // (10,30): error CS0029: Cannot implicitly convert type 'S1' to 'I1'
+                //     static I1 Test1(S1 x) => x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("S1", "I1").WithLocation(10, 30),
+                // (11,30): error CS0030: Cannot convert type 'S1' to 'I1'
+                //     static I1 Test2(S1 x) => (I1)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(I1)x").WithArguments("S1", "I1").WithLocation(11, 30)
+                );
+        }
+
+        [Fact]
+        public void ImplementAnInterface_03()
+        {
+            var src = @"
+interface I1
+{
+    void M1();
+}
+
+ref struct S1 : I1
+{
+    public void M1()
+    {
+        System.Console.Write(""S1.M1"");
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test(new S1());
+    }
+    
+    static void Test<T>(T x) where T : I1
+    {
+        x.M1();
+    }
+}
+";
+            var comp = CreateCompilation(src);
+
+            comp.VerifyDiagnostics(
+                // (19,9): error CS9504: The type 'S1' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.Test<T>(T)'
+                //         Test(new S1());
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Test").WithArguments("C.Test<T>(T)", "T", "S1").WithLocation(19, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementAnInterface_04()
+        {
+            var src = @"
+interface I1
+{
+    void M1();
+}
+
+ref struct S1 : I1
+{
+    public void M1()
+    {
+        System.Console.Write(""S1.M1"");
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test1(new S1());
+        System.Console.Write("" "");
+        Test2(new S1());
+    }
+    
+    static void Test1<T>(T x) where T : I1, allows ref struct
+    {
+        x.M1();
+    }
+    
+    static void Test2<T>(T x) where T : I1, allows ref struct
+    {
+        Test1(x);
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"S1.M1 S1.M1" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+            verifier.VerifyIL("C.Test1<T>(T)",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""T""
+  IL_0008:  callvirt   ""void I1.M1()""
+  IL_000d:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ImplementAnInterface_05_Variance()
+        {
+            var src = @"
+interface I1<in T>
+{
+    void M1(T x);
+}
+
+ref struct S1 : I1<object>
+{
+    public void M1(object x)
+    {
+        System.Console.Write(""S1.M1"");
+        System.Console.Write("" "");
+        System.Console.Write(x);
+    }
+}
+
+class C
+{
+    static void Main()
+    {
+        Test(new S1(), ""y"");
+    }
+    
+    static void Test<T>(T x, string y) where T : I1<string>, allows ref struct
+    {
+        x.M1(y);
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"S1.M1 y" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+            verifier.VerifyIL("C.Test<T>(T, string)",
+@"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldarg.1
+  IL_0003:  constrained. ""T""
+  IL_0009:  callvirt   ""void I1<string>.M1(string)""
+  IL_000e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ImplementAnInterface_06_DefaultImplementation()
+        {
+            var src1 = @"
+public interface I1
+{
+    virtual void M1() {}
+    static virtual void M2() {}
+    sealed void M3() {}
+
+    public class C1 {}
+}
+
+ref struct S1 : I1
+{
+}
+
+ref struct S2 : I1
+{
+    public void M1()
+    {
+    }
+}
+";
+
+            var src2 = @"
+class C
+{
+    static void Test1(I1 x)
+    {
+        x.M1();
+        x.M3();
+    }
+
+    static void Test2<T>(T x) where T : I1, allows ref struct
+    {
+        x.M1();
+        T.M2();
+#line 100
+        x.M3();
+        _ = new T.C1();
+    }
+}
+";
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetCoreApp);
+
+            comp1.VerifyDiagnostics(
+                // (11,17): error CS9505: 'I1.M1()' cannot implement interface member 'I1.M1()' for ref struct 'S1'.
+                // ref struct S1 : I1
+                Diagnostic(ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "S1").WithLocation(11, 17)
+                );
+
+            comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            // PROTOTYPE(RefStructInterfaces): Specification suggests to report a warning for access to virtual (non-abstract) members.
+            comp2.VerifyDiagnostics(
+                // (100,9): error CS9506: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
+                //         x.M3();
+                Diagnostic(ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike, "x.M3").WithLocation(100, 9),
+                // (101,17): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
+                //         _ = new T.C1();
+                Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T.C1").WithArguments("T").WithLocation(101, 17)
+                );
+        }
+
+        [Fact]
+        public void ImplementAnInterface_07_DefaultImplementation()
+        {
+            var src1 = @"
+public interface I1
+{
+    virtual int P1 => 1;
+    static virtual int P2 => 2;
+    sealed int P3 => 3;
+}
+
+ref struct S1 : I1
+{
+}
+
+ref struct S2 : I1
+{
+    public int P1 => 21;
+}
+";
+
+            var src2 = @"
+class C
+{
+    static void Test1(I1 x)
+    {
+        _ = x.P1;
+        _ = x.P3;
+    }
+
+    static void Test2<T>(T x) where T : I1, allows ref struct
+    {
+        _ = x.P1;
+        _ = T.P2;
+#line 100
+        _ = x.P3;
+    }
+}
+";
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetCoreApp);
+
+            comp1.VerifyDiagnostics(
+                // (9,17): error CS9505: 'I1.P1.get' cannot implement interface member 'I1.P1.get' for ref struct 'S1'.
+                // ref struct S1 : I1
+                Diagnostic(ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "S1").WithLocation(9, 17)
+                );
+
+            comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            // PROTOTYPE(RefStructInterfaces): Specification suggests to report a warning for access to virtual (non-abstract) members.
+            comp2.VerifyDiagnostics(
+                // (100,13): error CS9506: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
+                //         _ = x.P3;
+                Diagnostic(ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike, "x.P3").WithLocation(100, 13)
+                );
+        }
+
+        [Fact]
+        public void ImplementAnInterface_08_DefaultImplementation()
+        {
+            var src1 = @"
+public interface I1
+{
+    virtual int P1 {set{}}
+    static virtual int P2 {set{}}
+    sealed int P3 {set{}}
+}
+
+ref struct S1 : I1
+{
+}
+
+ref struct S2 : I1
+{
+    public int P1 {set{}}
+}
+";
+
+            var src2 = @"
+class C
+{
+    static void Test1(I1 x)
+    {
+        x.P1 = 11;
+        x.P3 = 11;
+    }
+
+    static void Test2<T>(T x) where T : I1, allows ref struct
+    {
+        x.P1 = 123;
+        T.P2 = 123;
+        x.P3 = 123;
+    }
+}
+";
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetCoreApp);
+
+            comp1.VerifyDiagnostics(
+                // (9,17): error CS9505: 'I1.P1.set' cannot implement interface member 'I1.P1.set' for ref struct 'S1'.
+                // ref struct S1 : I1
+                Diagnostic(ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.set", "I1.P1.set", "S1").WithLocation(9, 17)
+                );
+
+            comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            // PROTOTYPE(RefStructInterfaces): Specification suggests to report a warning for access to virtual (non-abstract) members.
+            comp2.VerifyDiagnostics(
+                // (14,9): error CS9506: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
+                //         x.P3 = 123;
+                Diagnostic(ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike, "x.P3").WithLocation(14, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementAnInterface_09_DefaultImplementation()
+        {
+            var src1 = @"
+public interface I1
+{
+    virtual int this[int x] => 1;
+}
+
+public interface I2
+{
+    sealed int this[long x] => 1;
+}
+
+ref struct S1 : I1, I2
+{
+}
+
+ref struct S2 : I1, I2
+{
+    public int this[int x] => 21;
+}
+";
+
+            var src2 = @"
+class C
+{
+    static void Test1(I1 x)
+    {
+        _ = x[1];
+    }
+
+    static void Test1(I2 x)
+    {
+        _ = x[2];
+    }
+
+    static void Test2<T>(T x) where T : I1, allows ref struct
+    {
+        _ = x[3];
+    }
+
+    static void Test3<T>(T x) where T : I2, allows ref struct
+    {
+        _ = x[4];
+    }
+}
+";
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetCoreApp);
+
+            comp1.VerifyDiagnostics(
+                // (12,17): error CS9505: 'I1.this[int].get' cannot implement interface member 'I1.this[int].get' for ref struct 'S1'.
+                // ref struct S1 : I1, I2
+                Diagnostic(ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].get", "I1.this[int].get", "S1").WithLocation(12, 17)
+                );
+
+            comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            // PROTOTYPE(RefStructInterfaces): Specification suggests to report a warning for access to virtual (non-abstract) members.
+            comp2.VerifyDiagnostics(
+                // (21,13): error CS9506: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
+                //         _ = x[4];
+                Diagnostic(ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike, "x[4]").WithLocation(21, 13)
+                );
+        }
+
+        [Fact]
+        public void ImplementAnInterface_10_DefaultImplementation()
+        {
+            var src1 = @"
+public interface I1
+{
+    virtual int this[int x] {set{}}
+}
+
+public interface I2
+{
+    sealed int this[long x] {set{}}
+}
+
+ref struct S1 : I1, I2
+{
+}
+
+ref struct S2 : I1, I2
+{
+    public int this[int x] {set{}}
+}
+";
+
+            var src2 = @"
+class C
+{
+    static void Test1(I1 x)
+    {
+        x[1] = 1;
+    }
+
+    static void Test1(I2 x)
+    {
+        x[2] = 2;
+    }
+
+    static void Test2<T>(T x) where T : I1, allows ref struct
+    {
+        x[3] = 3;
+    }
+
+    static void Test3<T>(T x) where T : I2, allows ref struct
+    {
+        x[4] = 4;
+    }
+}
+";
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetCoreApp);
+
+            comp1.VerifyDiagnostics(
+                // (12,17): error CS9505: 'I1.this[int].set' cannot implement interface member 'I1.this[int].set' for ref struct 'S1'.
+                // ref struct S1 : I1, I2
+                Diagnostic(ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "S1").WithLocation(12, 17)
+                );
+
+            comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            // PROTOTYPE(RefStructInterfaces): Specification suggests to report a warning for access to virtual (non-abstract) members.
+            comp2.VerifyDiagnostics(
+                // (21,9): error CS9506: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
+                //         x[4] = 4;
+                Diagnostic(ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike, "x[4]").WithLocation(21, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementAnInterface_11_DefaultImplementation()
+        {
+            var src1 = @"
+public interface I1
+{
+    virtual event System.Action E1 {add{} remove{}}
+    static virtual event System.Action E2 {add{} remove{}}
+    sealed event System.Action E3 {add{} remove{}}
+}
+
+ref struct S1 : I1
+{
+}
+
+ref struct S2 : I1
+{
+#pragma warning disable CS0067 // The event 'S2.E1' is never used
+    public event System.Action E1;
+}
+";
+
+            var src2 = @"
+class C
+{
+    static void Test1(I1 x)
+    {
+        x.E1 += null;
+        x.E3 += null;
+        x.E1 -= null;
+        x.E3 -= null;
+    }
+
+    static void Test2<T>(T x) where T : I1, allows ref struct
+    {
+        x.E1 += null;
+        T.E2 += null;
+#line 100
+        x.E3 += null;
+        x.E1 -= null;
+        T.E2 -= null;
+#line 200
+        x.E3 -= null;
+    }
+}
+";
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetCoreApp);
+
+            comp1.VerifyDiagnostics(
+                // (9,17): error CS9505: 'I1.E1.add' cannot implement interface member 'I1.E1.add' for ref struct 'S1'.
+                // ref struct S1 : I1
+                Diagnostic(ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E1.add", "I1.E1.add", "S1").WithLocation(9, 17),
+                // (9,17): error CS9505: 'I1.E1.remove' cannot implement interface member 'I1.E1.remove' for ref struct 'S1'.
+                // ref struct S1 : I1
+                Diagnostic(ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E1.remove", "I1.E1.remove", "S1").WithLocation(9, 17)
+                );
+
+            comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            // PROTOTYPE(RefStructInterfaces): Specification suggests to report a warning for access to virtual (non-abstract) members.
+            comp2.VerifyDiagnostics(
+                // (100,9): error CS9506: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
+                //         x.E3 += null;
+                Diagnostic(ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike, "x.E3 += null").WithLocation(100, 9),
+                // (200,9): error CS9506: A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.
+                //         x.E3 -= null;
+                Diagnostic(ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike, "x.E3 -= null").WithLocation(200, 9)
+                );
+        }
+
+        [Fact]
+        public void ConstraintsCheck_01()
+        {
+            var src = @"
+ref struct S1
+{
+}
+
+class C
+{
+    static void Main()
+    {
+        Test(new S1());
+    }
+    
+    static void Test<T>(T x)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (10,9): error CS9504: The type 'S1' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.Test<T>(T)'
+                //         Test(new S1());
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Test").WithArguments("C.Test<T>(T)", "T", "S1").WithLocation(10, 9)
+                );
+        }
+
+        [Fact]
+        public void ConstraintsCheck_02()
+        {
+            var src1 = @"
+public class Helper
+{
+#line 100
+    public static void Test<T>(T x) where T : allows ref struct
+    {
+        System.Console.Write(""Called"");
+    }
+}
+";
+            var src2 = @"
+ref struct S1
+{
+}
+
+class C
+{
+    static void Main()
+    {
+#line 200
+        Helper.Test(new S1());
+    }
+}
+";
+            var comp = CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation([src1, src2], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (100,54): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void Test<T>(T x) where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref struct").WithArguments("ref struct interfaces").WithLocation(100, 54)
+                );
+
+            var comp1Ref = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics).ToMetadataReference();
+
+            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"Called" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            CreateCompilation(src2, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(src2, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (200,9): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Helper.Test(new S1());
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Helper.Test").WithArguments("ref struct interfaces").WithLocation(200, 9)
+                );
+
+            CreateCompilation([src1, src2], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (100,54): error CS9500: Target runtime doesn't support by-ref-like generics.
+                //     public static void Test<T>(T x) where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(100, 54)
+                );
+
+            comp1Ref = CreateCompilation(src1, targetFramework: TargetFramework.DesktopLatestExtended).ToMetadataReference();
+
+            CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (200,9): error CS9500: Target runtime doesn't support by-ref-like generics.
+                //         Helper.Test(new S1());
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "Helper.Test").WithLocation(200, 9)
+                );
+        }
+
+        [Fact]
+        public void ConstraintsCheck_03()
+        {
+            var src = @"
+ref struct S1
+{
+}
+
+class C
+{
+    static void Test1<T>(T x) where T : allows ref struct
+    {
+        Test2(x);
+        Test2<T>(x);
+    }
+
+    static void Test2<T>(T x)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (10,9): error CS9504: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.Test2<T>(T)'
+                //         Test2(x);
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Test2").WithArguments("C.Test2<T>(T)", "T", "T").WithLocation(10, 9),
+                // (11,9): error CS9504: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.Test2<T>(T)'
+                //         Test2<T>(x);
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Test2<T>").WithArguments("C.Test2<T>(T)", "T", "T").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void ConstraintsCheck_04()
+        {
+            var src = @"
+ref struct S1
+{
+}
+
+class C
+{
+    static void Main()
+    {
+        Test2((byte)2);
+        Test3((int)3);
+        Test3(new S1());
+        Test4((long)4);
+    }
+
+    static void Test1<T>(T x) where T : allows ref struct
+    {
+        System.Console.WriteLine(""Called {0}"", typeof(T));
+    }
+
+    static void Test2<T>(T x)
+    {
+        Test1(x);
+        Test1<T>(x);
+    }
+
+    static void Test3<T>(T x) where T : allows ref struct
+    {
+        Test1(x);
+        Test1<T>(x);
+    }
+
+    static void Test4<T>(T x)
+    {
+        Test2(x);
+        Test2<T>(x);
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"
+Called System.Byte
+Called System.Byte
+Called System.Int32
+Called System.Int32
+Called S1
+Called S1
+Called System.Int64
+Called System.Int64
+Called System.Int64
+Called System.Int64", verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ConstraintsCheck_05()
+        {
+            var src = @"
+ref struct S1
+{
+}
+
+class C<T, S>
+    where T : allows ref struct
+    where S : T
+{
+    static void Main()
+    {
+        _ = typeof(C<S1, S1>);
+        _ = typeof(C<int, int>);
+        _ = typeof(C<object, object>);
+        _ = typeof(C<object, string>);
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (12,26): error CS9504: The type 'S1' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'S' in the generic type or method 'C<T, S>'
+                //         _ = typeof(C<S1, S1>);
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "S1").WithArguments("C<T, S>", "S", "S1").WithLocation(12, 26)
+                );
+        }
+
+        [Fact]
+        public void IllegalBoxing_01()
+        {
+            var src = @"
+public class Helper
+{
+    public static object Test<T>(T x) where T : allows ref struct
+    {
+        return x;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            // PROTOTYPE(RefStructInterfaces): The boxing should be disallowed.
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void IllegalBoxing_02()
+        {
+            var src = @"
+public interface I1
+{
+}
+
+public class Helper
+{
+    public static I1 Test<T>(T x) where T : I1, allows ref struct
+    {
+        return x;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            // PROTOTYPE(RefStructInterfaces): The boxing should be disallowed.
+            comp.VerifyDiagnostics(
+                );
+        }
     }
 }

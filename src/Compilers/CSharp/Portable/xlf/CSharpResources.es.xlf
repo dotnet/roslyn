@@ -237,6 +237,11 @@
         <target state="translated">El descriptor de acceso "init" no es válido en miembros estáticos</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike">
+        <source>A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.</source>
+        <target state="new">A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
         <target state="translated">Opción no válida "{0}" para /nullable; debe ser "deshabilitar", ·"habilitar", "advertencias" o "anotaciones"</target>
@@ -1472,6 +1477,11 @@
         <target state="translated">"{0}" debe permitir la invalidación porque el registro contenedor no está sellado.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NotRefStructConstraintNotSatisfied">
+        <source>The type '{2}' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
+        <target state="new">The type '{2}' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '{1}' in the generic type or method '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
         <source>null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.</source>
         <target state="translated">null no es un nombre de parámetro válido. Para obtener acceso al receptor de un método de instancia, use la cadena vacía como nombre del parámetro.</target>
@@ -1780,6 +1790,11 @@
       <trans-unit id="ERR_RefStructConstraintAlreadySpecified">
         <source>'ref struct' is already specified.</source>
         <target state="new">'ref struct' is already specified.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' for ref struct '{2}'.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' for ref struct '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">
@@ -7885,11 +7900,6 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
       <trans-unit id="ERR_StaticClassInterfaceImpl">
         <source>'{0}': static classes cannot implement interfaces</source>
         <target state="translated">'{0}': las clases estáticas no pueden implementar interfaces</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RefStructInterfaceImpl">
-        <source>'{0}': ref structs cannot implement interfaces</source>
-        <target state="translated">"{0}": las estructuras ref no pueden implementar interfaces.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorInStaticClass">

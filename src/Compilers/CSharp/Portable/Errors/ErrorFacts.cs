@@ -1839,7 +1839,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FieldsInRoStruct:
                 case ErrorCode.ERR_AutoPropsInRoStruct:
                 case ErrorCode.ERR_FieldlikeEventsInRoStruct:
-                case ErrorCode.ERR_RefStructInterfaceImpl:
                 case ErrorCode.ERR_BadSpecialByRefIterator:
                 case ErrorCode.ERR_FieldAutoPropCantBeByRefLike:
                 case ErrorCode.ERR_StackAllocConversionNotPossible:
@@ -2434,6 +2433,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_RefStructConstraintAlreadySpecified:
                 case ErrorCode.ERR_AllowsClauseMustBeLast:
                 case ErrorCode.ERR_ClassIsCombinedWithRefStruct:
+                case ErrorCode.ERR_NotRefStructConstraintNotSatisfied:
+                case ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember:
+                case ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

@@ -2105,9 +2105,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_StaticClassInterfaceImpl" xml:space="preserve">
     <value>'{0}': static classes cannot implement interfaces</value>
   </data>
-  <data name="ERR_RefStructInterfaceImpl" xml:space="preserve">
-    <value>'{0}': ref structs cannot implement interfaces</value>
-  </data>
   <data name="ERR_OperatorInStaticClass" xml:space="preserve">
     <value>'{0}': static classes cannot contain user-defined operators</value>
   </data>
@@ -7916,5 +7913,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ClassIsCombinedWithRefStruct" xml:space="preserve">
     <value>Cannot allow ref structs for a type parameter known from other constraints to be a class</value>
+  </data>
+  <data name="ERR_NotRefStructConstraintNotSatisfied" xml:space="preserve">
+    <value>The type '{2}' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '{1}' in the generic type or method '{0}'</value>
+  </data>
+  <data name="ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember" xml:space="preserve">
+    <value>'{0}' cannot implement interface member '{1}' for ref struct '{2}'.</value>
+  </data>
+  <data name="ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike" xml:space="preserve">
+    <value>A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.</value>
   </data>
 </root>

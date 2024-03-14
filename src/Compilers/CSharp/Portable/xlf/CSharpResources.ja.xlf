@@ -237,6 +237,11 @@
         <target state="translated">静的メンバー上で 'init' アクセサーは有効ではありません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike">
+        <source>A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.</source>
+        <target state="new">A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
         <target state="translated">/nullable のオプション '{0}' が無効です。'disable'、'enable'、'warnings'、'annotations' のいずれかにする必要があります</target>
@@ -1472,6 +1477,11 @@
         <target state="translated">'{0}' ではオーバーライドを許可する必要があります。これが含まれているレコードが sealed ではないためです。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NotRefStructConstraintNotSatisfied">
+        <source>The type '{2}' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
+        <target state="new">The type '{2}' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '{1}' in the generic type or method '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
         <source>null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.</source>
         <target state="translated">null は有効なパラメーター名ではありません。インスタンス メソッドのレシーバーへのアクセスを取得するには、パラメーター名として空の文字列を使用します。</target>
@@ -1780,6 +1790,11 @@
       <trans-unit id="ERR_RefStructConstraintAlreadySpecified">
         <source>'ref struct' is already specified.</source>
         <target state="new">'ref struct' is already specified.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' for ref struct '{2}'.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' for ref struct '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">
@@ -7885,11 +7900,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_StaticClassInterfaceImpl">
         <source>'{0}': static classes cannot implement interfaces</source>
         <target state="translated">'{0}': 静的クラスはインターフェイスを実装することができません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RefStructInterfaceImpl">
-        <source>'{0}': ref structs cannot implement interfaces</source>
-        <target state="translated">'{0}': ref 構造体はインターフェイスを実装できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorInStaticClass">

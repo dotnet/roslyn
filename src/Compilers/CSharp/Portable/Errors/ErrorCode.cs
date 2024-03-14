@@ -1528,7 +1528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FieldsInRoStruct = 8340,
         ERR_AutoPropsInRoStruct = 8341,
         ERR_FieldlikeEventsInRoStruct = 8342,
-        ERR_RefStructInterfaceImpl = 8343,
+        // ERR_RefStructInterfaceImpl = 8343,
         ERR_BadSpecialByRefIterator = 8344,
         ERR_FieldAutoPropCantBeByRefLike = 8345,
         ERR_StackAllocConversionNotPossible = 8346,
@@ -2304,6 +2304,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefStructConstraintAlreadySpecified = 9501,
         ERR_AllowsClauseMustBeLast = 9502,
         ERR_ClassIsCombinedWithRefStruct = 9503,
+        ERR_NotRefStructConstraintNotSatisfied = 9504,
+        ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember = 9505,
+        ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike = 9506,
 
         #endregion
 
