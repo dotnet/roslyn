@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[][] s_signaturesOfMemberNotNullAttribute = { s_signature_HasThis_Void_String, s_signature_HasThis_Void_SzArray_String };
         private static readonly byte[][] s_signaturesOfMemberNotNullWhenAttribute = { s_signature_HasThis_Void_Boolean_String, s_signature_HasThis_Void_Boolean_SzArray_String };
         private static readonly byte[][] s_signaturesOfFixedBufferAttribute = { s_signature_HasThis_Void_Type_Int32 };
-        private static readonly byte[][] s_signaturesOfInterceptsLocationAttribute = { s_signature_HasThis_Void_String_Int32_Int32 };
+        private static readonly byte[][] s_signaturesOfInterceptsLocationAttribute = { s_signature_HasThis_Void_String, s_signature_HasThis_Void_String_Int32_Int32 };
         private static readonly byte[][] s_signaturesOfPrincipalPermissionAttribute = { s_signature_HasThis_Void_SecurityAction };
         private static readonly byte[][] s_signaturesOfPermissionSetAttribute = { s_signature_HasThis_Void_SecurityAction };
 

@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -942,25 +943,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void DecodeInterceptsLocationAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
-            Debug.Assert(arguments.AttributeSyntaxOpt is object);
             Debug.Assert(!arguments.Attribute.HasErrors);
-            var attributeData = arguments.Attribute;
-            var attributeArguments = attributeData.CommonConstructorArguments;
-            if (attributeArguments is not [
+            var constructorArguments = arguments.Attribute.CommonConstructorArguments;
+            if (constructorArguments is [
                 { Type.SpecialType: SpecialType.System_String },
                 { Kind: not TypedConstantKind.Array, Value: int lineNumberOneBased },
                 { Kind: not TypedConstantKind.Array, Value: int characterNumberOneBased }])
             {
-                // Since the attribute does not have errors (asserted above), it should be guaranteed that we have the above arguments.
-                throw ExceptionUtilities.Unreachable();
+                DecodeInterceptsLocationAttributeArguments(arguments, isLegacyConstructor: true, attributeFilePath: (string?)constructorArguments[0].Value, lineNumberOneBased, characterNumberOneBased);
+            }
+            else
+            {
+                Debug.Assert(arguments.Attribute.AttributeConstructor.Parameters is [{ Type.SpecialType: SpecialType.System_String }]);
+                DecodeInterceptsLocationSpecifier(arguments, locationSpecifier: (string?)constructorArguments[0].Value);
+            }
+        }
+
+        private void DecodeInterceptsLocationSpecifier(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, string? locationSpecifier)
+        {
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+            if (locationSpecifier is null
+                || GeneratedRegexes.GetInterceptsLocationSpecifierRegex().Match(locationSpecifier) is not { Success: true } match
+                || !tryParse(match.Groups[2], out int lineNumberOneBased)
+                || !tryParse(match.Groups[3], out int characterNumberOneBased))
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorLocationSpecifierInvalidFormat, arguments.Attribute.GetAttributeArgumentLocation(parameterIndex: 0));
+                return;
             }
 
+            DecodeInterceptsLocationAttributeArguments(arguments, isLegacyConstructor: false, attributeFilePath: match.Groups[1].Value, lineNumberOneBased, characterNumberOneBased);
+
+            static bool tryParse(Capture capture, out int result)
+            {
+#if NETCOREAPP
+                ReadOnlySpan<char> s = capture.ValueSpan;
+#else
+                string s = capture.Value;
+#endif
+                return int.TryParse(s, out result);
+            }
+        }
+
+        private void DecodeInterceptsLocationAttributeArguments(
+            DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments,
+            bool isLegacyConstructor,
+            string? attributeFilePath,
+            int lineNumberOneBased,
+            int characterNumberOneBased)
+        {
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
             var attributeSyntax = arguments.AttributeSyntaxOpt;
+            Debug.Assert(attributeSyntax is object);
             var attributeLocation = attributeSyntax.Location;
-            const int filePathParameterIndex = 0;
-            const int lineNumberParameterIndex = 1;
-            const int characterNumberParameterIndex = 2;
+            int filePathParameterIndex = 0;
+            int lineNumberParameterIndex = isLegacyConstructor ? 1 : 0;
+            int characterNumberParameterIndex = isLegacyConstructor ? 2 : 0;
 
             var interceptorsNamespaces = ((CSharpParseOptions)attributeSyntax.SyntaxTree.Options).InterceptorsPreviewNamespaces;
             var thisNamespaceNames = getNamespaceNames();
@@ -973,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             thisNamespaceNames.Free();
 
-            var attributeFilePath = (string?)attributeArguments[0].Value;
+            var attributeData = arguments.Attribute;
             if (attributeFilePath is null)
             {
                 diagnostics.Add(ErrorCode.ERR_InterceptorFilePathCannotBeNull, attributeData.GetAttributeArgumentLocation(filePathParameterIndex));

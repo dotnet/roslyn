@@ -24,9 +24,8 @@ public class InterceptorsTests : CSharpTestBase
         [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
         public sealed class InterceptsLocationAttribute : Attribute
         {
-            public InterceptsLocationAttribute(string filePath, int line, int character)
-            {
-            }
+            public InterceptsLocationAttribute(string filePath, int line, int character) { }
+            public InterceptsLocationAttribute(string locationSpecifier) { }
         }
         """, "attributes.cs");
 
@@ -2542,9 +2541,9 @@ public class InterceptorsTests : CSharpTestBase
             // Program.cs(8,39): error CS0103: The name 'ERROR' does not exist in the current context
             //     [InterceptsLocation("Program.cs", ERROR, 1)]
             Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(8, 39),
-            // Program.cs(9,6): error CS7036: There is no argument given that corresponds to the required parameter 'filePath' of 'InterceptsLocationAttribute.InterceptsLocationAttribute(string, int, int)'
+            // Program.cs(9,6): error CS1729: 'InterceptsLocationAttribute' does not contain a constructor that takes 0 arguments
             //     [InterceptsLocation()]
-            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "InterceptsLocation()").WithArguments("filePath", "System.Runtime.CompilerServices.InterceptsLocationAttribute.InterceptsLocationAttribute(string, int, int)").WithLocation(9, 6)
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, "InterceptsLocation()").WithArguments("System.Runtime.CompilerServices.InterceptsLocationAttribute", "0").WithLocation(9, 6)
             );
     }
 
@@ -5797,5 +5796,80 @@ partial struct CustomHandler
             // Interceptor.cs(6,6): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'D.Generic<T, U>(C<T>, U)'
             //     [InterceptsLocation("Program.cs", 15, 11)]
             Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, @"InterceptsLocation(""Program.cs"", 15, 11)").WithArguments("D.Generic<T, U>(C<T>, U)", "T", "int").WithLocation(6, 6));
+    }
+
+    [Fact]
+    public void LocationSpecifier_01()
+    {
+        var source = ("""
+            class Program
+            {
+                static void Main()
+                {
+                    M();
+                }
+
+                static void M() => throw null!;
+            }
+            """, PlatformInformation.IsWindows ? "C:/src/Program.cs" : "/src/Program.cs");
+
+        var interceptors = ("""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            static class Interceptors
+            {
+                [InterceptsLocation("v1:../src/Program.cs(5,9)")]
+                public static void M() => Console.Write(1);
+            }
+            """, PlatformInformation.IsWindows ? "C:/obj/Interceptors.cs" : "/obj/Interceptors.cs");
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesSource], parseOptions: RegularWithInterceptors, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData(@"""v1:../src/Program.cs(5, 9)""")]
+    [InlineData(@"""v1:../src/Program.cs( 5, 9 )""")]
+    [InlineData(@"""../src/Program.cs(5,9)""")]
+    [InlineData(@"""v1:../src/Program.cs(a,9)""")]
+    [InlineData(@"""v1:../src/Program.cs((a,9)""")]
+    [InlineData(@"""v1:../src/Program.cs(a,9))""")]
+    [InlineData(@"""v1:../src/Program.cs(a,9""")]
+    [InlineData(@"""v1:../src/Program.csa,9)""")]
+    [InlineData(@"""v1:../src/Program.cs(5,b)""")]
+    [InlineData(@"""v1:../src/Program.cs(b)""")]
+    [InlineData(@"""v1:""")]
+    [InlineData(@""" """)]
+    public void LocationSpecifier_02(string locationSpecifier)
+    {
+        var source = ("""
+            class Program
+            {
+                static void Main()
+                {
+                    M();
+                }
+
+                static void M() => throw null!;
+            }
+            """, PlatformInformation.IsWindows ? "C:/src/Program.cs" : "/src/Program.cs");
+
+        var interceptors = ($$"""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            static class Interceptors
+            {
+                [InterceptsLocation({{locationSpecifier}})]
+                public static void M() => Console.Write(1);
+            }
+            """, PlatformInformation.IsWindows ? "C:/obj/Interceptors.cs" : "/obj/Interceptors.cs");
+
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // C:/obj/Interceptors.cs(6,25): error CS9229: Location specifier does not match expected format 'v1:path(line,character)'.
+            //     [InterceptsLocation("v1:../src/Program.cs(a,9)")]
+            Diagnostic(ErrorCode.ERR_InterceptorLocationSpecifierInvalidFormat, locationSpecifier).WithLocation(6, 25));
     }
 }
