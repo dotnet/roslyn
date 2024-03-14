@@ -4,18 +4,17 @@
 
 using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.CSharp.LanguageService
+namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
+
+internal class CSharpFileBannerFacts : AbstractFileBannerFacts
 {
-    internal class CSharpFileBannerFacts : AbstractFileBannerFacts
+    public static readonly IFileBannerFacts Instance = new CSharpFileBannerFacts();
+
+    protected CSharpFileBannerFacts()
     {
-        public static readonly IFileBannerFacts Instance = new CSharpFileBannerFacts();
-
-        protected CSharpFileBannerFacts()
-        {
-        }
-
-        protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
-
-        protected override IDocumentationCommentService DocumentationCommentService => CSharpDocumentationCommentService.Instance;
     }
+
+    protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+
+    protected override IDocumentationCommentService DocumentationCommentService => CSharpDocumentationCommentService.Instance;
 }

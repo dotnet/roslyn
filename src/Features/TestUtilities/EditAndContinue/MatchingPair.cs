@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public readonly List<MatchingPair> Pairs;
 
         public MatchingPairs()
-            => Pairs = new List<MatchingPair>();
+            => Pairs = [];
 
         public MatchingPairs(IEnumerable<MatchingPair> pairs)
             => Pairs = pairs.ToList();

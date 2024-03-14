@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 {
                     var (unmappedSpan, ordinal) = marker;
                     var mappedSpan = tree.GetMappedLineSpan(unmappedSpan);
-                    var documentActiveStatements = documentMap.GetOrAdd(mappedSpan.Path, path => new List<ActiveStatement>());
+                    var documentActiveStatements = documentMap.GetOrAdd(mappedSpan.Path, path => []);
 
                     var statementFlags = (flags != null) ? flags[ordinal] :
                         ((ordinal == 0) ? ActiveStatementFlags.LeafFrame : ActiveStatementFlags.NonLeafFrame) | ActiveStatementFlags.MethodUpToDate;

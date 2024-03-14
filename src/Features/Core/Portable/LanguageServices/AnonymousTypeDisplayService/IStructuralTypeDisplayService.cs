@@ -5,19 +5,18 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.LanguageService
-{
-    internal interface IStructuralTypeDisplayService : ILanguageService
-    {
-        StructuralTypeDisplayInfo GetTypeDisplayInfo(
-            ISymbol orderSymbol,
-            ImmutableArray<INamedTypeSymbol> structuralTypes,
-            SemanticModel semanticModel,
-            int position);
+namespace Microsoft.CodeAnalysis.LanguageService;
 
-        ImmutableArray<SymbolDisplayPart> GetAnonymousTypeParts(
-            INamedTypeSymbol anonymousType,
-            SemanticModel semanticModel,
-            int position);
-    }
+internal interface IStructuralTypeDisplayService : ILanguageService
+{
+    StructuralTypeDisplayInfo GetTypeDisplayInfo(
+        ISymbol orderSymbol,
+        ImmutableArray<INamedTypeSymbol> structuralTypes,
+        SemanticModel semanticModel,
+        int position);
+
+    ImmutableArray<SymbolDisplayPart> GetAnonymousTypeParts(
+        INamedTypeSymbol anonymousType,
+        SemanticModel semanticModel,
+        int position);
 }

@@ -11,31 +11,30 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Organizing.Organizers;
 
-namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
-{
-    [ExportSyntaxNodeOrganizer(LanguageNames.CSharp), Shared]
-    internal class EnumDeclarationOrganizer : AbstractSyntaxNodeOrganizer<EnumDeclarationSyntax>
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EnumDeclarationOrganizer()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers;
 
-        protected override EnumDeclarationSyntax Organize(
-            EnumDeclarationSyntax syntax,
-            CancellationToken cancellationToken)
-        {
-            return syntax.Update(
-                syntax.AttributeLists,
-                ModifiersOrganizer.Organize(syntax.Modifiers),
-                syntax.EnumKeyword,
-                syntax.Identifier,
-                syntax.BaseList,
-                syntax.OpenBraceToken,
-                syntax.Members,
-                syntax.CloseBraceToken,
-                syntax.SemicolonToken);
-        }
+[ExportSyntaxNodeOrganizer(LanguageNames.CSharp), Shared]
+internal class EnumDeclarationOrganizer : AbstractSyntaxNodeOrganizer<EnumDeclarationSyntax>
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public EnumDeclarationOrganizer()
+    {
+    }
+
+    protected override EnumDeclarationSyntax Organize(
+        EnumDeclarationSyntax syntax,
+        CancellationToken cancellationToken)
+    {
+        return syntax.Update(
+            syntax.AttributeLists,
+            ModifiersOrganizer.Organize(syntax.Modifiers),
+            syntax.EnumKeyword,
+            syntax.Identifier,
+            syntax.BaseList,
+            syntax.OpenBraceToken,
+            syntax.Members,
+            syntax.CloseBraceToken,
+            syntax.SemicolonToken);
     }
 }

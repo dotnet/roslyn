@@ -47,9 +47,9 @@
         <target state="translated">Tests werden ermittelt...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Exception_thrown_while_loading_0">
-        <source>Exception thrown while loading {0}</source>
-        <target state="translated">Ausnahme beim Laden von "{0}" ausgelöst.</target>
+      <trans-unit id="Exception_thrown_0">
+        <source>Exception thrown: {0}</source>
+        <target state="new">Exception thrown: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed">

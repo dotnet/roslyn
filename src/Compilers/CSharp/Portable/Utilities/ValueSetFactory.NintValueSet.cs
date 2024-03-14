@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private sealed class NintValueSet : IValueSet<int>, IValueSet
         {
-            public static readonly NintValueSet AllValues = new NintValueSet(hasSmall: true, values: NumericValueSet<int, IntTC>.AllValues, hasLarge: true);
+            public static readonly NintValueSet AllValues = new NintValueSet(hasSmall: true, values: NumericValueSet<int>.AllValues(IntTC.DefaultInstance), hasLarge: true);
 
-            public static readonly NintValueSet NoValues = new NintValueSet(hasSmall: false, values: NumericValueSet<int, IntTC>.NoValues, hasLarge: false);
+            public static readonly NintValueSet NoValues = new NintValueSet(hasSmall: false, values: NumericValueSet<int>.NoValues(IntTC.DefaultInstance), hasLarge: false);
 
             private readonly IValueSet<int> _values;
 

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.SymbolMapping;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
-    [ExportWorkspaceServiceFactory(typeof(ISymbolMappingService), WorkspaceKind.MetadataAsSource)]
+    [ExportWorkspaceServiceFactory(typeof(ISymbolMappingService), [WorkspaceKind.MetadataAsSource])]
     [Shared]
     internal class SymbolMappingServiceFactory : IWorkspaceServiceFactory
     {

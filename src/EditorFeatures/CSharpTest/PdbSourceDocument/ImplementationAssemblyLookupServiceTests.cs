@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
         /// </summary>
         private class NoDuplicatesLogger : IPdbSourceDocumentLogger
         {
-            private readonly HashSet<string> _logs = new();
+            private readonly HashSet<string> _logs = [];
             public void Clear()
             {
                 _logs.Clear();

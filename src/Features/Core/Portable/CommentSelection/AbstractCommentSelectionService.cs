@@ -11,18 +11,17 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CommentSelection
-{
-    internal abstract class AbstractCommentSelectionService : ICommentSelectionService
-    {
-        public abstract string BlockCommentEndString { get; }
-        public abstract string BlockCommentStartString { get; }
-        public abstract string SingleLineCommentString { get; }
-        public abstract bool SupportsBlockComment { get; }
+namespace Microsoft.CodeAnalysis.CommentSelection;
 
-        public CommentSelectionInfo GetInfo()
-            => SupportsBlockComment
-                ? new(supportsSingleLineComment: true, SupportsBlockComment, SingleLineCommentString, BlockCommentStartString, BlockCommentEndString)
-                : new(supportsSingleLineComment: true, SupportsBlockComment, SingleLineCommentString, blockCommentStartString: "", blockCommentEndString: "");
-    }
+internal abstract class AbstractCommentSelectionService : ICommentSelectionService
+{
+    public abstract string BlockCommentEndString { get; }
+    public abstract string BlockCommentStartString { get; }
+    public abstract string SingleLineCommentString { get; }
+    public abstract bool SupportsBlockComment { get; }
+
+    public CommentSelectionInfo GetInfo()
+        => SupportsBlockComment
+            ? new(supportsSingleLineComment: true, SupportsBlockComment, SingleLineCommentString, BlockCommentStartString, BlockCommentEndString)
+            : new(supportsSingleLineComment: true, SupportsBlockComment, SingleLineCommentString, blockCommentStartString: "", blockCommentEndString: "");
 }

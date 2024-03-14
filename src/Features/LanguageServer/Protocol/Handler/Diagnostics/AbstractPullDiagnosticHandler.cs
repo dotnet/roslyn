@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// and works well for us in the normal case.  The latter still allows us to reuse diagnostics when changes happen that
         /// update the version stamp but not the content (for example, forking LSP text).
         /// </summary>
-        private readonly ConcurrentDictionary<string, VersionedPullCache<(int globalStateVersion, VersionStamp? dependentVersion), (int globalStateVersion, Checksum dependentChecksum)>> _categoryToVersionedCache = new();
+        private readonly ConcurrentDictionary<string, VersionedPullCache<(int globalStateVersion, VersionStamp? dependentVersion), (int globalStateVersion, Checksum dependentChecksum)>> _categoryToVersionedCache = [];
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
@@ -137,11 +137,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             context.TraceInformation($"{handlerName} started getting diagnostics");
 
             var versionedCache = _categoryToVersionedCache.GetOrAdd(handlerName, static handlerName => new(handlerName));
-
-            var diagnosticMode = GetDiagnosticMode(context);
-            // For this handler to be called, we must have already checked the diagnostic mode
-            // and set the appropriate capabilities.
-            Contract.ThrowIfFalse(diagnosticMode == DiagnosticMode.LspPull, $"{diagnosticMode} is not pull");
 
             // The progress object we will stream reports to.
             using var progress = BufferedProgress.Create(diagnosticsParams.PartialResultToken);
@@ -262,19 +257,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
                 return null;
             }
-        }
-
-        private DiagnosticMode GetDiagnosticMode(RequestContext context)
-        {
-            var diagnosticModeOption = context.ServerKind switch
-            {
-                WellKnownLspServerKinds.LiveShareLspServer => InternalDiagnosticsOptionsStorage.LiveShareDiagnosticMode,
-                WellKnownLspServerKinds.RazorLspServer => InternalDiagnosticsOptionsStorage.RazorDiagnosticMode,
-                _ => InternalDiagnosticsOptionsStorage.NormalDiagnosticMode,
-            };
-
-            var diagnosticMode = GlobalOptions.GetDiagnosticMode(diagnosticModeOption);
-            return diagnosticMode;
         }
 
         private async Task ComputeAndReportCurrentDiagnosticsAsync(

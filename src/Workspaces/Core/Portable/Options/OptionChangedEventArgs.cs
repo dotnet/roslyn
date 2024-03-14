@@ -4,20 +4,19 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Options
+namespace Microsoft.CodeAnalysis.Options;
+
+internal sealed class OptionChangedEventArgs : EventArgs
 {
-    internal sealed class OptionChangedEventArgs : EventArgs
+    public OptionKey2 OptionKey { get; }
+    public object? Value { get; }
+
+    internal OptionChangedEventArgs(OptionKey2 optionKey, object? value)
     {
-        public OptionKey2 OptionKey { get; }
-        public object? Value { get; }
-
-        internal OptionChangedEventArgs(OptionKey2 optionKey, object? value)
-        {
-            OptionKey = optionKey;
-            Value = value;
-        }
-
-        public IOption2 Option => OptionKey.Option;
-        public string? Language => OptionKey.Language;
+        OptionKey = optionKey;
+        Value = value;
     }
+
+    public IOption2 Option => OptionKey.Option;
+    public string? Language => OptionKey.Language;
 }

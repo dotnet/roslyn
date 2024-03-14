@@ -8,34 +8,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
+
+internal partial class SemanticMap
 {
-    internal partial class SemanticMap
+    private readonly Dictionary<SyntaxNode, SymbolInfo> _expressionToInfoMap = [];
+
+    private readonly Dictionary<SyntaxToken, SymbolInfo> _tokenToInfoMap = [];
+
+    private SemanticMap()
     {
-        private readonly Dictionary<SyntaxNode, SymbolInfo> _expressionToInfoMap =
-            new();
+    }
 
-        private readonly Dictionary<SyntaxToken, SymbolInfo> _tokenToInfoMap =
-            new();
+    internal static SemanticMap From(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+    {
+        var map = new SemanticMap();
+        var walker = new Walker(semanticModel, map, cancellationToken);
+        walker.Visit(node);
+        return map;
+    }
 
-        private SemanticMap()
+    public IEnumerable<ISymbol> AllReferencedSymbols
+    {
+        get
         {
-        }
-
-        internal static SemanticMap From(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            var map = new SemanticMap();
-            var walker = new Walker(semanticModel, map, cancellationToken);
-            walker.Visit(node);
-            return map;
-        }
-
-        public IEnumerable<ISymbol> AllReferencedSymbols
-        {
-            get
-            {
-                return _expressionToInfoMap.Values.Concat(_tokenToInfoMap.Values).Select(info => info.Symbol).Distinct();
-            }
+            return _expressionToInfoMap.Values.Concat(_tokenToInfoMap.Values).Select(info => info.Symbol).Distinct();
         }
     }
 }

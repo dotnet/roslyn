@@ -10,73 +10,72 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.BracePairs
-{
-    internal readonly record struct BracePairData(
-        TextSpan Start,
-        TextSpan End);
+namespace Microsoft.CodeAnalysis.BracePairs;
 
-    internal interface IBracePairsService : ILanguageService
+internal readonly record struct BracePairData(
+    TextSpan Start,
+    TextSpan End);
+
+internal interface IBracePairsService : ILanguageService
+{
+    Task AddBracePairsAsync(Document document, TextSpan textSpan, ArrayBuilder<BracePairData> bracePairs, CancellationToken cancellationToken);
+}
+
+internal abstract class AbstractBracePairsService : IBracePairsService
+{
+    private readonly Dictionary<int, int> _bracePairKinds = [];
+
+    protected AbstractBracePairsService(
+        ISyntaxKinds syntaxKinds)
     {
-        Task AddBracePairsAsync(Document document, TextSpan textSpan, ArrayBuilder<BracePairData> bracePairs, CancellationToken cancellationToken);
+        Add(syntaxKinds.OpenBraceToken, syntaxKinds.CloseBraceToken);
+        Add(syntaxKinds.OpenBracketToken, syntaxKinds.CloseBracketToken);
+        Add(syntaxKinds.OpenParenToken, syntaxKinds.CloseParenToken);
+        Add(syntaxKinds.LessThanToken, syntaxKinds.GreaterThanToken);
+
+        return;
+
+        void Add(int? open, int? close)
+        {
+            if (open != null && close != null)
+                _bracePairKinds[open.Value] = close.Value;
+        }
     }
 
-    internal abstract class AbstractBracePairsService : IBracePairsService
+    public async Task AddBracePairsAsync(
+        Document document, TextSpan span, ArrayBuilder<BracePairData> bracePairs, CancellationToken cancellationToken)
     {
-        private readonly Dictionary<int, int> _bracePairKinds = new();
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var stack);
 
-        protected AbstractBracePairsService(
-            ISyntaxKinds syntaxKinds)
+        stack.Add(root);
+
+        while (stack.Count > 0)
         {
-            Add(syntaxKinds.OpenBraceToken, syntaxKinds.CloseBraceToken);
-            Add(syntaxKinds.OpenBracketToken, syntaxKinds.CloseBracketToken);
-            Add(syntaxKinds.OpenParenToken, syntaxKinds.CloseParenToken);
-            Add(syntaxKinds.LessThanToken, syntaxKinds.GreaterThanToken);
-
-            return;
-
-            void Add(int? open, int? close)
+            var current = stack.Pop();
+            if (current.IsNode)
             {
-                if (open != null && close != null)
-                    _bracePairKinds[open.Value] = close.Value;
+                // Ignore nodes that have no intersection at all with the span we're being asked with. Note: if
+                // there is any node intersection, then we want to process it.  We specifically don't check token
+                // intersection as the start token might not be in the span we're asked about, but the close token
+                // may be.
+                if (!current.Span.IntersectsWith(span))
+                    continue;
+
+                foreach (var child in current.ChildNodesAndTokens().Reverse())
+                    stack.Push(child);
             }
-        }
-
-        public async Task AddBracePairsAsync(
-            Document document, TextSpan span, ArrayBuilder<BracePairData> bracePairs, CancellationToken cancellationToken)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var stack);
-
-            stack.Add(root);
-
-            while (stack.Count > 0)
+            else if (current.IsToken)
             {
-                var current = stack.Pop();
-                if (current.IsNode)
+                if (_bracePairKinds.TryGetValue(current.AsToken().RawKind, out var closeKind))
                 {
-                    // Ignore nodes that have no intersection at all with the span we're being asked with. Note: if
-                    // there is any node intersection, then we want to process it.  We specifically don't check token
-                    // intersection as the start token might not be in the span we're asked about, but the close token
-                    // may be.
-                    if (!current.Span.IntersectsWith(span))
-                        continue;
-
-                    foreach (var child in current.ChildNodesAndTokens().Reverse())
-                        stack.Push(child);
-                }
-                else if (current.IsToken)
-                {
-                    if (_bracePairKinds.TryGetValue(current.AsToken().RawKind, out var closeKind))
+                    // hit an open token.  Try to find the corresponding close token in the parent.
+                    if (current.Parent != null)
                     {
-                        // hit an open token.  Try to find the corresponding close token in the parent.
-                        if (current.Parent != null)
+                        foreach (var sibling in current.Parent.ChildNodesAndTokens())
                         {
-                            foreach (var sibling in current.Parent.ChildNodesAndTokens())
-                            {
-                                if (sibling.IsToken && sibling.RawKind == closeKind)
-                                    bracePairs.Add(new BracePairData(current.Span, sibling.Span));
-                            }
+                            if (sibling.IsToken && sibling.RawKind == closeKind)
+                                bracePairs.Add(new BracePairData(current.Span, sibling.Span));
                         }
                     }
                 }

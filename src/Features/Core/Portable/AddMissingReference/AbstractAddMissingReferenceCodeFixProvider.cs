@@ -16,77 +16,76 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.AddMissingReference
+namespace Microsoft.CodeAnalysis.AddMissingReference;
+
+internal abstract partial class AbstractAddMissingReferenceCodeFixProvider : AbstractAddPackageCodeFixProvider
 {
-    internal abstract partial class AbstractAddMissingReferenceCodeFixProvider : AbstractAddPackageCodeFixProvider
+    /// <summary>
+    /// Values for these parameters can be provided (during testing) for mocking purposes.
+    /// </summary> 
+    protected AbstractAddMissingReferenceCodeFixProvider(
+        IPackageInstallerService? packageInstallerService = null,
+        ISymbolSearchService? symbolSearchService = null)
+        : base(packageInstallerService, symbolSearchService)
     {
-        /// <summary>
-        /// Values for these parameters can be provided (during testing) for mocking purposes.
-        /// </summary> 
-        protected AbstractAddMissingReferenceCodeFixProvider(
-            IPackageInstallerService? packageInstallerService = null,
-            ISymbolSearchService? symbolSearchService = null)
-            : base(packageInstallerService, symbolSearchService)
+    }
+
+    protected override bool IncludePrerelease => false;
+
+    public override FixAllProvider? GetFixAllProvider()
+    {
+        // Fix All is not support for this code fix
+        // https://github.com/dotnet/roslyn/issues/34459
+        return null;
+    }
+
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    {
+        var cancellationToken = context.CancellationToken;
+        var uniqueIdentities = await GetUniqueIdentitiesAsync(context).ConfigureAwait(false);
+
+        var assemblyNames = uniqueIdentities.Select(i => i.Name).ToSet();
+        var addPackageCodeActions = await GetAddPackagesCodeActionsAsync(context, assemblyNames).ConfigureAwait(false);
+        var addReferenceCodeActions = await GetAddReferencesCodeActionsAsync(context, uniqueIdentities).ConfigureAwait(false);
+
+        context.RegisterFixes(addPackageCodeActions, context.Diagnostics);
+        context.RegisterFixes(addReferenceCodeActions, context.Diagnostics);
+    }
+
+    private static async Task<ImmutableArray<CodeAction>> GetAddReferencesCodeActionsAsync(CodeFixContext context, ISet<AssemblyIdentity> uniqueIdentities)
+    {
+        var result = ArrayBuilder<CodeAction>.GetInstance();
+        foreach (var identity in uniqueIdentities)
         {
+            var codeAction = await AddMissingReferenceCodeAction.CreateAsync(
+                context.Document.Project, identity, context.CancellationToken).ConfigureAwait(false);
+            result.Add(codeAction);
         }
 
-        protected override bool IncludePrerelease => false;
+        return result.ToImmutableAndFree();
+    }
 
-        public override FixAllProvider? GetFixAllProvider()
+    private static async Task<ISet<AssemblyIdentity>> GetUniqueIdentitiesAsync(CodeFixContext context)
+    {
+        var cancellationToken = context.CancellationToken;
+        var compilation = await context.Document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+        var uniqueIdentities = new HashSet<AssemblyIdentity>();
+        foreach (var diagnostic in context.Diagnostics)
         {
-            // Fix All is not support for this code fix
-            // https://github.com/dotnet/roslyn/issues/34459
-            return null;
-        }
+            var assemblyIds = compilation.GetUnreferencedAssemblyIdentities(diagnostic);
+            uniqueIdentities.AddRange(assemblyIds);
 
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            var cancellationToken = context.CancellationToken;
-            var uniqueIdentities = await GetUniqueIdentitiesAsync(context).ConfigureAwait(false);
-
-            var assemblyNames = uniqueIdentities.Select(i => i.Name).ToSet();
-            var addPackageCodeActions = await GetAddPackagesCodeActionsAsync(context, assemblyNames).ConfigureAwait(false);
-            var addReferenceCodeActions = await GetAddReferencesCodeActionsAsync(context, uniqueIdentities).ConfigureAwait(false);
-
-            context.RegisterFixes(addPackageCodeActions, context.Diagnostics);
-            context.RegisterFixes(addReferenceCodeActions, context.Diagnostics);
-        }
-
-        private static async Task<ImmutableArray<CodeAction>> GetAddReferencesCodeActionsAsync(CodeFixContext context, ISet<AssemblyIdentity> uniqueIdentities)
-        {
-            var result = ArrayBuilder<CodeAction>.GetInstance();
-            foreach (var identity in uniqueIdentities)
+            var properties = diagnostic.Properties;
+            if (properties.TryGetValue(DiagnosticPropertyConstants.UnreferencedAssemblyIdentity, out var displayName) &&
+                displayName != null &&
+                AssemblyIdentity.TryParseDisplayName(displayName, out var serializedIdentity))
             {
-                var codeAction = await AddMissingReferenceCodeAction.CreateAsync(
-                    context.Document.Project, identity, context.CancellationToken).ConfigureAwait(false);
-                result.Add(codeAction);
+                uniqueIdentities.Add(serializedIdentity);
             }
-
-            return result.ToImmutableAndFree();
         }
 
-        private static async Task<ISet<AssemblyIdentity>> GetUniqueIdentitiesAsync(CodeFixContext context)
-        {
-            var cancellationToken = context.CancellationToken;
-            var compilation = await context.Document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-            var uniqueIdentities = new HashSet<AssemblyIdentity>();
-            foreach (var diagnostic in context.Diagnostics)
-            {
-                var assemblyIds = compilation.GetUnreferencedAssemblyIdentities(diagnostic);
-                uniqueIdentities.AddRange(assemblyIds);
-
-                var properties = diagnostic.Properties;
-                if (properties.TryGetValue(DiagnosticPropertyConstants.UnreferencedAssemblyIdentity, out var displayName) &&
-                    displayName != null &&
-                    AssemblyIdentity.TryParseDisplayName(displayName, out var serializedIdentity))
-                {
-                    uniqueIdentities.Add(serializedIdentity);
-                }
-            }
-
-            uniqueIdentities.Remove(compilation.Assembly.Identity);
-            return uniqueIdentities;
-        }
+        uniqueIdentities.Remove(compilation.Assembly.Identity);
+        return uniqueIdentities;
     }
 }

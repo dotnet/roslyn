@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
                 List<DiagnosticResult> diagnosticResults = null,
                 bool keepInlinedMethod = true)
             {
-                diagnosticResults ??= new List<DiagnosticResult>();
+                diagnosticResults ??= [];
                 var test = new TestVerifier
                 {
                     CodeActionIndex = keepInlinedMethod ? 1 : 0,
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
                 List<DiagnosticResult> diagnosticResults = null,
                 bool keepInlinedMethod = true)
             {
-                diagnosticResults ??= new List<DiagnosticResult>();
+                diagnosticResults ??= [];
                 var test = new TestVerifier
                 {
                     CodeActionIndex = keepInlinedMethod ? 1 : 0,

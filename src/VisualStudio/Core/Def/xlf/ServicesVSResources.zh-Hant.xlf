@@ -117,6 +117,11 @@
         <target state="translated">組件</target>
         <note />
       </trans-unit>
+      <trans-unit id="AssemblyNameAndVersionDisplay">
+        <source>{0} ({1})</source>
+        <target state="new">{0} ({1})</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
         <source>Automatically open Stack Trace Explorer on focus</source>
         <target state="translated">在焦點時會自動開啟堆疊追蹤總管</target>
@@ -397,11 +402,6 @@
         <target state="translated">元素無效。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_Razor_pull_diagnostics_experimental_requires_restart">
-        <source>Enable Razor 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="translated">啟用 Razor 'pull' 診斷 (實驗性，需要重新啟動)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
         <source>Enable all features in opened files from source generators (experimental)</source>
         <target state="translated">從來源產生器中，啟用已開啟檔案中的所有功能 (實驗性)</target>
@@ -420,11 +420,6 @@
       <trans-unit id="Enable_navigation_to_sourcelink_and_embedded_sources">
         <source>Enable navigation to Source Link and Embedded sources</source>
         <target state="translated">啟用瀏覽至 Source Link 和內嵌來源</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_pull_diagnostics_requires_restart">
-        <source>Enable 'pull' diagnostics (requires restart)</source>
-        <target state="new">Enable 'pull' diagnostics (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enabled">

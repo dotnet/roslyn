@@ -8831,5 +8831,26 @@ class Program
 "var x = $$[1, 2]";
             await TestAsync(source);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71638")]
+        public async Task TestAnonymousType()
+        {
+            var markup = """
+                _ = new
+                {
+                    @string = ""
+                }.$$@string;
+                """;
+            var description = $"string 'a.@string {{ get; }}";
+
+            await VerifyWithMscorlib45Async(markup, new[]
+            {
+                MainDescription(description),
+                AnonymousTypes(
+$@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} new {{ string @string }}")
+            });
+        }
     }
 }

@@ -4532,6 +4532,11 @@ public class RemoveUnnecessaryCastTests
                 {
                     return true;
                 }
+                
+                static bool Goo(long x, object y, object z)
+                {
+                    return true;
+                }
             }
             """;
 
@@ -4568,7 +4573,19 @@ public class RemoveUnnecessaryCastTests
                     {
                     }
                 }
-
+                
+                int this[long x, object s, object d]
+                {
+                    get
+                    {
+                        return 0;
+                    }
+                
+                    set
+                    {
+                    }
+                }
+                
                 void Goo(dynamic xx)
                 {
                     var y = this[x: xx, s: "", d: (object)""];
@@ -4678,6 +4695,11 @@ public class RemoveUnnecessaryCastTests
                 }
 
                 static bool Goo(object y, int x, object z)
+                {
+                    return true;
+                }
+                
+                static bool Goo(object y, long x, object z)
                 {
                     return true;
                 }
@@ -5219,10 +5241,10 @@ public class RemoveUnnecessaryCastTests
             {
                 public static void Main(string[] args)
                 {
-                    TakesParams([|(string)|]null);
+                    TakesParams([|(Program)|]null);
                 }
 
-                private static void TakesParams({|CS0225:params|} string wrongDefined)
+                private static void TakesParams({|CS0225:params|} Program wrongDefined)
                 {
                 }
             }
@@ -5235,7 +5257,7 @@ public class RemoveUnnecessaryCastTests
                     TakesParams(null);
                 }
 
-                private static void TakesParams({|CS0225:params|} string wrongDefined)
+                private static void TakesParams({|CS0225:params|} Program wrongDefined)
                 {
                 }
             }
@@ -5461,13 +5483,13 @@ public class RemoveUnnecessaryCastTests
             using System;
             sealed class MarkAttribute : Attribute
             {
-                public MarkAttribute(bool otherArg, {|CS0225:params|} string wrongDefined)
+                public MarkAttribute(bool otherArg, {|CS0225:params|} object wrongDefined)
                 {
                 }
                 public int Prop { get; set; }
             }
 
-            [Mark(true, [|(string)|]null, Prop = 1)]
+            [Mark(true, [|(object)|]null, Prop = 1)]
             static class Program
             {
             }
@@ -5476,7 +5498,7 @@ public class RemoveUnnecessaryCastTests
             using System;
             sealed class MarkAttribute : Attribute
             {
-                public MarkAttribute(bool otherArg, {|CS0225:params|} string wrongDefined)
+                public MarkAttribute(bool otherArg, {|CS0225:params|} object wrongDefined)
                 {
                 }
                 public int Prop { get; set; }
@@ -13757,7 +13779,7 @@ public class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71926")]
-    public async Task NecessaryDelegateCast()
+    public async Task NecessaryDelegateCast1()
     {
         await new VerifyCS.Test
         {
@@ -13771,6 +13793,36 @@ public class RemoveUnnecessaryCastTests
                     {
                         var main = (Delegate)Main; // IDE0004: Cast is redundant.
                         var x = Unsafe.As<Delegate, object>(ref main);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72134")]
+    public async Task NecessaryDelegateCast2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public class MyClass
+                {
+                    static void Main()
+                    {
+                        Goo f = (Action)(() => { }); // IDE0004: Cast is redundant.
+
+                    }
+                }
+
+                public class Goo
+                {
+                    public static implicit operator Goo(Action value)
+                    {
+                        return default!;
                     }
                 }
                 """,
