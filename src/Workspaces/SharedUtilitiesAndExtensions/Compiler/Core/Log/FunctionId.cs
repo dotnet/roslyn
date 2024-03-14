@@ -619,4 +619,6 @@ internal enum FunctionId
     SuggestedAction_Preview_Summary = 745,
 
     LSP_DocumentIdCacheMiss = 746,
+
+    RemoteWorkspace_SolutionCachingStatistics = 750,
 }

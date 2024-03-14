@@ -1919,6 +1919,7 @@
     <Field Name="CollectionBuilderInvocationConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
     <!-- Indicates whether the collection expression was successfully target-typed (it is inside a conversion) -->
     <Field Name="WasTargetTyped" Type="bool" />
+    <Field Name="UnconvertedCollectionExpression" Type="BoundUnconvertedCollectionExpression" Null="disallow" SkipInVisitor="true"/>
   </Node>
 
   <Node Name="BoundCollectionExpressionSpreadExpressionPlaceholder" Base="BoundValuePlaceholderBase"/>

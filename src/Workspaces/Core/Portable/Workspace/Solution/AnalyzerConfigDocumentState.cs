@@ -38,9 +38,10 @@ internal sealed class AnalyzerConfigDocumentState : TextDocumentState
 
     private AsyncLazy<AnalyzerConfig> CreateAnalyzerConfigValueSource()
     {
-        return new AsyncLazy<AnalyzerConfig>(
-            asynchronousComputeFunction: async cancellationToken => AnalyzerConfig.Parse(await GetTextAsync(cancellationToken).ConfigureAwait(false), FilePath),
-            synchronousComputeFunction: cancellationToken => AnalyzerConfig.Parse(GetTextSynchronously(cancellationToken), FilePath));
+        return AsyncLazy.Create(
+            asynchronousComputeFunction: static async (self, cancellationToken) => AnalyzerConfig.Parse(await self.GetTextAsync(cancellationToken).ConfigureAwait(false), self.FilePath),
+            synchronousComputeFunction: static (self, cancellationToken) => AnalyzerConfig.Parse(self.GetTextSynchronously(cancellationToken), self.FilePath),
+            arg: this);
     }
 
     public AnalyzerConfig GetAnalyzerConfig(CancellationToken cancellationToken) => _analyzerConfigValueSource.GetValue(cancellationToken);

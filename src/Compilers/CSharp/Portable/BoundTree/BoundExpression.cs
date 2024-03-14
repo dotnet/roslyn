@@ -495,6 +495,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return true;
         }
+
+        public new bool IsParamsArrayOrCollection
+        {
+            get
+            {
+                return base.IsParamsArrayOrCollection;
+            }
+            init
+            {
+                base.IsParamsArrayOrCollection = value;
+            }
+        }
     }
 
     internal partial class BoundObjectCreationExpression

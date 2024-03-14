@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler;
 
+[Obsolete("Remove your implementation of this interface and let Roslyn know so that this interface can be removed.", error: false)]
 internal interface IWorkCoordinatorPriorityService : ILanguageService
 {
     /// <summary>
