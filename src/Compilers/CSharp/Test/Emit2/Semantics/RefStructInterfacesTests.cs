@@ -5902,6 +5902,50 @@ class C
         }
 
         [Fact]
+        public void ImplementAnInterface_12_Variance_ErrorScenarios()
+        {
+            var src = @"
+interface I<T>
+{
+    void M(T t);
+}
+interface IOut<out T>
+{
+    T MOut();
+}
+ref struct S : I<object>, IOut<object>
+{
+    public void M(object o) { }
+    public object MOut() => null;
+}
+class Program
+{
+    static void Main()
+    {
+        Test1(new S());
+        Test2(new S());
+    }
+    static void Test1<T>(T x) where T : I<string>, allows ref struct
+    {
+    }
+    static void Test2<T>(T x) where T : IOut<string>, allows ref struct
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+
+            comp.VerifyDiagnostics(
+                // (19,9): error CS0315: The type 'S' cannot be used as type parameter 'T' in the generic type or method 'Program.Test1<T>(T)'. There is no boxing conversion from 'S' to 'I<string>'.
+                //         Test1(new S());
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "Test1").WithArguments("Program.Test1<T>(T)", "I<string>", "T", "S").WithLocation(19, 9),
+                // (20,9): error CS0315: The type 'S' cannot be used as type parameter 'T' in the generic type or method 'Program.Test2<T>(T)'. There is no boxing conversion from 'S' to 'IOut<string>'.
+                //         Test2(new S());
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "Test2").WithArguments("Program.Test2<T>(T)", "IOut<string>", "T", "S").WithLocation(20, 9)
+                );
+        }
+
+        [Fact]
         public void ConstraintsCheck_01()
         {
             var src = @"
@@ -6104,6 +6148,8 @@ class C<T, S>
         _ = typeof(C<int, int>);
         _ = typeof(C<object, object>);
         _ = typeof(C<object, string>);
+        _ = typeof(C<T, T>);
+        _ = typeof(C<S, S>);
     }
 }
 ";
@@ -6112,7 +6158,10 @@ class C<T, S>
             comp.VerifyDiagnostics(
                 // (12,26): error CS9504: The type 'S1' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'S' in the generic type or method 'C<T, S>'
                 //         _ = typeof(C<S1, S1>);
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "S1").WithArguments("C<T, S>", "S", "S1").WithLocation(12, 26)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "S1").WithArguments("C<T, S>", "S", "S1").WithLocation(12, 26),
+                // (16,25): error CS9504: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'S' in the generic type or method 'C<T, S>'
+                //         _ = typeof(C<T, T>);
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "T").WithArguments("C<T, S>", "S", "T").WithLocation(16, 25)
                 );
         }
 
@@ -6122,9 +6171,14 @@ class C<T, S>
             var src = @"
 public class Helper
 {
-    public static object Test<T>(T x) where T : allows ref struct
+    public static object Test1<T>(T x) where T : allows ref struct
     {
         return x;
+    }
+
+    public static object Test2<T>(T x) where T : allows ref struct
+    {
+        return (object)x;
     }
 }
 ";
@@ -6145,9 +6199,14 @@ public interface I1
 
 public class Helper
 {
-    public static I1 Test<T>(T x) where T : I1, allows ref struct
+    public static I1 Test1<T>(T x) where T : I1, allows ref struct
     {
         return x;
+    }
+
+    public static I1 Test2<T>(T x) where T : I1, allows ref struct
+    {
+        return (I1)x;
     }
 }
 ";
@@ -6155,6 +6214,38 @@ public class Helper
 
             // PROTOTYPE(RefStructInterfaces): The boxing should be disallowed.
             comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void Unboxing_01()
+        {
+            var src = @"
+public interface I1
+{
+}
+
+public class Helper
+{
+    static U Test1<T, U>(T x)
+        where T : allows ref struct
+        where U : T
+    {
+        return x;
+    }
+    static U Test2<T, U>(T x)
+        where T : allows ref struct
+        where U : T
+    {
+        return (U)x;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (12,16): error CS0266: Cannot implicitly convert type 'T' to 'U'. An explicit conversion exists (are you missing a cast?)
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("T", "U").WithLocation(12, 16)
                 );
         }
     }
