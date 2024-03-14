@@ -68,6 +68,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="StreamJsonRpc" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="InteractiveHostResources.resx" GenerateSource="true" />
