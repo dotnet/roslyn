@@ -122,16 +122,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             For Each initializer In node.Initializers
                 ' Ignore assignments in object initializers, only reference the value
-                Debug.Assert(initializer.Kind = BoundKind.AssignmentOperator)
-                Dim assignment = DirectCast(initializer, BoundAssignmentOperator)
-                Debug.Assert(assignment.LeftOnTheRightOpt Is Nothing)
+                Dim boundExpression As BoundExpression = initializer
+                If boundExpression.Kind = BoundKind.AssignmentOperator Then
+                    Dim assignment = DirectCast(initializer, BoundAssignmentOperator)
+                    Debug.Assert(assignment.LeftOnTheRightOpt Is Nothing)
 
-                Dim propertyAccess = TryCast(assignment.Left, BoundPropertyAccess)
-                If propertyAccess IsNot Nothing Then
-                    CheckRefReturningPropertyAccess(propertyAccess)
+                    boundExpression = assignment.Right
+                    Dim propertyAccess = TryCast(assignment.Left, BoundPropertyAccess)
+                    If propertyAccess IsNot Nothing Then
+                        CheckRefReturningPropertyAccess(propertyAccess)
+                    End If
                 End If
 
-                Me.Visit(assignment.Right)
+                Me.Visit(boundExpression)
             Next
 
             Me._expressionTreePlaceholders.Remove(placeholder)
