@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         protected override string PrepareSatelliteAssemblyToLoad(string assemblyFilePath, string cultureName)
         {
             var directory = Path.GetDirectoryName(assemblyFilePath)!;
-            var fileName = Path.GetFileName(assemblyFilePath);
+            var fileName = GetSatelliteFileName(Path.GetFileName(assemblyFilePath));
 
             return Path.Combine(directory, cultureName, fileName);
         }
