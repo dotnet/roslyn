@@ -68,6 +68,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="StreamJsonRpc" />
+    <!-- Due to the limitation of our BindingRedirect generation logic, 
+    add an explicit reference to System.Threading.Tasks.Dataflow to ensure that the correct
+     BindingRedirect is included in the app.config of InteractiveHost.exe -->
+    <PackageReference Include="System.Threading.Tasks.Dataflow" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="InteractiveHostResources.resx" GenerateSource="true" />
