@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable();
         }
 
+        public override BoundNode? VisitUnconvertedCollectionExpression(BoundUnconvertedCollectionExpression node)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
         private BoundExpression RewriteCollectionExpressionConversion(Conversion conversion, BoundCollectionExpression node)
         {
             Debug.Assert(conversion.Kind == ConversionKind.CollectionExpression);
