@@ -29631,6 +29631,35 @@ implicit extension E2 for IBase2
     }
 
     [Fact]
+    public void PreferMoreSpecific_Static_FieldAndField_OnInterface_TwoSubstitutions()
+    {
+        var src = """
+System.Console.Write(C.M);
+
+interface I<T> { }
+class C : I<int>, I<string> { }
+
+implicit extension E<T> for I<T>
+{
+    public static string M = null;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,24): error CS0229: Ambiguity between 'E<int>.M' and 'E<string>.M'
+            // System.Console.Write(C.M);
+            Diagnostic(ErrorCode.ERR_AmbigMember, "M").WithArguments("E<int>.M", "E<string>.M").WithLocation(1, 24) );
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        // PROTOTYPE need to fix the semantic model
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Fact]
     public void PreferMoreSpecific_Static_FieldAndField_OnInterface_TwoRelatedBases()
     {
         var src = """

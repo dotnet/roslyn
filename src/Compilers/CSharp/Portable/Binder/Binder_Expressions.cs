@@ -8472,6 +8472,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ResultSymbol(result, plainName, arity, node, diagnostics, false, out wasError, qualifierOpt);
         }
 
+        /// <summary>
+        /// Interprets a LookupResult as either a singular symbol or a method/property group.
+        /// It is "strict" in the sense that if the members in the result have different kinds,
+        /// an error result is always returned.
+        /// </summary>
         private Symbol GetSymbolOrMethodOrPropertyGroupStrict(LookupResult result, SyntaxNode node, string plainName, int arity, ArrayBuilder<Symbol> methodOrPropertyGroup, BindingDiagnosticBag diagnostics, NamespaceOrTypeSymbol qualifierOpt)
         {
             Debug.Assert(!methodOrPropertyGroup.Any());

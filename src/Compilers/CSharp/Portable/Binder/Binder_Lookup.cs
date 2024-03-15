@@ -224,23 +224,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    if (isCompatible(extension, type, out NamedTypeSymbol? substitutedExtension))
-                    {
-                        // PROTOTYPE should we deal with duplicate or near-duplicate extensions here instead of in merging/hiding logic?
-                        compatibleExtensions.Add(substitutedExtension);
-                    }
+                    addSubstitutedIfCompatible(extension, type, compatibleExtensions);
                 }
 
                 extensions.Free();
             }
 
-            static bool isCompatible(NamedTypeSymbol extension, TypeSymbol type, [NotNullWhen(true)] out NamedTypeSymbol? substitutedExtension)
+            static void addSubstitutedIfCompatible(NamedTypeSymbol extension, TypeSymbol type, ArrayBuilder<NamedTypeSymbol> compatibleExtensions)
             {
                 Debug.Assert(!type.IsExtension);
                 if (extension.ExtendedTypeNoUseSiteDiagnostics is null)
                 {
-                    substitutedExtension = null;
-                    return false;
+                    return;
                 }
 
                 var baseType = type;
@@ -248,8 +243,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (TypeUnification.CanImplicitlyExtend(extension, baseType, out AbstractTypeParameterMap? map))
                     {
-                        substitutedExtension = map is not null ? (NamedTypeSymbol)map.SubstituteType(extension).Type : extension;
-                        return true;
+                        var substitutedExtension = map is not null ? (NamedTypeSymbol)map.SubstituteType(extension).Type : extension;
+                        compatibleExtensions.Add(substitutedExtension);
+                        break;
                     }
 
                     baseType = baseType.BaseTypeNoUseSiteDiagnostics;
@@ -260,13 +256,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (TypeUnification.CanImplicitlyExtend(extension, implementedInterface, out AbstractTypeParameterMap? map))
                     {
-                        substitutedExtension = map is not null ? (NamedTypeSymbol)map.SubstituteType(extension).Type : extension;
-                        return true;
+                        var substitutedExtension = map is not null ? (NamedTypeSymbol)map.SubstituteType(extension).Type : extension;
+                        compatibleExtensions.Add(substitutedExtension);
                     }
                 }
-
-                substitutedExtension = null;
-                return false;
             }
         }
 #nullable disable
@@ -1513,11 +1506,11 @@ symIsHidden:;
                 return;
             }
 
-            var currentSymbols = current.Symbols;
-            var additionalSymbols = additional.Symbols;
+            ArrayBuilder<Symbol> currentSymbols = current.Symbols;
+            ArrayBuilder<Symbol> additionalSymbols = additional.Symbols;
 
-            var currentCount = currentSymbols.Count;
-            var additionalCount = additionalSymbols.Count;
+            int currentCount = currentSymbols.Count;
+            int additionalCount = additionalSymbols.Count;
             Debug.Assert(currentCount > 0);
             Debug.Assert(additionalCount > 0);
 
@@ -1541,17 +1534,23 @@ symIsHidden:;
             void removeLessSpecificNonMethodCurrentSymbols(Symbol additionalSymbol, ArrayBuilder<Symbol> currentSymbols, out bool isAdditionalSymbolHidden,
                 int currentCount, ConsList<TypeSymbol> basesBeingResolved, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
+
+                if (additionalSymbol.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } additionalContainerUnderlying)
+                {
+                    // We wouldn't have gathered these members if we didn't have an extended type for them.
+                    throw ExceptionUtilities.Unreachable();
+                }
+
                 isAdditionalSymbolHidden = false;
                 for (int j = 0; j < currentCount; j++)
                 {
-                    var currentSymbol = currentSymbols[j];
+                    Symbol currentSymbol = currentSymbols[j];
                     if (currentSymbol is null)
                     {
                         continue;
                     }
 
-                    if (currentSymbol.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } currentContainerUnderlying
-                        || additionalSymbol.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } additionalContainerUnderlying)
+                    if (currentSymbol.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } currentContainerUnderlying)
                     {
                         // We wouldn't have gathered these members if we didn't have an extended type for them.
                         throw ExceptionUtilities.Unreachable();
@@ -1596,19 +1595,19 @@ symIsHidden:;
         /// </summary>
         private void CompleteMergeExtensionLookupResultsHidingLessSpecific(LookupResult result, ConsList<TypeSymbol> basesBeingResolved, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            var symbols = result.Symbols;
-            var count = symbols.Count;
+            ArrayBuilder<Symbol> symbols = result.Symbols;
+            int count = symbols.Count;
 
             for (int i = 0; i < count; i++)
             {
-                var methodSymbol = symbols[i];
+                Symbol methodSymbol = symbols[i];
 
                 if (methodSymbol is null || !IsMethodOrIndexer(methodSymbol))
                     continue;
 
                 for (int j = 0; j < count; j++)
                 {
-                    var nonMethodSymbol = symbols[j];
+                    Symbol nonMethodSymbol = symbols[j];
 
                     if (nonMethodSymbol is null || IsMethodOrIndexer(nonMethodSymbol))
                         continue;
@@ -1638,7 +1637,7 @@ symIsHidden:;
             if (nullCount > 0)
             {
                 var updatedResult = ArrayBuilder<Symbol>.GetInstance(symbols.Count - nullCount);
-                foreach (var symbol in symbols)
+                foreach (Symbol symbol in symbols)
                 {
                     if (symbol is not null)
                     {
