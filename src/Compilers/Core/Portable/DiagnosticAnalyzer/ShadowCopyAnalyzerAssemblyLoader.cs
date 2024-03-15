@@ -143,13 +143,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected override void PrepareSatelliteAssemblyToLoad(string originalAnalyzerPath, string cultureName)
+        protected override string PrepareSatelliteAssemblyToLoad(string originalAnalyzerPath, string cultureName)
         {
             var mvid = AssemblyUtilities.ReadMvid(originalAnalyzerPath);
 
-            PrepareLoad(_mvidSatelliteAssemblyPathMap, (mvid, cultureName), copyAnalyzerContents);
-
-            return;
+            return PrepareLoad(_mvidSatelliteAssemblyPathMap, (mvid, cultureName), copyAnalyzerContents);
 
             string copyAnalyzerContents()
             {
@@ -164,7 +162,7 @@ namespace Microsoft.CodeAnalysis
                 var shadowSatellitePath = Path.Combine(shadowDirectory, cultureName, satelliteFileName);
                 CopyFile(originalSatellitePath, shadowSatellitePath);
 
-                return shadowAnalyzerPath;
+                return shadowSatellitePath;
             }
         }
 

@@ -43,12 +43,14 @@ namespace Microsoft.CodeAnalysis
         private readonly Dictionary<string, (AssemblyName? AssemblyName, string RealAssemblyPath)?> _analyzerAssemblyInfoMap = new();
 
         /// <summary>
-        /// Set of analyzer dependencies original full paths to the satellite data calculated for that path
+        /// Mapping of analyzer dependency original full path and culture to the real satellite
+        /// assembly path. If the satellite assembly doesn't exist for the original analyzer and 
+        /// culture, the real path value stored will be null.
         /// </summary>
         /// <remarks>
         /// Access must be guarded by <see cref="_guard"/>
         /// </remarks>
-        private readonly Dictionary<string, Dictionary<CultureInfo, string?>> _analyzerSatelliteAssemblyInfoMap = new();
+        private readonly Dictionary<(string OriginalAnalyzerPath, CultureInfo CultureInfo), string?> _analyzerSatelliteAssemblyRealPaths = new();
 
         /// <summary>
         /// Maps analyzer dependency simple names to the set of original full paths it was loaded from. This _only_ 
@@ -176,42 +178,43 @@ namespace Microsoft.CodeAnalysis
             return (assemblyName, realPath);
         }
 
-        internal string? GetSatelliteInfoForPath(string originalAnalyzerPath, CultureInfo cultureInfo)
+        /// <summary>
+        /// Get the path a satellite assembly should be loaded from for the given original 
+        /// analyzer path and culture
+        /// </summary>
+        /// <remarks>
+        /// This is used during assembly resolve for satellite assemblies to determine the
+        /// path from where the satellite assembly should be loaded for the specified culture.
+        /// This method calls <see cref="PrepareSatelliteAssemblyToLoad"/> to ensure this path
+        /// contains the satellite assembly.
+        /// </remarks>
+        internal string? GetRealSatelliteLoadPath(string originalAnalyzerPath, CultureInfo cultureInfo)
         {
-            Dictionary<CultureInfo, string?>? satelliteDictionary;
-            string? satelliteAssemblyPath = null;
+            string? realSatelliteAssemblyPath = null;
 
             lock (_guard)
             {
-                if (_analyzerSatelliteAssemblyInfoMap.TryGetValue(originalAnalyzerPath, out satelliteDictionary))
+                if (_analyzerSatelliteAssemblyRealPaths.TryGetValue((originalAnalyzerPath, cultureInfo), out realSatelliteAssemblyPath))
                 {
-                    if (satelliteDictionary.TryGetValue(cultureInfo, out satelliteAssemblyPath))
-                    {
-                        return satelliteAssemblyPath;
-                    }
-                }
-                else
-                {
-                    satelliteDictionary = new Dictionary<CultureInfo, string?>();
-                    _analyzerSatelliteAssemblyInfoMap[originalAnalyzerPath] = satelliteDictionary;
+                    return realSatelliteAssemblyPath;
                 }
             }
 
-            (satelliteAssemblyPath, var actualCultureName) = getSatelliteAssemblyLocation(originalAnalyzerPath, cultureInfo);
+            var actualCultureName = getSatelliteCultureName(originalAnalyzerPath, cultureInfo);
             if (actualCultureName != null)
             {
-                PrepareSatelliteAssemblyToLoad(originalAnalyzerPath, actualCultureName);
+                realSatelliteAssemblyPath = PrepareSatelliteAssemblyToLoad(originalAnalyzerPath, actualCultureName);
             }
 
             lock (_guard)
             {
-                satelliteDictionary[cultureInfo] = satelliteAssemblyPath;
+                _analyzerSatelliteAssemblyRealPaths[(originalAnalyzerPath, cultureInfo)] = realSatelliteAssemblyPath;
             }
 
-            return satelliteAssemblyPath;
+            return realSatelliteAssemblyPath;
 
-            // Discover whether the specified satellite dll related to this analyzer exists.
-            static (string? SatelliteAssemblyPath, string? ActualCultureName) getSatelliteAssemblyLocation(string originalAnalyzerPath, CultureInfo cultureInfo)
+            // Discover the most specific culture name to use for the specified analyzer path and culture
+            static string? getSatelliteCultureName(string originalAnalyzerPath, CultureInfo cultureInfo)
             {
                 var path = Path.GetDirectoryName(originalAnalyzerPath)!;
                 var resourceFileName = GetSatelliteFileName(Path.GetFileName(originalAnalyzerPath));
@@ -222,13 +225,13 @@ namespace Microsoft.CodeAnalysis
 
                     if (File.Exists(resourceFilePath))
                     {
-                        return (resourceFilePath, cultureInfo.Name);
+                        return cultureInfo.Name;
                     }
 
                     cultureInfo = cultureInfo.Parent;
                 }
 
-                return (null, null);
+                return null;
             }
         }
 
@@ -294,11 +297,11 @@ namespace Microsoft.CodeAnalysis
         protected abstract string PreparePathToLoad(string assemblyFilePath);
 
         /// <summary>
-        /// When overridden in a derived class, ensures the satellite assembly from the specified
-        /// path and cultureName are prepared for loading. This is used to substitute out the original path with 
-        /// the shadow-copied version.
+        /// When overridden in a derived class, allows substituting a satellite assembly path after we've
+        /// identified the context to load a satellite assembly in, but before the satellite assembly is actually
+        /// loaded from disk. This is used to substitute out the original path with the shadow-copied version.
         /// </summary>
-        protected abstract void PrepareSatelliteAssemblyToLoad(string assemblyFilePath, string cultureName);
+        protected abstract string PrepareSatelliteAssemblyToLoad(string assemblyFilePath, string cultureName);
 
         /// <summary>
         /// When <see cref="PreparePathToLoad(string)"/> is overridden this returns the most recent

@@ -389,7 +389,7 @@ Delta: Gamma: Beta: Test B
 
                 // Real assembly is located in the directory above this one
                 var assemblyPath = Path.Combine(assemblyDir, assemblyFileName);
-                return loader.GetSatelliteInfoForPath(assemblyPath, cultureInfo);
+                return loader.GetRealSatelliteLoadPath(assemblyPath, cultureInfo);
             }
         }
 

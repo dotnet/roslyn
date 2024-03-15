@@ -34,8 +34,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected override string PreparePathToLoad(string fullPath) => fullPath;
 
-        protected override void PrepareSatelliteAssemblyToLoad(string assemblyFilePath, string cultureName)
+        /// <summary>
+        /// The default implementation is to simply load in place.
+        /// </summary>
+        protected override string PrepareSatelliteAssemblyToLoad(string assemblyFilePath, string cultureName)
         {
+            var directory = Path.GetDirectoryName(assemblyFilePath)!;
+            var fileName = Path.GetFileName(assemblyFilePath);
+
+            return Path.Combine(directory, cultureName, fileName);
         }
 
         /// <summary>

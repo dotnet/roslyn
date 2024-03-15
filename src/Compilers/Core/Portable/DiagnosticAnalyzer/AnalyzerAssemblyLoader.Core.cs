@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var analyzerFileName = Path.ChangeExtension(simpleName, ".dll");
                     var analyzerFilePath = Path.Combine(Directory, analyzerFileName);
-                    var satelliteLoadPath = _loader.GetSatelliteInfoForPath(analyzerFilePath, assemblyName.CultureInfo);
+                    var satelliteLoadPath = _loader.GetRealSatelliteLoadPath(analyzerFilePath, assemblyName.CultureInfo);
                     if (satelliteLoadPath is not null)
                     {
                         return loadCore(satelliteLoadPath);
