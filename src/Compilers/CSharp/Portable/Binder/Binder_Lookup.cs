@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Sort extensions from more specific to less specific
             var tempUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
-            compatibleExtensions.Sort((x, y) => isLessSpecificExtension(x, y) ? -1 : 1);
+            compatibleExtensions.Sort((x, y) => isLessSpecificExtension(x, y) ? -1 : 1); // Note: captures tempUseSiteInfo
             useSiteInfo.MergeAndClear(ref tempUseSiteInfo);
 
             // PROTOTYPE test use-site diagnostics
@@ -266,7 +266,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // TODO2 capture...
             bool isLessSpecificExtension(NamedTypeSymbol extension, NamedTypeSymbol other)
             {
                 if (extension.ExtendedTypeNoUseSiteDiagnostics is not { } extendedType
@@ -1567,19 +1566,6 @@ symIsHidden:;
 symIsHidden:;
             }
             return;
-
-            bool getSymbol(ArrayBuilder<Symbol> symbols, int index, bool isMethod, out Symbol found)
-            {
-                var symbol = symbols[index];
-                if (symbol is null || IsMethodOrIndexer(symbol) != isMethod)
-                {
-                    found = null;
-                    return false;
-                }
-
-                found = symbol;
-                return true;
-            }
         }
 
         /// <summary>
