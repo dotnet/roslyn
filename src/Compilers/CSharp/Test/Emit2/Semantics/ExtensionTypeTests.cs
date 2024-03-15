@@ -27522,6 +27522,9 @@ implicit extension E2 for object
 
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.Member").First();
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        // PROTOTYPE need to fix the semantic model
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess).CandidateReason);
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(memberAccess));
 
         src = """
@@ -27608,10 +27611,16 @@ implicit extension E1 for object
 
         var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.Member").First();
         Assert.Null(model.GetSymbolInfo(memberAccess1).Symbol);
+        // PROTOTYPE need to fix the semantic model
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess1).CandidateReason);
+        Assert.Equal([], model.GetSymbolInfo(memberAccess1).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(memberAccess1));
 
         var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.Member").Last();
         Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
+        // PROTOTYPE need to fix the semantic model
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess2).CandidateReason);
+        Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(memberAccess2));
     }
 
@@ -27718,6 +27727,9 @@ implicit extension E2 for object
 
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "object.Member").First();
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        // PROTOTYPE need to fix the semantic model
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess).CandidateReason);
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(memberAccess));
 
         src = """
@@ -29694,6 +29706,35 @@ implicit extension E<T> for I<T>
             // (1,24): error CS0229: Ambiguity between 'E<string>.M' and 'E<int>.M'
             // System.Console.Write(C.M);
             Diagnostic(ErrorCode.ERR_AmbigMember, "M").WithArguments("E<string>.M", "E<int>.M").WithLocation(1, 24));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        // PROTOTYPE need to fix the semantic model
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Fact]
+    public void PreferMoreSpecific_Static_MethodAndMethod_OnInterface_TwoSubstitutions_InferredVariable()
+    {
+        var src = """
+var x = C.M;
+
+interface I<T> { }
+class C : I<int>, I<string> { }
+
+implicit extension E<T> for I<T>
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E<T>.M()' and 'E<T>.M()'
+            // var x = C.M;
+            Diagnostic(ErrorCode.ERR_AmbigCall, "C.M").WithArguments("E<T>.M()", "E<T>.M()").WithLocation(1, 9));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);

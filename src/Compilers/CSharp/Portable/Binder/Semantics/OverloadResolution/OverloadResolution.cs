@@ -1446,6 +1446,8 @@ outerDefault:
                 }
 
                 // PROTOTYPE(static) revise if we allow extension lookup on type parameters
+                Debug.Assert(!extendedType.IsTypeParameter());
+                Debug.Assert(!currentExtendedType.IsTypeParameter());
                 if (!extendedType.Equals(currentExtendedType, TypeCompareKind.AllIgnoreOptions)
                     && Binder.DerivesOrImplements(extendedType, derivedType: currentExtendedType, basesBeingResolved: null, this.Compilation, ref useSiteInfo))
                 {

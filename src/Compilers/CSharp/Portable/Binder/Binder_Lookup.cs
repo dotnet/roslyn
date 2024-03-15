@@ -281,6 +281,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // PROTOTYPE(static) revise if we allow extension lookup on type parameters
+                Debug.Assert(!extendedType.IsTypeParameter());
+                Debug.Assert(!otherExtendedType.IsTypeParameter());
                 return DerivesOrImplements(otherExtendedType, extendedType, null, this.Compilation, ref tempUseSiteInfo);
             }
         }
@@ -1394,6 +1396,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!TypeSymbol.Equals(baseTypeOrImplementedInterface, derivedType, TypeCompareKind.ConsiderEverything2));
 
+            if (baseTypeOrImplementedInterface is NamedTypeSymbol { IsInterface: true })
+            {
+                if (derivedType is NamedTypeSymbol derivedNamedType)
+                {
+                    return GetBaseInterfaces(derivedNamedType, basesBeingResolved, ref useSiteInfo).Contains(baseTypeOrImplementedInterface);
+                }
+
+                return false;
+            }
+
             if (basesBeingResolved?.Any() != true)
             {
                 for (NamedTypeSymbol b = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo); (object)b != null; b = b.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
@@ -1419,11 +1431,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 visited?.Free();
-            }
-
-            if (baseTypeOrImplementedInterface is NamedTypeSymbol { IsInterface: true } && derivedType is NamedTypeSymbol derivedNamedType)
-            {
-                return GetBaseInterfaces(derivedNamedType, basesBeingResolved, ref useSiteInfo).Contains(baseTypeOrImplementedInterface);
             }
 
             return false;
@@ -1454,14 +1461,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var hidingSym = hidingSymbols[j];
                         var hidingContainer = hidingSym.ContainingType;
 
-                        if (hidingContainer.IsInterface || hidingContainer.IsExtension)
+                        if (hidingContainer.IsInterface)
                         {
                             // SPEC: For the purposes of member lookup [...] if T is an
                             // SPEC: interface type, the base types of T are the base interfaces
                             // SPEC: of T and the class type object. 
 
                             if (!DerivesOrImplements(baseTypeOrImplementedInterface: hiddenContainer, derivedType: hidingContainer, basesBeingResolved, this.Compilation, useSiteInfo: ref useSiteInfo) &&
-                                !extendedTypeIsOrDerivedFrom(hiddenContainer, hidingContainer, basesBeingResolved, this.Compilation, ref useSiteInfo) &&
                                 hiddenContainer.SpecialType != SpecialType.System_Object)
                             {
                                 continue; // not in inheritance relationship, so it cannot hide
@@ -1485,30 +1491,6 @@ symIsHidden:;
             else
             {
                 resultHiding.MergePrioritized(resultHidden);
-            }
-
-            return;
-
-            // Checks whether we have an extension type whose extended type is or is derived from the hidden container.
-            static bool extendedTypeIsOrDerivedFrom(NamedTypeSymbol hiddenContainer, NamedTypeSymbol hidingContainer, ConsList<TypeSymbol> basesBeingResolved, CSharpCompilation compilation, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-            {
-                if (!hidingContainer.IsExtension)
-                {
-                    return false;
-                }
-
-                var extendedType = hidingContainer.ExtendedTypeNoUseSiteDiagnostics;
-                if (hiddenContainer.Equals(extendedType, TypeCompareKind.AllIgnoreOptions))
-                {
-                    return true;
-                }
-
-                if (extendedType is NamedTypeSymbol extendedNamedTypeSymbol)
-                {
-                    return DerivesOrImplements(baseTypeOrImplementedInterface: hiddenContainer, derivedType: extendedNamedTypeSymbol, basesBeingResolved, compilation, useSiteInfo: ref useSiteInfo);
-                }
-
-                return false;
             }
         }
 
