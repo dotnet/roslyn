@@ -208,7 +208,7 @@
   -->
 
   <!-- This node is used when we can't create a real expression node because things are too broken. Example: lookup of a name fails to find anything. -->
-  <Node Name="BoundBadExpression" Base="BoundExpression" HasValidate="true">
+  <Node Name="BoundBadExpression" Base="BoundExpression">
     <!-- Categorizes the way in which "Symbols" is bad. -->
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     
