@@ -1040,6 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxKind.CloseParenToken,
                 static @this => @this.IsPossibleAttributeArgument(),
                 static @this => @this.ParseAttributeArgument(),
+                immediatelyAbort,
                 skipBadAttributeArgumentTokens,
                 allowTrailingSeparator: false,
                 requireOneElement: false,
@@ -1057,6 +1058,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttributeArgument(),
                     static (p, closeKind) => p.CurrentToken.Kind == closeKind,
                     expectedKind, closeKind);
+            }
+
+            static bool immediatelyAbort(AttributeArgumentSyntax argument)
+            {
+                // We can be very thrown off by incomplete strings in an attribute argument (especially as the lexer
+                // will restart on the next line with the contents of the string then being interpreted as more
+                // arguments).  Bail out in this case to prevent going off the rails.
+                if (argument.expression is LiteralExpressionSyntax { Kind: SyntaxKind.StringLiteralExpression, Token: var literalToken } &&
+                    literalToken.GetDiagnostics().Contains(d => d.Code == (int)ErrorCode.ERR_NewlineInConst))
+                {
+                    return true;
+                }
+
+                return false;
             }
         }
 
@@ -13348,11 +13363,35 @@ done:;
         /// All the callbacks should passed as static lambdas or static methods to prevent unnecessary delegate
         /// allocations.
         /// </remarks>
+
         private SeparatedSyntaxList<TNode> ParseCommaSeparatedSyntaxList<TNode>(
             ref SyntaxToken openToken,
             SyntaxKind closeTokenKind,
             Func<LanguageParser, bool> isPossibleElement,
             Func<LanguageParser, TNode> parseElement,
+            SkipBadTokens<TNode> skipBadTokens,
+            bool allowTrailingSeparator,
+            bool requireOneElement,
+            bool allowSemicolonAsSeparator) where TNode : GreenNode
+        {
+            return ParseCommaSeparatedSyntaxList(
+                ref openToken,
+                closeTokenKind,
+                isPossibleElement,
+                parseElement,
+                immediatelyAbort: null,
+                skipBadTokens,
+                allowTrailingSeparator,
+                requireOneElement,
+                allowSemicolonAsSeparator);
+        }
+
+        private SeparatedSyntaxList<TNode> ParseCommaSeparatedSyntaxList<TNode>(
+            ref SyntaxToken openToken,
+            SyntaxKind closeTokenKind,
+            Func<LanguageParser, bool> isPossibleElement,
+            Func<LanguageParser, TNode> parseElement,
+            Func<TNode, bool>? immediatelyAbort,
             SkipBadTokens<TNode> skipBadTokens,
             bool allowTrailingSeparator,
             bool requireOneElement,
@@ -13369,7 +13408,8 @@ tryAgain:
                 if (requireOneElement || shouldParseSeparatorOrElement())
                 {
                     // first argument
-                    nodes.Add(parseElement(this));
+                    var node = parseElement(this);
+                    nodes.Add(node);
 
                     // now that we've gotten one element, we don't require any more.
                     requireOneElement = false;
@@ -13377,7 +13417,8 @@ tryAgain:
                     // Ensure that if parsing separators/elements doesn't move us forward, that we always bail out from
                     // parsing this list.
                     int lastTokenPosition = -1;
-                    while (IsMakingProgress(ref lastTokenPosition))
+
+                    while (immediatelyAbort?.Invoke(node) != true && IsMakingProgress(ref lastTokenPosition))
                     {
                         if (this.CurrentToken.Kind == closeTokenKind)
                             break;
@@ -13402,7 +13443,8 @@ tryAgain:
                                 }
                             }
 
-                            nodes.Add(parseElement(this));
+                            node = parseElement(this);
+                            nodes.Add(node);
                             continue;
                         }
 
