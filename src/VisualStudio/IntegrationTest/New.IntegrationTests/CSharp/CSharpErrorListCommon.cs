@@ -23,9 +23,11 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/61367")]
-        public virtual async Task ErrorList()
+        [IdeTheory]
+        [CombinatorialData]
+        public virtual async Task ErrorList([CombinatorialRange(0, 10)] int iteration)
         {
+            _ = iteration;
             await TestServices.Editor.SetTextAsync(@"
 class C
 {
@@ -62,9 +64,11 @@ class C
                 string.Join(Environment.NewLine, actualContents));
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/61367")]
-        public virtual async Task ErrorLevelWarning()
+        [IdeTheory]
+        [CombinatorialData]
+        public virtual async Task ErrorLevelWarning([CombinatorialRange(0, 10)] int iteration)
         {
+            _ = iteration;
             await TestServices.Editor.SetTextAsync(@"
 class C
 {
@@ -85,9 +89,11 @@ class C
                 string.Join(Environment.NewLine, actualContents));
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/61367")]
-        public virtual async Task ErrorsDuringMethodBodyEditing()
+        [IdeTheory]
+        [CombinatorialData]
+        public virtual async Task ErrorsDuringMethodBodyEditing([CombinatorialRange(0, 10)] int iteration)
         {
+            _ = iteration;
             await TestServices.Editor.SetTextAsync(@"
 class Program2
 {
