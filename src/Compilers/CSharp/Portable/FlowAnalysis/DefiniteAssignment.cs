@@ -2507,7 +2507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        protected override void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol? method)
+        protected override void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol method)
         {
             if (refKind == RefKind.Ref)
             {
@@ -2523,7 +2523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we assume that external method may write and/or read all of its fields (recursively).
             // Strangely, the native compiler requires the "ref", even for reference types, to exhibit
             // this behavior.
-            if (refKind != RefKind.None && (method is null || method.IsExtern) && arg.Type is TypeSymbol type)
+            if (refKind != RefKind.None && ((object)method == null || method.IsExtern) && arg.Type is TypeSymbol type)
             {
                 MarkFieldsUsed(type);
             }

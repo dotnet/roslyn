@@ -305,9 +305,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
                 case BoundKind.UnconvertedCollectionExpression:
-                case BoundKind.UnconvertedConditionalOperator:
-                case BoundKind.UnconvertedInterpolatedString:
-                case BoundKind.UnconvertedObjectCreationExpression:
+
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
@@ -327,6 +325,8 @@ namespace Microsoft.CodeAnalysis.Operations
                         _ => null
                     };
                     return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: type, constantValue, isImplicit: isImplicit);
+                case BoundKind.UnconvertedInterpolatedString:
+                case BoundKind.UnconvertedConditionalOperator:
                 case BoundKind.UnconvertedSwitchExpression:
                 case BoundKind.AnonymousPropertyDeclaration:
                 default:

@@ -6,7 +6,10 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -66,8 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-#nullable enable
-        protected override void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol? method)
+        protected override void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol method)
         {
             // ref parameter does not "always" assign.
             if (refKind == RefKind.Out)
@@ -75,7 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Assign(arg, value: null);
             }
         }
-#nullable disable
 
         protected override void ResolveBranch(PendingBranch pending, LabelSymbol label, BoundStatement target, ref bool labelStateChanged)
         {
