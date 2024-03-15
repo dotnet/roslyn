@@ -49,8 +49,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected override VSInternalDiagnosticReport[] CreateRemovedReport(TextDocumentIdentifier identifier)
             => CreateReport(identifier, diagnostics: null, resultId: null);
 
-        protected override VSInternalDiagnosticReport[] CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
-            => CreateReport(identifier, diagnostics: null, resultId);
+        protected override bool TryCreateUnchangedReport(TextDocumentIdentifier identifier, string resultId, out VSInternalDiagnosticReport[] report)
+        {
+            report = CreateReport(identifier, diagnostics: null, resultId);
+            return true;
+        }
 
         protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalDocumentDiagnosticsParams diagnosticsParams)
         {

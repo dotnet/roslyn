@@ -1347,14 +1347,8 @@ class A {
 
             var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
 
-            Assert.Equal(3, results2.Length);
-            Assert.Null(results2[0].Diagnostics);
-            Assert.Null(results2[1].Diagnostics);
-            Assert.Null(results2[2].Diagnostics);
-
-            Assert.Equal(results[0].ResultId, results2[0].ResultId);
-            Assert.Equal(results[1].ResultId, results2[1].ResultId);
-            Assert.Equal(results[2].ResultId, results2[2].ResultId);
+            // 'no changes' will be reported as an empty array.
+            Assert.Empty(results2);
         }
 
         [Theory, CombinatorialData]
@@ -1657,19 +1651,14 @@ class A {";
             var previousResultIds = CreateDiagnosticParamsFromPreviousReports(results);
             results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResultIds);
             AssertEx.NotNull(results);
-            Assert.Equal(4, results.Length);
+            Assert.Equal(2, results.Length);
 
-            // Verify the diagnostic result for A.cs is unchanged as A.cs does not reference CSProj2.
-            Assert.Null(results[0].Diagnostics);
-            Assert.Equal(previousResultIds[0].resultId, results[0].ResultId);
-            Assert.Null(results[1].Diagnostics);
-            Assert.Equal(previousResultIds[1].resultId, results[1].ResultId);
-
+            // Note: tehre will be no results for A.cs as it is unchanged and does not reference CSProj2.
             // Verify that the diagnostics result for B.cs reflects the change we made to it.
-            Assert.Empty(results[2].Diagnostics);
-            Assert.NotEqual(previousResultIds[2].resultId, results[2].ResultId);
-            Assert.Empty(results[3].Diagnostics);
-            Assert.NotEqual(previousResultIds[3].resultId, results[3].ResultId);
+            Assert.Empty(results[0].Diagnostics);
+            Assert.NotEqual(previousResultIds[2].resultId, results[0].ResultId);
+            Assert.Empty(results[1].Diagnostics);
+            Assert.NotEqual(previousResultIds[3].resultId, results[1].ResultId);
         }
 
         [Theory, CombinatorialData]
@@ -1728,7 +1717,7 @@ class A {";
         }
 
         [Theory, CombinatorialData]
-        public async Task TestWorkspaceDiagnosticsWithDependentProjectReloadedUnChanged(bool useVSDiagnostics, bool mutatingLspWorkspace)
+        public async Task TestWorkspaceDiagnosticsWithDependentProjectReloadedUnchanged(bool useVSDiagnostics, bool mutatingLspWorkspace)
         {
             var markup1 =
 @"namespace M
@@ -1774,14 +1763,10 @@ class A {";
             results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: previousResultIds);
 
             // Verify that since no actual changes have been made we report unchanged diagnostics.
+            // We get an empty array here as this is workspace diagnostics, and we do not report unchanged
+            // docs there for efficiency.
             AssertEx.NotNull(results);
-            Assert.Equal(4, results.Length);
-
-            // Diagnostics should be unchanged as the referenced project was only unloaded / reloaded, but did not actually change.
-            Assert.Null(results[0].Diagnostics);
-            Assert.Equal(previousResultIds[0].resultId, results[0].ResultId);
-            Assert.Null(results[2].Diagnostics);
-            Assert.Equal(previousResultIds[2].resultId, results[2].ResultId);
+            Assert.Empty(results);
         }
 
         [Theory, CombinatorialData]
@@ -1830,13 +1815,10 @@ class A {";
             results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: previousResults);
 
             // Verify that since no actual changes have been made we report unchanged diagnostics.
+            // We get an empty array here as this is workspace diagnostics, and we do not report unchanged
+            // docs there for efficiency.
             AssertEx.NotNull(results);
-            Assert.Equal(6, results.Length);
-
-            // Diagnostics should be unchanged as a referenced project was unloaded and reloaded.  Order should not matter.
-            Assert.Null(results[0].Diagnostics);
-            Assert.All(results, result => Assert.Null(result.Diagnostics));
-            Assert.All(results, result => Assert.True(previousResultIds.Contains(result.ResultId)));
+            Assert.Empty(results);
         }
 
         [Theory, CombinatorialData]
