@@ -451,6 +451,20 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
 
             var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
+            var analyzers = incrementalAnalyzer.GetAnalyzersTestOnly(project).ToArray();
+
+            AssertEx.Equal(new[]
+            {
+                typeof(FileContentLoadAnalyzer),
+                typeof(GeneratorDiagnosticsPlaceholderAnalyzer),
+                typeof(CSharpCompilerDiagnosticAnalyzer),
+                typeof(Analyzer),
+                typeof(Priority0Analyzer),
+                typeof(Priority1Analyzer),
+                typeof(Priority10Analyzer),
+                typeof(Priority15Analyzer),
+                typeof(Priority20Analyzer)
+            }, analyzers.Select(a => a.GetType()));
         }
 
         [Fact]
@@ -938,84 +952,6 @@ class A
                 var attribute2 = root.FindNode(diagnostics[1].DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)).ToString();
                 Assert.Equal($@"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category3"", ""CS0168"")", attribute2);
             }
-        }
-
-        [Theory, CombinatorialData]
-        internal async Task TestCancellationDuringDiagnosticComputation_InProc(AnalyzerRegisterActionKind actionKind)
-        {
-            // This test verifies that we do no attempt to re-use CompilationWithAnalyzers instance in IDE in-proc diagnostic computation in presence of an OperationCanceledException during analysis.
-            // Attempting to do so has led to large number of reliability issues and flakiness in diagnostic computation, which we want to avoid.
-
-            var source = @"
-class A
-{
-    void M()
-    {
-        int x = 0;
-    }
-}";
-
-            using var workspace = EditorTestWorkspace.CreateCSharp(source,
-                composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(typeof(TestDocumentTrackingService)));
-
-#if false
-            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
-#endif
-
-            var analyzer = new CancellationTestAnalyzer(actionKind);
-            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
-
-            var project = workspace.CurrentSolution.Projects.Single();
-            var document = project.Documents.Single();
-
-            Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(workspace.GetService<IDiagnosticUpdateSourceRegistrationService>());
-            var service = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
-            var globalOptions = workspace.GetService<IGlobalOptionService>();
-
-            DiagnosticData diagnostic = null;
-            service.DiagnosticsUpdated += (s, eCollection) =>
-            {
-                foreach (var e in eCollection)
-                {
-                    var diagnostics = e.Diagnostics;
-                    if (diagnostics.IsEmpty)
-                    {
-                        continue;
-                    }
-
-                    Assert.Null(diagnostic);
-                    diagnostic = Assert.Single(diagnostics);
-                }
-            };
-
-            var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
-
-            OpenDocumentAndMakeActive(document, workspace);
-
-            // First invoke analysis with cancellation token, and verify canceled compilation and no reported diagnostics.
-            Assert.Empty(analyzer.CanceledCompilations);
-            try
-            {
-                await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, analyzer.CancellationToken);
-
-                throw ExceptionUtilities.Unreachable();
-            }
-            catch (OperationCanceledException ex) when (ex.CancellationToken == analyzer.CancellationToken)
-            {
-            }
-
-            Assert.Single(analyzer.CanceledCompilations);
-            Assert.Null(diagnostic);
-
-            // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
-            await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
-
-            await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
-
-            Assert.True(diagnostic != null);
-            Assert.Equal(CancellationTestAnalyzer.DiagnosticId, diagnostic.Id);
         }
 
         [Theory, CombinatorialData]

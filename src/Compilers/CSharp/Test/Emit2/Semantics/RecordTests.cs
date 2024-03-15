@@ -21811,9 +21811,9 @@ record C(int X) : Base(this.X)
             var src = @"
 record Base
 {
-    public Base(int X)
-    {
-    }
+    public Base(int X) {}
+
+    public Base(long X) {}
 
     public Base() {}
 }

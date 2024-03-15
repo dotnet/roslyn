@@ -129,7 +129,12 @@ internal partial class SolutionCompilationState
             {
                 var tmp = compilationState; // temp. local to avoid a closure allocation for the fast path
                 // note: solution is captured here, but it will go away once GetValueAsync executes.
-                Interlocked.CompareExchange(ref _lazyDependentChecksum, AsyncLazy.Create(c => ComputeDependentChecksumAsync(tmp, c)), null);
+                Interlocked.CompareExchange(
+                    ref _lazyDependentChecksum,
+                    AsyncLazy.Create(static (arg, c) =>
+                        arg.self.ComputeDependentChecksumAsync(arg.tmp, c),
+                        arg: (self: this, tmp)),
+                    null);
             }
 
             return _lazyDependentChecksum.GetValueAsync(cancellationToken);
@@ -211,6 +216,13 @@ internal partial class SolutionCompilationState
             // a generator cannot add diagnostics to it's own file outputs, and generators don't see the
             // outputs of each other.
             return UnderlyingTracker.GetSourceGeneratorDiagnosticsAsync(compilationState, cancellationToken);
+        }
+
+        public ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(SolutionCompilationState solution, CancellationToken cancellationToken)
+        {
+            // The provided run result would be out of sync with the replaced documents.
+            // Currently this is only used by razor to get the HostOutputs, which should never be used here.
+            throw new NotImplementedException();
         }
 
         public SkeletonReferenceCache GetClonedSkeletonReferenceCache()

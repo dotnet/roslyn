@@ -25,7 +25,9 @@ internal class RazorTestAnalyzerLoader
         _diagnosticService = (DiagnosticService)diagnosticService;
     }
 
+#pragma warning disable IDE0060 // Remove unused parameter
     public void InitializeDiagnosticsServices(Workspace workspace)
+#pragma warning restore IDE0060 // Remove unused parameter
     {
         _diagnosticService.Register((IDiagnosticUpdateSource)_analyzerService);
     }

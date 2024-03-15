@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="typeArgs">Optional type arguments.</param>
         /// <param name="queryClause">The syntax for the query clause generating this invocation expression, if any.</param>
         /// <param name="allowFieldsAndProperties">True to allow invocation of fields and properties of delegate type. Only methods are allowed otherwise.</param>
-        /// <param name="allowUnexpandedForm">False to prevent selecting a params method in unexpanded form.</param>
+        /// <param name="ignoreNormalFormIfHasValidParamsParameter">True to prevent selecting a params method in unexpanded form.</param>
         /// <returns>Synthesized method invocation expression.</returns>
         internal BoundExpression MakeInvocationExpression(
             SyntaxNode node,
@@ -85,9 +85,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<(string Name, Location Location)?> names = default,
             CSharpSyntaxNode? queryClause = null,
             bool allowFieldsAndProperties = false,
-            bool allowUnexpandedForm = true,
+            bool ignoreNormalFormIfHasValidParamsParameter = false,
             bool searchExtensionMethodsIfNecessary = true)
         {
+            //
+            // !!! ATTENTION !!!
+            //
+            // In terms of errors relevant for HasCollectionExpressionApplicableAddMethod check
+            // this function should be kept in sync with local function
+            // HasCollectionExpressionApplicableAddMethod.makeInvocationExpression
+            //
+
             Debug.Assert(receiver != null);
             Debug.Assert(names.IsDefault || names.Length == args.Length);
 
@@ -97,29 +105,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The other consumers of this helper (await and collection initializers) require the target member to be a method.
             if (!allowFieldsAndProperties && (boundExpression.Kind == BoundKind.FieldAccess || boundExpression.Kind == BoundKind.PropertyAccess))
             {
+                ReportMakeInvocationExpressionBadMemberKind(node, methodName, boundExpression, diagnostics);
+
                 Symbol symbol;
-                MessageID msgId;
                 if (boundExpression.Kind == BoundKind.FieldAccess)
                 {
-                    msgId = MessageID.IDS_SK_FIELD;
                     symbol = ((BoundFieldAccess)boundExpression).FieldSymbol;
                 }
                 else
                 {
-                    msgId = MessageID.IDS_SK_PROPERTY;
                     symbol = ((BoundPropertyAccess)boundExpression).PropertySymbol;
                 }
-
-                diagnostics.Add(
-                    ErrorCode.ERR_BadSKknown,
-                    node.Location,
-                    methodName,
-                    msgId.Localize(),
-                    MessageID.IDS_SK_METHOD.Localize());
 
                 return BadExpression(node, LookupResultKind.Empty, ImmutableArray.Create(symbol), args.Add(receiver), wasCompilerGenerated: true);
             }
 
+            Debug.Assert(allowFieldsAndProperties || boundExpression.Kind is (BoundKind.MethodGroup or BoundKind.BadExpression));
             boundExpression = CheckValue(boundExpression, BindValueKind.RValueOrMethodGroup, diagnostics);
             boundExpression.WasCompilerGenerated = true;
 
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result = BindInvocationExpression(
                 node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
-                allowUnexpandedForm: allowUnexpandedForm);
+                ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter);
 
             // Query operator can't be called dynamically. 
             if (queryClause != null && result.Kind == BoundKind.DynamicInvocation)
@@ -150,6 +151,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             result.WasCompilerGenerated = true;
             analyzedArguments.Free();
             return result;
+        }
+
+        private static void ReportMakeInvocationExpressionBadMemberKind(SyntaxNode node, string methodName, BoundExpression boundExpression, BindingDiagnosticBag diagnostics)
+        {
+            MessageID msgId;
+            if (boundExpression.Kind == BoundKind.FieldAccess)
+            {
+                msgId = MessageID.IDS_SK_FIELD;
+            }
+            else
+            {
+                msgId = MessageID.IDS_SK_PROPERTY;
+            }
+
+            diagnostics.Add(
+                ErrorCode.ERR_BadSKknown,
+                node.Location,
+                methodName,
+                msgId.Localize(),
+                MessageID.IDS_SK_METHOD.Localize());
         }
 #nullable disable
 
@@ -302,8 +323,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause = null,
-            bool allowUnexpandedForm = true)
+            bool ignoreNormalFormIfHasValidParamsParameter = false)
         {
+            //
+            // !!! ATTENTION !!!
+            //
+            // In terms of errors relevant for HasCollectionExpressionApplicableAddMethod check
+            // this function should be kept in sync with local function
+            // HasCollectionExpressionApplicableAddMethod.bindInvocationExpression
+            //
+
             BoundExpression result;
             NamedTypeSymbol delegateType;
 
@@ -320,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportSuppressionIfNeeded(boundExpression, diagnostics);
                 result = BindMethodGroupInvocation(
                     node, expression, methodName, (BoundMethodGroup)boundExpression, analyzedArguments,
-                    diagnostics, queryClause, allowUnexpandedForm: allowUnexpandedForm, anyApplicableCandidates: out _);
+                    diagnostics, queryClause, ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter, anyApplicableCandidates: out _);
             }
             else if ((object)(delegateType = GetDelegateType(boundExpression)) != null)
             {
@@ -359,6 +388,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause)
         {
+            //
+            // !!! ATTENTION !!!
+            //
+            // In terms of errors relevant for HasCollectionExpressionApplicableAddMethod check
+            // this function should be kept in sync with local function
+            // HasCollectionExpressionApplicableAddMethod.bindDynamicInvocation
+            //
+
             CheckNamedArgumentsForDynamicInvocation(arguments, diagnostics);
 
             bool hasErrors = false;
@@ -579,14 +616,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver: methodGroup.Receiver,
                 arguments: analyzedArguments,
                 result: overloadResolutionResult,
-                useSiteInfo: ref useSiteInfo);
+                useSiteInfo: ref useSiteInfo,
+                options: analyzedArguments.HasDynamicArgument ? OverloadResolution.Options.DynamicResolution : OverloadResolution.Options.None);
             diagnostics.Add(node, useSiteInfo);
 
             // If overload resolution on the "Invoke" method found an applicable candidate, and one of the arguments
             // was dynamic then treat this as a dynamic call.
             if (analyzedArguments.HasDynamicArgument && overloadResolutionResult.HasAnyApplicableMember)
             {
-                result = BindDynamicInvocation(node, boundExpression, analyzedArguments, overloadResolutionResult.GetAllApplicableMembers(), diagnostics, queryClause);
+                var applicable = overloadResolutionResult.Results.Single(r => r.IsApplicable);
+
+                // We have to do a dynamic dispatch only when a dynamic argument is
+                // passed to the params parameter and is ambiguous at compile time between normal
+                // and expanded form i.e., there is exactly one dynamic argument to
+                // a params parameter.
+
+                if (IsAmbiguousDynamicParamsArgument(analyzedArguments.Arguments, applicable, out SyntaxNode argumentSyntax))
+                {
+                    MethodSymbol singleCandidate = applicable.Member;
+
+                    // We know that runtime binder might not be
+                    // able to handle the disambiguation
+                    if (!singleCandidate.Parameters.Last().Type.IsSZArray())
+                    {
+                        Error(diagnostics,
+                            ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument,
+                            argumentSyntax, singleCandidate);
+                    }
+
+                    result = BindDynamicInvocation(node, boundExpression, analyzedArguments, overloadResolutionResult.GetAllApplicableMembers(), diagnostics, queryClause);
+                }
+                else
+                {
+                    result = BindInvocationExpressionContinued(node, expression, methodName, overloadResolutionResult, analyzedArguments, methodGroup, delegateType, diagnostics, queryClause);
+                }
             }
             else
             {
@@ -598,12 +661,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static bool HasApplicableConditionalMethod(OverloadResolutionResult<MethodSymbol> results)
+        private static bool HasApplicableConditionalMethod(ImmutableArray<MemberResolutionResult<MethodSymbol>> finalApplicableCandidates)
         {
-            var r = results.Results;
-            for (int i = 0; i < r.Length; ++i)
+            foreach (var candidate in finalApplicableCandidates)
             {
-                if (r[i].IsApplicable && r[i].Member.IsConditional)
+                if (candidate.Member.IsConditional)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection<TMember>(ArrayBuilder<BoundExpression> arguments, ImmutableArray<MemberResolutionResult<TMember>> finalApplicableCandidates)
+            where TMember : Symbol
+        {
+            foreach (var candidate in finalApplicableCandidates)
+            {
+                if ((candidate.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm ||
+                    IsAmbiguousDynamicParamsArgument(arguments, candidate, argumentSyntax: out _)) &&
+                    !candidate.Member.GetParameters().Last().Type.IsSZArray())
                 {
                     return true;
                 }
@@ -620,14 +698,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause,
-            bool allowUnexpandedForm,
+            bool ignoreNormalFormIfHasValidParamsParameter,
             out bool anyApplicableCandidates)
         {
-            BoundExpression result;
+            //
+            // !!! ATTENTION !!!
+            //
+            // In terms of errors relevant for HasCollectionExpressionApplicableAddMethod check
+            // this function should be kept in sync with local function
+            // HasCollectionExpressionApplicableAddMethod.bindMethodGroupInvocation
+            //
+
+            BoundExpression result = null;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var resolution = this.ResolveMethodGroup(
-                methodGroup, expression, methodName, analyzedArguments, isMethodGroupConversion: false,
-                useSiteInfo: ref useSiteInfo, allowUnexpandedForm: allowUnexpandedForm);
+                methodGroup, expression, methodName, analyzedArguments,
+                useSiteInfo: ref useSiteInfo,
+                options: (ignoreNormalFormIfHasValidParamsParameter ? OverloadResolution.Options.IgnoreNormalFormIfHasValidParamsParameter : OverloadResolution.Options.None) |
+                         (analyzedArguments.HasDynamicArgument ? OverloadResolution.Options.DynamicResolution : OverloadResolution.Options.None));
             diagnostics.Add(expression, useSiteInfo);
             anyApplicableCandidates = resolution.ResultKind == LookupResultKind.Viable && resolution.OverloadResolutionResult.HasAnyApplicableMember;
 
@@ -689,50 +777,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (resolution.AnalyzedArguments.HasDynamicArgument &&
                         resolution.OverloadResolutionResult.HasAnyApplicableMember)
                     {
-                        if (resolution.IsLocalFunctionInvocation)
-                        {
-                            result = BindLocalFunctionInvocationWithDynamicArgument(
-                                syntax, expression, methodName, methodGroup,
-                                diagnostics, queryClause, resolution);
-                        }
-                        else if (resolution.IsExtensionMethodGroup)
-                        {
-                            // error CS1973: 'T' has no applicable method named 'M' but appears to have an
-                            // extension method by that name. Extension methods cannot be dynamically dispatched. Consider
-                            // casting the dynamic arguments or calling the extension method without the extension method
-                            // syntax.
+                        // Note that the runtime binder may consider candidates that haven't passed compile-time final validation 
+                        // and an ambiguity error may be reported. Also additional checks are performed in runtime final validation 
+                        // that are not performed at compile-time.
+                        // Only if the set of final applicable candidates is empty we know for sure the call will fail at runtime.
+                        var finalApplicableCandidates = GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult,
+                                                                                            methodGroup.ReceiverOpt,
+                                                                                            methodGroup.TypeArgumentsOpt,
+                                                                                            invokedAsExtensionMethod: resolution.IsExtensionMethodGroup,
+                                                                                            diagnostics);
 
-                            // We found an extension method, so the instance associated with the method group must have 
-                            // existed and had a type.
-                            Debug.Assert(methodGroup.InstanceOpt != null && (object)methodGroup.InstanceOpt.Type != null);
-
-                            Error(diagnostics, ErrorCode.ERR_BadArgTypeDynamicExtension, syntax, methodGroup.InstanceOpt.Type, methodGroup.Name);
+                        if (finalApplicableCandidates.Length == 0)
+                        {
                             result = CreateBadCall(syntax, methodGroup, methodGroup.ResultKind, analyzedArguments);
                         }
-                        else
+                        else if (finalApplicableCandidates.Length == 1)
                         {
-                            if (HasApplicableConditionalMethod(resolution.OverloadResolutionResult))
-                            {
-                                // warning CS1974: The dynamically dispatched call to method 'Goo' may fail at runtime
-                                // because one or more applicable overloads are conditional methods
-                                Error(diagnostics, ErrorCode.WRN_DynamicDispatchToConditionalMethod, syntax, methodGroup.Name);
-                            }
+                            Debug.Assert(finalApplicableCandidates[0].IsApplicable);
 
-                            // Note that the runtime binder may consider candidates that haven't passed compile-time final validation 
-                            // and an ambiguity error may be reported. Also additional checks are performed in runtime final validation 
-                            // that are not performed at compile-time.
-                            // Only if the set of final applicable candidates is empty we know for sure the call will fail at runtime.
-                            var finalApplicableCandidates = GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult,
-                                                                                                methodGroup.ReceiverOpt,
-                                                                                                methodGroup.TypeArgumentsOpt,
-                                                                                                diagnostics);
-                            if (finalApplicableCandidates.Length > 0)
+                            result = TryEarlyBindSingleCandidateInvocationWithDynamicArgument(syntax, expression, methodName, methodGroup, diagnostics, queryClause, resolution, finalApplicableCandidates[0]);
+                        }
+
+                        if (result is null)
+                        {
+                            Debug.Assert(finalApplicableCandidates.Length > 0);
+
+                            if (resolution.IsExtensionMethodGroup)
                             {
-                                result = BindDynamicInvocation(syntax, methodGroup, resolution.AnalyzedArguments, finalApplicableCandidates, diagnostics, queryClause);
+                                // error CS1973: 'T' has no applicable method named 'M' but appears to have an
+                                // extension method by that name. Extension methods cannot be dynamically dispatched. Consider
+                                // casting the dynamic arguments or calling the extension method without the extension method
+                                // syntax.
+
+                                // We found an extension method, so the instance associated with the method group must have 
+                                // existed and had a type.
+                                Debug.Assert(methodGroup.InstanceOpt != null && (object)methodGroup.InstanceOpt.Type != null);
+
+                                Error(diagnostics, ErrorCode.ERR_BadArgTypeDynamicExtension, syntax, methodGroup.InstanceOpt.Type, methodGroup.Name);
+                                result = CreateBadCall(syntax, methodGroup, methodGroup.ResultKind, analyzedArguments);
                             }
                             else
                             {
-                                result = CreateBadCall(syntax, methodGroup, methodGroup.ResultKind, analyzedArguments);
+                                ReportDynamicInvocationWarnings(syntax, methodGroup, diagnostics, resolution, finalApplicableCandidates);
+
+                                result = BindDynamicInvocation(syntax, methodGroup, resolution.AnalyzedArguments, finalApplicableCandidates.SelectAsArray(r => r.Member), diagnostics, queryClause);
                             }
                         }
                     }
@@ -752,118 +840,171 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private BoundExpression BindLocalFunctionInvocationWithDynamicArgument(
+        private void ReportDynamicInvocationWarnings(SyntaxNode syntax, BoundMethodGroup methodGroup, BindingDiagnosticBag diagnostics, MethodGroupResolution resolution, ImmutableArray<MemberResolutionResult<MethodSymbol>> finalApplicableCandidates)
+        {
+            if (HasApplicableConditionalMethod(finalApplicableCandidates))
+            {
+                // warning CS1974: The dynamically dispatched call to method 'Goo' may fail at runtime
+                // because one or more applicable overloads are conditional methods
+                Error(diagnostics, ErrorCode.WRN_DynamicDispatchToConditionalMethod, syntax, methodGroup.Name);
+            }
+
+            if (finalApplicableCandidates.Length != 1 &&
+                HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(resolution.AnalyzedArguments.Arguments, finalApplicableCandidates))
+            {
+                Error(diagnostics,
+                    ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod,
+                    syntax, methodGroup.Name);
+            }
+        }
+
+        private bool IsAmbiguousDynamicParamsArgument<TMethodOrPropertySymbol>(ArrayBuilder<BoundExpression> arguments, MemberResolutionResult<TMethodOrPropertySymbol> candidate, out SyntaxNode argumentSyntax)
+             where TMethodOrPropertySymbol : Symbol
+        {
+            if (OverloadResolution.IsValidParams(this, candidate.LeastOverriddenMember) &&
+                candidate.Result.Kind == MemberResolutionKind.ApplicableInNormalForm)
+            {
+                var parameters = candidate.Member.GetParameters();
+                var lastParamIndex = parameters.Length - 1;
+
+                for (int i = 0; i < arguments.Count; ++i)
+                {
+                    var arg = arguments[i];
+                    if (arg.HasDynamicType() &&
+                        candidate.Result.ParameterFromArgument(i) == lastParamIndex)
+                    {
+                        argumentSyntax = arg.Syntax;
+                        return true;
+                    }
+                }
+            }
+
+            argumentSyntax = null;
+            return false;
+        }
+
+        private bool CanEarlyBindSingleCandidateInvocationWithDynamicArgument(
+            SyntaxNode syntax,
+            BoundMethodGroup boundMethodGroup,
+            BindingDiagnosticBag diagnostics,
+            MethodGroupResolution resolution,
+            MemberResolutionResult<MethodSymbol> methodResolutionResult,
+            MethodSymbol singleCandidate)
+        {
+            if (boundMethodGroup.TypeArgumentsOpt.IsDefaultOrEmpty && singleCandidate.IsGenericMethod)
+            {
+                // If we call an unconstructed generic function with a
+                // dynamic argument in a place where it influences the type
+                // parameters, we need to dynamically dispatch the call (as the
+                // function must be constructed at runtime). We disallow that
+                // when we know that runtime binder will not be able to handle the case.
+                // See https://github.com/dotnet/roslyn/issues/21317
+
+                // However, doing a specific analysis of each
+                // argument and its corresponding parameter to check if it's
+                // generic (and allow dynamic in non-generic parameters) doesn't
+                // seem to worth the complexity. So, just disallow any mixing of dynamic and
+                // inferred generics. (Explicit generic arguments are fine)
+
+                if (OverloadResolution.IsValidParams(this, singleCandidate) &&
+                    !singleCandidate.Parameters.Last().Type.IsSZArray())
+                {
+                    Error(diagnostics,
+                        ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections,
+                        syntax, singleCandidate);
+                }
+                else if (singleCandidate.MethodKind == MethodKind.LocalFunction)
+                {
+                    Error(diagnostics,
+                        ErrorCode.ERR_DynamicLocalFunctionTypeParameter,
+                        syntax, singleCandidate.Name);
+                }
+
+                return false;
+            }
+
+            if (IsAmbiguousDynamicParamsArgument(resolution.AnalyzedArguments.Arguments, methodResolutionResult, out SyntaxNode argumentSyntax))
+            {
+                // We're only in trouble if a dynamic argument is passed to the
+                // params parameter and is ambiguous at compile time between normal
+                // and expanded form i.e., there is exactly one dynamic argument to
+                // a params parameter, and we know that runtime binder might not be
+                // able to handle the disambiguation
+                // See https://github.com/dotnet/roslyn/issues/10708
+                if (!singleCandidate.Parameters.Last().Type.IsSZArray())
+                {
+                    Error(diagnostics,
+                        ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument,
+                        argumentSyntax, singleCandidate);
+                }
+                else if (singleCandidate.MethodKind == MethodKind.LocalFunction)
+                {
+                    Error(diagnostics,
+                        ErrorCode.ERR_DynamicLocalFunctionParamsParameter,
+                        argumentSyntax, singleCandidate.Parameters.Last().Name, singleCandidate.Name);
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        private BoundExpression TryEarlyBindSingleCandidateInvocationWithDynamicArgument(
             SyntaxNode syntax,
             SyntaxNode expression,
             string methodName,
             BoundMethodGroup boundMethodGroup,
             BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause,
-            MethodGroupResolution resolution)
+            MethodGroupResolution resolution,
+            MemberResolutionResult<MethodSymbol> methodResolutionResult)
         {
-            // Invocations of local functions with dynamic arguments don't need
-            // to be dispatched as dynamic invocations since they cannot be
-            // overloaded. Instead, we'll just emit a standard call with
-            // dynamic implicit conversions for any dynamic arguments. There
-            // are two exceptions: "params", and unconstructed generics. While
-            // implementing those cases with dynamic invocations is possible,
-            // we have decided the implementation complexity is not worth it.
-            // Refer to the comments below for the exact semantics.
+            //
+            // !!! ATTENTION !!!
+            //
+            // In terms of errors relevant for HasCollectionExpressionApplicableAddMethod check
+            // this function should be kept in sync with local function
+            // HasCollectionExpressionApplicableAddMethod.tryEarlyBindSingleCandidateInvocationWithDynamicArgument
+            //
 
-            Debug.Assert(resolution.IsLocalFunctionInvocation);
-            Debug.Assert(resolution.OverloadResolutionResult.Succeeded);
-            Debug.Assert(queryClause == null);
+            MethodSymbol singleCandidate = methodResolutionResult.LeastOverriddenMember;
 
-            var validResult = resolution.OverloadResolutionResult.ValidResult;
-            var args = resolution.AnalyzedArguments.Arguments.ToImmutable();
-            var refKindsArray = resolution.AnalyzedArguments.RefKinds.ToImmutableOrNull();
-
-            ReportBadDynamicArguments(syntax, args, refKindsArray, diagnostics, queryClause);
-
-            var localFunction = validResult.Member;
-            var methodResult = validResult.Result;
-
-            // We're only in trouble if a dynamic argument is passed to the
-            // params parameter and is ambiguous at compile time between normal
-            // and expanded form i.e., there is exactly one dynamic argument to
-            // a params parameter
-            // See https://github.com/dotnet/roslyn/issues/10708
-            if (OverloadResolution.IsValidParams(localFunction) &&
-                methodResult.Kind == MemberResolutionKind.ApplicableInNormalForm)
+            if (!CanEarlyBindSingleCandidateInvocationWithDynamicArgument(syntax, boundMethodGroup, diagnostics, resolution, methodResolutionResult, singleCandidate))
             {
-                var parameters = localFunction.Parameters;
-
-                Debug.Assert(parameters.Last().IsParams);
-
-                var lastParamIndex = parameters.Length - 1;
-
-                for (int i = 0; i < args.Length; ++i)
-                {
-                    var arg = args[i];
-                    if (arg.HasDynamicType() &&
-                        methodResult.ParameterFromArgument(i) == lastParamIndex)
-                    {
-                        Error(diagnostics,
-                            ErrorCode.ERR_DynamicLocalFunctionParamsParameter,
-                            syntax, parameters.Last().Name, localFunction.Name);
-                        return BindDynamicInvocation(
-                            syntax,
-                            boundMethodGroup,
-                            resolution.AnalyzedArguments,
-                            resolution.OverloadResolutionResult.GetAllApplicableMembers(),
-                            diagnostics,
-                            queryClause);
-                    }
-                }
+                return null;
             }
 
-            // If we call an unconstructed generic local function with a
-            // dynamic argument in a place where it influences the type
-            // parameters, we need to dynamically dispatch the call (as the
-            // function must be constructed at runtime). We cannot do that, so
-            // disallow that. However, doing a specific analysis of each
-            // argument and its corresponding parameter to check if it's
-            // generic (and allow dynamic in non-generic parameters) may break
-            // overload resolution in the future, if we ever allow overloaded
-            // local functions. So, just disallow any mixing of dynamic and
-            // inferred generics. (Explicit generic arguments are fine)
-            // See https://github.com/dotnet/roslyn/issues/21317
-            if (boundMethodGroup.TypeArgumentsOpt.IsDefaultOrEmpty && localFunction.IsGenericMethod)
-            {
-                Error(diagnostics,
-                    ErrorCode.ERR_DynamicLocalFunctionTypeParameter,
-                    syntax, localFunction.Name);
-                return BindDynamicInvocation(
-                    syntax,
-                    boundMethodGroup,
-                    resolution.AnalyzedArguments,
-                    resolution.OverloadResolutionResult.GetAllApplicableMembers(),
-                    diagnostics,
-                    queryClause);
-            }
+            var resultWithSingleCandidate = OverloadResolutionResult<MethodSymbol>.GetInstance();
+            resultWithSingleCandidate.ResultsBuilder.Add(methodResolutionResult);
 
-            return BindInvocationExpressionContinued(
+            BoundExpression result = BindInvocationExpressionContinued(
                 node: syntax,
                 expression: expression,
                 methodName: methodName,
-                result: resolution.OverloadResolutionResult,
+                result: resultWithSingleCandidate,
                 analyzedArguments: resolution.AnalyzedArguments,
                 methodGroup: resolution.MethodGroup,
                 delegateTypeOpt: null,
                 diagnostics: diagnostics,
                 queryClause: queryClause);
+
+            resultWithSingleCandidate.Free();
+
+            return result;
         }
 
-        private ImmutableArray<TMethodOrPropertySymbol> GetCandidatesPassingFinalValidation<TMethodOrPropertySymbol>(
+        private ImmutableArray<MemberResolutionResult<TMethodOrPropertySymbol>> GetCandidatesPassingFinalValidation<TMethodOrPropertySymbol>(
             SyntaxNode syntax,
             OverloadResolutionResult<TMethodOrPropertySymbol> overloadResolutionResult,
             BoundExpression receiverOpt,
             ImmutableArray<TypeWithAnnotations> typeArgumentsOpt,
+            bool invokedAsExtensionMethod,
             BindingDiagnosticBag diagnostics) where TMethodOrPropertySymbol : Symbol
         {
             Debug.Assert(overloadResolutionResult.HasAnyApplicableMember);
 
-            var finalCandidates = ArrayBuilder<TMethodOrPropertySymbol>.GetInstance();
+            var finalCandidates = ArrayBuilder<MemberResolutionResult<TMethodOrPropertySymbol>>.GetInstance();
             BindingDiagnosticBag firstFailed = null;
             var candidateDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
 
@@ -880,10 +1021,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // * If F is an instance method, the method group must have resulted from a simple-name, a member-access through a variable or value, 
                     //   or a member-access whose receiver can't be classified as a type or value until after overload resolution (see §7.6.4.1).
 
-                    if (!MemberGroupFinalValidationAccessibilityChecks(receiverOpt, result.Member, syntax, candidateDiagnostics, invokedAsExtensionMethod: false) &&
+                    if (!MemberGroupFinalValidationAccessibilityChecks(receiverOpt, result.Member, syntax, candidateDiagnostics, invokedAsExtensionMethod: invokedAsExtensionMethod) &&
                         (typeArgumentsOpt.IsDefault || ((MethodSymbol)(object)result.Member).CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, syntax.Location, candidateDiagnostics))))
                     {
-                        finalCandidates.Add(result.Member);
+                        finalCandidates.Add(result);
                         continue;
                     }
 
@@ -992,6 +1133,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause = null)
         {
+            //
+            // !!! ATTENTION !!!
+            //
+            // In terms of errors relevant for HasCollectionExpressionApplicableAddMethod check
+            // this function should be kept in sync with local function
+            // HasCollectionExpressionApplicableAddMethod.bindInvocationExpressionContinued
+            //
+
             Debug.Assert(node != null);
             Debug.Assert(methodGroup != null);
             Debug.Assert(methodGroup.Error == null);
@@ -1077,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
             var argsToParams = methodResult.Result.ArgsToParamsOpt;
 
-            BindDefaultArgumentsAndParamsArray(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
+            BindDefaultArgumentsAndParamsCollection(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
 
             // Note: we specifically want to do final validation (7.6.5.1) without checking delegate compatibility (15.2),
             // so we're calling MethodGroupFinalValidation directly, rather than via MethodGroupConversionHasErrors.
@@ -1338,7 +1487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return parameter;
         }
 
-        internal void BindDefaultArgumentsAndParamsArray(
+        internal void BindDefaultArgumentsAndParamsCollection(
             SyntaxNode node,
             ImmutableArray<ParameterSymbol> parameters,
             ArrayBuilder<BoundExpression> argumentsBuilder,
@@ -1351,11 +1500,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             Symbol? attributedMember = null)
         {
-            int firstParamArrayArgument = -1;
+            int firstParamsArgument = -1;
             int paramsIndex = parameters.Length - 1;
-            var arrayArgsBuilder = expanded ? ArrayBuilder<BoundExpression>.GetInstance() : null;
+            var paramsArgsBuilder = expanded ? ArrayBuilder<BoundExpression>.GetInstance() : null;
 
-            Debug.Assert(!argumentsBuilder.Any(a => a.IsParamsArray));
+            Debug.Assert(!argumentsBuilder.Any(a => a.IsParamsArrayOrCollection));
 
             var visitedParameters = BitVector.Create(parameters.Length);
             for (var i = 0; i < argumentsBuilder.Count; i++)
@@ -1367,11 +1516,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (expanded && parameter.Ordinal == paramsIndex)
                     {
-                        Debug.Assert(arrayArgsBuilder is not null);
-                        Debug.Assert(arrayArgsBuilder.Count == 0);
+                        Debug.Assert(paramsArgsBuilder is not null);
+                        Debug.Assert(paramsArgsBuilder.Count == 0);
 
-                        firstParamArrayArgument = i;
-                        arrayArgsBuilder.Add(argumentsBuilder[i]);
+                        firstParamsArgument = i;
+                        paramsArgsBuilder.Add(argumentsBuilder[i]);
 
                         for (int remainingArgument = i + 1; remainingArgument < argumentsBuilder.Count; ++remainingArgument)
                         {
@@ -1380,7 +1529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
                             }
 
-                            arrayArgsBuilder.Add(argumentsBuilder[remainingArgument]);
+                            paramsArgsBuilder.Add(argumentsBuilder[remainingArgument]);
                             i++;
                         }
                     }
@@ -1401,7 +1550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(argumentRefKindsBuilder is null || argumentRefKindsBuilder.Count == 0 || argumentRefKindsBuilder.Count == argumentsBuilder.Count);
                 Debug.Assert(namesBuilder is null || namesBuilder.Count == 0 || namesBuilder.Count == argumentsBuilder.Count);
                 Debug.Assert(argsToParamsOpt.IsDefault || argsToParamsOpt.Length == argumentsBuilder.Count);
-                Debug.Assert(arrayArgsBuilder is null);
+                Debug.Assert(paramsArgsBuilder is null);
                 defaultArguments = default;
                 return;
             }
@@ -1413,32 +1562,126 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsBuilder.AddRange(argsToParamsOpt);
             }
 
-            BoundArrayCreation? array = null;
+            BoundExpression? collection = null;
 
             if (expanded)
             {
-                Debug.Assert(arrayArgsBuilder is not null);
-                ImmutableArray<BoundExpression> arrayArgs = arrayArgsBuilder.ToImmutableAndFree();
-                int arrayArgsLength = arrayArgs.Length;
+                Debug.Assert(paramsArgsBuilder is not null);
+                ImmutableArray<BoundExpression> collectionArgs = paramsArgsBuilder.ToImmutableAndFree();
+                int collectionArgsLength = collectionArgs.Length;
 
-                TypeSymbol int32Type = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
-                TypeSymbol paramArrayType = parameters[paramsIndex].Type;
-                BoundExpression arraySize = new BoundLiteral(node, ConstantValue.Create(arrayArgsLength), int32Type) { WasCompilerGenerated = true };
+                TypeSymbol collectionType = parameters[paramsIndex].Type;
 
-                array = new BoundArrayCreation(
-                            node,
-                            ImmutableArray.Create(arraySize),
-                            new BoundArrayInitialization(node, isInferred: false, arrayArgs) { WasCompilerGenerated = true },
-                            paramArrayType)
-                { WasCompilerGenerated = true, IsParamsArray = true };
-
-                if (arrayArgsLength != 0)
+                if (collectionType is ArrayTypeSymbol { IsSZArray: true })
                 {
-                    Debug.Assert(firstParamArrayArgument != -1);
-                    Debug.Assert(!haveDefaultArguments || arrayArgsLength == 1);
-                    Debug.Assert(arrayArgsLength == 1 || firstParamArrayArgument + arrayArgsLength == argumentsBuilder.Count);
+                    TypeSymbol int32Type = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
+                    BoundExpression arraySize = new BoundLiteral(node, ConstantValue.Create(collectionArgsLength), int32Type) { WasCompilerGenerated = true };
 
-                    for (var i = firstParamArrayArgument + arrayArgsLength - 1; i != firstParamArrayArgument; i--)
+                    collection = new BoundArrayCreation(
+                                node,
+                                ImmutableArray.Create(arraySize),
+                                new BoundArrayInitialization(node, isInferred: false, collectionArgs) { WasCompilerGenerated = true },
+                                collectionType)
+                    { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
+                }
+                else
+                {
+                    if (Compilation.SourceModule != parameters[paramsIndex].ContainingModule)
+                    {
+                        MessageID.IDS_FeatureParamsCollections.CheckFeatureAvailability(diagnostics, node);
+                    }
+
+                    var unconvertedCollection = new BoundUnconvertedCollectionExpression(node, ImmutableArray<BoundNode>.CastUp(collectionArgs)) { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                    Conversion conversion = Conversions.ClassifyImplicitConversionFromExpression(unconvertedCollection, collectionType, ref useSiteInfo);
+                    diagnostics.Add(node, useSiteInfo);
+
+                    BoundCollectionExpression converted;
+                    if (!conversion.Exists)
+                    {
+                        Debug.Assert(false); // Add test if this code path is reachable
+                        GenerateImplicitConversionErrorForCollectionExpression(unconvertedCollection, collectionType, diagnostics);
+                        converted = BindCollectionExpressionForErrorRecovery(unconvertedCollection, collectionType, inConversion: true, diagnostics);
+                    }
+                    else
+                    {
+                        Debug.Assert(conversion.IsCollectionExpression);
+
+                        bool infiniteRecursion = false;
+                        if (conversion.GetCollectionExpressionTypeKind(out _, out MethodSymbol? constructor, out bool isExpanded) == CollectionExpressionTypeKind.ImplementsIEnumerable &&
+                            isExpanded)
+                        {
+                            Debug.Assert(constructor is not null);
+
+                            // Check for infinite recursion through the constructor
+                            var constructorSet = PooledHashSet<MethodSymbol>.GetInstance();
+                            constructorSet.Add(constructor.OriginalDefinition);
+
+                            BoundUnconvertedCollectionExpression? emptyCollection = null;
+
+                            while (true)
+                            {
+                                var paramsType = constructor.Parameters[^1].Type;
+                                if (!paramsType.IsSZArray())
+                                {
+                                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                                    emptyCollection ??= new BoundUnconvertedCollectionExpression(node, ImmutableArray<BoundNode>.CastUp(ImmutableArray<BoundExpression>.Empty)) { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
+                                    Conversion nextConversion = Conversions.ClassifyImplicitConversionFromExpression(emptyCollection, paramsType, ref discardedUseSiteInfo);
+
+                                    if (nextConversion.Exists &&
+                                        nextConversion.GetCollectionExpressionTypeKind(out _, out constructor, out isExpanded) == CollectionExpressionTypeKind.ImplementsIEnumerable &&
+                                        isExpanded)
+                                    {
+                                        Debug.Assert(constructor is not null);
+
+                                        if (constructorSet.Add(constructor.OriginalDefinition))
+                                        {
+                                            continue;
+                                        }
+
+                                        infiniteRecursion = true;
+                                    }
+                                }
+
+                                break;
+                            }
+
+                            constructorSet.Free();
+                        }
+
+                        if (infiniteRecursion)
+                        {
+                            Debug.Assert(constructor is not null);
+                            Error(diagnostics, ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, node, collectionType, constructor.OriginalDefinition);
+                            converted = BindCollectionExpressionForErrorRecovery(unconvertedCollection, collectionType, inConversion: true, diagnostics);
+                        }
+                        else
+                        {
+                            converted = ConvertCollectionExpression(unconvertedCollection, collectionType, conversion, diagnostics);
+                        }
+                    }
+
+                    collection = new BoundConversion(
+                                     node,
+                                     converted,
+                                     conversion,
+                                     @checked: CheckOverflowAtRuntime,
+                                     explicitCastInCode: false,
+                                     conversionGroupOpt: null,
+                                     constantValueOpt: null,
+                                     type: collectionType)
+                    { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
+                }
+
+                Debug.Assert(collection.IsParamsArrayOrCollection);
+
+                if (collectionArgsLength != 0)
+                {
+                    Debug.Assert(firstParamsArgument != -1);
+                    Debug.Assert(!haveDefaultArguments || collectionArgsLength == 1);
+                    Debug.Assert(collectionArgsLength == 1 || firstParamsArgument + collectionArgsLength == argumentsBuilder.Count);
+
+                    for (var i = firstParamsArgument + collectionArgsLength - 1; i != firstParamsArgument; i--)
                     {
                         argumentsBuilder.RemoveAt(i);
                         argsToParamsBuilder?.RemoveAt(i);
@@ -1454,8 +1697,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    argumentsBuilder[firstParamArrayArgument] = array;
-                    array = null;
+                    argumentsBuilder[firstParamsArgument] = collection;
+                    collection = null;
                 }
             }
 
@@ -1507,12 +1750,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultArguments = default;
             }
 
-            if (array is not null)
+            if (collection is not null)
             {
                 Debug.Assert(expanded);
-                Debug.Assert(firstParamArrayArgument == -1);
+                Debug.Assert(firstParamsArgument == -1);
 
-                argumentsBuilder.Add(array);
+                argumentsBuilder.Add(collection);
                 argsToParamsBuilder?.Add(paramsIndex);
 
                 if (argumentRefKindsBuilder is { Count: > 0 })
@@ -1840,7 +2083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsUnboundGeneric(MethodSymbol method)
         {
-            return method.IsGenericMethod && method.ConstructedFrom() == method;
+            return method.IsGenericMethod && method.ConstructedFrom == method;
         }
 
         // Arbitrary limit on the number of parameter lists from overload
@@ -2136,7 +2379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Check that the method group contains something applicable. Otherwise error.
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            var resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteInfo: ref useSiteInfo);
+            var resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.None);
             diagnostics.Add(methodGroup.Syntax, useSiteInfo);
             diagnostics.AddRange(resolution.Diagnostics);
             if (resolution.IsExtensionMethodGroup)

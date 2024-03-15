@@ -11,8 +11,10 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LegacySolutionEvents;
@@ -25,15 +27,18 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents;
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
 internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : IEventListener<object>
 {
+    private readonly IGlobalOptionService _globalOptions;
     private readonly IThreadingContext _threadingContext;
     private readonly AsyncBatchingWorkQueue<WorkspaceChangeEventArgs> _eventQueue;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public HostLegacySolutionEventsWorkspaceEventListener(
+        IGlobalOptionService globalOptions,
         IThreadingContext threadingContext,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
+        _globalOptions = globalOptions;
         _threadingContext = threadingContext;
         _eventQueue = new AsyncBatchingWorkQueue<WorkspaceChangeEventArgs>(
             DelayTimeSpan.Short,
@@ -44,11 +49,16 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
 
     public void StartListening(Workspace workspace, object? serviceOpt)
     {
-        workspace.WorkspaceChanged += OnWorkspaceChanged;
-        _threadingContext.DisposalToken.Register(() =>
+        // We only support this option to disable crawling in internal speedometer and ddrit perf runs to lower noise.
+        // It is not exposed to the user.
+        if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
         {
-            workspace.WorkspaceChanged -= OnWorkspaceChanged;
-        });
+            workspace.WorkspaceChanged += OnWorkspaceChanged;
+            _threadingContext.DisposalToken.Register(() =>
+            {
+                workspace.WorkspaceChanged -= OnWorkspaceChanged;
+            });
+        }
     }
 
     private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
