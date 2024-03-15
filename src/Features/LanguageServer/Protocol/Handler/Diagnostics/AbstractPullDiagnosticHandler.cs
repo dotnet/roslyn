@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Features.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -130,80 +131,90 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         public async Task<TReturn?> HandleRequestAsync(
             TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
-            var clientCapabilities = context.GetRequiredClientCapabilities();
-            var category = GetDiagnosticCategory(diagnosticsParams) ?? "";
-            var sourceIdentifier = GetDiagnosticSourceIdentifier(diagnosticsParams) ?? "";
-            var handlerName = $"{this.GetType().Name}(category: {category}, source: {sourceIdentifier})";
-            context.TraceInformation($"{handlerName} started getting diagnostics");
-
-            var versionedCache = _categoryToVersionedCache.GetOrAdd(handlerName, static handlerName => new(handlerName));
-
             // The progress object we will stream reports to.
             using var progress = BufferedProgress.Create(diagnosticsParams.PartialResultToken);
 
-            // Get the set of results the request said were previously reported.  We can use this to determine both
-            // what to skip, and what files we have to tell the client have been removed.
-            var previousResults = GetPreviousResults(diagnosticsParams) ?? [];
-            context.TraceInformation($"previousResults.Length={previousResults.Length}");
-
-            // Create a mapping from documents to the previous results the client says it has for them.  That way as we
-            // process documents we know if we should tell the client it should stay the same, or we can tell it what
-            // the updated diagnostics are.
-            var documentToPreviousDiagnosticParams = GetIdToPreviousDiagnosticParams(context, previousResults, out var removedResults);
-
-            // First, let the client know if any workspace documents have gone away.  That way it can remove those for
-            // the user from squiggles or error-list.
-            HandleRemovedDocuments(context, removedResults, progress);
-
-            // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
-            // last time we notified the client.  Report back either to the client so they can update accordingly.
-            var orderedSources = await GetOrderedDiagnosticSourcesAsync(
-                diagnosticsParams, context, cancellationToken).ConfigureAwait(false);
-
-            context.TraceInformation($"Processing {orderedSources.Length} documents");
-
-            foreach (var diagnosticSource in orderedSources)
+            // We only support this option to disable crawling in internal speedometer and ddrit perf runs to lower
+            // noise.  It is not exposed to the user.
+            if (!this.GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
             {
-                var globalStateVersion = _diagnosticRefresher.GlobalStateVersion;
+                context.TraceInformation($"{this.GetType()}. Skipping due to {nameof(SolutionCrawlerRegistrationService.EnableSolutionCrawler)}={false}");
+            }
+            else
+            {
+                var clientCapabilities = context.GetRequiredClientCapabilities();
+                var category = GetDiagnosticCategory(diagnosticsParams) ?? "";
+                var sourceIdentifier = GetDiagnosticSourceIdentifier(diagnosticsParams) ?? "";
+                var handlerName = $"{this.GetType().Name}(category: {category}, source: {sourceIdentifier})";
+                context.TraceInformation($"{handlerName} started getting diagnostics");
 
-                var project = diagnosticSource.GetProject();
+                var versionedCache = _categoryToVersionedCache.GetOrAdd(handlerName, static handlerName => new(handlerName));
 
-                var newResultId = await versionedCache.GetNewResultIdAsync(
-                    documentToPreviousDiagnosticParams,
-                    diagnosticSource.GetId(),
-                    project,
-                    computeCheapVersionAsync: async () => (globalStateVersion, await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false)),
-                    computeExpensiveVersionAsync: async () => (globalStateVersion, await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false)),
-                    cancellationToken).ConfigureAwait(false);
-                if (newResultId != null)
+                // Get the set of results the request said were previously reported.  We can use this to determine both
+                // what to skip, and what files we have to tell the client have been removed.
+                var previousResults = GetPreviousResults(diagnosticsParams) ?? [];
+                context.TraceInformation($"previousResults.Length={previousResults.Length}");
+
+                // Create a mapping from documents to the previous results the client says it has for them.  That way as we
+                // process documents we know if we should tell the client it should stay the same, or we can tell it what
+                // the updated diagnostics are.
+                var documentToPreviousDiagnosticParams = GetIdToPreviousDiagnosticParams(context, previousResults, out var removedResults);
+
+                // First, let the client know if any workspace documents have gone away.  That way it can remove those for
+                // the user from squiggles or error-list.
+                HandleRemovedDocuments(context, removedResults, progress);
+
+                // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
+                // last time we notified the client.  Report back either to the client so they can update accordingly.
+                var orderedSources = await GetOrderedDiagnosticSourcesAsync(
+                    diagnosticsParams, context, cancellationToken).ConfigureAwait(false);
+
+                context.TraceInformation($"Processing {orderedSources.Length} documents");
+
+                foreach (var diagnosticSource in orderedSources)
                 {
-                    await ComputeAndReportCurrentDiagnosticsAsync(
-                        context, diagnosticSource, progress, newResultId, clientCapabilities, cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    context.TraceInformation($"Diagnostics were unchanged for {diagnosticSource.ToDisplayString()}");
+                    var globalStateVersion = _diagnosticRefresher.GlobalStateVersion;
 
-                    // Nothing changed between the last request and this one.  Report a (null-diagnostics,
-                    // same-result-id) response to the client as that means they should just preserve the current
-                    // diagnostics they have for this file.
-                    var previousParams = documentToPreviousDiagnosticParams[diagnosticSource.GetId()];
-                    progress.Report(CreateUnchangedReport(previousParams.TextDocument, previousParams.PreviousResultId));
+                    var project = diagnosticSource.GetProject();
+
+                    var newResultId = await versionedCache.GetNewResultIdAsync(
+                        documentToPreviousDiagnosticParams,
+                        diagnosticSource.GetId(),
+                        project,
+                        computeCheapVersionAsync: async () => (globalStateVersion, await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false)),
+                        computeExpensiveVersionAsync: async () => (globalStateVersion, await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false)),
+                        cancellationToken).ConfigureAwait(false);
+                    if (newResultId != null)
+                    {
+                        await ComputeAndReportCurrentDiagnosticsAsync(
+                            context, diagnosticSource, progress, newResultId, clientCapabilities, cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        context.TraceInformation($"Diagnostics were unchanged for {diagnosticSource.ToDisplayString()}");
+
+                        // Nothing changed between the last request and this one.  Report a (null-diagnostics,
+                        // same-result-id) response to the client as that means they should just preserve the current
+                        // diagnostics they have for this file.
+                        var previousParams = documentToPreviousDiagnosticParams[diagnosticSource.GetId()];
+                        progress.Report(CreateUnchangedReport(previousParams.TextDocument, previousParams.PreviousResultId));
+                    }
                 }
+
+                // Clear out the solution context to avoid retaining memory
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1809058
+                context.ClearSolutionContext();
+
+                // Some implementations of the spec will re-open requests as soon as we close them, spamming the server.
+                // In those cases, we wait for the implementation to indicate that changes have occurred, then we close the connection
+                // so that the client asks us again.
+                await WaitForChangesAsync(context, cancellationToken).ConfigureAwait(false);
+
+                // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
+                // collecting and return that.
+                context.TraceInformation($"{this.GetType()} finished getting diagnostics");
             }
 
-            // Clear out the solution context to avoid retaining memory
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1809058
-            context.ClearSolutionContext();
-
-            // Some implementations of the spec will re-open requests as soon as we close them, spamming the server.
-            // In those cases, we wait for the implementation to indicate that changes have occurred, then we close the connection
-            // so that the client asks us again.
-            await WaitForChangesAsync(context, cancellationToken).ConfigureAwait(false);
-
-            // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
-            // collecting and return that.
-            context.TraceInformation($"{this.GetType()} finished getting diagnostics");
             return CreateReturn(progress);
         }
 
