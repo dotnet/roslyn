@@ -23,7 +23,7 @@ internal class Roslyn : IProduct
         => buildProjectName switch
         {
             "DevDiv" => "Roslyn-Signed",
-            "internal" => "dotnet-roslyn CI",  // dnceng
+            "internal" => "dotnet-roslyn-official",  // dnceng
             _ => throw new InvalidOperationException($"No idea what the build is called when the project is {buildProjectName}.")
         };
 }
