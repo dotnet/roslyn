@@ -1663,6 +1663,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitThrowIfModuleCancellationRequested(BoundThrowIfModuleCancellationRequested node)
+        {
+            return null;
+        }
+
         public override BoundNode VisitSourceDocumentIndex(BoundSourceDocumentIndex node)
         {
             return null;

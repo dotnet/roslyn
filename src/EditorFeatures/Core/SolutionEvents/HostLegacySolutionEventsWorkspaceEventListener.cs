@@ -19,6 +19,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LegacySolutionEvents;
 
+/// <summary>
+/// Event listener that hears about workspaces and exists solely to let unit testing continue to work using their own
+/// fork of solution crawler.  Importantly, this is always active until the point that we can get unit testing to move
+/// to an entirely differently (ideally 'pull') model for test discovery.
+/// </summary>
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
 internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : IEventListener<object>
 {
@@ -44,6 +49,8 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
 
     public void StartListening(Workspace workspace, object? serviceOpt)
     {
+        // We only support this option to disable crawling in internal perf runs to lower noise.  It is not exposed to
+        // the user.
         if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
         {
             workspace.WorkspaceChanged += OnWorkspaceChanged;

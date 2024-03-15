@@ -235,48 +235,12 @@ class A {
         }
 
         [Theory, CombinatorialData]
-        public async Task TestNoDocumentDiagnosticsForOpenFilesWithFSAOffIfInPushMode(bool useVSDiagnostics, bool mutatingLspWorkspace)
-        {
-            var markup =
-@"class A {";
-            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: false);
-
-            // Calling GetTextBuffer will effectively open the file.
-            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
-
-            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
-
-            await OpenDocumentAsync(testLspServer, document);
-
-            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics));
-        }
-
-        [Theory, CombinatorialData]
-        public async Task TestNoDocumentDiagnosticsForOpenFilesIfDefaultAndFeatureFlagOff(bool useVSDiagnostics, bool mutatingLspWorkspace)
-        {
-            var markup =
-@"class A {";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
-                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, CompilerDiagnosticsScope.OpenFiles, useVSDiagnostics, DiagnosticMode.Default));
-
-            // Calling GetTextBuffer will effectively open the file.
-            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
-            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
-            await OpenDocumentAsync(testLspServer, document);
-
-            // Ensure we get no diagnostics when feature flag is off.
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag, false);
-
-            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics));
-        }
-
-        [Theory, CombinatorialData]
         public async Task TestDocumentDiagnosticsForOpenFilesIfDefaultAndFeatureFlagOn(bool useVSDiagnostics, bool mutatingLspWorkspace)
         {
             var markup =
 @"class A {";
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
-                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, CompilerDiagnosticsScope.OpenFiles, useVSDiagnostics, DiagnosticMode.Default));
+                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, CompilerDiagnosticsScope.OpenFiles, useVSDiagnostics));
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -668,9 +632,8 @@ class B {";
             var markup =
 @"class A {";
 
-            // Turn off pull diagnostics by default, but send a request to the razor LSP server which is always pull.
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
-                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, CompilerDiagnosticsScope.OpenFiles, useVSDiagnostics, DiagnosticMode.SolutionCrawlerPush, WellKnownLspServerKinds.RazorLspServer));
+                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, CompilerDiagnosticsScope.OpenFiles, useVSDiagnostics, WellKnownLspServerKinds.RazorLspServer));
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -693,9 +656,8 @@ class B {";
             var markup =
 @"class A {";
 
-            // Turn off pull diagnostics by default, but send a request to the razor LSP server which is always pull.
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
-                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, CompilerDiagnosticsScope.OpenFiles, useVSDiagnostics, DiagnosticMode.SolutionCrawlerPush, WellKnownLspServerKinds.LiveShareLspServer));
+                GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, CompilerDiagnosticsScope.OpenFiles, useVSDiagnostics, WellKnownLspServerKinds.LiveShareLspServer));
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -716,7 +678,8 @@ class B {";
         public async Task TestDocumentDiagnosticsIncludesSourceGeneratorDiagnostics(bool useVSDiagnostics, bool mutatingLspWorkspace)
         {
             var markup = "// Hello, World";
-            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: true);
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+                markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
             // Calling GetTextBuffer will effectively open the file.
             testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -857,7 +820,7 @@ class A
         public async Task TestDocumentDiagnosticsForUnnecessarySuppressions(bool useVSDiagnostics, bool mutatingLspWorkspace)
         {
             var markup = "#pragma warning disable IDE0000";
-            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: true);
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -882,7 +845,7 @@ class C
 #pragma warning restore CS0168 // Variable is declared but never used
     }
 }";
-            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: true);
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -1235,7 +1198,7 @@ class A {
 @"class A {";
             var markup2 = "";
             await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-                new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: true);
+                new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
             var firstDocument = testLspServer.GetCurrentSolution().Projects.Single().Documents.First();
             await OpenDocumentAsync(testLspServer, firstDocument);
@@ -1249,7 +1212,8 @@ class A {
         public async Task TestWorkspaceDiagnosticsIncludesSourceGeneratorDiagnosticsClosedFSAOn(bool useVSDiagnostics, bool mutatingLspWorkspace)
         {
             var markup = "// Hello, World";
-            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics, pullDiagnostics: true);
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+                markup, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -1269,7 +1233,8 @@ class A {
         public async Task TestWorkspaceDiagnosticsDoesNotIncludeSourceGeneratorDiagnosticsClosedFSAOffAndNoFilesOpen(bool useVSDiagnostics, bool mutatingLspWorkspace)
         {
             var markup = "// Hello, World";
-            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: true);
+            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+                markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
             var generator = new DiagnosticProducingGenerator(
                 context => Location.Create(
@@ -1282,18 +1247,6 @@ class A {
 
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
             Assert.Empty(results);
-        }
-
-        [Theory, CombinatorialData]
-        public async Task TestNoWorkspaceDiagnosticsForClosedFilesWithFSAOnAndInPushMode(bool useVSDiagnostics, bool mutatingLspWorkspace)
-        {
-            var markup1 =
-@"class A {";
-            var markup2 = "";
-            await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-                new[] { markup1, markup2 }, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics, pullDiagnostics: false);
-
-            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics));
         }
 
         [Theory, CombinatorialData]
@@ -1328,7 +1281,7 @@ class A {
             var markup2 = "";
             await using var testLspServer = await CreateTestLspServerAsync(
                 markups: [], mutatingLspWorkspace,
-                GetInitializationOptions(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution, useVSDiagnostics, DiagnosticMode.LspPull, sourceGeneratedMarkups: [markup1, markup2]));
+                GetInitializationOptions(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution, useVSDiagnostics, sourceGeneratedMarkups: [markup1, markup2]));
 
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
