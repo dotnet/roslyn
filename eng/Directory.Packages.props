@@ -74,7 +74,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.LiveShare.WebEditors" Version="3.0.8" />
     <PackageVersion Include="Microsoft.VisualStudio.InteractiveWindow" Version="4.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.VsInteractiveWindow" Version="4.0.0" />
-    <PackageVersion Include="Microsoft.VisualStudio.Search" Version="17.10.961-preview.2" />
+    <PackageVersion Include="Microsoft.VisualStudio.Search" Version="17.8.35898-preview.2" />
     <PackageVersion Include="Microsoft.VisualStudio.WinForms.Interfaces" Version="17.0.0-previews-4-31709-430" />
     <PackageVersion Include="Microsoft.VisualStudio.Workspace.VSIntegration" Version="17.9.29-preview-0001" />
     <PackageVersion Include="VsWebSite.Interop" Version="8.0.50727" />
