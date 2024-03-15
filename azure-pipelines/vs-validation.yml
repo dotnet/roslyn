@@ -41,7 +41,7 @@ extends:
     - template: /azure-pipelines/prepare-insertion-stages.yml@self
       parameters:
         ArchiveSymbols: false
-        RealSign: ${{ parameters.RealSign }}
+        RealSign: true
 
     - stage: insertion
       displayName: VS insertion
