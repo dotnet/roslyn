@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -314,6 +315,7 @@ public class Test
         [Fact]
         public void ExpressionsAreNotOptimized2()
         {
+            string toObject = Environment.Version.Major > 4 ? ", Object" : "";
             var source = @"
 using System;
 using System.Linq.Expressions;
@@ -329,7 +331,7 @@ public class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"a => Format(""a: {0} c: {1} f: {2}"", a, Convert(c, Object), ""f"")");
+            var comp = CompileAndVerify(source, expectedOutput: @"a => Format(""a: {0} c: {1} f: {2}"", a, Convert(c" + toObject + @"), ""f"")");
 
             comp.VerifyDiagnostics();
         }

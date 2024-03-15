@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -13546,19 +13547,22 @@ Expression<Func<string, string>> e = o => $""{o.Length}"" + $""literal"";";
         [Fact, WorkItem(72308, "https://github.com/dotnet/roslyn/issues/72308")]
         public void AsStringInExpressionTrees_06()
         {
+            var toObject = Environment.Version.Major > 4 ? ", Object" : "";
             var code = @"
 using System;
 using System.Linq.Expressions;
 
 const char sp = ' ';
-Expression<Func<string, string>> e = o => $""{o}l{sp}{nameof(sp)}"";";
+Expression<Func<string, string>> e = o => $""{o}l{sp}{nameof(sp)}"";
+Console.Write(e);";
 
             var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"o => Format(""{0}l{1}{2}"", o, Convert( " + toObject + @"), ""sp"")
+");
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size      155 (0x9b)
+  // Code size      159 (0x9f)
   .maxstack  7
   .locals init (System.Linq.Expressions.ParameterExpression V_0)
   IL_0000:  ldtoken    ""string""
@@ -13609,8 +13613,8 @@ Expression<Func<string, string>> e = o => $""{o}l{sp}{nameof(sp)}"";";
   IL_0092:  ldloc.0
   IL_0093:  stelem.ref
   IL_0094:  call       ""System.Linq.Expressions.Expression<System.Func<string, string>> System.Linq.Expressions.Expression.Lambda<System.Func<string, string>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
-  IL_0099:  pop
-  IL_009a:  ret
+  IL_0099:  call       ""void System.Console.Write(object)""
+  IL_009e:  ret
 }
 ");
         }
