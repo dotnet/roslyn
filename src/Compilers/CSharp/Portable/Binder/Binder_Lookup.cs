@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -1556,7 +1557,7 @@ symIsHidden:;
                         throw ExceptionUtilities.Unreachable();
                     }
 
-                    if (additionalContainerUnderlying.Equals(currentContainerUnderlying, TypeCompareKind.ConsiderEverything))
+                    if (additionalContainerUnderlying.Equals(currentContainerUnderlying, TypeCompareKind.AllIgnoreOptions))
                     {
                         // neither underlying type is more specific
                     }
@@ -1600,20 +1601,25 @@ symIsHidden:;
 
             for (int i = 0; i < count; i++)
             {
-                Symbol methodSymbol = symbols[i];
-
-                if (methodSymbol is null || !IsMethodOrIndexer(methodSymbol))
+                if (!getSymbol(symbols, i, isMethod: true, out Symbol methodSymbol))
+                {
                     continue;
+                }
+
+                if (methodSymbol.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } methodUnderlying )
+                {
+                    // We wouldn't have gathered these members if we didn't have an extended type for them.
+                    throw ExceptionUtilities.Unreachable();
+                }
 
                 for (int j = 0; j < count; j++)
                 {
-                    Symbol nonMethodSymbol = symbols[j];
-
-                    if (nonMethodSymbol is null || IsMethodOrIndexer(nonMethodSymbol))
+                    if (!getSymbol(symbols, i, isMethod: false, out Symbol nonMethodSymbol))
+                    {
                         continue;
+                    }
 
-                    if (methodSymbol.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } methodUnderlying
-                        || nonMethodSymbol.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } nonMethodUnderlying)
+                    if (nonMethodSymbol.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } nonMethodUnderlying)
                     {
                         // We wouldn't have gathered these members if we didn't have an extended type for them.
                         throw ExceptionUtilities.Unreachable();
@@ -1648,6 +1654,20 @@ symIsHidden:;
                 result.Symbols.Clear();
                 result.Symbols.AddRange(updatedResult);
                 updatedResult.Free();
+            }
+            return;
+
+            bool getSymbol(ArrayBuilder<Symbol> symbols, int index, bool isMethod, out Symbol found)
+            {
+                var symbol = symbols[index];
+                if (symbol is null || IsMethodOrIndexer(symbol) != isMethod)
+                {
+                    found = null;
+                    return false;
+                }
+
+                found = symbol;
+                return true;
             }
         }
 
