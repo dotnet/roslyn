@@ -9366,6 +9366,29 @@ public class C { }
         }
 
         [Fact]
+        public void ReportAnalyzerOutput_ShowSuppressorIds()
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
+            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = CreateCSharpCompiler(
+                responseFile: null,
+                srcDirectory,
+                ["/reportanalyzer", "/t:library", srcFile.Path],
+                analyzers: [new DiagnosticSuppressorForId("Warning01", "Suppressor01")],
+                generators: [new DoNothingGenerator().AsSourceGenerator()]);
+            var exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+            Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
+            Assert.Contains($"{nameof(DiagnosticSuppressorForId)} (Suppressor01)", output, StringComparison.Ordinal);
+            Assert.Contains(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal);
+            Assert.Contains(typeof(DoNothingGenerator).FullName, output, StringComparison.Ordinal);
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Fact]
         [WorkItem(40926, "https://github.com/dotnet/roslyn/issues/40926")]
         public void SkipAnalyzersParse()
         {
