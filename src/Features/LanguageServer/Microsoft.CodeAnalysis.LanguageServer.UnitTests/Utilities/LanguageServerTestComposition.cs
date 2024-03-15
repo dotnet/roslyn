@@ -22,10 +22,10 @@ internal sealed class LanguageServerTestComposition
     private static string GetDevKitExtensionPath()
         => Path.Combine(AppContext.BaseDirectory, DevKitExtensionSubdirectory, DevKitAssemblyFileName);
 
-    public static Task<ExportProvider> CreateExportProviderAsync(ILoggerFactory loggerFactory, bool includeDevKitComponents)
+    public static Task<ExportProvider> CreateExportProviderAsync(ILoggerFactory loggerFactory, bool includeDevKitComponents, out ServerConfiguration serverConfiguration)
     {
         var devKitDependencyPath = includeDevKitComponents ? GetDevKitExtensionPath() : null;
-        var serverConfiguration = new ServerConfiguration(LaunchDebugger: false,
+        serverConfiguration = new ServerConfiguration(LaunchDebugger: false,
             MinimumLogLevel: LogLevel.Trace,
             StarredCompletionsPath: null,
             TelemetryLevel: null,
