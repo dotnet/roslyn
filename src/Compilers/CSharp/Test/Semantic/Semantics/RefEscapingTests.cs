@@ -7989,17 +7989,35 @@ public struct Vec4
                 public ref struct C
                 {
                     public static C operator +(C left, C right) => right;
+                    public static C X(C left, C right) => right;
                     public C M(C c, scoped C c1)
                     {
                         c += c1;
+                        c = c + c1;
+                        c = X(c, c1);
                         return c;
                     }
                 }
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,14): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                // (7,9): error CS8347: Cannot use a result of 'C.operator +(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
                 //         c += c1;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(6, 14));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c += c1").WithArguments("C.operator +(C, C)", "right").WithLocation(7, 9),
+                // (7,14): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(7, 14),
+                // (8,13): error CS8347: Cannot use a result of 'C.operator +(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c = c + c1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c + c1").WithArguments("C.operator +(C, C)", "right").WithLocation(8, 13),
+                // (8,17): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c = c + c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(8, 17),
+                // (9,13): error CS8347: Cannot use a result of 'C.X(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c = X(c, c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(C, C)", "right").WithLocation(9, 13),
+                // (9,18): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c = X(c, c1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(9, 18));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
@@ -8009,17 +8027,35 @@ public struct Vec4
                 public ref struct C
                 {
                     public static C operator +(scoped C left, C right) => right;
+                    public static C X(scoped C left, C right) => right;
                     public C M(C c, scoped C c1)
                     {
                         c += c1;
+                        c = c + c1;
+                        c = X(c, c1);
                         return c;
                     }
                 }
                 """;
             CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
-                // (6,14): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                // (7,9): error CS8347: Cannot use a result of 'C.operator +(scoped C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
                 //         c += c1;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(6, 14));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c += c1").WithArguments("C.operator +(scoped C, C)", "right").WithLocation(7, 9),
+                // (7,14): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(7, 14),
+                // (8,13): error CS8347: Cannot use a result of 'C.operator +(scoped C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c = c + c1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c + c1").WithArguments("C.operator +(scoped C, C)", "right").WithLocation(8, 13),
+                // (8,17): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c = c + c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(8, 17),
+                // (9,13): error CS8347: Cannot use a result of 'C.X(scoped C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c = X(c, c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(scoped C, C)", "right").WithLocation(9, 13),
+                // (9,18): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c = X(c, c1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(9, 18));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
@@ -8029,17 +8065,17 @@ public struct Vec4
                 public ref struct C
                 {
                     public static C operator +(C left, scoped C right) => left;
+                    public static C X(C left, scoped C right) => left;
                     public C M(C c, scoped C c1)
                     {
                         c += c1;
+                        c = c + c1;
+                        c = X(c, c1);
                         return c;
                     }
                 }
                 """;
-            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
-                // (6,14): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
-                //         c += c1;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(6, 14));
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
@@ -8049,9 +8085,12 @@ public struct Vec4
                 public ref struct C
                 {
                     public static C operator +(scoped C left, scoped C right) => right;
+                    public static C X(scoped C left, scoped C right) => right;
                     public C M(C c, scoped C c1)
                     {
                         c += c1;
+                        c = c + c1;
+                        c = X(c, c1);
                         return c;
                     }
                 }
@@ -8060,9 +8099,9 @@ public struct Vec4
                 // (3,66): error CS8352: Cannot use variable 'scoped C right' in this context because it may expose referenced variables outside of their declaration scope
                 //     public static C operator +(scoped C left, scoped C right) => right;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "right").WithArguments("scoped C right").WithLocation(3, 66),
-                // (6,14): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
-                //         c += c1;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(6, 14));
+                // (4,57): error CS8352: Cannot use variable 'scoped C right' in this context because it may expose referenced variables outside of their declaration scope
+                //     public static C X(scoped C left, scoped C right) => right;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "right").WithArguments("scoped C right").WithLocation(4, 57));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
