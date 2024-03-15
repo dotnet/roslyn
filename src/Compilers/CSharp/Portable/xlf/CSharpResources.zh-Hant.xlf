@@ -237,6 +237,11 @@
         <target state="translated">靜態成員上的 'Init' 存取子無效</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike">
+        <source>A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.</source>
+        <target state="new">A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
         <target state="translated">/nullable 的選項 '{0}' 無效; 必須為 'disable'、'enable'、'warnings' 或 'annotations'</target>
@@ -1472,6 +1477,11 @@
         <target state="translated">'{0}' 必須允許覆寫，因為包含的記錄並未密封。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NotRefStructConstraintNotSatisfied">
+        <source>The type '{2}' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
+        <target state="new">The type '{2}' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '{1}' in the generic type or method '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
         <source>null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.</source>
         <target state="translated">null 不是有效的參數名稱。若要取得執行個體方法接收器的存取權，請使用空字串做為參數名稱。</target>
@@ -1780,6 +1790,11 @@
       <trans-unit id="ERR_RefStructConstraintAlreadySpecified">
         <source>'ref struct' is already specified.</source>
         <target state="new">'ref struct' is already specified.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' for ref struct '{2}'.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' for ref struct '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">
@@ -7885,11 +7900,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_StaticClassInterfaceImpl">
         <source>'{0}': static classes cannot implement interfaces</source>
         <target state="translated">'{0}': 靜態類別無法實作介面</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RefStructInterfaceImpl">
-        <source>'{0}': ref structs cannot implement interfaces</source>
-        <target state="translated">'{0}': ref struct 無法實作介面</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorInStaticClass">

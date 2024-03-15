@@ -8282,10 +8282,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (!Compilation.Assembly.RuntimeSupportsDefaultInterfaceImplementation && Compilation.SourceModule != symbol.ContainingModule)
+                if (receiverOpt is { Type: TypeParameterSymbol { AllowByRefLike: true } } &&
+                    isNotImplementableInstanceMember(symbol))
                 {
-                    if (!symbol.IsStatic && !(symbol is TypeSymbol) &&
-                        !symbol.IsImplementableInterfaceMember())
+                    Error(diagnostics, ErrorCode.ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike, node);
+                }
+                else if (!Compilation.Assembly.RuntimeSupportsDefaultInterfaceImplementation && Compilation.SourceModule != symbol.ContainingModule)
+                {
+                    if (isNotImplementableInstanceMember(symbol))
                     {
                         Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, node);
                     }
@@ -8302,6 +8306,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+            }
+
+            static bool isNotImplementableInstanceMember(Symbol symbol)
+            {
+                return !symbol.IsStatic && !(symbol is TypeSymbol) &&
+                       !symbol.IsImplementableInterfaceMember();
             }
         }
 
