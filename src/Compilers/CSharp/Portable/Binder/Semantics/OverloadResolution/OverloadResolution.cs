@@ -1308,7 +1308,7 @@ outerDefault:
             }
         }
 
-        private static void RemoveLessSpecificExtensionMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private void RemoveLessSpecificExtensionMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             where TMember : Symbol
         {
             for (int i = 0; i < results.Count; ++i)
@@ -1423,7 +1423,7 @@ outerDefault:
             }
         }
 
-        private static bool IsLessSpecificThanAnyExtensionMember<TMember>(int index, TypeSymbol extendedType, ArrayBuilder<MemberResolutionResult<TMember>> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private bool IsLessSpecificThanAnyExtensionMember<TMember>(int index, TypeSymbol extendedType, ArrayBuilder<MemberResolutionResult<TMember>> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             where TMember : Symbol
         {
             for (int j = 0; j < results.Count; ++j)
@@ -1445,37 +1445,15 @@ outerDefault:
                     continue;
                 }
 
-                if (isExtendedTypeLessDerived(extendedType, currentExtendedType, ref useSiteInfo))
+                // PROTOTYPE(static) revise if we allow extension lookup on type parameters
+                if (!extendedType.Equals(currentExtendedType, TypeCompareKind.AllIgnoreOptions)
+                    && Binder.DerivesOrImplements(extendedType, derivedType: currentExtendedType, basesBeingResolved: null, this.Compilation, ref useSiteInfo))
                 {
                     return true;
                 }
             }
 
             return false;
-
-            static bool isExtendedTypeLessDerived(TypeSymbol extendedType, TypeSymbol type, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-            {
-                Debug.Assert(!extendedType.IsExtension);
-                Debug.Assert(!type.IsExtension);
-
-                var baseType = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
-                while (baseType is { })
-                {
-                    if (baseType.Equals(extendedType, TypeCompareKind.ConsiderEverything))
-                    {
-                        return true;
-                    }
-
-                    baseType = baseType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
-                }
-
-                if (extendedType.IsInterfaceType() && type.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo).Contains((NamedTypeSymbol)extendedType))
-                {
-                    return true;
-                }
-
-                return false;
-            }
         }
 
         private static void RemoveAllInterfaceMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results)
