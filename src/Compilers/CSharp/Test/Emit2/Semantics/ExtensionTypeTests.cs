@@ -11367,15 +11367,10 @@ implicit extension E for object
             );
     }
 
-    [Fact]
-    public void ExtensionMemberLookup_Ambiguity()
+    [Theory, CombinatorialData]
+    public void ExtensionMemberLookup_Ambiguity(bool e1BeforeE2)
     {
-        var src = """
-object.Method();
-_ = object.Property;
-_ = object.Field;
-_ = object.Type.M();
-
+        var e1 = """
 implicit extension E1 for object
 {
     public static void Method() => throw null;
@@ -11386,7 +11381,9 @@ implicit extension E1 for object
         public static void M() => throw null;
     }
 }
+""";
 
+        var e2 = """
 implicit extension E2 for object
 {
     public static void Method() => throw null;
@@ -11398,21 +11395,51 @@ implicit extension E2 for object
     }
 }
 """;
+
+        var src = $$"""
+object.Method();
+_ = object.Property;
+_ = object.Field;
+_ = object.Type.M();
+
+{{(e1BeforeE2 ? e1 : e2)}}
+{{(e1BeforeE2 ? e2 : e1)}}
+""";
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (1,8): error CS0121: The call is ambiguous between the following methods or properties: 'E1.Method()' and 'E2.Method()'
-            // object.Method();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("E1.Method()", "E2.Method()").WithLocation(1, 8),
-            // (2,12): error CS0229: Ambiguity between 'E1.Property' and 'E2.Property'
-            // _ = object.Property;
-            Diagnostic(ErrorCode.ERR_AmbigMember, "Property").WithArguments("E1.Property", "E2.Property").WithLocation(2, 12),
-            // (3,12): error CS0229: Ambiguity between 'E1.Field' and 'E2.Field'
-            // _ = object.Field;
-            Diagnostic(ErrorCode.ERR_AmbigMember, "Field").WithArguments("E1.Field", "E2.Field").WithLocation(3, 12),
-            // (4,12): error CS0104: 'Type' is an ambiguous reference between 'E1.Type' and 'E2.Type'
-            // _ = object.Type.M();
-            Diagnostic(ErrorCode.ERR_AmbigContext, "Type").WithArguments("Type", "E1.Type", "E2.Type").WithLocation(4, 12)
-            );
+        if (e1BeforeE2)
+        {
+            comp.VerifyEmitDiagnostics(
+                // (1,8): error CS0121: The call is ambiguous between the following methods or properties: 'E2.Method()' and 'E1.Method()'
+                // object.Method();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("E2.Method()", "E1.Method()").WithLocation(1, 8),
+                // (2,12): error CS0229: Ambiguity between 'E1.Property' and 'E2.Property'
+                // _ = object.Property;
+                Diagnostic(ErrorCode.ERR_AmbigMember, "Property").WithArguments("E1.Property", "E2.Property").WithLocation(2, 12),
+                // (3,12): error CS0229: Ambiguity between 'E1.Field' and 'E2.Field'
+                // _ = object.Field;
+                Diagnostic(ErrorCode.ERR_AmbigMember, "Field").WithArguments("E1.Field", "E2.Field").WithLocation(3, 12),
+                // (4,12): error CS0104: 'Type' is an ambiguous reference between 'E1.Type' and 'E2.Type'
+                // _ = object.Type.M();
+                Diagnostic(ErrorCode.ERR_AmbigContext, "Type").WithArguments("Type", "E1.Type", "E2.Type").WithLocation(4, 12)
+                );
+        }
+        else
+        {
+            comp.VerifyEmitDiagnostics(
+                // (1,8): error CS0121: The call is ambiguous between the following methods or properties: 'E1.Method()' and 'E2.Method()'
+                // object.Method();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("E1.Method()", "E2.Method()").WithLocation(1, 8),
+                // (2,12): error CS0229: Ambiguity between 'E1.Property' and 'E2.Property'
+                // _ = object.Property;
+                Diagnostic(ErrorCode.ERR_AmbigMember, "Property").WithArguments("E1.Property", "E2.Property").WithLocation(2, 12),
+                // (3,12): error CS0229: Ambiguity between 'E1.Field' and 'E2.Field'
+                // _ = object.Field;
+                Diagnostic(ErrorCode.ERR_AmbigMember, "Field").WithArguments("E1.Field", "E2.Field").WithLocation(3, 12),
+                // (4,12): error CS0104: 'Type' is an ambiguous reference between 'E1.Type' and 'E2.Type'
+                // _ = object.Type.M();
+                Diagnostic(ErrorCode.ERR_AmbigContext, "Type").WithArguments("Type", "E1.Type", "E2.Type").WithLocation(4, 12)
+                );
+        }
     }
 
     [Fact]
@@ -13568,27 +13595,45 @@ implicit extension E for C
         Assert.Equal("? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
     }
 
-    [Fact]
-    public void ExtensionMemberLookup_AsFunctionType_StaticMethod_Duplicate()
+    [Theory, CombinatorialData]
+    public void ExtensionMemberLookup_AsFunctionType_StaticMethod_Duplicate(bool e1BeforeE2)
     {
-        var src = """
-var x = C.Method;
-class C { }
-
+        var e1 = """
 implicit extension E1 for C
 {
     public static string Method() => throw null;
 }
+""";
+
+        var e2 = """
 implicit extension E2 for C
 {
     public static string Method() => throw null;
 }
 """;
+
+        var src = $$"""
+var x = C.Method;
+class C { }
+
+{{(e1BeforeE2 ? e1 : e2)}}
+{{(e1BeforeE2 ? e2 : e1)}}
+""";
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E1.Method()' and 'E2.Method()'
-            // var x = C.Method;
-            Diagnostic(ErrorCode.ERR_AmbigCall, "C.Method").WithArguments("E1.Method()", "E2.Method()").WithLocation(1, 9));
+        if (e1BeforeE2)
+        {
+            comp.VerifyDiagnostics(
+                // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E2.Method()' and 'E1.Method()'
+                // var x = C.Method;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "C.Method").WithArguments("E2.Method()", "E1.Method()").WithLocation(1, 9));
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E1.Method()' and 'E2.Method()'
+                // var x = C.Method;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "C.Method").WithArguments("E1.Method()", "E2.Method()").WithLocation(1, 9));
+        }
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -27141,9 +27186,9 @@ implicit extension E2 for C
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
-            // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E1.Method()' and 'E2.Method()'
+            // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E2.Method()' and 'E1.Method()'
             // var x = C.Method;
-            Diagnostic(ErrorCode.ERR_AmbigCall, "C.Method").WithArguments("E1.Method()", "E2.Method()").WithLocation(1, 9)
+            Diagnostic(ErrorCode.ERR_AmbigCall, "C.Method").WithArguments("E2.Method()", "E1.Method()").WithLocation(1, 9)
             );
 
         var tree = comp.SyntaxTrees.Single();
@@ -29371,7 +29416,7 @@ implicit extension E2 for I2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "I3.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal(["System.String E1Base.M()", "System.String E1.M()", "System.String E2Base.M()", "System.String E2.M()"],
+        Assert.Equal(["System.String E1.M()", "System.String E1Base.M()", "System.String E2.M()", "System.String E2Base.M()"],
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
     }
@@ -29402,16 +29447,16 @@ implicit extension E2 for I2
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
-            // (1,25): error CS0121: The call is ambiguous between the following methods or properties: 'E1Base.M()' and 'E2.M()'
+            // (1,25): error CS0121: The call is ambiguous between the following methods or properties: 'E2.M()' and 'E1Base.M()'
             // System.Console.Write(I3.M());
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1Base.M()", "E2.M()").WithLocation(1, 25));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E2.M()", "E1Base.M()").WithLocation(1, 25));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "I3.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
 
-        Assert.Equal(["System.String E1Base.M()", "System.String E2.M()"],
+        Assert.Equal(["System.String E2.M()", "System.String E1Base.M()"],
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
 
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
@@ -29760,27 +29805,44 @@ implicit extension E3 for {{(position == 3 ? "object" : "C")}}
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
-    [Fact]
-    public void PreferMoreSpecific_Static_MethodAndMethod()
+    [Theory, CombinatorialData]
+    public void PreferMoreSpecific_Static_MethodAndMethod(bool e1BeforeE2)
     {
-        var src = """
-System.Console.Write(object.M());
-
+        var e1 = """
 implicit extension E1 for object
 {
     public static string M() => throw null;
 }
 
+""";
+
+        var e2 = """
 implicit extension E2 for object
 {
     public static string M() => throw null;
 }
 """;
+
+        var src = $$"""
+System.Console.Write(object.M());
+{{(e1BeforeE2 ? e1 : e2)}}
+{{(e1BeforeE2 ? e2 : e1)}}
+""";
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(
-            // (1,29): error CS0121: The call is ambiguous between the following methods or properties: 'E1.M()' and 'E2.M()'
-            // System.Console.Write(object.M());
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.M()", "E2.M()").WithLocation(1, 29));
+        if (e1BeforeE2)
+        {
+            comp.VerifyEmitDiagnostics(
+                // (1,29): error CS0121: The call is ambiguous between the following methods or properties: 'E2.M()' and 'E1.M()'
+                // System.Console.Write(object.M());
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E2.M()", "E1.M()").WithLocation(1, 29));
+        }
+        else
+        {
+            comp.VerifyEmitDiagnostics(
+                // (1,29): error CS0121: The call is ambiguous between the following methods or properties: 'E1.M()' and 'E2.M()'
+                // System.Console.Write(object.M());
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.M()", "E2.M()").WithLocation(1, 29));
+        }
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30148,16 +30210,16 @@ class C { }
         if (isE1beforeE2)
         {
             comp.VerifyEmitDiagnostics(
-                // (1,24): error CS0121: The call is ambiguous between the following methods or properties: 'E1.M()' and 'E2.M()'
+                // (1,24): error CS0121: The call is ambiguous between the following methods or properties: 'E2.M()' and 'E1.M()'
                 // System.Console.Write(C.M());
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.M()", "E2.M()").WithLocation(1, 24));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E2.M()", "E1.M()").WithLocation(1, 24));
         }
         else
         {
             comp.VerifyEmitDiagnostics(
-                // (1,24): error CS0121: The call is ambiguous between the following methods or properties: 'E2.M()' and 'E1.M()'
+                // (1,24): error CS0121: The call is ambiguous between the following methods or properties: 'E1.M()' and 'E2.M()'
                 // System.Console.Write(C.M());
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E2.M()", "E1.M()").WithLocation(1, 24));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.M()", "E2.M()").WithLocation(1, 24));
         }
 
         var tree = comp.SyntaxTrees.Single();
@@ -30166,11 +30228,11 @@ class C { }
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
         if (isE1beforeE2)
         {
-            Assert.Equal(["System.String E1.M()", "System.String E2.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+            Assert.Equal(["System.String E2.M()", "System.String E1.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         }
         else
         {
-            Assert.Equal(["System.String E2.M()", "System.String E1.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+            Assert.Equal(["System.String E1.M()", "System.String E2.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         }
 
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
