@@ -53,7 +53,7 @@ namespace Microsoft.RoslynTools.NuGet
                     {
                         result = DependencyResult.SiblingPackage;
                     }
-                    else if (!dependency.VersionRange.MinVersion.IsPrerelease)
+                    else if (!dependency.VersionRange.MinVersion!.IsPrerelease)
                     {
                         result = DependencyResult.ReleasedPackage;
                     }
