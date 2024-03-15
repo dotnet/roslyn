@@ -309,6 +309,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#if DEBUG
+        protected override void VisitRvalue(BoundExpression node, bool isKnownToBeAnLvalue = false)
+        {
+            Debug.Assert(
+                node is null ||
+                !_shouldCheckConverted ||
+                isKnownToBeAnLvalue ||
+                !node.NeedsToBeConverted() ||
+                node.WasCompilerGenerated, "expressions should have been converted");
+            base.VisitRvalue(node, isKnownToBeAnLvalue);
+        }
+#endif
+
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
             return _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException;

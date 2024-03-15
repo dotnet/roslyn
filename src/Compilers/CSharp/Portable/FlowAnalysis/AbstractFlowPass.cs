@@ -3357,8 +3357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
         {
-            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, method: null);
-            return null;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode VisitTypeOfOperator(BoundTypeOfOperator node)

@@ -982,7 +982,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ResultKind = resultKind;
             this.Symbols = symbols;
             this.ChildBoundNodes = childBoundNodes;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public override LookupResultKind ResultKind { get; }
         public ImmutableArray<Symbol?> Symbols { get; }

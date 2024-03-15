@@ -14176,8 +14176,10 @@ class B
                         Expression:
                           IInvalidOperation (OperationKind.Invalid, Type: X*, IsInvalid) (Syntax: 'stackalloc  ... w(), new()]')
                             Children(2):
-                                IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'new()')
-                                IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'new()')
+                                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new()')
+                                  Children(0)
+                                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new()')
+                                  Children(0)
                   ExpressionBody:
                     null
                 """,
@@ -14225,161 +14227,10 @@ class B
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(2, 12),
                 // (2,12): error CS1575: A stackalloc expression requires [] after type
                 // stackalloc X[0, new(out x)];
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "X[0, new(out x)]").WithLocation(2, 12));
-        }
-
-        [WorkItem("https://github.com/dotnet/roslyn/issues/72448")]
-        [Fact]
-        public void UnconvertedExpression_04()
-        {
-            string source = """
-                stackalloc X[0, $"str"];
-                """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
-            comp.VerifyDiagnostics(
-                // (1,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                // stackalloc X[0, $"str"];
-                Diagnostic(ErrorCode.ERR_IllegalStatement, @"stackalloc X[0, $""str""]").WithLocation(1, 1),
-                // (1,12): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
-                // stackalloc X[0, $"str"];
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(1, 12),
-                // (1,12): error CS1575: A stackalloc expression requires [] after type
-                // stackalloc X[0, $"str"];
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, @"X[0, $""str""]").WithLocation(1, 12));
-
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var operation = model.GetOperation(tree.GetRoot());
-            var actualOperationTree = GetOperationTreeForTest(comp, operation);
-            OperationTreeVerifier.Verify("""
-                IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'stackalloc X[0, $"str"];')
-                  BlockBody:
-                    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'stackalloc X[0, $"str"];')
-                      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'stackalloc X[0, $"str"];')
-                        Expression:
-                          IInvalidOperation (OperationKind.Invalid, Type: X*, IsInvalid) (Syntax: 'stackalloc X[0, $"str"]')
-                            Children(2):
-                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
-                                IOperation:  (OperationKind.None, Type: System.String, Constant: "str", IsInvalid) (Syntax: '$"str"')
-                  ExpressionBody:
-                    null
-                """,
-                actualOperationTree);
-        }
-
-        [WorkItem("https://github.com/dotnet/roslyn/issues/72448")]
-        [Fact]
-        public void UnconvertedExpression_05()
-        {
-            string source = """
-                stackalloc X[0, args.Length > 0 ? default : default];
-                """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
-            comp.VerifyDiagnostics(
-                // (1,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                // stackalloc X[0, args.Length > 0 ? default : default];
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "stackalloc X[0, args.Length > 0 ? default : default]").WithLocation(1, 1),
-                // (1,12): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
-                // stackalloc X[0, args.Length > 0 ? default : default];
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(1, 12),
-                // (1,12): error CS1575: A stackalloc expression requires [] after type
-                // stackalloc X[0, args.Length > 0 ? default : default];
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "X[0, args.Length > 0 ? default : default]").WithLocation(1, 12));
-
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var operation = model.GetOperation(tree.GetRoot());
-            var actualOperationTree = GetOperationTreeForTest(comp, operation);
-            OperationTreeVerifier.Verify("""
-                IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'stackalloc  ... : default];')
-                  BlockBody:
-                    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'stackalloc  ... : default];')
-                      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'stackalloc  ... : default];')
-                        Expression:
-                          IInvalidOperation (OperationKind.Invalid, Type: X*, IsInvalid) (Syntax: 'stackalloc  ...  : default]')
-                            Children(2):
-                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
-                                IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'args.Length ... t : default')
-                  ExpressionBody:
-                    null
-                """,
-                actualOperationTree);
-        }
-
-        [WorkItem("https://github.com/dotnet/roslyn/issues/72448")]
-        [Fact]
-        public void UnconvertedExpression_06()
-        {
-            string source = """
-                stackalloc X[0, args.Length > 0 switch { true => default, false => default }];
-                """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
-            comp.VerifyDiagnostics(
-                // (1,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                // stackalloc X[0, args.Length > 0 switch { true => default, false => default }];
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "stackalloc X[0, args.Length > 0 switch { true => default, false => default }]").WithLocation(1, 1),
-                // (1,12): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
-                // stackalloc X[0, args.Length > 0 switch { true => default, false => default }];
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(1, 12),
-                // (1,12): error CS1575: A stackalloc expression requires [] after type
-                // stackalloc X[0, args.Length > 0 switch { true => default, false => default }];
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "X[0, args.Length > 0 switch { true => default, false => default }]").WithLocation(1, 12));
-
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var operation = model.GetOperation(tree.GetRoot());
-            var actualOperationTree = GetOperationTreeForTest(comp, operation);
-            OperationTreeVerifier.Verify("""
-                IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'stackalloc  ... default }];')
-                  BlockBody:
-                    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'stackalloc  ... default }];')
-                      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'stackalloc  ... default }];')
-                        Expression:
-                          IInvalidOperation (OperationKind.Invalid, Type: X*, IsInvalid) (Syntax: 'stackalloc  ...  default }]')
-                            Children(2):
-                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
-                                IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: 'args.Length ... > default }')
-                                  Left:
-                                    IPropertyReferenceOperation: System.Int32 System.Array.Length { get; } (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'args.Length')
-                                      Instance Receiver:
-                                        IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.String[], IsInvalid) (Syntax: 'args')
-                                  Right:
-                                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '0 switch {  ... > default }')
-                                      Children(1):
-                                          ISwitchExpressionOperation (2 arms, IsExhaustive: False) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: '0 switch {  ... > default }')
-                                            Value:
-                                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
-                                            Arms(2):
-                                                ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'true => default')
-                                                  Pattern:
-                                                    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: 'true') (InputType: System.Int32, NarrowedType: System.Int32)
-                                                      Value:
-                                                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'true')
-                                                          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                          Operand:
-                                                            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True, IsInvalid) (Syntax: 'true')
-                                                  Value:
-                                                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: 'default')
-                                                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                      Operand:
-                                                        IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
-                                                ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'false => default')
-                                                  Pattern:
-                                                    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: 'false') (InputType: System.Int32, NarrowedType: System.Int32)
-                                                      Value:
-                                                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'false')
-                                                          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                          Operand:
-                                                            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False, IsInvalid) (Syntax: 'false')
-                                                  Value:
-                                                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: 'default')
-                                                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                      Operand:
-                                                        IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
-                  ExpressionBody:
-                    null
-                """,
-                actualOperationTree);
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "X[0, new(out x)]").WithLocation(2, 12),
+                // (2,25): error CS0165: Use of unassigned local variable 'x'
+                // stackalloc X[0, new(out x)];
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(2, 25));
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/72448")]
@@ -14388,7 +14239,10 @@ class B
         [InlineData("default")]
         [InlineData("(default, 1)")]
         [InlineData("[]")]
-        public void UnconvertedExpression_07(string expr)
+        [InlineData("$\"str\"")]
+        [InlineData("args.Length > 0 ? default : default")]
+        [InlineData("args.Length > 0 switch { true => default, false => default }")]
+        public void UnconvertedExpression_04(string expr)
         {
             string source = $$"""
                 stackalloc X[0, {{expr}}];
