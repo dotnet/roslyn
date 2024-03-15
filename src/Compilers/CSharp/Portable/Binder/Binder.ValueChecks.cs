@@ -3650,8 +3650,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.CompoundAssignmentOperator:
                     Debug.Assert(expr is BoundCompoundAssignmentOperator compoundAssignmentOperator &&
                         (compoundAssignmentOperator.Operator.Method is not { } compoundMethod ||
-                        compoundAssignmentOperator.Operator.Method.HasUnsupportedMetadata ||
-                        compoundAssignmentOperator.Operator.Method.RefKind == RefKind.None));
+                        compoundMethod.HasUnsupportedMetadata ||
+                        compoundMethod.RefKind == RefKind.None));
                     break;
 
                 case BoundKind.ThrowExpression:
