@@ -79,17 +79,17 @@
       </trans-unit>
       <trans-unit id="DoNotCapturePrimaryConstructorParametersDescription">
         <source>Primary constructor parameters should not be implicitly captured. Manually assign them to fields at the start of the type.</source>
-        <target state="new">Primary constructor parameters should not be implicitly captured. Manually assign them to fields at the start of the type.</target>
+        <target state="translated">기본 생성자 매개 변수는 암시적으로 캡처하면 안 됩니다. 형식이 시작될 때 필드에 수동으로 할당합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCapturePrimaryConstructorParametersMessage">
         <source>Primary constructor parameter '{0}' should not be implicitly captured</source>
-        <target state="new">Primary constructor parameter '{0}' should not be implicitly captured</target>
+        <target state="translated">기본 생성자 매개 변수 '{0}'을(를) 암시적으로 캡처하면 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCapturePrimaryConstructorParametersTitle">
         <source>Do not capture primary constructor parameters</source>
-        <target state="new">Do not capture primary constructor parameters</target>
+        <target state="translated">기본 생성자 매개 변수 캡처 안 함</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueAvoidNullableWrapperDescription">

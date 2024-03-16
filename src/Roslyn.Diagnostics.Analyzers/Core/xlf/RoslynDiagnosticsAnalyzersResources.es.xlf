@@ -79,17 +79,17 @@
       </trans-unit>
       <trans-unit id="DoNotCapturePrimaryConstructorParametersDescription">
         <source>Primary constructor parameters should not be implicitly captured. Manually assign them to fields at the start of the type.</source>
-        <target state="new">Primary constructor parameters should not be implicitly captured. Manually assign them to fields at the start of the type.</target>
+        <target state="translated">Los parámetros del constructor principal no deben capturarse implícitamente. Asígnelos manualmente a campos al principio del tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCapturePrimaryConstructorParametersMessage">
         <source>Primary constructor parameter '{0}' should not be implicitly captured</source>
-        <target state="new">Primary constructor parameter '{0}' should not be implicitly captured</target>
+        <target state="translated">El parámetro de constructor principal "{0}" no se debe capturar implícitamente</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCapturePrimaryConstructorParametersTitle">
         <source>Do not capture primary constructor parameters</source>
-        <target state="new">Do not capture primary constructor parameters</target>
+        <target state="translated">No capturar parámetros del constructor principal</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueAvoidNullableWrapperDescription">
