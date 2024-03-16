@@ -2301,6 +2301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ParamsCollectionMissingConstructor = 9228,
 
         ERR_NoModifiersOnUsing = 9229,
+        ERR_CollectionExpressionMissingAdd_New = 9230, // PROTOTYPE: Replace ERR_CollectionExpressionMissingAdd.
 
         #endregion
 

@@ -1285,6 +1285,85 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal bool HasCollectionExpressionAddMethod(SyntaxNode syntax, TypeSymbol targetType)
+        {
+            const string methodName = "Add";
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+            var lookupResult = LookupResult.GetInstance();
+            LookupInstanceMember(lookupResult, targetType, leftIsBaseReference: false, rightName: methodName, rightArity: 0, invoked: true, ref useSiteInfo);
+            bool anyApplicable = lookupResult.IsMultiViable &&
+                lookupResult.Symbols.Any(s => s is MethodSymbol m && isApplicableAddMethod(m, expectingExtensionMethod: false));
+            lookupResult.Free();
+            if (anyApplicable)
+            {
+                return true;
+            }
+
+            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
+            foreach (var scope in new ExtensionMethodScopes(this))
+            {
+                var methodGroup = MethodGroup.GetInstance();
+                PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, syntax, implicitReceiver, rightName: methodName, typeArgumentsWithAnnotations: default, BindingDiagnosticBag.Discarded);
+                anyApplicable = methodGroup.Methods.Any(m => isApplicableAddMethod(m, expectingExtensionMethod: true));
+                methodGroup.Free();
+                if (anyApplicable)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+
+            static bool isApplicableAddMethod(MethodSymbol method, bool expectingExtensionMethod)
+            {
+                if (method.IsStatic != expectingExtensionMethod)
+                {
+                    return false;
+                }
+
+                var parameters = method.Parameters;
+                int valueIndex = expectingExtensionMethod ? 1 : 0;
+                int requiredLength = valueIndex + 1;
+                if (parameters.Length < requiredLength)
+                {
+                    return false;
+                }
+
+                // Any trailing parameters must be optional or params.
+                for (int i = requiredLength; i < parameters.Length; i++)
+                {
+                    if (parameters[i] is { IsOptional: false, IsParams: false })
+                    {
+                        return false;
+                    }
+                }
+
+                // Value parameter must be by value, in, or ref readonly.
+                if (parameters[valueIndex].RefKind is not (RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter))
+                {
+                    return false;
+                }
+
+                // If the method is generic, can the type arguments be inferred from the one or two arguments?
+                var typeParameters = method.TypeParameters;
+                if (typeParameters.Length > 0)
+                {
+                    var usedParameterTypes = parameters.Slice(0, requiredLength).SelectAsArray(p => p.Type);
+                    foreach (var typeParameter in typeParameters)
+                    {
+                        if (!usedParameterTypes.Any((parameterType, typeParameter) => parameterType.ContainsTypeParameter(typeParameter), typeParameter))
+                        {
+                            // The type parameter does not appear in any of the parameter types.
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
+        }
+
         /// <summary>
         /// If the element is from a collection type where elements are added with collection initializers,
         /// return the argument to the collection initializer Add method or null if the element is not a
@@ -1422,8 +1501,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     if (elements.Length > 0 &&
-                        !HasCollectionExpressionApplicableAddMethod(node.Syntax, targetType, elementType, addMethods: out _, diagnostics))
+                        !HasCollectionExpressionAddMethod(node.Syntax, targetType))
                     {
+                        Error(diagnostics, ErrorCode.ERR_CollectionExpressionMissingAdd_New, node.Syntax, targetType);
                         reportedErrors = true;
                     }
                 }
