@@ -92,9 +92,12 @@ namespace Microsoft.CodeAnalysis
                 {
                     executionTime = kvp.Value.TotalSeconds;
                     percentage = (int)(executionTime * 100 / totalAnalyzerExecutionTime);
-
-                    var analyzerIds = string.Join(", ", kvp.Key.SupportedDiagnostics.Select(d => d.Id).Distinct().OrderBy(id => id));
-                    var analyzerNameColumn = $"   {kvp.Key} ({analyzerIds})";
+                    var ids = string.Join(", ", kvp.Key.SupportedDiagnostics.Select(d => d.Id).Distinct().OrderBy(id => id));
+                    if (kvp.Key is DiagnosticSuppressor suppressor)
+                    {
+                        ids = string.Join(", ", suppressor.SupportedSuppressions.Select(d => d.Id).Distinct().OrderBy(id => id));
+                    }
+                    var analyzerNameColumn = $"   {kvp.Key} ({ids})";
                     consoleOutput.WriteLine(GetColumnEntry(executionTime, percentage, analyzerNameColumn, culture));
                 }
 
