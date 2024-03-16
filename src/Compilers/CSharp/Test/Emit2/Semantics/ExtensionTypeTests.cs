@@ -195,17 +195,16 @@ explicit extension R2 for UnderlyingClass : R { }
 
             if (!inSource)
             {
-                AssertEx.SetEqual(new[]
-                    {
-                        "System.Runtime.CompilerServices.IsByRefLikeAttribute",
+                AssertEx.SetEqual(
+                    [
                         """System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute("ExtensionTypes")""",
                         """System.ObsoleteAttribute("Extension types are not supported in this version of your compiler.", true)""",
                         """System.Reflection.DefaultMemberAttribute("Item")"""
-                    },
+                    ],
                     GetAttributeStrings(r.GetAttributes()));
             }
 
-            AssertEx.Equal(new[] { "R.NestedType", "R.StaticNestedType", "R.NestedR" },
+            Assert.Equal(["R.NestedType", "R.StaticNestedType", "R.NestedR"],
                 r.GetTypeMembers().ToTestDisplayStrings());
 
             Assert.False(r.IsStatic);
@@ -257,7 +256,7 @@ explicit extension R for UnderlyingClass { }
         static void validateAttributes(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            AssertEx.SetEqual(new[] { "IsByRefLikeAttribute", "ObsoleteAttribute", "CompilerFeatureRequiredAttribute" },
+            AssertEx.SetEqual(["ObsoleteAttribute", "CompilerFeatureRequiredAttribute"],
                 GetAttributeNames(r.GetAttributes()));
         }
     }
@@ -323,6 +322,46 @@ class C<T>
         }
     }
 
+    [Theory, CombinatorialData]
+    public void ForClass_Metadata_RefStruct(bool isExplicit)
+    {
+        var ilSource = $$"""
+.class public sequential ansi sealed beforefieldinit R1
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
+    .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
+        01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
+        65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
+        72 74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72
+        73 69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d
+        70 69 6c 65 72 2e 00 00
+    )
+    .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
+    {
+        IL_0000: ret
+    }
+}
+""";
+
+        var src = """
+public explicit extension R2 for object : R1 { }
+""";
+
+        var comp = CreateCompilationWithIL(src, ilSource, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,41): error CS8000: This language feature ('base extensions') is not yet implemented.
+            // public explicit extension R2 for object : R1 { }
+            Diagnostic(ErrorCode.ERR_NotYetImplementedInRoslyn, ": R1").WithArguments("base extensions").WithLocation(1, 41)
+            );
+
+        var r1 = comp.GlobalNamespace.GetTypeMember("R1");
+        VerifyNotExtension<PENamedTypeSymbol>(r1);
+
+        var r2 = comp.GlobalNamespace.GetTypeMember("R2");
+        VerifyExtension<SourceExtensionTypeSymbol>(r2, isExplicit: true);
+    }
+
     [Fact]
     public void ForClass_Metadata_MissingIsByRefLikeAttribute()
     {
@@ -340,7 +379,7 @@ explicit extension R for C { }
         static void validate(ModuleSymbol module)
         {
             var r = module.GlobalNamespace.GetTypeMember("R");
-            AssertEx.SetEqual(new[] { "IsByRefLikeAttribute", "CompilerFeatureRequiredAttribute", "ObsoleteAttribute" },
+            AssertEx.SetEqual(["CompilerFeatureRequiredAttribute", "ObsoleteAttribute"],
                 GetAttributeNames(r.GetAttributes()));
 
             Assert.NotNull(module.ContainingAssembly.GetTypeByMetadataName("System.Runtime.CompilerServices.IsByRefLikeAttribute"));
@@ -2321,7 +2360,6 @@ explicit extension R for UnderlyingClass
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '<ExplicitExtension>$'(class C '') cil managed
     {
         IL_0000: ret
@@ -4504,7 +4542,6 @@ public explicit extension R1 for R2.Nested2<R2>
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '<ExplicitExtension>$'(valuetype R2 '') cil managed
     {
         IL_0000: ret
@@ -4514,7 +4551,6 @@ public explicit extension R1 for R2.Nested2<R2>
 .class public sequential ansi sealed beforefieldinit R2
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '<ExplicitExtension>$'(valuetype R1 '') cil managed
     {
         IL_0000: ret
@@ -4553,7 +4589,6 @@ public explicit extension R3 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '<ExplicitExtension>$'(object '', valuetype R2 '') cil managed
     {
         IL_0000: ret
@@ -4563,7 +4598,6 @@ public explicit extension R3 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R2
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '<ExplicitExtension>$'(object o, valuetype R1 '') cil managed
     {
         IL_0000: ret
@@ -5438,7 +5472,6 @@ explicit extension R4<U> for C<U> : R3<U> { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '<ExplicitExtension>$'(object '') cil managed
     {
         IL_0000: ret
@@ -5448,7 +5481,6 @@ explicit extension R4<U> for C<U> : R3<U> { }
 .class public sequential ansi sealed beforefieldinit R2
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '<ExplicitExtension>$'(class C '', valuetype R1 '') cil managed
     {
         IL_0000: ret
@@ -6960,7 +6992,6 @@ public unsafe explicit extension R2<T> for C : R1<int*> { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .custom instance void [mscorlib]System.ObsoleteAttribute::.ctor(string) = (
         01 00 43 45 78 74 65 6e 73 69 6f 6e 20 74 79 70
         65 73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f
@@ -7000,7 +7031,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object& '') cil managed
     {
         IL_0000: ret
@@ -7046,7 +7076,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void modopt(object) '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -7088,7 +7117,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void modreq(object) '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -7128,7 +7156,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object modopt(object) '') cil managed
     {
         IL_0000: ret
@@ -7174,7 +7201,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object modreq(object) '') cil managed
     {
         IL_0000: ret
@@ -7221,7 +7247,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -7453,7 +7478,6 @@ public explicit extension R2 for object : R1 { }
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00)
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
@@ -7491,7 +7515,6 @@ static class OtherExtension
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 01 )
@@ -7521,7 +7544,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         .param [1]
@@ -7569,7 +7591,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R0
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -7579,7 +7600,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(valuetype R0 '') cil managed
     {
         IL_0000: ret
@@ -7627,7 +7647,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(valuetype R1 '') cil managed
     {
         IL_0000: ret
@@ -7754,7 +7773,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -7764,7 +7782,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R2
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '', valuetype R1 '', valuetype R1 '') cil managed
     {
         IL_0000: ret
@@ -7838,7 +7855,7 @@ public explicit extension R2 for object : R1 { }
             );
 
         var r1 = comp.GlobalNamespace.GetTypeMember("R1");
-        VerifyNotExtension<PENamedTypeSymbol>(r1);
+        VerifyExtension<PENamedTypeSymbol>(r1, isExplicit: true);
 
         if (new NoBaseExtensions().ShouldSkip) return;
 
@@ -8119,7 +8136,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method public hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -8162,7 +8178,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig void '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -8205,7 +8220,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
     {
         IL_0000: ret
@@ -8239,7 +8253,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit)}}'() cil managed
     {
         IL_0000: ret
@@ -8282,7 +8295,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static int32 '{{ExtensionMarkerName(isExplicit)}}'(object '') cil managed
     {
         IL_0000: ldnull
@@ -8325,7 +8337,6 @@ public explicit extension R2 for object : R1 { }
 .class public sequential ansi sealed beforefieldinit R1
     extends [mscorlib]System.ValueType
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'<T>(object '') cil managed
     {
         IL_0000: ret
@@ -8561,7 +8572,6 @@ public explicit extension R2 for object : R1<nint> { }
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00)
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = ( 01 00 00 00 )
     .method private hidebysig static void '{{ExtensionMarkerName(isExplicit: true)}}'(object '') cil managed
     {
         IL_0000: ret
