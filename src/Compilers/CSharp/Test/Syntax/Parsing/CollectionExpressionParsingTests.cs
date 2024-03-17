@@ -17227,7 +17227,6 @@ class C
                 //       BlockedBy,
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(19, 17));
 
-
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.NamespaceDeclaration);
