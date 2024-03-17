@@ -13,12 +13,8 @@ Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IVisualDiagnos
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.ProcessInfo
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.ProcessInfo.ProcessInfo(System.Guid ProcessId, uint? LocalProcessId, string? Path) -> void
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.VisualDiagnosticsBrokeredDebuggerServices
-Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.VisualDiagnosticsBrokeredDebuggerServices.Dispose() -> void
-Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.VisualDiagnosticsBrokeredDebuggerServices.GetHotReloadSessionNotificationServiceAsync() -> System.Threading.Tasks.Task<Microsoft.VisualStudio.Debugger.Contracts.HotReload.IHotReloadSessionNotificationService?>!
-Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.VisualDiagnosticsBrokeredDebuggerServices.GetManagedHotReloadAgentManagerServiceAsync() -> System.Threading.Tasks.Task<Microsoft.VisualStudio.Debugger.Contracts.HotReload.IManagedHotReloadAgentManagerService?>!
-Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.VisualDiagnosticsBrokeredDebuggerServices.GetManagedHotReloadServiceAsync() -> System.Threading.Tasks.Task<Microsoft.VisualStudio.Debugger.Contracts.HotReload.IManagedHotReloadService?>!
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.VisualDiagnosticsBrokeredDebuggerServices.GetServiceBrokerAsync() -> System.Threading.Tasks.Task<Microsoft.ServiceHub.Framework.IServiceBroker!>!
-Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.VisualDiagnosticsBrokeredDebuggerServices.VisualDiagnosticsBrokeredDebuggerServices(Microsoft.ServiceHub.Framework.IServiceBroker! serviceBroker) -> void
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.VisualDiagnosticsBrokeredDebuggerServices.VisualDiagnosticsBrokeredDebuggerServices(System.Lazy<System.Threading.Tasks.Task<Microsoft.VisualStudio.Shell.ServiceBroker.IBrokeredServiceContainer!>!>! serviceBroker) -> void
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.RunningProcessEntry
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.RunningProcessEntry.RunningProcessEntry() -> void
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.VisualDiagnosticsServiceFactory

@@ -19,20 +19,22 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal
     [Export(typeof(IVisualDiagnosticsBrokeredDebuggerServices))]
     internal sealed class VisualDiagnosticsBrokeredDebuggerServices : IVisualDiagnosticsBrokeredDebuggerServices
     {
-        private readonly IServiceBroker _serviceBroker;
+        private readonly Lazy<Task<IBrokeredServiceContainer>> _container;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualDiagnosticsBrokeredDebuggerServices(
-        [Import(typeof(SVsFullAccessServiceBroker))]
-        IServiceBroker serviceBroker)
+        [Import(typeof(SVsBrokeredServiceContainer))]
+        Lazy<Task<IBrokeredServiceContainer>> serviceBroker)
         {
-            _serviceBroker = serviceBroker;
+            _container = serviceBroker;
         }
 
-        public Task<IServiceBroker> GetServiceBrokerAsync()
+        public async Task<IServiceBroker> GetServiceBrokerAsync()
         {
-            return Task.FromResult<IServiceBroker>(_serviceBroker);
+            // Waiting on the container to be created
+            await _container.Value.ConfigureAwait(false);
+            return _container.Value.Result.GetFullAccessServiceBroker();
         }
     }
 }

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 [Export]
 internal class ServiceBrokerFactory
 {
-    private BrokeredServiceContainer? _container;
+    private readonly TaskCompletionSource<BrokeredServiceContainer> _container;
     private readonly ExportProvider _exportProvider;
     private Task _bridgeCompletionTask;
     private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
@@ -37,6 +37,7 @@ internal class ServiceBrokerFactory
     {
         _exportProvider = exportProvider;
         _bridgeCompletionTask = Task.CompletedTask;
+        _container = new TaskCompletionSource<BrokeredServiceContainer>();
     }
 
     /// <summary>
@@ -48,12 +49,19 @@ internal class ServiceBrokerFactory
     /// <summary>
     /// Returns a full-access service broker, but will return null if we haven't yet connected to the Dev Kit broker.
     /// </summary>
-    public IServiceBroker? TryGetFullAccessServiceBroker() => _container?.GetFullAccessServiceBroker();
+    public IServiceBroker? TryGetFullAccessServiceBroker() => _container.Task.IsCompletedSuccessfully ? _container.Task.Result?.GetFullAccessServiceBroker() : null;
+
+    /// <summary>
+    /// Returns a full-access service broker container, that consuming code can await on until we connected to the Dev Kit broker
+    /// </summary>
+    [Export(typeof(SVsBrokeredServiceContainer))]
+    public Task<IBrokeredServiceContainer> BrokeredServiceContainerAsync => this.GetRequiredServiceBrokerContainerAsync();
 
     public BrokeredServiceContainer GetRequiredServiceBrokerContainer()
     {
-        Contract.ThrowIfNull(_container);
-        return _container;
+        Contract.ThrowIfFalse(_container.Task.IsCompletedSuccessfully);
+        Contract.ThrowIfNull(_container.Task.Result);
+        return _container.Task.Result;
     }
 
     /// <summary>
@@ -61,9 +69,10 @@ internal class ServiceBrokerFactory
     /// </summary>
     public async Task CreateAsync()
     {
-        Contract.ThrowIfFalse(_container == null, "We should only create one container.");
+        Contract.ThrowIfFalse(!_container.Task.IsCompleted, "We should only create one container.");
 
-        _container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _cancellationTokenSource.Token);
+        var container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _cancellationTokenSource.Token);
+        _container.TrySetResult(container);
     }
 
     public async Task CreateAndConnectAsync(string brokeredServicePipeName)
@@ -71,7 +80,7 @@ internal class ServiceBrokerFactory
         await CreateAsync();
 
         var bridgeProvider = _exportProvider.GetExportedValue<BrokeredServiceBridgeProvider>();
-        _bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(brokeredServicePipeName, _container!, _cancellationTokenSource.Token);
+        _bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(brokeredServicePipeName, _container.Task.Result!, _cancellationTokenSource.Token);
     }
 
     public Task ShutdownAndWaitForCompletionAsync()
@@ -81,6 +90,13 @@ internal class ServiceBrokerFactory
         // Return the task we created when we created the bridge; if we never started it in the first place, we'll just return the
         // completed task set in the constructor, so the waiter no-ops.
         return _bridgeCompletionTask;
+    }
+
+    private async Task<IBrokeredServiceContainer> GetRequiredServiceBrokerContainerAsync()
+    {
+        // Caller of this method are expected to wait until the container is set by CreateAsync
+        var brokeredServiceContainer = await _container.Task.ConfigureAwait(false);
+        return brokeredServiceContainer;
     }
 }
 #pragma warning restore RS0030 // Do not used banned APIs

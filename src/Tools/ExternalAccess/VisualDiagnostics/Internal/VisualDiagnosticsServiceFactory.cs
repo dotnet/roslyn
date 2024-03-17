@@ -57,7 +57,7 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
         private readonly System.Timers.Timer _timer;
         private readonly SemaphoreSlim _mutex = new SemaphoreSlim(1);
         private readonly IAsynchronousOperationListener _asyncListener;
-        private IVisualDiagnosticsLanguageService? _visualDiagnosticsLanguageServiceTable;
+        private IVisualDiagnosticsLanguageService? _visualDiagnosticsLanguageService;
         private CancellationToken _cancellationToken;
 
         public OnInitializedService(LspServices lspServices,
@@ -71,7 +71,7 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
             _brokeredDebuggerServices = brokeredDebuggerServices;
             _timer = new System.Timers.Timer();
-            _timer.Interval = 1000;
+            _timer.Interval = 500;
             _timer.Elapsed += Timer_Elapsed;
             _asyncListener = listenerProvider.GetListener(nameof(VisualDiagnosticsBrokeredDebuggerServices));
         }
@@ -85,46 +85,62 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
 
         public void Dispose()
         {
-            (_visualDiagnosticsLanguageServiceTable as IDisposable)?.Dispose();
+            (_visualDiagnosticsLanguageService as IDisposable)?.Dispose();
             _timer?.Dispose();
         }
 
         public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
-            // This is not ideal, OnInitializedAsync has no way to know when the service broker is ready to be queried
-            // We start a timer and wait roughly a second to see if the broker gets initialized.
-            // TODO dabarbe: Service broker is initialized as part of another LSP service, not sure if there's a way await on, or having a task completion source?
+            // TODO dabarbe: Calling ServiceBrokerFactory.GetRequiredServiceBrokerContainerAsync.ConfigureAwait(false); here prevents
+            // ServiceBrokerConnectHandler from being initialized. Not sure why? There's something in the synchronization context that
+            // prevents TaskCompletionSource tasks to run properly during the LSP initialization.  Solution is to getting out of OnInitializedAsync and calling 
+            // _brokeredDebuggerServices.Value.GetServiceBrokerAsync().ConfigureAwait(false) on the timer dispatcher, which is a separate synchronization context. This
+            // allows GetServiceBrokerAsync() to await until ServiceBrokerFactory.CreateAsync sets the container, and allowing the task completion source to resume
             _timer.Start();
             return Task.CompletedTask;
         }
 
         private async Task OnTimerElapsedAsync()
         {
+            await OnInitializeVisualDiagnosticsLanguageServiceAsync().ConfigureAwait(false);
+        }
+
+        private async Task OnInitializeVisualDiagnosticsLanguageServiceAsync()
+        {
             using (await _mutex.DisposableWaitAsync().ConfigureAwait(false))
             {
-                IVisualDiagnosticsBrokeredDebuggerServices broker = _brokeredDebuggerServices.Value;
-
-                if (broker != null)
+                if (_visualDiagnosticsLanguageService != null)
                 {
-                    // initialize VisualDiagnosticsLanguageService
-                    Workspace workspace = this._lspWorkspaceRegistrationService.GetAllRegistrations().Where(w => w.Kind == WorkspaceKind.Host).FirstOrDefault();
-                    if (workspace != null)
-                    {
-                        IVisualDiagnosticsLanguageService? visualDiagnosticsLanguageService = workspace.Services.GetService<IVisualDiagnosticsLanguageService>();
-
-                        if (visualDiagnosticsLanguageService != null)
-                        {
-                            IServiceBroker? serviceProvider = await _brokeredDebuggerServices.Value.GetServiceBrokerAsync().ConfigureAwait(false);
-                            await visualDiagnosticsLanguageService.InitializeAsync(serviceProvider, _cancellationToken).ConfigureAwait(false);
-                            _visualDiagnosticsLanguageServiceTable = visualDiagnosticsLanguageService;
-                        }
-                        return;
-                    }
+                    return;
                 }
 
-                // We're not ready, re-start the timer
-                _timer.Start();
+                IVisualDiagnosticsBrokeredDebuggerServices brokerService = _brokeredDebuggerServices.Value;
+
+                if (brokerService != null)
+                {
+                    // The broker service may be not available right await. That's because the broker service gets initialized
+                    // when the C# DevKit is getting initialized in parallel.  GetServiceBrokerAsync() will await until
+                    // the container gets created. Once created, this task will resume.  In case where C# Dev kit is not
+                    // enabled, the service broker container will never be created and this task will never return, thus preventing
+                    // us from creating the IVisualDiagnosticsLanguageService
+                    IServiceBroker? serviceBroker = await brokerService.GetServiceBrokerAsync().ConfigureAwait(false);
+                    if (serviceBroker != null)
+                    {
+                        // initialize VisualDiagnosticsLanguageService
+                        Workspace workspace = this._lspWorkspaceRegistrationService.GetAllRegistrations().Where(w => w.Kind == WorkspaceKind.Host).FirstOrDefault();
+                        if (workspace != null)
+                        {
+                            IVisualDiagnosticsLanguageService? visualDiagnosticsLanguageService = workspace.Services.GetService<IVisualDiagnosticsLanguageService>();
+
+                            if (visualDiagnosticsLanguageService != null)
+                            {
+                                await visualDiagnosticsLanguageService.InitializeAsync(serviceBroker, _cancellationToken).ConfigureAwait(false);
+                                _visualDiagnosticsLanguageService = visualDiagnosticsLanguageService;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
