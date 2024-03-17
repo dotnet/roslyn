@@ -13386,6 +13386,8 @@ done:;
                 allowSemicolonAsSeparator);
         }
 
+#nullable enable
+
         private SeparatedSyntaxList<TNode> ParseCommaSeparatedSyntaxList<TNode>(
             ref SyntaxToken openToken,
             SyntaxKind closeTokenKind,
@@ -13482,6 +13484,8 @@ tryAgain:
                 return false;
             }
         }
+
+#nullable disable
 
         private DisposableResetPoint GetDisposableResetPoint(bool resetOnDispose)
             => new DisposableResetPoint(this, resetOnDispose, GetResetPoint());
