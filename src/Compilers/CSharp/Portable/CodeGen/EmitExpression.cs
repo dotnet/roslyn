@@ -2289,7 +2289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // This pattern can probably be applied to all special types,
             // but that would introduce a silent change every time a new special type is added,
             // so we constrain the check to a fixed range of types
-            return containingType.SpecialType is >= SpecialType.System_Object and <= SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute;
+            return containingType.SpecialType.CanOptimizeBehavior();
         }
 
         /// <summary>

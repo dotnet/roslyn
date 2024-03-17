@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_inExpressionLambda &&
                 node.Indices.Length == 1 &&
-                node.Indices[0].Type!.SpecialType is not (>= SpecialType.System_Object and <= SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute))
+                !node.Indices[0].Type!.SpecialType.CanOptimizeBehavior())
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, node);
             }

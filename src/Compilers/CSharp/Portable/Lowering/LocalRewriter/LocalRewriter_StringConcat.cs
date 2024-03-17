@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and if at some point the assumption no longer holds, this would be a bug, which might not get noticed.
             // So to be extra safe we constrain the check to a fixed range of special types
             if (structToStringMethod != null &&
-                expr.Type.SpecialType is (>= SpecialType.System_Object and <= SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute) &&
+                expr.Type.SpecialType.CanOptimizeBehavior() &&
                 !isFieldOfMarshalByRef(expr, _compilation))
             {
                 return BoundCall.Synthesized(syntax, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, structToStringMethod);

@@ -4302,7 +4302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (type.SpecialType is >= SpecialType.System_Object and <= SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute)
+            if (type.SpecialType.CanOptimizeBehavior())
             {
                 return true;
             }

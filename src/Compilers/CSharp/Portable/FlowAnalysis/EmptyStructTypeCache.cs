@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)type == null) return false;
             var nts = type.OriginalDefinition as NamedTypeSymbol;
             if ((object)nts == null) return false;
-            return nts.IsStructType() && nts.SpecialType is not (>= SpecialType.System_Object and <= SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute) && !nts.KnownCircularStruct;
+            return nts.IsStructType() && !nts.SpecialType.CanOptimizeBehavior() && !nts.KnownCircularStruct;
         }
 
         /// <summary>

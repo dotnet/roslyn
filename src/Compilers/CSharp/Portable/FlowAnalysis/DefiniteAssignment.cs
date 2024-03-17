@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)methodThisParameter != null)
             {
                 EnterParameter(methodThisParameter);
-                if (methodThisParameter.Type.SpecialType is >= SpecialType.System_Object and <= SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute)
+                if (methodThisParameter.Type.SpecialType.CanOptimizeBehavior())
                 {
                     int slot = GetOrCreateSlot(methodThisParameter);
                     SetSlotState(slot, true);

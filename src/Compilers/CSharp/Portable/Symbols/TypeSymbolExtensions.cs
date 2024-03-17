@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var underlyingType = type.GetEnumUnderlyingType();
             // SpecialType will be None if the underlying type is invalid.
-            return underlyingType is { SpecialType: >= SpecialType.System_Object and <= SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute };
+            return underlyingType is not null && underlyingType.SpecialType.CanOptimizeBehavior();
         }
 
         /// <summary>
