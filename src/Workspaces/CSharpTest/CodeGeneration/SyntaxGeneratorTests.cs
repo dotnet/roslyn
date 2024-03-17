@@ -2593,8 +2593,6 @@ public class C { } // end").Members[0];
                 Generator.InterfaceDeclaration("i", modifiers: DeclarationModifiers.Partial),
                 "partial interface i\r\n{\r\n}");
         }
-
-
         #endregion
 
         #region Add/Insert/Remove/Get declarations & members/elements
