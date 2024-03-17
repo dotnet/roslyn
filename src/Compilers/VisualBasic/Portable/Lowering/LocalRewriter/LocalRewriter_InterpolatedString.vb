@@ -307,14 +307,14 @@ ReturnBadExpression:
             Return contents.AsEnumerable().Aggregate(Of BoundExpression)(
                     Nothing,
                     Function(left, right)
+                        Dim modifiedRight = ConvertElementToConcatenationOperand(right, factory)
                         If left Is Nothing Then
-                            Return ConvertElementToConcatenationOperand(left, factory)
+                            Return modifiedRight
                         End If
                         Return RewriteConcatenateOperator(
                             factory.Binary(
                                 BinaryOperatorKind.Concatenate,
-                                factoryType, left,
-                                ConvertElementToConcatenationOperand(right, factory)
+                                factoryType, left, modifiedRight
                             )
                         )
                     End Function
