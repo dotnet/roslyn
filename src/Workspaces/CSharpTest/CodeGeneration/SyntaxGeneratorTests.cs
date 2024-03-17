@@ -2586,6 +2586,15 @@ public class C { } // end").Members[0];
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66387")]
+        public void TestInterfaceDeclarationWithModifier()
+        {
+            VerifySyntax<InterfaceDeclarationSyntax>(
+                Generator.InterfaceDeclaration("i", modifiers: DeclarationModifiers.Partial),
+                "partial interface i\r\n{\r\n}");
+        }
+
+
         #endregion
 
         #region Add/Insert/Remove/Get declarations & members/elements

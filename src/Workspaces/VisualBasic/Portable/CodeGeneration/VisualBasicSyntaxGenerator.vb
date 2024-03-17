@@ -1434,6 +1434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             name As String,
             typeParameters As IEnumerable(Of SyntaxNode),
             accessibility As Accessibility,
+            modifiers As DeclarationModifiers,
             interfaceTypes As IEnumerable(Of SyntaxNode),
             members As IEnumerable(Of SyntaxNode)) As SyntaxNode
 
@@ -1445,7 +1446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.InterfaceBlock(
                 interfaceStatement:=SyntaxFactory.InterfaceStatement(
                     attributeLists:=Nothing,
-                    modifiers:=GetModifierList(accessibility, DeclarationModifiers.None, declaration:=Nothing, DeclarationKind.Interface),
+                    modifiers:=GetModifierList(accessibility, If(modifiers = DeclarationModifiers.Abstract, DeclarationModifiers.None, modifiers), declaration:=Nothing, DeclarationKind.Interface),
                     identifier:=name.ToIdentifierToken(),
                     typeParameterList:=GetTypeParameters(typeParameters)),
                 [inherits]:=If(itypes IsNot Nothing, SyntaxFactory.SingletonList(SyntaxFactory.InheritsStatement(SyntaxFactory.SeparatedList(itypes))), Nothing),

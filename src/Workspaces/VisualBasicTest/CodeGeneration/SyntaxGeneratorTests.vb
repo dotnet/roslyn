@@ -2458,6 +2458,14 @@ End Class"))
                 "Public Const MaxValue As System.UInt32 = 4294967295UI")
         End Sub
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66387")>
+        Public Sub TestInterfaceDeclarationWithModifier()
+            VerifySyntax(Of InterfaceBlockSyntax)(
+                Generator.InterfaceDeclaration("i", modifiers:=DeclarationModifiers.Partial),
+"Partial Interface i
+End Interface")
+        End Sub
+
 #End Region
 
 #Region "Add/Insert/Remove/Get/Set members & elements"

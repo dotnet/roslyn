@@ -757,6 +757,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         string name,
         IEnumerable<SyntaxNode>? typeParameters,
         Accessibility accessibility,
+        DeclarationModifiers modifiers,
         IEnumerable<SyntaxNode>? interfaceTypes = null,
         IEnumerable<SyntaxNode>? members = null)
     {
@@ -768,7 +769,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
 
         return SyntaxFactory.InterfaceDeclaration(
             default,
-            AsModifierList(accessibility, DeclarationModifiers.None),
+            AsModifierList(accessibility, modifiers == DeclarationModifiers.Abstract ? DeclarationModifiers.None : modifiers),
             name.ToIdentifierToken(),
             AsTypeParameterList(typeParameters),
             itypes != null ? SyntaxFactory.BaseList([.. itypes]) : null,
