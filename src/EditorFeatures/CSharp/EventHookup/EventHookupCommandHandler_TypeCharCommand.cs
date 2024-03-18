@@ -62,10 +62,10 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TypeCh
 
         var caretPoint = textView.GetCaretPoint(subjectBuffer);
         if (!caretPoint.HasValue)
-        {
             return false;
-        }
 
+        // Check that we're directly after `+=` in the source text.  Later passed will ensure we're actually in an
+        // appropriate syntax and semantic context.
         var position = caretPoint.Value.Position;
         return position - 2 >= 0 &&
             subjectBuffer.CurrentSnapshot[position - 1] == '=' &&
