@@ -485,9 +485,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(objectCreationExpression.Arguments.Length == 1);
                             var argRefKinds = objectCreationExpression.ArgumentRefKindsOpt;
-                            return objectCreationExpression.UpdateArgumentsAndInitializer([Spill(builder, objectCreationExpression.Arguments[0], argRefKinds.IsDefault ? RefKind.None : argRefKinds[0])],
-                                                                                          objectCreationExpression.ArgumentRefKindsOpt,
-                                                                                          newInitializerExpression: null);
+                            return objectCreationExpression.Update(objectCreationExpression.Constructor,
+                                                                   [Spill(builder, objectCreationExpression.Arguments[0], argRefKinds.IsDefault ? RefKind.None : argRefKinds[0])],
+                                                                   objectCreationExpression.ArgumentRefKindsOpt,
+                                                                   newInitializerExpression: null);
                         }
 
                         goto default;
