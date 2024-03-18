@@ -27,14 +27,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics;
 internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
 {
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
-    private readonly Lazy<IVisualDiagnosticsBrokeredDebuggerServices> _brokeredDebuggerServices;
+    private readonly Lazy<IVisualDiagnosticsServiceBroker> _brokeredDebuggerServices;
     private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     [ImportingConstructor]
     public VisualDiagnosticsServiceFactory(
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-        Lazy<IVisualDiagnosticsBrokeredDebuggerServices> brokeredDebuggerServices,
+        Lazy<IVisualDiagnosticsServiceBroker> brokeredDebuggerServices,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
@@ -53,7 +53,7 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
         private readonly LspServices _lspServices;
         private readonly LspWorkspaceManager _lspWorkspaceManager;
         private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
-        private readonly Lazy<IVisualDiagnosticsBrokeredDebuggerServices> _brokeredDebuggerServices;
+        private readonly Lazy<IVisualDiagnosticsServiceBroker> _brokeredDebuggerServices;
         private readonly System.Timers.Timer _timer;
         private readonly SemaphoreSlim _mutex = new SemaphoreSlim(1);
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -63,7 +63,7 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
         public OnInitializedService(LspServices lspServices,
         LspWorkspaceManager lspWorkspaceManager,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-        Lazy<IVisualDiagnosticsBrokeredDebuggerServices> brokeredDebuggerServices,
+        Lazy<IVisualDiagnosticsServiceBroker> brokeredDebuggerServices,
         IAsynchronousOperationListenerProvider listenerProvider)
         {
             _lspServices = lspServices;
@@ -73,7 +73,7 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
             _timer = new System.Timers.Timer();
             _timer.Interval = 500;
             _timer.Elapsed += Timer_Elapsed;
-            _asyncListener = listenerProvider.GetListener(nameof(VisualDiagnosticsBrokeredDebuggerServices));
+            _asyncListener = listenerProvider.GetListener(nameof(VisualDiagnosticsServiceBroker));
         }
 
         private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -115,7 +115,7 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
                     return;
                 }
 
-                IVisualDiagnosticsBrokeredDebuggerServices brokerService = _brokeredDebuggerServices.Value;
+                IVisualDiagnosticsServiceBroker brokerService = _brokeredDebuggerServices.Value;
 
                 if (brokerService != null)
                 {

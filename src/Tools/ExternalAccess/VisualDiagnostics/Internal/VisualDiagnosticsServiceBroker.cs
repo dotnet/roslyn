@@ -16,14 +16,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal
     /// <summary>
     /// This is a simple wrapper to succeed at getting the broker service using System.ComponentModel.Composition inside an LSP service OnInitialized factory
     /// </summary>
-    [Export(typeof(IVisualDiagnosticsBrokeredDebuggerServices))]
-    internal sealed class VisualDiagnosticsBrokeredDebuggerServices : IVisualDiagnosticsBrokeredDebuggerServices
+    [Export(typeof(IVisualDiagnosticsServiceBroker))]
+    internal sealed class VisualDiagnosticsServiceBroker : IVisualDiagnosticsServiceBroker
     {
         private readonly Lazy<Task<IBrokeredServiceContainer>> _container;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualDiagnosticsBrokeredDebuggerServices(
+        public VisualDiagnosticsServiceBroker(
         [Import(typeof(SVsBrokeredServiceContainer))]
         Lazy<Task<IBrokeredServiceContainer>> serviceBroker)
         {

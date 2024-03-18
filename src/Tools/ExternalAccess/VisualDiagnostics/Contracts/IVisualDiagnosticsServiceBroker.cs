@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts
     /// <summary>
     /// Facade interface for getting broker service successfully through MEF
     /// </summary>
-    internal interface IVisualDiagnosticsBrokeredDebuggerServices
+    internal interface IVisualDiagnosticsServiceBroker
     {
         Task<IServiceBroker> GetServiceBrokerAsync();
     }
