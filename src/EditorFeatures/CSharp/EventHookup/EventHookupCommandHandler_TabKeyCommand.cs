@@ -159,7 +159,6 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
 
             // switch back to the UI thread.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            _threadingContext.ThrowIfNotOnUIThread();
 
             // If anything changed in the view between computation and application, bail out.
             if (solutionAndRenameSpan is null ||
@@ -174,8 +173,6 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
             var workspace = document.Project.Solution.Workspace;
             if (workspace.TryApplyChanges(solutionWithEventHandler))
             {
-                _threadingContext.ThrowIfNotOnUIThread();
-
                 if (_inlineRenameService.ActiveSession is null)
                 {
                     var updatedDocument = workspace.CurrentSolution.GetRequiredDocument(document.Id);
