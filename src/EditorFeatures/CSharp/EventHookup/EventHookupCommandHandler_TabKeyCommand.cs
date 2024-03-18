@@ -167,9 +167,6 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
             var solutionAndRenameSpan = await TryGetNewSolutionWithAddedMethodAsync(
                 document, eventHandlerMethodName, initialCaretPoint.Position, cancellationToken).ConfigureAwait(false);
 
-            // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
-            waitContext.CancelOnEdit = false;
-
             // switch back to the UI thread.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -181,6 +178,9 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
                 nextHandler();
                 return;
             }
+
+            // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
+            waitContext.CancelOnEdit = false;
 
             var (solutionWithEventHandler, renameSpan) = solutionAndRenameSpan.Value;
             var workspace = document.Project.Solution.Workspace;
