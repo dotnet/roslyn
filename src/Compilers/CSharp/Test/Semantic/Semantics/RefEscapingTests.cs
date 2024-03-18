@@ -8105,6 +8105,86 @@ public struct Vec4
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Compound_ScopedTarget()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(C left, C right) => right;
+                    public static C X(C left, C right) => right;
+                    public C M(scoped C c, C c1)
+                    {
+                        c += c1;
+                        c = c + c1;
+                        c = X(c, c1);
+                        return c1;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Left_ScopedTarget()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(scoped C left, C right) => right;
+                    public static C X(scoped C left, C right) => right;
+                    public C M(scoped C c, C c1)
+                    {
+                        c += c1;
+                        c = c + c1;
+                        c = X(c, c1);
+                        return c1;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Right_ScopedTarget()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(C left, scoped C right) => left;
+                    public static C X(C left, scoped C right) => left;
+                    public C M(scoped C c, C c1)
+                    {
+                        c += c1;
+                        c = c + c1;
+                        c = X(c, c1);
+                        return c1;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Both_ScopedTarget()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(scoped C left, scoped C right) => throw null;
+                    public static C X(scoped C left, scoped C right) => throw null;
+                    public C M(scoped C c, C c1)
+                    {
+                        c += c1;
+                        c = c + c1;
+                        c = X(c, c1);
+                        return c1;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
         public void UserDefinedUnaryOperator_RefStruct()
         {
             var source = """
