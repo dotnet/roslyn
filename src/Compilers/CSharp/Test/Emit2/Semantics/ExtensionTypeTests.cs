@@ -30739,6 +30739,36 @@ implicit extension E2 for Derived<string?>
     }
 
     [Fact]
+    public void PreferMoreSpecific_Static_DynamicDifferences_InBaseType()
+    {
+        var src = $$"""
+System.Console.Write(Derived<dynamic>.M());
+
+class Base<T> { }
+class Derived<T> : Base<T>  { }
+
+implicit extension E1 for Base<dynamic>
+{
+    public static System.Func<string> M = null;
+}
+
+implicit extension E2 for Derived<object>
+{
+    public static System.Func<string> M = () => "ran";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Derived<dynamic>.M");
+        Assert.Equal("System.Func<System.String> E2.M", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Fact]
     public void PreferMoreSpecific_Static_NullabilityDifferences_InTypeContext()
     {
         var src = $$"""
@@ -30765,6 +30795,36 @@ implicit extension E2 for Derived<string?>
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "Derived<string?>.M");
+        Assert.Equal("E2.M", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(qualifiedName).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(qualifiedName));
+    }
+
+    [Fact]
+    public void PreferMoreSpecific_Static_DynamicDifferences_InTypeContext()
+    {
+        var src = $$"""
+class C : Derived<dynamic>.M { }
+
+class Base<T> { }
+class Derived<T> : Base<T>  { }
+
+implicit extension E1 for Base<dynamic>
+{
+    public class M { }
+}
+
+implicit extension E2 for Derived<object>
+{
+    public class M { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "Derived<dynamic>.M");
         Assert.Equal("E2.M", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(qualifiedName).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(qualifiedName));
