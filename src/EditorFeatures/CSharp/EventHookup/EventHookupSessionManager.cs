@@ -40,7 +40,7 @@ internal sealed partial class EventHookupSessionManager(
     // For test purposes only!
     internal ClassifiedTextElement[] TEST_MostRecentToolTipContent { get; set; }
 
-    internal void EventHookupFoundInSession(EventHookupSession analyzedSession)
+    internal void EventHookupFoundInSession(EventHookupSession analyzedSession, string eventName)
     {
         ThreadingContext.ThrowIfNotOnUIThread();
 
@@ -62,7 +62,7 @@ internal sealed partial class EventHookupSessionManager(
             // GetEventNameTask() gets back the event name, only needs to add a semicolon after it.
             var textRuns = new[]
             {
-                new ClassifiedTextRun(ClassificationTypeNames.MethodName, analyzedSession.GetEventNameTask.Result, ClassifiedTextRunStyle.UseClassificationFont),
+                new ClassifiedTextRun(ClassificationTypeNames.MethodName, eventName, ClassifiedTextRunStyle.UseClassificationFont),
                 new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ";", ClassifiedTextRunStyle.UseClassificationFont),
                 new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpEditorResources.Press_TAB_to_insert),
             };
@@ -108,16 +108,16 @@ internal sealed partial class EventHookupSessionManager(
         EventHookupCommandHandler eventHookupCommandHandler,
         ITextView textView,
         ITextBuffer subjectBuffer,
+        int position,
+        Document document,
         IAsynchronousOperationListener asyncListener,
         Mutex testSessionHookupMutex)
     {
-        CurrentSession = new EventHookupSession(this, eventHookupCommandHandler, textView, subjectBuffer, asyncListener, _globalOptions, testSessionHookupMutex);
+        CurrentSession = new EventHookupSession(
+            this, eventHookupCommandHandler, textView, subjectBuffer, position, document, asyncListener, _globalOptions, testSessionHookupMutex);
     }
 
-    public void CancelAndDismissExistingSessions()
-        => DismissExistingSessions(cancelBackgroundTasks: true);
-
-    public void DismissExistingSessions(bool cancelBackgroundTasks)
+    public void DismissExistingSessions()
     {
         ThreadingContext.ThrowIfNotOnUIThread();
 
@@ -129,9 +129,7 @@ internal sealed partial class EventHookupSessionManager(
 
         if (CurrentSession != null)
         {
-            if (cancelBackgroundTasks)
-                CurrentSession.CancelBackgroundTasks();
-
+            CurrentSession.CancelBackgroundTasks();
             CurrentSession = null;
         }
 
@@ -150,7 +148,7 @@ internal sealed partial class EventHookupSessionManager(
         {
             if (change.OldText.Length > 0 || change.NewText.Any(c => c != ' '))
             {
-                CancelAndDismissExistingSessions();
+                DismissExistingSessions();
                 return;
             }
         }
@@ -165,7 +163,7 @@ internal sealed partial class EventHookupSessionManager(
 
         if (CurrentSession == null)
         {
-            CancelAndDismissExistingSessions();
+            DismissExistingSessions();
             return;
         }
 
@@ -173,13 +171,13 @@ internal sealed partial class EventHookupSessionManager(
 
         if (!caretPoint.HasValue)
         {
-            CancelAndDismissExistingSessions();
+            DismissExistingSessions();
         }
 
         var snapshotSpan = CurrentSession.TrackingSpan.GetSpan(CurrentSession.TextView.TextSnapshot);
         if (snapshotSpan.Snapshot != caretPoint.Value.Snapshot || !snapshotSpan.Contains(caretPoint.Value))
         {
-            CancelAndDismissExistingSessions();
+            DismissExistingSessions();
         }
     }
 }

@@ -52,7 +52,7 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         if (!TryExecuteCommand(args, nextHandler))
         {
             // If we didn't process this tag to emit an event handler, just pass the tab through to the buffer normally.
-            EventHookupSessionManager.DismissExistingSessions(cancelBackgroundTasks: true);
+            EventHookupSessionManager.DismissExistingSessions();
             nextHandler();
         }
     }
@@ -93,12 +93,12 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
 
         // Capture everything we need off of the session manager as we'll be dismissing the core session immediately
         // before we kick off the work to emit hte event.
-        var eventNameTask = EventHookupSessionManager.CurrentSession.GetEventNameTask;
+        var (eventNameTask, eventNameTokenSource) = EventHookupSessionManager.CurrentSession.DetachEventNameTask();
         var applicableToSpan = EventHookupSessionManager.CurrentSession.TrackingSpan.GetSpan(currentSnapshot);
 
         // Ensure no matter what that once tab is hit that we're back to the initial no-session state. We do not
         // want to cancel the bg tasks kicked off as we need their values to actually emit the event.
-        EventHookupSessionManager.DismissExistingSessions(cancelBackgroundTasks: false);
+        EventHookupSessionManager.DismissExistingSessions();
 
         var task = ExecuteCommandAsync(
             args,
@@ -106,6 +106,7 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
             applicableToSpan,
             document,
             eventNameTask,
+            eventNameTokenSource,
             caretPoint.Value);
         task.CompletesAsyncOperation(token);
 
@@ -119,7 +120,8 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         Action nextHandler,
         SnapshotSpan applicableToSpan,
         Document document,
-        Task<string> getEventNameTask,
+        Task<string?> eventNameTask,
+        CancellationTokenSource eventNameCancellationTokenSource,
         SnapshotPoint initialCaretPoint)
     {
         try
@@ -132,6 +134,12 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         }
         catch (Exception ex) when (FatalError.ReportAndCatch(ex))
         {
+        }
+        finally
+        {
+            // Once we finish doing our own work (including potentially cancelling out), ensure that any BG worked
+            // kicked off to compute the event name is canceled as well so it doesn't keep consuming resources.
+            eventNameCancellationTokenSource.Cancel();
         }
 
         return;
@@ -149,7 +157,12 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
 
             var cancellationToken = waitContext.UserCancellationToken;
 
-            var eventHandlerMethodName = await getEventNameTask.WithCancellation(cancellationToken).ConfigureAwait(false);
+            var eventHandlerMethodName = await eventNameTask.WithCancellation(cancellationToken).ConfigureAwait(false);
+            if (eventHandlerMethodName is null)
+            {
+                nextHandler();
+                return;
+            }
 
             var solutionAndRenameSpan = await TryGetNewSolutionWithAddedMethodAsync(
                 document, eventHandlerMethodName, initialCaretPoint.Position, cancellationToken).ConfigureAwait(false);

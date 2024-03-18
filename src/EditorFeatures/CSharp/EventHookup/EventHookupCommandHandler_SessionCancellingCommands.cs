@@ -18,7 +18,7 @@ internal partial class EventHookupCommandHandler :
     public bool ExecuteCommand(EscapeKeyCommandArgs args, CommandExecutionContext context)
     {
         _threadingContext.ThrowIfNotOnUIThread();
-        EventHookupSessionManager.CancelAndDismissExistingSessions();
+        EventHookupSessionManager.DismissExistingSessions();
         return false;
     }
 
