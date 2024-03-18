@@ -50,7 +50,6 @@ internal partial class EventHookupCommandHandler(
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IInlineRenameService _inlineRenameService = inlineRenameService;
     private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.EventHookup);
-    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     internal readonly EventHookupSessionManager EventHookupSessionManager = eventHookupSessionManager;
 
