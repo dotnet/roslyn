@@ -9,15 +9,14 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
-namespace Microsoft.CodeAnalysis.IntelliSense
+namespace Microsoft.CodeAnalysis.IntelliSense;
+
+// This is the implementation at Editor layer to provide a CancellationToken
+// for the workqueue used for background cache refresh.
+[ExportWorkspaceServiceFactory(typeof(IImportCompletionCacheService<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry>), ServiceLayer.Editor), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class EditorTypeImportCompletionCacheServiceFactory(IAsynchronousOperationListenerProvider listenerProvider, IThreadingContext threadingContext)
+            : AbstractImportCompletionCacheServiceFactory<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry>(listenerProvider, AbstractTypeImportCompletionService.BatchUpdateCacheAsync, threadingContext.DisposalToken)
 {
-    // This is the implementation at Editor layer to provide a CancellationToken
-    // for the workqueue used for background cache refresh.
-    [ExportWorkspaceServiceFactory(typeof(IImportCompletionCacheService<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry>), ServiceLayer.Editor), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class EditorTypeImportCompletionCacheServiceFactory(IAsynchronousOperationListenerProvider listenerProvider, IThreadingContext threadingContext)
-                : AbstractImportCompletionCacheServiceFactory<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry>(listenerProvider, AbstractTypeImportCompletionService.BatchUpdateCacheAsync, threadingContext.DisposalToken)
-    {
-    }
 }

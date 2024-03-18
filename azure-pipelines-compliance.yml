@@ -23,6 +23,10 @@ variables:
     value: true
   - name: _DevDivDropAccessToken
     value: $(System.AccessToken)
+  - name: Codeql.Enabled
+    value: false
+  - name: Codeql.SkipTaskAutoInjection
+    value: true
 
 steps:
 - template: eng/pipelines/checkout-windows-task.yml

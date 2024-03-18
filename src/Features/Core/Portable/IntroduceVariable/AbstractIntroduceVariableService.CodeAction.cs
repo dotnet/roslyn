@@ -6,24 +6,23 @@
 
 using Microsoft.CodeAnalysis.CodeCleanup;
 
-namespace Microsoft.CodeAnalysis.IntroduceVariable
+namespace Microsoft.CodeAnalysis.IntroduceVariable;
+
+internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
 {
-    internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
+    private class IntroduceVariableCodeAction : AbstractIntroduceVariableCodeAction
     {
-        private class IntroduceVariableCodeAction : AbstractIntroduceVariableCodeAction
+        internal IntroduceVariableCodeAction(
+            TService service,
+            SemanticDocument document,
+            CodeCleanupOptions options,
+            TExpressionSyntax expression,
+            bool allOccurrences,
+            bool isConstant,
+            bool isLocal,
+            bool isQueryLocal)
+            : base(service, document, options, expression, allOccurrences, isConstant, isLocal, isQueryLocal)
         {
-            internal IntroduceVariableCodeAction(
-                TService service,
-                SemanticDocument document,
-                CodeCleanupOptions options,
-                TExpressionSyntax expression,
-                bool allOccurrences,
-                bool isConstant,
-                bool isLocal,
-                bool isQueryLocal)
-                : base(service, document, options, expression, allOccurrences, isConstant, isLocal, isQueryLocal)
-            {
-            }
         }
     }
 }

@@ -38,7 +38,7 @@ internal sealed class LanguageServerWorkspaceFactory
         ProjectSystemProjectFactory = new ProjectSystemProjectFactory(Workspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { });
         workspace.ProjectSystemProjectFactory = ProjectSystemProjectFactory;
 
-        analyzerLoader.InitializeDiagnosticsServices(Workspace);
+        analyzerLoader.InitializeDiagnosticsServices();
 
         ProjectSystemHostInfo = new ProjectSystemHostInfo(
             DynamicFileInfoProviders: dynamicFileInfoProviders.ToImmutableArray(),

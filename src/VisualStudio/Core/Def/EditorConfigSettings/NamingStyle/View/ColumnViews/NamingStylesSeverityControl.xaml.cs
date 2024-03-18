@@ -5,23 +5,22 @@
 using System.Windows.Controls;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.View
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.View;
+
+/// <summary>
+/// Interaction logic for NamingStylesSeverityControl.xaml
+/// </summary>
+internal partial class NamingStylesSeverityControl : UserControl
 {
-    /// <summary>
-    /// Interaction logic for NamingStylesSeverityControl.xaml
-    /// </summary>
-    internal partial class NamingStylesSeverityControl : UserControl
+    private readonly NamingStylesSeverityViewModel _viewModel;
+
+    public NamingStylesSeverityControl(NamingStylesSeverityViewModel viewModel)
     {
-        private readonly NamingStylesSeverityViewModel _viewModel;
-
-        public NamingStylesSeverityControl(NamingStylesSeverityViewModel viewModel)
-        {
-            InitializeComponent();
-            _viewModel = viewModel;
-            DataContext = viewModel;
-        }
-
-        private void SeverityComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-            => _viewModel.SelectionChanged(SeverityComboBox.SelectedIndex);
+        InitializeComponent();
+        _viewModel = viewModel;
+        DataContext = viewModel;
     }
+
+    private void SeverityComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        => _viewModel.SelectionChanged(SeverityComboBox.SelectedIndex);
 }

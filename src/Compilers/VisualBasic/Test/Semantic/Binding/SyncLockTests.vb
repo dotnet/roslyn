@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -472,6 +473,601 @@ End Module
     </file>
 </compilation>).VerifyDiagnostics(
             Diagnostic(ERRID.ERR_CaseElseNoSelect, "Case Else"))
+        End Sub
+
+        <Fact>
+        Public Sub LockType_InSyncLock()
+            Dim source = "
+Module Program
+    Sub Main()
+        Dim l = New System.Threading.Lock()
+        SyncLock l
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+End Namespace
+"
+            CreateCompilation(source).AssertTheseDiagnostics(
+"BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock l
+                 ~
+")
+        End Sub
+
+        <Fact>
+        Public Sub LockType_Generic()
+            Dim source = "
+Module Program
+    Sub Main()
+        Dim l = New System.Threading.Lock(Of String)()
+        SyncLock l
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class Lock(Of T)
+    End Class
+End Namespace
+"
+            CreateCompilation(source).AssertTheseDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub LockType_Nested()
+            Dim source = "
+Module Program
+    Sub Main()
+        Dim l = New System.Threading.Container.Lock()
+        SyncLock l
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class Container
+        Public Class Lock
+        End Class
+    End Class
+End Namespace
+"
+            CreateCompilation(source).AssertTheseDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub LockType_WrongNamespace()
+            Dim source = "
+Module Program
+    Sub Main()
+        Dim l = New Threading.Lock()
+        SyncLock l
+        End SyncLock
+    End Sub
+End Module
+
+Namespace Threading
+    Public Class Lock
+    End Class
+End Namespace
+"
+            CreateCompilation(source).AssertTheseDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub LockType_WrongTypeName()
+            Dim source = "
+Module Program
+    Sub Main()
+        Dim l = New System.Threading.Lock1()
+        SyncLock l
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class Lock1
+    End Class
+End Namespace
+"
+            CreateCompilation(source).AssertTheseDiagnostics()
+        End Sub
+
+        <Theory, CombinatorialData>
+        Public Sub LockType_LowercaseTypeName(
+            <CombinatorialValues("Lock", "lock")> usage As String,
+            <CombinatorialValues("Lock", "lock")> declaration As String)
+            Dim source = $"
+Module Program
+    Sub Main()
+        Dim l = New System.Threading.{usage}()
+        SyncLock l
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class {declaration}
+    End Class
+End Namespace
+"
+            Dim comp = CreateCompilation(source)
+            If declaration = "Lock" Then
+                comp.AssertTheseDiagnostics(
+"BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock l
+                 ~
+")
+            Else
+                Assert.Equal("lock", declaration)
+                comp.AssertTheseDiagnostics()
+            End If
+        End Sub
+
+        <Fact>
+        Public Sub LockType_CastToObject()
+            Dim source = "
+Imports System.Threading
+
+Module Program
+    Sub Main()
+        Dim l = New Lock()
+        Dim o As Object = l
+
+        o = DirectCast(l, Object)
+        SyncLock DirectCast(l, Object)
+        End SyncLock
+
+        o = CType(l, Object)
+        SyncLock CType(l, Object)
+        End SyncLock
+
+        o = TryCast(l, Object)
+        SyncLock TryCast(l, Object)
+        End SyncLock
+
+        o = M1(l)
+        SyncLock M1(l)
+        End SyncLock
+
+        o = M2(l)
+        SyncLock M2(l)
+        End SyncLock
+
+        o = M3(l)
+        SyncLock M3(l)
+        End SyncLock
+    End Sub
+
+    Function M1(Of T)(o as T) As Object
+        Return o
+    End Function
+
+    Function M2(Of T As Class)(o as T) As Object
+        Return o
+    End Function
+
+    Function M3(Of T As Lock)(o as T) As Object
+        Return o
+    End Function
+End Module
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+End Namespace
+"
+            CreateCompilation(source).AssertTheseDiagnostics(
+"BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        Dim o As Object = l
+                          ~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        o = DirectCast(l, Object)
+                       ~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        SyncLock DirectCast(l, Object)
+                            ~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        o = CType(l, Object)
+                  ~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        SyncLock CType(l, Object)
+                       ~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        o = TryCast(l, Object)
+                    ~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        SyncLock TryCast(l, Object)
+                         ~
+")
+        End Sub
+
+        <Fact>
+        Public Sub LockType_CastToBase()
+            Dim source = "
+Imports System.Threading
+
+Module Program
+    Sub Main()
+        Dim l = New Lock()
+        Dim o As LockBase = l
+        SyncLock o
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class LockBase
+    End Class
+
+    Public Class Lock
+        Inherits LockBase
+    End Class
+End Namespace
+"
+            CreateCompilation(source).AssertTheseDiagnostics(
+"BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        Dim o As LockBase = l
+                            ~
+")
+        End Sub
+
+        <Fact>
+        Public Sub LockType_CastToInterface()
+            Dim source = "
+Imports System.Threading
+
+Module Program
+    Sub Main()
+        Dim l = New Lock()
+        Dim o As ILockBase = l
+        SyncLock o
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Interface ILockBase
+    End Interface
+
+    Public Class Lock
+        Implements ILockBase
+    End Class
+End Namespace
+"
+            CreateCompilation(source).AssertTheseDiagnostics(
+"BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        Dim o As ILockBase = l
+                             ~
+")
+        End Sub
+
+        <Fact>
+        Public Sub LockType_CastToSelf()
+            Dim source = "
+Imports System.Threading
+
+Module Program
+    Sub Main()
+        Dim l = New Lock()
+        Dim o As Lock = l
+
+        o = DirectCast(l, Lock)
+        SyncLock DirectCast(l, Lock)
+        End SyncLock
+
+        o = CType(l, Lock)
+        SyncLock CType(l, Lock)
+        End SyncLock
+
+        o = TryCast(l, Lock)
+        SyncLock TryCast(l, Lock)
+        End SyncLock
+
+        o = M1(l)
+        SyncLock M1(l)
+        End SyncLock
+
+        o = M2(l)
+        SyncLock M2(l)
+        End SyncLock
+
+        o = M3(l)
+        SyncLock M3(l)
+        End SyncLock
+    End Sub
+
+    Function M1(Of T)(o as T) As Lock
+        Return CType(CType(o, Object), Lock)
+    End Function
+
+    Function M2(Of T As Class)(o as T) As Lock
+        Return CType(CType(o, Object), Lock)
+    End Function
+
+    Function M3(Of T As Lock)(o as T) As Lock
+        Return o
+    End Function
+End Module
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+End Namespace
+"
+            CreateCompilation(source).AssertTheseDiagnostics(
+"BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock DirectCast(l, Lock)
+                 ~~~~~~~~~~~~~~~~~~~
+BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock CType(l, Lock)
+                 ~~~~~~~~~~~~~~
+BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock TryCast(l, Lock)
+                 ~~~~~~~~~~~~~~~~
+BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock M1(l)
+                 ~~~~~
+BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock M2(l)
+                 ~~~~~
+BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock M3(l)
+                 ~~~~~
+")
+        End Sub
+
+        <Fact>
+        Public Sub LockType_Downcast()
+            Dim source = "
+Imports System.Threading
+Module Program
+    Sub Main()
+        Dim l = New Lock()
+        Dim o As Object = l
+        SyncLock CType(o, Lock)
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+End Namespace
+"
+            CreateCompilation(source).AssertTheseDiagnostics(
+"BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        Dim o As Object = l
+                          ~
+BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock CType(o, Lock)
+                 ~~~~~~~~~~~~~~
+")
+        End Sub
+
+        <Fact>
+        Public Sub LockType_Derived()
+            Dim source = "
+Imports System
+Imports System.Threading
+
+Module Program
+    Private Sub Main()
+        Dim l1 As DerivedLock = New DerivedLock()
+        SyncLock l1
+        End SyncLock
+
+        Dim l2 As Lock = l1
+        SyncLock l2 ' 1
+        End SyncLock
+
+        Dim l3 As DerivedLock = CType(l2, DerivedLock) ' 2
+        l3 = DirectCast(l2, DerivedLock) ' 3
+        l3 = TryCast(l2, DerivedLock) ' 4
+        SyncLock l3
+        End SyncLock
+
+        Dim l4 As IDerivedLock = CType(l2, IDerivedLock) ' 5
+        l4 = DirectCast(l2, IDerivedLock) ' 6
+        l4 = TryCast(l2, IDerivedLock) ' 7
+        SyncLock l4
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+
+    Public Class DerivedLock
+        Inherits Lock
+        Implements IDerivedLock
+    End Class
+
+    Interface IDerivedLock
+    End Interface
+End Namespace
+"
+            CreateCompilation(source).AssertTheseDiagnostics(
+"BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock l2 ' 1
+                 ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        Dim l3 As DerivedLock = CType(l2, DerivedLock) ' 2
+                                      ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        l3 = DirectCast(l2, DerivedLock) ' 3
+                        ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        l3 = TryCast(l2, DerivedLock) ' 4
+                     ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        Dim l4 As IDerivedLock = CType(l2, IDerivedLock) ' 5
+                                       ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        l4 = DirectCast(l2, IDerivedLock) ' 6
+                        ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        l4 = TryCast(l2, IDerivedLock) ' 7
+                     ~~
+")
+        End Sub
+
+        <Fact>
+        Public Sub LockType_Derived_Execution()
+            Dim source = <![CDATA[
+Imports System
+Imports System.Threading
+
+Module Program
+    Sub Main()
+        Dim l1 As DerivedLock = New DerivedLock()
+        Dim l2 As Lock = l1
+        Dim l3 As DerivedLock = CType(l2, DerivedLock)
+        SyncLock l3
+            Console.WriteLine("locked")
+        End SyncLock
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+
+    Public Class DerivedLock
+        Inherits Lock
+        Implements IDerivedLock
+    End Class
+
+    Interface IDerivedLock
+    End Interface
+End Namespace
+]]>.Value
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            Dim verifier = CompileAndVerify(comp, expectedOutput:="locked")
+            verifier.Diagnostics.AssertTheseDiagnostics(<![CDATA[
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        Dim l3 As DerivedLock = CType(l2, DerivedLock)
+                                      ~~
+]]>)
+            verifier.VerifyIL("Program.Main", <![CDATA[
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (Object V_0,
+                Boolean V_1)
+  IL_0000:  newobj     "Sub System.Threading.DerivedLock..ctor()"
+  IL_0005:  castclass  "System.Threading.DerivedLock"
+  IL_000a:  stloc.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  stloc.1
+  .try
+  {
+    IL_000d:  ldloc.0
+    IL_000e:  ldloca.s   V_1
+    IL_0010:  call       "Sub System.Threading.Monitor.Enter(Object, ByRef Boolean)"
+    IL_0015:  ldstr      "locked"
+    IL_001a:  call       "Sub System.Console.WriteLine(String)"
+    IL_001f:  leave.s    IL_002b
+  }
+  finally
+  {
+    IL_0021:  ldloc.1
+    IL_0022:  brfalse.s  IL_002a
+    IL_0024:  ldloc.0
+    IL_0025:  call       "Sub System.Threading.Monitor.Exit(Object)"
+    IL_002a:  endfinally
+  }
+  IL_002b:  ret
+}]]>)
+        End Sub
+
+        <Fact>
+        Public Sub LockType_ObjectEquality()
+            Dim source = <![CDATA[
+Imports System
+Imports System.Threading
+
+Module Program
+    Sub Main()
+        Dim l As Lock = New Lock()
+
+        If l IsNot Nothing Then
+            Console.Write("1")
+        End If
+
+        If l Is Nothing Then
+            Throw New Exception
+        End If
+
+        If l IsNot Nothing Then
+            Console.Write("2")
+        End If
+
+        If l Is Nothing Then
+            Throw New Exception
+        End If
+
+        If Not (l Is Nothing) Then
+            Console.Write("3")
+        End If
+
+        If Not (l IsNot Nothing) Then
+            Throw New Exception
+        End If
+
+        Dim l2 As Lock = New Lock()
+
+        If l Is l2 Then
+            Throw New Exception
+        End If
+
+        If l IsNot l2 Then
+            Console.Write("4")
+        End If
+
+        If ReferenceEquals(l, l2) Then
+            Throw New Exception
+        End If
+
+        If (CObj(l)) Is l2 Then
+            Throw New Exception
+        End If
+
+        If (CObj(l)) IsNot l2 Then
+            Console.Write("5")
+        End If
+
+        If l Is New Lock() Then
+            Throw New Exception
+        End If
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+End Namespace
+]]>.Value
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            Dim verifier = CompileAndVerify(comp, expectedOutput:="12345")
+            verifier.Diagnostics.AssertTheseDiagnostics(<![CDATA[
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        If ReferenceEquals(l, l2) Then
+                           ~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        If ReferenceEquals(l, l2) Then
+                              ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        If (CObj(l)) Is l2 Then
+                 ~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        If (CObj(l)) IsNot l2 Then
+                 ~
+]]>)
         End Sub
     End Class
 End Namespace

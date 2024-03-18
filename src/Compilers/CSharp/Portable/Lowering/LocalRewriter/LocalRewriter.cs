@@ -123,6 +123,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     instrumenter = codeCoverageInstrumenter;
                 }
 
+                StackOverflowProbingInstrumenter? stackOverflowProbingInstrumenter = null;
+                if (instrumentation.Kinds.Contains(InstrumentationKind.StackOverflowProbing) &&
+                    StackOverflowProbingInstrumenter.TryCreate(method, factory, instrumenter, out stackOverflowProbingInstrumenter))
+                {
+                    instrumenter = stackOverflowProbingInstrumenter;
+                }
+
+                ModuleCancellationInstrumenter? moduleCancellationInstrumenter = null;
+                if (instrumentation.Kinds.Contains(InstrumentationKind.ModuleCancellation) &&
+                    ModuleCancellationInstrumenter.TryCreate(method, factory, instrumenter, out moduleCancellationInstrumenter))
+                {
+                    instrumenter = moduleCancellationInstrumenter;
+                }
+
                 instrumentationState.Instrumenter = DebugInfoInjector.Create(instrumenter);
 
                 // We don't want IL to differ based upon whether we write the PDB to a file/stream or not.
@@ -311,6 +325,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLambda(BoundLambda node)
         {
+            Debug.Assert(_factory.ModuleBuilderOpt is { });
+
+            var delegateType = node.Type.GetDelegateType();
+
+            if (delegateType?.IsAnonymousType == true && delegateType.ContainingModule == _compilation.SourceModule &&
+                delegateType.DelegateInvokeMethod() is MethodSymbol delegateInvoke &&
+                delegateInvoke.Parameters.Any(static (p) => p.IsParamsCollection))
+            {
+                Location location;
+                if (node.Symbol.Parameters.LastOrDefault(static (p) => p.IsParamsCollection) is { } parameter)
+                {
+                    location = ParameterHelpers.GetParameterLocation(parameter);
+                }
+                else
+                {
+                    location = node.Syntax.Location;
+                }
+
+                _factory.ModuleBuilderOpt.EnsureParamCollectionAttributeExists(_diagnostics, location);
+            }
+
             _sawLambdas = true;
 
             var lambda = node.Symbol;

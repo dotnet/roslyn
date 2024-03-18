@@ -39,19 +39,6 @@ namespace Microsoft.CodeAnalysis
         private NodeFlagsAndSlotCount _nodeFlagsAndSlotCount;
         private int _fullWidth;
 
-        protected NodeFlags flags
-        {
-            get => _nodeFlagsAndSlotCount.NodeFlags;
-            set => _nodeFlagsAndSlotCount.NodeFlags = value;
-        }
-
-        /// <inheritdoc cref="NodeFlagsAndSlotCount.SmallSlotCount"/>>
-        private byte _slotCount
-        {
-            get => _nodeFlagsAndSlotCount.SmallSlotCount;
-            set => _nodeFlagsAndSlotCount.SmallSlotCount = value;
-        }
-
         private static readonly ConditionalWeakTable<GreenNode, DiagnosticInfo[]> s_diagnosticsTable =
             new ConditionalWeakTable<GreenNode, DiagnosticInfo[]>();
 
@@ -79,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             _fullWidth = fullWidth;
             if (diagnostics?.Length > 0)
             {
-                this.flags |= NodeFlags.ContainsDiagnostics;
+                SetFlags(NodeFlags.ContainsDiagnostics);
                 s_diagnosticsTable.Add(this, diagnostics);
             }
         }
@@ -89,7 +76,7 @@ namespace Microsoft.CodeAnalysis
             _kind = kind;
             if (diagnostics?.Length > 0)
             {
-                this.flags |= NodeFlags.ContainsDiagnostics;
+                SetFlags(NodeFlags.ContainsDiagnostics);
                 s_diagnosticsTable.Add(this, diagnostics);
             }
         }
@@ -104,7 +91,7 @@ namespace Microsoft.CodeAnalysis
                     if (annotation == null) throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
                 }
 
-                this.flags |= (NodeFlags.HasAnnotationsDirectly | NodeFlags.ContainsAnnotations);
+                SetFlags(NodeFlags.HasAnnotationsDirectly | NodeFlags.ContainsAnnotations);
                 s_annotationsTable.Add(this, annotations);
             }
         }
@@ -119,7 +106,7 @@ namespace Microsoft.CodeAnalysis
                     if (annotation == null) throw new ArgumentException(paramName: nameof(annotations), message: "" /*CSharpResources.ElementsCannotBeNull*/);
                 }
 
-                this.flags |= (NodeFlags.HasAnnotationsDirectly | NodeFlags.ContainsAnnotations);
+                SetFlags(NodeFlags.HasAnnotationsDirectly | NodeFlags.ContainsAnnotations);
                 s_annotationsTable.Add(this, annotations);
             }
         }
@@ -127,7 +114,7 @@ namespace Microsoft.CodeAnalysis
         protected void AdjustFlagsAndWidth(GreenNode node)
         {
             RoslynDebug.Assert(node != null, "PERF: caller must ensure that node!=null, we do not want to re-check that here.");
-            this.flags |= (node.flags & NodeFlags.InheritMask);
+            SetFlags(node.Flags & NodeFlags.InheritMask);
             _fullWidth += node._fullWidth;
         }
 
@@ -163,13 +150,14 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                int count = _slotCount;
+                var count = _nodeFlagsAndSlotCount.SmallSlotCount;
                 return count == SlotCountTooLarge ? GetSlotCount() : count;
             }
 
             protected set
             {
-                _slotCount = (byte)value;
+                Debug.Assert(value <= byte.MaxValue);
+                _nodeFlagsAndSlotCount.SmallSlotCount = (byte)value;
             }
         }
 
@@ -182,10 +170,15 @@ namespace Microsoft.CodeAnalysis
             return node;
         }
 
-        // for slot counts >= byte.MaxValue
+        /// <summary>
+        /// Called when <see cref="NodeFlagsAndSlotCount.SmallSlotCount"/> returns a value of <see cref="SlotCountTooLarge"/>.
+        /// </summary>
         protected virtual int GetSlotCount()
         {
-            return _slotCount;
+            // This should only be called for nodes that couldn't store their slot count effectively in our
+            // _nodeFlagsAndSlotCount field.  The only nodes that cannot do that are the `WithManyChildren` list types.
+            // All of which should be subclassing this method.
+            throw ExceptionUtilities.Unreachable();
         }
 
         public virtual int GetSlotOffset(int index)
@@ -297,17 +290,17 @@ namespace Microsoft.CodeAnalysis
 
         internal NodeFlags Flags
         {
-            get { return this.flags; }
+            get { return this._nodeFlagsAndSlotCount.NodeFlags; }
         }
 
         internal void SetFlags(NodeFlags flags)
         {
-            this.flags |= flags;
+            _nodeFlagsAndSlotCount.NodeFlags |= flags;
         }
 
         internal void ClearFlags(NodeFlags flags)
         {
-            this.flags &= ~flags;
+            _nodeFlagsAndSlotCount.NodeFlags &= ~flags;
         }
 
         internal bool IsMissing
@@ -315,7 +308,7 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 // flag has reversed meaning hence "=="
-                return (this.flags & NodeFlags.IsNotMissing) == 0;
+                return (this.Flags & NodeFlags.IsNotMissing) == 0;
             }
         }
 
@@ -323,7 +316,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return (this.flags & NodeFlags.FactoryContextIsInAsync) != 0;
+                return (this.Flags & NodeFlags.FactoryContextIsInAsync) != 0;
             }
         }
 
@@ -331,7 +324,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return (this.flags & NodeFlags.FactoryContextIsInQuery) != 0;
+                return (this.Flags & NodeFlags.FactoryContextIsInQuery) != 0;
             }
         }
 
@@ -339,7 +332,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return (this.flags & NodeFlags.FactoryContextIsInIterator) != 0;
+                return (this.Flags & NodeFlags.FactoryContextIsInIterator) != 0;
             }
         }
 
@@ -347,7 +340,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return (this.flags & NodeFlags.ContainsSkippedText) != 0;
+                return (this.Flags & NodeFlags.ContainsSkippedText) != 0;
             }
         }
 
@@ -355,7 +348,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return (this.flags & NodeFlags.ContainsStructuredTrivia) != 0;
+                return (this.Flags & NodeFlags.ContainsStructuredTrivia) != 0;
             }
         }
 
@@ -363,7 +356,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return (this.flags & NodeFlags.ContainsDirectives) != 0;
+                return (this.Flags & NodeFlags.ContainsDirectives) != 0;
             }
         }
 
@@ -371,7 +364,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return (this.flags & NodeFlags.ContainsAttributes) != 0;
+                return (this.Flags & NodeFlags.ContainsAttributes) != 0;
             }
         }
 
@@ -379,7 +372,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return (this.flags & NodeFlags.ContainsDiagnostics) != 0;
+                return (this.Flags & NodeFlags.ContainsDiagnostics) != 0;
             }
         }
 
@@ -387,7 +380,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return (this.flags & NodeFlags.ContainsAnnotations) != 0;
+                return (this.Flags & NodeFlags.ContainsAnnotations) != 0;
             }
         }
 
@@ -395,7 +388,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return (this.flags & NodeFlags.HasAnnotationsDirectly) != 0;
+                return (this.Flags & NodeFlags.HasAnnotationsDirectly) != 0;
             }
         }
 
@@ -757,7 +750,11 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
                 node = firstChild;
-            } while (node?._slotCount > 0);
+            }
+            // Note: it's ok to examine SmallSlotCount here.  All we're trying to do is make sure we have at least one
+            // child.  And SmallSlotCount works both for small counts and large counts.  This avoids an unnecessary
+            // virtual call for large list nodes.
+            while (node?._nodeFlagsAndSlotCount.SmallSlotCount > 0);
 
             return node;
         }
@@ -779,7 +776,11 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
                 node = lastChild;
-            } while (node?._slotCount > 0);
+            }
+            // Note: it's ok to examine SmallSlotCount here.  All we're trying to do is make sure we have at least one
+            // child.  And SmallSlotCount works both for small counts and large counts.  This avoids an unnecessary
+            // virtual call for large list nodes.
+            while (node?._nodeFlagsAndSlotCount.SmallSlotCount > 0);
 
             return node;
         }
@@ -802,7 +803,10 @@ namespace Microsoft.CodeAnalysis
                 }
                 node = nonmissingChild;
             }
-            while (node?._slotCount > 0);
+            // Note: it's ok to examine SmallSlotCount here.  All we're trying to do is make sure we have at least one
+            // child.  And SmallSlotCount works both for small counts and large counts.  This avoids an unnecessary
+            // virtual call for large list nodes.
+            while (node?._nodeFlagsAndSlotCount.SmallSlotCount > 0);
 
             return node;
         }
@@ -956,7 +960,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return ((this.flags & NodeFlags.InheritMask) == NodeFlags.IsNotMissing) &&
+                return ((this.Flags & NodeFlags.InheritMask) == NodeFlags.IsNotMissing) &&
                     this.SlotCount <= GreenNode.MaxCachedChildNum;
             }
         }
@@ -965,7 +969,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(this.IsCacheable);
 
-            int code = (int)(this.flags) ^ this.RawKind;
+            int code = (int)(this.Flags) ^ this.RawKind;
             int cnt = this.SlotCount;
             for (int i = 0; i < cnt; i++)
             {
@@ -984,7 +988,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(this.IsCacheable);
 
             return this.RawKind == kind &&
-                this.flags == flags &&
+                this.Flags == flags &&
                 this.SlotCount == 1 &&
                 this.GetSlot(0) == child1;
         }
@@ -994,7 +998,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(this.IsCacheable);
 
             return this.RawKind == kind &&
-                this.flags == flags &&
+                this.Flags == flags &&
                 this.SlotCount == 2 &&
                 this.GetSlot(0) == child1 &&
                 this.GetSlot(1) == child2;
@@ -1005,7 +1009,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(this.IsCacheable);
 
             return this.RawKind == kind &&
-                this.flags == flags &&
+                this.Flags == flags &&
                 this.SlotCount == 3 &&
                 this.GetSlot(0) == child1 &&
                 this.GetSlot(1) == child2 &&

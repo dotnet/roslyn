@@ -5,10 +5,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+internal interface IVSTypeScriptBlockStructureServiceImplementation
 {
-    internal interface IVSTypeScriptBlockStructureServiceImplementation
-    {
-        Task<VSTypeScriptBlockStructure> GetBlockStructureAsync(Document document, CancellationToken cancellationToken);
-    }
+    Task<VSTypeScriptBlockStructure> GetBlockStructureAsync(Document document, CancellationToken cancellationToken);
 }

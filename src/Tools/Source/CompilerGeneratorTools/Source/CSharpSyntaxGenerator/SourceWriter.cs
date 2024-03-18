@@ -97,7 +97,7 @@ namespace CSharpSyntaxGenerator
                 OpenBlock();
                 if (node.Name == "DirectiveTriviaSyntax")
                 {
-                    WriteLine("this.flags |= NodeFlags.ContainsDirectives;");
+                    WriteLine("SetFlags(NodeFlags.ContainsDirectives);");
                 }
                 CloseBlock();
                 WriteLine();
@@ -107,7 +107,7 @@ namespace CSharpSyntaxGenerator
                 OpenBlock();
                 if (node.Name == "DirectiveTriviaSyntax")
                 {
-                    WriteLine("this.flags |= NodeFlags.ContainsDirectives;");
+                    WriteLine("SetFlags(NodeFlags.ContainsDirectives);");
                 }
                 CloseBlock();
 

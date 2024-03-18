@@ -64,9 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void VerifyExpression(BoundExpression expression, bool overrideSkippedExpression = false)
             {
-                if (expression.IsParamsArray)
+                if (expression.IsParamsArrayOrCollection)
                 {
-                    // Params array is processed element wise. 
+                    // Params collections are processed element wise. 
                     Debug.Assert(!_analyzedNullabilityMap.ContainsKey(expression), $"Found unexpected {expression} `{expression.Syntax}` in the map.");
                 }
                 else if (overrideSkippedExpression || !s_skippedExpressions.Contains(expression.Kind))
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitArrayCreation(BoundArrayCreation node)
             {
-                if (node.IsParamsArray)
+                if (node.IsParamsArrayOrCollection)
                 {
                     // Synthesized params array is processed element wise.
                     this.Visit(node.InitializerOpt);
@@ -108,6 +108,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return base.VisitArrayCreation(node);
+            }
+
+            public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
+            {
+                if (node.IsParamsArrayOrCollection)
+                {
+                    // Synthesized params collection is processed element wise.
+                    this.VisitList(node.UnconvertedCollectionExpression.Elements);
+                    return null;
+                }
+
+                return base.VisitCollectionExpression(node);
             }
 
             public override BoundNode? VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
@@ -309,6 +321,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (node.ConversionKind == ConversionKind.InterpolatedStringHandler)
                 {
                     Visit(node.Operand.GetInterpolatedStringHandlerData().Construction);
+                }
+                else if (node.IsParamsArrayOrCollection)
+                {
+                    // Synthesized params collection is processed element wise.
+                    this.Visit(node.Operand);
+                    return null;
                 }
 
                 return base.VisitConversion(node);
