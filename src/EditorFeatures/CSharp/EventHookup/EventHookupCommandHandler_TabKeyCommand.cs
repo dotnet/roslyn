@@ -190,8 +190,6 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
     private async Task<(Solution solution, TextSpan renameSpan)?> TryGetNewSolutionWithAddedMethodAsync(
         Document document, string eventHandlerMethodName, int position, CancellationToken cancellationToken)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
-
         // Mark the += token with an annotation so we can find it after formatting
         var plusEqualsTokenAnnotation = new SyntaxAnnotation();
 
