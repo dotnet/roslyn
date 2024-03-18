@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
@@ -25,9 +26,9 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 
@@ -171,11 +172,19 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
             }
 
             var (solutionWithEventHandler, renameSpan) = solutionAndRenameSpan.Value;
-            document.Project.Solution.Workspace.TryApplyChanges(solutionWithEventHandler);
-            _threadingContext.ThrowIfNotOnUIThread();
+            var workspace = document.Project.Solution.Workspace;
+            if (workspace.TryApplyChanges(solutionWithEventHandler))
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
 
-            _inlineRenameService.StartInlineSession(document, renameSpan, cancellationToken);
-            textView.SetSelection(renameSpan.ToSnapshotSpan(subjectBuffer.CurrentSnapshot));
+                if (_inlineRenameService.ActiveSession is null)
+                {
+                    var updatedDocument = workspace.CurrentSolution.GetRequiredDocument(document.Id);
+                    _inlineRenameService.StartInlineSession(updatedDocument, renameSpan, cancellationToken);
+                }
+
+                textView.SetSelection(renameSpan.ToSnapshotSpan(subjectBuffer.CurrentSnapshot));
+            }
         }
     }
 
@@ -189,6 +198,9 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
 
         var documentWithNameAndAnnotationsAdded = await AddMethodNameAndAnnotationsToSolutionAsync(
             document, eventHandlerMethodName, position, plusEqualsTokenAnnotation, cancellationToken).ConfigureAwait(false);
+        if (documentWithNameAndAnnotationsAdded is null)
+            return null;
+
         var semanticDocument = await SemanticDocument.CreateAsync(
             documentWithNameAndAnnotationsAdded, cancellationToken).ConfigureAwait(false);
         var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(
@@ -206,15 +218,16 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         var formattedDocument = await Formatter.FormatAsync(
             simplifiedDocument, Formatter.Annotation, cleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
-        var newRoot = await formattedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var plusEqualTokenEndPosition = newRoot.GetAnnotatedNodesAndTokens(plusEqualsTokenAnnotation)
-                                           .Single().Span.End;
+        var newRoot = await formattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var plusEqualTokenEndPosition = newRoot
+            .GetAnnotatedNodesAndTokens(plusEqualsTokenAnnotation)
+            .Single().Span.End;
 
         var newText = await formattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var newSolution = document.Project.Solution.WithDocumentText(formattedDocument.Id, newText);
 
         var finalDocument = newSolution.GetRequiredDocument(formattedDocument.Id);
-        var finalRoot = await finalDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var finalRoot = await finalDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var token = finalRoot.FindTokenOnRightOfPosition(plusEqualTokenEndPosition);
         var renameSpan = token.Span;
         var memberAccessExpression = token.GetAncestor<MemberAccessExpressionSyntax>();
@@ -227,7 +240,7 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         return (newSolution, renameSpan);
     }
 
-    private static async Task<Document> AddMethodNameAndAnnotationsToSolutionAsync(
+    private static async Task<Document?> AddMethodNameAndAnnotationsToSolutionAsync(
         Document document,
         string eventHandlerMethodName,
         int position,
@@ -235,9 +248,12 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         CancellationToken cancellationToken)
     {
         // First find the event hookup to determine if we are in a static context.
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var plusEqualsToken = root.FindTokenOnLeftOfPosition(position);
-        var eventHookupExpression = plusEqualsToken.GetAncestor<AssignmentExpressionSyntax>();
+
+        if (plusEqualsToken.Parent is not AssignmentExpressionSyntax eventHookupExpression)
+            return null;
+
         var typeDecl = eventHookupExpression.GetAncestor<TypeDeclarationSyntax>();
 
         var textToInsert = eventHandlerMethodName + ";";
@@ -250,12 +266,18 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         // Next, perform a textual insertion of the event handler method name.
         var textChange = new TextChange(new TextSpan(position, 0), textToInsert);
         var newText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        newText = newText.WithChanges(textChange);
         var documentWithNameAdded = document.WithText(newText);
 
         // Now find the event hookup again to add the appropriate annotations.
-        root = await documentWithNameAdded.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        root = await documentWithNameAdded.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         plusEqualsToken = root.FindTokenOnLeftOfPosition(position);
-        eventHookupExpression = plusEqualsToken.GetAncestor<AssignmentExpressionSyntax>();
+        if (plusEqualsToken.Parent is not AssignmentExpressionSyntax)
+            return null;
+
+        eventHookupExpression = (AssignmentExpressionSyntax)plusEqualsToken.Parent;
+        if (eventHookupExpression is null)
+            return null;
 
         var updatedEventHookupExpression = eventHookupExpression
             .ReplaceToken(plusEqualsToken, plusEqualsToken.WithAdditionalAnnotations(plusEqualsTokenAnnotation))
@@ -266,7 +288,7 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         return documentWithNameAdded.WithSyntaxRoot(rootWithUpdatedEventHookupExpression);
     }
 
-    private static SyntaxNode AddGeneratedHandlerMethodToSolution(
+    private static SyntaxNode? AddGeneratedHandlerMethodToSolution(
         SemanticDocument document,
         CSharpCodeGenerationOptions options,
         string eventHandlerMethodName,
@@ -274,18 +296,18 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         CancellationToken cancellationToken)
     {
         var root = document.Root;
-        var eventHookupExpression = root.GetAnnotatedNodesAndTokens(plusEqualsTokenAnnotation).Single().AsToken().GetAncestor<AssignmentExpressionSyntax>();
+        var eventHookupExpression = root
+            .GetAnnotatedNodesAndTokens(plusEqualsTokenAnnotation).Single().AsToken()
+            .GetAncestor<AssignmentExpressionSyntax>();
+        Contract.ThrowIfNull(eventHookupExpression);
 
         var typeDecl = eventHookupExpression.GetAncestor<TypeDeclarationSyntax>();
 
         var generatedMethodSymbol = GetMethodSymbol(document, eventHandlerMethodName, eventHookupExpression, cancellationToken);
-
         if (generatedMethodSymbol == null)
-        {
             return null;
-        }
 
-        var container = (SyntaxNode)typeDecl ?? eventHookupExpression.GetAncestor<CompilationUnitSyntax>();
+        var container = (SyntaxNode?)typeDecl ?? eventHookupExpression.GetAncestor<CompilationUnitSyntax>()!;
 
         var codeGenerator = document.Document.GetRequiredLanguageService<ICodeGenerationService>();
         var codeGenOptions = codeGenerator.GetInfo(new CodeGenerationContext(afterThisLocation: eventHookupExpression.GetLocation()), options, root.SyntaxTree.Options);
@@ -294,7 +316,7 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         return root.ReplaceNode(container, newContainer);
     }
 
-    private static IMethodSymbol GetMethodSymbol(
+    private static IMethodSymbol? GetMethodSymbol(
         SemanticDocument semanticDocument,
         string eventHandlerMethodName,
         AssignmentExpressionSyntax eventHookupExpression,
@@ -304,20 +326,16 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         var symbolInfo = semanticModel.GetSymbolInfo(eventHookupExpression.Left, cancellationToken);
 
         var symbol = symbolInfo.Symbol;
-        if (symbol == null || symbol.Kind != SymbolKind.Event)
-        {
+        if (symbol is not { Kind: SymbolKind.Event })
             return null;
-        }
 
-        var typeInference = semanticDocument.Document.GetLanguageService<ITypeInferenceService>();
+        var typeInference = semanticDocument.Document.GetRequiredLanguageService<ITypeInferenceService>();
         var delegateType = typeInference.InferDelegateType(semanticModel, eventHookupExpression.Right, cancellationToken);
-        if (delegateType == null || delegateType.DelegateInvokeMethod == null)
-        {
+        if (delegateType is not { DelegateInvokeMethod: { } delegateInvokeMethod })
             return null;
-        }
 
-        var syntaxFactory = semanticDocument.Document.GetLanguageService<SyntaxGenerator>();
-        var delegateInvokeMethod = delegateType.DelegateInvokeMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(semanticDocument.SemanticModel.Compilation.Assembly);
+        var syntaxFactory = semanticDocument.Document.GetRequiredLanguageService<SyntaxGenerator>();
+        delegateInvokeMethod = delegateInvokeMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(semanticDocument.SemanticModel.Compilation.Assembly);
 
         return CodeGenerationSymbolFactory.CreateMethodSymbol(
             attributes: default,
@@ -329,6 +347,6 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
             name: eventHandlerMethodName,
             typeParameters: default,
             parameters: delegateInvokeMethod.Parameters,
-            statements: [CodeGenerationHelpers.GenerateThrowStatement(syntaxFactory, semanticDocument, "System.NotImplementedException")]);
+            statements: [CodeGenerationHelpers.GenerateThrowStatement(syntaxFactory, semanticDocument, "System.NotImplementedException")!]);
     }
 }
