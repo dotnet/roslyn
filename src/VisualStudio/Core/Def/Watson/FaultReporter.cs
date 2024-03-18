@@ -171,6 +171,8 @@ internal static class FaultReporter
             {
                 session.PostEvent(faultEvent);
             }
+
+            Debug.Fail($"Fatal error reported: {exception}");
         }
         catch (OutOfMemoryException)
         {
