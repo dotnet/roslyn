@@ -73,6 +73,7 @@ public class Test
         Console.WriteLine($""({constantabc})({constantnull})"");
         Console.WriteLine($""{constantabc}{constantchar}"");
         Console.WriteLine($""{constantabc}({constantchar})"");
+        Console.WriteLine($""{constantchar}"");
     }
 }
 ";
@@ -84,12 +85,13 @@ abc
 (abc)()
 abcd
 abc(d)
+d
 ");
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
-  // Code size       81 (0x51)
+  // Code size       91 (0x5b)
   .maxstack  1
   IL_0000:  ldstr      """"
   IL_0005:  call       ""void System.Console.WriteLine(string)""
@@ -107,7 +109,9 @@ abc(d)
   IL_0041:  call       ""void System.Console.WriteLine(string)""
   IL_0046:  ldstr      ""abc(d)""
   IL_004b:  call       ""void System.Console.WriteLine(string)""
-  IL_0050:  ret
+  IL_0050:  ldstr      ""d""
+  IL_0055:  call       ""void System.Console.WriteLine(string)""
+  IL_005a:  ret
 }
 ");
         }
@@ -172,6 +176,7 @@ public class Test
         Console.WriteLine(""a:"" + $"" {a}"");
         Console.WriteLine($""a: {$""{a}, b: {b}""}"");
         Console.WriteLine($""acd: {a}{c}{d}, b: {b}"");
+        Console.WriteLine($""{{{'{'}{""{""}{a}{""}""}{'}'}}}"");
     }
 }
 ";
@@ -183,12 +188,13 @@ a: a, b: b
 a: a
 a: a, b: b
 acd: acd, b: b
+{{{a}}}
 ");
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
-  // Code size      156 (0x9c)
+  // Code size      177 (0xb1)
   .maxstack  4
   .locals init (string V_0, //a
                 string V_1) //b
@@ -235,7 +241,12 @@ acd: acd, b: b
   IL_0090:  ldloc.1
   IL_0091:  call       ""string string.Concat(string, string, string, string)""
   IL_0096:  call       ""void System.Console.WriteLine(string)""
-  IL_009b:  ret
+  IL_009b:  ldstr      ""{{{""
+  IL_00a0:  ldloc.0
+  IL_00a1:  ldstr      ""}}}""
+  IL_00a6:  call       ""string string.Concat(string, string, string)""
+  IL_00ab:  call       ""void System.Console.WriteLine(string)""
+  IL_00b0:  ret
 }
 ");
         }
@@ -257,18 +268,20 @@ public class Test
         Console.WriteLine($""{a}"");
         Console.WriteLine($""a: {a}"");
         Console.WriteLine($""a: {a}, b: {b}, c: {c}"");
+        Console.WriteLine($""{{{'{'}{""{""}{a}{""}""}{'}'}}}"");
     }
 }
 ";
             var comp = CompileAndVerify(source, expectedOutput: @"a
 a: a
 a: a, b: b, c: c
+{{{a}}}
 ");
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
-  // Code size       55 (0x37)
+  // Code size       71 (0x47)
   .maxstack  2
   .locals init (object V_0) //a
   IL_0000:  ldstr      ""a""
@@ -285,7 +298,11 @@ a: a, b: b, c: c
   IL_002b:  ldloc.0
   IL_002c:  call       ""string string.Format(string, object)""
   IL_0031:  call       ""void System.Console.WriteLine(string)""
-  IL_0036:  ret
+  IL_0036:  ldstr      ""{{{{{{{0}}}}}}}""
+  IL_003b:  ldloc.0
+  IL_003c:  call       ""string string.Format(string, object)""
+  IL_0041:  call       ""void System.Console.WriteLine(string)""
+  IL_0046:  ret
 }
 ");
         }
