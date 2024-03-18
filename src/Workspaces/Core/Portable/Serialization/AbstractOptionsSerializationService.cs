@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
@@ -158,7 +159,7 @@ internal abstract class AbstractOptionsSerializationService : IOptionsSerializat
         var xmlReferenceResolver = XmlFileResolver.Default;
         var sourceReferenceResolver = SourceFileResolver.Default;
         var assemblyIdentityComparer = DesktopAssemblyIdentityComparer.Default;
-        var strongNameProvider = new DesktopStrongNameProvider();
+        var strongNameProvider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, Path.GetTempPath());
 
         return (
             outputKind,
