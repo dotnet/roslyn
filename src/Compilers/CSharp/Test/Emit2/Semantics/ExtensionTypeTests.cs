@@ -30707,6 +30707,162 @@ implicit extension E2 for {{(order ? "C" : "object")}}
     }
 
     [Fact]
+    public void PreferMoreSpecific_Static_NullabilityDifferences_InBaseType()
+    {
+        var src = $$"""
+#nullable enable
+
+System.Console.Write(Derived<string?>.M());
+
+class Base<T> { }
+class Derived<T> : Base<T>  { }
+
+implicit extension E1 for Base<string>
+{
+    public static System.Func<string>? M = null;
+}
+
+implicit extension E2 for Derived<string?>
+{
+    public static System.Func<string> M = () => "ran";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Derived<string?>.M");
+        Assert.Equal("System.String E2.M", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Fact]
+    public void PreferMoreSpecific_Static_NullabilityDifferences_InTypeContext()
+    {
+        var src = $$"""
+#nullable enable
+
+class C : Derived<string?>.M { }
+
+class Base<T> { }
+class Derived<T> : Base<T>  { }
+
+implicit extension E1 for Base<string>
+{
+    public class M { }
+}
+
+implicit extension E2 for Derived<string?>
+{
+    public class M { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var qualifiedName = GetSyntax<QualifiedNameSyntax>(tree, "Derived<string?>.M");
+        Assert.Equal("E2.M", model.GetSymbolInfo(qualifiedName).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(qualifiedName).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(qualifiedName));
+    }
+
+    [Fact]
+    public void PreferMoreSpecific_Static_NullabilityDifferences_InInterfaces()
+    {
+        var src = $$"""
+#nullable enable
+
+System.Console.Write(IDerived<string?>.M());
+
+interface IBase<T> { }
+interface IDerived<T> : IBase<T>  { }
+
+implicit extension E1 for IBase<string>
+{
+    public static System.Func<string>? M = null;
+}
+
+implicit extension E2 for IDerived<string?>
+{
+    public static System.Func<string> M = () => "ran";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "IDerived<string?>.M");
+        Assert.Equal("System.Func<System.String> E2.M", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Fact]
+    public void PreferMoreSpecific_Static_DynamicDifferences_InInterfaces()
+    {
+        var src = $$"""
+System.Console.Write(IDerived<dynamic>.M());
+
+interface IBase<T> { }
+interface IDerived<T> : IBase<T>  { }
+
+implicit extension E1 for IBase<dynamic>
+{
+    public static System.Func<string> M = null;
+}
+
+implicit extension E2 for IDerived<object>
+{
+    public static System.Func<string> M = () => "ran";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "IDerived<dynamic>.M");
+        Assert.Equal("System.Func<System.String> E2.M", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Fact]
+    public void PreferMoreSpecific_Static_TupleDifferences_InInterfaces()
+    {
+        var src = $$"""
+System.Console.Write(IDerived<(int a, int b)>.M());
+
+interface IBase<T> { }
+interface IDerived<T> : IBase<T>  { }
+
+implicit extension E1 for IBase<(int a, int b)>
+{
+    public static System.Func<string> M = null;
+}
+
+implicit extension E2 for IDerived<(int c, int d)>
+{
+    public static System.Func<string> M = () => "ran";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "IDerived<(int a, int b)>.M");
+        Assert.Equal("System.Func<System.String> E2.M", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Fact]
     public void DuplicateSourceSymbol_Instance_Indexer()
     {
         var src = """

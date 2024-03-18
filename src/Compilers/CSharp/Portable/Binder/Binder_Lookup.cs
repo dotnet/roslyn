@@ -1394,13 +1394,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool DerivesOrImplements(TypeSymbol baseTypeOrImplementedInterface, TypeSymbol derivedType, ConsList<TypeSymbol> basesBeingResolved, CSharpCompilation compilation, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            Debug.Assert(!TypeSymbol.Equals(baseTypeOrImplementedInterface, derivedType, TypeCompareKind.ConsiderEverything2));
+            Debug.Assert(!TypeSymbol.Equals(baseTypeOrImplementedInterface, derivedType, TypeCompareKind.AllIgnoreOptions));
 
             if (baseTypeOrImplementedInterface is NamedTypeSymbol { IsInterface: true })
             {
                 if (derivedType is NamedTypeSymbol derivedNamedType)
                 {
-                    return GetBaseInterfaces(derivedNamedType, basesBeingResolved, ref useSiteInfo).Contains(baseTypeOrImplementedInterface);
+                    foreach (var baseInterface in GetBaseInterfaces(derivedNamedType, basesBeingResolved, ref useSiteInfo))
+                    {
+                        if (baseInterface.Equals(baseTypeOrImplementedInterface, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            return true;
+                        }
+                    }
                 }
 
                 return false;
@@ -1410,7 +1416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (NamedTypeSymbol b = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo); (object)b != null; b = b.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
                 {
-                    if (TypeSymbol.Equals(b, baseTypeOrImplementedInterface, TypeCompareKind.ConsiderEverything2)) return true;
+                    if (TypeSymbol.Equals(b, baseTypeOrImplementedInterface, TypeCompareKind.AllIgnoreOptions)) return true;
                 }
             }
             else
@@ -1423,7 +1429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     b.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
 
-                    if (TypeSymbol.Equals(b, baseTypeOrImplementedInterface, TypeCompareKind.ConsiderEverything2))
+                    if (TypeSymbol.Equals(b, baseTypeOrImplementedInterface, TypeCompareKind.AllIgnoreOptions))
                     {
                         visited?.Free();
                         return true;
