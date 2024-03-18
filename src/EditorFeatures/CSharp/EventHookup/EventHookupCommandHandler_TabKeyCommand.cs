@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,14 +14,10 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.EventHookup;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Simplification;
@@ -35,7 +28,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 
@@ -159,7 +151,7 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
 
             var eventHandlerMethodName = await getEventNameTask.WithCancellation(cancellationToken).ConfigureAwait(false);
 
-            var solutionAndPosition = await TryGetNewSolutionWithAddedMethodAsync(
+            var solutionAndRenameSpan = await TryGetNewSolutionWithAddedMethodAsync(
                 document, eventHandlerMethodName, initialCaretPoint.Position, cancellationToken).ConfigureAwait(false);
 
             // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
@@ -167,9 +159,10 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
 
             // switch back to the UI thread.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            _threadingContext.ThrowIfNotOnUIThread();
 
             // If anything changed in the view between computation and application, bail out.
-            if (solutionAndPosition is null ||
+            if (solutionAndRenameSpan is null ||
                 applicableToSpan.Snapshot.Version != subjectBuffer.CurrentSnapshot.Version ||
                 textView.GetCaretPoint(subjectBuffer) != initialCaretPoint)
             {
@@ -177,16 +170,16 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
                 return;
             }
 
-            var (solutionWithEventHandler, plusEqualTokenEndPosition) = solutionAndPosition.Value;
+            var (solutionWithEventHandler, renameSpan) = solutionAndRenameSpan.Value;
             document.Project.Solution.Workspace.TryApplyChanges(solutionWithEventHandler);
+            _threadingContext.ThrowIfNotOnUIThread();
 
-            // The += token will not move during this process, so it is safe to use that
-            // position as a location from which to find the identifier we're renaming.
-            BeginInlineRename(textView, plusEqualTokenEndPosition, cancellationToken);
+            _inlineRenameService.StartInlineSession(document, renameSpan, cancellationToken);
+            textView.SetSelection(renameSpan.ToSnapshotSpan(subjectBuffer.CurrentSnapshot));
         }
     }
 
-    private async Task<(Solution solution, int plusEqualTokenEndPosition)?> TryGetNewSolutionWithAddedMethodAsync(
+    private async Task<(Solution solution, TextSpan renameSpan)?> TryGetNewSolutionWithAddedMethodAsync(
         Document document, string eventHandlerMethodName, int position, CancellationToken cancellationToken)
     {
         _threadingContext.ThrowIfNotOnUIThread();
@@ -220,7 +213,18 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         var newText = await formattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var newSolution = document.Project.Solution.WithDocumentText(formattedDocument.Id, newText);
 
-        return (newSolution, plusEqualTokenEndPosition);
+        var finalDocument = newSolution.GetRequiredDocument(formattedDocument.Id);
+        var finalRoot = await finalDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var token = finalRoot.FindTokenOnRightOfPosition(plusEqualTokenEndPosition);
+        var renameSpan = token.Span;
+        var memberAccessExpression = token.GetAncestor<MemberAccessExpressionSyntax>();
+        if (memberAccessExpression != null)
+        {
+            // the event hookup might look like `MyEvent += this.GeneratedHandlerName;`
+            renameSpan = memberAccessExpression.Name.Span;
+        }
+
+        return (newSolution, renameSpan);
     }
 
     private static async Task<Document> AddMethodNameAndAnnotationsToSolutionAsync(
@@ -326,31 +330,5 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
             typeParameters: default,
             parameters: delegateInvokeMethod.Parameters,
             statements: [CodeGenerationHelpers.GenerateThrowStatement(syntaxFactory, semanticDocument, "System.NotImplementedException")]);
-    }
-
-    private void BeginInlineRename(ITextView textView, int plusEqualTokenEndPosition, CancellationToken cancellationToken)
-    {
-        _threadingContext.ThrowIfNotOnUIThread();
-
-        if (_inlineRenameService.ActiveSession == null)
-        {
-            var document = textView.TextSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document != null)
-            {
-                // In the middle of a user action, cannot cancel.
-                var root = document.GetSyntaxRootSynchronously(cancellationToken);
-                var token = root.FindTokenOnRightOfPosition(plusEqualTokenEndPosition);
-                var editSpan = token.Span;
-                var memberAccessExpression = token.GetAncestor<MemberAccessExpressionSyntax>();
-                if (memberAccessExpression != null)
-                {
-                    // the event hookup might look like `MyEvent += this.GeneratedHandlerName;`
-                    editSpan = memberAccessExpression.Name.Span;
-                }
-
-                _inlineRenameService.StartInlineSession(document, editSpan, cancellationToken);
-                textView.SetSelection(editSpan.ToSnapshotSpan(textView.TextSnapshot));
-            }
-        }
     }
 }
