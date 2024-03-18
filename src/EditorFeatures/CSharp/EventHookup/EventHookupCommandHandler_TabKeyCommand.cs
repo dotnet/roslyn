@@ -201,7 +201,7 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         var semanticDocument = await SemanticDocument.CreateAsync(
             documentWithNameAndAnnotationsAdded, cancellationToken).ConfigureAwait(false);
         var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(
-            globalOptions, cancellationToken).ConfigureAwait(false);
+            _globalOptions, cancellationToken).ConfigureAwait(false);
         var updatedRoot = AddGeneratedHandlerMethodToSolution(
             semanticDocument, options, eventHandlerMethodName, plusEqualsTokenAnnotation, cancellationToken);
 
@@ -209,7 +209,7 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
             return null;
 
         var cleanupOptions = await documentWithNameAndAnnotationsAdded.GetCodeCleanupOptionsAsync(
-            globalOptions, cancellationToken).ConfigureAwait(false);
+            _globalOptions, cancellationToken).ConfigureAwait(false);
         var simplifiedDocument = await Simplifier.ReduceAsync(
             documentWithNameAndAnnotationsAdded.WithSyntaxRoot(updatedRoot), Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
         var formattedDocument = await Formatter.FormatAsync(
