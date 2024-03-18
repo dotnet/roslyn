@@ -182,8 +182,4 @@ internal sealed partial class EventHookupSessionManager(
             CancelAndDismissExistingSessions();
         }
     }
-
-    [MemberNotNullWhen(true, nameof(CurrentSession))]
-    internal bool IsTrackingSession()
-        => CurrentSession != null;
 }
