@@ -334,13 +334,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void discoverInterceptors()
             {
-                var toVisit = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
-
                 var location = this.GlobalNamespace.GetFirstLocationOrNone();
                 if (!location.IsInSource)
                 {
                     return;
                 }
+
+                var toVisit = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
 
                 // Search the namespaces which were indicated to contain interceptors.
                 ImmutableArray<ImmutableArray<string>> interceptorsNamespaces = ((CSharpParseOptions)location.SourceTree.Options).InterceptorsPreviewNamespaces;
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var cursor = GlobalNamespace;
                     foreach (string namespacePart in namespaceParts)
                     {
-                        cursor = (NamespaceSymbol?)cursor.GetMembers(namespacePart).FirstOrDefault(member => member.Kind == SymbolKind.Namespace);
+                        cursor = (NamespaceSymbol?)cursor.GetNestedNamespace(namespacePart);
                         if (cursor is null)
                         {
                             break;
@@ -394,6 +394,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(item);
                     }
                 }
+
+                toVisit.Free();
             }
         }
 #nullable disable
