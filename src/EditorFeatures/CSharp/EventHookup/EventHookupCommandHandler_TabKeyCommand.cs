@@ -51,10 +51,12 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         _threadingContext.ThrowIfNotOnUIThread();
         if (!TryExecuteCommand(args, nextHandler))
         {
-            // If we didn't process this tag to emit an event handler, just pass the tab through to the buffer normally.
-            EventHookupSessionManager.DismissExistingSessions();
             nextHandler();
         }
+
+        // We always dismiss the tracking session once a tab has gone through.  Either we didn't handle it (and
+        // nextHandler was called above).  Or we did handle it, in which case the bg async work owns the experience now.
+        EventHookupSessionManager.DismissExistingSessions();
     }
 
     private bool TryExecuteCommand(TabKeyCommandArgs args, Action nextHandler)
@@ -92,13 +94,10 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         var token = _asyncListener.BeginAsyncOperation(nameof(ExecuteCommand));
 
         // Capture everything we need off of the session manager as we'll be dismissing the core session immediately
-        // before we kick off the work to emit hte event.
+        // before we kick off the work to emit hte event.  Detach the bg work that was already kicked off so that we
+        // own its lifetime from now on.
         var (eventNameTask, eventNameTokenSource) = EventHookupSessionManager.CurrentSession.DetachEventNameTask();
         var applicableToSpan = EventHookupSessionManager.CurrentSession.TrackingSpan.GetSpan(currentSnapshot);
-
-        // Ensure no matter what that once tab is hit that we're back to the initial no-session state. We do not
-        // want to cancel the bg tasks kicked off as we need their values to actually emit the event.
-        EventHookupSessionManager.DismissExistingSessions();
 
         var task = ExecuteCommandAsync(
             args,
@@ -124,10 +123,24 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         CancellationTokenSource eventNameCancellationTokenSource,
         SnapshotPoint initialCaretPoint)
     {
+        var textView = args.TextView;
+        var subjectBuffer = args.SubjectBuffer;
+
+        // Don't want any exceptions bubble up from this point on (they have no where to go since we effectively did a
+        // fire-and-forget).  So we instead handle things ourselves, reporting NFWs if unforseen things happened.
         try
         {
-            _threadingContext.ThrowIfNotOnUIThread();
-            await ExecuteCommandWorkerAsync().ConfigureAwait(false);
+            if (!await ExecuteCommandWorkerAsync().ConfigureAwait(true))
+            {
+                // We didn't successfully handle the command.  If no other changes have gotten through in the mean time,
+                // then attempt to send the tab through to the editor.  If other changes went through, don't send the
+                // tab through as it's likely to make things worse.
+                if (applicableToSpan.Snapshot.Version == subjectBuffer.CurrentSnapshot.Version &&
+                    textView.GetCaretPoint(subjectBuffer) != initialCaretPoint)
+                {
+                    nextHandler();
+                }
+            }
         }
         catch (OperationCanceledException)
         {
@@ -144,10 +157,9 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
 
         return;
 
-        async Task ExecuteCommandWorkerAsync()
+        async Task<bool> ExecuteCommandWorkerAsync()
         {
-            var textView = args.TextView;
-            var subjectBuffer = args.SubjectBuffer;
+            _threadingContext.ThrowIfNotOnUIThread();
 
             var factory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
             using var waitContext = factory.Create(
@@ -159,24 +171,21 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
 
             var eventHandlerMethodName = await eventNameTask.WithCancellation(cancellationToken).ConfigureAwait(false);
             if (eventHandlerMethodName is null)
-            {
-                nextHandler();
-                return;
-            }
+                return false;
 
             var solutionAndRenameSpan = await TryGetNewSolutionWithAddedMethodAsync(
                 document, eventHandlerMethodName, initialCaretPoint.Position, cancellationToken).ConfigureAwait(false);
+            if (solutionAndRenameSpan is null)
+                return false;
 
             // switch back to the UI thread.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // If anything changed in the view between computation and application, bail out.
-            if (solutionAndRenameSpan is null ||
-                applicableToSpan.Snapshot.Version != subjectBuffer.CurrentSnapshot.Version ||
+            if (applicableToSpan.Snapshot.Version != subjectBuffer.CurrentSnapshot.Version ||
                 textView.GetCaretPoint(subjectBuffer) != initialCaretPoint)
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
@@ -184,16 +193,17 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
 
             var (solutionWithEventHandler, renameSpan) = solutionAndRenameSpan.Value;
             var workspace = document.Project.Solution.Workspace;
-            if (workspace.TryApplyChanges(solutionWithEventHandler))
-            {
-                if (_inlineRenameService.ActiveSession is null)
-                {
-                    var updatedDocument = workspace.CurrentSolution.GetRequiredDocument(document.Id);
-                    _inlineRenameService.StartInlineSession(updatedDocument, renameSpan, cancellationToken);
-                }
+            if (!workspace.TryApplyChanges(solutionWithEventHandler))
+                return false;
 
-                textView.SetSelection(renameSpan.ToSnapshotSpan(subjectBuffer.CurrentSnapshot));
+            if (_inlineRenameService.ActiveSession is null)
+            {
+                var updatedDocument = workspace.CurrentSolution.GetRequiredDocument(document.Id);
+                _inlineRenameService.StartInlineSession(updatedDocument, renameSpan, cancellationToken);
             }
+
+            textView.SetSelection(renameSpan.ToSnapshotSpan(subjectBuffer.CurrentSnapshot));
+            return true;
         }
     }
 
