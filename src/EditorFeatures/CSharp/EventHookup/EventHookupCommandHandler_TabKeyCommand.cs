@@ -130,7 +130,7 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         // fire-and-forget).  So we instead handle things ourselves, reporting NFWs if unforseen things happened.
         try
         {
-            if (!await ExecuteCommandWorkerAsync().ConfigureAwait(true))
+            if (!await TryExecuteCommandAsync().ConfigureAwait(true))
             {
                 // We didn't successfully handle the command.  If no other changes have gotten through in the mean time,
                 // then attempt to send the tab through to the editor.  If other changes went through, don't send the
@@ -157,7 +157,7 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
 
         return;
 
-        async Task<bool> ExecuteCommandWorkerAsync()
+        async Task<bool> TryExecuteCommandAsync()
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
@@ -178,7 +178,7 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
             if (solutionAndRenameSpan is null)
                 return false;
 
-            // switch back to the UI thread.
+            // switch back to the UI thread to now apply the change.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // If anything changed in the view between computation and application, bail out.
