@@ -67,7 +67,9 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TypeCh
         }
 
         var position = caretPoint.Value.Position;
-        return position - 2 >= 0 && subjectBuffer.CurrentSnapshot.GetText(position - 2, 2) == "+=";
+        return position - 2 >= 0 &&
+            subjectBuffer.CurrentSnapshot[position - 1] == '=' &&
+            subjectBuffer.CurrentSnapshot[position - 2] == '+';
     }
 
     public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)

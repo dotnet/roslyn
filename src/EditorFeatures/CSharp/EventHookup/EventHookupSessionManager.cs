@@ -114,20 +114,25 @@ internal sealed partial class EventHookupSessionManager(
         CurrentSession = new EventHookupSession(this, eventHookupCommandHandler, textView, subjectBuffer, asyncListener, _globalOptions, testSessionHookupMutex);
     }
 
-    internal void CancelAndDismissExistingSessions()
+    public void CancelAndDismissExistingSessions()
+        => DismissExistingSessions(cancelBackgroundTasks: true);
+
+    public void DismissExistingSessions(bool cancelBackgroundTasks)
     {
         ThreadingContext.ThrowIfNotOnUIThread();
-
-        if (CurrentSession != null)
-        {
-            CurrentSession.Cancel();
-            CurrentSession = null;
-        }
 
         if (_toolTipPresenter != null)
         {
             _toolTipPresenter.Dismiss();
             _toolTipPresenter = null;
+        }
+
+        if (CurrentSession != null)
+        {
+            if (cancelBackgroundTasks)
+                CurrentSession.CancelBackgroundTasks();
+
+            CurrentSession = null;
         }
 
         // For test purposes only!

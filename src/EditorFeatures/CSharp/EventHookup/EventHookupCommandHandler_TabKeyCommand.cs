@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.EventHookup;
@@ -37,25 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 
 internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKeyCommandArgs>
 {
-    public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
-    {
-        _threadingContext.ThrowIfNotOnUIThread();
-        if (!_globalOptions.GetOption(EventHookupOptionsStorage.EventHookup))
-        {
-            nextHandler();
-            return;
-        }
-
-        if (EventHookupSessionManager.CurrentSession == null)
-        {
-            nextHandler();
-            return;
-        }
-
-        // Handling tab is currently uncancellable.
-        HandleTabWorker(args.TextView, args.SubjectBuffer, nextHandler, CancellationToken.None);
-    }
-
     public CommandState GetCommandState(TabKeyCommandArgs args, Func<CommandState> nextHandler)
     {
         _threadingContext.ThrowIfNotOnUIThread();
@@ -69,9 +51,31 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         }
     }
 
-    private void HandleTabWorker(ITextView textView, ITextBuffer subjectBuffer, Action nextHandler, CancellationToken cancellationToken)
+    public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
     {
         _threadingContext.ThrowIfNotOnUIThread();
+        if (!TryExecuteCommand(args, context))
+        {
+            // If we didn't process this tag to emit an event handler, just pass the tab through to the buffer normally.
+            EventHookupSessionManager.DismissExistingSessions(cancelBackgroundTasks: true);
+            nextHandler();
+        }
+        else
+        {
+            // Ensure no matter what that once tab is hit that we're back to the initial no-session state. We do not
+            // want to cancel the bg tasks kicked off as we need their values to actually emit the event.
+            EventHookupSessionManager.DismissExistingSessions(cancelBackgroundTasks: false);
+        }
+    }
+
+    private bool TryExecuteCommand(TabKeyCommandArgs args, CommandExecutionContext context)
+    { 
+        _threadingContext.ThrowIfNotOnUIThread();
+        if (!_globalOptions.GetOption(EventHookupOptionsStorage.EventHookup))
+            return false;
+
+        if (EventHookupSessionManager.CurrentSession == null)
+            return false;
 
         // For test purposes only!
         if (EventHookupSessionManager.CurrentSession.TESTSessionHookupMutex != null)
@@ -85,6 +89,30 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
             }
         }
 
+        var currentSnapshot = args.SubjectBuffer.CurrentSnapshot;
+        var document = currentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+        if (document is null)
+            return false;
+
+        // First, dismiss the existing tooltip.  We'll be replacing it with the lightweight background wait indicator.
+        EventHookupSessionManager.DismissTooltip();
+
+        // Now emit the event asynchronously.
+        var token = _asyncListener.BeginAsyncOperation(nameof(ExecuteCommand));
+
+        // Capture everything we'll need as we'll be dismissing the core session immediately after we kick off this work.
+        var task = ExecuteCommandAsync();
+        task.Completes(token)
+
+        // At this point, we've taken control, so don't send the tab into the buffer.  But do dismiss the overall
+        // session.  We no longer need it.
+        return true;
+        var factory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+        factory.Create(
+            args.TextView,
+            EventHookupSessionManager.CurrentSession.TrackingSpan.GetSpan(currentSnapshot),
+            CSharpEditorResources.Generating_event);
+ 
         // Blocking wait (if necessary) to determine whether to consume the tab and
         // generate the event handler.
         EventHookupSessionManager.CurrentSession.GetEventNameTask.Wait(cancellationToken);

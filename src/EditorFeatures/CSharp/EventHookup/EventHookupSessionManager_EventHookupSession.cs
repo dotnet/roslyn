@@ -90,7 +90,7 @@ internal sealed partial class EventHookupSessionManager
             }
         }
 
-        public void Cancel()
+        public void CancelBackgroundTasks()
         {
             _threadingContext.ThrowIfNotOnUIThread();
             _cancellationTokenSource.Cancel();
