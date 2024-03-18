@@ -4,18 +4,14 @@
 
 using System.Threading.Tasks;
 using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts
 {
     /// <summary>
-    /// Facade interface for getting various service brokers
+    /// Facade interface for getting broker service successfully through MEF
     /// </summary>
-    internal interface IVisualDiagnosticsBrokeredDebuggerServices
+    internal interface IVisualDiagnosticsServiceBroker
     {
         Task<IServiceBroker> GetServiceBrokerAsync();
-        Task<IHotReloadSessionNotificationService?> GetHotReloadSessionNotificationServiceAsync();
-        Task<IManagedHotReloadAgentManagerService?> GetManagedHotReloadAgentManagerServiceAsync();
-        Task<IManagedHotReloadService?> GetManagedHotReloadServiceAsync();
     }
 }
