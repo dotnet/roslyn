@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 
 internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKeyCommandArgs>
 {
+    private static readonly SyntaxAnnotation s_plusEqualsTokenAnnotation = new();
+
     public CommandState GetCommandState(TabKeyCommandArgs args, Func<CommandState> nextHandler)
     {
         _threadingContext.ThrowIfNotOnUIThread();
@@ -211,10 +213,8 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         Document document, string eventHandlerMethodName, int position, CancellationToken cancellationToken)
     {
         // Mark the += token with an annotation so we can find it after formatting
-        var plusEqualsTokenAnnotation = new SyntaxAnnotation();
-
         var documentWithNameAndAnnotationsAdded = await AddMethodNameAndAnnotationsToSolutionAsync(
-            document, eventHandlerMethodName, position, plusEqualsTokenAnnotation, cancellationToken).ConfigureAwait(false);
+            document, eventHandlerMethodName, position, cancellationToken).ConfigureAwait(false);
         if (documentWithNameAndAnnotationsAdded is null)
             return null;
 
@@ -223,7 +223,7 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(
             _globalOptions, cancellationToken).ConfigureAwait(false);
         var updatedRoot = AddGeneratedHandlerMethodToSolution(
-            semanticDocument, options, eventHandlerMethodName, plusEqualsTokenAnnotation, cancellationToken);
+            semanticDocument, options, eventHandlerMethodName, cancellationToken);
 
         if (updatedRoot == null)
             return null;
@@ -237,7 +237,7 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
 
         var newRoot = await formattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var plusEqualTokenEndPosition = newRoot
-            .GetAnnotatedNodesAndTokens(plusEqualsTokenAnnotation)
+            .GetAnnotatedNodesAndTokens(s_plusEqualsTokenAnnotation)
             .Single().Span.End;
 
         var newText = await formattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -261,7 +261,6 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         Document document,
         string eventHandlerMethodName,
         int position,
-        SyntaxAnnotation plusEqualsTokenAnnotation,
         CancellationToken cancellationToken)
     {
         // First find the event hookup to determine if we are in a static context.
@@ -297,7 +296,7 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
             return null;
 
         var updatedEventHookupExpression = eventHookupExpression
-            .ReplaceToken(plusEqualsToken, plusEqualsToken.WithAdditionalAnnotations(plusEqualsTokenAnnotation))
+            .ReplaceToken(plusEqualsToken, plusEqualsToken.WithAdditionalAnnotations(s_plusEqualsTokenAnnotation))
             .WithRight(eventHookupExpression.Right.WithAdditionalAnnotations(Simplifier.Annotation))
             .WithAdditionalAnnotations(Formatter.Annotation);
 
@@ -309,12 +308,11 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         SemanticDocument document,
         CSharpCodeGenerationOptions options,
         string eventHandlerMethodName,
-        SyntaxAnnotation plusEqualsTokenAnnotation,
         CancellationToken cancellationToken)
     {
         var root = document.Root;
         var eventHookupExpression = root
-            .GetAnnotatedNodesAndTokens(plusEqualsTokenAnnotation).Single().AsToken()
+            .GetAnnotatedNodesAndTokens(s_plusEqualsTokenAnnotation).Single().AsToken()
             .GetAncestor<AssignmentExpressionSyntax>();
         Contract.ThrowIfNull(eventHookupExpression);
 
