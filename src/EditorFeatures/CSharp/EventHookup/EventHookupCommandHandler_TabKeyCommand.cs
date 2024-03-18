@@ -191,11 +191,11 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
             // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
             waitContext.CancelOnEdit = false;
 
-            var (solutionWithEventHandler, renameSpan) = solutionAndRenameSpan.Value;
             var workspace = document.Project.Solution.Workspace;
-            if (!workspace.TryApplyChanges(solutionWithEventHandler))
+            if (!workspace.TryApplyChanges(solutionAndRenameSpan.Value.solution))
                 return false;
 
+            var renameSpan = solutionAndRenameSpan.Value.renameSpan;
             if (_inlineRenameService.ActiveSession is null)
             {
                 var updatedDocument = workspace.CurrentSolution.GetRequiredDocument(document.Id);
