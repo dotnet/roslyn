@@ -33,8 +33,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Generating_event">
-        <source>Generating event ...</source>
-        <target state="new">Generating event ...</target>
+        <source>Generating event...</source>
+        <target state="new">Generating event...</target>
         <note />
       </trans-unit>
       <trans-unit id="Grow_raw_string">
