@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.EventHookup;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -25,6 +26,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -32,6 +34,7 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
@@ -54,22 +57,16 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
     public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
     {
         _threadingContext.ThrowIfNotOnUIThread();
-        if (!TryExecuteCommand(args, context))
+        if (!TryExecuteCommand(args, nextHandler))
         {
             // If we didn't process this tag to emit an event handler, just pass the tab through to the buffer normally.
             EventHookupSessionManager.DismissExistingSessions(cancelBackgroundTasks: true);
             nextHandler();
         }
-        else
-        {
-            // Ensure no matter what that once tab is hit that we're back to the initial no-session state. We do not
-            // want to cancel the bg tasks kicked off as we need their values to actually emit the event.
-            EventHookupSessionManager.DismissExistingSessions(cancelBackgroundTasks: false);
-        }
     }
 
-    private bool TryExecuteCommand(TabKeyCommandArgs args, CommandExecutionContext context)
-    { 
+    private bool TryExecuteCommand(TabKeyCommandArgs args, Action nextHandler)
+    {
         _threadingContext.ThrowIfNotOnUIThread();
         if (!_globalOptions.GetOption(EventHookupOptionsStorage.EventHookup))
             return false;
@@ -89,86 +86,99 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
             }
         }
 
-        var currentSnapshot = args.SubjectBuffer.CurrentSnapshot;
+        var subjectBuffer = args.SubjectBuffer;
+        var caretPoint = args.TextView.GetCaretPoint(subjectBuffer);
+        if (caretPoint is null)
+            return false;
+
+        var currentSnapshot = subjectBuffer.CurrentSnapshot;
         var document = currentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
         if (document is null)
             return false;
 
-        // First, dismiss the existing tooltip.  We'll be replacing it with the lightweight background wait indicator.
-        EventHookupSessionManager.DismissTooltip();
-
         // Now emit the event asynchronously.
         var token = _asyncListener.BeginAsyncOperation(nameof(ExecuteCommand));
 
-        // Capture everything we'll need as we'll be dismissing the core session immediately after we kick off this work.
-        var task = ExecuteCommandAsync();
-        task.Completes(token)
+        // Capture everything we need off of the session manager as we'll be dismissing the core session immediately
+        // before we kick off the work to emit hte event.
+        var eventNameTask = EventHookupSessionManager.CurrentSession.GetEventNameTask;
+        var applicableToSpan = EventHookupSessionManager.CurrentSession.TrackingSpan.GetSpan(currentSnapshot);
+
+        // Ensure no matter what that once tab is hit that we're back to the initial no-session state. We do not
+        // want to cancel the bg tasks kicked off as we need their values to actually emit the event.
+        EventHookupSessionManager.DismissExistingSessions(cancelBackgroundTasks: false);
+
+        var task = ExecuteCommandAsync(
+            args,
+            nextHandler,
+            applicableToSpan,
+            document,
+            eventNameTask,
+            caretPoint.Value);
+        task.CompletesAsyncOperation(token);
 
         // At this point, we've taken control, so don't send the tab into the buffer.  But do dismiss the overall
         // session.  We no longer need it.
         return true;
-        var factory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-        factory.Create(
-            args.TextView,
-            EventHookupSessionManager.CurrentSession.TrackingSpan.GetSpan(currentSnapshot),
-            CSharpEditorResources.Generating_event);
- 
-        // Blocking wait (if necessary) to determine whether to consume the tab and
-        // generate the event handler.
-        EventHookupSessionManager.CurrentSession.GetEventNameTask.Wait(cancellationToken);
-
-        string eventHandlerMethodName = null;
-        if (EventHookupSessionManager.CurrentSession.GetEventNameTask.Status == TaskStatus.RanToCompletion)
-        {
-            eventHandlerMethodName = EventHookupSessionManager.CurrentSession.GetEventNameTask.WaitAndGetResult(cancellationToken);
-        }
-
-        if (eventHandlerMethodName == null ||
-            EventHookupSessionManager.CurrentSession.TextView != textView)
-        {
-            nextHandler();
-            EventHookupSessionManager.CancelAndDismissExistingSessions();
-            return;
-        }
-
-        // This tab means we should generate the event handler method. Begin the code
-        // generation process.
-        GenerateAndAddEventHandler(textView, subjectBuffer, eventHandlerMethodName, nextHandler, cancellationToken);
     }
 
-    private void GenerateAndAddEventHandler(ITextView textView, ITextBuffer subjectBuffer, string eventHandlerMethodName, Action nextHandler, CancellationToken cancellationToken)
+    private async Task ExecuteCommandAsync(
+        TabKeyCommandArgs args,
+        Action nextHandler,
+        SnapshotSpan applicableToSpan,
+        Document document,
+        Task<string> getEventNameTask,
+        SnapshotPoint initialCaretPoint)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
-
-        using (Logger.LogBlock(FunctionId.EventHookup_Generate_Handler, cancellationToken))
+        try
         {
-            EventHookupSessionManager.CancelAndDismissExistingSessions();
+            _threadingContext.ThrowIfNotOnUIThread();
+            await ExecuteCommandWorkerAsync().ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+        {
+        }
 
-            var workspace = textView.TextSnapshot.TextBuffer.GetWorkspace();
-            if (workspace == null)
+        return;
+
+        async Task ExecuteCommandWorkerAsync()
+        {
+            var textView = args.TextView;
+            var subjectBuffer = args.SubjectBuffer;
+
+            var factory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+            using var waitContext = factory.Create(
+                textView,
+                applicableToSpan,
+                CSharpEditorResources.Generating_event);
+
+            var cancellationToken = waitContext.UserCancellationToken;
+
+            var eventHandlerMethodName = await getEventNameTask.WithCancellation(cancellationToken).ConfigureAwait(false);
+
+            var solutionAndPosition = await TryGetNewSolutionWithAddedMethodAsync(
+                document, eventHandlerMethodName, initialCaretPoint.Position, cancellationToken).ConfigureAwait(false);
+
+            // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
+            waitContext.CancelOnEdit = false;
+
+            // switch back to the UI thread.
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            // If anything changed in the view between computation and application, bail out.
+            if (solutionAndPosition is null ||
+                applicableToSpan.Snapshot.Version != subjectBuffer.CurrentSnapshot.Version ||
+                textView.GetCaretPoint(subjectBuffer) != initialCaretPoint)
             {
                 nextHandler();
-                EventHookupSessionManager.CancelAndDismissExistingSessions();
                 return;
             }
 
-            var document = textView.TextSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            Contract.ThrowIfNull(document, "Event Hookup could not find the document for the IBufferView.");
-
-            var position = textView.GetCaretPoint(subjectBuffer).Value.Position;
-            var solutionWithEventHandler = CreateSolutionWithEventHandler(
-                document,
-                eventHandlerMethodName,
-                position,
-                out var plusEqualTokenEndPosition,
-                _globalOptions,
-                cancellationToken);
-
-            Contract.ThrowIfNull(solutionWithEventHandler, "Event Hookup could not create solution with event handler.");
-
-            // The new solution is created, so start user observable changes
-
-            Contract.ThrowIfFalse(workspace.TryApplyChanges(solutionWithEventHandler), "Event Hookup could not update the solution.");
+            var (solutionWithEventHandler, plusEqualTokenEndPosition) = solutionAndPosition.Value;
+            document.Project.Solution.Workspace.TryApplyChanges(solutionWithEventHandler);
 
             // The += token will not move during this process, so it is safe to use that
             // position as a location from which to find the identifier we're renaming.
@@ -176,43 +186,44 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         }
     }
 
-    private Solution CreateSolutionWithEventHandler(
-        Document document,
-        string eventHandlerMethodName,
-        int position,
-        out int plusEqualTokenEndPosition,
-        IGlobalOptionService globalOptions,
-        CancellationToken cancellationToken)
+    private async Task<(Solution solution, int plusEqualTokenEndPosition)?> TryGetNewSolutionWithAddedMethodAsync(
+        Document document, string eventHandlerMethodName, int position, CancellationToken cancellationToken)
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
         // Mark the += token with an annotation so we can find it after formatting
         var plusEqualsTokenAnnotation = new SyntaxAnnotation();
 
-        var documentWithNameAndAnnotationsAdded = AddMethodNameAndAnnotationsToSolution(document, eventHandlerMethodName, position, plusEqualsTokenAnnotation, cancellationToken);
-        var semanticDocument = SemanticDocument.CreateAsync(documentWithNameAndAnnotationsAdded, cancellationToken).WaitAndGetResult(cancellationToken);
-        var options = (CSharpCodeGenerationOptions)document.GetCodeGenerationOptionsAsync(globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
-        var updatedRoot = AddGeneratedHandlerMethodToSolution(semanticDocument, options, eventHandlerMethodName, plusEqualsTokenAnnotation, cancellationToken);
+        var documentWithNameAndAnnotationsAdded = await AddMethodNameAndAnnotationsToSolutionAsync(
+            document, eventHandlerMethodName, position, plusEqualsTokenAnnotation, cancellationToken).ConfigureAwait(false);
+        var semanticDocument = await SemanticDocument.CreateAsync(
+            documentWithNameAndAnnotationsAdded, cancellationToken).ConfigureAwait(false);
+        var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(
+            globalOptions, cancellationToken).ConfigureAwait(false);
+        var updatedRoot = AddGeneratedHandlerMethodToSolution(
+            semanticDocument, options, eventHandlerMethodName, plusEqualsTokenAnnotation, cancellationToken);
 
         if (updatedRoot == null)
-        {
-            plusEqualTokenEndPosition = 0;
             return null;
-        }
 
-        var cleanupOptions = documentWithNameAndAnnotationsAdded.GetCodeCleanupOptionsAsync(globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
-        var simplifiedDocument = Simplifier.ReduceAsync(documentWithNameAndAnnotationsAdded.WithSyntaxRoot(updatedRoot), Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).WaitAndGetResult(cancellationToken);
-        var formattedDocument = Formatter.FormatAsync(simplifiedDocument, Formatter.Annotation, cleanupOptions.FormattingOptions, cancellationToken).WaitAndGetResult(cancellationToken);
+        var cleanupOptions = await documentWithNameAndAnnotationsAdded.GetCodeCleanupOptionsAsync(
+            globalOptions, cancellationToken).ConfigureAwait(false);
+        var simplifiedDocument = await Simplifier.ReduceAsync(
+            documentWithNameAndAnnotationsAdded.WithSyntaxRoot(updatedRoot), Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+        var formattedDocument = await Formatter.FormatAsync(
+            simplifiedDocument, Formatter.Annotation, cleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
-        var newRoot = formattedDocument.GetSyntaxRootSynchronously(cancellationToken);
-        plusEqualTokenEndPosition = newRoot.GetAnnotatedNodesAndTokens(plusEqualsTokenAnnotation)
+        var newRoot = await formattedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var plusEqualTokenEndPosition = newRoot.GetAnnotatedNodesAndTokens(plusEqualsTokenAnnotation)
                                            .Single().Span.End;
 
-        return document.Project.Solution.WithDocumentText(
-            formattedDocument.Id, formattedDocument.GetTextSynchronously(cancellationToken));
+        var newText = await formattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var newSolution = document.Project.Solution.WithDocumentText(formattedDocument.Id, newText);
+
+        return (newSolution, plusEqualTokenEndPosition);
     }
 
-    private static Document AddMethodNameAndAnnotationsToSolution(
+    private static async Task<Document> AddMethodNameAndAnnotationsToSolutionAsync(
         Document document,
         string eventHandlerMethodName,
         int position,
@@ -220,7 +231,7 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         CancellationToken cancellationToken)
     {
         // First find the event hookup to determine if we are in a static context.
-        var root = document.GetSyntaxRootSynchronously(cancellationToken);
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var plusEqualsToken = root.FindTokenOnLeftOfPosition(position);
         var eventHookupExpression = plusEqualsToken.GetAncestor<AssignmentExpressionSyntax>();
         var typeDecl = eventHookupExpression.GetAncestor<TypeDeclarationSyntax>();
@@ -234,11 +245,11 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
 
         // Next, perform a textual insertion of the event handler method name.
         var textChange = new TextChange(new TextSpan(position, 0), textToInsert);
-        var newText = document.GetTextSynchronously(cancellationToken).WithChanges(textChange);
+        var newText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var documentWithNameAdded = document.WithText(newText);
 
         // Now find the event hookup again to add the appropriate annotations.
-        root = documentWithNameAdded.GetSyntaxRootSynchronously(cancellationToken);
+        root = await documentWithNameAdded.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         plusEqualsToken = root.FindTokenOnLeftOfPosition(position);
         eventHookupExpression = plusEqualsToken.GetAncestor<AssignmentExpressionSyntax>();
 

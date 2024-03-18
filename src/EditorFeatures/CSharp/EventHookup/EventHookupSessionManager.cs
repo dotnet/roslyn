@@ -6,6 +6,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
@@ -17,7 +18,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 
@@ -183,6 +183,7 @@ internal sealed partial class EventHookupSessionManager(
         }
     }
 
+    [MemberNotNullWhen(true, nameof(CurrentSession))]
     internal bool IsTrackingSession()
         => CurrentSession != null;
 }
