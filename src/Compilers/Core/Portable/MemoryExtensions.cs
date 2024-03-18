@@ -14,8 +14,7 @@ namespace Microsoft.CodeAnalysis
         {
             for (int i = startIndex; i < span.Length; i++)
             {
-                var c = span[i];
-                if (c == target)
+                if (span[i] == target)
                 {
                     return i;
                 }

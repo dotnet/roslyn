@@ -6320,4 +6320,16 @@ partial struct CustomHandler
         interceptor = model.GetInterceptorMethod(call);
         Assert.Null(interceptor);
     }
+
+    [Fact]
+    public void GetInterceptorMethod_12()
+    {
+        // Compilation contains no files
+        var comp = CreateCompilation([], parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "Interceptors"));
+
+        // We can't use GetInterceptorMethod without a SemanticModel and we can't get a SemanticModel when the compilation contains no trees.
+        // But, we can exercise some internal API for theoretical edge cases to see if it is robust (does not throw, updates expected flags).
+        ((SourceModuleSymbol)comp.SourceModule).DiscoverInterceptorsIfNeeded();
+        Assert.True(comp.InterceptorsDiscoveryComplete);
+    }
 }
