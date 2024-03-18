@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Function
 
-        Private Function InvokeInterpolatedStringFactory(node As BoundInterpolatedStringExpression, factoryType As TypeSymbol, factoryMethodName As String, targetType As TypeSymbol, factory As SyntheticBoundNodeFactory, Optional trustsFormatProvider As Boolean = False) As BoundExpression
+        Private Function InvokeInterpolatedStringFactory(node As BoundInterpolatedStringExpression, factoryType As TypeSymbol, factoryMethodName As String, targetType As TypeSymbol, factory As SyntheticBoundNodeFactory, Optional canHideOptimization As Boolean = False) As BoundExpression
 
             Dim hasErrors As Boolean = False
 
@@ -160,8 +160,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' Don't trust format provider everywhen.
                         ' They MAY format literals and embedded strings differently.
-                        ' (trustsFormatProvider = False)
-                        If trustsFormatProvider AndAlso
+                        ' (canHideOptimization = False)
+                        If canHideOptimization AndAlso
                             interpolation.AlignmentOpt Is Nothing AndAlso
                             interpolation.FormatStringOpt Is Nothing AndAlso
                             TryInsertConstantEquivalentIntoLiteral(interpolation.Expression, formatStringBuilderHandle.Builder) Then
