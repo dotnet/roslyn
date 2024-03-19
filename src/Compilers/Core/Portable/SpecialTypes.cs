@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.RuntimeFeature",
             "System.Runtime.CompilerServices.PreserveBaseOverridesAttribute",
             "System.Runtime.CompilerServices.InlineArrayAttribute",
+            "System.ReadOnlySpan`1",
         };
 
         private static readonly Dictionary<string, SpecialType> s_nameToTypeIdMap;

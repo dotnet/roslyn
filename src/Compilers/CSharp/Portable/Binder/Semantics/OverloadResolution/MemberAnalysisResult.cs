@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public readonly int BadParameter;
         public readonly MemberResolutionKind Kind;
+        public readonly TypeWithAnnotations ParamsElementTypeOpt;
 
         /// <summary>
         /// Omit ref feature for COM interop: We can pass arguments by value for ref parameters if we are invoking a method/property on an instance of a COM imported type.
@@ -47,9 +48,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<Conversion> conversionsOpt = default,
             int missingParameter = -1,
             bool hasAnyRefOmittedArgument = false,
-            ImmutableArray<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt = default)
+            ImmutableArray<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt = default,
+            TypeWithAnnotations paramsElementTypeOpt = default)
         {
+            Debug.Assert(kind != MemberResolutionKind.ApplicableInExpandedForm || paramsElementTypeOpt.HasType);
+
             this.Kind = kind;
+            this.ParamsElementTypeOpt = paramsElementTypeOpt;
             this.BadArgumentsOpt = badArgumentsOpt;
             this.ArgsToParamsOpt = argsToParamsOpt;
             this.ConversionsOpt = conversionsOpt;
@@ -237,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new MemberAnalysisResult(MemberResolutionKind.UnsupportedMetadata);
         }
 
-        public static MemberAnalysisResult BadArgumentConversions(ImmutableArray<int> argsToParamsOpt, BitVector badArguments, ImmutableArray<Conversion> conversions)
+        public static MemberAnalysisResult BadArgumentConversions(ImmutableArray<int> argsToParamsOpt, BitVector badArguments, ImmutableArray<Conversion> conversions, TypeWithAnnotations paramsElementTypeOpt)
         {
             Debug.Assert(conversions.Length != 0);
             Debug.Assert(badArguments.TrueBits().Any());
@@ -245,7 +250,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MemberResolutionKind.BadArgumentConversion,
                 badArguments,
                 argsToParamsOpt,
-                conversions);
+                conversions,
+                paramsElementTypeOpt: paramsElementTypeOpt);
         }
 
         public static MemberAnalysisResult InaccessibleTypeArgument()
@@ -295,9 +301,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new MemberAnalysisResult(MemberResolutionKind.ApplicableInNormalForm, BitVector.Null, argsToParamsOpt, conversions, hasAnyRefOmittedArgument: hasAnyRefOmittedArgument);
         }
 
-        public static MemberAnalysisResult ExpandedForm(ImmutableArray<int> argsToParamsOpt, ImmutableArray<Conversion> conversions, bool hasAnyRefOmittedArgument)
+        public static MemberAnalysisResult ExpandedForm(ImmutableArray<int> argsToParamsOpt, ImmutableArray<Conversion> conversions, bool hasAnyRefOmittedArgument, TypeWithAnnotations paramsElementType)
         {
-            return new MemberAnalysisResult(MemberResolutionKind.ApplicableInExpandedForm, BitVector.Null, argsToParamsOpt, conversions, hasAnyRefOmittedArgument: hasAnyRefOmittedArgument);
+            return new MemberAnalysisResult(MemberResolutionKind.ApplicableInExpandedForm, BitVector.Null, argsToParamsOpt, conversions, hasAnyRefOmittedArgument: hasAnyRefOmittedArgument, paramsElementTypeOpt: paramsElementType);
         }
 
         public static MemberAnalysisResult Worse()
