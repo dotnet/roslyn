@@ -5200,6 +5200,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : ImmutableArray<ISymbol>.Empty;
         }
 
+#nullable enable
+        public IMethodSymbol? GetInterceptorMethod(InvocationExpressionSyntax node, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            CheckSyntaxNode(node);
+
+            if (node.GetInterceptableNameSyntax() is { } nameSyntax && Compilation.TryGetInterceptor(nameSyntax.GetLocation()) is (_, MethodSymbol interceptor))
+            {
+                return interceptor.GetPublicSymbol();
+            }
+
+            return null;
+        }
+#nullable disable
+
         protected static SynthesizedPrimaryConstructor TryGetSynthesizedPrimaryConstructor(TypeDeclarationSyntax node, NamedTypeSymbol type)
         {
             if (type is SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor }
