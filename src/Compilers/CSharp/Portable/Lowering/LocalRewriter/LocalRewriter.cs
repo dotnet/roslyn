@@ -593,11 +593,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBadExpression(syntax, LookupResultKind.NotReferencable, ImmutableArray<Symbol?>.Empty, children, resultType);
         }
 
-        private bool TryGetWellKnownTypeMember<TSymbol>(SyntaxNode? syntax, WellKnownMember member, out TSymbol symbol, bool isOptional = false, Location? location = null) where TSymbol : Symbol
+        private bool TryGetWellKnownTypeMember<TSymbol>(SyntaxNode? syntax, WellKnownMember member, [NotNullWhen(true)] out TSymbol? symbol, bool isOptional = false, Location? location = null) where TSymbol : Symbol
         {
             Debug.Assert((syntax != null) ^ (location != null));
 
-            symbol = (TSymbol)Binder.GetWellKnownTypeMember(_compilation, member, _diagnostics, syntax: syntax, isOptional: isOptional, location: location);
+            symbol = (TSymbol?)Binder.GetWellKnownTypeMember(_compilation, member, _diagnostics, syntax: syntax, isOptional: isOptional, location: location);
             return symbol is { };
         }
 
@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = this.VisitType(node.Type);
 
             // Emit needs this helper
-            MethodSymbol getTypeFromHandle;
+            MethodSymbol? getTypeFromHandle;
             if (!TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Type__GetTypeFromHandle, out getTypeFromHandle))
             {
                 return new BoundTypeOfOperator(node.Syntax, sourceType, null, type, hasErrors: true);
@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = this.VisitType(node.Type);
 
             // Emit needs this helper
-            MethodSymbol getTypeFromHandle;
+            MethodSymbol? getTypeFromHandle;
             if (!TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Type__GetTypeFromHandle, out getTypeFromHandle))
             {
                 return new BoundRefTypeOperator(node.Syntax, operand, null, type, hasErrors: true);
