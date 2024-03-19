@@ -13363,7 +13363,6 @@ done:;
         /// All the callbacks should passed as static lambdas or static methods to prevent unnecessary delegate
         /// allocations.
         /// </remarks>
-
         private SeparatedSyntaxList<TNode> ParseCommaSeparatedSyntaxList<TNode>(
             ref SyntaxToken openToken,
             SyntaxKind closeTokenKind,
