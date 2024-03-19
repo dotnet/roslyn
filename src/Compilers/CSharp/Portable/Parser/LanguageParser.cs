@@ -9557,7 +9557,7 @@ done:;
             }
 
             var mods = _pool.Allocate();
-            this.ParseDeclarationModifiers(mods);
+            this.ParseDeclarationModifiers(mods, isError: usingKeyword is not null);
 
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             try
@@ -9605,13 +9605,17 @@ done:;
                     type = _syntaxFactory.ScopedType(scopedKeyword, type);
                 }
 
-                for (int i = 0; i < mods.Count; i++)
+                // We've already reported all modifiers for local_using_declaration as errors
+                if (usingKeyword is null)
                 {
-                    var mod = (SyntaxToken)mods[i];
-
-                    if (IsAdditionalLocalFunctionModifier(mod.ContextualKind))
+                    for (int i = 0; i < mods.Count; i++)
                     {
-                        mods[i] = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
+                        var mod = (SyntaxToken)mods[i];
+
+                        if (IsAdditionalLocalFunctionModifier(mod.ContextualKind))
+                        {
+                            mods[i] = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
+                        }
                     }
                 }
 
@@ -9806,7 +9810,7 @@ done:;
             }
         }
 
-        private void ParseDeclarationModifiers(SyntaxListBuilder list)
+        private void ParseDeclarationModifiers(SyntaxListBuilder list, bool isError)
         {
             SyntaxKind k;
             while (IsDeclarationModifier(k = this.CurrentToken.ContextualKind) || IsAdditionalLocalFunctionModifier(k))
@@ -9827,7 +9831,11 @@ done:;
                     mod = this.EatToken();
                 }
 
-                if (k is SyntaxKind.ReadOnlyKeyword or SyntaxKind.VolatileKeyword)
+                if (isError)
+                {
+                    mod = this.AddError(mod, ErrorCode.ERR_TypeExpected);
+                }
+                else if (k is SyntaxKind.ReadOnlyKeyword or SyntaxKind.VolatileKeyword)
                 {
                     mod = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
                 }
