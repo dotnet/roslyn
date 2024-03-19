@@ -64,6 +64,7 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
     private bool TryExecuteCommand(TabKeyCommandArgs args, Action nextHandler)
     {
         _threadingContext.ThrowIfNotOnUIThread();
+
         if (!_globalOptions.GetOption(EventHookupOptionsStorage.EventHookup))
             return false;
 
@@ -125,6 +126,8 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         CancellationTokenSource eventNameCancellationTokenSource,
         SnapshotPoint initialCaretPoint)
     {
+        _threadingContext.ThrowIfNotOnUIThread();
+
         var textView = args.TextView;
         var subjectBuffer = args.SubjectBuffer;
 
@@ -134,6 +137,8 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
         {
             if (!await TryExecuteCommandAsync().ConfigureAwait(true))
             {
+                _threadingContext.ThrowIfNotOnUIThread();
+
                 // We didn't successfully handle the command.  If no other changes have gotten through in the mean time,
                 // then attempt to send the tab through to the editor.  If other changes went through, don't send the
                 // tab through as it's likely to make things worse.
@@ -171,17 +176,12 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
 
             var cancellationToken = waitContext.UserCancellationToken;
 
-            var eventHandlerMethodName = await eventNameTask.WithCancellation(cancellationToken).ConfigureAwait(false);
-            if (eventHandlerMethodName is null)
-                return false;
-
             var solutionAndRenameSpan = await TryGetNewSolutionWithAddedMethodAsync(
-                document, eventHandlerMethodName, initialCaretPoint.Position, cancellationToken).ConfigureAwait(false);
+                document, eventNameTask, initialCaretPoint.Position, cancellationToken).ConfigureAwait(true);
             if (solutionAndRenameSpan is null)
                 return false;
 
-            // switch back to the UI thread to now apply the change.
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            _threadingContext.ThrowIfNotOnUIThread();
 
             // If anything changed in the view between computation and application, bail out.
             if (applicableToSpan.Snapshot.Version != subjectBuffer.CurrentSnapshot.Version ||
@@ -210,8 +210,12 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
     }
 
     private async Task<(Solution solution, TextSpan renameSpan)?> TryGetNewSolutionWithAddedMethodAsync(
-        Document document, string eventHandlerMethodName, int position, CancellationToken cancellationToken)
+        Document document, Task<string?> eventNameTask, int position, CancellationToken cancellationToken)
     {
+        var eventHandlerMethodName = await eventNameTask.WithCancellation(cancellationToken).ConfigureAwait(false);
+        if (eventHandlerMethodName is null)
+            return null;
+
         // Mark the += token with an annotation so we can find it after formatting
         var documentWithNameAndAnnotationsAdded = await AddMethodNameAndAnnotationsToSolutionAsync(
             document, eventHandlerMethodName, position, cancellationToken).ConfigureAwait(false);
