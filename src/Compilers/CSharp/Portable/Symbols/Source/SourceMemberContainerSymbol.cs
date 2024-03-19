@@ -5245,6 +5245,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
+        internal void DiscoverInterceptors(ArrayBuilder<NamespaceOrTypeSymbol> toSearch)
+        {
+            foreach (var type in this.GetTypeMembers())
+            {
+                toSearch.Add(type);
+            }
+
+            if (!declaration.AnyMemberHasAttributes)
+            {
+                return;
+            }
+
+            foreach (var member in this.GetMembersUnordered())
+            {
+                if (member is MethodSymbol { MethodKind: MethodKind.Ordinary })
+                {
+                    // force binding attributes and populating compilation-level structures
+                    member.GetAttributes();
+                }
+            }
+        }
+
         public sealed override NamedTypeSymbol ConstructedFrom
         {
             get { return this; }
