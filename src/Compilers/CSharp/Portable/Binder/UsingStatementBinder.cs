@@ -186,28 +186,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol disposableInterface = getDisposableInterface(hasAwait);
                 Debug.Assert((object)disposableInterface != null);
 
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = originalBinder.GetNewCompoundUseSiteInfo(diagnostics);
-                Conversion iDisposableConversion = classifyConversion(fromExpression, disposableInterface, ref useSiteInfo);
                 patternDisposeInfo = null;
                 awaitableType = null;
-
-                diagnostics.Add(syntax, useSiteInfo);
-
-                if (iDisposableConversion.IsImplicit)
-                {
-                    if (hasAwait)
-                    {
-                        awaitableType = originalBinder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
-                    }
-
-                    return !ReportUseSite(disposableInterface, diagnostics, hasAwait ? awaitKeyword : usingKeyword);
-                }
 
                 Debug.Assert(!fromExpression || expressionOpt != null);
                 TypeSymbol? type = fromExpression ? expressionOpt!.Type : declarationTypeOpt;
 
                 // If this is a ref struct, or we're in a valid asynchronous using, try binding via pattern.
-                // We won't need to try and bind a second time if it fails, as async dispose can't be pattern based (ref structs are not allowed in async methods)
                 if (type is object && (type.IsRefLikeType || hasAwait))
                 {
                     BoundExpression? receiver = fromExpression
@@ -250,15 +235,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = originalBinder.GetNewCompoundUseSiteInfo(diagnostics);
+                bool implementsIDisposable = implementsInterface(fromExpression, disposableInterface, ref useSiteInfo);
+
+                diagnostics.Add(syntax, useSiteInfo);
+
+                if (implementsIDisposable)
+                {
+                    if (hasAwait)
+                    {
+                        awaitableType = originalBinder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
+                    }
+
+                    return !ReportUseSite(disposableInterface, diagnostics, hasAwait ? awaitKeyword : usingKeyword);
+                }
+
                 if (type is null || !type.IsErrorType())
                 {
                     // Retry with a different assumption about whether the `using` is async
                     TypeSymbol alternateInterface = getDisposableInterface(!hasAwait);
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    Conversion alternateConversion = classifyConversion(fromExpression, alternateInterface, ref discardedUseSiteInfo);
+                    bool implementsAlternateIDisposable = implementsInterface(fromExpression, alternateInterface, ref discardedUseSiteInfo);
 
-                    bool wrongAsync = alternateConversion.IsImplicit;
-                    ErrorCode errorCode = wrongAsync
+                    ErrorCode errorCode = implementsAlternateIDisposable
                         ? (hasAwait ? ErrorCode.ERR_NoConvToIAsyncDispWrongAsync : ErrorCode.ERR_NoConvToIDispWrongAsync)
                         : (hasAwait ? ErrorCode.ERR_NoConvToIAsyncDisp : ErrorCode.ERR_NoConvToIDisp);
 
@@ -268,25 +267,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            Conversion classifyConversion(bool fromExpression, TypeSymbol targetInterface, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            bool implementsInterface(bool fromExpression, TypeSymbol targetInterface, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 var conversions = originalBinder.Conversions;
+                Conversion conversion;
+
                 if (fromExpression)
                 {
                     Debug.Assert(expressionOpt is { });
-                    var result = conversions.ClassifyImplicitConversionFromExpression(expressionOpt, targetInterface, ref useSiteInfo);
+                    conversion = conversions.ClassifyImplicitConversionFromExpression(expressionOpt, targetInterface, ref useSiteInfo);
 
-                    Debug.Assert(expressionOpt.Type?.IsDynamic() != true || result.Kind == ConversionKind.ImplicitDynamic);
-                    return result;
+                    Debug.Assert(expressionOpt.Type?.IsDynamic() != true || conversion.Kind == ConversionKind.ImplicitDynamic);
                 }
                 else
                 {
                     Debug.Assert(declarationTypeOpt is { });
-                    var result = conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, targetInterface, ref useSiteInfo);
+                    conversion = conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, targetInterface, ref useSiteInfo);
 
-                    Debug.Assert(!declarationTypeOpt.IsDynamic() || result.Kind == ConversionKind.ImplicitDynamic);
-                    return result;
+                    Debug.Assert(!declarationTypeOpt.IsDynamic() || conversion.Kind == ConversionKind.ImplicitDynamic);
                 }
+
+                if (conversion.IsImplicit)
+                {
+                    return true;
+                }
+
+                TypeSymbol? resourceType = fromExpression ? expressionOpt!.Type : declarationTypeOpt;
+
+                if (resourceType is TypeParameterSymbol typeParameter)
+                {
+                    return typeParameter.AllowByRefLike && conversions.ImplementsVarianceCompatibleInterface(typeParameter, targetInterface, ref useSiteInfo);
+                }
+
+                if (resourceType is { IsRefLikeType: true } refLikeType)
+                {
+                    return conversions.ImplementsVarianceCompatibleInterface(refLikeType, targetInterface, ref useSiteInfo);
+                }
+
+                return false;
             }
 
             TypeSymbol getDisposableInterface(bool isAsync)

@@ -752,6 +752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(expr is object);
             Debug.Assert(expr.Type is object);
+            // PROTOTYPE(RefStructInterfaces): adjust?
             Debug.Assert(expr.Type.IsRefLikeType || hasAwait); // pattern dispose lookup is only valid on ref structs or asynchronous usings
 
             var result = PerformPatternMethodLookup(expr,
@@ -1580,7 +1581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         leftEscape = GetValEscape(op1, _localScopeDepth);
                         rightEscape = GetValEscape(op2, _localScopeDepth);
 
-                        Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeType);
+                        Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeType); // PROTOTYPE(RefStructInterfaces): adjust?
 
                         // We only check if the safe-to-escape of e2 is wider than the safe-to-escape of e1 here,
                         // we don't check for equality. The case where the safe-to-escape of e2 is narrower than
@@ -1599,7 +1600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (!hasErrors && op1.Type.IsRefLikeType)
+                if (!hasErrors && op1.Type.IsRefLikeType) // PROTOTYPE(RefStructInterfaces): adjust?
                 {
                     var leftEscape = GetValEscape(op1, _localScopeDepth);
                     ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);

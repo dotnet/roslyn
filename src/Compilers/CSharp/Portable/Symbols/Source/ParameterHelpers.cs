@@ -703,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_ParamsLast, syntax.GetLocation());
             }
 
-            if (declaredScope == ScopedKind.ScopedValue && !typeWithAnnotations.IsRefLikeType())
+            if (declaredScope == ScopedKind.ScopedValue && !typeWithAnnotations.IsRefLikeType()) // PROTOTYPE(RefStructInterfaces): adjust?
             {
                 diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, syntax.Location);
             }

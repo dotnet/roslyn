@@ -1868,6 +1868,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                     ? compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable)
                                     : compilation.GetSpecialType(SpecialType.System_IDisposable);
 
+                TypeSymbol enumeratorType;
+
                 info = new ForEachLoopOperationInfo(enumeratorInfoOpt.ElementType.GetPublicSymbol(),
                                                     enumeratorInfoOpt.GetEnumeratorInfo.Method.GetPublicSymbol(),
                                                     ((PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol).GetPublicSymbol(),
@@ -1878,9 +1880,13 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     needsDispose: enumeratorInfoOpt.NeedsDisposal,
                                                     knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposal ?
                                                                                      compilation.Conversions.
-                                                                                         ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorInfo.Method.ReturnType,
+                                                                                         ClassifyImplicitConversionFromType((enumeratorType = enumeratorInfoOpt.GetEnumeratorInfo.Method.ReturnType),
                                                                                                                             iDisposable,
-                                                                                                                            ref discardedUseSiteInfo).IsImplicit :
+                                                                                                                            ref discardedUseSiteInfo).IsImplicit ||
+                                                                                         (enumeratorType is TypeParameterSymbol { AllowByRefLike: true } typeParameter ?
+                                                                                             compilation.Conversions.ImplementsVarianceCompatibleInterface(typeParameter, iDisposable, ref discardedUseSiteInfo) :
+                                                                                             (enumeratorType.IsRefLikeType &&
+                                                                                              compilation.Conversions.ImplementsVarianceCompatibleInterface(enumeratorType, iDisposable, ref discardedUseSiteInfo))) :
                                                                                      false,
                                                     enumeratorInfoOpt.PatternDisposeInfo?.Method.GetPublicSymbol(),
                                                     BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder),

@@ -2848,6 +2848,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false; // Not a reference conversion.
             }
 
+            // PROTOTYPE(RefStructInterfaces): Check for AllowByRefLike?
+
             // The following implicit conversions exist for a given type parameter T:
             //
             // * From T to its effective base class C.
@@ -2901,6 +2903,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private bool HasImplicitEffectiveInterfaceSetConversion(TypeParameterSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            return ImplementsVarianceCompatibleInterface(source, destination, ref useSiteInfo);
+        }
+
+        internal bool ImplementsVarianceCompatibleInterface(TypeParameterSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (!destination.IsInterfaceType())
             {
@@ -3154,6 +3161,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (source.IsReferenceType)
             {
                 return false; // Not a boxing conversion; both source and destination are references.
+            }
+
+            if (source.AllowByRefLike)
+            {
+                return false;
             }
 
             // The following implicit conversions exist for a given type parameter T:

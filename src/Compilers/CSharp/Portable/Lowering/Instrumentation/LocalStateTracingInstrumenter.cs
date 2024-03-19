@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStorePointer,
                     _ when !variableType.IsManagedTypeNoUseSiteDiagnostics
                         => WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__LogLocalStoreUnmanaged,
-                    _ when variableType.IsRefLikeType && !hasOverriddenToString(variableType)
+                    _ when variableType.IsRefLikeType && !hasOverriddenToString(variableType) // PROTOTYPE(RefStructInterfaces): adjust?
                         => null, // not possible to invoke ToString on ref struct that doesn't override it
                     _ when variableType.TypeKind is TypeKind.Struct
                         // we'll emit ToString constrained virtcall to avoid boxing the struct

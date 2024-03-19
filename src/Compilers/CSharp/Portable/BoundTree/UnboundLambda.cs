@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             getEffectiveScopeFromSymbol = true;
                         }
                     }
-                    else if (type.IsRefLikeType() && ParameterSyntax(i)?.Modifiers.Any(SyntaxKind.ParamsKeyword) == true)
+                    else if (type.IsRefLikeType() && ParameterSyntax(i)?.Modifiers.Any(SyntaxKind.ParamsKeyword) == true) // PROTOTYPE(RefStructInterfaces): adjust?
                     {
                         scope = ScopedKind.ScopedValue;
                         if (_unboundLambda.ParameterAttributes(i).Any())

@@ -1069,6 +1069,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)builder.CollectionType != null);
 
             NamedTypeSymbol collectionType = (NamedTypeSymbol)builder.CollectionType;
+
+            if (unwrappedCollectionExprType.IsRefLikeType)
+            {
+                builder.CollectionType = unwrappedCollectionExprType;
+            }
+
             if (collectionType.IsGenericType)
             {
                 // If the type is generic, we have to search for the methods
@@ -1188,14 +1194,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // is potentially disposable.
 
             TypeSymbol enumeratorType = builder.GetEnumeratorInfo.Method.ReturnType;
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
-            MethodSymbol patternDisposeMethod = null;
             if (enumeratorType.IsRefLikeType || isAsync)
             {
                 // we throw away any binding diagnostics, and assume it's not disposable if we encounter errors
                 var receiver = new BoundDisposableValuePlaceholder(syntax, enumeratorType);
-                patternDisposeMethod = TryFindDisposePatternMethod(receiver, syntax, isAsync, BindingDiagnosticBag.Discarded, out bool expanded);
+                MethodSymbol patternDisposeMethod = TryFindDisposePatternMethod(receiver, syntax, isAsync, BindingDiagnosticBag.Discarded, out bool expanded);
                 if (patternDisposeMethod is object)
                 {
                     Debug.Assert(!patternDisposeMethod.IsExtensionMethod);
@@ -1226,22 +1230,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // We already checked feature availability for async scenarios
                         CheckFeatureAvailability(expr.Syntax, MessageID.IDS_FeatureDisposalPattern, diagnostics);
                     }
+
+                    return;
                 }
             }
 
-            if (!enumeratorType.IsRefLikeType && patternDisposeMethod is null)
+            if (implementsInterface(enumeratorType, isAsync, diagnostics))
             {
-                // If it wasn't pattern-disposable, see if it's directly convertable to IDisposable
-                // For async foreach, we don't do the runtime check in unsealed case
-                if ((!enumeratorType.IsSealed && !isAsync) ||
-                    this.Conversions.ClassifyImplicitConversionFromType(enumeratorType,
-                        isAsync ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable) : this.Compilation.GetSpecialType(SpecialType.System_IDisposable),
-                        ref useSiteInfo).IsImplicit)
+                builder.NeedsDisposal = true;
+                return;
+            }
+
+            if (!enumeratorType.IsRefLikeType &&
+                !enumeratorType.IsSealed && !isAsync) // For async foreach, we don't do the runtime check in unsealed case
+            {
+                // PROTOTYPE(RefStructInterfaces): We are going to get here for a AllowByRefLike type parameter, but
+                //                                 but the code we emit in this case is not valid.
+                builder.NeedsDisposal = true;
+            }
+
+            bool implementsInterface(TypeSymbol enumeratorType, bool isAsync, BindingDiagnosticBag diagnostics)
+            {
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+
+                NamedTypeSymbol targetInterface = isAsync ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable) : this.Compilation.GetSpecialType(SpecialType.System_IDisposable);
+
+                bool result = this.Conversions.ClassifyImplicitConversionFromType(enumeratorType,
+                                        targetInterface,
+                                        ref useSiteInfo).IsImplicit;
+
+                if (!result)
                 {
-                    builder.NeedsDisposal = true;
+                    if (enumeratorType is TypeParameterSymbol typeParameter)
+                    {
+                        if (typeParameter.AllowByRefLike)
+                        {
+                            result = this.Conversions.ImplementsVarianceCompatibleInterface(typeParameter, targetInterface, ref useSiteInfo);
+                        }
+                    }
+                    else if (enumeratorType.IsRefLikeType)
+                    {
+                        result = this.Conversions.ImplementsVarianceCompatibleInterface(enumeratorType, targetInterface, ref useSiteInfo);
+                    }
                 }
 
                 diagnostics.Add(syntax, useSiteInfo);
+
+                return result;
             }
         }
 
