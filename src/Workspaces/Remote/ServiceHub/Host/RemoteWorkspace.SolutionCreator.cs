@@ -86,18 +86,6 @@ namespace Microsoft.CodeAnalysis.Remote
                             assetHint: AssetHint.None, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false));
                     }
 
-                    if (oldSolutionChecksums.Projects.Checksum != newSolutionChecksums.Projects.Checksum)
-                    {
-                        solution = await UpdateProjectsAsync(
-                            solution, oldSolutionChecksums, newSolutionChecksums, cancellationToken).ConfigureAwait(false);
-                    }
-
-                    if (oldSolutionChecksums.AnalyzerReferences.Checksum != newSolutionChecksums.AnalyzerReferences.Checksum)
-                    {
-                        solution = solution.WithAnalyzerReferences(await _assetProvider.CreateCollectionAsync<AnalyzerReference>(
-                            assetHint: AssetHint.None, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false));
-                    }
-
                     if (newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.HasValue &&
                         newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.HasValue)
                     {
