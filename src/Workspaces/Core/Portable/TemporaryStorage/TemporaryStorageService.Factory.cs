@@ -7,25 +7,24 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+internal partial class TemporaryStorageService
 {
-    internal partial class TemporaryStorageService
+    [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageServiceInternal), ServiceLayer.Default), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal partial class Factory() : IWorkspaceServiceFactory
     {
-        [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageServiceInternal), ServiceLayer.Default), Shared]
-        [method: ImportingConstructor]
-        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        internal partial class Factory() : IWorkspaceServiceFactory
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            {
-                // MemoryMapped files which are used by the TemporaryStorageService are present in .NET Framework (including Mono)
-                // and .NET Core Windows. For non-Windows .NET Core scenarios, we can return the TrivialTemporaryStorageService
-                // until https://github.com/dotnet/runtime/issues/30878 is fixed.
-                return PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono
-                    ? new TemporaryStorageService()
-                    : TrivialTemporaryStorageService.Instance;
-            }
+            // MemoryMapped files which are used by the TemporaryStorageService are present in .NET Framework (including Mono)
+            // and .NET Core Windows. For non-Windows .NET Core scenarios, we can return the TrivialTemporaryStorageService
+            // until https://github.com/dotnet/runtime/issues/30878 is fixed.
+            return PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono
+                ? new TemporaryStorageService()
+                : TrivialTemporaryStorageService.Instance;
         }
     }
 }

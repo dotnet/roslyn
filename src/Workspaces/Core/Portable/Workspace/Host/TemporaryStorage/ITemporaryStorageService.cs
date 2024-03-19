@@ -5,17 +5,16 @@
 using System;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.Host
-{
-    [Obsolete("API is no longer available")]
-    public interface ITemporaryStorageService : IWorkspaceService
-    {
-        ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken = default);
-        ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken = default);
-    }
+namespace Microsoft.CodeAnalysis.Host;
 
-    internal interface ITemporaryStorageServiceInternal : IWorkspaceService
-    {
-        ITemporaryStreamStorageInternal CreateTemporaryStreamStorage();
-    }
+[Obsolete("API is no longer available")]
+public interface ITemporaryStorageService : IWorkspaceService
+{
+    ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken = default);
+    ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken = default);
+}
+
+internal interface ITemporaryStorageServiceInternal : IWorkspaceService
+{
+    ITemporaryStreamStorageInternal CreateTemporaryStreamStorage();
 }
