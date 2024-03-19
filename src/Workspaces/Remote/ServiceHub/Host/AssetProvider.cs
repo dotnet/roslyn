@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.SpellCheck;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -29,13 +30,6 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     private readonly SolutionAssetCache _assetCache = assetCache;
     private readonly IAssetSource _assetSource = assetSource;
 
-    private T GetRequiredAsset<T>(Checksum checksum)
-    {
-        Contract.ThrowIfTrue(checksum == Checksum.Null);
-        Contract.ThrowIfFalse(_assetCache.TryGetAsset<T>(checksum, out var asset));
-        return asset;
-    }
-
     public override async ValueTask<T> GetAssetAsync<T>(
         AssetHint assetHint, Checksum checksum, CancellationToken cancellationToken)
     {
@@ -43,25 +37,27 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         if (_assetCache.TryGetAsset<T>(checksum, out var asset))
             return asset;
 
-        using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
+        using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksums);
         checksums.Add(checksum);
 
-        await this.SynchronizeAssetsAsync(assetHint, checksums, cancellationToken).ConfigureAwait(false);
+        using var _2 = PooledDictionary<Checksum, object>.GetInstance(out var results);
+        await this.SynchronizeAssetsAsync(assetHint, checksums, results, cancellationToken).ConfigureAwait(false);
 
-        return GetRequiredAsset<T>(checksum);
+        return (T)results[checksum];
     }
 
-    public async ValueTask<ImmutableArray<ValueTuple<Checksum, T>>> GetAssetsAsync<T>(
+    public async ValueTask<ImmutableArray<(Checksum checksum, T asset)>> GetAssetsAsync<T>(
         AssetHint assetHint, HashSet<Checksum> checksums, CancellationToken cancellationToken)
     {
+        using var _1 = PooledDictionary<Checksum, object>.GetInstance(out var results);
+
         // bulk synchronize checksums first
         var syncer = new ChecksumSynchronizer(this);
-        await syncer.SynchronizeAssetsAsync(assetHint, checksums, cancellationToken).ConfigureAwait(false);
+        await syncer.SynchronizeAssetsAsync(assetHint, checksums, results, cancellationToken).ConfigureAwait(false);
 
-        // this will be fast since we actually synchronized the checksums above.
-        using var _ = ArrayBuilder<ValueTuple<Checksum, T>>.GetInstance(checksums.Count, out var list);
-        foreach (var checksum in checksums)
-            list.Add(ValueTuple.Create(checksum, GetRequiredAsset<T>(checksum)));
+        using var _2 = ArrayBuilder<ValueTuple<Checksum, T>>.GetInstance(checksums.Count, out var list);
+        foreach (var (checksum, assetObject) in results)
+            list.Add((checksum, (T)assetObject));
 
         return list.ToImmutableAndClear();
     }
@@ -113,7 +109,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     }
 
     public async ValueTask SynchronizeAssetsAsync(
-        AssetHint assetHint, HashSet<Checksum> checksums, CancellationToken cancellationToken)
+        AssetHint assetHint, HashSet<Checksum> checksums, Dictionary<Checksum, object> results, CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
         if (checksums.Count == 0)
@@ -136,7 +132,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             missingChecksumsCount = 0;
             foreach (var checksum in checksums)
             {
-                if (!_assetCache.TryGetAsset<object>(checksum, out _))
+                if (!_assetCache.TryGetAsset<object>(checksum, out var existing))
                 {
                     missingChecksums[missingChecksumsCount] = checksum;
                     missingChecksumsCount++;
