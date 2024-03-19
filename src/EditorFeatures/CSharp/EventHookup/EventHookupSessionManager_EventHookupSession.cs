@@ -132,7 +132,8 @@ internal sealed partial class EventHookupSessionManager
                 {
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
 
-                    if (t.Result != null)
+                    // Once we compute the name, update the tooltip (if we haven't already been dismissed)
+                    if (this._eventNameTask != null && t.Result != null)
                     {
                         commandHandler.EventHookupSessionManager.EventHookupFoundInSession(this, t.Result);
                     }
