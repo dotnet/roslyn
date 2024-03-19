@@ -21,7 +21,7 @@ jobs:
     value: $[ dependencies.Windows.outputs['nbgv.NBGV_MajorMinorVersion'] ]
   - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
     # https://dev.azure.com/devdiv/DevDiv/_wiki/wikis/DevDiv.wiki/25351/APIScan-step-by-step-guide-to-setting-up-a-Pipeline
-    - group: VSCloudServices-APIScan # Expected to provide ApiScanClientId, ApiScanSecret, ApiScanTenant
+    - group: VSEng sponsored APIScan # Expected to provide ApiScanClientId
   steps:
     # We need TSAOptions.json
   - checkout: self
@@ -41,7 +41,7 @@ jobs:
       toolVersion: Latest
       preserveLogsFolder: true
     env:
-      AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
+      AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId)
 
   # File bugs when APIScan finds issues
   - task: TSAUpload@2
