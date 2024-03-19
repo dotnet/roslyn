@@ -4,13 +4,11 @@
 
 using System;
 using System.Buffers;
-using System.Collections.Immutable;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -31,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
             PipeWriter pipeWriter,
             Checksum solutionChecksum,
             AssetHint assetHint,
-            ImmutableArray<Checksum> checksums,
+            ReadOnlyMemory<Checksum> checksums,
             CancellationToken cancellationToken)
         {
             // Suppress ExecutionContext flow for asynchronous operations operate on the pipe. In addition to avoiding
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
             using var _ = FlowControlHelper.TrySuppressFlow();
             return WriteAssetsSuppressedFlowAsync(pipeWriter, solutionChecksum, assetHint, checksums, cancellationToken);
 
-            async ValueTask WriteAssetsSuppressedFlowAsync(PipeWriter pipeWriter, Checksum solutionChecksum, AssetHint assetHint, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
+            async ValueTask WriteAssetsSuppressedFlowAsync(PipeWriter pipeWriter, Checksum solutionChecksum, AssetHint assetHint, ReadOnlyMemory<Checksum> checksums, CancellationToken cancellationToken)
             {
                 // The responsibility is on us (as per the requirements of RemoteCallback.InvokeAsync) to Complete the
                 // pipewriter.  This will signal to streamjsonrpc that the writer passed into it is complete, which will
@@ -68,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Remote
             PipeWriter pipeWriter,
             Checksum solutionChecksum,
             AssetHint assetHint,
-            ImmutableArray<Checksum> checksums,
+            ReadOnlyMemory<Checksum> checksums,
             CancellationToken cancellationToken)
         {
             var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;

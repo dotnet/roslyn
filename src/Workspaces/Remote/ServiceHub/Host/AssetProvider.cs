@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis.Remote;
 internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
     : AbstractAssetProvider
 {
+    private const int PooledChecksumArraySize = 256;
+    private static readonly ObjectPool<Checksum[]> s_checksumPool = new(() => new Checksum[PooledChecksumArraySize], 16);
+
     private readonly Checksum _solutionChecksum = solutionChecksum;
     private readonly ISerializerService _serializerService = serializerService;
     private readonly SolutionAssetCache _assetCache = assetCache;
@@ -118,27 +121,50 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
 
         using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
         {
-            using var _1 = ArrayBuilder<Checksum>.GetInstance(checksums.Count, out var missingChecksums);
+            var missingChecksumsCount = 0;
+
+            // Calculate the number of missing checksums upfront. Calculation is cheap and can help avoid extraneous allocations.
+            foreach (var checksum in checksums)
+            {
+                if (!_assetCache.ContainsAsset(checksum))
+                    missingChecksumsCount++;
+            }
+
+            var usePool = missingChecksumsCount <= PooledChecksumArraySize;
+            var missingChecksums = usePool ? s_checksumPool.Allocate() : new Checksum[missingChecksumsCount];
+
+            missingChecksumsCount = 0;
             foreach (var checksum in checksums)
             {
                 if (!_assetCache.TryGetAsset<object>(checksum, out _))
-                    missingChecksums.Add(checksum);
+                {
+                    missingChecksums[missingChecksumsCount] = checksum;
+                    missingChecksumsCount++;
+                }
             }
 
-            var checksumsArray = missingChecksums.ToImmutableAndClear();
-            var assets = await RequestAssetsAsync(assetHint, checksumsArray, cancellationToken).ConfigureAwait(false);
+            var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
+            var assets = await RequestAssetsAsync(assetHint, missingChecksumsMemory, cancellationToken).ConfigureAwait(false);
 
-            Contract.ThrowIfTrue(checksumsArray.Length != assets.Length);
+            Contract.ThrowIfTrue(missingChecksumsMemory.Length != assets.Length);
 
             for (int i = 0, n = assets.Length; i < n; i++)
-                _assetCache.GetOrAdd(checksumsArray[i], assets[i]);
+                _assetCache.GetOrAdd(missingChecksums[i], assets[i]);
+
+            if (usePool)
+                s_checksumPool.Free(missingChecksums);
         }
     }
 
     private async Task<ImmutableArray<object>> RequestAssetsAsync(
-        AssetHint assetHint, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken)
+        AssetHint assetHint, ReadOnlyMemory<Checksum> checksums, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
+#if NETCOREAPP
+        Contract.ThrowIfTrue(checksums.Span.Contains(Checksum.Null));
+#else
+        Contract.ThrowIfTrue(checksums.Span.IndexOf(Checksum.Null) >= 0);
+#endif
+
         if (checksums.Length == 0)
             return [];
 

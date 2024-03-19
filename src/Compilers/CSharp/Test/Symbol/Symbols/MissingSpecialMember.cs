@@ -532,7 +532,8 @@ namespace System
 
                 if (special is SpecialType.System_Runtime_CompilerServices_RuntimeFeature or
                                SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute or
-                               SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute)
+                               SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute or
+                               SpecialType.System_ReadOnlySpan_T)
                 {
                     Assert.Equal(SymbolKind.ErrorType, symbol.Kind); // Not available
                 }
@@ -554,14 +555,19 @@ namespace System
                 if (special == SpecialMember.Count) continue; // Not a real value;
 
                 var symbol = comp.GetSpecialTypeMember(special);
-                if (special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces
+                if (special == SpecialMember.System_String__Concat_2ReadOnlySpans
+                    || special == SpecialMember.System_String__Concat_3ReadOnlySpans
+                    || special == SpecialMember.System_String__Concat_4ReadOnlySpans
+                    || special == SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar
+                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields
                     || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
-                    || special == SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor)
+                    || special == SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor
+                    || special == SpecialMember.System_ReadOnlySpan_T__ctor_Reference)
                 {
                     Assert.Null(symbol); // Not available
                 }
@@ -639,6 +645,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute:
                     case WellKnownType.System_Runtime_InteropServices_MemoryMarshal:
                     case WellKnownType.System_Runtime_CompilerServices_Unsafe:
+                    case WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -1019,6 +1026,7 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T:
                     case WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T:
                     case WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

@@ -2550,9 +2550,9 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (8,21): error CS0225: The params parameter must be a single dimensional array
+    // (8,21): error CS0225: The params parameter must have a valid collection type
     //         void Params(params int x)
-    Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(8, 21)
+    Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(8, 21)
     );
         }
 
@@ -2705,15 +2705,15 @@ class C
     }
 }";
             VerifyDiagnostics(src,
-                // (10,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                // (10,17): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
                 //         L1(val, val);
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(val, val)").WithArguments("ys", "L1").WithLocation(10, 9),
-                // (11,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "val").WithArguments("ys", "L1").WithLocation(10, 17),
+                // (11,16): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
                 //         L1(ys: val, x: val);
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(ys: val, x: val)").WithArguments("ys", "L1").WithLocation(11, 9),
-                // (12,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "val").WithArguments("ys", "L1").WithLocation(11, 16),
+                // (12,16): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
                 //         L1(ys: val);
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(ys: val)").WithArguments("ys", "L1").WithLocation(12, 9));
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "val").WithArguments("ys", "L1").WithLocation(12, 16));
         }
 
         [Fact]

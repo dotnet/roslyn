@@ -33,7 +33,7 @@ internal sealed class TestDiagnosticTagProducer<TProvider, TTag>
     {
         var source = new TestDiagnosticUpdateSource();
 
-        using var wrapper = new DiagnosticTaggerWrapper<TProvider, TTag>(workspace, updateSource: source);
+        var wrapper = new DiagnosticTaggerWrapper<TProvider, TTag>(workspace, updateSource: source);
 
         var firstDocument = workspace.Documents.First();
         var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(firstDocument.GetTextBuffer());

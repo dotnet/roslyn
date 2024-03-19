@@ -217,15 +217,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BindingDiagnosticBag patternDiagnostics = originalBinder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDisposalPattern)
                                                        ? diagnostics
                                                        : BindingDiagnosticBag.Discarded;
-                    MethodSymbol disposeMethod = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, patternDiagnostics);
+                    MethodSymbol disposeMethod = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, patternDiagnostics, out bool expanded);
                     if (disposeMethod is object)
                     {
                         MessageID.IDS_FeatureDisposalPattern.CheckFeatureAvailability(diagnostics, originalBinder.Compilation, syntax.Location);
 
                         var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
                         ImmutableArray<int> argsToParams = default;
-                        bool expanded = disposeMethod.HasParamsParameter();
-                        originalBinder.BindDefaultArgumentsAndParamsArray(
+
+                        originalBinder.BindDefaultArgumentsAndParamsCollection(
                             // If this is a using statement, then we want to use the whole `using (expr) { }` as the argument location. These arguments
                             // will be represented in the IOperation tree and the "correct" node for them, given that they are an implicit invocation
                             // at the end of the using statement, is on the whole using statement, not on the current expression.

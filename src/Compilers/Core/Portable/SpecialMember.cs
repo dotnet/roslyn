@@ -19,12 +19,18 @@ namespace Microsoft.CodeAnalysis
         System_String__ConcatObjectObjectObject,
         System_String__ConcatObjectArray,
 
+        System_String__Concat_2ReadOnlySpans,
+        System_String__Concat_3ReadOnlySpans,
+        System_String__Concat_4ReadOnlySpans,
+
         System_String__op_Equality,
         System_String__op_Inequality,
         System_String__Length,
         System_String__Chars,
         System_String__Format,
         System_String__Substring,
+
+        System_String__op_Implicit_ToReadOnlySpanOfChar,
 
         System_Double__IsNaN,
         System_Single__IsNaN,
@@ -158,6 +164,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor,
         System_Runtime_CompilerServices_InlineArrayAttribute__ctor,
+
+        System_ReadOnlySpan_T__ctor_Reference,
 
         Count
     }

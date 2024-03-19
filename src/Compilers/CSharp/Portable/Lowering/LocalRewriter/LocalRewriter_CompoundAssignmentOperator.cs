@@ -343,10 +343,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKinds,
                 storesToTemps);
 
-            if (expanded)
+            if (expanded && actualArguments[actualArguments.Length - 1] is { IsParamsArrayOrCollection: true } array)
             {
-                BoundExpression array = actualArguments[actualArguments.Length - 1];
-                Debug.Assert(array.IsParamsArray);
+                Debug.Assert(array is BoundArrayCreation);
 
                 if (TryOptimizeParamsArray(array, out BoundExpression? optimized))
                 {

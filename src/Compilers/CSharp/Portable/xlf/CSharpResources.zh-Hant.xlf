@@ -377,6 +377,11 @@
         <target state="translated">無法將 {0} 轉換成類型 '{1}'，因為傳回型別不符合委派傳回型別</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections">
+        <source>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</source>
+        <target state="new">The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist 不得包含 'in' 或 'out' 傳遞的引數</target>
@@ -610,6 +615,11 @@
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="translated">不允許明確應用 'System.Runtime.CompilerServices.NullableAttribute'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitParamArrayOrCollection">
+        <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
+        <target state="new">Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
@@ -1522,6 +1532,46 @@
         <target state="translated">不支援 'parameter null-checking' 功能。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
+        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
+        <target state="new">Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
+        <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
+        <target state="new">Constructor '{0}' leaves required member '{1}' uninitialized.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionExpressionTree">
+        <source>An expression tree may not contain an expanded form of non-array params collection parameter.</source>
+        <target state="new">An expression tree may not contain an expanded form of non-array params collection parameter.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionExtensionAddMethod">
+        <source>'{0}' does not contain a definition for a suitable instance 'Add' method</source>
+        <target state="new">'{0}' does not contain a definition for a suitable instance 'Add' method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionInfiniteChainOfConstructorCalls">
+        <source>Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</source>
+        <target state="new">Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionMissingConstructor">
+        <source>Non-array params collection type must have an applicable constructor that can be called with no arguments.</source>
+        <target state="new">Non-array params collection type must have an applicable constructor that can be called with no arguments.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember">
+        <source>Method '{0}' cannot be less visible than the member with params collection '{1}'.</source>
+        <target state="new">Method '{0}' cannot be less visible than the member with params collection '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsMustBeCollection">
+        <source>The params parameter must have a valid collection type</source>
+        <target state="new">The params parameter must have a valid collection type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
         <source>Both partial method declarations must have identical accessibility modifiers.</source>
         <target state="translated">兩個部分方法宣告都必須有完全相同的存取範圍修飾詞。</target>
@@ -2257,6 +2307,11 @@
         <target state="translated">無參數結構建構函式</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureParamsCollections">
+        <source>params collections</source>
+        <target state="new">params collections</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
         <target state="translated">記錄中的位置欄位</target>
@@ -2610,6 +2665,36 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">已指定多次分析器參考</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor">
+        <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="new">One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor_Title">
+        <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="new">One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer">
+        <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="new">One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer_Title">
+        <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="new">One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod">
+        <source>One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="new">One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod_Title">
+        <source>One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="new">One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall">
@@ -6143,11 +6228,6 @@ strument:TestCoverage      產生檢測要收集
         <target state="translated">具有 vararg 的方法不可為泛型、泛型類型或是具有 params 參數</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParamsMustBeArray">
-        <source>The params parameter must be a single dimensional array</source>
-        <target state="translated">params 參數必須是單一維度陣列</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_IllegalArglist">
         <source>An __arglist expression may only appear inside of a call or new expression</source>
         <target state="translated">__arglist 運算式只可出現於呼叫或 new 運算式中</target>
@@ -7620,11 +7700,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_SystemVoid">
         <source>System.Void cannot be used from C# -- use typeof(void) to get the void type object</source>
         <target state="translated">無法從 C# 使用 System.Void -- 請使用 typeof(void) 取得 void 類型物件</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExplicitParamArray">
-        <source>Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.</source>
-        <target state="translated">請勿使用 'System.ParamArrayAttribute'。請改用 'params' 關鍵字。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BitwiseOrSignExtend">
@@ -10877,8 +10952,8 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
-        <source>Cannot specify a default value for a parameter array</source>
-        <target state="translated">無法指定參數陣列的預設值</target>
+        <source>Cannot specify a default value for a parameter collection</source>
+        <target state="needs-review-translation">無法指定參數陣列的預設值</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">

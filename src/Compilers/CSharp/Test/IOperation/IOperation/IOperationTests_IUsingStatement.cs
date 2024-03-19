@@ -1368,7 +1368,7 @@ Block[B4] - Exit
 
             var expectedDiagnostics = new[]
             {
-                // file.cs(19,25): error CS1751: Cannot specify a default value for a parameter array
+                // file.cs(19,25): error CS1751: Cannot specify a default value for a parameter collection
                 //     public void Dispose(params object[] extras = null) { } 
                 Diagnostic(ErrorCode.ERR_DefaultValueForParamsParameter, "params").WithLocation(19, 25)
             };

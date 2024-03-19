@@ -123,10 +123,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         public async Task TestPreviewServices()
         {
             using var previewWorkspace = new PreviewWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
-            var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
-            var registrationService = Assert.IsType<SolutionCrawlerRegistrationService>(service);
-            Assert.False(registrationService.Register(previewWorkspace));
-
             var persistentService = previewWorkspace.Services.SolutionServices.GetPersistentStorageService();
 
             await using var storage = await persistentService.GetStorageAsync(SolutionKey.ToSolutionKey(previewWorkspace.CurrentSolution), CancellationToken.None);

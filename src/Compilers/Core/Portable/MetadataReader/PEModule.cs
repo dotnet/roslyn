@@ -982,9 +982,14 @@ namespace Microsoft.CodeAnalysis
             return IsNoPiaLocalType(typeDef, out attributeInfo);
         }
 
-        internal bool HasParamsAttribute(EntityHandle token)
+        internal bool HasParamArrayAttribute(EntityHandle token)
         {
             return FindTargetAttribute(token, AttributeDescription.ParamArrayAttribute).HasValue;
+        }
+
+        internal bool HasParamCollectionAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.ParamCollectionAttribute).HasValue;
         }
 
         internal bool HasIsReadOnlyAttribute(EntityHandle token)

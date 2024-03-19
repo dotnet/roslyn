@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -78,21 +79,15 @@ internal partial class SolutionState
         {
             if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums))
             {
-                checksums = Compute(projectId);
+                checksums = AsyncLazy.Create(
+                    static (arg, cancellationToken) => arg.self.ComputeChecksumsAsync(arg.projectId, cancellationToken),
+                    arg: (self: this, projectId));
                 _lazyProjectChecksums.Add(projectId, checksums);
             }
         }
 
         var collection = await checksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
         return collection;
-
-        // Extracted as a local function to prevent delegate allocations when not needed.
-        AsyncLazy<SolutionStateChecksums> Compute(ProjectId projectConeId)
-        {
-            return AsyncLazy.Create(static (arg, c) =>
-                arg.self.ComputeChecksumsAsync(arg.projectConeId, c),
-                arg: (self: this, projectConeId));
-        }
     }
 
     /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
@@ -141,11 +136,18 @@ internal partial class SolutionState
                 var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(
                     this.AnalyzerReferences, this.Services.GetRequiredService<ISerializerService>(), cancellationToken);
 
-                return new SolutionStateChecksums(
+                var stateChecksums = new SolutionStateChecksums(
                     projectConeId,
                     this.SolutionAttributes.Checksum,
                     new(new ChecksumCollection(projectChecksums), projectIds),
                     analyzerReferenceChecksums);
+
+#if DEBUG
+                var projectConeTemp = projectConeId is null ? null : new ProjectCone(projectConeId, projectCone.Object.ToFrozenSet());
+                RoslynDebug.Assert(Equals(projectConeTemp, stateChecksums.ProjectCone));
+#endif
+
+                return stateChecksums;
             }
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
