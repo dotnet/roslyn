@@ -167,7 +167,8 @@ internal static partial class SyntaxGeneratorExtensions
                 // Then there is an ambiguity between the type C and the local named C.
                 // To address this, we use an expression with the fully qualified type name which the simplifier
                 // will shorten to the shortest possible without ambiguity
-                if (operation is IIsTypeOperation { TypeOperand.SpecialType: SpecialType.None } isTypeOperation &&
+                if (!syntaxFacts.IsPredefinedType(rightOperand) &&
+                    operation is IIsTypeOperation isTypeOperation &&
                     syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
                 {
                     var typeNode = generatorInternal.Type(isTypeOperation.TypeOperand, typeContext: false);
