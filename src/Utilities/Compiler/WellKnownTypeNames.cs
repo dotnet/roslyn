@@ -120,6 +120,7 @@ namespace Analyzer.Utilities
         public const string SystemAttribute = "System.Attribute";
         public const string SystemAttributeTargets = "System.AttributeTargets";
         public const string SystemAttributeUsageAttribute = "System.AttributeUsageAttribute";
+        public const string SystemBitConverter = "System.BitConverter";
         public const string SystemBoolean = "System.Boolean";
         public const string SystemBuffer = "System.Buffer";
         public const string SystemBuffersMemoryManager1 = "System.Buffers.MemoryManager`1";
