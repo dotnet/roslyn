@@ -13339,6 +13339,8 @@ done:;
         private delegate PostSkipAction SkipBadTokens<TNode>(
             LanguageParser parser, ref SyntaxToken openToken, SeparatedSyntaxListBuilder<TNode> builder, SyntaxKind expectedKind, SyntaxKind closeTokenKind) where TNode : GreenNode;
 
+#nullable enable
+
         /// <summary>
         /// Parses a comma separated list of nodes.
         /// </summary>
@@ -13387,8 +13389,6 @@ done:;
                 requireOneElement,
                 allowSemicolonAsSeparator);
         }
-
-#nullable enable
 
         private SeparatedSyntaxList<TNode> ParseCommaSeparatedSyntaxList<TNode>(
             ref SyntaxToken openToken,
