@@ -90,8 +90,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public static async Task<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(Project project, CancellationToken cancellationToken)
         {
+            if (!_enabled)
+                return [];
+
             var options = project.Solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
             var remoteHostClient = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (remoteHostClient != null)
