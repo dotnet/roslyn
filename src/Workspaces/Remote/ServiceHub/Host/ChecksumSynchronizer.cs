@@ -35,7 +35,6 @@ internal sealed partial class AssetProvider
         public async ValueTask SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             SolutionStateChecksums solutionChecksumObject;
-
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 // this will make 4 round trip to data source (VS) to get all assets that belong to the given solution checksum
