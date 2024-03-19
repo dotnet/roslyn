@@ -290,7 +290,9 @@ internal sealed partial class SolutionCompilationState
         var isModified = modifyNewTrackerInfo(newTrackerInfo, argModifyNewTrackerInfo);
 
         if (allReused && !isModified)
+        {
             return projectIdToTrackerMap;
+        }
 
         return ImmutableSegmentedDictionary.CreateRange(newTrackerInfo);
     }
