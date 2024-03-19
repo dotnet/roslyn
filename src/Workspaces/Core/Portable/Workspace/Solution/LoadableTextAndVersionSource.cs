@@ -47,7 +47,7 @@ internal sealed class LoadableTextAndVersionSource(TextLoader loader) : ITextAnd
                     if (!TryGetValue(out textAndVersion))
                     {
                         textAndVersion = LoadSynchronously(cancellationToken);
-                        UpdateWeakReference_NoLock(textAndVersion);
+                        UpdateStrongReference_NoLock(textAndVersion);
                     }
                 }
             }
@@ -64,7 +64,7 @@ internal sealed class LoadableTextAndVersionSource(TextLoader loader) : ITextAnd
                     if (!TryGetValue(out textAndVersion))
                     {
                         textAndVersion = await LoadAsync(cancellationToken).ConfigureAwait(false);
-                        UpdateWeakReference_NoLock(textAndVersion);
+                        UpdateStrongReference_NoLock(textAndVersion);
                     }
                 }
             }
@@ -72,7 +72,7 @@ internal sealed class LoadableTextAndVersionSource(TextLoader loader) : ITextAnd
             return textAndVersion;
         }
 
-        private void UpdateWeakReference_NoLock(TextAndVersion textAndVersion)
+        private void UpdateStrongReference_NoLock(TextAndVersion textAndVersion)
         {
             Contract.ThrowIfTrue(_gate.CurrentCount != 0);
 
