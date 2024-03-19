@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
@@ -456,7 +455,8 @@ End Namespace
 
                 If special = SpecialType.System_Runtime_CompilerServices_RuntimeFeature OrElse
                    special = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute OrElse
-                   special = SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute Then
+                   special = SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute OrElse
+                   special = SpecialType.System_ReadOnlySpan_T Then
                     Assert.Equal(SymbolKind.ErrorType, symbol.Kind) ' Not available
                 Else
                     Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind)
@@ -484,14 +484,19 @@ End Namespace
 
                 Dim symbol = comp.GetSpecialTypeMember(special)
 
-                If special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces OrElse
+                If special = SpecialMember.System_String__Concat_2ReadOnlySpans OrElse
+                   special = SpecialMember.System_String__Concat_3ReadOnlySpans OrElse
+                   special = SpecialMember.System_String__Concat_4ReadOnlySpans OrElse
+                   special = SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor OrElse
-                   special = SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor Then
+                   special = SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor OrElse
+                   special = SpecialMember.System_ReadOnlySpan_T__ctor_Reference Then
                     Assert.Null(symbol) ' Not available
                 Else
                     Assert.NotNull(symbol)

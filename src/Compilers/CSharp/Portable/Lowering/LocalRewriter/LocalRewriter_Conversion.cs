@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             BadExpression(node.Syntax, byteArray, ImmutableArray<BoundExpression>.Empty) :
                                             MakeUnderlyingArrayForUtf8Span(node.Syntax, byteArray, bytes, out length);
 
-            if (!TryGetWellKnownTypeMember<MethodSymbol>(node.Syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length, out MethodSymbol ctor))
+            if (!TryGetWellKnownTypeMember<MethodSymbol>(node.Syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length, out MethodSymbol? ctor))
             {
                 result = BadExpression(node.Syntax, node.Type, ImmutableArray<BoundExpression>.Empty);
             }
