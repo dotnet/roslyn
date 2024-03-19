@@ -499,6 +499,8 @@ internal interface ISyntaxFacts
     bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsMethodDeclaration([NotNullWhen(true)] SyntaxNode? node);
     bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node);
+    bool IsAnyName([NotNullWhen(true)] SyntaxNode? node);
+    bool IsAnyType([NotNullWhen(true)] SyntaxNode? node);
 
     bool IsNamedMemberInitializer([NotNullWhen(true)] SyntaxNode? node);
     bool IsElementAccessInitializer([NotNullWhen(true)] SyntaxNode? node);

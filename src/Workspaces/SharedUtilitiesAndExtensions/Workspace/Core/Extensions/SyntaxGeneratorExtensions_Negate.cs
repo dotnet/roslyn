@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -147,75 +148,76 @@ internal static partial class SyntaxGeneratorExtensions
         syntaxFacts.GetPartsOfBinaryExpression(expressionNode, out var leftOperand, out var operatorToken, out var rightOperand);
 
         var operation = semanticModel.GetOperation(expressionNode, cancellationToken);
-        if (operation is not IBinaryOperation binaryOperation)
+        if (operation is IBinaryOperation binaryOperation)
         {
-            if (syntaxFacts.IsIsTypeExpression(expressionNode))
+            if (!s_negatedBinaryMap.TryGetValue(binaryOperation.OperatorKind, out var negatedKind))
+                return generator.LogicalNotExpression(expressionNode);
+
+            // Lifted relational operators return false if either operand is null.
+            // Inverting the operator fails to invert the behavior when an operand is null.
+            if (binaryOperation.IsLifted
+                && binaryOperation.OperatorKind is BinaryOperatorKind.LessThan or
+                                                   BinaryOperatorKind.LessThanOrEqual or
+                                                   BinaryOperatorKind.GreaterThan or
+                                                   BinaryOperatorKind.GreaterThanOrEqual)
             {
-                // `is object`  ->   `is null`
-                if (syntaxFacts.IsPredefinedType(rightOperand, PredefinedType.Object) &&
-                    generatorInternal.SupportsPatterns(semanticModel.SyntaxTree.Options))
-                {
-                    return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.ConstantPattern(generator.NullLiteralExpression()));
-                }
-
-                // With a not pattern, it is possible to have an ambiguity between a type name or a local identifier.
-                // For example, if a class is named C and we have:
-                // C C = new();
-                // object O = C;
-                // if (O is not C)
-                // ...
-                // Then there is an ambiguity between the type C and the local named C.
-                // To address this, we use an expression with the fully qualified type name which the simplifier
-                // will shorten to the shortest possible without ambiguity
-                if (!syntaxFacts.IsPredefinedType(rightOperand) &&
-                    operation is IIsTypeOperation isTypeOperation &&
-                    syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
-                {
-                    var typeNode = generatorInternal.Type(isTypeOperation.TypeOperand, typeContext: false);
-                    return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.NotPattern(generatorInternal.ConstantPattern(typeNode)));
-                }
-
-                // `is y`   ->    `is not y`
-                if (syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
-                    return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.NotPattern(generatorInternal.TypePattern(rightOperand)));
+                return generator.LogicalNotExpression(expressionNode);
             }
 
-            // Apply the logical not operator if it is not a binary operation.
-            return generator.LogicalNotExpression(expressionNode);
+            if (binaryOperation.OperatorKind is BinaryOperatorKind.Or or
+                                                BinaryOperatorKind.And or
+                                                BinaryOperatorKind.ConditionalAnd or
+                                                BinaryOperatorKind.ConditionalOr)
+            {
+                leftOperand = generator.Negate(generatorInternal, leftOperand, semanticModel, cancellationToken);
+                rightOperand = generator.Negate(generatorInternal, rightOperand, semanticModel, cancellationToken);
+            }
+
+            var newBinaryExpressionSyntax = negatedKind is BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals
+                ? generatorInternal.NegateEquality(generator, expressionNode, leftOperand, negatedKind, rightOperand)
+                : NegateRelational(generator, binaryOperation, leftOperand, negatedKind, rightOperand);
+            newBinaryExpressionSyntax = newBinaryExpressionSyntax.WithTriviaFrom(expressionNode);
+
+            var newToken = syntaxFacts.GetOperatorTokenOfBinaryExpression(newBinaryExpressionSyntax);
+            return newBinaryExpressionSyntax.ReplaceToken(
+                newToken,
+                newToken.WithTriviaFrom(operatorToken));
         }
-
-        if (!s_negatedBinaryMap.TryGetValue(binaryOperation.OperatorKind, out var negatedKind))
-            return generator.LogicalNotExpression(expressionNode);
-
-        // Lifted relational operators return false if either operand is null.
-        // Inverting the operator fails to invert the behavior when an operand is null.
-        if (binaryOperation.IsLifted
-            && binaryOperation.OperatorKind is BinaryOperatorKind.LessThan or
-                                               BinaryOperatorKind.LessThanOrEqual or
-                                               BinaryOperatorKind.GreaterThan or
-                                               BinaryOperatorKind.GreaterThanOrEqual)
+        else if (operation is IIsTypeOperation isTypeOperation && generatorInternal.SupportsPatterns(semanticModel.SyntaxTree.Options))
         {
-            return generator.LogicalNotExpression(expressionNode);
+            // `is object`  ->   `is null`
+            if (isTypeOperation.TypeOperand.SpecialType is SpecialType.System_Object)
+                return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.ConstantPattern(generator.NullLiteralExpression().WithTriviaFrom(rightOperand)));
+
+            // `is y`   ->    `is not y`
+            if (syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
+            {
+                SyntaxNode innerPattern;
+                if (syntaxFacts.IsAnyName(rightOperand))
+                {
+                    // For named types, we need to convert to a constant expression (where the named type becomes a member
+                    // access expression).  For other types (predefined, arrays, etc) we can keep this as a type pattern.
+                    // For example: `x is int` can just become `x is not int` where that's a type pattern.  But `x is Y`
+                    // will need to become `x is not Y` where that's a constant pattern instead.
+                    var typeExpression = generatorInternal.Type(isTypeOperation.TypeOperand, typeContext: false);
+                    innerPattern = syntaxFacts.IsAnyType(typeExpression) && !syntaxFacts.IsAnyName(typeExpression)
+                        ? generatorInternal.TypePattern(typeExpression)
+                        : generatorInternal.ConstantPattern(typeExpression);
+                }
+                else
+                {
+                    // original form was already not a name (like a predefined type, or array type, etc.).  Can just
+                    // use as is as a type pattern.
+                    Debug.Assert(syntaxFacts.IsAnyType(rightOperand));
+                    innerPattern = generatorInternal.TypePattern(rightOperand);
+                }
+
+                return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.NotPattern(innerPattern.WithTriviaFrom(rightOperand)));
+            }
         }
 
-        if (binaryOperation.OperatorKind is BinaryOperatorKind.Or or
-                                            BinaryOperatorKind.And or
-                                            BinaryOperatorKind.ConditionalAnd or
-                                            BinaryOperatorKind.ConditionalOr)
-        {
-            leftOperand = generator.Negate(generatorInternal, leftOperand, semanticModel, cancellationToken);
-            rightOperand = generator.Negate(generatorInternal, rightOperand, semanticModel, cancellationToken);
-        }
-
-        var newBinaryExpressionSyntax = negatedKind is BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals
-            ? generatorInternal.NegateEquality(generator, expressionNode, leftOperand, negatedKind, rightOperand)
-            : NegateRelational(generator, binaryOperation, leftOperand, negatedKind, rightOperand);
-        newBinaryExpressionSyntax = newBinaryExpressionSyntax.WithTriviaFrom(expressionNode);
-
-        var newToken = syntaxFacts.GetOperatorTokenOfBinaryExpression(newBinaryExpressionSyntax);
-        return newBinaryExpressionSyntax.ReplaceToken(
-            newToken,
-            newToken.WithTriviaFrom(operatorToken));
+        // Apply the logical not operator if it is not a binary operation and also doesn't support patterns.
+        return generator.LogicalNotExpression(expressionNode);
     }
 
     private static SyntaxNode GetNegationOfBinaryPattern(
