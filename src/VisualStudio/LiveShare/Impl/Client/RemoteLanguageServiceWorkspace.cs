@@ -80,7 +80,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             OpenTextBufferProvider openTextBufferProvider,
             IVsFolderWorkspaceService vsFolderWorkspaceService,
             SVsServiceProvider serviceProvider,
-            IDiagnosticService diagnosticService,
             ITableManagerProvider tableManagerProvider,
             IThreadingContext threadingContext)
             : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.CloudEnvironmentClientWorkspace)

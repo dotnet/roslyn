@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class BatchNode<TInput> : IIncrementalGeneratorNode<ImmutableArray<TInput>>
     {
+        private static readonly string? s_tableType = typeof(ImmutableArray<TInput>).FullName;
+
         private readonly IIncrementalGeneratorNode<TInput> _sourceNode;
         private readonly IEqualityComparer<ImmutableArray<TInput>> _comparer;
         private readonly string? _name;
@@ -141,7 +143,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var newTable = tableBuilder.ToImmutableAndFree();
-            this.LogTables(_name, previousTable, newTable, sourceTable);
+            this.LogTables(_name, s_tableType, previousTable, newTable, sourceTable);
             return newTable;
         }
 

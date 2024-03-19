@@ -32,7 +32,18 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The default implementation is to simply load in place.
         /// </summary>
-        protected override string PreparePathToLoad(string fullPath, ImmutableHashSet<string> satelliteCultureNames) => fullPath;
+        protected override string PreparePathToLoad(string fullPath) => fullPath;
+
+        /// <summary>
+        /// The default implementation is to simply load in place.
+        /// </summary>
+        protected override string PrepareSatelliteAssemblyToLoad(string assemblyFilePath, string cultureName)
+        {
+            var directory = Path.GetDirectoryName(assemblyFilePath)!;
+            var fileName = GetSatelliteFileName(Path.GetFileName(assemblyFilePath));
+
+            return Path.Combine(directory, cultureName, fileName);
+        }
 
         /// <summary>
         /// Return an <see cref="IAnalyzerAssemblyLoader"/> which does not lock assemblies on disk that is
