@@ -7882,7 +7882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var members = ArrayBuilder<Symbol>.GetInstance();
-                Symbol symbol = binder.GetSymbolOrMethodOrPropertyGroupStrict(lookupResult, expression, memberName, arity, members, diagnostics, qualifierOpt: null);
+                Symbol? symbol = binder.GetSymbolOrMethodOrPropertyGroupStrict(lookupResult, expression, memberName, arity, members, diagnostics, qualifierOpt: null);
                 if (symbol is not null)
                 {
                     lookupResult.Free();
@@ -8478,7 +8478,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// It is "strict" in the sense that if the members in the result have different kinds,
         /// an error result is always returned.
         /// </summary>
-        private Symbol? GetSymbolOrMethodOrPropertyGroupStrict(LookupResult result, SyntaxNode node, string plainName, int arity, ArrayBuilder<Symbol> methodOrPropertyGroup, BindingDiagnosticBag diagnostics, NamespaceOrTypeSymbol qualifierOpt)
+        private Symbol? GetSymbolOrMethodOrPropertyGroupStrict(LookupResult result, SyntaxNode node, string plainName, int arity,
+            ArrayBuilder<Symbol> methodOrPropertyGroup, BindingDiagnosticBag diagnostics, NamespaceOrTypeSymbol? qualifierOpt)
         {
             Debug.Assert(!methodOrPropertyGroup.Any());
 
