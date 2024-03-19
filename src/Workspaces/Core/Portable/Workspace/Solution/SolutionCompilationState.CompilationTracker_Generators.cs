@@ -339,7 +339,13 @@ internal partial class SolutionCompilationState
 
             // If we didn't null out this compilation, it means we can actually use it
             if (compilationWithStaleGeneratedTrees != null)
-                return (compilationWithStaleGeneratedTrees, oldGeneratedDocuments, generatorDriver);
+            {
+                // If there are no generated documents though, then just use the compilationWithoutGeneratedFiles so we
+                // only hold onto that single compilation from this point on.
+                return oldGeneratedDocuments.Count == 0
+                    ? (compilationWithoutGeneratedFiles, oldGeneratedDocuments, generatorDriver)
+                    : (compilationWithStaleGeneratedTrees, oldGeneratedDocuments, generatorDriver);
+            }
 
             // We produced new documents, so time to create new state for it
             var newGeneratedDocuments = new TextDocumentStates<SourceGeneratedDocumentState>(generatedDocumentsBuilder.ToImmutableAndClear());
