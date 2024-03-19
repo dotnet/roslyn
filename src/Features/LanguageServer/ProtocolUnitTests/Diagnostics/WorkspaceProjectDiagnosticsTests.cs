@@ -37,9 +37,7 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
-        Assert.Null(results2[0].Diagnostics);
-        Assert.Null(results2[1].Diagnostics);
-        Assert.Equal(results[1].ResultId, results2[1].ResultId);
+        Assert.Empty(results2);
     }
 
     [Theory, CombinatorialData]
