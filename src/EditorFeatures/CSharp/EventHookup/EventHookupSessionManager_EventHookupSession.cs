@@ -146,7 +146,7 @@ internal sealed partial class EventHookupSessionManager
 
         public (Task<string?> eventNameTask, CancellationTokenSource cancellationTokenSource) DetachEventNameTask()
         {
-            _threadingContext.ThrowIfNotOnBackgroundThread();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             Contract.ThrowIfNull(_eventNameTask);
             Contract.ThrowIfNull(_cancellationTokenSource);
