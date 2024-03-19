@@ -1071,6 +1071,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return true;
                 }
 
+                if (argument.expression is InterpolatedStringExpressionSyntax { StringStartToken.Kind: SyntaxKind.InterpolatedStringStartToken, StringEndToken.IsMissing: true })
+                    return true;
+
                 return false;
             }
         }

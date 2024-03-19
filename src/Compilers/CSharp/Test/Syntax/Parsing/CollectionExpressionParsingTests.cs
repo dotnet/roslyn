@@ -18546,4 +18546,1474 @@ class C
         }
         EOF();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72557")]
+    public void TestIncompleteString3()
+    {
+        UsingTree("""
+            namespace Hl7.Fhir.Model
+            {
+              [Serializable]
+              [DataContract]
+              [FhirType("Bundle","http://hl7.org/fhir/StructureDefinition/Bundle", IsResource=true)]
+              public partial class Bundle : Hl7.Fhir.Model.Resource
+              {
+                public override string TypeName { get { return "Bundle"; } }
+                [FhirEnumeration("BundleType")]
+                public enum BundleType
+                {
+                  [EnumLiteral("archives", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"Refers to a collection of records, documents, or other
+                  materials of historical interest.")]
+                  Archives,
+                  [EnumLiteral("author", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"Refers to the context's author.")]
+                  Author,
+                  [EnumLiteral("blocked-by", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"
+                  following receipt of a legal demand.")]
+                  BlockedBy,
+                  [EnumLiteral("bookmark", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"Gives a permanent link to use for bookmarking purposes.")]
+                  Bookmark,
+                  [EnumLiteral("canonical", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"Designates the preferred version of a resource (the IRI and its contents).")]
+                  Canonical,
+                }
+              }
+            }
+            """,
+            // (12,154): error CS1039: Unterminated string literal
+            //       [EnumLiteral("archives", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"Refers to a collection of records, documents, or other
+            Diagnostic(ErrorCode.ERR_UnterminatedStringLit, "r").WithLocation(12, 154),
+            // (12,155): error CS1026: ) expected
+            //       [EnumLiteral("archives", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"Refers to a collection of records, documents, or other
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(12, 155),
+            // (12,155): error CS1003: Syntax error, ',' expected
+            //       [EnumLiteral("archives", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"Refers to a collection of records, documents, or other
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(12, 155),
+            // (13,17): error CS1003: Syntax error, ',' expected
+            //       materials of historical interest.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "of").WithArguments(",").WithLocation(13, 17),
+            // (13,20): error CS1003: Syntax error, ',' expected
+            //       materials of historical interest.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "historical").WithArguments(",").WithLocation(13, 20),
+            // (13,31): error CS1003: Syntax error, ',' expected
+            //       materials of historical interest.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "interest").WithArguments(",").WithLocation(13, 31),
+            // (13,40): error CS1001: Identifier expected
+            //       materials of historical interest.")]
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, @""")]").WithLocation(13, 40),
+            // (13,40): error CS1010: Newline in constant
+            //       materials of historical interest.")]
+            Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(13, 40),
+            // (13,43): error CS1003: Syntax error, ',' expected
+            //       materials of historical interest.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(13, 43),
+            // (14,16): error CS1003: Syntax error, ']' expected
+            //       Archives,
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(14, 16),
+            // (17,102): error CS1039: Unterminated string literal
+            //       [EnumLiteral("blocked-by", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"
+            Diagnostic(ErrorCode.ERR_UnterminatedStringLit, @"""").WithLocation(17, 102),
+            // (17,103): error CS1026: ) expected
+            //       [EnumLiteral("blocked-by", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(17, 103),
+            // (17,103): error CS1003: Syntax error, ',' expected
+            //       [EnumLiteral("blocked-by", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(17, 103),
+            // (18,17): error CS1003: Syntax error, ',' expected
+            //       following receipt of a legal demand.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "receipt").WithArguments(",").WithLocation(18, 17),
+            // (18,25): error CS1003: Syntax error, ',' expected
+            //       following receipt of a legal demand.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "of").WithArguments(",").WithLocation(18, 25),
+            // (18,28): error CS1003: Syntax error, ',' expected
+            //       following receipt of a legal demand.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments(",").WithLocation(18, 28),
+            // (18,30): error CS1003: Syntax error, ',' expected
+            //       following receipt of a legal demand.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "legal").WithArguments(",").WithLocation(18, 30),
+            // (18,36): error CS1003: Syntax error, ',' expected
+            //       following receipt of a legal demand.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "demand").WithArguments(",").WithLocation(18, 36),
+            // (18,43): error CS1001: Identifier expected
+            //       following receipt of a legal demand.")]
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, @""")]").WithLocation(18, 43),
+            // (18,43): error CS1010: Newline in constant
+            //       following receipt of a legal demand.")]
+            Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(18, 43),
+            // (18,46): error CS1003: Syntax error, ',' expected
+            //       following receipt of a legal demand.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(18, 46),
+            // (19,17): error CS1003: Syntax error, ']' expected
+            //       BlockedBy,
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(19, 17));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.NamespaceDeclaration);
+            {
+                N(SyntaxKind.NamespaceKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Hl7");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Fhir");
+                        }
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Model");
+                    }
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Serializable");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "DataContract");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "FhirType");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"Bundle\"");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"http://hl7.org/fhir/StructureDefinition/Bundle\"");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.NameEquals);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "IsResource");
+                                        }
+                                        N(SyntaxKind.EqualsToken);
+                                    }
+                                    N(SyntaxKind.TrueLiteralExpression);
+                                    {
+                                        N(SyntaxKind.TrueKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Bundle");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.QualifiedName);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Hl7");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Fhir");
+                                        }
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Model");
+                                    }
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Resource");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.OverrideKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "TypeName");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.GetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.GetKeyword);
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.ReturnStatement);
+                                    {
+                                        N(SyntaxKind.ReturnKeyword);
+                                        N(SyntaxKind.StringLiteralExpression);
+                                        {
+                                            N(SyntaxKind.StringLiteralToken, "\"Bundle\"");
+                                        }
+                                        N(SyntaxKind.SemicolonToken);
+                                    }
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.EnumDeclaration);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Attribute);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "FhirEnumeration");
+                                }
+                                N(SyntaxKind.AttributeArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.AttributeArgument);
+                                    {
+                                        N(SyntaxKind.StringLiteralExpression);
+                                        {
+                                            N(SyntaxKind.StringLiteralToken, "\"BundleType\"");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.EnumKeyword);
+                        N(SyntaxKind.IdentifierToken, "BundleType");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.EnumMemberDeclaration);
+                        {
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "EnumLiteral");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"archives\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"http://hl7.org/fhir/CodeSystem/iana-link-relations\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Description");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.InterpolatedStringExpression);
+                                            {
+                                                N(SyntaxKind.InterpolatedStringStartToken);
+                                                N(SyntaxKind.InterpolatedStringText);
+                                                {
+                                                    N(SyntaxKind.InterpolatedStringTextToken);
+                                                }
+                                                M(SyntaxKind.InterpolatedStringEndToken);
+                                            }
+                                        }
+                                        M(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "materials");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "of");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "historical");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "interest");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Archives");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                M(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "EnumLiteral");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"author\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"http://hl7.org/fhir/CodeSystem/iana-link-relations\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Description");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.InterpolatedStringExpression);
+                                            {
+                                                N(SyntaxKind.InterpolatedStringStartToken);
+                                                N(SyntaxKind.InterpolatedStringText);
+                                                {
+                                                    N(SyntaxKind.InterpolatedStringTextToken);
+                                                }
+                                                N(SyntaxKind.InterpolatedStringEndToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Author");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.EnumMemberDeclaration);
+                        {
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "EnumLiteral");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"blocked-by\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"http://hl7.org/fhir/CodeSystem/iana-link-relations\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Description");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.InterpolatedStringExpression);
+                                            {
+                                                N(SyntaxKind.InterpolatedStringStartToken);
+                                                M(SyntaxKind.InterpolatedStringEndToken);
+                                            }
+                                        }
+                                        M(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "following");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "receipt");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "of");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "a");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "legal");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "demand");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "BlockedBy");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                M(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "EnumLiteral");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"bookmark\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"http://hl7.org/fhir/CodeSystem/iana-link-relations\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Description");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.InterpolatedStringExpression);
+                                            {
+                                                N(SyntaxKind.InterpolatedStringStartToken);
+                                                N(SyntaxKind.InterpolatedStringText);
+                                                {
+                                                    N(SyntaxKind.InterpolatedStringTextToken);
+                                                }
+                                                N(SyntaxKind.InterpolatedStringEndToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Bookmark");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.EnumMemberDeclaration);
+                        {
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "EnumLiteral");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"canonical\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"http://hl7.org/fhir/CodeSystem/iana-link-relations\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Description");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.InterpolatedStringExpression);
+                                            {
+                                                N(SyntaxKind.InterpolatedStringStartToken);
+                                                N(SyntaxKind.InterpolatedStringText);
+                                                {
+                                                    N(SyntaxKind.InterpolatedStringTextToken);
+                                                }
+                                                N(SyntaxKind.InterpolatedStringEndToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Canonical");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72557")]
+    public void TestIncompleteString4()
+    {
+        UsingTree("""
+            namespace Hl7.Fhir.Model
+            {
+              [Serializable]
+              [DataContract]
+              [FhirType("Bundle","http://hl7.org/fhir/StructureDefinition/Bundle", IsResource=true)]
+              public partial class Bundle : Hl7.Fhir.Model.Resource
+              {
+                public override string TypeName { get { return "Bundle"; } }
+                [FhirEnumeration("BundleType")]
+                public enum BundleType
+                {
+                  [EnumLiteral("archives", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"X", $"Refers to a collection of records, documents, or other
+                  materials of historical interest.")]
+                  Archives,
+                  [EnumLiteral("author", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"Refers to the context's author.")]
+                  Author,
+                  [EnumLiteral("blocked-by", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"X", $"
+                  following receipt of a legal demand.")]
+                  BlockedBy,
+                  [EnumLiteral("bookmark", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"Gives a permanent link to use for bookmarking purposes.")]
+                  Bookmark,
+                  [EnumLiteral("canonical", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"Designates the preferred version of a resource (the IRI and its contents).")]
+                  Canonical,
+                }
+              }
+            }
+            """,
+            // (12,160): error CS1039: Unterminated string literal
+                //       [EnumLiteral("archives", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"X", $"Refers to a collection of records, documents, or other
+            Diagnostic(ErrorCode.ERR_UnterminatedStringLit, "r").WithLocation(12, 160),
+            // (12,161): error CS1026: ) expected
+            //       [EnumLiteral("archives", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"X", $"Refers to a collection of records, documents, or other
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(12, 161),
+            // (12,161): error CS1003: Syntax error, ',' expected
+            //       [EnumLiteral("archives", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"X", $"Refers to a collection of records, documents, or other
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(12, 161),
+            // (13,17): error CS1003: Syntax error, ',' expected
+            //       materials of historical interest.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "of").WithArguments(",").WithLocation(13, 17),
+            // (13,20): error CS1003: Syntax error, ',' expected
+            //       materials of historical interest.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "historical").WithArguments(",").WithLocation(13, 20),
+            // (13,31): error CS1003: Syntax error, ',' expected
+            //       materials of historical interest.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "interest").WithArguments(",").WithLocation(13, 31),
+            // (13,40): error CS1001: Identifier expected
+            //       materials of historical interest.")]
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, @""")]").WithLocation(13, 40),
+            // (13,40): error CS1010: Newline in constant
+            //       materials of historical interest.")]
+            Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(13, 40),
+            // (13,43): error CS1003: Syntax error, ',' expected
+            //       materials of historical interest.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(13, 43),
+            // (14,16): error CS1003: Syntax error, ']' expected
+            //       Archives,
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(14, 16),
+            // (17,108): error CS1039: Unterminated string literal
+            //       [EnumLiteral("blocked-by", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"X", $"
+            Diagnostic(ErrorCode.ERR_UnterminatedStringLit, @"""").WithLocation(17, 108),
+            // (17,109): error CS1026: ) expected
+            //       [EnumLiteral("blocked-by", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"X", $"
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(17, 109),
+            // (17,109): error CS1003: Syntax error, ',' expected
+            //       [EnumLiteral("blocked-by", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"X", $"
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(17, 109),
+            // (18,17): error CS1003: Syntax error, ',' expected
+            //       following receipt of a legal demand.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "receipt").WithArguments(",").WithLocation(18, 17),
+            // (18,25): error CS1003: Syntax error, ',' expected
+            //       following receipt of a legal demand.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "of").WithArguments(",").WithLocation(18, 25),
+            // (18,28): error CS1003: Syntax error, ',' expected
+            //       following receipt of a legal demand.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments(",").WithLocation(18, 28),
+            // (18,30): error CS1003: Syntax error, ',' expected
+            //       following receipt of a legal demand.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "legal").WithArguments(",").WithLocation(18, 30),
+            // (18,36): error CS1003: Syntax error, ',' expected
+            //       following receipt of a legal demand.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "demand").WithArguments(",").WithLocation(18, 36),
+            // (18,43): error CS1001: Identifier expected
+            //       following receipt of a legal demand.")]
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, @""")]").WithLocation(18, 43),
+            // (18,43): error CS1010: Newline in constant
+            //       following receipt of a legal demand.")]
+            Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(18, 43),
+            // (18,46): error CS1003: Syntax error, ',' expected
+            //       following receipt of a legal demand.")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(18, 46),
+            // (19,17): error CS1003: Syntax error, ']' expected
+            //       BlockedBy,
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(19, 17));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.NamespaceDeclaration);
+            {
+                N(SyntaxKind.NamespaceKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Hl7");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Fhir");
+                        }
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Model");
+                    }
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Serializable");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "DataContract");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "FhirType");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"Bundle\"");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"http://hl7.org/fhir/StructureDefinition/Bundle\"");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.NameEquals);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "IsResource");
+                                        }
+                                        N(SyntaxKind.EqualsToken);
+                                    }
+                                    N(SyntaxKind.TrueLiteralExpression);
+                                    {
+                                        N(SyntaxKind.TrueKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Bundle");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.QualifiedName);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Hl7");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Fhir");
+                                        }
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Model");
+                                    }
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Resource");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.OverrideKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "TypeName");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.GetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.GetKeyword);
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.ReturnStatement);
+                                    {
+                                        N(SyntaxKind.ReturnKeyword);
+                                        N(SyntaxKind.StringLiteralExpression);
+                                        {
+                                            N(SyntaxKind.StringLiteralToken, "\"Bundle\"");
+                                        }
+                                        N(SyntaxKind.SemicolonToken);
+                                    }
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.EnumDeclaration);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Attribute);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "FhirEnumeration");
+                                }
+                                N(SyntaxKind.AttributeArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.AttributeArgument);
+                                    {
+                                        N(SyntaxKind.StringLiteralExpression);
+                                        {
+                                            N(SyntaxKind.StringLiteralToken, "\"BundleType\"");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.EnumKeyword);
+                        N(SyntaxKind.IdentifierToken, "BundleType");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.EnumMemberDeclaration);
+                        {
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "EnumLiteral");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"archives\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"http://hl7.org/fhir/CodeSystem/iana-link-relations\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Description");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.InterpolatedStringExpression);
+                                            {
+                                                N(SyntaxKind.InterpolatedStringStartToken);
+                                                N(SyntaxKind.InterpolatedStringText);
+                                                {
+                                                    N(SyntaxKind.InterpolatedStringTextToken);
+                                                }
+                                                N(SyntaxKind.InterpolatedStringEndToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.InterpolatedStringExpression);
+                                            {
+                                                N(SyntaxKind.InterpolatedStringStartToken);
+                                                N(SyntaxKind.InterpolatedStringText);
+                                                {
+                                                    N(SyntaxKind.InterpolatedStringTextToken);
+                                                }
+                                                M(SyntaxKind.InterpolatedStringEndToken);
+                                            }
+                                        }
+                                        M(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "materials");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "of");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "historical");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "interest");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Archives");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                M(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "EnumLiteral");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"author\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"http://hl7.org/fhir/CodeSystem/iana-link-relations\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Description");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.InterpolatedStringExpression);
+                                            {
+                                                N(SyntaxKind.InterpolatedStringStartToken);
+                                                N(SyntaxKind.InterpolatedStringText);
+                                                {
+                                                    N(SyntaxKind.InterpolatedStringTextToken);
+                                                }
+                                                N(SyntaxKind.InterpolatedStringEndToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Author");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.EnumMemberDeclaration);
+                        {
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "EnumLiteral");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"blocked-by\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"http://hl7.org/fhir/CodeSystem/iana-link-relations\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Description");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.InterpolatedStringExpression);
+                                            {
+                                                N(SyntaxKind.InterpolatedStringStartToken);
+                                                N(SyntaxKind.InterpolatedStringText);
+                                                {
+                                                    N(SyntaxKind.InterpolatedStringTextToken);
+                                                }
+                                                N(SyntaxKind.InterpolatedStringEndToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.InterpolatedStringExpression);
+                                            {
+                                                N(SyntaxKind.InterpolatedStringStartToken);
+                                                M(SyntaxKind.InterpolatedStringEndToken);
+                                            }
+                                        }
+                                        M(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "following");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "receipt");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "of");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "a");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "legal");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "demand");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "BlockedBy");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                M(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "EnumLiteral");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"bookmark\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"http://hl7.org/fhir/CodeSystem/iana-link-relations\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Description");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.InterpolatedStringExpression);
+                                            {
+                                                N(SyntaxKind.InterpolatedStringStartToken);
+                                                N(SyntaxKind.InterpolatedStringText);
+                                                {
+                                                    N(SyntaxKind.InterpolatedStringTextToken);
+                                                }
+                                                N(SyntaxKind.InterpolatedStringEndToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Bookmark");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.EnumMemberDeclaration);
+                        {
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "EnumLiteral");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"canonical\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.StringLiteralExpression);
+                                            {
+                                                N(SyntaxKind.StringLiteralToken, "\"http://hl7.org/fhir/CodeSystem/iana-link-relations\"");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Description");
+                                    }
+                                    N(SyntaxKind.AttributeArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.AttributeArgument);
+                                        {
+                                            N(SyntaxKind.InterpolatedStringExpression);
+                                            {
+                                                N(SyntaxKind.InterpolatedStringStartToken);
+                                                N(SyntaxKind.InterpolatedStringText);
+                                                {
+                                                    N(SyntaxKind.InterpolatedStringTextToken);
+                                                }
+                                                N(SyntaxKind.InterpolatedStringEndToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Canonical");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
 }
