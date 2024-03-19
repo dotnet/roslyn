@@ -187,7 +187,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         }
     }
 
-    private async Task<ImmutableArray<object>> RequestAssetsAsync(
+    private async ValueTask<ImmutableArray<object>> RequestAssetsAsync(
         AssetHint assetHint, ReadOnlyMemory<Checksum> checksums, CancellationToken cancellationToken)
     {
 #if NETCOREAPP
