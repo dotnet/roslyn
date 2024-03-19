@@ -1403,13 +1403,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // error CS0121: The call is ambiguous between the following methods or properties: 'P.W(A)' and 'P.W(B)'
-                diagnostics.Add(
-                    CreateAmbiguousCallDiagnosticInfo(
-                        worseResult1.LeastOverriddenMember.OriginalDefinition,
-                        worseResult2.LeastOverriddenMember.OriginalDefinition,
-                        symbols),
-                    location);
+                if (ReferenceEquals(worseResult1.LeastOverriddenMember.OriginalDefinition, worseResult2.LeastOverriddenMember.OriginalDefinition) &&
+                    worseResult1.LeastOverriddenMember.ContainingType.IsExtension) // PROTOTYPE consider using the improved diagnostic for scenarios beyond extensions
+                {
+                    // error CS0121: The call is ambiguous between the following methods or properties: 'P.W(A)' and 'P.W(B)'
+                    diagnostics.Add(
+                        CreateAmbiguousCallDiagnosticInfo(
+                            worseResult1.LeastOverriddenMember,
+                            worseResult2.LeastOverriddenMember,
+                            symbols),
+                        location);
+                }
+                else
+                {
+                    // error CS0121: The call is ambiguous between the following methods or properties: 'P.W(A)' and 'P.W(B)'
+                    diagnostics.Add(
+                        CreateAmbiguousCallDiagnosticInfo(
+                            worseResult1.LeastOverriddenMember.OriginalDefinition,
+                            worseResult2.LeastOverriddenMember.OriginalDefinition,
+                            symbols),
+                        location);
+                }
             }
 
             return true;

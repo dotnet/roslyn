@@ -8472,12 +8472,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ResultSymbol(result, plainName, arity, node, diagnostics, false, out wasError, qualifierOpt);
         }
 
+#nullable enable
         /// <summary>
         /// Interprets a LookupResult as either a singular symbol or a method/property group.
         /// It is "strict" in the sense that if the members in the result have different kinds,
         /// an error result is always returned.
         /// </summary>
-        private Symbol GetSymbolOrMethodOrPropertyGroupStrict(LookupResult result, SyntaxNode node, string plainName, int arity, ArrayBuilder<Symbol> methodOrPropertyGroup, BindingDiagnosticBag diagnostics, NamespaceOrTypeSymbol qualifierOpt)
+        private Symbol? GetSymbolOrMethodOrPropertyGroupStrict(LookupResult result, SyntaxNode node, string plainName, int arity, ArrayBuilder<Symbol> methodOrPropertyGroup, BindingDiagnosticBag diagnostics, NamespaceOrTypeSymbol qualifierOpt)
         {
             Debug.Assert(!methodOrPropertyGroup.Any());
 
@@ -8487,10 +8488,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!result.Symbols.Any(s => s.IsIndexer()));
 
             SymbolKind kind = result.Symbols[0].Kind;
-            if (!result.Symbols.All(s => s.Kind == kind))
+            foreach (var symbol in result.Symbols)
             {
-                // ambiguous
-                return ResultSymbol(result, plainName, arity, node, diagnostics, false, wasError: out _, qualifierOpt);
+                if (symbol.Kind != kind)
+                {
+                    // ambiguous
+                    return ResultSymbol(result, plainName, arity, node, diagnostics, false, wasError: out _, qualifierOpt);
+                }
             }
 
             if (kind is SymbolKind.Method or SymbolKind.Property
@@ -8502,6 +8506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return ResultSymbol(result, plainName, arity, node, diagnostics, false, wasError: out _, qualifierOpt);
         }
+#nullable disable
 
         private static bool IsMethodOrPropertyGroup(ArrayBuilder<Symbol> members)
         {

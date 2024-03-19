@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Sort extensions from more specific to less specific
             var tempUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
-            compatibleExtensions.Sort((x, y) => isLessSpecificExtension(x, y) ? -1 : 1); // Note: captures tempUseSiteInfo
+            compatibleExtensions.Sort((x, y) => isMoreSpecificExtension(x, y) ? -1 : 1); // Note: captures tempUseSiteInfo
             useSiteInfo.MergeAndClear(ref tempUseSiteInfo);
 
             // PROTOTYPE test use-site diagnostics
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool isLessSpecificExtension(NamedTypeSymbol extension, NamedTypeSymbol other)
+            bool isMoreSpecificExtension(NamedTypeSymbol extension, NamedTypeSymbol other)
             {
                 if (extension.ExtendedTypeNoUseSiteDiagnostics is not { } extendedType
                     || other.ExtendedTypeNoUseSiteDiagnostics is not { } otherExtendedType)
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE(static) revise if we allow extension lookup on type parameters
                 Debug.Assert(!extendedType.IsTypeParameter());
                 Debug.Assert(!otherExtendedType.IsTypeParameter());
-                return DerivesOrImplements(otherExtendedType, extendedType, null, this.Compilation, ref tempUseSiteInfo);
+                return DerivesOrImplements(baseTypeOrImplementedInterface: otherExtendedType, derivedType: extendedType, null, this.Compilation, ref tempUseSiteInfo);
             }
         }
 #nullable disable

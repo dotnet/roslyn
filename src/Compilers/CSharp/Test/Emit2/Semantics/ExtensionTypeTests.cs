@@ -29731,10 +29731,10 @@ implicit extension E<T> for I<T>
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E<T>.M()' and 'E<T>.M()'
+        comp.VerifyEmitDiagnostics(
+            // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E<string>.M()' and 'E<int>.M()'
             // var x = C.M;
-            Diagnostic(ErrorCode.ERR_AmbigCall, "C.M").WithArguments("E<T>.M()", "E<T>.M()").WithLocation(1, 9));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "C.M").WithArguments("E<string>.M()", "E<int>.M()").WithLocation(1, 9));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -29743,6 +29743,57 @@ implicit extension E<T> for I<T>
         // PROTOTYPE need to fix the semantic model
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
+    [Fact]
+    public void PreferMoreSpecific_Static_MethodAndMethod_OnInterface_TwoSubstitutions_Invocation()
+    {
+        var src = """
+C.M();
+
+interface I<T> { }
+class C : I<int>, I<string> { }
+
+implicit extension E<T> for I<T>
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,3): error CS0121: The call is ambiguous between the following methods or properties: 'E<string>.M()' and 'E<int>.M()'
+            // C.M();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E<string>.M()", "E<int>.M()").WithLocation(1, 3));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+
+        Assert.Equal(["void E<System.String>.M()", "void E<System.Int32>.M()"],
+            model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void AmbiguousCallOnInterface()
+    {
+        var src = """
+I2.M();
+
+interface I<T>
+{
+    public static void M() { }
+}
+
+interface I2 : I<int>, I<string> { }
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,4): error CS0121: The call is ambiguous between the following methods or properties: 'I<T>.M()' and 'I<T>.M()'
+            // I2.M();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("I<T>.M()", "I<T>.M()").WithLocation(1, 4));
     }
 
     [Fact]
@@ -30713,6 +30764,7 @@ implicit extension E2 for {{(order ? "C" : "object")}}
 #nullable enable
 
 System.Console.Write(Derived<string?>.M());
+System.Console.Write(Derived<string>.M());
 
 class Base<T> { }
 class Derived<T> : Base<T>  { }
@@ -30724,18 +30776,61 @@ implicit extension E1 for Base<string>
 
 implicit extension E2 for Derived<string?>
 {
-    public static System.Func<string> M = () => "ran";
+    public static System.Func<string> M = () => "ran ";
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Derived<string?>.M");
-        Assert.Equal("System.Func<System.String> E2.M", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Empty(model.GetMemberGroup(memberAccess));
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "Derived<string?>.M");
+        Assert.Equal("System.Func<System.String> E2.M", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess1).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess1));
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "Derived<string>.M");
+        Assert.Equal("System.Func<System.String> E2.M", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess2));
+    }
+
+    [Fact]
+    public void PreferMoreSpecific_Static_NullabilityDifferences_InBaseType_ReverseNullability()
+    {
+        var src = $$"""
+#nullable enable
+
+System.Console.Write(Derived<string?>.M());
+System.Console.Write(Derived<string>.M());
+
+class Base<T> { }
+class Derived<T> : Base<T>  { }
+
+implicit extension E1 for Base<string?>
+{
+    public static System.Func<string>? M = null;
+}
+
+implicit extension E2 for Derived<string>
+{
+    public static System.Func<string> M = () => "ran ";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "Derived<string?>.M");
+        Assert.Equal("System.Func<System.String> E2.M", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess1).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess1));
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "Derived<string>.M");
+        Assert.Equal("System.Func<System.String> E2.M", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess2));
     }
 
     [Fact]
@@ -30773,6 +30868,7 @@ implicit extension E2 for Derived<object>
     {
         var src = $$"""
 #nullable enable
+C.Method();
 
 class C : Derived<string?>.M { }
 
@@ -30781,16 +30877,16 @@ class Derived<T> : Base<T>  { }
 
 implicit extension E1 for Base<string>
 {
-    public class M { }
+    public class M { public static void Method() => throw null!; }
 }
 
 implicit extension E2 for Derived<string?>
 {
-    public class M { }
+    public class M { public static void Method() { System.Console.Write("ran"); } }
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30804,6 +30900,7 @@ implicit extension E2 for Derived<string?>
     public void PreferMoreSpecific_Static_DynamicDifferences_InTypeContext()
     {
         var src = $$"""
+C.Method();
 class C : Derived<dynamic>.M { }
 
 class Base<T> { }
@@ -30811,16 +30908,16 @@ class Derived<T> : Base<T>  { }
 
 implicit extension E1 for Base<dynamic>
 {
-    public class M { }
+    public class M { public static void Method() => throw null; }
 }
 
 implicit extension E2 for Derived<object>
 {
-    public class M { }
+    public class M { public static void Method() { System.Console.Write("ran"); } }
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30837,6 +30934,7 @@ implicit extension E2 for Derived<object>
 #nullable enable
 
 System.Console.Write(IDerived<string?>.M());
+System.Console.Write(IDerived<string>.M());
 
 interface IBase<T> { }
 interface IDerived<T> : IBase<T>  { }
@@ -30848,18 +30946,61 @@ implicit extension E1 for IBase<string>
 
 implicit extension E2 for IDerived<string?>
 {
-    public static System.Func<string> M = () => "ran";
+    public static System.Func<string> M = () => "ran ";
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "IDerived<string?>.M");
-        Assert.Equal("System.Func<System.String> E2.M", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Empty(model.GetMemberGroup(memberAccess));
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "IDerived<string?>.M");
+        Assert.Equal("System.Func<System.String> E2.M", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess1).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess1));
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "IDerived<string>.M");
+        Assert.Equal("System.Func<System.String> E2.M", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess2));
+    }
+
+    [Fact]
+    public void PreferMoreSpecific_Static_NullabilityDifferences_InInterfaces_ReverseNullability()
+    {
+        var src = $$"""
+#nullable enable
+
+System.Console.Write(IDerived<string?>.M());
+System.Console.Write(IDerived<string>.M());
+
+interface IBase<T> { }
+interface IDerived<T> : IBase<T>  { }
+
+implicit extension E1 for IBase<string?>
+{
+    public static System.Func<string>? M = null;
+}
+
+implicit extension E2 for IDerived<string>
+{
+    public static System.Func<string> M = () => "ran ";
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "IDerived<string?>.M");
+        Assert.Equal("System.Func<System.String> E2.M", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess1).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess1));
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "IDerived<string>.M");
+        Assert.Equal("System.Func<System.String> E2.M", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess2));
     }
 
     [Fact]
