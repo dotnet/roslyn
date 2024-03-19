@@ -1107,7 +1107,7 @@ public class UseCollectionExpressionForArrayTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72337")]
     public async Task TestTargetTypedArgumentPrimaryConstructor1()
     {
         await new VerifyCS.Test
