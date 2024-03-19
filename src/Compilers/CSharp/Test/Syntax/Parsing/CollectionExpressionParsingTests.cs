@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -17094,6 +17095,37 @@ class C
             }
             N(SyntaxKind.EndOfFileToken);
         }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void CollectionExpressionParsingSlotCounts([CombinatorialRange(1, 20)] int count)
+    {
+        // Validate no errors for collections with small and large number of elements.  Importantly, we want to test the
+        // boundary points where the slot count of the collection crosses over the amount that can be directly stored in
+        // the node, versus the slot count stored in subclass nodes.
+        var text = $"[{string.Join(", ", Enumerable.Range(1, count).Select(i => $"A{i}"))}]";
+
+        UsingExpression(text, TestOptions.Regular);
+
+        N(SyntaxKind.CollectionExpression);
+        N(SyntaxKind.OpenBracketToken);
+
+        for (var i = 1; i <= count; i++)
+        {
+            N(SyntaxKind.ExpressionElement);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, $"A{i}");
+            }
+
+            if (i < count)
+            {
+                N(SyntaxKind.CommaToken);
+            }
+        }
+
+        N(SyntaxKind.CloseBracketToken);
         EOF();
     }
 }

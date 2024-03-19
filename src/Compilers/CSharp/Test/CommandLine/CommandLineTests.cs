@@ -13773,7 +13773,7 @@ class C
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
 
-            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(dir.Path, generator);
             ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, generatorPrefix, $"generatedSource.cs"), generatedSource } }, dir, true);
 
             // Clean up temp files
@@ -13814,7 +13814,7 @@ class C
                 generators: new[] { generator });
 
             // Verify source generator was executed, regardless of the value of 'skipAnalyzers'.
-            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(dir.Path, generator);
             ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, generatorPrefix, "generatedSource.cs"), generatedSource } }, dir, true);
 
             if (expectedAnalyzerExecution)
@@ -13853,8 +13853,8 @@ class C
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator, generator2 }, analyzers: null);
 
-            var generator1Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
-            var generator2Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator2);
+            var generator1Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(dir.Path, generator);
+            var generator2Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(dir.Path, generator2);
 
             ValidateEmbeddedSources_Portable(new Dictionary<string, string>
             {
@@ -13939,7 +13939,7 @@ class C
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
 
-            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generatedDir.Path, generator);
             ValidateWrittenSources(new()
             {
                 { Path.Combine(generatedDir.Path, generatorPrefix, expectedDir), new() { { expectedFileName, generatedSource } } }
@@ -13965,7 +13965,7 @@ class C
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator1 }, analyzers: null);
 
-            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator1);
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generatedDir.Path, generator1);
             ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource1 } } } });
 
             var generatedSource2 = "public class D { }";
@@ -14000,13 +14000,13 @@ class C
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator, generator2 }, analyzers: null);
 
-            var generator1Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
-            var generator2Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator2);
+            var generator1Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generatedDir.Path, generator);
+            var generator2Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generatedDir.Path, generator2);
 
             ValidateWrittenSources(new()
             {
-                { Path.Combine(generatedDir.Path, generator1Prefix), new() { { source1Name, source1 } } },
-                { Path.Combine(generatedDir.Path, generator2Prefix), new() { { source2Name, source2 } } }
+                { generator1Prefix, new() { { source1Name, source1 } } },
+                { generator2Prefix, new() { { source2Name, source2 } } }
             });
 
             // Clean up temp files
@@ -14041,7 +14041,7 @@ class C
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
 
-            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generatedDir.Path, generator);
             ValidateWrittenSources(new()
             {
                 { Path.Combine(generatedDir.Path, generatorPrefix, expectedDir), new() { { generatedFileName, generatedSource } } }
@@ -14158,7 +14158,7 @@ class C
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
 
-            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generatedDir.Path, generator);
             ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource } } } });
 
             // Clean up temp files
@@ -14257,6 +14257,200 @@ class C
             Assert.Equal(2, writtenText.Length);
             Assert.EndsWith("EMBED.EXE", writtenText[0], StringComparison.OrdinalIgnoreCase);
             Assert.EndsWith("GENERATEDSOURCE.CS", writtenText[1], StringComparison.OrdinalIgnoreCase);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void Interceptors_RelativePath_GeneratedFiles_EndToEnd()
+        {
+            var dir = Temp.CreateDirectory();
+
+            var srcDir = dir.CreateDirectory("src");
+            var src = srcDir.CreateFile("Program.cs").WriteAllText("""
+                class Program
+                {
+                    static void Main()
+                    {
+                        M();
+                    }
+
+                    public static void M() => throw null!;
+                }
+                """);
+
+            // final path will look like:
+            // 'TempDir/{assemblyName}/{generatorName}/Generated.cs'
+            // Note that generator will have access to the full path of the generated file, before adding it to the compilation
+            // additionally we plan to add public API to determine a "correct relative path" to use here without any additional tricks
+            var generatedSource = """
+                using System.Runtime.CompilerServices;
+                using System;
+
+                namespace Generated
+                {
+                    static class Interceptors
+                    {
+                        [InterceptsLocation("../../src/Program.cs", 5, 9)]
+                        public static void M1() => Console.Write(1);
+                    }
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
+                    public sealed class InterceptsLocationAttribute : Attribute
+                    {
+                        public InterceptsLocationAttribute(string filePath, int line, int character)
+                        {
+                        }
+                    }
+                }
+                """;
+            var generator = new SingleFileTestGenerator(generatedSource, "Generated.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", "/out:embed.exe", "/features:InterceptorsPreviewNamespaces=Generated"], generators: [generator], analyzers: null);
+            ValidateWrittenSources([]);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void Interceptors_RelativePath_GeneratedFiles_EndToEnd_OutputDirectoryNested()
+        {
+            // Demonstrates the difference between defaulting the generated files base path to 'Arguments.OutputDirectory'
+            // versus 'Arguments.BaseDirectory' (which occurs implicitly for relative paths in command line arguments)
+
+            var dir = Temp.CreateDirectory();
+            var srcDir = dir.CreateDirectory("src");
+            var src = srcDir.CreateFile("Program.cs").WriteAllText("""
+                class Program
+                {
+                    static void Main()
+                    {
+                        M();
+                    }
+
+                    public static void M() => throw null!;
+                }
+                """);
+
+            // final path will look like:
+            // 'TempDir/obj/{assemblyName}/{generatorName}/Generated.cs'
+            // Note that generator will have access to the full path of the generated file, before adding it to the compilation
+            // additionally we plan to add public API to determine a "correct relative path" to use here without any additional tricks
+            var generatedSource = """
+                using System.Runtime.CompilerServices;
+                using System;
+
+                namespace Generated
+                {
+                    static class Interceptors
+                    {
+                        [InterceptsLocation("../../../src/Program.cs", 5, 9)]
+                        public static void M1() => Console.Write(1);
+                    }
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
+                    public sealed class InterceptsLocationAttribute : Attribute
+                    {
+                        public InterceptsLocationAttribute(string filePath, int line, int character)
+                        {
+                        }
+                    }
+                }
+                """;
+            var generator = new SingleFileTestGenerator(generatedSource, "Generated.cs");
+            var objDir = dir.CreateDirectory("obj");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", $"/out:{objDir.Path}/embed.exe", "/features:InterceptorsPreviewNamespaces=Generated"], generators: [generator], analyzers: null);
+            ValidateWrittenSources([]);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData($"/pathmap:DIRPATH=/_/")]
+        [InlineData($"/pathmap:SRCDIRPATH=a/,OBJDIRPATH=b/")]
+        public void Interceptors_RelativePath_GeneratedFiles_EndToEnd_GeneratedFilesOutSpecified(string pathMapArgument)
+        {
+            var dir = Temp.CreateDirectory();
+
+            var srcDir = dir.CreateDirectory("src");
+            var src = srcDir.CreateFile("Program.cs").WriteAllText("""
+                class Program
+                {
+                    static void Main()
+                    {
+                        M();
+                    }
+
+                    public static void M() => throw null!;
+                }
+                """);
+
+            var objDir = dir.CreateDirectory("obj");
+
+            // final path will look like:
+            // 'TempDir/obj/{assemblyName}/{generatorName}/Generated.cs'
+            // Note that generator will have access to the full path of the generated file, before adding it to the compilation
+            // additionally we plan to add public API to determine a "correct relative path" to use here without any additional tricks
+            var generatedSource = """
+                using System.Runtime.CompilerServices;
+                using System;
+
+                namespace Generated
+                {
+                    static class Interceptors
+                    {
+                        [InterceptsLocation("../../../src/Program.cs", 5, 9)]
+                        public static void M1() => Console.Write(1);
+                    }
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
+                    public sealed class InterceptsLocationAttribute : Attribute
+                    {
+                        public InterceptsLocationAttribute(string filePath, int line, int character)
+                        {
+                        }
+                    }
+                }
+                """;
+            var generator = new SingleFileTestGenerator(generatedSource, "Generated.cs");
+
+            pathMapArgument = pathMapArgument.Replace("DIRPATH", dir.Path).Replace("SRCDIRPATH", srcDir.Path).Replace("OBJDIRPATH", objDir.Path);
+            VerifyOutput(
+                dir,
+                src,
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                additionalFlags: [
+                    "/generatedfilesout:" + objDir.Path,
+                    "/langversion:preview",
+                    "/out:embed.exe",
+                    "/features:InterceptorsPreviewNamespaces=Generated",
+                    .. string.IsNullOrEmpty(pathMapArgument) ? default(Span<string>) : [pathMapArgument]
+                    ],
+                generators: [generator],
+                analyzers: null);
+
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(objDir.Path, generator);
+            ValidateWrittenSources(new()
+            {
+                { generatorPrefix, new() { { "Generated.cs", generatedSource } } },
+            });
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);

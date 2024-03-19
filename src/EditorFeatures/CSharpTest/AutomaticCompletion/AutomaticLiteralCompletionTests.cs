@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -13,7 +11,7 @@ using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionServi
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
     [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-    public class AutomaticLiteralCompletionTests : AbstractAutomaticBraceCompletionTests
+    public sealed class AutomaticLiteralCompletionTests : AbstractAutomaticBraceCompletionTests
     {
         [WpfFact]
         public void Creation()
@@ -75,8 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
                 }
                 """;
             using var session = CreateSessionDoubleQuote(code);
-            Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            Assert.Null(session);
         }
 
         [WpfFact]
@@ -92,8 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
                 }
                 """;
             using var session = CreateSessionDoubleQuote(code);
-            Assert.NotNull(session);
-            CheckStart(session.Session);
+            Assert.Null(session);
         }
 
         [WpfFact]
@@ -464,8 +460,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
                 }
                 """;
             using var session = CreateSessionDoubleQuote(code);
-            Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            Assert.Null(session);
         }
 
         [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/59178")]
@@ -550,6 +545,103 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             using var session = CreateSessionDoubleQuote(code);
             Assert.NotNull(session);
             CheckStart(session.Session, expectValidSession: false);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/62571")]
+        public void String_InArgumentList1()
+        {
+            var code = """
+                class C
+                {
+                    void Method()
+                    {
+                        var s = Goo($[||]$$);
+                    }
+                }
+                """;
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/62571")]
+        public void String_InArgumentList2()
+        {
+            var code = """
+                class C
+                {
+                    void Method()
+                    {
+                        var s = Goo(@[||]$$);
+                    }
+                }
+                """;
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/62571")]
+        public void String_InArgumentList3()
+        {
+            var code = """
+                class C
+                {
+                    void Method()
+                    {
+                        var s = Goo(@$[||]$$);
+                    }
+                }
+                """;
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/62571")]
+        public void String_InArgumentList4()
+        {
+            var code = """
+                class C
+                {
+                    void Method()
+                    {
+                        var s = Goo($@[||]$$);
+                    }
+                }
+                """;
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/62571")]
+        public void String_InArgumentList5()
+        {
+            var code = """
+                class C
+                {
+                    void Method()
+                    {
+                        // Handled by normal verbatim string handler.
+                        var s = Goo(@[||]$$);
+                    }
+                }
+                """;
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/62571")]
+        public void String_GlobalStatement()
+        {
+            var code = """
+                $[||]$$
+                """;
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
         }
 
         internal static Holder CreateSessionSingleQuote(string code)

@@ -5,13 +5,12 @@
 using System;
 using System.Composition;
 
-namespace Microsoft.CodeAnalysis.SignatureHelp
+namespace Microsoft.CodeAnalysis.SignatureHelp;
+
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class)]
+internal class ExportSignatureHelpProviderAttribute(string name, string language) : ExportAttribute(typeof(ISignatureHelpProvider))
 {
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportSignatureHelpProviderAttribute(string name, string language) : ExportAttribute(typeof(ISignatureHelpProvider))
-    {
-        public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
-        public string Language { get; } = language ?? throw new ArgumentNullException(nameof(language));
-    }
+    public string Name { get; } = name ?? throw new ArgumentNullException(nameof(name));
+    public string Language { get; } = language ?? throw new ArgumentNullException(nameof(language));
 }

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Navigation;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
-    [ExportWorkspaceServiceFactory(typeof(IDocumentNavigationService), WorkspaceKind.Interactive), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IDocumentNavigationService), [WorkspaceKind.Interactive]), Shared]
     internal sealed class InteractiveDocumentNavigationServiceFactory : IWorkspaceServiceFactory
     {
         private readonly IDocumentNavigationService _singleton;

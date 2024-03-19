@@ -11,59 +11,58 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue
+namespace Microsoft.CodeAnalysis.EditAndContinue;
+
+/// <summary>
+/// Represents a span of an active statement tracked by the client editor.
+/// </summary>
+[DataContract]
+internal readonly struct ActiveStatementSpan : IEquatable<ActiveStatementSpan>
 {
     /// <summary>
-    /// Represents a span of an active statement tracked by the client editor.
+    /// The corresponding <see cref="ActiveStatement.Ordinal"/>.
     /// </summary>
-    [DataContract]
-    internal readonly struct ActiveStatementSpan : IEquatable<ActiveStatementSpan>
+    [DataMember(Order = 0)]
+    public readonly int Ordinal;
+
+    /// <summary>
+    /// Line span in the mapped document.
+    /// </summary>
+    [DataMember(Order = 1)]
+    public readonly LinePositionSpan LineSpan;
+
+    /// <summary>
+    /// Flags.
+    /// </summary>
+    [DataMember(Order = 2)]
+    public readonly ActiveStatementFlags Flags;
+
+    /// <summary>
+    /// The id of the unmapped document where the source of the active statement is and from where the statement might be mapped to <see cref="LineSpan"/> via <c>#line</c> directive.
+    /// Null if unknown (not determined yet).
+    /// </summary>
+    [DataMember(Order = 3)]
+    public readonly DocumentId? UnmappedDocumentId;
+
+    public ActiveStatementSpan(int ordinal, LinePositionSpan lineSpan, ActiveStatementFlags flags, DocumentId? unmappedDocumentId)
     {
-        /// <summary>
-        /// The corresponding <see cref="ActiveStatement.Ordinal"/>.
-        /// </summary>
-        [DataMember(Order = 0)]
-        public readonly int Ordinal;
+        Debug.Assert(ordinal >= 0);
 
-        /// <summary>
-        /// Line span in the mapped document.
-        /// </summary>
-        [DataMember(Order = 1)]
-        public readonly LinePositionSpan LineSpan;
-
-        /// <summary>
-        /// Flags.
-        /// </summary>
-        [DataMember(Order = 2)]
-        public readonly ActiveStatementFlags Flags;
-
-        /// <summary>
-        /// The id of the unmapped document where the source of the active statement is and from where the statement might be mapped to <see cref="LineSpan"/> via <c>#line</c> directive.
-        /// Null if unknown (not determined yet).
-        /// </summary>
-        [DataMember(Order = 3)]
-        public readonly DocumentId? UnmappedDocumentId;
-
-        public ActiveStatementSpan(int ordinal, LinePositionSpan lineSpan, ActiveStatementFlags flags, DocumentId? unmappedDocumentId)
-        {
-            Debug.Assert(ordinal >= 0);
-
-            Ordinal = ordinal;
-            LineSpan = lineSpan;
-            Flags = flags;
-            UnmappedDocumentId = unmappedDocumentId;
-        }
-
-        public override bool Equals(object? obj)
-            => obj is ActiveStatementSpan other && Equals(other);
-
-        public bool Equals(ActiveStatementSpan other)
-            => Ordinal.Equals(other.Ordinal) &&
-               LineSpan.Equals(other.LineSpan) &&
-               Flags == other.Flags &&
-               UnmappedDocumentId == other.UnmappedDocumentId;
-
-        public override int GetHashCode()
-            => Hash.Combine(Ordinal, Hash.Combine(LineSpan.GetHashCode(), Hash.Combine(UnmappedDocumentId, (int)Flags)));
+        Ordinal = ordinal;
+        LineSpan = lineSpan;
+        Flags = flags;
+        UnmappedDocumentId = unmappedDocumentId;
     }
+
+    public override bool Equals(object? obj)
+        => obj is ActiveStatementSpan other && Equals(other);
+
+    public bool Equals(ActiveStatementSpan other)
+        => Ordinal.Equals(other.Ordinal) &&
+           LineSpan.Equals(other.LineSpan) &&
+           Flags == other.Flags &&
+           UnmappedDocumentId == other.UnmappedDocumentId;
+
+    public override int GetHashCode()
+        => Hash.Combine(Ordinal, Hash.Combine(LineSpan.GetHashCode(), Hash.Combine(UnmappedDocumentId, (int)Flags)));
 }

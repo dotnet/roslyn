@@ -1630,6 +1630,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(node, cancellationToken);
         }
+
+        /// <summary>If the call represented by <paramref name="node"/> is referenced in an InterceptsLocationAttribute, returns the original definition symbol which is decorated with that attribute. Otherwise, returns null.</summary>
+        [Experimental(RoslynExperiments.Interceptors, UrlFormat = RoslynExperiments.Interceptors_Url)]
+        public static IMethodSymbol? GetInterceptorMethod(this SemanticModel? semanticModel, InvocationExpressionSyntax node, CancellationToken cancellationToken = default)
+        {
+            var csModel = semanticModel as CSharpSemanticModel;
+            return csModel?.GetInterceptorMethod(node, cancellationToken);
+        }
         #endregion
     }
 }

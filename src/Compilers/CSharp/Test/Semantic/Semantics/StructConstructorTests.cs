@@ -4792,5 +4792,111 @@ public struct S<T>
 }
 ");
         }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1598252")]
+        public void StaticAndInstanceConstructors_01(string type)
+        {
+            string source = $$"""
+                using System;
+                {{type}} S
+                {
+                    static S()
+                    {
+                        Console.WriteLine("static constructor");
+                    }
+                    public S(int p)
+                    {
+                        Console.WriteLine("instance constructor: {0}", p);
+                    }
+                    public S() : this(0)
+                    {
+                    }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        _ = new S();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            VerifyExplicitlyDeclaredInstanceConstructors(
+                comp.GlobalNamespace.GetTypeMember("S"),
+                "S..ctor(System.Int32 p)",
+                "S..ctor()");
+            VerifyExplicitlyDeclaredInstanceConstructors(
+                ((Compilation)comp).GlobalNamespace.GetTypeMember("S"),
+                "S..ctor(System.Int32 p)",
+                "S..ctor()");
+
+            CompileAndVerify(comp, expectedOutput: """
+                static constructor
+                instance constructor: 0
+                """);
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        public void StaticAndInstanceConstructors_02(string type)
+        {
+            string source = $$"""
+                using System;
+                {{type}} S
+                {
+                    static S()
+                    {
+                        Console.WriteLine("static constructor");
+                    }
+                    public S()
+                    {
+                        Console.WriteLine("instance constructor");
+                    }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        _ = new S();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            VerifyExplicitlyDeclaredInstanceConstructors(
+                comp.GlobalNamespace.GetTypeMember("S"),
+                "S..ctor()");
+            VerifyExplicitlyDeclaredInstanceConstructors(
+                ((Compilation)comp).GlobalNamespace.GetTypeMember("S"),
+                "S..ctor()");
+
+            CompileAndVerify(comp, expectedOutput: """
+                static constructor
+                instance constructor
+                """);
+        }
+
+        private static void VerifyExplicitlyDeclaredInstanceConstructors(NamedTypeSymbol type, params string[] expectedConstructors)
+        {
+            var constructors = type.InstanceConstructors;
+            var members = type.GetMembers(".ctor");
+            Assert.True(members.SequenceEqual(constructors));
+            Assert.True(constructors.All(c => c is { IsStatic: false, IsImplicitConstructor: false }));
+            Assert.Equal(expectedConstructors, constructors.ToTestDisplayStrings());
+        }
+
+        private static void VerifyExplicitlyDeclaredInstanceConstructors(INamedTypeSymbol type, params string[] expectedConstructors)
+        {
+            var constructors = type.InstanceConstructors;
+            var members = type.GetMembers(".ctor");
+            Assert.True(members.SequenceEqual(constructors));
+            Assert.True(constructors.All(c => c is { IsStatic: false, IsImplicitlyDeclared: false }));
+            Assert.Equal(expectedConstructors, constructors.ToTestDisplayStrings());
+        }
     }
 }

@@ -13,83 +13,82 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Notification
+namespace Microsoft.CodeAnalysis.Notification;
+
+internal abstract partial class AbstractGlobalOperationNotificationService : IGlobalOperationNotificationService
 {
-    internal abstract partial class AbstractGlobalOperationNotificationService : IGlobalOperationNotificationService
+    private readonly object _gate = new();
+
+    private readonly HashSet<IDisposable> _registrations = [];
+    private readonly HashSet<string> _operations = [];
+
+    private readonly TaskQueue _eventQueue;
+
+    public event EventHandler? Started;
+    public event EventHandler? Stopped;
+
+    protected AbstractGlobalOperationNotificationService(
+        IAsynchronousOperationListenerProvider listenerProvider)
     {
-        private readonly object _gate = new();
+        _eventQueue = new TaskQueue(listenerProvider.GetListener(FeatureAttribute.GlobalOperation), TaskScheduler.Default);
+    }
 
-        private readonly HashSet<IDisposable> _registrations = new();
-        private readonly HashSet<string> _operations = new();
-
-        private readonly TaskQueue _eventQueue;
-
-        public event EventHandler? Started;
-        public event EventHandler? Stopped;
-
-        protected AbstractGlobalOperationNotificationService(
-            IAsynchronousOperationListenerProvider listenerProvider)
+    ~AbstractGlobalOperationNotificationService()
+    {
+        if (!Environment.HasShutdownStarted)
         {
-            _eventQueue = new TaskQueue(listenerProvider.GetListener(FeatureAttribute.GlobalOperation), TaskScheduler.Default);
+            Contract.ThrowIfFalse(_registrations.Count == 0);
+            Contract.ThrowIfFalse(_operations.Count == 0, $"Non-disposed operations: {string.Join(", ", _operations)}");
         }
+    }
 
-        ~AbstractGlobalOperationNotificationService()
+    private void RaiseGlobalOperationStarted()
+    {
+        var started = this.Started;
+        if (started != null)
+            _eventQueue.ScheduleTask(nameof(RaiseGlobalOperationStarted), () => this.Started?.Invoke(this, EventArgs.Empty), CancellationToken.None);
+    }
+
+    private void RaiseGlobalOperationStopped()
+    {
+        var stopped = this.Stopped;
+        if (stopped != null)
+            _eventQueue.ScheduleTask(nameof(RaiseGlobalOperationStopped), () => this.Stopped?.Invoke(this, EventArgs.Empty), CancellationToken.None);
+    }
+
+    public IDisposable Start(string operation)
+    {
+        lock (_gate)
         {
-            if (!Environment.HasShutdownStarted)
+            // create new registration
+            var registration = new GlobalOperationRegistration(this);
+
+            // states
+            _registrations.Add(registration);
+            _operations.Add(operation);
+
+            // the very first one
+            if (_registrations.Count == 1)
             {
-                Contract.ThrowIfFalse(_registrations.Count == 0);
-                Contract.ThrowIfFalse(_operations.Count == 0, $"Non-disposed operations: {string.Join(", ", _operations)}");
+                Contract.ThrowIfFalse(_operations.Count == 1);
+                RaiseGlobalOperationStarted();
             }
-        }
 
-        private void RaiseGlobalOperationStarted()
-        {
-            var started = this.Started;
-            if (started != null)
-                _eventQueue.ScheduleTask(nameof(RaiseGlobalOperationStarted), () => this.Started?.Invoke(this, EventArgs.Empty), CancellationToken.None);
+            return registration;
         }
+    }
 
-        private void RaiseGlobalOperationStopped()
+    private void Done(GlobalOperationRegistration registration)
+    {
+        lock (_gate)
         {
-            var stopped = this.Stopped;
-            if (stopped != null)
-                _eventQueue.ScheduleTask(nameof(RaiseGlobalOperationStopped), () => this.Stopped?.Invoke(this, EventArgs.Empty), CancellationToken.None);
-        }
+            var result = _registrations.Remove(registration);
+            Contract.ThrowIfFalse(result);
 
-        public IDisposable Start(string operation)
-        {
-            lock (_gate)
+            if (_registrations.Count == 0)
             {
-                // create new registration
-                var registration = new GlobalOperationRegistration(this);
-
-                // states
-                _registrations.Add(registration);
-                _operations.Add(operation);
-
-                // the very first one
-                if (_registrations.Count == 1)
-                {
-                    Contract.ThrowIfFalse(_operations.Count == 1);
-                    RaiseGlobalOperationStarted();
-                }
-
-                return registration;
-            }
-        }
-
-        private void Done(GlobalOperationRegistration registration)
-        {
-            lock (_gate)
-            {
-                var result = _registrations.Remove(registration);
-                Contract.ThrowIfFalse(result);
-
-                if (_registrations.Count == 0)
-                {
-                    _operations.Clear();
-                    RaiseGlobalOperationStopped();
-                }
+                _operations.Clear();
+                RaiseGlobalOperationStopped();
             }
         }
     }

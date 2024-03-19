@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
 
-        protected override bool IsNullableAnalysisEnabled()
+        protected override bool IsNullableAnalysisEnabledCore()
         {
             switch (MemberSymbol.Kind)
             {

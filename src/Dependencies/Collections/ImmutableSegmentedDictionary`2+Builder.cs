@@ -242,6 +242,15 @@ namespace Microsoft.CodeAnalysis.Collections
 
             void ICollection.CopyTo(Array array, int index)
                 => ((ICollection)ReadOnlyDictionary).CopyTo(array, index);
+
+            internal TestAccessor GetTestAccessor()
+                => new TestAccessor(this);
+
+            internal readonly struct TestAccessor(Builder instance)
+            {
+                internal SegmentedDictionary<TKey, TValue> GetOrCreateMutableDictionary()
+                    => instance.GetOrCreateMutableDictionary();
+            }
         }
     }
 }

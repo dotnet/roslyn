@@ -8,18 +8,17 @@ using System.Collections.Generic;
 using System.Linq;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
-{
-    internal static class SyntaxListExtensions
-    {
-        public static SyntaxList<T> RemoveRange<T>(this SyntaxList<T> syntaxList, int index, int count) where T : SyntaxNode
-        {
-            var result = new List<T>(syntaxList);
-            result.RemoveRange(index, count);
-            return [.. result];
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
-        public static SyntaxList<T> Insert<T>(this SyntaxList<T> list, int index, T item) where T : SyntaxNode
-            => [.. list.Take(index).Concat(item).Concat(list.Skip(index))];
+internal static class SyntaxListExtensions
+{
+    public static SyntaxList<T> RemoveRange<T>(this SyntaxList<T> syntaxList, int index, int count) where T : SyntaxNode
+    {
+        var result = new List<T>(syntaxList);
+        result.RemoveRange(index, count);
+        return [.. result];
     }
+
+    public static SyntaxList<T> Insert<T>(this SyntaxList<T> list, int index, T item) where T : SyntaxNode
+        => [.. list.Take(index).Concat(item).Concat(list.Skip(index))];
 }

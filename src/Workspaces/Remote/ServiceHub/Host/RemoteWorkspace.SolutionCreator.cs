@@ -86,15 +86,37 @@ internal partial class RemoteWorkspace
                         assetHint: AssetHint.None, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false));
                 }
 
-                if (newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentity != Checksum.Null &&
-                    newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentText != Checksum.Null)
+                if (oldSolutionChecksums.Projects.Checksum != newSolutionChecksums.Projects.Checksum)
                 {
-                    var identity = await _assetProvider.GetAssetAsync<SourceGeneratedDocumentIdentity>(
-                        assetHint: AssetHint.None, newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentity, cancellationToken).ConfigureAwait(false);
-                    var sourceText = await _assetProvider.GetAssetAsync<SourceText>(
-                        assetHint: AssetHint.None, newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentText, cancellationToken).ConfigureAwait(false);
+                    solution = await UpdateProjectsAsync(
+                        solution, oldSolutionChecksums, newSolutionChecksums, cancellationToken).ConfigureAwait(false);
+                }
 
-                    solution = solution.WithFrozenSourceGeneratedDocument(identity, sourceText).Project.Solution;
+                if (oldSolutionChecksums.AnalyzerReferences.Checksum != newSolutionChecksums.AnalyzerReferences.Checksum)
+                {
+                    solution = solution.WithAnalyzerReferences(await _assetProvider.CreateCollectionAsync<AnalyzerReference>(
+                        assetHint: AssetHint.None, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false));
+                }
+
+                if (newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.HasValue &&
+                    newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.HasValue)
+                {
+                    var count = newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.Value.Count;
+                    var _ = ArrayBuilder<(SourceGeneratedDocumentIdentity, SourceText)>.GetInstance(count, out var frozenDocuments);
+
+                    for (var i = 0; i < count; i++)
+                    {
+                        var identity = await _assetProvider.GetAssetAsync<SourceGeneratedDocumentIdentity>(
+                            assetHint: AssetHint.None, newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.Value[i], cancellationToken).ConfigureAwait(false);
+
+                        var documentStateChecksums = await _assetProvider.GetAssetAsync<DocumentStateChecksums>(
+                            assetHint: AssetHint.None, newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value.Checksums[i], cancellationToken).ConfigureAwait(false);
+
+                        var text = await _assetProvider.GetAssetAsync<SourceText>(assetHint: newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value.Ids[i], documentStateChecksums.Text, cancellationToken).ConfigureAwait(false);
+                        frozenDocuments.Add((identity, text));
+                    }
+
+                    solution = solution.WithFrozenSourceGeneratedDocuments(frozenDocuments.ToImmutable());
                 }
 
 #if DEBUG

@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,11 +13,9 @@ using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -90,21 +87,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static async Task<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(Project project, CancellationToken cancellationToken)
         {
             var options = project.Solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
-            if (!options.RunSourceGeneratorsInSameProcessOnly)
+            var remoteHostClient = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+            if (remoteHostClient != null)
             {
-                var remoteHostClient = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
-                if (remoteHostClient != null)
-                {
-                    var result = await remoteHostClient.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticData>>(
-                        project.Solution,
-                        invocation: (service, solutionInfo, cancellationToken) => service.GetSourceGeneratorDiagnosticsAsync(solutionInfo, project.Id, cancellationToken),
-                        cancellationToken).ConfigureAwait(false);
+                var result = await remoteHostClient.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticData>>(
+                    project.Solution,
+                    invocation: (service, solutionInfo, cancellationToken) => service.GetSourceGeneratorDiagnosticsAsync(solutionInfo, project.Id, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
 
-                    if (!result.HasValue)
-                        return [];
+                if (!result.HasValue)
+                    return [];
 
-                    return await result.Value.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-                }
+                return await result.Value.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
             }
 
             return await project.GetSourceGeneratorDiagnosticsAsync(cancellationToken).ConfigureAwait(false);

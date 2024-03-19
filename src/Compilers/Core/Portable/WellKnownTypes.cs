@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -252,10 +251,10 @@ namespace Microsoft.CodeAnalysis
         CSharp7Sentinel = System_IFormatProvider, // all types that were known before CSharp7 should remain above this sentinel
 
         System_ValueTuple,
-        System_ValueTuple_T1,
 
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
+        System_ValueTuple_T1,
         System_ValueTuple_T2,
         System_ValueTuple_T3,
         System_ValueTuple_T4,
@@ -338,6 +337,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
         System_Runtime_CompilerServices_Unsafe,
+
+        System_Runtime_CompilerServices_ParamCollectionAttribute,
 
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
@@ -583,10 +584,10 @@ namespace Microsoft.CodeAnalysis
             "System.IFormatProvider",
 
             "System.ValueTuple",
-            "System.ValueTuple`1",
 
             "", // extension marker
 
+            "System.ValueTuple`1",
             "System.ValueTuple`2",
             "System.ValueTuple`3",
             "System.ValueTuple`4",
@@ -665,6 +666,8 @@ namespace Microsoft.CodeAnalysis
             "System.IndexOutOfRangeException",
             "System.Runtime.CompilerServices.MetadataUpdateOriginalTypeAttribute",
             "System.Runtime.CompilerServices.Unsafe",
+
+            "System.Runtime.CompilerServices.ParamCollectionAttribute",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
