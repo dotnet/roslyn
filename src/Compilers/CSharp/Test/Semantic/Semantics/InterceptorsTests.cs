@@ -6333,8 +6333,10 @@ partial struct CustomHandler
         Assert.True(comp.InterceptorsDiscoveryComplete);
     }
 
-    [Fact]
-    public void GetInterceptorMethod_13()
+    [Theory]
+    [InlineData("Interceptors")]
+    [InlineData("Interceptors.Nested")]
+    public void GetInterceptorMethod_13(string @namespace)
     {
         // Demonstrate that nested namespaces are searched for InterceptsLocationAttributes
         var source = ("""
@@ -6363,7 +6365,7 @@ partial struct CustomHandler
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "Interceptors"));
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", @namespace));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -6376,5 +6378,48 @@ partial struct CustomHandler
 
         interceptor = model.GetInterceptorMethod(call);
         Assert.Equal("void Interceptors.Nested.D.Interceptor1()", interceptor.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void GetInterceptorMethod_14()
+    {
+        // Interceptor is in a parent of the expected namespace. Not discovered.
+        var source = ("""
+            C.M();
+
+            class C
+            {
+                public static void M() => throw null;
+            }
+            """, "Program.cs");
+
+        var interceptorSource = ("""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            namespace Interceptors
+            {
+                public static class D
+                {
+                    [InterceptsLocation("Program.cs", 1, 3)]
+                    public static void Interceptor1() => Console.Write(1);
+                }
+            }
+            """, "Interceptor.cs");
+
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "Interceptors.Nested"));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+        Assert.Null(model.GetInterceptorMethod(call));
+
+        comp.VerifyEmitDiagnostics(
+            // Interceptor.cs(8,10): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Interceptors</InterceptorsPreviewNamespaces>' to your project.
+            //         [InterceptsLocation("Program.cs", 1, 3)]
+            Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 1, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Interceptors</InterceptorsPreviewNamespaces>").WithLocation(8, 10));
+
+        Assert.Null(model.GetInterceptorMethod(call));
     }
 }
