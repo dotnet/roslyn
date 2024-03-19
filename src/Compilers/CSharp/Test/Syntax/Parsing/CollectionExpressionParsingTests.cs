@@ -19301,7 +19301,7 @@ class C
             }
             """,
             // (12,160): error CS1039: Unterminated string literal
-                //       [EnumLiteral("archives", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"X", $"Refers to a collection of records, documents, or other
+            //       [EnumLiteral("archives", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"X", $"Refers to a collection of records, documents, or other
             Diagnostic(ErrorCode.ERR_UnterminatedStringLit, "r").WithLocation(12, 160),
             // (12,161): error CS1026: ) expected
             //       [EnumLiteral("archives", "http://hl7.org/fhir/CodeSystem/iana-link-relations"), Description($"X", $"Refers to a collection of records, documents, or other
