@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -30,6 +31,8 @@ internal sealed partial class SolutionCompilationState
     /// Symbols need to be either <see cref="IAssemblySymbol"/> or <see cref="IModuleSymbol"/>.
     /// </summary>
     private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToProjectMap = new();
+
+    private static readonly ObjectPool<SegmentedDictionary<ProjectId, ICompilationTracker>> s_trackerInfoPool = new(() => new());
 
     /// <summary>
     /// Green version of the information about this Solution instance.  Responsible for non-semantic information
@@ -204,7 +207,7 @@ internal sealed partial class SolutionCompilationState
     private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap<TArg>(
         ProjectId changedProjectId,
         ProjectDependencyGraph dependencyGraph,
-        Func<Dictionary<ProjectId, ICompilationTracker>, TArg, bool> modifyNewTrackerInfo,
+        Func<SegmentedDictionary<ProjectId, ICompilationTracker>, TArg, bool> modifyNewTrackerInfo,
         TArg arg)
     {
         return CreateCompilationTrackerMap(CanReuse, (changedProjectId, dependencyGraph), modifyNewTrackerInfo, arg);
@@ -231,7 +234,7 @@ internal sealed partial class SolutionCompilationState
     private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap<TArg>(
         ImmutableArray<ProjectId> changedProjectIds,
         ProjectDependencyGraph dependencyGraph,
-        Func<Dictionary<ProjectId, ICompilationTracker>, TArg, bool> modifyNewTrackerInfo,
+        Func<SegmentedDictionary<ProjectId, ICompilationTracker>, TArg, bool> modifyNewTrackerInfo,
         TArg arg)
     {
         return CreateCompilationTrackerMap(CanReuse, (changedProjectIds, dependencyGraph), modifyNewTrackerInfo, arg);
@@ -262,17 +265,14 @@ internal sealed partial class SolutionCompilationState
     private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap<TArgCanReuse, TArgModifyNewTrackerInfo>(
         Func<ProjectId, TArgCanReuse, bool> canReuse,
         TArgCanReuse argCanReuse,
-        Func<Dictionary<ProjectId, ICompilationTracker>, TArgModifyNewTrackerInfo, bool> modifyNewTrackerInfo,
+        Func<SegmentedDictionary<ProjectId, ICompilationTracker>, TArgModifyNewTrackerInfo, bool> modifyNewTrackerInfo,
         TArgModifyNewTrackerInfo argModifyNewTrackerInfo)
     {
-        using var _ = PooledDictionary<ProjectId, ICompilationTracker>.GetInstance(out var newTrackerInfo);
-
         // Keep _projectIdToTrackerMap in a local as it can change during the execution of this method
         var projectIdToTrackerMap = _projectIdToTrackerMap;
 
-#if NETCOREAPP
+        var newTrackerInfo = s_trackerInfoPool.Allocate();
         newTrackerInfo.EnsureCapacity(projectIdToTrackerMap.Count);
-#endif
 
         var allReused = true;
         foreach (var (id, tracker) in projectIdToTrackerMap)
@@ -291,10 +291,12 @@ internal sealed partial class SolutionCompilationState
 
         if (allReused && !isModified)
         {
+            newTrackerInfo.Clear();
+            s_trackerInfoPool.Free(newTrackerInfo);
             return projectIdToTrackerMap;
         }
 
-        return ImmutableSegmentedDictionary.CreateRange(newTrackerInfo);
+        return SegmentedCollectionsMarshal.AsImmutableSegmentedDictionary(newTrackerInfo);
     }
 
     /// <inheritdoc cref="SolutionState.AddProject(ProjectInfo)"/>
