@@ -8,7 +8,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -3166,6 +3165,7 @@ public class C
                     case SpecialType.System_Runtime_CompilerServices_RuntimeFeature: // static and not available
                     case SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute: // not available
                     case SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute: // not available
+                    case SpecialType.System_ReadOnlySpan_T: // not available
                         continue;
                 }
 

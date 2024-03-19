@@ -10,9 +10,10 @@ namespace Microsoft.CodeAnalysis.Collections
     internal partial struct ImmutableSegmentedList<T>
     {
         /// <summary>
-        /// Private helper class for use only by <see cref="RoslynImmutableInterlocked"/>.
+        /// Private helper class for use only by <see cref="RoslynImmutableInterlocked"/> and
+        /// <see cref="SegmentedCollectionsMarshal"/>.
         /// </summary>
-        internal static class PrivateInterlocked
+        internal static class PrivateMarshal
         {
             internal static ImmutableSegmentedList<T> VolatileRead(in ImmutableSegmentedList<T> location)
             {
@@ -40,6 +41,14 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 return new ImmutableSegmentedList<T>(list);
             }
+
+            /// <inheritdoc cref="SegmentedCollectionsMarshal.AsImmutableSegmentedList{T}(SegmentedList{T}?)"/>
+            internal static ImmutableSegmentedList<T> AsImmutableSegmentedList(SegmentedList<T>? list)
+                => list is not null ? new ImmutableSegmentedList<T>(list) : default;
+
+            /// <inheritdoc cref="SegmentedCollectionsMarshal.AsSegmentedList{T}(ImmutableSegmentedList{T})"/>
+            internal static SegmentedList<T>? AsSegmentedList(ImmutableSegmentedList<T> list)
+                => list._list;
         }
     }
 }
