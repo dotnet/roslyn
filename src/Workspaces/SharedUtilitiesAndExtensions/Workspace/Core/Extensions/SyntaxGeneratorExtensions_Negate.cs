@@ -183,49 +183,51 @@ internal static partial class SyntaxGeneratorExtensions
                 newToken,
                 newToken.WithTriviaFrom(operatorToken));
         }
-        else if (syntaxFacts.IsIsTypeExpression(expressionNode) && generatorInternal.SupportsPatterns(semanticModel.SyntaxTree.Options))
+        else if (operation is IIsTypeOperation { TypeOperand.SpecialType: SpecialType.System_Object } && generatorInternal.SupportsPatterns(semanticModel.SyntaxTree.Options))
         {
+            // `is object`  ->   `is null`
+            return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.ConstantPattern(generator.NullLiteralExpression().WithTriviaFrom(rightOperand)));
+        }
+        else if (syntaxFacts.IsIsTypeExpression(expressionNode) && syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
+        {
+            // `is y`   ->    `is not y`
+            SyntaxNode innerPattern;
             if (operation is IIsTypeOperation isTypeOperation)
             {
-                // `is object`  ->   `is null`
-                if (isTypeOperation.TypeOperand.SpecialType is SpecialType.System_Object)
-                    return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.ConstantPattern(generator.NullLiteralExpression().WithTriviaFrom(rightOperand)));
-
-                // `is y`   ->    `is not y`
-                if (syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
+                if (syntaxFacts.IsAnyName(rightOperand))
                 {
-                    SyntaxNode innerPattern;
-                    if (syntaxFacts.IsAnyName(rightOperand))
-                    {
-                        // For named types, we need to convert to a constant expression (where the named type becomes a member
-                        // access expression).  For other types (predefined, arrays, etc) we can keep this as a type pattern.
-                        // For example: `x is int` can just become `x is not int` where that's a type pattern.  But `x is Y`
-                        // will need to become `x is not Y` where that's a constant pattern instead.
-                        var typeExpression = generatorInternal.Type(isTypeOperation.TypeOperand, typeContext: false);
-                        innerPattern = syntaxFacts.IsAnyType(typeExpression) && !syntaxFacts.IsAnyName(typeExpression)
-                            ? generatorInternal.TypePattern(typeExpression)
-                            : generatorInternal.ConstantPattern(typeExpression);
-                    }
-                    else
-                    {
-                        // original form was already not a name (like a predefined type, or array type, etc.).  Can just
-                        // use as is as a type pattern.
-                        Debug.Assert(syntaxFacts.IsAnyType(rightOperand));
-                        innerPattern = generatorInternal.TypePattern(rightOperand);
-                    }
-
-                    return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.NotPattern(innerPattern.WithTriviaFrom(rightOperand)));
+                    // For named types, we need to convert to a constant expression (where the named type becomes a member
+                    // access expression).  For other types (predefined, arrays, etc) we can keep this as a type pattern.
+                    // For example: `x is int` can just become `x is not int` where that's a type pattern.  But `x is Y`
+                    // will need to become `x is not Y` where that's a constant pattern instead.
+                    var typeExpression = generatorInternal.Type(isTypeOperation.TypeOperand, typeContext: false);
+                    innerPattern = syntaxFacts.IsAnyType(typeExpression) && !syntaxFacts.IsAnyName(typeExpression)
+                        ? generatorInternal.TypePattern(typeExpression)
+                        : generatorInternal.ConstantPattern(typeExpression);
+                }
+                else
+                {
+                    // original form was already not a name (like a predefined type, or array type, etc.).  Can just
+                    // use as is as a type pattern.
+                    Debug.Assert(syntaxFacts.IsAnyType(rightOperand));
+                    innerPattern = generatorInternal.TypePattern(rightOperand);
                 }
             }
             else
             {
-                return generatorInternal.IsPatternExpression(
-                    leftOperand, operatorToken, generatorInternal.NotPattern(generatorInternal.ConstantPattern(rightOperand)));
+                innerPattern = generatorInternal.ConstantPattern(rightOperand);
             }
-        }
 
-        // Apply the logical not operator if it is not a binary operation and also doesn't support patterns.
-        return generator.LogicalNotExpression(expressionNode);
+            return generatorInternal.IsPatternExpression(
+                leftOperand,
+                operatorToken,
+                generatorInternal.NotPattern(innerPattern.WithTriviaFrom(rightOperand)));
+        }
+        else
+        {
+            // Apply the logical not operator if it is not a binary operation and also doesn't support patterns.
+            return generator.LogicalNotExpression(expressionNode);
+        }
     }
 
     private static SyntaxNode GetNegationOfBinaryPattern(
