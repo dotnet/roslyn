@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.SpellCheck;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -109,7 +108,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     }
 
     public async ValueTask SynchronizeAssetsAsync(
-        AssetHint assetHint, HashSet<Checksum> checksums, Dictionary<Checksum, object> results, CancellationToken cancellationToken)
+        AssetHint assetHint, HashSet<Checksum> checksums, Dictionary<Checksum, object>? results, CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
         if (checksums.Count == 0)
@@ -132,7 +131,11 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             missingChecksumsCount = 0;
             foreach (var checksum in checksums)
             {
-                if (!_assetCache.TryGetAsset<object>(checksum, out var existing))
+                if (_assetCache.TryGetAsset<object>(checksum, out var existing))
+                {
+                    AddResult(checksum, existing);
+                }
+                else
                 {
                     if (missingChecksumsCount == missingChecksums.Length)
                     {
@@ -154,16 +157,33 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                 }
             }
 
-            var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
-            var assets = await RequestAssetsAsync(assetHint, missingChecksumsMemory, cancellationToken).ConfigureAwait(false);
+            if (missingChecksumsCount > 0)
+            {
+                var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
+                var missingAssets = await RequestAssetsAsync(assetHint, missingChecksumsMemory, cancellationToken).ConfigureAwait(false);
 
-            Contract.ThrowIfTrue(missingChecksumsMemory.Length != assets.Length);
+                Contract.ThrowIfTrue(missingChecksumsMemory.Length != missingAssets.Length);
 
-            for (int i = 0, n = assets.Length; i < n; i++)
-                _assetCache.GetOrAdd(missingChecksums[i], assets[i]);
+                for (int i = 0, n = missingAssets.Length; i < n; i++)
+                {
+                    var missingChecksum = missingChecksums[i];
+                    var missingAsset = missingAssets[i];
+
+                    AddResult(missingChecksum, missingAsset);
+                    _assetCache.GetOrAdd(missingChecksum, missingAsset);
+                }
+            }
 
             if (usePool)
                 s_checksumPool.Free(missingChecksums);
+        }
+
+        return;
+
+        void AddResult(Checksum checksum, object result)
+        {
+            if (results != null)
+                results[checksum] = result;
         }
     }
 
