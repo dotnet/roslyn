@@ -17,9 +17,8 @@ steps:
   condition: and(succeeded(), ${{ parameters.includeMacOS }})
 - powershell: azure-pipelines/Merge-CodeCoverage.ps1 -Path '$(Pipeline.Workspace)' -OutputFile coveragereport/merged.cobertura.xml -Format Cobertura -Verbose
   displayName: ⚙ Merge coverage
-- task: PublishCodeCoverageResults@1
+- task: PublishCodeCoverageResults@2
   displayName: 📢 Publish code coverage results to Azure DevOps
   inputs:
-    codeCoverageTool: cobertura
     summaryFileLocation: coveragereport/merged.cobertura.xml
     failIfCoverageEmpty: true
