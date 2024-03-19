@@ -2,13 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -52,22 +47,14 @@ namespace Microsoft.CodeAnalysis
             public StateTableStore ToImmutable()
             {
                 // we can cache the tables at this point, as we'll no longer be using them to determine current state
-                var nonCachedEntries = ArrayBuilder<KeyValuePair<object, IStateTable>>.GetInstance(_tableBuilder.Keys.Count);
                 foreach (var kvp in _tableBuilder)
                 {
                     var cachedValue = kvp.Value.AsCached();
                     if (cachedValue != kvp.Value)
                     {
-                        nonCachedEntries.Add(new KeyValuePair<object, IStateTable>(kvp.Key, cachedValue));
+                        SegmentedCollectionsMarshal.GetValueRefOrNullRef(_tableBuilder, kvp.Key) = cachedValue;
                     }
                 }
-
-                foreach (var kvp in nonCachedEntries)
-                {
-                    _tableBuilder[kvp.Key] = kvp.Value;
-                }
-
-                nonCachedEntries.Free();
 
                 return new StateTableStore(_tableBuilder.ToImmutable());
             }
