@@ -28,6 +28,7 @@
     <SystemDiagnosticsDiagnosticSourceVersion>8.0.0</SystemDiagnosticsDiagnosticSourceVersion>
     <SystemIOPipelinesVersion>8.0.0</SystemIOPipelinesVersion>
     <SystemReflectionMetadataVersion>8.0.0</SystemReflectionMetadataVersion>
+    <SystemResourcesExtensionsVersion>8.0.0</SystemResourcesExtensionsVersion>
     <SystemSecurityCryptographyProtectedDataVersion>8.0.0</SystemSecurityCryptographyProtectedDataVersion>
     <SystemSecurityPermissionsVersion>8.0.0</SystemSecurityPermissionsVersion>
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->

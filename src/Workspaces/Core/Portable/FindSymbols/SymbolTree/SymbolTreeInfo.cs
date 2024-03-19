@@ -123,7 +123,7 @@ internal partial class SymbolTreeInfo
         Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
         return this.FindAsync(
-            query, new AsyncLazy<IAssemblySymbol?>(assembly), filter, cancellationToken);
+            query, AsyncLazy.Create((IAssemblySymbol?)assembly), filter, cancellationToken);
     }
 
     public async Task<ImmutableArray<ISymbol>> FindAsync(

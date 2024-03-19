@@ -2,15 +2,15 @@
 <Dependencies>
   <ProductDependencies>
     <!-- Intermediate is necessary for source build. -->
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-externals" Version="9.0.0-alpha.1.24112.1">
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-externals" Version="9.0.0-alpha.1.24161.3">
       <Uri>https://github.com/dotnet/source-build-externals</Uri>
-      <Sha>ddfb60463c966af55fd0e222c2266170e83d1324</Sha>
+      <Sha>472629e451a5a87410ea3670606f7235a4dd5a02</Sha>
       <SourceBuild RepoName="source-build-externals" ManagedOnly="true" />
     </Dependency>
     <!-- Intermediate is necessary for source build. -->
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-reference-packages" Version="9.0.0-alpha.1.24155.1">
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-reference-packages" Version="9.0.0-alpha.1.24161.2">
       <Uri>https://github.com/dotnet/source-build-reference-packages</Uri>
-      <Sha>768378e775fc5ddc99d41f2c4d1c78182f326ea7</Sha>
+      <Sha>8d6e9cf10f64ff8fc02e434b516f6ca87c4b7215</Sha>
       <SourceBuild RepoName="source-build-reference-packages" ManagedOnly="true" />
     </Dependency>
     <Dependency Name="System.CommandLine" Version="2.0.0-beta4.24126.1">
@@ -72,6 +72,10 @@
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>5535e31a712343a63f5d7d796cd874e563e5ac14</Sha>
     </Dependency>
+    <Dependency Name="System.Resources.Extensions" Version="8.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>5535e31a712343a63f5d7d796cd874e563e5ac14</Sha>
+    </Dependency>
     <Dependency Name="System.Text.Encodings.Web" Version="8.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>5535e31a712343a63f5d7d796cd874e563e5ac14</Sha>
@@ -106,14 +110,14 @@
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="8.0.0-beta.24156.1">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="8.0.0-beta.24161.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>1307d3e675219bf384f17764651f46767a07960b</Sha>
+      <Sha>5c3fdd3b5aaaa32b24383ec12a60b37ebff13079</Sha>
     </Dependency>
     <!-- Intermediate is necessary for source build. -->
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.arcade" Version="8.0.0-beta.24156.1">
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.arcade" Version="8.0.0-beta.24161.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>1307d3e675219bf384f17764651f46767a07960b</Sha>
+      <Sha>5c3fdd3b5aaaa32b24383ec12a60b37ebff13079</Sha>
       <SourceBuild RepoName="arcade" ManagedOnly="true" />
     </Dependency>
     <Dependency Name="Microsoft.DotNet.XliffTasks" Version="1.0.0-beta.23475.1" CoherentParentDependency="Microsoft.DotNet.Arcade.Sdk">
@@ -140,9 +144,9 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>5d10d428050c0d6afef30a072c4ae68776621877</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="8.0.0-beta.24156.1">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="8.0.0-beta.24161.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>1307d3e675219bf384f17764651f46767a07960b</Sha>
+      <Sha>5c3fdd3b5aaaa32b24383ec12a60b37ebff13079</Sha>
     </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0-preview.23468.1">
       <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>

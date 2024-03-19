@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             where TProvider : AbstractDiagnosticsTaggerProvider<TTag>
             where TTag : class, ITag
         {
-            using var wrapper = new DiagnosticTaggerWrapper<TProvider, TTag>(workspace, analyzerMap);
+            var wrapper = new DiagnosticTaggerWrapper<TProvider, TTag>(workspace, analyzerMap);
 
             var firstDocument = workspace.Documents.First();
             var textBuffer = firstDocument.GetTextBuffer();
@@ -43,7 +43,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             using var disposable = tagger as IDisposable;
             await wrapper.WaitForTags();
 
-            var analyzerDiagnostics = await wrapper.AnalyzerService.GetDiagnosticsAsync(workspace.CurrentSolution,
+            var service = (DiagnosticAnalyzerService)workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
+            var analyzerDiagnostics = await service.GetDiagnosticsAsync(workspace.CurrentSolution,
                 projectId: null, documentId: null, includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
 
             var snapshot = textBuffer.CurrentSnapshot;

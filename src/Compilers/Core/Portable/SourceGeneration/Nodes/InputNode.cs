@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T">The type of the input</typeparam>
     internal sealed class InputNode<T> : IIncrementalGeneratorNode<T>
     {
+        private static readonly string? s_tableType = typeof(T).FullName;
+
         private readonly Func<DriverStateTable.Builder, ImmutableArray<T>> _getInput;
         private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
         private readonly IEqualityComparer<T> _inputComparer;
@@ -132,7 +134,7 @@ namespace Microsoft.CodeAnalysis
             }
             var inputTable = tableBuilder.ToImmutableAndFree();
 
-            this.LogTables(_name, previousTable, newTable, inputTable);
+            this.LogTables(_name, s_tableType, previousTable, newTable, inputTable);
         }
     }
 }

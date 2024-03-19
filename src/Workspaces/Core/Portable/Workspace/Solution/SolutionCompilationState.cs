@@ -69,8 +69,16 @@ internal sealed partial class SolutionCompilationState
         FrozenSourceGeneratedDocumentStates = frozenSourceGeneratedDocumentStates;
 
         // when solution state is changed, we recalculate its checksum
-        _lazyChecksums = AsyncLazy.Create(c => ComputeChecksumsAsync(projectId: null, c));
-        _cachedFrozenSnapshot = cachedFrozenSnapshot ?? AsyncLazy.Create(synchronousComputeFunction: ComputeFrozenSnapshot);
+        _lazyChecksums = AsyncLazy.Create(static async (self, cancellationToken) =>
+        {
+            var (checksums, projectCone) = await self.ComputeChecksumsAsync(projectId: null, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfTrue(projectCone != null);
+            return checksums;
+        }, arg: this);
+        _cachedFrozenSnapshot = cachedFrozenSnapshot ??
+            AsyncLazy.Create(synchronousComputeFunction: static (self, c) =>
+                self.ComputeFrozenSnapshot(c),
+                arg: this);
 
         CheckInvariants();
     }
@@ -901,6 +909,14 @@ internal sealed partial class SolutionCompilationState
         return project.SupportsCompilation
             ? GetCompilationTracker(project.Id).GetSourceGeneratorDiagnosticsAsync(this, cancellationToken)
             : new([]);
+    }
+
+    public ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(
+    ProjectState project, CancellationToken cancellationToken)
+    {
+        return project.SupportsCompilation
+            ? GetCompilationTracker(project.Id).GetSourceGeneratorRunResultAsync(this, cancellationToken)
+            : new();
     }
 
     /// <summary>

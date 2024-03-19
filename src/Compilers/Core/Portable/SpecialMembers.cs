@@ -97,6 +97,54 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
 
+                // System_String__Concat_2ReadOnlySpans
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
+                    (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_ReadOnlySpan_T,
+                    1,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Char,
+                    (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_ReadOnlySpan_T,
+                    1,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Char,
+
+                // System_String__Concat_3ReadOnlySpans
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
+                    (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_ReadOnlySpan_T,
+                    1,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Char,
+                    (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_ReadOnlySpan_T,
+                    1,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Char,
+                    (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_ReadOnlySpan_T,
+                    1,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Char,
+
+                // System_String__Concat_4ReadOnlySpans
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    4,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
+                    (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_ReadOnlySpan_T,
+                    1,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Char,
+                    (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_ReadOnlySpan_T,
+                    1,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Char,
+                    (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_ReadOnlySpan_T,
+                    1,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Char,
+                    (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_ReadOnlySpan_T,
+                    1,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Char,
+
                 // System_String__op_Equality
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
@@ -147,6 +195,16 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                // System_String__op_Implicit_ToReadOnlySpanOfChar
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_ReadOnlySpan_T,
+                    1,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Char,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
 
                 // System_Double__IsNaN
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
@@ -1060,6 +1118,14 @@ namespace Microsoft.CodeAnalysis
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                // System_ReadOnlySpan_T__ctor_Reference
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)SpecialType.System_ReadOnlySpan_T,                                                                    // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericTypeParameter, 0,
             };
 
             string[] allNames = new string[(int)SpecialMember.Count]
@@ -1073,12 +1139,16 @@ namespace Microsoft.CodeAnalysis
                 "Concat",                                   // System_String__ConcatObjectObject
                 "Concat",                                   // System_String__ConcatObjectObjectObject
                 "Concat",                                   // System_String__ConcatObjectArray
+                "Concat",                                   // System_String__Concat_2ReadOnlySpans
+                "Concat",                                   // System_String__Concat_3ReadOnlySpans
+                "Concat",                                   // System_String__Concat_4ReadOnlySpans
                 "op_Equality",                              // System_String__op_Equality
                 "op_Inequality",                            // System_String__op_Inequality
                 "get_Length",                               // System_String__Length
                 "get_Chars",                                // System_String__Chars
                 "Format",                                   // System_String__Format
                 "Substring",                                // System_String__Substring
+                "op_Implicit",                              // System_String__op_Implicit_ToReadOnlySpanOfChar
                 "IsNaN",                                    // System_Double__IsNaN
                 "IsNaN",                                    // System_Single__IsNaN
                 "Combine",                                  // System_Delegate__Combine
@@ -1193,6 +1263,7 @@ namespace Microsoft.CodeAnalysis
                 "ByRefFields",                              // System_Runtime_CompilerServices_RuntimeFeature__ByRefFields
                 ".ctor",                                    // System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_InlineArrayAttribute__ctor
+                ".ctor",                                    // System_ReadOnlySpan_T__ctor_Reference
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
