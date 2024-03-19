@@ -18480,5 +18480,28 @@ System.Console.Write(" + expression + @");";
 }}
 ");
         }
+        [Theory]
+        [InlineData(@"$""{'c'}""", "c")]
+        [InlineData(@"$""{$""{'c'}h""}ar""", "char")]
+        public void CharConstantToConstString(string expression, string output)
+        {
+            var code = @"
+const string expression = " + expression + @";
+System.Console.Write(expression);";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+
+            var verifier = CompileAndVerify(comp, expectedOutput: output);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @$"
+{{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldstr      ""{output}""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ret
+}}
+");
+        }
     }
 }
