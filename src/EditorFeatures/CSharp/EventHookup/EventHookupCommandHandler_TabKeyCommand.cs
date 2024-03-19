@@ -138,7 +138,7 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
                 // then attempt to send the tab through to the editor.  If other changes went through, don't send the
                 // tab through as it's likely to make things worse.
                 if (applicableToSpan.Snapshot.Version == subjectBuffer.CurrentSnapshot.Version &&
-                    textView.GetCaretPoint(subjectBuffer) != initialCaretPoint)
+                    textView.GetCaretPoint(subjectBuffer) == initialCaretPoint)
                 {
                     nextHandler();
                 }
