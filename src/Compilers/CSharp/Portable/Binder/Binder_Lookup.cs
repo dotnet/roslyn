@@ -1469,10 +1469,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (hidingContainer.IsInterface)
                         {
+                            if (hiddenContainer.Equals(hidingContainer, TypeCompareKind.AllIgnoreOptions))
+                            {
+                                Debug.Assert(!hiddenContainer.Equals(hidingContainer, TypeCompareKind.ConsiderEverything));
+                                continue; // in error scenarios with multiple members differing by ignorable differences, we'll let an ambiguity error be reported later
+                            }
+
                             // SPEC: For the purposes of member lookup [...] if T is an
                             // SPEC: interface type, the base types of T are the base interfaces
                             // SPEC: of T and the class type object. 
-
                             if (!DerivesOrImplements(baseTypeOrImplementedInterface: hiddenContainer, derivedType: hidingContainer, basesBeingResolved, this.Compilation, useSiteInfo: ref useSiteInfo) &&
                                 hiddenContainer.SpecialType != SpecialType.System_Object)
                             {
