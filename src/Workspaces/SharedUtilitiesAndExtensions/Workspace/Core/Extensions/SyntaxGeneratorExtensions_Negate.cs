@@ -209,7 +209,6 @@ internal static partial class SyntaxGeneratorExtensions
                 {
                     // original form was already not a name (like a predefined type, or array type, etc.).  Can just
                     // use as is as a type pattern.
-                    Debug.Assert(syntaxFacts.IsAnyType(rightOperand));
                     innerPattern = generatorInternal.TypePattern(rightOperand);
                 }
             }
