@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -48,17 +49,21 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     public async ValueTask<ImmutableArray<(Checksum checksum, T asset)>> GetAssetsAsync<T>(
         AssetHint assetHint, HashSet<Checksum> checksums, CancellationToken cancellationToken)
     {
-        using var _1 = PooledDictionary<Checksum, object>.GetInstance(out var results);
+        using var _ = PooledDictionary<Checksum, object>.GetInstance(out var results);
 
         // bulk synchronize checksums first
         var syncer = new ChecksumSynchronizer(this);
         await syncer.SynchronizeAssetsAsync(assetHint, checksums, results, cancellationToken).ConfigureAwait(false);
 
-        using var _2 = ArrayBuilder<ValueTuple<Checksum, T>>.GetInstance(checksums.Count, out var list);
+        var result = new (Checksum checksum, T asset)[checksums.Count];
+        var index = 0;
         foreach (var (checksum, assetObject) in results)
-            list.Add((checksum, (T)assetObject));
+        {
+            result[index] = (checksum, (T)assetObject);
+            index++;
+        }
 
-        return list.ToImmutableAndClear();
+        return ImmutableCollectionsMarshal.AsImmutableArray(result);
     }
 
     public async ValueTask SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
