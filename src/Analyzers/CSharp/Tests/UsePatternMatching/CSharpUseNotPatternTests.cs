@@ -367,6 +367,41 @@ public partial class CSharpUseNotPatternTests
         }.RunAsync();
     }
 
+    [Fact]
+    public async Task BinaryIsObject3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(object x)
+                    {
+                        if (!(x [|is|] Object))
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(object x)
+                    {
+                        if (x is null)
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68784")]
     public async Task NotInExpressionTree()
     {
