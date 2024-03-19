@@ -183,31 +183,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool bindDisposable(bool fromExpression, out MethodArgumentInfo? patternDisposeInfo, out TypeSymbol? awaitableType)
             {
-                TypeSymbol disposableInterface = getDisposableInterface(hasAwait);
-                Debug.Assert((object)disposableInterface != null);
-
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = originalBinder.GetNewCompoundUseSiteInfo(diagnostics);
-                Conversion iDisposableConversion = classifyConversion(fromExpression, disposableInterface, ref useSiteInfo);
                 patternDisposeInfo = null;
                 awaitableType = null;
-
-                diagnostics.Add(syntax, useSiteInfo);
-
-                if (iDisposableConversion.IsImplicit)
-                {
-                    if (hasAwait)
-                    {
-                        awaitableType = originalBinder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
-                    }
-
-                    return !ReportUseSite(disposableInterface, diagnostics, hasAwait ? awaitKeyword : usingKeyword);
-                }
-
                 Debug.Assert(!fromExpression || expressionOpt != null);
                 TypeSymbol? type = fromExpression ? expressionOpt!.Type : declarationTypeOpt;
 
+                // Pattern-based binding
                 // If this is a ref struct, or we're in a valid asynchronous using, try binding via pattern.
-                // We won't need to try and bind a second time if it fails, as async dispose can't be pattern based (ref structs are not allowed in async methods)
                 if (type is object && (type.IsRefLikeType || hasAwait))
                 {
                     BoundExpression? receiver = fromExpression
@@ -248,6 +230,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         return true;
                     }
+                }
+
+                // Interface binding
+                TypeSymbol disposableInterface = getDisposableInterface(hasAwait);
+                Debug.Assert((object)disposableInterface != null);
+
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = originalBinder.GetNewCompoundUseSiteInfo(diagnostics);
+                Conversion iDisposableConversion = classifyConversion(fromExpression, disposableInterface, ref useSiteInfo);
+
+                diagnostics.Add(syntax, useSiteInfo);
+
+                if (iDisposableConversion.IsImplicit)
+                {
+                    if (hasAwait)
+                    {
+                        awaitableType = originalBinder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
+                    }
+
+                    return !ReportUseSite(disposableInterface, diagnostics, hasAwait ? awaitKeyword : usingKeyword);
                 }
 
                 if (type is null || !type.IsErrorType())

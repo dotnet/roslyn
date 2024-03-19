@@ -1320,7 +1320,38 @@ class C3
         }
 
         [Fact]
-        public void UsingDeclarationAsyncMissingValueTask()
+        public void UsingDeclarationAsyncMissingValueTask_01()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+class C1 : IAsyncDisposable
+{
+    ValueTask IAsyncDisposable.DisposeAsync() 
+    { 
+        return new ValueTask(Task.CompletedTask);
+    }
+}
+
+class C2
+{
+    static async Task Main()
+    {
+        await using C1 c1 = new C1();
+    }
+}";
+
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+            comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_ValueTask);
+            comp.VerifyDiagnostics(
+                // (16,9): error CS0518: Predefined type 'System.Threading.Tasks.ValueTask' is not defined or imported
+                //         await using C1 c1 = new C1();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.Threading.Tasks.ValueTask").WithLocation(16, 9)
+                );
+        }
+
+        [Fact]
+        public void UsingDeclarationAsyncMissingValueTask_02()
         {
             var source = @"
 using System;
@@ -1343,11 +1374,7 @@ class C2
 
             var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_ValueTask);
-            comp.VerifyDiagnostics(
-                // (16,9): error CS0518: Predefined type 'System.Threading.Tasks.ValueTask' is not defined or imported
-                //         await using C1 c1 = new C1();
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.Threading.Tasks.ValueTask").WithLocation(16, 9)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
