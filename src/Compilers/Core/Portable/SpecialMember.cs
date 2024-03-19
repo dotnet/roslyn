@@ -142,6 +142,7 @@ namespace Microsoft.CodeAnalysis
         System_UIntPtr__op_Explicit_FromUInt64,
 
         System_Nullable_T_GetValueOrDefault,
+        System_Nullable_T_GetValueOrDefaultDefaultValue,
         System_Nullable_T_get_Value,
         System_Nullable_T_get_HasValue,
         System_Nullable_T__ctor,
@@ -156,6 +157,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RuntimeFeature__ByRefFields,
 
         System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor,
+        System_Runtime_CompilerServices_InlineArrayAttribute__ctor,
 
         Count
     }

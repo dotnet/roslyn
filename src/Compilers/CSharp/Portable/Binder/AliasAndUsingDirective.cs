@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal struct AliasAndUsingDirective
+    internal readonly struct AliasAndUsingDirective
     {
         public readonly AliasSymbol Alias;
         public readonly SyntaxReference? UsingDirectiveReference;

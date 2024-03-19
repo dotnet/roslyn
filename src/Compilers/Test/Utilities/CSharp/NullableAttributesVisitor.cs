@@ -118,12 +118,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         protected override bool TypeRequiresAttribute(TypeSymbol? type)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         protected override CSharpAttributeData GetTargetAttribute(ImmutableArray<CSharpAttributeData> attributes)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

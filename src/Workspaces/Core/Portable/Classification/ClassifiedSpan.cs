@@ -6,34 +6,24 @@ using System;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Classification
+namespace Microsoft.CodeAnalysis.Classification;
+
+public readonly struct ClassifiedSpan(TextSpan textSpan, string classificationType) : IEquatable<ClassifiedSpan>
 {
-    public struct ClassifiedSpan : IEquatable<ClassifiedSpan>
+    public string ClassificationType { get; } = classificationType;
+    public TextSpan TextSpan { get; } = textSpan;
+
+    public ClassifiedSpan(string classificationType, TextSpan textSpan)
+        : this(textSpan, classificationType)
     {
-        public string ClassificationType { get; }
-        public TextSpan TextSpan { get; }
-
-        public ClassifiedSpan(string classificationType, TextSpan textSpan)
-            : this(textSpan, classificationType)
-        {
-        }
-
-        public ClassifiedSpan(TextSpan textSpan, string classificationType)
-        {
-            this.ClassificationType = classificationType;
-            this.TextSpan = textSpan;
-        }
-
-        public override int GetHashCode()
-            => Hash.Combine(this.ClassificationType, this.TextSpan.GetHashCode());
-
-        public override bool Equals(object? obj)
-        {
-            return obj is ClassifiedSpan &&
-                Equals((ClassifiedSpan)obj);
-        }
-
-        public bool Equals(ClassifiedSpan other)
-            => this.ClassificationType == other.ClassificationType && this.TextSpan == other.TextSpan;
     }
+
+    public override int GetHashCode()
+        => Hash.Combine(this.ClassificationType, this.TextSpan.GetHashCode());
+
+    public override bool Equals(object? obj)
+        => obj is ClassifiedSpan span && Equals(span);
+
+    public bool Equals(ClassifiedSpan other)
+        => this.ClassificationType == other.ClassificationType && this.TextSpan == other.TextSpan;
 }

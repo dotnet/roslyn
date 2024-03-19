@@ -9,89 +9,88 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace Microsoft.CodeAnalysis.UseExplicitTupleName
+namespace Microsoft.CodeAnalysis.UseExplicitTupleName;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+internal class UseExplicitTupleNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class UseExplicitTupleNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    public const string ElementName = nameof(ElementName);
+
+    public UseExplicitTupleNameDiagnosticAnalyzer()
+        : base(IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId,
+               EnforceOnBuildValues.UseExplicitTupleName,
+               CodeStyleOptions2.PreferExplicitTupleNames,
+               title: new LocalizableResourceString(nameof(AnalyzersResources.Use_explicitly_provided_tuple_name), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+               messageFormat: new LocalizableResourceString(nameof(AnalyzersResources.Prefer_explicitly_provided_tuple_element_name), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     {
-        public const string ElementName = nameof(ElementName);
+    }
 
-        public UseExplicitTupleNameDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId,
-                   EnforceOnBuildValues.UseExplicitTupleName,
-                   CodeStyleOptions2.PreferExplicitTupleNames,
-                   title: new LocalizableResourceString(nameof(AnalyzersResources.Use_explicitly_provided_tuple_name), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                   messageFormat: new LocalizableResourceString(nameof(AnalyzersResources.Prefer_explicitly_provided_tuple_element_name), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+    public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+
+    protected override void InitializeWorker(AnalysisContext context)
+        => context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReference);
+
+    private void AnalyzeOperation(OperationAnalysisContext context)
+    {
+        // We only create a diagnostic if the option's value is set to true.
+        var option = context.GetAnalyzerOptions().PreferExplicitTupleNames;
+        if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
         {
+            return;
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReference);
-
-        private void AnalyzeOperation(OperationAnalysisContext context)
+        if (option.Notification.Severity == ReportDiagnostic.Suppress)
         {
-            // We only create a diagnostic if the option's value is set to true.
-            var option = context.GetAnalyzerOptions().PreferExplicitTupleNames;
-            if (!option.Value)
-            {
-                return;
-            }
+            return;
+        }
 
-            var severity = option.Notification.Severity;
-            if (severity == ReportDiagnostic.Suppress)
-            {
-                return;
-            }
+        var fieldReferenceOperation = (IFieldReferenceOperation)context.Operation;
 
-            var fieldReferenceOperation = (IFieldReferenceOperation)context.Operation;
-
-            var field = fieldReferenceOperation.Field;
-            if (field.ContainingType.IsTupleType)
+        var field = fieldReferenceOperation.Field;
+        if (field.ContainingType.IsTupleType)
+        {
+            if (field.CorrespondingTupleField?.Equals(field) == true)
             {
-                if (field.CorrespondingTupleField?.Equals(field) == true)
+                var namedField = GetNamedField(field.ContainingType, field, context.CancellationToken);
+                if (namedField != null)
                 {
-                    var namedField = GetNamedField(field.ContainingType, field, context.CancellationToken);
-                    if (namedField != null)
+                    var memberAccessSyntax = fieldReferenceOperation.Syntax;
+                    var nameNode = memberAccessSyntax.ChildNodesAndTokens().Reverse().FirstOrDefault().AsNode();
+                    if (nameNode != null)
                     {
-                        var memberAccessSyntax = fieldReferenceOperation.Syntax;
-                        var nameNode = memberAccessSyntax.ChildNodesAndTokens().Reverse().FirstOrDefault().AsNode();
-                        if (nameNode != null)
-                        {
-                            var properties = ImmutableDictionary<string, string?>.Empty.Add(
-                                nameof(ElementName), namedField.Name);
-                            context.ReportDiagnostic(DiagnosticHelper.Create(
-                                Descriptor,
-                                nameNode.GetLocation(),
-                                severity,
-                                additionalLocations: null,
-                                properties));
-                        }
+                        var properties = ImmutableDictionary<string, string?>.Empty.Add(
+                            nameof(ElementName), namedField.Name);
+                        context.ReportDiagnostic(DiagnosticHelper.Create(
+                            Descriptor,
+                            nameNode.GetLocation(),
+                            option.Notification,
+                            context.Options,
+                            additionalLocations: null,
+                            properties));
                     }
                 }
             }
         }
+    }
 
-        private static IFieldSymbol? GetNamedField(
-            INamedTypeSymbol containingType, IFieldSymbol unnamedField, CancellationToken cancellationToken)
+    private static IFieldSymbol? GetNamedField(
+        INamedTypeSymbol containingType, IFieldSymbol unnamedField, CancellationToken cancellationToken)
+    {
+        foreach (var member in containingType.GetMembers())
         {
-            foreach (var member in containingType.GetMembers())
-            {
-                cancellationToken.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
 
-                if (member.Kind == SymbolKind.Field)
+            if (member.Kind == SymbolKind.Field)
+            {
+                var fieldSymbol = (IFieldSymbol)member;
+                if (unnamedField.Equals(fieldSymbol.CorrespondingTupleField) &&
+                    !fieldSymbol.Name.Equals(unnamedField.Name))
                 {
-                    var fieldSymbol = (IFieldSymbol)member;
-                    if (unnamedField.Equals(fieldSymbol.CorrespondingTupleField) &&
-                        !fieldSymbol.Name.Equals(unnamedField.Name))
-                    {
-                        return fieldSymbol;
-                    }
+                    return fieldSymbol;
                 }
             }
-
-            return null;
         }
+
+        return null;
     }
 }

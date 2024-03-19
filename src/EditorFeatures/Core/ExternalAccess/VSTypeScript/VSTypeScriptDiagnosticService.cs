@@ -11,48 +11,61 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
+
+[Export(typeof(IVSTypeScriptDiagnosticService)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VSTypeScriptDiagnosticService(IDiagnosticService service) : IVSTypeScriptDiagnosticService
 {
-    [Export(typeof(IVSTypeScriptDiagnosticService)), Shared]
-    internal sealed class VSTypeScriptDiagnosticService : IVSTypeScriptDiagnosticService
+    private readonly IDiagnosticService _service = service;
+
+    public Task<ImmutableArray<VSTypeScriptDiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+    {
+        // This type is only for push diagnostics, which is now no longer how any of our diagnostic systems work. So
+        // this just returns nothing.
+        return SpecializedTasks.EmptyImmutableArray<VSTypeScriptDiagnosticData>();
+    }
+
+    [Obsolete]
+    public IDisposable RegisterDiagnosticsUpdatedEventHandler(Action<VSTypeScriptDiagnosticsUpdatedArgsWrapper> action)
+        => new EventHandlerWrapper(_service, action);
+
+    public IDisposable RegisterDiagnosticsUpdatedEventHandler(Action<ImmutableArray<VSTypeScriptDiagnosticsUpdatedArgsWrapper>> action)
+        => new EventHandlerWrapper(_service, action);
+
+    private sealed class EventHandlerWrapper : IDisposable
     {
         private readonly IDiagnosticService _service;
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>> _handler;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptDiagnosticService(IDiagnosticService service, IGlobalOptionService globalOptions)
+        [Obsolete]
+        internal EventHandlerWrapper(IDiagnosticService service, Action<VSTypeScriptDiagnosticsUpdatedArgsWrapper> action)
         {
             _service = service;
-            _globalOptions = globalOptions;
+            _handler = (sender, argsCollection) =>
+            {
+                foreach (var args in argsCollection)
+                    action(new VSTypeScriptDiagnosticsUpdatedArgsWrapper(args));
+            };
+            _service.DiagnosticsUpdated += _handler;
         }
 
-        public async Task<ImmutableArray<VSTypeScriptDiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+        internal EventHandlerWrapper(IDiagnosticService service, Action<ImmutableArray<VSTypeScriptDiagnosticsUpdatedArgsWrapper>> action)
         {
-            var result = await _service.GetPushDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, _globalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode), cancellationToken).ConfigureAwait(false);
-            return result.SelectAsArray(data => new VSTypeScriptDiagnosticData(data));
+            _service = service;
+            _handler = (sender, argsCollection) =>
+            {
+                action(ImmutableArray.CreateRange(argsCollection, static args => new VSTypeScriptDiagnosticsUpdatedArgsWrapper(args)));
+            };
+            _service.DiagnosticsUpdated += _handler;
         }
 
-        public IDisposable RegisterDiagnosticsUpdatedEventHandler(Action<VSTypeScriptDiagnosticsUpdatedArgsWrapper> action)
-            => new EventHandlerWrapper(_service, action);
-
-        private sealed class EventHandlerWrapper : IDisposable
+        public void Dispose()
         {
-            private readonly IDiagnosticService _service;
-            private readonly EventHandler<DiagnosticsUpdatedArgs> _handler;
-
-            internal EventHandlerWrapper(IDiagnosticService service, Action<VSTypeScriptDiagnosticsUpdatedArgsWrapper> action)
-            {
-                _service = service;
-                _handler = (sender, args) => action(new VSTypeScriptDiagnosticsUpdatedArgsWrapper(args));
-                _service.DiagnosticsUpdated += _handler;
-            }
-
-            public void Dispose()
-            {
-                _service.DiagnosticsUpdated -= _handler;
-            }
+            _service.DiagnosticsUpdated -= _handler;
         }
     }
 }

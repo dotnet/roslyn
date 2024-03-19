@@ -149,7 +149,6 @@ End Class
             Assert.Same(u_c4, u_c4.ConstructedFrom)
             Assert.Same(u_c4, u_c4.ConstructUnboundGenericType())
 
-
             Dim u_c5 = c5.ConstructUnboundGenericType()
             Assert.True(u_c5.IsUnboundGenericType)
             u_c5.VerifyGenericInstantiationInvariants()

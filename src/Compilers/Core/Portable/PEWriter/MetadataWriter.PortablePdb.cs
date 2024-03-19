@@ -32,22 +32,27 @@ namespace Microsoft.Cci
         /// </summary>
         internal sealed class ImportScopeEqualityComparer : IEqualityComparer<IImportScope>
         {
-            public static readonly ImportScopeEqualityComparer Instance = new ImportScopeEqualityComparer();
+            private readonly EmitContext _context;
+
+            public ImportScopeEqualityComparer(EmitContext context)
+            {
+                _context = context;
+            }
 
             public bool Equals(IImportScope x, IImportScope y)
             {
                 return (object)x == y ||
-                       x != null && y != null && Equals(x.Parent, y.Parent) && x.GetUsedNamespaces().SequenceEqual(y.GetUsedNamespaces());
+                       x != null && y != null && Equals(x.Parent, y.Parent) && x.GetUsedNamespaces(_context).SequenceEqual(y.GetUsedNamespaces(_context));
             }
 
             public int GetHashCode(IImportScope obj)
             {
-                return Hash.Combine(Hash.CombineValues(obj.GetUsedNamespaces()), obj.Parent != null ? GetHashCode(obj.Parent) : 0);
+                return Hash.Combine(Hash.CombineValues(obj.GetUsedNamespaces(_context)), obj.Parent != null ? GetHashCode(obj.Parent) : 0);
             }
         }
 
         private readonly Dictionary<DebugSourceDocument, DocumentHandle> _documentIndex = new Dictionary<DebugSourceDocument, DocumentHandle>();
-        private readonly Dictionary<IImportScope, ImportScopeHandle> _scopeIndex = new Dictionary<IImportScope, ImportScopeHandle>(ImportScopeEqualityComparer.Instance);
+        private readonly Dictionary<IImportScope, ImportScopeHandle> _scopeIndex;
 
         private void SerializeMethodDebugInfo(IMethodBody bodyOpt, int methodRid, int aggregateMethodRid, StandaloneSignatureHandle localSignatureHandleOpt, ref LocalVariableHandle lastLocalVariableHandle, ref LocalConstantHandle lastLocalConstantHandle)
         {
@@ -134,6 +139,14 @@ namespace Microsoft.Cci
                     {
                         SerializeAsyncMethodSteppingInfo(asyncInfo, methodHandle, aggregateMethodRid);
                     }
+                }
+
+                if (bodyOpt.IsPrimaryConstructor)
+                {
+                    _debugMetadataOpt.AddCustomDebugInformation(
+                        parent: methodHandle,
+                        kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.PrimaryConstructorInformationBlob),
+                        value: default(BlobHandle));
                 }
 
                 SerializeStateMachineLocalScopes(bodyOpt, methodHandle);
@@ -301,7 +314,7 @@ namespace Microsoft.Cci
                 return SignatureTypeCode.Single;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         #region ImportScope
@@ -444,7 +457,7 @@ namespace Microsoft.Cci
         {
             var writer = new BlobBuilder();
 
-            foreach (UsedNamespaceOrType import in scope.GetUsedNamespaces())
+            foreach (UsedNamespaceOrType import in scope.GetUsedNamespaces(Context))
             {
                 SerializeImport(writer, import);
             }
@@ -622,7 +635,7 @@ namespace Microsoft.Cci
                 return default(BlobHandle);
             }
 
-            var writer = new BlobBuilder();
+            var writer = PooledBlobBuilder.GetInstance();
 
             int previousNonHiddenStartLine = -1;
             int previousNonHiddenStartColumn = -1;
@@ -686,7 +699,7 @@ namespace Microsoft.Cci
                 previousNonHiddenStartColumn = sequencePoints[i].StartColumn;
             }
 
-            return _debugMetadataOpt.GetOrAddBlob(writer);
+            return _debugMetadataOpt.GetOrAddBlobAndFree(writer);
         }
 
         private static DebugSourceDocument TryGetSingleDocument(ImmutableArray<SequencePoint> sequencePoints)
@@ -796,38 +809,38 @@ namespace Microsoft.Cci
 
             if (!encInfo.LocalSlots.IsDefaultOrEmpty)
             {
-                var writer = new BlobBuilder();
+                var writer = PooledBlobBuilder.GetInstance();
 
                 encInfo.SerializeLocalSlots(writer);
 
                 _debugMetadataOpt.AddCustomDebugInformation(
                     parent: method,
                     kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EncLocalSlotMap),
-                    value: _debugMetadataOpt.GetOrAddBlob(writer));
+                    value: _debugMetadataOpt.GetOrAddBlobAndFree(writer));
             }
 
             if (!encInfo.Lambdas.IsDefaultOrEmpty)
             {
-                var writer = new BlobBuilder();
+                var writer = PooledBlobBuilder.GetInstance();
 
                 encInfo.SerializeLambdaMap(writer);
 
                 _debugMetadataOpt.AddCustomDebugInformation(
                     parent: method,
                     kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EncLambdaAndClosureMap),
-                    value: _debugMetadataOpt.GetOrAddBlob(writer));
+                    value: _debugMetadataOpt.GetOrAddBlobAndFree(writer));
             }
 
             if (!encInfo.StateMachineStates.IsDefaultOrEmpty)
             {
-                var writer = new BlobBuilder();
+                var writer = PooledBlobBuilder.GetInstance();
 
                 encInfo.SerializeStateMachineStates(writer);
 
                 _debugMetadataOpt.AddCustomDebugInformation(
                     parent: method,
                     kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EncStateMachineStateMap),
-                    value: _debugMetadataOpt.GetOrAddBlob(writer));
+                    value: _debugMetadataOpt.GetOrAddBlobAndFree(writer));
             }
         }
 

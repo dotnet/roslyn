@@ -32,7 +32,9 @@ namespace BuildBoss
             {
                 var build = Serialization.Read(_logFilePath);
                 var doubleWrites = DoubleWritesAnalyzer.GetDoubleWrites(build).ToArray();
-                if (doubleWrites.Any())
+
+                // Issue https://github.com/dotnet/roslyn/issues/62372
+                if (doubleWrites.Any(doubleWrite => Path.GetFileName(doubleWrite.Key) != "Microsoft.VisualStudio.Text.Internal.dll"))
                 {
                     foreach (var doubleWrite in doubleWrites)
                     {

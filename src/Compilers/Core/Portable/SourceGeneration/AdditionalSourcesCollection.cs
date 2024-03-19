@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -15,12 +16,15 @@ namespace Microsoft.CodeAnalysis
     internal sealed class AdditionalSourcesCollection
     {
         private readonly ArrayBuilder<GeneratedSourceText> _sourcesAdded;
-
         private readonly string _fileExtension;
 
         private const StringComparison _hintNameComparison = StringComparison.OrdinalIgnoreCase;
 
         private static readonly StringComparer s_hintNameComparer = StringComparer.OrdinalIgnoreCase;
+
+        // Matches "/" at the beginning, relative path segments ("../", "./", "//"),
+        // and " /" (directories ending with space cause problems).
+        private static readonly Regex s_invalidSegmentPattern = new Regex(@"(\.{1,2}|/|^| )/", RegexOptions.Compiled);
 
         internal AdditionalSourcesCollection(string fileExtension)
         {
@@ -36,7 +40,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(hintName));
             }
 
-            // allow any identifier character or [.,-+`_ ()[]{}]
+            // allow any identifier character or [.,-+`_ ()[]{}/\\]
             for (int i = 0; i < hintName.Length; i++)
             {
                 char c = hintName[i];
@@ -53,10 +57,19 @@ namespace Microsoft.CodeAnalysis
                     && c != '['
                     && c != ']'
                     && c != '{'
-                    && c != '}')
+                    && c != '}'
+                    && c != '/'
+                    && c != '\\')
                 {
                     throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameInvalidChar, hintName, c, i), nameof(hintName));
                 }
+            }
+
+            hintName = hintName.Replace('\\', '/');
+
+            if (s_invalidSegmentPattern.Match(hintName) is { Success: true } match)
+            {
+                throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameInvalidSegment, hintName, match.Value, match.Index), nameof(hintName));
             }
 
             hintName = AppendExtensionIfRequired(hintName);

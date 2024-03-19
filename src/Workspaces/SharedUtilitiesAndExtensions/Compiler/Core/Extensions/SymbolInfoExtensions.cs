@@ -4,46 +4,37 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
+
+// Note - these methods are called in fairly hot paths in the IDE, so we try to be responsible about allocations.
+internal static class SymbolInfoExtensions
 {
-    // Note - these methods are called in fairly hot paths in the IDE, so we try to be responsible about allocations.
-    internal static class SymbolInfoExtensions
+    public static ImmutableArray<ISymbol> GetAllSymbols(this SymbolInfo info)
+        => GetAllSymbolsWorker(info).Distinct();
+
+    private static ImmutableArray<ISymbol> GetAllSymbolsWorker(this SymbolInfo info)
+        => info.Symbol == null ? info.CandidateSymbols : info.CandidateSymbols.Insert(0, info.Symbol);
+
+    public static ISymbol? GetAnySymbol(this SymbolInfo info)
+        => info.Symbol ?? info.CandidateSymbols.FirstOrDefault();
+
+    public static ImmutableArray<ISymbol> GetBestOrAllSymbols(this SymbolInfo info)
     {
-        public static ImmutableArray<ISymbol> GetAllSymbols(this SymbolInfo info)
-            => GetAllSymbolsWorker(info).Distinct();
+        if (info.Symbol != null)
+            return ImmutableArray.Create(info.Symbol);
 
-        private static ImmutableArray<ISymbol> GetAllSymbolsWorker(this SymbolInfo info)
+        if (info.CandidateSymbols.Contains(null!))
         {
-            if (info.Symbol == null)
-            {
-                return info.CandidateSymbols;
-            }
-            else
-            {
-                var builder = ArrayBuilder<ISymbol>.GetInstance(info.CandidateSymbols.Length + 1);
-                builder.Add(info.Symbol);
-                builder.AddRange(info.CandidateSymbols);
-                return builder.ToImmutableAndFree();
-            }
+            using var result = TemporaryArray<ISymbol>.Empty;
+            foreach (var symbol in info.CandidateSymbols)
+                result.AsRef().AddIfNotNull(symbol);
+
+            return result.ToImmutableAndClear();
         }
 
-        public static ISymbol? GetAnySymbol(this SymbolInfo info)
-            => info.Symbol ?? info.CandidateSymbols.FirstOrDefault();
-
-        public static ImmutableArray<ISymbol> GetBestOrAllSymbols(this SymbolInfo info)
-        {
-            if (info.Symbol != null)
-            {
-                return ImmutableArray.Create(info.Symbol);
-            }
-            else if (info.CandidateSymbols.Length > 0)
-            {
-                return info.CandidateSymbols;
-            }
-
-            return ImmutableArray<ISymbol>.Empty;
-        }
+        return info.CandidateSymbols;
     }
 }

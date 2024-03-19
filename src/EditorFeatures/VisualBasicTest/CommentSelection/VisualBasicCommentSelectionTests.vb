@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CommentSelection
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -14,8 +15,9 @@ Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CommentSelection
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.CommentSelection)>
     Public Class VisualBasicCommentSelectionTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
+        <WpfFact>
         Public Sub Comment1()
             Dim code = <code>Module Program
     [|Sub Main(args As String())
@@ -34,7 +36,7 @@ End Module</code>
             InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, Operation.Comment)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
+        <WpfFact>
         Public Sub UncommentAndFormat1()
             Dim code = <code>Module Program
     [|            '       Sub         Main        (       args    As String           ())
@@ -51,7 +53,7 @@ End Module</code>
             InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, Operation.Uncomment)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
+        <WpfFact>
         Public Sub UncommentAndFormat2()
             Dim code = <code>Module Program
     [|            '       Sub         Main        (       args    As String           ())           |]
@@ -78,14 +80,14 @@ End Module</code>
 
             MarkupTestFile.GetSpans(code, codeWithoutMarkup, spans)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(codeWithoutMarkup)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(codeWithoutMarkup)
                 Dim doc = workspace.Documents.First()
                 SetupSelection(doc.GetTextView(), spans.Select(Function(s) Span.FromBounds(s.Start, s.End)))
 
                 Dim commandHandler = New CommentUncommentSelectionCommandHandler(
                     workspace.GetService(Of ITextUndoHistoryRegistry),
                     workspace.GetService(Of IEditorOperationsFactoryService),
-                    workspace.GlobalOptions)
+                    workspace.GetService(Of EditorOptionsService))
                 Dim textView = doc.GetTextView()
                 Dim textBuffer = doc.GetTextBuffer()
                 commandHandler.ExecuteCommand(textView, textBuffer, operation, TestCommandExecutionContext.Create())

@@ -3,13 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Host;
+using Newtonsoft.Json;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
+    /// <summary>
+    /// NOTE: For Razor test usage only
+    /// </summary>
     internal interface IRazorLanguageServerFactoryWrapper
     {
-        IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, IRazorCapabilitiesProvider capabilitiesProvider);
+        IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, IRazorTestCapabilitiesProvider capabilitiesProvider, HostServices hostServices);
 
         DocumentInfo CreateDocumentInfo(
             DocumentId id,
@@ -21,5 +26,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             bool isGenerated = false,
             bool designTimeOnly = false,
             IRazorDocumentServiceProvider? razorDocumentServiceProvider = null);
+
+        /// <summary>
+        /// Supports the creation of a Roslyn LSP server for functional tests
+        /// </summary>
+        void AddJsonConverters(JsonSerializer jsonSerializer);
     }
 }

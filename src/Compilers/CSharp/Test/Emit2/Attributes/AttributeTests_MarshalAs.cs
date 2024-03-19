@@ -565,7 +565,6 @@ class X
         public void NativeTypeFixedArray()
         {
             var source = @"
-using System;
 using System.Runtime.InteropServices;
 
 public class X
@@ -603,6 +602,20 @@ public class X
             };
 
             var verifier = CompileAndVerifyFieldMarshal(source, blobs);
+            verifier.VerifyDiagnostics(
+                // (6,6): warning CS9125: Attribute parameter 'SizeConst' must be specified.
+                //     [MarshalAs(UnmanagedType.ByValArray)]
+                Diagnostic(ErrorCode.WRN_ByValArraySizeConstRequired, "MarshalAs(UnmanagedType.ByValArray)").WithLocation(6, 6),
+                // (9,6): warning CS9125: Attribute parameter 'SizeConst' must be specified.
+                //     [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = -1, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null,
+                Diagnostic(ErrorCode.WRN_ByValArraySizeConstRequired, @"MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = -1, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null,
+         SafeArrayUserDefinedSubType = null)").WithLocation(9, 6),
+                // (21,6): warning CS9125: Attribute parameter 'SizeConst' must be specified.
+                //     [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.AsAny)]
+                Diagnostic(ErrorCode.WRN_ByValArraySizeConstRequired, "MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.AsAny)").WithLocation(21, 6),
+                // (24,6): warning CS9125: Attribute parameter 'SizeConst' must be specified.
+                //     [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.CustomMarshaler)]
+                Diagnostic(ErrorCode.WRN_ByValArraySizeConstRequired, "MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.CustomMarshaler)").WithLocation(24, 6));
             VerifyFieldMetadataDecoding(verifier, blobs);
         }
 
@@ -656,15 +669,48 @@ public class X
                 // (8,170): error CS7045: Parameter not valid for the specified unmanaged type.
                 //     [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.ByValTStr, SafeArraySubType = VarEnum.VT_BSTR, SafeArrayUserDefinedSubType = null, SizeConst = -1, SizeParamIndex = -1)]int ByValArray_e1;
                 Diagnostic(ErrorCode.ERR_ParameterNotValidForType, "SizeParamIndex = -1"),
+                // (9,6): warning CS9124: Attribute parameter 'SizeConst' must be specified.
+                //     [MarshalAs(UnmanagedType.ByValArray, SizeParamIndex = short.MaxValue)]                                                                                                                    int ByValArray_e2;
+                Diagnostic(ErrorCode.WRN_ByValArraySizeConstRequired, "MarshalAs(UnmanagedType.ByValArray, SizeParamIndex = short.MaxValue)"),
                 // (9,42): error CS7045: Parameter not valid for the specified unmanaged type.
                 //     [MarshalAs(UnmanagedType.ByValArray, SizeParamIndex = short.MaxValue)]                                                                                                                    int ByValArray_e2;
                 Diagnostic(ErrorCode.ERR_ParameterNotValidForType, "SizeParamIndex = short.MaxValue"),
+                // (10,6): warning CS9124: Attribute parameter 'SizeConst' must be specified.
+                //     [MarshalAs(UnmanagedType.ByValArray, SafeArraySubType = VarEnum.VT_I2)]                                                                                                                   int ByValArray_e3;
+                Diagnostic(ErrorCode.WRN_ByValArraySizeConstRequired, "MarshalAs(UnmanagedType.ByValArray, SafeArraySubType = VarEnum.VT_I2)"),
                 // (10,42): error CS7045: Parameter not valid for the specified unmanaged type.
                 //     [MarshalAs(UnmanagedType.ByValArray, SafeArraySubType = VarEnum.VT_I2)]                                                                                                                   int ByValArray_e3;
                 Diagnostic(ErrorCode.ERR_ParameterNotValidForType, "SafeArraySubType = VarEnum.VT_I2"),
                 // (11,82): error CS0599: Invalid value for named attribute argument 'SizeConst'
                 //     [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.ByValTStr, SizeConst = 0x20000000)]                                                                                     int ByValArray_e4;
                 Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "SizeConst = 0x20000000").WithArguments("SizeConst"));
+        }
+
+        [Fact]
+        [WorkItem(68988, "https://github.com/dotnet/roslyn/issues/68988")]
+        public void NativeTypeFixedArray_SizeConstWarning_RespectsWarningLevel()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+public class X
+{
+    [MarshalAs(UnmanagedType.ByValArray)]
+    public int ByValArray0;
+}
+";
+            CreateCompilation(
+                source,
+                options: TestOptions.ReleaseDll.WithWarningLevel(7))
+                .VerifyDiagnostics();
+
+            CreateCompilation(
+                source,
+                options: TestOptions.ReleaseDll.WithWarningLevel(8))
+                .VerifyDiagnostics(
+                // (6,6): warning CS9125: Attribute parameter 'SizeConst' must be specified.
+                //     [MarshalAs(UnmanagedType.ByValArray)]
+                Diagnostic(ErrorCode.WRN_ByValArraySizeConstRequired, "MarshalAs(UnmanagedType.ByValArray)").WithLocation(6, 6));
         }
 
         /// <summary>

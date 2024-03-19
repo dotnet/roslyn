@@ -779,7 +779,6 @@ BC30518: Overload resolution failed because no accessible 'Goo' can be called wi
 </expected>)
         End Sub
 
-
         <Fact>
         Public Sub ERRID_TypeInferenceFailure2()
             Dim compilationDef =
@@ -865,7 +864,6 @@ BC36642: Option Strict On requires each lambda expression parameter to be declar
 <expected>
 </expected>)
         End Sub
-
 
         <Fact>
         Public Sub InferFromAddressOf1()
@@ -1011,7 +1009,6 @@ BC36564: Type arguments could not be inferred from the delegate.
                                                 ~~
 </expected>)
         End Sub
-
 
         <WorkItem(540950, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540950")>
         <Fact>

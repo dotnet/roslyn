@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
+    <Trait(Traits.Feature, Traits.Features.Outlining)>
     Public Class DisabledCodeStructureProviderTests
         Inherits AbstractVisualBasicSyntaxTriviaStructureProviderTests
 
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New DisabledTextTriviaStructureProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestDisabledIf() As Task
             Const code = "
 #If False
@@ -26,7 +27,7 @@ Blah|}
                 Region("span", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestDisabledElse() As Task
             Const code = "
 #If True
@@ -40,7 +41,7 @@ Blah|}
                 Region("span", VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestDisabledElseIf() As Task
             Const code = "
 #If True

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     {
         private sealed partial class Visitor
         {
-            private struct FormattedMember
+            private readonly struct FormattedMember
             {
                 // Non-negative if the member is an inlined element of an array (DebuggerBrowsableState.RootHidden applied on a member of array type).
                 public readonly int Index;

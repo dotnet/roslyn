@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             // Create an instance of the proxy type, and make sure we can access all of the instance properties
             // on the type without exception
-            object proxyInstance = Activator.CreateInstance(proxyType, obj) ?? throw ExceptionUtilities.Unreachable;
+            object proxyInstance = Activator.CreateInstance(proxyType, obj) ?? throw ExceptionUtilities.Unreachable();
             IEnumerable<PropertyInfo> properties = GetDebuggerVisibleProperties(proxyType);
             return new DebuggerAttributeInfo(proxyInstance, properties);
         }

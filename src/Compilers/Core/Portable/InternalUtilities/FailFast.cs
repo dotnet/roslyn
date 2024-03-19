@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
             DumpStackTrace(exception: exception);
 
             Environment.FailFast(exception.ToString(), exception);
-            throw ExceptionUtilities.Unreachable; // to satisfy [DoesNotReturn]
+            throw ExceptionUtilities.Unreachable(); // to satisfy [DoesNotReturn]
         }
 
         [DebuggerHidden]
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
         {
             DumpStackTrace(message: message);
             Environment.FailFast(message);
-            throw ExceptionUtilities.Unreachable; // to satisfy [DoesNotReturn]
+            throw ExceptionUtilities.Unreachable(); // to satisfy [DoesNotReturn]
         }
 
         /// <summary>

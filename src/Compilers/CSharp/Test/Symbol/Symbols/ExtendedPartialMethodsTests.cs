@@ -2428,38 +2428,43 @@ public partial class D : C
                 var verifier = CompileAndVerify(source2, references: new[] { reference }, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
                 verifier.VerifyTypeIL("D", @"
 .class public auto ansi beforefieldinit D
-        extends [C]C
+	extends [C]C
 {
-        // Methods
-        .method public hidebysig virtual
-                instance void M (
-                        [in] object& modreq([netstandard]System.Runtime.InteropServices.InAttribute) x
-                ) cil managed
-        {
-                .param [1]
-                        .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
-                                01 00 00 00
-                        )
-                // Method begins at RVA 0x2058
-                // Code size 9 (0x9)
-                .maxstack 8
-                IL_0000: ldarg.1
-                IL_0001: ldind.ref
-                IL_0002: callvirt instance string [netstandard]System.Object::ToString()
-                IL_0007: pop
-                IL_0008: ret
-        } // end of method D::M
-        .method public hidebysig specialname rtspecialname
-                instance void .ctor () cil managed
-        {
-                // Method begins at RVA 0x2062
-                // Code size 7 (0x7)
-                .maxstack 8
-                IL_0000: ldarg.0
-                IL_0001: call instance void [C]C::.ctor()
-                IL_0006: ret
-        } // end of method D::.ctor
-} // end of class D");
+	// Methods
+	.method public hidebysig virtual 
+		instance void M (
+			[in] object& modreq([netstandard]System.Runtime.InteropServices.InAttribute) x
+		) cil managed 
+	{
+		.param [1]
+			.custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+				01 00 00 00
+			)
+		// Method begins at RVA 0x2067
+		// Code size 9 (0x9)
+		.maxstack 8
+
+		IL_0000: ldarg.1
+		IL_0001: ldind.ref
+		IL_0002: callvirt instance string [netstandard]System.Object::ToString()
+		IL_0007: pop
+		IL_0008: ret
+	} // end of method D::M
+
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2071
+		// Code size 7 (0x7)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: call instance void [C]C::.ctor()
+		IL_0006: ret
+	} // end of method D::.ctor
+
+} // end of class D
+");
             }
         }
 

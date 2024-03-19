@@ -15,7 +15,7 @@ namespace ObjectFormatterFixtures
     /// </summary>
     [DebuggerTypeProxy(typeof(SpinLockDebugView))]
     [DebuggerDisplay("IsHeld = {IsHeld}")]
-    internal struct MockDesktopSpinLock
+    internal readonly struct MockDesktopSpinLock
     {
         private readonly int m_owner;
 

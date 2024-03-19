@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
             End Function
         End Class
 
-        Protected MustOverride Function CreateWorkspace(code As String, testComposition As TestComposition) As TestWorkspace
+        Protected MustOverride Function CreateWorkspace(code As String, testComposition As TestComposition) As EditorTestWorkspace
 
         Protected Async Function VerifyContextLocationInMetadataAsSource(
             code As String,
@@ -55,6 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
                 Dim definitionContextTracker = workspace.ExportProvider.GetExportedValue(Of DefinitionContextTracker)
                 Dim locations = Await definitionContextTracker.GetContextFromPointAsync(
+                    workspace,
                     document,
                     hostDocument.CursorPosition.Value,
                     CancellationToken.None)
@@ -71,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
             End Using
         End Function
 
-        Public Shared Async Function VerifyContextLocationAsync(displayName As String, workspace As TestWorkspace) As Task
+        Public Shared Async Function VerifyContextLocationAsync(displayName As String, workspace As EditorTestWorkspace) As Task
             Dim triggerHostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
             Dim triggerDocument = workspace.CurrentSolution.GetDocument(triggerHostDocument.Id)
             Dim triggerTree = Await triggerDocument.GetSyntaxTreeAsync()
@@ -80,6 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
             Dim definitionContextTracker = workspace.ExportProvider.GetExportedValue(Of DefinitionContextTracker)
             Dim locations = Await definitionContextTracker.GetContextFromPointAsync(
+                workspace,
                 triggerDocument,
                 triggerHostDocument.CursorPosition.Value,
                 CancellationToken.None)

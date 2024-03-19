@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -16,6 +15,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     public class TopologicalSortTests
     {
+        private TopologicalSortAddSuccessors<int> GetAddSuccessorsFunction(int[][] successors)
+            => GetAddSuccessorsFunction(successors, i => i);
+
+        private static TopologicalSortAddSuccessors<T> GetAddSuccessorsFunction<T>(T[][] successors, Func<T, int> toInt)
+            => (ref TemporaryArray<T> builder, T value) => builder.AddRange(successors[toInt(value)].ToImmutableArray());
+
         [Fact]
         public void Test01()
         {
@@ -29,8 +34,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 /* 5 */ new int[] { 0, 2 },
             };
 
-            Func<int, IEnumerable<int>> succF = x => successors[x];
-            var wasAcyclic = TopologicalSort.TryIterativeSort<int>(new[] { 4, 5 }, i => succF(i).ToImmutableArray(), out var sorted);
+            var succF = GetAddSuccessorsFunction(successors);
+            var wasAcyclic = TopologicalSort.TryIterativeSort(new[] { 4, 5 }, succF, out var sorted);
             Assert.True(wasAcyclic);
             AssertTopologicallySorted(sorted, succF, "Test01");
             Assert.Equal(6, sorted.Length);
@@ -50,8 +55,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 /* 5 */ new string[] { "0", "2" },
             };
 
-            Func<string, IEnumerable<string>> succF = x => successors[int.Parse(x)];
-            var wasAcyclic = TopologicalSort.TryIterativeSort<string>(new[] { "4", "5" }, i => succF(i).ToImmutableArray(), out var sorted);
+            var succF = GetAddSuccessorsFunction(successors, x => int.Parse(x));
+            var wasAcyclic = TopologicalSort.TryIterativeSort(new[] { "4", "5" }, succF, out var sorted);
             Assert.True(wasAcyclic);
             AssertTopologicallySorted(sorted, succF, "Test01");
             Assert.Equal(6, sorted.Length);
@@ -73,8 +78,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 /* 7 */ new int[] { }
             };
 
-            Func<int, IEnumerable<int>> succF = x => successors[x];
-            var wasAcyclic = TopologicalSort.TryIterativeSort<int>(new[] { 1, 6 }, i => succF(i).ToImmutableArray(), out var sorted);
+            var succF = GetAddSuccessorsFunction(successors);
+            var wasAcyclic = TopologicalSort.TryIterativeSort(new[] { 1, 6 }, succF, out var sorted);
             Assert.True(wasAcyclic);
             AssertTopologicallySorted(sorted, succF, "Test02");
             Assert.Equal(7, sorted.Length);
@@ -97,7 +102,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             };
 
             // 1 -> 4 -> 3 -> 5 -> 1
-            var wasAcyclic = TopologicalSort.TryIterativeSort<int>(new[] { 1 }, x => successors[x].ToImmutableArray(), out var sorted);
+            var succF = GetAddSuccessorsFunction(successors);
+            var wasAcyclic = TopologicalSort.TryIterativeSort(new[] { 1 }, succF, out var sorted);
             Assert.False(wasAcyclic);
         }
 
@@ -140,8 +146,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
 
             // Perform a topological sort and check it.
-            Func<int, IEnumerable<int>> succF = x => successors[x];
-            var wasAcyclic = TopologicalSort.TryIterativeSort<int>(Enumerable.Range(0, numberOfNodes).ToArray(), i => succF(i).ToImmutableArray(), out var sorted);
+            var succF = GetAddSuccessorsFunction(successors);
+            var wasAcyclic = TopologicalSort.TryIterativeSort(Enumerable.Range(0, numberOfNodes).ToArray(), succF, out var sorted);
             Assert.True(wasAcyclic);
             Assert.Equal(numberOfNodes, sorted.Length);
             AssertTopologicallySorted(sorted, succF, $"TestRandom(seed: {seed})");
@@ -155,7 +161,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             // time.
             successors[possibleSort[0]] = successors[possibleSort[0]].Concat(new int[] { possibleSort[numberOfNodes - 1] }).ToArray();
 
-            wasAcyclic = TopologicalSort.TryIterativeSort<int>(Enumerable.Range(0, numberOfNodes).ToArray(), i => succF(i).ToImmutableArray(), out sorted);
+            wasAcyclic = TopologicalSort.TryIterativeSort(Enumerable.Range(0, numberOfNodes).ToArray(), succF, out sorted);
             Assert.False(wasAcyclic);
 
             // where
@@ -203,13 +209,18 @@ However, we are keeping it in the source as it may be useful to developers who c
             }
         }
 
-        private void AssertTopologicallySorted<T>(ImmutableArray<T> sorted, Func<T, IEnumerable<T>> successors, string message = null)
+        private void AssertTopologicallySorted<T>(ImmutableArray<T> sorted, TopologicalSortAddSuccessors<T> addSuccessors, string? message = null)
         {
             var seen = new HashSet<T>();
+            using var successors = TemporaryArray<T>.Empty;
             for (int i = sorted.Length - 1; i >= 0; i--)
             {
                 var n = sorted[i];
-                foreach (var succ in successors(n))
+
+                successors.Clear();
+                addSuccessors(ref successors.AsRef(), n);
+
+                foreach (var succ in successors)
                 {
                     Assert.True(seen.Contains(succ), message);
                 }

@@ -11,15 +11,6 @@ namespace Microsoft.CodeAnalysis.DocumentationComments;
 
 internal static class DocumentationCommentOptionsStorage
 {
-    public static async ValueTask<DocumentationCommentOptions> GetDocumentationCommentOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
-    {
-        var lineFormattingOptions = await document.GetLineFormattingOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(false);
-        return new()
-        {
-            LineFormatting = lineFormattingOptions,
-            AutoXmlDocCommentGeneration = globalOptions.GetOption(AutoXmlDocCommentGeneration, document.Project.Language),
-        };
-    }
 
     public static DocumentationCommentOptions GetDocumentationCommentOptions(this IGlobalOptionService globalOptions, LineFormattingOptions lineFormatting, string language)
       => new()
@@ -29,7 +20,6 @@ internal static class DocumentationCommentOptionsStorage
       };
 
     public static readonly PerLanguageOption2<bool> AutoXmlDocCommentGeneration = new(
-        "DocumentationCommentOptions", "AutoXmlDocCommentGeneration", DocumentationCommentOptions.Default.AutoXmlDocCommentGeneration,
-        storageLocation: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.AutoComment" : "TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation"));
+        "dotnet_auto_xml_doc_comment_generation", DocumentationCommentOptions.Default.AutoXmlDocCommentGeneration);
 
 }

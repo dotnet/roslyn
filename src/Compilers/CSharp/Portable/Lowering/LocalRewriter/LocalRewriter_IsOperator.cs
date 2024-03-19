@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -47,17 +48,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             var operandType = rewrittenOperand.Type;
             var targetType = rewrittenTargetType.Type;
 
-            Debug.Assert(operandType is { } || rewrittenOperand.ConstantValue!.IsNull);
+            Debug.Assert(operandType is { } || rewrittenOperand.ConstantValueOpt!.IsNull);
             Debug.Assert(targetType is { });
 
             // TODO: Handle dynamic operand type and target type
 
             if (!_inExpressionLambda)
             {
-                ConstantValue constantValue = Binder.GetIsOperatorConstantResult(operandType, targetType, conversionKind, rewrittenOperand.ConstantValue);
+                ConstantValue constantValue = Binder.GetIsOperatorConstantResult(operandType, targetType, conversionKind, rewrittenOperand.ConstantValueOpt);
 
                 if (constantValue != null)
                 {
+                    if (constantValue.IsBad)
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(constantValue);
+                    }
+
                     return RewriteConstantIsOperator(syntax, rewrittenOperand, constantValue, rewrittenType);
                 }
                 else if (conversionKind.IsImplicitConversion())

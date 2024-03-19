@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var modifiersModule = assemblies[0].Modules[0];
 
-
             var modifiers = modifiersModule.GlobalNamespace.GetTypeMembers("Modifiers").Single();
 
             FieldSymbol f0 = modifiers.GetMembers("F0").OfType<FieldSymbol>().Single();

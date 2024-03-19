@@ -12,7 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 
 #Region "OverrideKind tests"
 
-        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/9646")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestOverrideKind_None()
             Dim code =
@@ -35,7 +35,7 @@ class C
             TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
         End Sub
 
-        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/9646")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestOverrideKind_Abstract()
             Dim code =
@@ -53,7 +53,7 @@ abstract class C
             TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
         End Sub
 
-        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/9646")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestOverrideKind_Virtual()
             Dim code =
@@ -76,7 +76,7 @@ class C
             TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual)
         End Sub
 
-        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/9646")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestOverrideKind_Override()
             Dim code =
@@ -99,7 +99,7 @@ class C : B
             TestOverrideKind(code, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride)
         End Sub
 
-        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/9646")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestOverrideKind_Sealed()
             Dim code =
@@ -126,7 +126,7 @@ class C : B
 
 #Region "Parameter name tests"
 
-        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/9646")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestParameterNameWithEscapeCharacters()
             Dim code =
@@ -148,7 +148,7 @@ class Program
 
 #Region "ReadWrite tests"
 
-        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/9646")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestReadWrite_GetSet()
             Dim code =
@@ -171,7 +171,7 @@ class C
             TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite)
         End Sub
 
-        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/9646")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestReadWrite_Get()
             Dim code =
@@ -191,7 +191,7 @@ class C
             TestReadWrite(code, EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly)
         End Sub
 
-        <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/9646")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestReadWrite_Set()
             Dim code =

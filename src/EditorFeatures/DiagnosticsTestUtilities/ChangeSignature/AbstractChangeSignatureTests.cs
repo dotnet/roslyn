@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             var regularParameterArrangements = GetPermutedSubsets(regularParameterStartIndex, signaturePartCounts[1]);
             var defaultValueParameterArrangements = GetPermutedSubsets(defaultValueParameterStartIndex, signaturePartCounts[2]);
 
-            var startArray = signaturePartCounts[0] == 0 ? Array.Empty<int>() : new[] { 0 };
+            var startArray = signaturePartCounts[0] == 0 ? Array.Empty<int>() : [0];
 
             foreach (var regularParameterPart in regularParameterArrangements)
             {

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options;
 using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
@@ -19,12 +20,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
 
         public OmniSharpDocumentationCommentOptionsWrapper(
             bool autoXmlDocCommentGeneration,
-            int tabSize,
-            bool useTabs,
-            string newLine)
+            OmniSharpLineFormattingOptions lineFormattingOptions)
             : this(new DocumentationCommentOptions()
             {
-                LineFormatting = new LineFormattingOptions() { UseTabs = useTabs, TabSize = tabSize, IndentationSize = tabSize, NewLine = newLine },
+                LineFormatting = new LineFormattingOptions()
+                {
+                    UseTabs = lineFormattingOptions.UseTabs,
+                    TabSize = lineFormattingOptions.TabSize,
+                    IndentationSize = lineFormattingOptions.IndentationSize,
+                    NewLine = lineFormattingOptions.NewLine,
+                },
                 AutoXmlDocCommentGeneration = autoXmlDocCommentGeneration
             })
         {

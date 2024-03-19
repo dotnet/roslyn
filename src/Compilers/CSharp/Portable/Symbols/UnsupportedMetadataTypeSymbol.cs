@@ -37,5 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
         }
+
+        internal override bool IsFileLocal => false;
+        internal override FileIdentifier? AssociatedFileIdentifier => null;
     }
 }

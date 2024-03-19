@@ -215,7 +215,6 @@ End Class
                              </file>
                          </compilation>
 
-
             Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseParseDiagnostics(comp2,
 <expected>
@@ -344,7 +343,6 @@ End Module
 
         End Sub
 
-
         <WorkItem(543309, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543309")>
         <Fact()>
         Public Sub EventSyntheticDelegateShadows()
@@ -367,7 +365,6 @@ End Class
             CompilationUtils.AssertNoErrors(comp2)
         End Sub
 
-
         <Fact()>
         Public Sub EventNoShadows()
             Dim source = <compilation name="F">
@@ -384,7 +381,6 @@ End Class
 ]]>
                              </file>
                          </compilation>
-
 
             Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
@@ -422,7 +418,6 @@ End Class
 ]]>
                              </file>
                          </compilation>
-
 
             Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
@@ -484,7 +479,6 @@ End Class
                              </file>
                          </compilation>
 
-
             Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
@@ -513,7 +507,6 @@ End Class
 ]]>
                              </file>
                          </compilation>
-
 
             Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
@@ -553,7 +546,6 @@ End Module
 ]]>
                              </file>
                          </compilation>
-
 
             Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
@@ -599,7 +591,6 @@ End Class
                              </file>
                          </compilation>
 
-
             Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,
 <expected>
@@ -644,10 +635,8 @@ End Class
                              </file>
                          </compilation>
 
-
             Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertNoErrors(comp2)
-
 
             Dim attributeValidatorSource = Sub(m As ModuleSymbol)
 
@@ -694,7 +683,6 @@ End Class
                                                attrs = member.GetAttributes()
                                                Assert.Equal(0, attrs.Length)
                                            End Sub
-
 
             ' metadata verifier excludes private members as those are not loaded.
             Dim attributeValidatorMetadata = Sub(m As ModuleSymbol)
@@ -744,7 +732,6 @@ End Class
                                                  'attrs = member.GetAttributes()
                                                  'Assert.Equal(0, attrs.Count)
                                              End Sub
-
 
             ' Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidatorSource,
@@ -809,7 +796,6 @@ End Module
 
                              </file>
                          </compilation>
-
 
             Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseDiagnostics(comp2,

@@ -357,7 +357,7 @@ public class A
     event Action b;
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
             {
                 var reader = assembly.GetMetadataReader();
                 Assert.Equal(2, reader.GetTableRowCount(TableIndex.FieldLayout));
@@ -405,7 +405,7 @@ public struct A
     event Action b;
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
             {
                 var reader = assembly.GetMetadataReader();
                 Assert.Equal(2, reader.GetTableRowCount(TableIndex.FieldLayout));

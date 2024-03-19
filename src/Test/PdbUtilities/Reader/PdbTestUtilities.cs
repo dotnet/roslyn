@@ -42,8 +42,8 @@ namespace Roslyn.Test.Utilities
                 {
                     var pdbReader = new MetadataReader(metadata, size);
 
-                    ImmutableArray<byte> GetCdiBytes(Guid kind) =>
-                        TryGetCustomDebugInformation(pdbReader, handle, kind, out var info) ? pdbReader.GetBlobContent(info.Value) : default(ImmutableArray<byte>);
+                    ImmutableArray<byte> GetCdiBytes(Guid kind)
+                        => TryGetCustomDebugInformation(pdbReader, handle, kind, out var info) ? pdbReader.GetBlobContent(info.Value) : default(ImmutableArray<byte>);
 
                     return EditAndContinueMethodDebugInformation.Create(
                         compressedSlotMap: GetCdiBytes(PortableCustomDebugInfoKinds.EncLocalSlotMap),

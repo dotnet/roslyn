@@ -64,20 +64,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
                 Dim spans = New List(Of TextSpan)()
                 spans.Add(syntaxTree.GetRoot().FullSpan)
 
-                Dim changes = Formatter.GetFormattedTextChanges(Await syntaxTree.GetRootAsync(), workspace.Services, options, CancellationToken.None)
+                Dim changes = Formatter.GetFormattedTextChanges(Await syntaxTree.GetRootAsync(), workspace.Services.SolutionServices, options, CancellationToken.None)
                 AssertResult(expected, Await document.GetTextAsync(), changes)
 
-                changes = Formatter.GetFormattedTextChanges(Await syntaxTree.GetRootAsync(), (Await syntaxTree.GetRootAsync()).FullSpan, workspace.Services, options, CancellationToken.None)
+                changes = Formatter.GetFormattedTextChanges(Await syntaxTree.GetRootAsync(), (Await syntaxTree.GetRootAsync()).FullSpan, workspace.Services.SolutionServices, options, CancellationToken.None)
                 AssertResult(expected, Await document.GetTextAsync(), changes)
 
                 spans = New List(Of TextSpan)()
                 spans.Add(syntaxTree.GetRoot().FullSpan)
 
-                changes = Formatter.GetFormattedTextChanges(Await syntaxTree.GetRootAsync(), spans, workspace.Services, options, CancellationToken.None)
+                changes = Formatter.GetFormattedTextChanges(Await syntaxTree.GetRootAsync(), spans, workspace.Services.SolutionServices, options, CancellationToken.None)
                 AssertResult(expected, Await document.GetTextAsync(), changes)
 
                 ' format with node and transform
-                AssertFormatWithTransformation(workspace.Services, expected, syntaxTree.GetRoot(), spans, options, False)
+                AssertFormatWithTransformation(workspace.Services.SolutionServices, expected, syntaxTree.GetRoot(), spans, options, False)
             End Using
         End Function
 

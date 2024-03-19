@@ -45,7 +45,6 @@ Friend Class GreenNodeFactoryWriter
             GenerateConstructor()
         Else
             _writer.WriteLine("    Friend Partial Class {0}", Ident(_parseTree.FactoryClassName))
-            GenerateSpecialMembers()
         End If
 
         _writer.WriteLine()
@@ -58,11 +57,6 @@ Friend Class GreenNodeFactoryWriter
         End If
     End Sub
 
-    ' Generate special members, that aren't the factories, but are used by the factories
-    Private Sub GenerateSpecialMembers()
-        GenerateNodeTypes()
-    End Sub
-
     ' Generator all factory methods for all node structures.
     Private Sub GenerateAllFactoryMethods(contextual As Boolean)
         For Each nodeStructure In _parseTree.NodeStructures.Values
@@ -70,27 +64,6 @@ Friend Class GreenNodeFactoryWriter
                 GenerateFactoryMethodsForStructure(nodeStructure, contextual)
             End If
         Next
-    End Sub
-
-    Private Sub GenerateNodeTypes()
-
-        _writer.WriteLine()
-        _writer.WriteLine("        Friend Shared Function GetNodeTypes() As IEnumerable(Of Object)")
-        _writer.WriteLine("            Return New Object() {")
-
-        Dim structures = _parseTree.NodeStructures.Values.ToArray()
-        For i As Integer = 0 To structures.Length - 1
-            Dim node = structures(i)
-            _writer.Write("              GetType({0})", node.Name)
-            If i < structures.Length - 1 Then
-                _writer.Write(",")
-            End If
-            _writer.WriteLine()
-        Next
-        _writer.WriteLine("            }")
-
-        _writer.WriteLine("        End Function")
-
     End Sub
 
     ' Generator all factory methods for a node structure.
@@ -202,7 +175,7 @@ Friend Class GreenNodeFactoryWriter
 
             Dim kindsList = String.Join(", ", From kind In nodeStructure.NodeKinds Select kind.Name)
 
-            GenerateParameterXmlComment(_writer, "kind", String.Format("A <cref c=""SyntaxKind""/> representing the specific kind of {0}. One of {1}.", nodeStructure.Name, kindsList))
+            GenerateParameterXmlComment(_writer, "kind", String.Format("A <see cref=""SyntaxKind""/> representing the specific kind of {0}. One of {1}.", nodeStructure.Name, kindsList))
         End If
 
         If nodeStructure.IsTerminal Then
@@ -291,6 +264,7 @@ Friend Class GreenNodeFactoryWriter
             nodeStructure.Name = "SkippedTokensTriviaSyntax" OrElse
             nodeStructure.Name = "DocumentationCommentTriviaSyntax" OrElse
             nodeStructure.Name.EndsWith("DirectiveTriviaSyntax", StringComparison.Ordinal) OrElse
+            nodeStructure.Name = "AttributeSyntax" OrElse
             allFields.Count + allChildren.Count > 3) Then
 
             _writer.Write("            Return New {0}(", StructureTypeName(nodeStructure))

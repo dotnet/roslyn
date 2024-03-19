@@ -40,11 +40,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
         public Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextVersion textVersion, CancellationToken cancellationToken)
         {
-            return ((INavigationBarItemService)this).GetItemsAsync(document, forceFrozenPartialSemanticsForCrossProcessOperations: false, textVersion, cancellationToken);
+            return ((INavigationBarItemService)this).GetItemsAsync(
+                document, workspaceSupportsDocumentChanges: true, forceFrozenPartialSemanticsForCrossProcessOperations: false, textVersion, cancellationToken);
         }
 
         async Task<ImmutableArray<NavigationBarItem>> INavigationBarItemService.GetItemsAsync(
-            Document document, bool forceFrozenPartialSemanticsForCrossProcessOperations, ITextVersion textVersion, CancellationToken cancellationToken)
+            Document document,
+            bool workspaceSupportsDocumentChanges,
+            bool forceFrozenPartialSemanticsForCrossProcessOperations,
+            ITextVersion textVersion,
+            CancellationToken cancellationToken)
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             return items == null

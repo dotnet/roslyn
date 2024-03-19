@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.CodeStyle;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -10,14 +10,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     {
         public int Fading_FadeOutUnreachableCode
         {
-            get { return GetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutUnreachableCode); }
-            set { SetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutUnreachableCode, value); }
+            get { return GetBooleanOption(FadingOptions.FadeOutUnreachableCode); }
+            set { SetBooleanOption(FadingOptions.FadeOutUnreachableCode, value); }
         }
 
         public int Fading_FadeOutUnusedImports
         {
-            get { return GetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutUnusedImports); }
-            set { SetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutUnusedImports, value); }
+            get { return GetBooleanOption(FadingOptions.FadeOutUnusedImports); }
+            set { SetBooleanOption(FadingOptions.FadeOutUnusedImports, value); }
         }
     }
 }

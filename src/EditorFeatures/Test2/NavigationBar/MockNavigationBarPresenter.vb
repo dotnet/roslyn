@@ -23,9 +23,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             _presentItemsWithValuesCallback = presentItemsWithValuesCallback
         End Sub
 
-        Public Event CaretMoved As EventHandler(Of CaretPositionChangedEventArgs) Implements INavigationBarPresenter.CaretMoved
+        Public Event CaretMovedOrActiveViewChanged As EventHandler(Of EventArgs) Implements INavigationBarPresenter.CaretMovedOrActiveViewChanged
         Public Event ItemSelected As EventHandler(Of NavigationBarItemSelectedEventArgs) Implements INavigationBarPresenter.ItemSelected
-        Public Event ViewFocused As EventHandler(Of EventArgs) Implements INavigationBarPresenter.ViewFocused
 
         Public Sub Disconnect() Implements INavigationBarPresenter.Disconnect
 

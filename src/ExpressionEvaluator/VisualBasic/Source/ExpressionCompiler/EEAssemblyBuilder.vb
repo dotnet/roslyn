@@ -43,8 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Me.Methods = methods
 
             If testData IsNot Nothing Then
-                SetMethodTestData(testData.Methods)
-                testData.Module = Me
+                SetTestData(testData)
             End If
         End Sub
 
@@ -181,22 +180,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return False
             End Function
 
-            Public Overrides Function TryGetPreviousClosure(scopeSyntax As SyntaxNode, <Out> ByRef closureId As DebugId) As Boolean
+            Public Overrides Function TryGetPreviousClosure(closureSyntax As SyntaxNode, parentClosureId As DebugId?, structCaptures As ImmutableArray(Of String), ByRef closureId As DebugId, ByRef runtimeRudeEdit As RuntimeRudeEdit?) As Boolean
                 closureId = Nothing
+                runtimeRudeEdit = Nothing
                 Return False
             End Function
 
-            Public Overrides Function TryGetPreviousLambda(lambdaOrLambdaBodySyntax As SyntaxNode, isLambdaBody As Boolean, <Out> ByRef lambdaId As DebugId) As Boolean
+            Public Overrides Function TryGetPreviousLambda(lambdaOrLambdaBodySyntax As SyntaxNode, isLambdaBody As Boolean, closureOrdinal As Integer, structClosureIds As ImmutableArray(Of DebugId), ByRef lambdaId As DebugId, ByRef runtimeRudeEdit As RuntimeRudeEdit?) As Boolean
                 lambdaId = Nothing
+                runtimeRudeEdit = Nothing
                 Return False
             End Function
 
-            Public Overrides Function TryGetPreviousStateMachineState(awaitOrYieldSyntax As SyntaxNode, ByRef stateOrdinal As Integer) As Boolean
-                stateOrdinal = 0
+            Public Overrides Function TryGetPreviousStateMachineState(syntax As SyntaxNode, awaitId As AwaitDebugId, ByRef state As StateMachineState) As Boolean
+                state = 0
                 Return False
             End Function
 
-            Public Overrides Function GetFirstUnusedStateMachineState(increasing As Boolean) As Integer?
+            Public Overrides Function GetFirstUnusedStateMachineState(increasing As Boolean) As StateMachineState?
                 Return Nothing
             End Function
 

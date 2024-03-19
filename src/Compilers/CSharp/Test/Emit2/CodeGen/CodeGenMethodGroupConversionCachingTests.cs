@@ -147,8 +147,7 @@ static class E
     public static void Target(this C that) { Console.WriteLine(""FAIL""); }
 }
 ";
-        // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 14 }
-        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"), verify: Verification.FailsILVerify);
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"));
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       37 (0x25)
@@ -190,8 +189,7 @@ static class E
     public static void Target(this C that) { Console.WriteLine(""FAIL""); }
 }
 ";
-        // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 14 }
-        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"), verify: Verification.FailsILVerify);
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"));
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       37 (0x25)
@@ -5620,7 +5618,7 @@ class C
         return 0;
     }
 }";
-        var comp = CompileAndVerify(source, parseOptions: TestOptions.RegularNext);
+        var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular11);
         comp.VerifyDiagnostics();
         comp.VerifyIL("C.Main", @"
 {
@@ -5703,7 +5701,7 @@ class D
     }
 }
 ";
-        var verifier = CompileAndVerifyWithWinRt(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseWinMD);
+        var verifier = CompileAndVerifyWithWinRt(source, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseWinMD);
 
         verifier.VerifyIL("D.InstanceAdd", @"
 {
@@ -5820,7 +5818,7 @@ class C
     }
 }
 ";
-        var verifier = CompileAndVerifyWithWinRt(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseWinMD);
+        var verifier = CompileAndVerifyWithWinRt(source, parseOptions: TestOptions.Regular11, options: TestOptions.ReleaseWinMD);
 
         verifier.VerifyIL("C.InstanceAssign", @"
 {
@@ -5901,7 +5899,7 @@ partial class Test
 }
 ";
 
-        CompileAndVerify(text, parseOptions: TestOptions.RegularNext, expectedOutput: PASS).VerifyIL("Test.Main", @"
+        CompileAndVerify(text, parseOptions: TestOptions.Regular11, expectedOutput: PASS).VerifyIL("Test.Main", @"
 {
   // Code size       64 (0x40)
   .maxstack  2
@@ -5960,7 +5958,7 @@ public class C
     }
     static void TestMethod() => Console.WriteLine(""In TestMethod"");
 }
-", parseOptions: TestOptions.RegularNext, expectedOutput: @"
+", parseOptions: TestOptions.Regular11, expectedOutput: @"
 In TestMethod
 In TestMethod
 ").VerifyIL("C.Main()", @"
@@ -6025,7 +6023,7 @@ class Program
     static void Report(Delegate d) => Console.WriteLine($""{d.GetType().Namespace}.{d.GetType().Name}"");
 }";
 
-        var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugExe);
+        var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics();
 
         var verifier = CompileAndVerify(comp, expectedOutput:

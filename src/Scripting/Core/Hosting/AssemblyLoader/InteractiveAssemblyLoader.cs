@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         private readonly Dictionary<string, List<AssemblyIdentityAndLocation>> _dependenciesWithLocationBySimpleName;
 
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-        private struct AssemblyIdentityAndLocation
+        private readonly struct AssemblyIdentityAndLocation
         {
             public readonly AssemblyIdentity Identity;
             public readonly string Location;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         }
 
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-        private struct LoadedAssemblyInfo
+        private readonly struct LoadedAssemblyInfo
         {
             public readonly Assembly Assembly;
             public readonly AssemblyIdentity Identity;

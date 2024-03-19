@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
-    internal sealed class VtblGap : Cci.IMethodDefinition
+    internal sealed class VtblGap : Cci.IEmbeddedDefinition, Cci.IMethodDefinition
     {
         public readonly Cci.ITypeDefinition ContainingType;
         private readonly string _name;
@@ -21,7 +19,13 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             _name = name;
         }
 
-        Cci.IMethodBody Cci.IMethodDefinition.GetBody(EmitContext context)
+        bool Cci.IDefinition.IsEncDeleted
+            => false;
+
+        bool Cci.IMethodDefinition.HasBody
+            => false;
+
+        Cci.IMethodBody? Cci.IMethodDefinition.GetBody(EmitContext context)
         {
             return null;
         }
@@ -105,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         {
             get { return ImmutableArray<Cci.IParameterDefinition>.Empty; }
         }
-
+#nullable disable
         Cci.IPlatformInvokeInformation Cci.IMethodDefinition.PlatformInvokeData
         {
             get { return null; }
@@ -197,11 +201,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             get { return 0; }
         }
 
-        bool Cci.IMethodReference.IsGeneric
-        {
-            get { return false; }
-        }
-
         Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(EmitContext context)
         {
             return this;
@@ -260,13 +259,13 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         public sealed override bool Equals(object obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
     }
 }

@@ -100,7 +100,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return result
         End Function
 
-
         Private Function ReflectMethod(m As PEMethodSymbol) As XElement
             Dim result = <Method Name=<%= m.Name %> CallingConvention=<%= m.CallingConvention %>/>
 
@@ -1473,7 +1472,6 @@ End Class
     </Interface>
 </Class>
 
-
             Dim verifier = CompileAndVerify(compilationDef,
                                             options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
@@ -2355,7 +2353,6 @@ BC31058: Conflicts with 'Interface __ComClassTest3', which is implicitly declare
             AssertTheseDiagnostics(compilation, expected)
         End Sub
 
-
         <Fact>
         Public Sub Test_WRN_ComClassInterfaceShadows5_1()
             Dim compilationDef =
@@ -2627,7 +2624,6 @@ BC42102: 'Public WriteOnly Property P2 As Object' cannot be exposed to COM as a 
             AssertTheseDiagnostics(compilation, expected)
         End Sub
 
-
         <Fact>
         Public Sub Test_ERR_ComClassGenericMethod()
             Dim compilationDef =
@@ -2851,7 +2847,6 @@ End Class
         </Method>
     </Interface>
 </Class>
-
 
             Dim verifier = CompileAndVerify(compilationDef,
                                             options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
@@ -3210,7 +3205,6 @@ End Class
     </Interface>
 </Class>
 
-
             Dim verifier = CompileAndVerify(compilationDef,
                                             options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
@@ -3364,7 +3358,6 @@ End Class
     </Interface>
 </Class>
 
-
             Dim verifier = CompileAndVerify(compilationDef,
                                             options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
                                             symbolValidator:=Sub(m As ModuleSymbol)
@@ -3517,7 +3510,6 @@ End Class
         </Method>
     </Interface>
 </Class>
-
 
             Dim verifier = CompileAndVerify(compilationDef,
                                             options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),
@@ -3696,7 +3688,6 @@ End Namespace
         </Method>
     </Interface>
 </Class>
-
 
             Dim verifier = CompileAndVerify(compilationDef,
                                             options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal),

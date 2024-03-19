@@ -145,7 +145,6 @@ Public Class IPEndBlockStatements
         .changeType = ChangeType.Remove})
     End Sub
 
-
     ''' <summary>
     ''' Test2b - Removes End Sub at various places in code
     ''' </summary>
@@ -545,7 +544,6 @@ Public Class IPEndBlockStatements
             "With New Integer " & vbCrLf
         Dim change = "End Using" & vbCrLf
 
-
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,
         .changeText = change,
@@ -571,7 +569,6 @@ Public Class IPEndBlockStatements
             "End Module" & vbCrLf &
             "End Namespace" & vbCrLf
         Dim change = "End Using" & vbCrLf
-
 
         IncParseAndVerify(New IncParseNode With {
         .oldText = code,

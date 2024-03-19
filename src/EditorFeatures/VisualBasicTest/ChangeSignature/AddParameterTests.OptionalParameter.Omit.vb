@@ -8,10 +8,11 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
+    <Trait(Traits.Feature, Traits.Features.ChangeSignature)>
     Partial Public Class ChangeSignatureTests
         Inherits AbstractChangeSignatureTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact>
         Public Async Function AddOptionalParameter_ToEmptySignature_CallsiteOmitted() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -33,7 +34,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact>
         Public Async Function AddOptionalParameter_AfterRequiredParameter_CallsiteOmitted() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -56,7 +57,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact>
         Public Async Function AddOptionalParameter_BeforeOptionalParameter_CallsiteOmitted() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -83,7 +84,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact>
         Public Async Function AddOptionalParameter_BeforeExpandedParamsArray_CallsiteOmitted() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -114,7 +115,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact>
         Public Async Function AddOptionalParameterWithOmittedCallsiteToAttributeConstructor() As Task
             Dim markup = <Text><![CDATA[
 <Some(1, 2, 4)>

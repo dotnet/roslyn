@@ -145,7 +145,8 @@
     Populates PkgDefBindingRedirect and PkgDefCodeBase items from references.
   -->
   <Target Name="_AddPkgDefEntriesFromReferences"
-          BeforeTargets="AfterResolveReferences;GeneratePkgDef">
+          BeforeTargets="GeneratePkgDef"
+          DependsOnTargets="ResolveReferences">
     <ItemGroup>
       <PkgDefBindingRedirect Include="@(ReferencePath)" Condition="'%(ReferencePath.PkgDefEntry)' == 'BindingRedirect'" />
       <PkgDefCodeBase Include="@(ReferencePath)" Condition="'%(ReferencePath.PkgDefEntry)' == 'CodeBase'" />
@@ -155,7 +156,7 @@
   <!--
     Generates a .pkgdef file based on items in PkgDef* groups.
   -->
-  <Target Name="GeneratePkgDef"          
+  <Target Name="GeneratePkgDef"
           DependsOnTargets="$(GeneratePkgDefDependsOn);_SetGeneratePkgDefInputsOutputs"
           Inputs="$(MSBuildAllProjects);@(PkgDefFileContent)"
           Outputs="$(_GeneratePkgDefOutputFile)">

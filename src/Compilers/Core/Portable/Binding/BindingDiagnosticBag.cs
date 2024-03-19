@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -76,20 +74,20 @@ namespace Microsoft.CodeAnalysis
 
         internal bool AccumulatesDependencies => DependenciesBag is object;
 
-        internal void Free()
+        internal virtual void Free()
         {
             DiagnosticBag?.Free();
             ((PooledHashSet<TAssemblySymbol>?)DependenciesBag)?.Free();
         }
 
-        internal ImmutableBindingDiagnostic<TAssemblySymbol> ToReadOnly()
+        internal ReadOnlyBindingDiagnostic<TAssemblySymbol> ToReadOnly(bool forceDiagnosticResolution = true)
         {
-            return new ImmutableBindingDiagnostic<TAssemblySymbol>(DiagnosticBag?.ToReadOnly() ?? default, DependenciesBag?.ToImmutableArray() ?? default);
+            return new ReadOnlyBindingDiagnostic<TAssemblySymbol>(DiagnosticBag?.ToReadOnly(forceDiagnosticResolution) ?? default, DependenciesBag?.ToImmutableArray() ?? default);
         }
 
-        internal ImmutableBindingDiagnostic<TAssemblySymbol> ToReadOnlyAndFree()
+        internal ReadOnlyBindingDiagnostic<TAssemblySymbol> ToReadOnlyAndFree(bool forceDiagnosticResolution = true)
         {
-            var result = ToReadOnly();
+            var result = ToReadOnly(forceDiagnosticResolution);
             Free();
             return result;
         }
@@ -106,7 +104,7 @@ namespace Microsoft.CodeAnalysis
             DependenciesBag?.Clear();
         }
 
-        internal void AddRange(ImmutableBindingDiagnostic<TAssemblySymbol> other, bool allowMismatchInDependencyAccumulation = false)
+        internal void AddRange(ReadOnlyBindingDiagnostic<TAssemblySymbol> other, bool allowMismatchInDependencyAccumulation = false)
         {
             AddRange(other.Diagnostics);
             Debug.Assert(allowMismatchInDependencyAccumulation || other.Dependencies.IsDefaultOrEmpty || this.AccumulatesDependencies || !this.AccumulatesDiagnostics);
@@ -208,22 +206,28 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal bool Add(SyntaxNode node, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
-        {
-            return Add(node.Location, useSiteInfo);
-        }
+            => Add(useSiteInfo, static node => node.Location, node);
 
         internal bool AddDiagnostics(SyntaxNode node, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
-        {
-            return AddDiagnostics(node.Location, useSiteInfo);
-        }
+            => AddDiagnostics(useSiteInfo, static node => node.Location, node);
+
+        internal bool Add(SyntaxToken token, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
+            => Add(useSiteInfo, static token => token.GetLocation(), token);
+
+        internal bool Add(Location location, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
+            => Add(useSiteInfo, static location => location, location);
 
         internal bool AddDiagnostics(Location location, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
+            => AddDiagnostics(useSiteInfo, static location => location, location);
+
+        internal bool AddDiagnostics<TData>(CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo, Func<TData, Location> getLocation, TData data)
         {
             if (DiagnosticBag is DiagnosticBag diagnosticBag)
             {
                 if (!useSiteInfo.Diagnostics.IsNullOrEmpty())
                 {
                     bool haveError = false;
+                    var location = getLocation(data);
                     foreach (var diagnosticInfo in useSiteInfo.Diagnostics)
                     {
                         if (ReportUseSiteDiagnostic(diagnosticInfo, diagnosticBag, location))
@@ -252,10 +256,10 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal bool Add(Location location, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
+        internal bool Add<TData>(CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo, Func<TData, Location> getLocation, TData data)
         {
             Debug.Assert(!useSiteInfo.AccumulatesDependencies || this.AccumulatesDependencies);
-            if (AddDiagnostics(location, useSiteInfo))
+            if (AddDiagnostics(useSiteInfo, getLocation, data))
             {
                 return true;
             }
@@ -267,13 +271,17 @@ namespace Microsoft.CodeAnalysis
         protected abstract bool ReportUseSiteDiagnostic(DiagnosticInfo diagnosticInfo, DiagnosticBag diagnosticBag, Location location);
 
         internal bool Add(UseSiteInfo<TAssemblySymbol> useSiteInfo, SyntaxNode node)
-        {
-            return Add(useSiteInfo, node.Location);
-        }
+            => Add(useSiteInfo, static node => node.Location, node);
 
-        internal bool Add(UseSiteInfo<TAssemblySymbol> info, Location location)
+        internal bool Add(UseSiteInfo<TAssemblySymbol> useSiteInfo, Location location)
+            => Add(useSiteInfo, static location => location, location);
+
+        internal bool Add(UseSiteInfo<TAssemblySymbol> useSiteInfo, SyntaxToken token)
+            => Add(useSiteInfo, static token => token.GetLocation(), token);
+
+        internal bool Add<TData>(UseSiteInfo<TAssemblySymbol> info, Func<TData, Location> getLocation, TData data)
         {
-            if (ReportUseSiteDiagnostic(info.DiagnosticInfo, location))
+            if (ReportUseSiteDiagnostic(info.DiagnosticInfo, getLocation, data))
             {
                 return true;
             }
@@ -283,6 +291,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal bool ReportUseSiteDiagnostic(DiagnosticInfo? info, Location location)
+            => ReportUseSiteDiagnostic(info, static location => location, location);
+
+        internal bool ReportUseSiteDiagnostic<TData>(DiagnosticInfo? info, Func<TData, Location> getLocation, TData data)
         {
             if (info is null)
             {
@@ -291,14 +302,14 @@ namespace Microsoft.CodeAnalysis
 
             if (DiagnosticBag is object)
             {
-                return ReportUseSiteDiagnostic(info, DiagnosticBag, location);
+                return ReportUseSiteDiagnostic(info, DiagnosticBag, getLocation(data));
             }
 
             return info.Severity == DiagnosticSeverity.Error;
         }
     }
 
-    internal readonly struct ImmutableBindingDiagnostic<TAssemblySymbol> where TAssemblySymbol : class, IAssemblySymbolInternal
+    internal readonly struct ReadOnlyBindingDiagnostic<TAssemblySymbol> where TAssemblySymbol : class, IAssemblySymbolInternal
     {
         private readonly ImmutableArray<Diagnostic> _diagnostics;
         private readonly ImmutableArray<TAssemblySymbol> _dependencies;
@@ -306,32 +317,32 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<Diagnostic> Diagnostics => _diagnostics.NullToEmpty();
         public ImmutableArray<TAssemblySymbol> Dependencies => _dependencies.NullToEmpty();
 
-        public static ImmutableBindingDiagnostic<TAssemblySymbol> Empty => new ImmutableBindingDiagnostic<TAssemblySymbol>(default, default);
+        public static ReadOnlyBindingDiagnostic<TAssemblySymbol> Empty => new ReadOnlyBindingDiagnostic<TAssemblySymbol>(default, default);
 
-        public ImmutableBindingDiagnostic(ImmutableArray<Diagnostic> diagnostics, ImmutableArray<TAssemblySymbol> dependencies)
+        public ReadOnlyBindingDiagnostic(ImmutableArray<Diagnostic> diagnostics, ImmutableArray<TAssemblySymbol> dependencies)
         {
             _diagnostics = diagnostics.NullToEmpty();
             _dependencies = dependencies.NullToEmpty();
         }
 
-        public ImmutableBindingDiagnostic<TAssemblySymbol> NullToEmpty() => new ImmutableBindingDiagnostic<TAssemblySymbol>(Diagnostics, Dependencies);
+        public ReadOnlyBindingDiagnostic<TAssemblySymbol> NullToEmpty() => new ReadOnlyBindingDiagnostic<TAssemblySymbol>(Diagnostics, Dependencies);
 
-        public static bool operator ==(ImmutableBindingDiagnostic<TAssemblySymbol> first, ImmutableBindingDiagnostic<TAssemblySymbol> second)
+        public static bool operator ==(ReadOnlyBindingDiagnostic<TAssemblySymbol> first, ReadOnlyBindingDiagnostic<TAssemblySymbol> second)
         {
             return first.Diagnostics == second.Diagnostics && first.Dependencies == second.Dependencies;
         }
 
-        public static bool operator !=(ImmutableBindingDiagnostic<TAssemblySymbol> first, ImmutableBindingDiagnostic<TAssemblySymbol> second)
+        public static bool operator !=(ReadOnlyBindingDiagnostic<TAssemblySymbol> first, ReadOnlyBindingDiagnostic<TAssemblySymbol> second)
         {
             return !(first == second);
         }
 
         public override bool Equals(object? obj)
         {
-            return (obj as ImmutableBindingDiagnostic<TAssemblySymbol>?)?.Equals(this) ?? false;
+            return (obj as ReadOnlyBindingDiagnostic<TAssemblySymbol>?)?.Equals(this) ?? false;
         }
 
-        public bool Equals(ImmutableBindingDiagnostic<TAssemblySymbol> other)
+        public bool Equals(ReadOnlyBindingDiagnostic<TAssemblySymbol> other)
         {
             return this == other;
         }
@@ -339,6 +350,21 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
         {
             return Diagnostics.GetHashCode();
+        }
+
+        public bool HasAnyErrors() => Diagnostics.HasAnyErrors();
+
+        public bool HasAnyResolvedErrors()
+        {
+            foreach (var diagnostic in Diagnostics)
+            {
+                if ((diagnostic as DiagnosticWithInfo)?.HasLazyInfo != true && diagnostic.Severity == DiagnosticSeverity.Error)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

@@ -43,7 +43,7 @@ public class C
             var param = root.DescendantNodes().OfType<ParameterSyntax>().First();
             var root1 = root.ReplaceNode(param, g.AddAttributes(param, g.Attribute("MyAttr")));
 
-            var result1 = Formatter.Format(root1, document.Project.Solution.Workspace.Services, options, CancellationToken.None);
+            var result1 = Formatter.Format(root1, document.Project.Solution.Services, options, CancellationToken.None);
 
             Assert.Equal(@"
 public class C
@@ -56,7 +56,7 @@ public class C
             var method = root.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
 
             var root2 = root.ReplaceNode(method, g.AddAttributes(method, g.Attribute("MyAttr")));
-            var result2 = Formatter.Format(root2, document.Project.Solution.Workspace.Services, options, CancellationToken.None);
+            var result2 = Formatter.Format(root2, document.Project.Solution.Services, options, CancellationToken.None);
 
             Assert.Equal(@"
 public class C

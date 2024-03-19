@@ -1,1 +1,1 @@
-
+virtual Microsoft.CodeAnalysis.Scripting.ScriptRunner<T>.Invoke(object globals = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<T>

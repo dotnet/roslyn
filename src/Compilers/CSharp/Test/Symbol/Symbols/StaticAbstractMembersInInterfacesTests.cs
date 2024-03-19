@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class StaticAbstractMembersInInterfacesTests : CSharpTestBase
     {
-        private const TargetFramework _supportingFramework = TargetFramework.Net60;
+        internal const TargetFramework _supportingFramework = TargetFramework.Net60;
 
         [Fact]
         public void MethodModifiers_01()
@@ -70,18 +70,18 @@ public interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract static void M01()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "10.0", "preview").WithLocation(4, 26),
-                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "10.0", "11.0").WithLocation(4, 26),
+                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual static void M02()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "10.0", "preview").WithLocation(7, 25),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "10.0", "11.0").WithLocation(7, 25),
                 // (7,25): error CS0501: 'I1.M02()' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual static void M02()
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M02").WithArguments("I1.M02()").WithLocation(7, 25),
-                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     sealed static void M03() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "10.0", "preview").WithLocation(10, 24),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "10.0", "11.0").WithLocation(10, 24),
                 // (10,24): error CS0501: 'I1.M03()' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed static void M03() 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M03").WithArguments("I1.M03()").WithLocation(10, 24),
@@ -91,51 +91,51 @@ public interface I1
                 // (13,26): error CS0501: 'I1.M04()' must declare a body because it is not marked abstract, extern, or partial
                 //     override static void M04() 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M04").WithArguments("I1.M04()").WithLocation(13, 26),
-                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "10.0", "preview").WithLocation(16, 34),
-                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "10.0", "11.0").WithLocation(16, 34),
+                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "10.0", "preview").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "10.0", "11.0").WithLocation(16, 34),
                 // (16,34): error CS0503: The abstract method 'I1.M05()' cannot be marked virtual
                 //     abstract virtual static void M05()
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("method", "I1.M05()").WithLocation(16, 34),
                 // (19,33): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static void M06()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 33),
-                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract sealed static void M06()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "10.0", "preview").WithLocation(19, 33),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "10.0", "11.0").WithLocation(19, 33),
                 // (22,35): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static void M07()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 35),
-                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract override static void M07()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "10.0", "preview").WithLocation(22, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "10.0", "11.0").WithLocation(22, 35),
                 // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static void M08() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
-                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual sealed static void M08() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "10.0", "preview").WithLocation(25, 32),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "10.0", "11.0").WithLocation(25, 32),
                 // (25,32): error CS0501: 'I1.M08()' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual sealed static void M08() 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M08").WithArguments("I1.M08()").WithLocation(25, 32),
-                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     virtual override static void M09() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "10.0", "preview").WithLocation(28, 34),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static void M09() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
+                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual override static void M09() 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "10.0", "11.0").WithLocation(28, 34),
                 // (28,34): error CS0501: 'I1.M09()' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual override static void M09() 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M09").WithArguments("I1.M09()").WithLocation(28, 34),
                 // (31,33): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static void M10() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 33),
-                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     sealed override static void M10() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "10.0", "preview").WithLocation(31, 33),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "10.0", "11.0").WithLocation(31, 33),
                 // (31,33): error CS0501: 'I1.M10()' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed override static void M10() 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M10").WithArguments("I1.M10()").WithLocation(31, 33)
@@ -311,27 +311,27 @@ public interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract static void M01()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "10.0", "preview").WithLocation(4, 26),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "10.0", "11.0").WithLocation(4, 26),
                 // (4,26): error CS0500: 'I1.M01()' cannot declare a body because it is marked abstract
                 //     abstract static void M01()
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M01").WithArguments("I1.M01()").WithLocation(4, 26),
-                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual static void M02()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "10.0", "preview").WithLocation(7, 25),
-                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "10.0", "11.0").WithLocation(7, 25),
+                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     sealed static void M03() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "10.0", "preview").WithLocation(10, 24),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "10.0", "11.0").WithLocation(10, 24),
                 // (13,26): error CS0106: The modifier 'override' is not valid for this item
                 //     override static void M04() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 26),
-                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "10.0", "preview").WithLocation(16, 34),
-                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "10.0", "11.0").WithLocation(16, 34),
+                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "10.0", "preview").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "10.0", "11.0").WithLocation(16, 34),
                 // (16,34): error CS0500: 'I1.M05()' cannot declare a body because it is marked abstract
                 //     abstract virtual static void M05()
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M05").WithArguments("I1.M05()").WithLocation(16, 34),
@@ -341,39 +341,39 @@ public interface I1
                 // (19,33): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static void M06()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 33),
-                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract sealed static void M06()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "10.0", "preview").WithLocation(19, 33),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "10.0", "11.0").WithLocation(19, 33),
                 // (19,33): error CS0500: 'I1.M06()' cannot declare a body because it is marked abstract
                 //     abstract sealed static void M06()
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M06").WithArguments("I1.M06()").WithLocation(19, 33),
                 // (22,35): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static void M07()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 35),
-                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract override static void M07()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "10.0", "preview").WithLocation(22, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "10.0", "11.0").WithLocation(22, 35),
                 // (22,35): error CS0500: 'I1.M07()' cannot declare a body because it is marked abstract
                 //     abstract override static void M07()
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M07").WithArguments("I1.M07()").WithLocation(22, 35),
                 // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static void M08() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
-                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual sealed static void M08() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "10.0", "preview").WithLocation(25, 32),
-                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     virtual override static void M09() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "10.0", "preview").WithLocation(28, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "10.0", "11.0").WithLocation(25, 32),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static void M09() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
+                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual override static void M09() 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "10.0", "11.0").WithLocation(28, 34),
                 // (31,33): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static void M10() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 33),
-                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     sealed override static void M10() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "10.0", "preview").WithLocation(31, 33)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "10.0", "11.0").WithLocation(31, 33)
                 );
 
             ValidateMethodModifiers_01(compilation1);
@@ -590,18 +590,18 @@ public interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract static void M01()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "7.3", "preview").WithLocation(4, 26),
-                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "7.3", "11.0").WithLocation(4, 26),
+                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual static void M02()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "7.3", "preview").WithLocation(7, 25),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "7.3", "11.0").WithLocation(7, 25),
                 // (7,25): error CS0501: 'I1.M02()' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual static void M02()
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M02").WithArguments("I1.M02()").WithLocation(7, 25),
-                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     sealed static void M03() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "7.3", "preview").WithLocation(10, 24),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "7.3", "11.0").WithLocation(10, 24),
                 // (10,24): error CS0501: 'I1.M03()' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed static void M03() 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M03").WithArguments("I1.M03()").WithLocation(10, 24),
@@ -614,51 +614,51 @@ public interface I1
                 // (13,26): error CS0501: 'I1.M04()' must declare a body because it is not marked abstract, extern, or partial
                 //     override static void M04() 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M04").WithArguments("I1.M04()").WithLocation(13, 26),
+                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
+                //     abstract virtual static void M05()
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "7.3", "11.0").WithLocation(16, 34),
+                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
+                //     abstract virtual static void M05()
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "7.3", "11.0").WithLocation(16, 34),
                 // (16,34): error CS0503: The abstract method 'I1.M05()' cannot be marked virtual
                 //     abstract virtual static void M05()
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("method", "I1.M05()").WithLocation(16, 34),
-                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
-                //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "7.3", "preview").WithLocation(16, 34),
-                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
-                //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "7.3", "preview").WithLocation(16, 34),
                 // (19,33): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static void M06()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 33),
-                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract sealed static void M06()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "7.3", "preview").WithLocation(19, 33),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "7.3", "11.0").WithLocation(19, 33),
                 // (22,35): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static void M07()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 35),
-                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract override static void M07()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "7.3", "preview").WithLocation(22, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "7.3", "11.0").WithLocation(22, 35),
                 // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static void M08() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
-                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual sealed static void M08() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "7.3", "preview").WithLocation(25, 32),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "7.3", "11.0").WithLocation(25, 32),
                 // (25,32): error CS0501: 'I1.M08()' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual sealed static void M08() 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M08").WithArguments("I1.M08()").WithLocation(25, 32),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static void M09() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
-                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual override static void M09() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "7.3", "preview").WithLocation(28, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "7.3", "11.0").WithLocation(28, 34),
                 // (28,34): error CS0501: 'I1.M09()' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual override static void M09() 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M09").WithArguments("I1.M09()").WithLocation(28, 34),
                 // (31,33): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static void M10() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 33),
-                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     sealed override static void M10() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "7.3", "preview").WithLocation(31, 33),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "7.3", "11.0").WithLocation(31, 33),
                 // (31,33): error CS0501: 'I1.M10()' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed override static void M10() 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M10").WithArguments("I1.M10()").WithLocation(31, 33)
@@ -710,30 +710,30 @@ public interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract static void M01()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "7.3", "preview").WithLocation(4, 26),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "7.3", "11.0").WithLocation(4, 26),
                 // (4,26): error CS0500: 'I1.M01()' cannot declare a body because it is marked abstract
                 //     abstract static void M01()
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M01").WithArguments("I1.M01()").WithLocation(4, 26),
-                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual static void M02()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "7.3", "preview").WithLocation(7, 25),
-                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "7.3", "11.0").WithLocation(7, 25),
+                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     sealed static void M03() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "7.3", "preview").WithLocation(10, 24),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "7.3", "11.0").WithLocation(10, 24),
                 // (13,26): error CS0106: The modifier 'override' is not valid for this item
                 //     override static void M04() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 26),
                 // (13,26): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     override static void M04() 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M04").WithArguments("default interface implementation", "8.0").WithLocation(13, 26),
-                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "7.3", "preview").WithLocation(16, 34),
-                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "7.3", "11.0").WithLocation(16, 34),
+                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract virtual static void M05()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "7.3", "preview").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "7.3", "11.0").WithLocation(16, 34),
                 // (16,34): error CS0500: 'I1.M05()' cannot declare a body because it is marked abstract
                 //     abstract virtual static void M05()
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M05").WithArguments("I1.M05()").WithLocation(16, 34),
@@ -743,39 +743,39 @@ public interface I1
                 // (19,33): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static void M06()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 33),
-                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract sealed static void M06()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "7.3", "preview").WithLocation(19, 33),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "7.3", "11.0").WithLocation(19, 33),
                 // (19,33): error CS0500: 'I1.M06()' cannot declare a body because it is marked abstract
                 //     abstract sealed static void M06()
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M06").WithArguments("I1.M06()").WithLocation(19, 33),
                 // (22,35): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static void M07()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 35),
-                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract override static void M07()
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "7.3", "preview").WithLocation(22, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "7.3", "11.0").WithLocation(22, 35),
                 // (22,35): error CS0500: 'I1.M07()' cannot declare a body because it is marked abstract
                 //     abstract override static void M07()
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M07").WithArguments("I1.M07()").WithLocation(22, 35),
                 // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static void M08() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
-                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual sealed static void M08() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "7.3", "preview").WithLocation(25, 32),
-                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
-                //     virtual override static void M09() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "7.3", "preview").WithLocation(28, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "7.3", "11.0").WithLocation(25, 32),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static void M09() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
+                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
+                //     virtual override static void M09() 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "7.3", "11.0").WithLocation(28, 34),
                 // (31,33): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static void M10() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 33),
-                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     sealed override static void M10() 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "7.3", "preview").WithLocation(31, 33)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "7.3", "11.0").WithLocation(31, 33)
                 );
 
             ValidateMethodModifiers_01(compilation1);
@@ -1670,57 +1670,57 @@ public interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract static bool M01 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "10.0", "preview").WithLocation(4, 26),
-                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "10.0", "11.0").WithLocation(4, 26),
+                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual static bool M02 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "10.0", "preview").WithLocation(7, 25),
-                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "10.0", "11.0").WithLocation(7, 25),
+                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     sealed static bool M03 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "10.0", "preview").WithLocation(10, 24),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "10.0", "11.0").WithLocation(10, 24),
                 // (13,26): error CS0106: The modifier 'override' is not valid for this item
                 //     override static bool M04 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 26),
-                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "10.0", "preview").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "10.0", "11.0").WithLocation(16, 34),
+                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     abstract virtual static bool M05 { get
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "10.0", "11.0").WithLocation(16, 34),
                 // (16,34): error CS0503: The abstract property 'I1.M05' cannot be marked virtual
                 //     abstract virtual static bool M05 { get
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("property", "I1.M05").WithLocation(16, 34),
-                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "10.0", "preview").WithLocation(16, 34),
                 // (19,33): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static bool M06 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 33),
-                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract sealed static bool M06 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "10.0", "preview").WithLocation(19, 33),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "10.0", "11.0").WithLocation(19, 33),
                 // (22,35): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static bool M07 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 35),
-                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract override static bool M07 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "10.0", "preview").WithLocation(22, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "10.0", "11.0").WithLocation(22, 35),
                 // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static bool M08 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
-                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual sealed static bool M08 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "10.0", "preview").WithLocation(25, 32),
-                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     virtual override static bool M09 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "10.0", "preview").WithLocation(28, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "10.0", "11.0").WithLocation(25, 32),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static bool M09 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
+                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual override static bool M09 { get
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "10.0", "11.0").WithLocation(28, 34),
                 // (31,33): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static bool M10 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 33),
-                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     sealed override static bool M10 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "10.0", "preview").WithLocation(31, 33)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "10.0", "11.0").WithLocation(31, 33)
                 );
 
             ValidatePropertyModifiers_01(compilation1);
@@ -1997,69 +1997,69 @@ public interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract static bool M01 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "10.0", "preview").WithLocation(4, 26),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "10.0", "11.0").WithLocation(4, 26),
                 // (4,32): error CS0500: 'I1.M01.get' cannot declare a body because it is marked abstract
                 //     abstract static bool M01 { get
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.M01.get").WithLocation(4, 32),
-                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual static bool M02 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "10.0", "preview").WithLocation(7, 25),
-                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "10.0", "11.0").WithLocation(7, 25),
+                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     sealed static bool M03 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "10.0", "preview").WithLocation(10, 24),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "10.0", "11.0").WithLocation(10, 24),
                 // (13,26): error CS0106: The modifier 'override' is not valid for this item
                 //     override static bool M04 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 26),
-                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "10.0", "preview").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "10.0", "11.0").WithLocation(16, 34),
+                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     abstract virtual static bool M05 { get
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "10.0", "11.0").WithLocation(16, 34),
                 // (16,34): error CS0503: The abstract property 'I1.M05' cannot be marked virtual
                 //     abstract virtual static bool M05 { get
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("property", "I1.M05").WithLocation(16, 34),
-                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "10.0", "preview").WithLocation(16, 34),
                 // (16,40): error CS0500: 'I1.M05.get' cannot declare a body because it is marked abstract
                 //     abstract virtual static bool M05 { get
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.M05.get").WithLocation(16, 40),
                 // (19,33): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static bool M06 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 33),
-                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract sealed static bool M06 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "10.0", "preview").WithLocation(19, 33),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "10.0", "11.0").WithLocation(19, 33),
                 // (19,39): error CS0500: 'I1.M06.get' cannot declare a body because it is marked abstract
                 //     abstract sealed static bool M06 { get
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.M06.get").WithLocation(19, 39),
                 // (22,35): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static bool M07 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 35),
-                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract override static bool M07 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "10.0", "preview").WithLocation(22, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "10.0", "11.0").WithLocation(22, 35),
                 // (22,41): error CS0500: 'I1.M07.get' cannot declare a body because it is marked abstract
                 //     abstract override static bool M07 { get
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.M07.get").WithLocation(22, 41),
                 // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static bool M08 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
-                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual sealed static bool M08 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "10.0", "preview").WithLocation(25, 32),
-                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     virtual override static bool M09 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "10.0", "preview").WithLocation(28, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "10.0", "11.0").WithLocation(25, 32),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static bool M09 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
+                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual override static bool M09 { get
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "10.0", "11.0").WithLocation(28, 34),
                 // (31,33): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static bool M10 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 33),
-                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     sealed override static bool M10 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "10.0", "preview").WithLocation(31, 33)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "10.0", "11.0").WithLocation(31, 33)
                 );
 
             ValidatePropertyModifiers_01(compilation1);
@@ -2258,60 +2258,60 @@ public interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract static bool M01 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "7.3", "preview").WithLocation(4, 26),
-                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "7.3", "11.0").WithLocation(4, 26),
+                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual static bool M02 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "7.3", "preview").WithLocation(7, 25),
-                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "7.3", "11.0").WithLocation(7, 25),
+                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     sealed static bool M03 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "7.3", "preview").WithLocation(10, 24),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "7.3", "11.0").WithLocation(10, 24),
                 // (13,26): error CS0106: The modifier 'override' is not valid for this item
                 //     override static bool M04 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 26),
                 // (13,26): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     override static bool M04 { get
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M04").WithArguments("static", "7.3", "8.0").WithLocation(13, 26),
-                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "7.3", "preview").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "7.3", "11.0").WithLocation(16, 34),
+                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
+                //     abstract virtual static bool M05 { get
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "7.3", "11.0").WithLocation(16, 34),
                 // (16,34): error CS0503: The abstract property 'I1.M05' cannot be marked virtual
                 //     abstract virtual static bool M05 { get
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("property", "I1.M05").WithLocation(16, 34),
-                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
-                //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "7.3", "preview").WithLocation(16, 34),
                 // (19,33): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static bool M06 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 33),
-                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract sealed static bool M06 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "7.3", "preview").WithLocation(19, 33),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "7.3", "11.0").WithLocation(19, 33),
                 // (22,35): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static bool M07 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 35),
-                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract override static bool M07 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "7.3", "preview").WithLocation(22, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "7.3", "11.0").WithLocation(22, 35),
                 // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static bool M08 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
-                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual sealed static bool M08 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "7.3", "preview").WithLocation(25, 32),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "7.3", "11.0").WithLocation(25, 32),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static bool M09 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
-                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual override static bool M09 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "7.3", "preview").WithLocation(28, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "7.3", "11.0").WithLocation(28, 34),
                 // (31,33): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static bool M10 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 33),
-                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     sealed override static bool M10 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "7.3", "preview").WithLocation(31, 33)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "7.3", "11.0").WithLocation(31, 33)
                 );
 
             ValidatePropertyModifiers_01(compilation1);
@@ -2360,72 +2360,72 @@ public interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract static bool M01 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "7.3", "preview").WithLocation(4, 26),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "7.3", "11.0").WithLocation(4, 26),
                 // (4,32): error CS0500: 'I1.M01.get' cannot declare a body because it is marked abstract
                 //     abstract static bool M01 { get
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.M01.get").WithLocation(4, 32),
-                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (7,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual static bool M02 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "7.3", "preview").WithLocation(7, 25),
-                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "7.3", "11.0").WithLocation(7, 25),
+                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     sealed static bool M03 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "7.3", "preview").WithLocation(10, 24),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "7.3", "11.0").WithLocation(10, 24),
                 // (13,26): error CS0106: The modifier 'override' is not valid for this item
                 //     override static bool M04 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 26),
                 // (13,26): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     override static bool M04 { get
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M04").WithArguments("default interface implementation", "8.0").WithLocation(13, 26),
-                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "7.3", "preview").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "7.3", "11.0").WithLocation(16, 34),
+                // (16,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
+                //     abstract virtual static bool M05 { get
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "7.3", "11.0").WithLocation(16, 34),
                 // (16,34): error CS0503: The abstract property 'I1.M05' cannot be marked virtual
                 //     abstract virtual static bool M05 { get
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("property", "I1.M05").WithLocation(16, 34),
-                // (16,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
-                //     abstract virtual static bool M05 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "7.3", "preview").WithLocation(16, 34),
                 // (16,40): error CS0500: 'I1.M05.get' cannot declare a body because it is marked abstract
                 //     abstract virtual static bool M05 { get
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.M05.get").WithLocation(16, 40),
                 // (19,33): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static bool M06 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 33),
-                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (19,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract sealed static bool M06 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "7.3", "preview").WithLocation(19, 33),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "7.3", "11.0").WithLocation(19, 33),
                 // (19,39): error CS0500: 'I1.M06.get' cannot declare a body because it is marked abstract
                 //     abstract sealed static bool M06 { get
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.M06.get").WithLocation(19, 39),
                 // (22,35): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static bool M07 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 35),
-                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract override static bool M07 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "7.3", "preview").WithLocation(22, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "7.3", "11.0").WithLocation(22, 35),
                 // (22,41): error CS0500: 'I1.M07.get' cannot declare a body because it is marked abstract
                 //     abstract override static bool M07 { get
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.M07.get").WithLocation(22, 41),
                 // (25,32): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static bool M08 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 32),
-                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (25,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual sealed static bool M08 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "7.3", "preview").WithLocation(25, 32),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "7.3", "11.0").WithLocation(25, 32),
                 // (28,34): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static bool M09 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 34),
-                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (28,34): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual override static bool M09 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "7.3", "preview").WithLocation(28, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "7.3", "11.0").WithLocation(28, 34),
                 // (31,33): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static bool M10 { get
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 33),
-                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (31,33): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     sealed override static bool M10 { get
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "7.3", "preview").WithLocation(31, 33)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "7.3", "11.0").WithLocation(31, 33)
                 );
 
             ValidatePropertyModifiers_01(compilation1);
@@ -2476,57 +2476,57 @@ public delegate void D();
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,29): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,29): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract static event D M01
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "10.0", "preview").WithLocation(4, 29),
-                // (7,28): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "10.0", "11.0").WithLocation(4, 29),
+                // (7,28): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual static event D M02
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "10.0", "preview").WithLocation(7, 28),
-                // (10,27): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "10.0", "11.0").WithLocation(7, 28),
+                // (10,27): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     sealed static event D M03
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "10.0", "preview").WithLocation(10, 27),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "10.0", "11.0").WithLocation(10, 27),
                 // (13,29): error CS0106: The modifier 'override' is not valid for this item
                 //     override static event D M04
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 29),
-                // (16,37): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (16,37): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract virtual static event D M05
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "10.0", "preview").WithLocation(16, 37),
-                // (16,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "10.0", "11.0").WithLocation(16, 37),
+                // (16,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract virtual static event D M05
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "10.0", "preview").WithLocation(16, 37),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "10.0", "11.0").WithLocation(16, 37),
                 // (16,37): error CS0503: The abstract event 'I1.M05' cannot be marked virtual
                 //     abstract virtual static event D M05
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("event", "I1.M05").WithLocation(16, 37),
                 // (19,36): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static event D M06
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 36),
-                // (19,36): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (19,36): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract sealed static event D M06
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "10.0", "preview").WithLocation(19, 36),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "10.0", "11.0").WithLocation(19, 36),
                 // (22,38): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static event D M07
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 38),
-                // (22,38): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (22,38): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract override static event D M07
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "10.0", "preview").WithLocation(22, 38),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "10.0", "11.0").WithLocation(22, 38),
                 // (25,35): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static event D M08
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 35),
-                // (25,35): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (25,35): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual sealed static event D M08
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "10.0", "preview").WithLocation(25, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "10.0", "11.0").WithLocation(25, 35),
                 // (28,37): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static event D M09
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 37),
-                // (28,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (28,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual override static event D M09
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "10.0", "preview").WithLocation(28, 37),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "10.0", "11.0").WithLocation(28, 37),
                 // (31,36): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static event D M10
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 36),
-                // (31,36): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (31,36): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     sealed override static event D M10
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "10.0", "preview").WithLocation(31, 36)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "10.0", "11.0").WithLocation(31, 36)
                 );
 
             ValidateEventModifiers_01(compilation1);
@@ -2811,27 +2811,27 @@ public delegate void D();
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,29): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,29): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract static event D M01 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "10.0", "preview").WithLocation(4, 29),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "10.0", "11.0").WithLocation(4, 29),
                 // (4,33): error CS8712: 'I1.M01': abstract event cannot use event accessor syntax
                 //     abstract static event D M01 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.M01").WithLocation(4, 33),
-                // (7,28): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (7,28): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual static event D M02 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "10.0", "preview").WithLocation(7, 28),
-                // (10,27): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "10.0", "11.0").WithLocation(7, 28),
+                // (10,27): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     sealed static event D M03 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "10.0", "preview").WithLocation(10, 27),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "10.0", "11.0").WithLocation(10, 27),
                 // (13,29): error CS0106: The modifier 'override' is not valid for this item
                 //     override static event D M04 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 29),
-                // (16,37): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (16,37): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract virtual static event D M05 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "10.0", "preview").WithLocation(16, 37),
-                // (16,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "10.0", "11.0").WithLocation(16, 37),
+                // (16,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract virtual static event D M05 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "10.0", "preview").WithLocation(16, 37),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "10.0", "11.0").WithLocation(16, 37),
                 // (16,37): error CS0503: The abstract event 'I1.M05' cannot be marked virtual
                 //     abstract virtual static event D M05 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("event", "I1.M05").WithLocation(16, 37),
@@ -2841,39 +2841,39 @@ public delegate void D();
                 // (19,36): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static event D M06 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 36),
-                // (19,36): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (19,36): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract sealed static event D M06 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "10.0", "preview").WithLocation(19, 36),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "10.0", "11.0").WithLocation(19, 36),
                 // (19,40): error CS8712: 'I1.M06': abstract event cannot use event accessor syntax
                 //     abstract sealed static event D M06 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.M06").WithLocation(19, 40),
                 // (22,38): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static event D M07 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 38),
-                // (22,38): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (22,38): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract override static event D M07 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "10.0", "preview").WithLocation(22, 38),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "10.0", "11.0").WithLocation(22, 38),
                 // (22,42): error CS8712: 'I1.M07': abstract event cannot use event accessor syntax
                 //     abstract override static event D M07 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.M07").WithLocation(22, 42),
                 // (25,35): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static event D M08 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 35),
-                // (25,35): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (25,35): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual sealed static event D M08 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "10.0", "preview").WithLocation(25, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "10.0", "11.0").WithLocation(25, 35),
                 // (28,37): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static event D M09 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 37),
-                // (28,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (28,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual override static event D M09 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "10.0", "preview").WithLocation(28, 37),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "10.0", "11.0").WithLocation(28, 37),
                 // (31,36): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static event D M10 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 36),
-                // (31,36): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (31,36): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     sealed override static event D M10 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "10.0", "preview").WithLocation(31, 36)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "10.0", "11.0").WithLocation(31, 36)
                 );
 
             ValidateEventModifiers_01(compilation1);
@@ -3077,60 +3077,60 @@ public delegate void D();
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,29): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (4,29): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract static event D M01
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "7.3", "preview").WithLocation(4, 29),
-                // (7,28): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "7.3", "11.0").WithLocation(4, 29),
+                // (7,28): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual static event D M02
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "7.3", "preview").WithLocation(7, 28),
-                // (10,27): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "7.3", "11.0").WithLocation(7, 28),
+                // (10,27): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     sealed static event D M03
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "7.3", "preview").WithLocation(10, 27),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "7.3", "11.0").WithLocation(10, 27),
                 // (13,29): error CS0106: The modifier 'override' is not valid for this item
                 //     override static event D M04
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 29),
                 // (13,29): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     override static event D M04
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M04").WithArguments("static", "7.3", "8.0").WithLocation(13, 29),
-                // (16,37): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (16,37): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract virtual static event D M05
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "7.3", "preview").WithLocation(16, 37),
-                // (16,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "7.3", "11.0").WithLocation(16, 37),
+                // (16,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract virtual static event D M05
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "7.3", "preview").WithLocation(16, 37),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "7.3", "11.0").WithLocation(16, 37),
                 // (16,37): error CS0503: The abstract event 'I1.M05' cannot be marked virtual
                 //     abstract virtual static event D M05
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("event", "I1.M05").WithLocation(16, 37),
                 // (19,36): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static event D M06
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 36),
-                // (19,36): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (19,36): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract sealed static event D M06
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "7.3", "preview").WithLocation(19, 36),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "7.3", "11.0").WithLocation(19, 36),
                 // (22,38): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static event D M07
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 38),
-                // (22,38): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (22,38): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract override static event D M07
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "7.3", "preview").WithLocation(22, 38),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "7.3", "11.0").WithLocation(22, 38),
                 // (25,35): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static event D M08
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 35),
-                // (25,35): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (25,35): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual sealed static event D M08
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "7.3", "preview").WithLocation(25, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "7.3", "11.0").WithLocation(25, 35),
                 // (28,37): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static event D M09
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 37),
-                // (28,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (28,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual override static event D M09
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "7.3", "preview").WithLocation(28, 37),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "7.3", "11.0").WithLocation(28, 37),
                 // (31,36): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static event D M10
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 36),
-                // (31,36): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (31,36): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     sealed override static event D M10
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "7.3", "preview").WithLocation(31, 36)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "7.3", "11.0").WithLocation(31, 36)
                 );
 
             ValidateEventModifiers_01(compilation1);
@@ -3180,30 +3180,30 @@ public delegate void D();
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,29): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (4,29): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract static event D M01 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "7.3", "preview").WithLocation(4, 29),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "7.3", "11.0").WithLocation(4, 29),
                 // (4,33): error CS8712: 'I1.M01': abstract event cannot use event accessor syntax
                 //     abstract static event D M01 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.M01").WithLocation(4, 33),
-                // (7,28): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (7,28): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual static event D M02 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "7.3", "preview").WithLocation(7, 28),
-                // (10,27): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("virtual", "7.3", "11.0").WithLocation(7, 28),
+                // (10,27): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     sealed static event D M03 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "7.3", "preview").WithLocation(10, 27),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M03").WithArguments("sealed", "7.3", "11.0").WithLocation(10, 27),
                 // (13,29): error CS0106: The modifier 'override' is not valid for this item
                 //     override static event D M04 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("override").WithLocation(13, 29),
                 // (13,29): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     override static event D M04 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M04").WithArguments("default interface implementation", "8.0").WithLocation(13, 29),
-                // (16,37): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (16,37): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract virtual static event D M05 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "7.3", "preview").WithLocation(16, 37),
-                // (16,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("abstract", "7.3", "11.0").WithLocation(16, 37),
+                // (16,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract virtual static event D M05 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "7.3", "preview").WithLocation(16, 37),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M05").WithArguments("virtual", "7.3", "11.0").WithLocation(16, 37),
                 // (16,37): error CS0503: The abstract event 'I1.M05' cannot be marked virtual
                 //     abstract virtual static event D M05 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M05").WithArguments("event", "I1.M05").WithLocation(16, 37),
@@ -3213,39 +3213,39 @@ public delegate void D();
                 // (19,36): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static event D M06 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("sealed").WithLocation(19, 36),
-                // (19,36): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (19,36): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract sealed static event D M06 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "7.3", "preview").WithLocation(19, 36),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M06").WithArguments("abstract", "7.3", "11.0").WithLocation(19, 36),
                 // (19,40): error CS8712: 'I1.M06': abstract event cannot use event accessor syntax
                 //     abstract sealed static event D M06 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.M06").WithLocation(19, 40),
                 // (22,38): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static event D M07 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("override").WithLocation(22, 38),
-                // (22,38): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (22,38): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract override static event D M07 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "7.3", "preview").WithLocation(22, 38),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M07").WithArguments("abstract", "7.3", "11.0").WithLocation(22, 38),
                 // (22,42): error CS8712: 'I1.M07': abstract event cannot use event accessor syntax
                 //     abstract override static event D M07 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.M07").WithLocation(22, 42),
                 // (25,35): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static event D M08 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(25, 35),
-                // (25,35): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (25,35): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual sealed static event D M08 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "7.3", "preview").WithLocation(25, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M08").WithArguments("virtual", "7.3", "11.0").WithLocation(25, 35),
                 // (28,37): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static event D M09 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(28, 37),
-                // (28,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (28,37): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual override static event D M09 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "7.3", "preview").WithLocation(28, 37),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M09").WithArguments("virtual", "7.3", "11.0").WithLocation(28, 37),
                 // (31,36): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static event D M10 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("override").WithLocation(31, 36),
-                // (31,36): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (31,36): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     sealed override static event D M10 { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "7.3", "preview").WithLocation(31, 36)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M10").WithArguments("sealed", "7.3", "11.0").WithLocation(31, 36)
                 );
 
             ValidateEventModifiers_01(compilation1);
@@ -3294,18 +3294,18 @@ public interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract static I1 operator+ (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "10.0", "preview").WithLocation(4, 32),
-                // (7,31): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "10.0", "11.0").WithLocation(4, 32),
+                // (7,31): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual static I1 operator- (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "10.0", "preview").WithLocation(7, 31),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "10.0", "11.0").WithLocation(7, 31),
                 // (7,31): error CS0501: 'I1.operator -(I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual static I1 operator- (I1 x)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "-").WithArguments("I1.operator -(I1)").WithLocation(7, 31),
-                // (10,30): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (10,30): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     sealed static I1 operator++ (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "++").WithArguments("sealed", "10.0", "preview").WithLocation(10, 30),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "++").WithArguments("sealed", "10.0", "11.0").WithLocation(10, 30),
                 // (10,30): error CS0501: 'I1.operator ++(I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed static I1 operator++ (I1 x)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "++").WithArguments("I1.operator ++(I1)").WithLocation(10, 30),
@@ -3315,48 +3315,48 @@ public interface I1
                 // (13,32): error CS0501: 'I1.operator --(I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     override static I1 operator-- (I1 x)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "--").WithArguments("I1.operator --(I1)").WithLocation(13, 32),
-                // (16,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (16,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract virtual static I1 operator! (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!").WithArguments("abstract", "10.0", "preview").WithLocation(16, 40),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!").WithArguments("abstract", "10.0", "11.0").WithLocation(16, 40),
                 // (16,40): error CS0503: The abstract method 'I1.operator !(I1)' cannot be marked virtual
                 //     abstract virtual static I1 operator! (I1 x)
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "!").WithArguments("method", "I1.operator !(I1)").WithLocation(16, 40),
                 // (19,39): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static I1 operator~ (I1 x)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "~").WithArguments("sealed").WithLocation(19, 39),
-                // (19,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (19,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract sealed static I1 operator~ (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "~").WithArguments("abstract", "10.0", "preview").WithLocation(19, 39),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "~").WithArguments("abstract", "10.0", "11.0").WithLocation(19, 39),
                 // (22,41): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static I1 operator+ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("override").WithLocation(22, 41),
-                // (22,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (22,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract override static I1 operator+ (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "10.0", "preview").WithLocation(22, 41),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "10.0", "11.0").WithLocation(22, 41),
                 // (25,38): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("sealed").WithLocation(25, 38),
-                // (25,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (25,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "10.0", "preview").WithLocation(25, 38),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "10.0", "11.0").WithLocation(25, 38),
                 // (25,38): error CS0501: 'I1.operator -(I1, I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "-").WithArguments("I1.operator -(I1, I1)").WithLocation(25, 38),
                 // (28,40): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static I1 operator* (I1 x, I1 y) 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "*").WithArguments("override").WithLocation(28, 40),
-                // (28,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (28,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual override static I1 operator* (I1 x, I1 y) 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "*").WithArguments("virtual", "10.0", "preview").WithLocation(28, 40),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "*").WithArguments("virtual", "10.0", "11.0").WithLocation(28, 40),
                 // (28,40): error CS0501: 'I1.operator *(I1, I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual override static I1 operator* (I1 x, I1 y) 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "*").WithArguments("I1.operator *(I1, I1)").WithLocation(28, 40),
                 // (31,39): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static I1 operator/ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "/").WithArguments("override").WithLocation(31, 39),
-                // (31,39): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (31,39): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     sealed override static I1 operator/ (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "/").WithArguments("sealed", "10.0", "preview").WithLocation(31, 39),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "/").WithArguments("sealed", "10.0", "11.0").WithLocation(31, 39),
                 // (31,39): error CS0501: 'I1.operator /(I1, I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed override static I1 operator/ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "/").WithArguments("I1.operator /(I1, I1)").WithLocation(31, 39)
@@ -3532,63 +3532,63 @@ public interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract static I1 operator+ (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "10.0", "preview").WithLocation(4, 32),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "10.0", "11.0").WithLocation(4, 32),
                 // (4,32): error CS0500: 'I1.operator +(I1)' cannot declare a body because it is marked abstract
                 //     abstract static I1 operator+ (I1 x)
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "+").WithArguments("I1.operator +(I1)").WithLocation(4, 32),
-                // (7,31): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (7,31): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual static I1 operator- (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "10.0", "preview").WithLocation(7, 31),
-                // (10,30): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "10.0", "11.0").WithLocation(7, 31),
+                // (10,30): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     sealed static I1 operator++ (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "++").WithArguments("sealed", "10.0", "preview").WithLocation(10, 30),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "++").WithArguments("sealed", "10.0", "11.0").WithLocation(10, 30),
                 // (13,32): error CS0106: The modifier 'override' is not valid for this item
                 //     override static I1 operator-- (I1 x)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "--").WithArguments("override").WithLocation(13, 32),
-                // (16,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (16,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract virtual static I1 operator! (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!").WithArguments("abstract", "10.0", "preview").WithLocation(16, 40),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!").WithArguments("abstract", "10.0", "11.0").WithLocation(16, 40),
                 // (16,40): error CS0503: The abstract method 'I1.operator !(I1)' cannot be marked virtual
                 //     abstract virtual static I1 operator! (I1 x)
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "!").WithArguments("method", "I1.operator !(I1)").WithLocation(16, 40),
                 // (19,39): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static I1 operator~ (I1 x)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "~").WithArguments("sealed").WithLocation(19, 39),
-                // (19,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (19,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract sealed static I1 operator~ (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "~").WithArguments("abstract", "10.0", "preview").WithLocation(19, 39),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "~").WithArguments("abstract", "10.0", "11.0").WithLocation(19, 39),
                 // (19,39): error CS0500: 'I1.operator ~(I1)' cannot declare a body because it is marked abstract
                 //     abstract sealed static I1 operator~ (I1 x)
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "~").WithArguments("I1.operator ~(I1)").WithLocation(19, 39),
                 // (22,41): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static I1 operator+ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("override").WithLocation(22, 41),
-                // (22,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (22,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract override static I1 operator+ (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "10.0", "preview").WithLocation(22, 41),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "10.0", "11.0").WithLocation(22, 41),
                 // (22,41): error CS0500: 'I1.operator +(I1, I1)' cannot declare a body because it is marked abstract
                 //     abstract override static I1 operator+ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "+").WithArguments("I1.operator +(I1, I1)").WithLocation(22, 41),
                 // (25,38): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("sealed").WithLocation(25, 38),
-                // (25,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (25,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "10.0", "preview").WithLocation(25, 38),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "10.0", "11.0").WithLocation(25, 38),
                 // (28,40): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static I1 operator* (I1 x, I1 y) 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "*").WithArguments("override").WithLocation(28, 40),
-                // (28,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (28,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual override static I1 operator* (I1 x, I1 y) 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "*").WithArguments("virtual", "10.0", "preview").WithLocation(28, 40),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "*").WithArguments("virtual", "10.0", "11.0").WithLocation(28, 40),
                 // (31,39): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static I1 operator/ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "/").WithArguments("override").WithLocation(31, 39),
-                // (31,39): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (31,39): error CS8703: The modifier 'sealed' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     sealed override static I1 operator/ (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "/").WithArguments("sealed", "10.0", "preview").WithLocation(31, 39)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "/").WithArguments("sealed", "10.0", "11.0").WithLocation(31, 39)
                 );
 
             ValidateOperatorModifiers_01(compilation1);
@@ -3802,18 +3802,18 @@ public interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (4,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract static I1 operator+ (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "7.3", "preview").WithLocation(4, 32),
-                // (7,31): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "7.3", "11.0").WithLocation(4, 32),
+                // (7,31): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual static I1 operator- (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "7.3", "preview").WithLocation(7, 31),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "7.3", "11.0").WithLocation(7, 31),
                 // (7,31): error CS0501: 'I1.operator -(I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual static I1 operator- (I1 x)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "-").WithArguments("I1.operator -(I1)").WithLocation(7, 31),
-                // (10,30): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (10,30): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     sealed static I1 operator++ (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "++").WithArguments("sealed", "7.3", "preview").WithLocation(10, 30),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "++").WithArguments("sealed", "7.3", "11.0").WithLocation(10, 30),
                 // (10,30): error CS0501: 'I1.operator ++(I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed static I1 operator++ (I1 x)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "++").WithArguments("I1.operator ++(I1)").WithLocation(10, 30),
@@ -3826,48 +3826,48 @@ public interface I1
                 // (13,32): error CS0501: 'I1.operator --(I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     override static I1 operator-- (I1 x)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "--").WithArguments("I1.operator --(I1)").WithLocation(13, 32),
-                // (16,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (16,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract virtual static I1 operator! (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!").WithArguments("abstract", "7.3", "preview").WithLocation(16, 40),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!").WithArguments("abstract", "7.3", "11.0").WithLocation(16, 40),
                 // (16,40): error CS0503: The abstract method 'I1.operator !(I1)' cannot be marked virtual
                 //     abstract virtual static I1 operator! (I1 x)
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "!").WithArguments("method", "I1.operator !(I1)").WithLocation(16, 40),
                 // (19,39): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static I1 operator~ (I1 x)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "~").WithArguments("sealed").WithLocation(19, 39),
-                // (19,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (19,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract sealed static I1 operator~ (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "~").WithArguments("abstract", "7.3", "preview").WithLocation(19, 39),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "~").WithArguments("abstract", "7.3", "11.0").WithLocation(19, 39),
                 // (22,41): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static I1 operator+ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("override").WithLocation(22, 41),
-                // (22,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (22,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract override static I1 operator+ (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "7.3", "preview").WithLocation(22, 41),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "7.3", "11.0").WithLocation(22, 41),
                 // (25,38): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("sealed").WithLocation(25, 38),
-                // (25,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (25,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "7.3", "preview").WithLocation(25, 38),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "7.3", "11.0").WithLocation(25, 38),
                 // (25,38): error CS0501: 'I1.operator -(I1, I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "-").WithArguments("I1.operator -(I1, I1)").WithLocation(25, 38),
                 // (28,40): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static I1 operator* (I1 x, I1 y) 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "*").WithArguments("override").WithLocation(28, 40),
-                // (28,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (28,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual override static I1 operator* (I1 x, I1 y) 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "*").WithArguments("virtual", "7.3", "preview").WithLocation(28, 40),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "*").WithArguments("virtual", "7.3", "11.0").WithLocation(28, 40),
                 // (28,40): error CS0501: 'I1.operator *(I1, I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual override static I1 operator* (I1 x, I1 y) 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "*").WithArguments("I1.operator *(I1, I1)").WithLocation(28, 40),
                 // (31,39): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static I1 operator/ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "/").WithArguments("override").WithLocation(31, 39),
-                // (31,39): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (31,39): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     sealed override static I1 operator/ (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "/").WithArguments("sealed", "7.3", "preview").WithLocation(31, 39),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "/").WithArguments("sealed", "7.3", "11.0").WithLocation(31, 39),
                 // (31,39): error CS0501: 'I1.operator /(I1, I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed override static I1 operator/ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "/").WithArguments("I1.operator /(I1, I1)").WithLocation(31, 39)
@@ -3919,66 +3919,66 @@ public interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (4,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract static I1 operator+ (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "7.3", "preview").WithLocation(4, 32),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "7.3", "11.0").WithLocation(4, 32),
                 // (4,32): error CS0500: 'I1.operator +(I1)' cannot declare a body because it is marked abstract
                 //     abstract static I1 operator+ (I1 x)
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "+").WithArguments("I1.operator +(I1)").WithLocation(4, 32),
-                // (7,31): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (7,31): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual static I1 operator- (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "7.3", "preview").WithLocation(7, 31),
-                // (10,30): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "7.3", "11.0").WithLocation(7, 31),
+                // (10,30): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     sealed static I1 operator++ (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "++").WithArguments("sealed", "7.3", "preview").WithLocation(10, 30),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "++").WithArguments("sealed", "7.3", "11.0").WithLocation(10, 30),
                 // (13,32): error CS0106: The modifier 'override' is not valid for this item
                 //     override static I1 operator-- (I1 x)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "--").WithArguments("override").WithLocation(13, 32),
                 // (13,32): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     override static I1 operator-- (I1 x)
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "--").WithArguments("default interface implementation", "8.0").WithLocation(13, 32),
-                // (16,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (16,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract virtual static I1 operator! (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!").WithArguments("abstract", "7.3", "preview").WithLocation(16, 40),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!").WithArguments("abstract", "7.3", "11.0").WithLocation(16, 40),
                 // (16,40): error CS0503: The abstract method 'I1.operator !(I1)' cannot be marked virtual
                 //     abstract virtual static I1 operator! (I1 x)
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "!").WithArguments("method", "I1.operator !(I1)").WithLocation(16, 40),
                 // (19,39): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static I1 operator~ (I1 x)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "~").WithArguments("sealed").WithLocation(19, 39),
-                // (19,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (19,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract sealed static I1 operator~ (I1 x)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "~").WithArguments("abstract", "7.3", "preview").WithLocation(19, 39),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "~").WithArguments("abstract", "7.3", "11.0").WithLocation(19, 39),
                 // (19,39): error CS0500: 'I1.operator ~(I1)' cannot declare a body because it is marked abstract
                 //     abstract sealed static I1 operator~ (I1 x)
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "~").WithArguments("I1.operator ~(I1)").WithLocation(19, 39),
                 // (22,41): error CS0106: The modifier 'override' is not valid for this item
                 //     abstract override static I1 operator+ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("override").WithLocation(22, 41),
-                // (22,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (22,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract override static I1 operator+ (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "7.3", "preview").WithLocation(22, 41),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "+").WithArguments("abstract", "7.3", "11.0").WithLocation(22, 41),
                 // (22,41): error CS0500: 'I1.operator +(I1, I1)' cannot declare a body because it is marked abstract
                 //     abstract override static I1 operator+ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "+").WithArguments("I1.operator +(I1, I1)").WithLocation(22, 41),
                 // (25,38): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("sealed").WithLocation(25, 38),
-                // (25,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (25,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual sealed static I1 operator- (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "7.3", "preview").WithLocation(25, 38),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "-").WithArguments("virtual", "7.3", "11.0").WithLocation(25, 38),
                 // (28,40): error CS0106: The modifier 'override' is not valid for this item
                 //     virtual override static I1 operator* (I1 x, I1 y) 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "*").WithArguments("override").WithLocation(28, 40),
-                // (28,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (28,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual override static I1 operator* (I1 x, I1 y) 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "*").WithArguments("virtual", "7.3", "preview").WithLocation(28, 40),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "*").WithArguments("virtual", "7.3", "11.0").WithLocation(28, 40),
                 // (31,39): error CS0106: The modifier 'override' is not valid for this item
                 //     sealed override static I1 operator/ (I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "/").WithArguments("override").WithLocation(31, 39),
-                // (31,39): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (31,39): error CS8703: The modifier 'sealed' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     sealed override static I1 operator/ (I1 x, I1 y)
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "/").WithArguments("sealed", "7.3", "preview").WithLocation(31, 39)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "/").WithArguments("sealed", "7.3", "11.0").WithLocation(31, 39)
                 );
 
             ValidateOperatorModifiers_01(compilation1);
@@ -4015,12 +4015,12 @@ public interface I3
                                                  targetFramework: _supportingFramework);
 
             compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_BadAbstractEqualityOperatorSignature).Verify(
-                // (4,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (4,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract static bool operator== (I1 x, I1 y); 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "7.3", "preview").WithLocation(4, 34),
-                // (6,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "7.3", "11.0").WithLocation(4, 34),
+                // (6,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract static bool operator!= (I1 x, I1 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "7.3", "preview").WithLocation(6, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "7.3", "11.0").WithLocation(6, 34),
                 // (6,34): error CS0500: 'I1.operator !=(I1, I1)' cannot declare a body because it is marked abstract
                 //     abstract static bool operator!= (I1 x, I1 y) {return false;} 
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "!=").WithArguments("I1.operator !=(I1, I1)").WithLocation(6, 34),
@@ -4039,15 +4039,15 @@ public interface I3
                 // (18,41): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static bool operator== (I3 x, I3 y);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("sealed").WithLocation(18, 41),
-                // (18,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (18,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract sealed static bool operator== (I3 x, I3 y);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "7.3", "preview").WithLocation(18, 41),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "7.3", "11.0").WithLocation(18, 41),
                 // (20,41): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static bool operator!= (I3 x, I3 y) {return false;} 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("sealed").WithLocation(20, 41),
-                // (20,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (20,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract sealed static bool operator!= (I3 x, I3 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "7.3", "preview").WithLocation(20, 41),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "7.3", "11.0").WithLocation(20, 41),
                 // (20,41): error CS0500: 'I3.operator !=(I3, I3)' cannot declare a body because it is marked abstract
                 //     abstract sealed static bool operator!= (I3 x, I3 y) {return false;} 
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "!=").WithArguments("I3.operator !=(I3, I3)").WithLocation(20, 41)
@@ -4060,12 +4060,12 @@ public interface I3
                                                  targetFramework: _supportingFramework);
 
             compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_BadAbstractEqualityOperatorSignature).Verify(
-                // (4,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract static bool operator== (I1 x, I1 y); 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "10.0", "preview").WithLocation(4, 34),
-                // (6,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "10.0", "11.0").WithLocation(4, 34),
+                // (6,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract static bool operator!= (I1 x, I1 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "10.0", "preview").WithLocation(6, 34),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "10.0", "11.0").WithLocation(6, 34),
                 // (6,34): error CS0500: 'I1.operator !=(I1, I1)' cannot declare a body because it is marked abstract
                 //     abstract static bool operator!= (I1 x, I1 y) {return false;} 
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "!=").WithArguments("I1.operator !=(I1, I1)").WithLocation(6, 34),
@@ -4084,15 +4084,15 @@ public interface I3
                 // (18,41): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static bool operator== (I3 x, I3 y);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("sealed").WithLocation(18, 41),
-                // (18,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (18,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract sealed static bool operator== (I3 x, I3 y);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "10.0", "preview").WithLocation(18, 41),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "10.0", "11.0").WithLocation(18, 41),
                 // (20,41): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static bool operator!= (I3 x, I3 y) {return false;} 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("sealed").WithLocation(20, 41),
-                // (20,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (20,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract sealed static bool operator!= (I3 x, I3 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "10.0", "preview").WithLocation(20, 41),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "10.0", "11.0").WithLocation(20, 41),
                 // (20,41): error CS0500: 'I3.operator !=(I3, I3)' cannot declare a body because it is marked abstract
                 //     abstract sealed static bool operator!= (I3 x, I3 y) {return false;} 
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "!=").WithArguments("I3.operator !=(I3, I3)").WithLocation(20, 41)
@@ -4207,15 +4207,15 @@ public interface I3
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (4,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract static implicit operator int(I1 x); 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "7.3", "preview").WithLocation(4, 39),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "7.3", "11.0").WithLocation(4, 39),
                 // (4,39): error CS0552: 'I1.implicit operator int(I1)': user-defined conversions to or from an interface are not allowed
                 //     abstract static implicit operator int(I1 x); 
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I1.implicit operator int(I1)").WithLocation(4, 39),
-                // (6,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (6,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract static explicit operator I1(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I1").WithArguments("abstract", "7.3", "preview").WithLocation(6, 39),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I1").WithArguments("abstract", "7.3", "11.0").WithLocation(6, 39),
                 // (6,39): error CS0500: 'I1.explicit operator I1(bool)' cannot declare a body because it is marked abstract
                 //     abstract static explicit operator I1(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "I1").WithArguments("I1.explicit operator I1(bool)").WithLocation(6, 39),
@@ -4225,36 +4225,36 @@ public interface I3
                 // (11,37): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed static implicit operator int(I2 x);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("sealed").WithLocation(11, 37),
-                // (11,37): error CS0552: 'I2.implicit operator int(I2)': user-defined conversions to or from an interface are not allowed
-                //     sealed static implicit operator int(I2 x);
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I2.implicit operator int(I2)").WithLocation(11, 37),
                 // (11,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual
                 //     sealed static implicit operator int(I2 x);
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(11, 37),
+                // (11,37): error CS0552: 'I2.implicit operator int(I2)': user-defined conversions to or from an interface are not allowed
+                //     sealed static implicit operator int(I2 x);
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I2.implicit operator int(I2)").WithLocation(11, 37),
                 // (13,37): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed static explicit operator I2(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("sealed").WithLocation(13, 37),
-                // (13,37): error CS0552: 'I2.explicit operator I2(bool)': user-defined conversions to or from an interface are not allowed
-                //     sealed static explicit operator I2(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I2").WithArguments("I2.explicit operator I2(bool)").WithLocation(13, 37),
                 // (13,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual
                 //     sealed static explicit operator I2(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "I2").WithLocation(13, 37),
+                // (13,37): error CS0552: 'I2.explicit operator I2(bool)': user-defined conversions to or from an interface are not allowed
+                //     sealed static explicit operator I2(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I2").WithArguments("I2.explicit operator I2(bool)").WithLocation(13, 37),
                 // (18,46): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static implicit operator int(I3 x);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("sealed").WithLocation(18, 46),
-                // (18,46): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (18,46): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract sealed static implicit operator int(I3 x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "7.3", "preview").WithLocation(18, 46),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "7.3", "11.0").WithLocation(18, 46),
                 // (18,46): error CS0552: 'I3.implicit operator int(I3)': user-defined conversions to or from an interface are not allowed
                 //     abstract sealed static implicit operator int(I3 x);
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I3.implicit operator int(I3)").WithLocation(18, 46),
                 // (20,46): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static explicit operator I3(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I3").WithArguments("sealed").WithLocation(20, 46),
-                // (20,46): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (20,46): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract sealed static explicit operator I3(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I3").WithArguments("abstract", "7.3", "preview").WithLocation(20, 46),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I3").WithArguments("abstract", "7.3", "11.0").WithLocation(20, 46),
                 // (20,46): error CS0500: 'I3.explicit operator I3(bool)' cannot declare a body because it is marked abstract
                 //     abstract sealed static explicit operator I3(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "I3").WithArguments("I3.explicit operator I3(bool)").WithLocation(20, 46),
@@ -4270,15 +4270,15 @@ public interface I3
                                              targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract static implicit operator int(I1 x); 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "10.0", "preview").WithLocation(4, 39),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "10.0", "11.0").WithLocation(4, 39),
                 // (4,39): error CS0552: 'I1.implicit operator int(I1)': user-defined conversions to or from an interface are not allowed
                 //     abstract static implicit operator int(I1 x); 
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I1.implicit operator int(I1)").WithLocation(4, 39),
-                // (6,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (6,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract static explicit operator I1(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I1").WithArguments("abstract", "10.0", "preview").WithLocation(6, 39),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I1").WithArguments("abstract", "10.0", "11.0").WithLocation(6, 39),
                 // (6,39): error CS0500: 'I1.explicit operator I1(bool)' cannot declare a body because it is marked abstract
                 //     abstract static explicit operator I1(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "I1").WithArguments("I1.explicit operator I1(bool)").WithLocation(6, 39),
@@ -4288,36 +4288,36 @@ public interface I3
                 // (11,37): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed static implicit operator int(I2 x);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("sealed").WithLocation(11, 37),
-                // (11,37): error CS0552: 'I2.implicit operator int(I2)': user-defined conversions to or from an interface are not allowed
-                //     sealed static implicit operator int(I2 x);
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I2.implicit operator int(I2)").WithLocation(11, 37),
                 // (11,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual
                 //     sealed static implicit operator int(I2 x);
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(11, 37),
+                // (11,37): error CS0552: 'I2.implicit operator int(I2)': user-defined conversions to or from an interface are not allowed
+                //     sealed static implicit operator int(I2 x);
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I2.implicit operator int(I2)").WithLocation(11, 37),
                 // (13,37): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed static explicit operator I2(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("sealed").WithLocation(13, 37),
-                // (13,37): error CS0552: 'I2.explicit operator I2(bool)': user-defined conversions to or from an interface are not allowed
-                //     sealed static explicit operator I2(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I2").WithArguments("I2.explicit operator I2(bool)").WithLocation(13, 37),
                 // (13,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual
                 //     sealed static explicit operator I2(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "I2").WithLocation(13, 37),
+                // (13,37): error CS0552: 'I2.explicit operator I2(bool)': user-defined conversions to or from an interface are not allowed
+                //     sealed static explicit operator I2(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I2").WithArguments("I2.explicit operator I2(bool)").WithLocation(13, 37),
                 // (18,46): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static implicit operator int(I3 x);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("sealed").WithLocation(18, 46),
-                // (18,46): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (18,46): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract sealed static implicit operator int(I3 x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "10.0", "preview").WithLocation(18, 46),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "10.0", "11.0").WithLocation(18, 46),
                 // (18,46): error CS0552: 'I3.implicit operator int(I3)': user-defined conversions to or from an interface are not allowed
                 //     abstract sealed static implicit operator int(I3 x);
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I3.implicit operator int(I3)").WithLocation(18, 46),
                 // (20,46): error CS0106: The modifier 'sealed' is not valid for this item
                 //     abstract sealed static explicit operator I3(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I3").WithArguments("sealed").WithLocation(20, 46),
-                // (20,46): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (20,46): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract sealed static explicit operator I3(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I3").WithArguments("abstract", "10.0", "preview").WithLocation(20, 46),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I3").WithArguments("abstract", "10.0", "11.0").WithLocation(20, 46),
                 // (20,46): error CS0500: 'I3.explicit operator I3(bool)' cannot declare a body because it is marked abstract
                 //     abstract sealed static explicit operator I3(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "I3").WithArguments("I3.explicit operator I3(bool)").WithLocation(20, 46),
@@ -4453,39 +4453,39 @@ public interface I3
                                                  targetFramework: _supportingFramework);
 
             compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_BadAbstractEqualityOperatorSignature).Verify(
-                // (4,33): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (4,33): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual static bool operator== (I1 x, I1 y); 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("virtual", "7.3", "preview").WithLocation(4, 33),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("virtual", "7.3", "11.0").WithLocation(4, 33),
                 // (4,33): error CS0501: 'I1.operator ==(I1, I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual static bool operator== (I1 x, I1 y); 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "==").WithArguments("I1.operator ==(I1, I1)").WithLocation(4, 33),
-                // (6,33): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (6,33): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual static bool operator!= (I1 x, I1 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("virtual", "7.3", "preview").WithLocation(6, 33),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("virtual", "7.3", "11.0").WithLocation(6, 33),
                 // (11,40): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static bool operator== (I2 x, I2 y);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("sealed").WithLocation(11, 40),
-                // (11,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (11,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual sealed static bool operator== (I2 x, I2 y);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("virtual", "7.3", "preview").WithLocation(11, 40),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("virtual", "7.3", "11.0").WithLocation(11, 40),
                 // (11,40): error CS0501: 'I2.operator ==(I2, I2)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual sealed static bool operator== (I2 x, I2 y);
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "==").WithArguments("I2.operator ==(I2, I2)").WithLocation(11, 40),
                 // (13,40): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static bool operator!= (I2 x, I2 y) {return false;} 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("sealed").WithLocation(13, 40),
-                // (13,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (13,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual sealed static bool operator!= (I2 x, I2 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("virtual", "7.3", "preview").WithLocation(13, 40),
-                // (18,42): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("virtual", "7.3", "11.0").WithLocation(13, 40),
+                // (18,42): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract virtual static bool operator== (I3 x, I3 y);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "7.3", "preview").WithLocation(18, 42),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "7.3", "11.0").WithLocation(18, 42),
                 // (18,42): error CS0503: The abstract method 'I3.operator ==(I3, I3)' cannot be marked virtual
                 //     abstract virtual static bool operator== (I3 x, I3 y);
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "==").WithArguments("method", "I3.operator ==(I3, I3)").WithLocation(18, 42),
-                // (20,42): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (20,42): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract virtual static bool operator!= (I3 x, I3 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "7.3", "preview").WithLocation(20, 42),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "7.3", "11.0").WithLocation(20, 42),
                 // (20,42): error CS0503: The abstract method 'I3.operator !=(I3, I3)' cannot be marked virtual
                 //     abstract virtual static bool operator!= (I3 x, I3 y) {return false;} 
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "!=").WithArguments("method", "I3.operator !=(I3, I3)").WithLocation(20, 42)
@@ -4498,39 +4498,39 @@ public interface I3
                                              targetFramework: _supportingFramework);
 
             compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_BadAbstractEqualityOperatorSignature).Verify(
-                // (4,33): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,33): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual static bool operator== (I1 x, I1 y); 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("virtual", "10.0", "preview").WithLocation(4, 33),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("virtual", "10.0", "11.0").WithLocation(4, 33),
                 // (4,33): error CS0501: 'I1.operator ==(I1, I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual static bool operator== (I1 x, I1 y); 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "==").WithArguments("I1.operator ==(I1, I1)").WithLocation(4, 33),
-                // (6,33): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (6,33): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual static bool operator!= (I1 x, I1 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("virtual", "10.0", "preview").WithLocation(6, 33),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("virtual", "10.0", "11.0").WithLocation(6, 33),
                 // (11,40): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static bool operator== (I2 x, I2 y);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("sealed").WithLocation(11, 40),
-                // (11,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (11,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual sealed static bool operator== (I2 x, I2 y);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("virtual", "10.0", "preview").WithLocation(11, 40),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("virtual", "10.0", "11.0").WithLocation(11, 40),
                 // (11,40): error CS0501: 'I2.operator ==(I2, I2)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual sealed static bool operator== (I2 x, I2 y);
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "==").WithArguments("I2.operator ==(I2, I2)").WithLocation(11, 40),
                 // (13,40): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static bool operator!= (I2 x, I2 y) {return false;} 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("sealed").WithLocation(13, 40),
-                // (13,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (13,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual sealed static bool operator!= (I2 x, I2 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("virtual", "10.0", "preview").WithLocation(13, 40),
-                // (18,42): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("virtual", "10.0", "11.0").WithLocation(13, 40),
+                // (18,42): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract virtual static bool operator== (I3 x, I3 y);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "10.0", "preview").WithLocation(18, 42),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "10.0", "11.0").WithLocation(18, 42),
                 // (18,42): error CS0503: The abstract method 'I3.operator ==(I3, I3)' cannot be marked virtual
                 //     abstract virtual static bool operator== (I3 x, I3 y);
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "==").WithArguments("method", "I3.operator ==(I3, I3)").WithLocation(18, 42),
-                // (20,42): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (20,42): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract virtual static bool operator!= (I3 x, I3 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "10.0", "preview").WithLocation(20, 42),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "10.0", "11.0").WithLocation(20, 42),
                 // (20,42): error CS0503: The abstract method 'I3.operator !=(I3, I3)' cannot be marked virtual
                 //     abstract virtual static bool operator!= (I3 x, I3 y) {return false;} 
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "!=").WithArguments("method", "I3.operator !=(I3, I3)").WithLocation(20, 42)
@@ -4639,27 +4639,27 @@ public interface I3
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (4,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual static implicit operator int(I1 x); 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("virtual", "7.3", "preview").WithLocation(4, 38),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("virtual", "7.3", "11.0").WithLocation(4, 38),
                 // (4,38): error CS0501: 'I1.implicit operator int(I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual static implicit operator int(I1 x); 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "int").WithArguments("I1.implicit operator int(I1)").WithLocation(4, 38),
                 // (4,38): error CS0552: 'I1.implicit operator int(I1)': user-defined conversions to or from an interface are not allowed
                 //     virtual static implicit operator int(I1 x); 
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I1.implicit operator int(I1)").WithLocation(4, 38),
-                // (6,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (6,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual static explicit operator I1(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I1").WithArguments("virtual", "7.3", "preview").WithLocation(6, 38),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I1").WithArguments("virtual", "7.3", "11.0").WithLocation(6, 38),
                 // (6,38): error CS0552: 'I1.explicit operator I1(bool)': user-defined conversions to or from an interface are not allowed
                 //     virtual static explicit operator I1(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I1").WithArguments("I1.explicit operator I1(bool)").WithLocation(6, 38),
                 // (11,45): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static implicit operator int(I2 x);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("sealed").WithLocation(11, 45),
-                // (11,45): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (11,45): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual sealed static implicit operator int(I2 x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("virtual", "7.3", "preview").WithLocation(11, 45),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("virtual", "7.3", "11.0").WithLocation(11, 45),
                 // (11,45): error CS0501: 'I2.implicit operator int(I2)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual sealed static implicit operator int(I2 x);
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "int").WithArguments("I2.implicit operator int(I2)").WithLocation(11, 45),
@@ -4669,24 +4669,24 @@ public interface I3
                 // (13,45): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static explicit operator I2(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("sealed").WithLocation(13, 45),
-                // (13,45): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (13,45): error CS8703: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     virtual sealed static explicit operator I2(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I2").WithArguments("virtual", "7.3", "preview").WithLocation(13, 45),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I2").WithArguments("virtual", "7.3", "11.0").WithLocation(13, 45),
                 // (13,45): error CS0552: 'I2.explicit operator I2(bool)': user-defined conversions to or from an interface are not allowed
                 //     virtual sealed static explicit operator I2(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I2").WithArguments("I2.explicit operator I2(bool)").WithLocation(13, 45),
-                // (18,47): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (18,47): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract virtual static implicit operator int(I3 x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "7.3", "preview").WithLocation(18, 47),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "7.3", "11.0").WithLocation(18, 47),
                 // (18,47): error CS0503: The abstract method 'I3.implicit operator int(I3)' cannot be marked virtual
                 //     abstract virtual static implicit operator int(I3 x);
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "int").WithArguments("method", "I3.implicit operator int(I3)").WithLocation(18, 47),
                 // (18,47): error CS0552: 'I3.implicit operator int(I3)': user-defined conversions to or from an interface are not allowed
                 //     abstract virtual static implicit operator int(I3 x);
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I3.implicit operator int(I3)").WithLocation(18, 47),
-                // (20,47): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // (20,47): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version '11.0' or greater.
                 //     abstract virtual static explicit operator I3(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I3").WithArguments("abstract", "7.3", "preview").WithLocation(20, 47),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I3").WithArguments("abstract", "7.3", "11.0").WithLocation(20, 47),
                 // (20,47): error CS0503: The abstract method 'I3.explicit operator I3(bool)' cannot be marked virtual
                 //     abstract virtual static explicit operator I3(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "I3").WithArguments("method", "I3.explicit operator I3(bool)").WithLocation(20, 47),
@@ -4702,27 +4702,27 @@ public interface I3
                                              targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual static implicit operator int(I1 x); 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("virtual", "10.0", "preview").WithLocation(4, 38),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("virtual", "10.0", "11.0").WithLocation(4, 38),
                 // (4,38): error CS0501: 'I1.implicit operator int(I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual static implicit operator int(I1 x); 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "int").WithArguments("I1.implicit operator int(I1)").WithLocation(4, 38),
                 // (4,38): error CS0552: 'I1.implicit operator int(I1)': user-defined conversions to or from an interface are not allowed
                 //     virtual static implicit operator int(I1 x); 
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I1.implicit operator int(I1)").WithLocation(4, 38),
-                // (6,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (6,38): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual static explicit operator I1(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I1").WithArguments("virtual", "10.0", "preview").WithLocation(6, 38),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I1").WithArguments("virtual", "10.0", "11.0").WithLocation(6, 38),
                 // (6,38): error CS0552: 'I1.explicit operator I1(bool)': user-defined conversions to or from an interface are not allowed
                 //     virtual static explicit operator I1(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I1").WithArguments("I1.explicit operator I1(bool)").WithLocation(6, 38),
                 // (11,45): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static implicit operator int(I2 x);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("sealed").WithLocation(11, 45),
-                // (11,45): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (11,45): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual sealed static implicit operator int(I2 x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("virtual", "10.0", "preview").WithLocation(11, 45),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("virtual", "10.0", "11.0").WithLocation(11, 45),
                 // (11,45): error CS0501: 'I2.implicit operator int(I2)' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual sealed static implicit operator int(I2 x);
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "int").WithArguments("I2.implicit operator int(I2)").WithLocation(11, 45),
@@ -4732,24 +4732,24 @@ public interface I3
                 // (13,45): error CS0106: The modifier 'sealed' is not valid for this item
                 //     virtual sealed static explicit operator I2(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("sealed").WithLocation(13, 45),
-                // (13,45): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (13,45): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     virtual sealed static explicit operator I2(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I2").WithArguments("virtual", "10.0", "preview").WithLocation(13, 45),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I2").WithArguments("virtual", "10.0", "11.0").WithLocation(13, 45),
                 // (13,45): error CS0552: 'I2.explicit operator I2(bool)': user-defined conversions to or from an interface are not allowed
                 //     virtual sealed static explicit operator I2(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I2").WithArguments("I2.explicit operator I2(bool)").WithLocation(13, 45),
-                // (18,47): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (18,47): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract virtual static implicit operator int(I3 x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "10.0", "preview").WithLocation(18, 47),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "10.0", "11.0").WithLocation(18, 47),
                 // (18,47): error CS0503: The abstract method 'I3.implicit operator int(I3)' cannot be marked virtual
                 //     abstract virtual static implicit operator int(I3 x);
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "int").WithArguments("method", "I3.implicit operator int(I3)").WithLocation(18, 47),
                 // (18,47): error CS0552: 'I3.implicit operator int(I3)': user-defined conversions to or from an interface are not allowed
                 //     abstract virtual static implicit operator int(I3 x);
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I3.implicit operator int(I3)").WithLocation(18, 47),
-                // (20,47): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (20,47): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     abstract virtual static explicit operator I3(bool x) {return null;} 
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I3").WithArguments("abstract", "10.0", "preview").WithLocation(20, 47),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I3").WithArguments("abstract", "10.0", "11.0").WithLocation(20, 47),
                 // (20,47): error CS0503: The abstract method 'I3.explicit operator I3(bool)' cannot be marked virtual
                 //     abstract virtual static explicit operator I3(bool x) {return null;} 
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "I3").WithArguments("method", "I3.explicit operator I3(bool)").WithLocation(20, 47),
@@ -5301,6 +5301,8 @@ interface I1
 
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.True(compilation1.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+            Assert.True(compilation1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+            Assert.True(compilation1.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -5335,6 +5337,8 @@ interface I1
 
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.True(compilation1.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+            Assert.True(compilation1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+            Assert.True(compilation1.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
 
             CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
@@ -5375,6 +5379,8 @@ interface I1
 
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.False(compilation1.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+            Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+            Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -5388,6 +5394,8 @@ interface I1
 
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.False(compilation2.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+            Assert.True(compilation2.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+            Assert.False(compilation2.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
         }
 
         [Fact]
@@ -5412,6 +5420,8 @@ interface I1
 
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.False(compilation1.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+            Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+            Assert.False(compilation1.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -5425,6 +5435,8 @@ interface I1
 
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Assert.False(compilation2.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces);
+            Assert.True(compilation2.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces));
+            Assert.False(compilation2.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces));
         }
 
         [Theory]
@@ -8582,9 +8594,9 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         T.M01();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "T").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 9)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -8592,12 +8604,12 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         T.M01();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
-                // (12,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static void M01();
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 26)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "T").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 9),
+                // (12,26): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static void M01() => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 26)
                 );
         }
 
@@ -9177,20 +9189,20 @@ class Test
                 if (isChecked)
                 {
                     compilation2.VerifyDiagnostics(
-                        // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //         _ = -x;
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, prefixOp + "x" + postfixOp).WithArguments("static abstract members in interfaces").WithLocation(6, 13),
-                        // (6,13): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //         _ = -x;
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, prefixOp + "x" + postfixOp).WithArguments("checked user-defined operators").WithLocation(6, 13)
+                        // (6,13): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
+                        //         _ = ++x;
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, prefixOp + "x" + postfixOp).WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 13),
+                        // (6,13): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                        //         _ = ++x;
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, prefixOp + "x" + postfixOp).WithArguments("checked user-defined operators", "11.0").WithLocation(6, 13)
                         );
                 }
                 else
                 {
                     compilation2.VerifyDiagnostics(
-                        // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //         _ = -x;
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, prefixOp + "x" + postfixOp).WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                        // (6,13): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
+                        //         _ = ++x;
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, prefixOp + "x" + postfixOp).WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 13)
                         );
                 }
 
@@ -9201,20 +9213,20 @@ class Test
                 if (isChecked)
                 {
                     compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                        // (12,32): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //     abstract static T operator checked - (T x);
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(12, 32),
-                        // (12,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                        //     abstract static T operator checked - (T x);
-                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, prefixOp + postfixOp).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 40)
+                        // (12,32): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                        //     abstract static T operator checked ++ (T x);
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(12, 32),
+                        // (12,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                        //     abstract static T operator checked ++ (T x);
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, prefixOp + postfixOp).WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 40)
                         );
                 }
                 else
                 {
                     compilation3.VerifyDiagnostics(
-                        // (12,31): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                        //     abstract static T operator- (T x);
-                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, prefixOp + postfixOp).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 31)
+                        // (12,31): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                        //     abstract static T operator+ (T x);
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, prefixOp + postfixOp).WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 31)
                         );
                 }
             }
@@ -9445,9 +9457,9 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,13): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         _ = x ? true : false;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 13)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -9455,12 +9467,12 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (12,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static bool operator true (I1 x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "true").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 35),
-                // (13,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static bool operator false (I1 x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "false").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(13, 35)
+                // (12,35): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static bool operator true (I1 x) => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "true").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 35),
+                // (13,35): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static bool operator false (I1 x) => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "false").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(13, 35)
                 );
         }
 
@@ -9671,7 +9683,6 @@ class C<T>
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-
             if (op == "==")
             {
                 verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
@@ -9860,9 +9871,9 @@ class C<T>
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,13): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         _ = x == x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " x").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x " + op + " x").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 13)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -9870,12 +9881,12 @@ class C<T>
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (21,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static bool operator true (I1 x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "true").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(21, 35),
-                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static bool operator false (I1 x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "false").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(22, 35)
+                // (21,35): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static bool operator true (I1 x) => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "true").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(21, 35),
+                // (22,35): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static bool operator false (I1 x) => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "false").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(22, 35)
                 );
         }
 
@@ -12060,7 +12071,6 @@ class Test
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-
             if (op == "==")
             {
                 verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, T>)",
@@ -12437,31 +12447,31 @@ class Test
             if (isChecked)
             {
                 compilation2.VerifyDiagnostics(
-                    // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = x - y;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " y").WithArguments("static abstract members in interfaces").WithLocation(6, 13),
-                    // (6,13): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = x - y;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " y").WithArguments("checked user-defined operators").WithLocation(6, 13)
+                    // (6,13): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //         _ = x + y;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x " + op + " y").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 13),
+                    // (6,13): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //         _ = x + y;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x " + op + " y").WithArguments("checked user-defined operators", "11.0").WithLocation(6, 13)
                     );
             }
             else if (op != ">>>")
             {
                 compilation2.VerifyDiagnostics(
-                    // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = x - y;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " y").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                    // (6,13): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //         _ = x >> y;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x " + op + " y").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 13)
                     );
             }
             else
             {
                 compilation2.VerifyDiagnostics(
-                    // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (6,13): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //         _ = x >>> y;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>> y").WithArguments("static abstract members in interfaces").WithLocation(6, 13),
-                    // (6,13): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x >>> y").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 13),
+                    // (6,13): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //         _ = x >>> y;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>> y").WithArguments("unsigned right shift").WithLocation(6, 13)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x >>> y").WithArguments("unsigned right shift", "11.0").WithLocation(6, 13)
                     );
             }
 
@@ -12472,31 +12482,31 @@ class Test
             if (isChecked)
             {
                 compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                    // (12,33): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     abstract static I1 operator checked - (I1 x, int y);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(12, 33),
-                    // (12,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                    //     abstract static I1 operator checked - (I1 x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 41)
+                    // (12,33): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     virtual  static I1 operator checked + (I1 x, int y) => throw null;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(12, 33),
+                    // (12,41): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                    //     virtual  static I1 operator checked + (I1 x, int y) => throw null;
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 41)
                     );
             }
             else if (op != ">>>")
             {
                 compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_BadAbstractEqualityOperatorSignature)).Verify(
-                    // (12,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                    //     abstract static I1 operator - (I1 x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 33)
+                    // (12,33): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                    //     virtual  static I1 operator >= (I1 x, int y) => throw null;
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 33)
                     );
             }
             else
             {
                 compilation3.VerifyDiagnostics(
-                    // (12,33): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     abstract static I1 operator >>> (I1 x, int y);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(12, 33),
-                    // (12,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                    //     abstract static I1 operator >>> (I1 x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 33)
+                    // (12,33): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     virtual  static I1 operator >>> (I1 x, int y) => throw null;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, ">>>").WithArguments("unsigned right shift", "11.0").WithLocation(12, 33),
+                    // (12,33): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                    //     virtual  static I1 operator >>> (I1 x, int y) => throw null;
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 33)
                     );
             }
         }
@@ -12554,9 +12564,9 @@ class Test
                 else
                 {
                     compilation2.VerifyDiagnostics(
-                        // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //         _ = x && y;
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + op + " y").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                        // (6,13): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
+                        //         _ = x || y;
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x " + op + op + " y").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 13)
                         );
                 }
 
@@ -12569,27 +12579,27 @@ class Test
                 if (binaryIsAbstract)
                 {
                     builder.Add(
-                        // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                        // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                         //     abstract static I1 operator& (I1 x, I1 y);
-                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 32)
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 32)
                         );
                 }
 
                 if (trueIsAbstract)
                 {
                     builder.Add(
-                        // (13,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                        // (13,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                         //     abstract static bool operator true (I1 x);
-                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "true").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(13, 35)
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "true").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(13, 35)
                         );
                 }
 
                 if (falseIsAbstract)
                 {
                     builder.Add(
-                        // (14,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                        // (14,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                         //     abstract static bool operator false (I1 x);
-                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "false").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(14, 35)
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "false").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(14, 35)
                         );
                 }
 
@@ -12637,31 +12647,31 @@ class Test
             if (isChecked)
             {
                 compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                    // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         x -= y;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + "= y").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
-                    // (6,9): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         x -= y;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + "= y").WithArguments("checked user-defined operators").WithLocation(6, 9)
+                    // (6,9): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //         x += y;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x " + op + "= y").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 9),
+                    // (6,9): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //         x += y;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x " + op + "= y").WithArguments("checked user-defined operators", "11.0").WithLocation(6, 9)
                     );
             }
             else if (op != ">>>")
             {
                 compilation2.VerifyDiagnostics(
-                    // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         x <<= y;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + "= y").WithArguments("static abstract members in interfaces").WithLocation(6, 9)
+                    // (6,9): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //         x >>>= y;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x " + op + "= y").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 9)
                     );
             }
             else
             {
                 compilation2.VerifyDiagnostics(
-                    // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (6,9): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //         x >>>= y;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>>= y").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
-                    // (6,9): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x >>>= y").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 9),
+                    // (6,9): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //         x >>>= y;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x >>>= y").WithArguments("unsigned right shift").WithLocation(6, 9)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x >>>= y").WithArguments("unsigned right shift", "11.0").WithLocation(6, 9)
                     );
             }
 
@@ -12672,31 +12682,31 @@ class Test
             if (isChecked)
             {
                 compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                    // (12,32): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     abstract static T operator checked - (T x, int y);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(12, 32),
-                    // (12,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                    //     abstract static T operator checked - (T x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 40)
+                    // (12,32): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     virtual  static T operator checked + (T x, int y) => throw null;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(12, 32),
+                    // (12,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                    //     virtual  static T operator checked + (T x, int y) => throw null;
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 40)
                     );
             }
             else if (op != ">>>")
             {
                 compilation3.VerifyDiagnostics(
-                    // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                     //     abstract static T operator << (T x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 32)
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 32)
                     );
             }
             else
             {
                 compilation3.VerifyDiagnostics(
-                    // (12,32): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     abstract static T operator >>> (T x, int y);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(12, 32),
-                    // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                    //     abstract static T operator >>> (T x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 32)
+                    // (12,32): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     virtual  static T operator >>> (T x, int y) => throw null;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, ">>>").WithArguments("unsigned right shift", "11.0").WithLocation(12, 32),
+                    // (12,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                    //     virtual  static T operator >>> (T x, int y) => throw null;
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 32)
                     );
             }
         }
@@ -12735,9 +12745,9 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,13): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         _ = x == x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " x").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x " + op + " x").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 13)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -12745,12 +12755,12 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (12,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static bool operator == (T x, T y);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 35),
-                // (13,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static bool operator != (T x, T y);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(13, 35)
+                // (12,35): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static bool operator == (T x, T y) => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 35),
+                // (13,35): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static bool operator != (T x, T y) => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(13, 35)
                 );
         }
 
@@ -13092,18 +13102,6 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (14,20): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(this.P01);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P01").WithArguments("I1.P01").WithLocation(14, 20),
-                // (15,20): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(this.P04);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P04").WithArguments("I1.P04").WithLocation(15, 20),
-                // (28,20): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(x.P01);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P01").WithArguments("I1.P01").WithLocation(28, 20),
-                // (30,20): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(x.P04);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 20),
                 // (35,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.P03);
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 20),
@@ -13604,9 +13602,9 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,13): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         _ = T.P01;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "T").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 13)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -13614,12 +13612,12 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,13): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         _ = T.P01;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 13),
-                // (12,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static int P01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 25)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "T").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 13),
+                // (12,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static int P01 { get; set; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 25)
                 );
         }
 
@@ -13656,9 +13654,9 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         T.P01 = 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "T").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 9)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -13666,12 +13664,12 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         T.P01 = 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
-                // (12,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static int P01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 25)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "T").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 9),
+                // (12,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static int P01 { get; set; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 25)
                 );
         }
 
@@ -13708,9 +13706,9 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         T.P01 += 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "T").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 9)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -13718,12 +13716,12 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         T.P01 += 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
-                // (12,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static int P01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 25)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "T").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 9),
+                // (12,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static int P01 { get; set; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 25)
                 );
         }
 
@@ -13974,18 +13972,6 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (14,20): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(this.P01);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P01").WithArguments("I1.P01").WithLocation(14, 20),
-                // (15,20): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(this.P04);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P04").WithArguments("I1.P04").WithLocation(15, 20),
-                // (28,20): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(x.P01);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P01").WithArguments("I1.P01").WithLocation(28, 20),
-                // (30,20): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         _ = nameof(x.P04);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P04").WithArguments("I1.P04").WithLocation(30, 20),
                 // (35,20): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
                 //         _ = nameof(T.P03);
                 Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(35, 20),
@@ -14265,9 +14251,9 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         T.P01 += null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "T").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 9)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -14275,12 +14261,12 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         T.P01 += null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
-                // (12,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static event System.Action P01;
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 41)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "T").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 9),
+                // (12,41): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static event System.Action P01;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 41)
                 );
         }
 
@@ -14317,9 +14303,9 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         T.P01 -= null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "T").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 9)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -14327,12 +14313,12 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         T.P01 -= null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
-                // (12,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static event System.Action P01;
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 41)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "T").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 9),
+                // (12,41): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static event System.Action P01;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P01").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 41)
                 );
         }
 
@@ -14818,9 +14804,9 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,28): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,28): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         _ = (System.Action)T.M01;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 28)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "T").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 28)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -14828,24 +14814,17 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (6,28): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,28): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         _ = (System.Action)T.M01;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 28),
-                // (12,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static void M01();
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 26)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "T").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 28),
+                // (12,26): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static void M01() => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 26)
                 );
         }
 
         private static bool Execute(bool isVirtual)
         {
-#if !NET7_0_OR_GREATER
-            if (isVirtual)
-            {
-                return false;
-            }
-#endif
-
             return ExecutionConditionUtil.IsMonoOrCoreClr;
         }
 
@@ -15231,9 +15210,9 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,31): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,31): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         _ = new System.Action(T.M01);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 31)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "T").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 31)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -15241,12 +15220,12 @@ class Test
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (6,31): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,31): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         _ = new System.Action(T.M01);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 31),
-                // (12,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static void M01();
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 26)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "T").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 31),
+                // (12,26): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static void M01() => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 26)
                 );
         }
 
@@ -15499,9 +15478,9 @@ unsafe class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,31): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,31): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         _ = (delegate*<void>)&T.M01;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 31)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "T").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 31)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll.WithAllowUnsafe(true),
@@ -15509,12 +15488,12 @@ unsafe class Test
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (6,31): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,31): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         _ = (delegate*<void>)&T.M01;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("static abstract members in interfaces").WithLocation(6, 31),
-                // (12,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static void M01();
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 26)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "T").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 31),
+                // (12,26): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static void M01() => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 26)
                 );
         }
 
@@ -15932,12 +15911,12 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (4,20): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,20): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     static void I1.M01() {}
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "preview").WithLocation(4, 20),
-                // (5,24): error CS8706: 'Test.M02()' cannot implement interface member 'I1.M02()' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "11.0").WithLocation(4, 20),
+                // (5,24): error CS8706: 'Test.M02()' cannot implement interface member 'I1.M02()' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 //     public static void M02() {}
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "M02").WithArguments("Test.M02()", "I1.M02()", "Test", "static abstract members in interfaces", "10.0", "preview").WithLocation(5, 24)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "M02").WithArguments("Test.M02()", "I1.M02()", "Test", "static abstract members in interfaces", "10.0", "11.0").WithLocation(5, 24)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -15945,15 +15924,15 @@ typeKeyword + @"
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (4,20): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,20): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     static void I1.M01() {}
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "preview").WithLocation(4, 20),
-                // (10,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static void M01();
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(10, 26),
-                // (11,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static void M02();
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(11, 26)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "11.0").WithLocation(4, 20),
+                // (10,26): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static void M01() => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(10, 26),
+                // (11,26): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static void M02() => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(11, 26)
                 );
         }
 
@@ -16343,9 +16322,9 @@ public class C5 : C2, I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (10,23): error CS8706: 'C2.M01()' cannot implement interface member 'I1.M01()' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // (10,23): error CS8706: 'C2.M01()' cannot implement interface member 'I1.M01()' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 // public class C5 : C2, I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01()", "I1.M01()", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01()", "I1.M01()", "C5", "static abstract members in interfaces", "10.0", "11.0").WithLocation(10, 23)
                 );
         }
 
@@ -16390,9 +16369,9 @@ public class C1 : I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyEmitDiagnostics(
-                // (2,19): error CS8706: 'I1.M01()' cannot implement interface member 'I1.M01()' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // (2,19): error CS8706: 'I1.M01()' cannot implement interface member 'I1.M01()' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 // public class C1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.M01()", "I1.M01()", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.M01()", "I1.M01()", "C1", "static abstract members in interfaces", "10.0", "11.0").WithLocation(2, 19)
                 );
 
             var source2 =
@@ -16935,8 +16914,6 @@ public class C1<T> : I1<T>
 " + (genericFirst ? generic + nonGeneric : nonGeneric + generic) + @"
 }
 ";
-
-
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -18805,29 +18782,29 @@ typeKeyword + @"
             if (isChecked)
             {
                 expected2 = new[] {
-                    // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static I1 I1.operator +(I1 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
-                    // (4,27): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static I1 I1.operator checked -(I1 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(4, 27),
-                    // (9,34): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     public static Test2 operator checked -(Test2 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(9, 34),
-                    // (9,42): error CS8706: 'Test2.operator checked -(Test2)' cannot implement interface member 'I2<Test2>.operator checked -(Test2)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
-                    //     public static Test2 operator checked -(Test2 x) => default;
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, op).WithArguments("Test2.operator checked " + op + "(Test2)", "I2<Test2>.operator checked " + op + "(Test2)", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(9, 42)
+                    // (4,15): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     static I1 I1.operator checked ++(I1 x) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "I1.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(4, 15),
+                    // (4,27): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     static I1 I1.operator checked ++(I1 x) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(4, 27),
+                    // (9,34): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     public static Test2 operator checked ++(Test2 x) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(9, 34),
+                    // (9,42): error CS8706: 'Test2.operator checked ++(Test2)' cannot implement interface member 'I2<Test2>.operator checked ++(Test2)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
+                    //     public static Test2 operator checked ++(Test2 x) => default;
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, op).WithArguments("Test2.operator checked " + op + "(Test2)", "I2<Test2>.operator checked " + op + "(Test2)", "Test2", "static abstract members in interfaces", "10.0", "11.0").WithLocation(9, 42)
                     };
             }
             else
             {
                 expected2 = new[] {
-                    // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static I1 I1.operator +(I1 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
-                    // (9,34): error CS8706: 'Test2.operator +(Test2)' cannot implement interface member 'I2<Test2>.operator +(Test2)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
-                    //     public static Test2 operator +(Test2 x) => default;
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, op).WithArguments("Test2.operator " + op + "(Test2)", "I2<Test2>.operator " + op + "(Test2)", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(9, 34)
+                    // (4,15): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     static I1 I1.operator true(I1 x) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "I1.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(4, 15),
+                    // (9,34): error CS8706: 'Test2.operator true(Test2)' cannot implement interface member 'I2<Test2>.operator true(Test2)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
+                    //     public static Test2 operator true(Test2 x) => default;
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, op).WithArguments("Test2.operator " + op + "(Test2)", "I2<Test2>.operator " + op + "(Test2)", "Test2", "static abstract members in interfaces", "10.0", "11.0").WithLocation(9, 34)
                     };
             }
 
@@ -18842,41 +18819,41 @@ typeKeyword + @"
             if (isChecked)
             {
                 expected3 = new[] {
-                    // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static I1 I1.operator checked --(I1 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
-                    // (4,27): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static I1 I1.operator checked --(I1 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(4, 27),
-                    // (9,34): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     public static Test2 operator checked --(Test2 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(9, 34),
-                    // (14,33): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     abstract static I1 operator checked --(I1 x);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(14, 33),
-                    // (14,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                    //     abstract static I1 operator checked --(I1 x);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(14, 41),
-                    // (19,32): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     abstract static T operator checked --(T x);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(19, 32),
-                    // (19,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                    //     abstract static T operator checked --(T x);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(19, 40)
+                    // (4,15): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     static I1 I1.operator checked ++(I1 x) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "I1.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(4, 15),
+                    // (4,27): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     static I1 I1.operator checked ++(I1 x) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(4, 27),
+                    // (9,34): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     public static Test2 operator checked ++(Test2 x) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(9, 34),
+                    // (14,33): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     virtual  static I1 operator checked ++(I1 x) => throw null;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(14, 33),
+                    // (14,41): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                    //     virtual  static I1 operator checked ++(I1 x) => throw null;
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(14, 41),
+                    // (19,32): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     virtual  static T operator checked ++(T x) => throw null;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(19, 32),
+                    // (19,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                    //     virtual  static T operator checked ++(T x) => throw null;
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(19, 40)
                     };
             }
             else
             {
                 expected3 = new[] {
-                    // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static I1 I1.operator +(I1 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
-                    // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                    //     abstract static I1 operator +(I1 x);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(14, 33),
-                    // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                    //     abstract static T operator +(T x);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(19, 32)
+                    // (4,15): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     static I1 I1.operator true(I1 x) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "I1.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(4, 15),
+                    // (14,33): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                    //     virtual  static I1 operator true(I1 x) => throw null;
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(14, 33),
+                    // (19,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                    //     virtual  static T operator true(T x) => throw null;
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(19, 32)
                     };
             }
 
@@ -18933,47 +18910,47 @@ typeKeyword + @"
                 if (op != ">>>")
                 {
                     compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
-                        // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //     static I1 I1.operator +(I1 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
-                        // (9,34): error CS8706: 'Test2.operator +(Test2, int)' cannot implement interface member 'I2<Test2>.operator +(Test2, int)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
-                        //     public static Test2 operator +(Test2 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, op).WithArguments("Test2.operator " + op + "(Test2, int)", "I2<Test2>.operator " + op + "(Test2, int)", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(9, 34)
+                        // (4,15): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
+                        //     static I1 I1.operator >>(I1 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "I1.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(4, 15),
+                        // (9,34): error CS8706: 'Test2.operator >>(Test2, int)' cannot implement interface member 'I2<Test2>.operator >>(Test2, int)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
+                        //     public static Test2 operator >>(Test2 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, op).WithArguments("Test2.operator " + op + "(Test2, int)", "I2<Test2>.operator " + op + "(Test2, int)", "Test2", "static abstract members in interfaces", "10.0", "11.0").WithLocation(9, 34)
                         );
                 }
                 else
                 {
                     compilation2.VerifyDiagnostics(
-                        // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // (4,15): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                         //     static I1 I1.operator >>>(I1 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
-                        // (4,27): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "I1.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(4, 15),
+                        // (4,27): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                         //     static I1 I1.operator >>>(I1 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(4, 27),
-                        // (9,34): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, ">>>").WithArguments("unsigned right shift", "11.0").WithLocation(4, 27),
+                        // (9,34): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                         //     public static Test2 operator >>>(Test2 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(9, 34),
-                        // (9,34): error CS8706: 'Test2.operator >>>(Test2, int)' cannot implement interface member 'I2<Test2>.operator >>>(Test2, int)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, ">>>").WithArguments("unsigned right shift", "11.0").WithLocation(9, 34),
+                        // (9,34): error CS8706: 'Test2.operator >>>(Test2, int)' cannot implement interface member 'I2<Test2>.operator >>>(Test2, int)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                         //     public static Test2 operator >>>(Test2 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, ">>>").WithArguments("Test2.operator >>>(Test2, int)", "I2<Test2>.operator >>>(Test2, int)", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(9, 34)
+                        Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, ">>>").WithArguments("Test2.operator >>>(Test2, int)", "I2<Test2>.operator >>>(Test2, int)", "Test2", "static abstract members in interfaces", "10.0", "11.0").WithLocation(9, 34)
                         );
                 }
             }
             else
             {
                 compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
-                    // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static I1 I1.operator +(I1 x, int y) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
-                    // (4,27): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static I1 I1.operator checked /(I1 x, int y) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(4, 27),
-                    // (9,34): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     public static Test2 operator checked /(Test2 x, int y) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(9, 34),
-                    // (9,42): error CS8706: 'Test2.operator checked /(Test2, int)' cannot implement interface member 'I2<Test2>.operator checked /(Test2, int)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
-                    //     public static Test2 operator checked /(Test2 x, int y) => default;
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, op).WithArguments("Test2.operator checked " + op + "(Test2, int)", "I2<Test2>.operator checked " + op + "(Test2, int)", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(9, 42)
+                    // (4,15): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     static I1 I1.operator checked +(I1 x, int y) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "I1.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(4, 15),
+                    // (4,27): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     static I1 I1.operator checked +(I1 x, int y) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(4, 27),
+                    // (9,34): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     public static Test2 operator checked +(Test2 x, int y) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(9, 34),
+                    // (9,42): error CS8706: 'Test2.operator checked +(Test2, int)' cannot implement interface member 'I2<Test2>.operator checked +(Test2, int)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
+                    //     public static Test2 operator checked +(Test2 x, int y) => default;
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, op).WithArguments("Test2.operator checked " + op + "(Test2, int)", "I2<Test2>.operator checked " + op + "(Test2, int)", "Test2", "static abstract members in interfaces", "10.0", "11.0").WithLocation(9, 42)
                     );
             }
 
@@ -18987,68 +18964,68 @@ typeKeyword + @"
                 {
                     compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or
                                                                             (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode or (int)ErrorCode.ERR_BadAbstractEqualityOperatorSignature)).Verify(
-                        // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // (4,15): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                         //     static I1 I1.operator +(I1 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
-                        // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                        //     abstract static I1 operator +(I1 x, int y);
-                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(14, 33),
-                        // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                        //     abstract static T operator +(T x, int y);
-                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(19, 32)
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "I1.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(4, 15),
+                        // (14,33): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                        //     virtual  static I1 operator +(I1 x, int y) => throw null;
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(14, 33),
+                        // (19,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                        //     virtual  static T operator +(T x, int y) => throw null;
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(19, 32)
                         );
                 }
                 else
                 {
                     compilation3.VerifyDiagnostics(
-                        // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // (4,15): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                         //     static I1 I1.operator >>>(I1 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
-                        // (4,27): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "I1.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(4, 15),
+                        // (4,27): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                         //     static I1 I1.operator >>>(I1 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(4, 27),
-                        // (9,34): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, ">>>").WithArguments("unsigned right shift", "11.0").WithLocation(4, 27),
+                        // (9,34): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
                         //     public static Test2 operator >>>(Test2 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(9, 34),
-                        // (14,33): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //     abstract static I1 operator >>>(I1 x, int y);
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(14, 33),
-                        // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                        //     abstract static I1 operator >>>(I1 x, int y);
-                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(14, 33),
-                        // (19,32): error CS8652: The feature 'unsigned right shift' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                        //     abstract static T operator >>>(T x, int y);
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>").WithArguments("unsigned right shift").WithLocation(19, 32),
-                        // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                        //     abstract static T operator >>>(T x, int y);
-                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(19, 32)
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, ">>>").WithArguments("unsigned right shift", "11.0").WithLocation(9, 34),
+                        // (14,33): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
+                        //     virtual  static I1 operator >>>(I1 x, int y) => throw null;
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, ">>>").WithArguments("unsigned right shift", "11.0").WithLocation(14, 33),
+                        // (14,33): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                        //     virtual  static I1 operator >>>(I1 x, int y) => throw null;
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(14, 33),
+                        // (19,32): error CS8936: Feature 'unsigned right shift' is not available in C# 10.0. Please use language version 11.0 or greater.
+                        //     virtual  static T operator >>>(T x, int y) => throw null;
+                        Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, ">>>").WithArguments("unsigned right shift", "11.0").WithLocation(19, 32),
+                        // (19,32): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                        //     virtual  static T operator >>>(T x, int y) => throw null;
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, ">>>").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(19, 32)
                         );
                 }
             }
             else
             {
                 compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
-                    // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static I1 I1.operator +(I1 x, int y) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
-                    // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                    //     abstract static I1 operator +(I1 x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(14, 33 + checkedKeyword.Length),
-                    // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                    //     abstract static T operator +(T x, int y);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(19, 32 + checkedKeyword.Length),
-                    // (4,27): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static I1 I1.operator checked /(I1 x, int y) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(4, 27),
-                    // (9,34): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     public static Test2 operator checked /(Test2 x, int y) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(9, 34),
-                    // (14,33): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     abstract static I1 operator checked /(I1 x, int y);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(14, 33),
-                    // (19,32): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     abstract static T operator checked /(T x, int y);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(19, 32)
+                    // (4,15): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     static I1 I1.operator checked +(I1 x, int y) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "I1.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(4, 15),
+                    // (14,33): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     virtual  static I1 operator checked +(I1 x, int y) => throw null;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(14, 33),
+                    // (14,41): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                    //     virtual  static I1 operator checked +(I1 x, int y) => throw null;
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(14, 33 + checkedKeyword.Length),
+                    // (4,27): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     static I1 I1.operator checked +(I1 x, int y) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(4, 27),
+                    // (19,32): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     virtual  static T operator checked +(T x, int y) => throw null;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(19, 32),
+                    // (19,40): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                    //     virtual  static T operator checked +(T x, int y) => throw null;
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(19, 32 + checkedKeyword.Length),
+                    // (9,34): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     public static Test2 operator checked +(Test2 x, int y) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(9, 34)
                     );
             }
         }
@@ -19753,7 +19730,6 @@ partial " + typeKeyword + @"
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Where(l => l.ToString() == "default").First();
@@ -19842,7 +19818,6 @@ partial " + typeKeyword + @"
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
-
 
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
@@ -20330,9 +20305,9 @@ public class C5 : C2, I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (10,23): error CS8706: 'C2.operator --(I1)' cannot implement interface member 'I1.operator --(I1)' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // (10,23): error CS8706: 'C2.operator true(I1)' cannot implement interface member 'I1.operator true(I1)' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 // public class C5 : C2, I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.operator " + checkedKeyword + op + "(I1)", "I1.operator " + checkedKeyword + op + "(I1)", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.operator " + checkedKeyword + op + "(I1)", "I1.operator " + checkedKeyword + op + "(I1)", "C5", "static abstract members in interfaces", "10.0", "11.0").WithLocation(10, 23)
                 );
         }
 
@@ -20465,9 +20440,9 @@ public class C5 : C2, I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (10,23): error CS8706: 'C2.operator checked *(I1, int)' cannot implement interface member 'I1.operator checked *(I1, int)' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // (10,23): error CS8706: 'C2.operator >>>(I1, int)' cannot implement interface member 'I1.operator >>>(I1, int)' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 // public class C5 : C2, I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.operator " + checkedKeyword + op + "(I1, int)", "I1.operator " + checkedKeyword + op + "(I1, int)", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.operator " + checkedKeyword + op + "(I1, int)", "I1.operator " + checkedKeyword + op + "(I1, int)", "C5", "static abstract members in interfaces", "10.0", "11.0").WithLocation(10, 23)
                 );
         }
 
@@ -20524,9 +20499,9 @@ public class C1 : I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyEmitDiagnostics(
-                // (2,19): error CS8706: 'I1.operator ~(I1)' cannot implement interface member 'I1.operator ~(I1)' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // (2,19): error CS8706: 'I1.operator true(I1)' cannot implement interface member 'I1.operator true(I1)' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 // public class C1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.operator " + checkedKeyword + op + @"(I1)", "I1.operator " + checkedKeyword + op + @"(I1)", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.operator " + checkedKeyword + op + @"(I1)", "I1.operator " + checkedKeyword + op + @"(I1)", "C1", "static abstract members in interfaces", "10.0", "11.0").WithLocation(2, 19)
                 );
 
             var source2 =
@@ -20604,9 +20579,9 @@ public class C1 : I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyEmitDiagnostics(
-                // (2,19): error CS8706: 'I1.operator |(I1, int)' cannot implement interface member 'I1.operator |(I1, int)' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // (2,19): error CS8706: 'I1.operator >>>(I1, int)' cannot implement interface member 'I1.operator >>>(I1, int)' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 // public class C1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.operator " + checkedKeyword + op + @"(I1, int)", "I1.operator " + checkedKeyword + op + @"(I1, int)", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.operator " + checkedKeyword + op + @"(I1, int)", "I1.operator " + checkedKeyword + op + @"(I1, int)", "C1", "static abstract members in interfaces", "10.0", "11.0").WithLocation(2, 19)
                 );
 
             var source2 =
@@ -21364,7 +21339,6 @@ public class C3 : C2, I1
 {
 }
 ";
-
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
@@ -22781,18 +22755,18 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (4,19): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,19): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     static int I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "preview").WithLocation(4, 19),
-                // (5,23): error CS8706: 'Test.M02' cannot implement interface member 'I1.M02' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "11.0").WithLocation(4, 19),
+                // (5,23): error CS8706: 'Test.M02' cannot implement interface member 'I1.M02' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 //     public static int M02 { get; set; }
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "M02").WithArguments("Test.M02", "I1.M02", "Test", "static abstract members in interfaces", "10.0", "preview").WithLocation(5, 23),
-                // (5,29): error CS8706: 'Test.M02.get' cannot implement interface member 'I1.M02.get' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "M02").WithArguments("Test.M02", "I1.M02", "Test", "static abstract members in interfaces", "10.0", "11.0").WithLocation(5, 23),
+                // (5,29): error CS8706: 'Test.M02.get' cannot implement interface member 'I1.M02.get' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 //     public static int M02 { get; set; }
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "get").WithArguments("Test.M02.get", "I1.M02.get", "Test", "static abstract members in interfaces", "10.0", "preview").WithLocation(5, 29),
-                // (5,34): error CS8706: 'Test.M02.set' cannot implement interface member 'I1.M02.set' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "get").WithArguments("Test.M02.get", "I1.M02.get", "Test", "static abstract members in interfaces", "10.0", "11.0").WithLocation(5, 29),
+                // (5,34): error CS8706: 'Test.M02.set' cannot implement interface member 'I1.M02.set' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 //     public static int M02 { get; set; }
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "set").WithArguments("Test.M02.set", "I1.M02.set", "Test", "static abstract members in interfaces", "10.0", "preview").WithLocation(5, 34)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "set").WithArguments("Test.M02.set", "I1.M02.set", "Test", "static abstract members in interfaces", "10.0", "11.0").WithLocation(5, 34)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -22800,15 +22774,15 @@ typeKeyword + @"
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (4,19): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,19): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     static int I1.M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "preview").WithLocation(4, 19),
-                // (10,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static int M01 { get; set; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(10, 25),
-                // (11,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static int M02 { get; set; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(11, 25)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "11.0").WithLocation(4, 19),
+                // (10,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static int M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(10, 25),
+                // (11,25): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static int M02 { get; set; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(11, 25)
                 );
         }
 
@@ -23443,15 +23417,15 @@ public class C5 : C2, I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (10,23): error CS8706: 'C2.M01.get' cannot implement interface member 'I1.M01.get' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // (10,23): error CS8706: 'C2.M01.get' cannot implement interface member 'I1.M01.get' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 // public class C5 : C2, I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01.get", "I1.M01.get", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23),
-                // (10,23): error CS8706: 'C2.M01.set' cannot implement interface member 'I1.M01.set' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01.get", "I1.M01.get", "C5", "static abstract members in interfaces", "10.0", "11.0").WithLocation(10, 23),
+                // (10,23): error CS8706: 'C2.M01.set' cannot implement interface member 'I1.M01.set' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 // public class C5 : C2, I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01.set", "I1.M01.set", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23),
-                // (10,23): error CS8706: 'C2.M01' cannot implement interface member 'I1.M01' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01.set", "I1.M01.set", "C5", "static abstract members in interfaces", "10.0", "11.0").WithLocation(10, 23),
+                // (10,23): error CS8706: 'C2.M01' cannot implement interface member 'I1.M01' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 // public class C5 : C2, I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01", "I1.M01", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01", "I1.M01", "C5", "static abstract members in interfaces", "10.0", "11.0").WithLocation(10, 23)
                 );
         }
 
@@ -23520,12 +23494,12 @@ public class C1 : I1
                                                      targetFramework: _supportingFramework);
 
                 compilation1.VerifyEmitDiagnostics(
-                    // (2,19): error CS8706: 'I1.M01.get' cannot implement interface member 'I1.M01.get' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                    // (2,19): error CS8706: 'I1.M01.get' cannot implement interface member 'I1.M01.get' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                     // public class C1 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.M01.get", "I1.M01.get", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19),
-                    // (2,19): error CS8706: 'I1.M01.set' cannot implement interface member 'I1.M01.set' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.M01.get", "I1.M01.get", "C1", "static abstract members in interfaces", "10.0", "11.0").WithLocation(2, 19),
+                    // (2,19): error CS8706: 'I1.M01.set' cannot implement interface member 'I1.M01.set' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                     // public class C1 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.M01.set", "I1.M01.set", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.M01.set", "I1.M01.set", "C1", "static abstract members in interfaces", "10.0", "11.0").WithLocation(2, 19)
                     );
 
                 var source2 =
@@ -24725,7 +24699,6 @@ class C3 : I2
                 Assert.Same(m01.GetMethod, c3M01Get.ExplicitInterfaceImplementations.Single());
                 Assert.Same(c3M01Get, c3.FindImplementationForInterfaceMember(m01.GetMethod));
 
-
                 Assert.True(c3M01Set.IsStatic);
                 Assert.False(c3M01Set.IsAbstract);
                 Assert.False(c3M01Set.IsVirtual);
@@ -25560,18 +25533,18 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (4,35): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,35): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     static event System.Action I1.M01 { add{} remove => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "preview").WithLocation(4, 35),
-                // (5,39): error CS8706: 'Test.M02.add' cannot implement interface member 'I1.M02.add' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "11.0").WithLocation(4, 35),
+                // (5,39): error CS8706: 'Test.M02.add' cannot implement interface member 'I1.M02.add' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 //     public static event System.Action M02;
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "M02").WithArguments("Test.M02.add", "I1.M02.add", "Test", "static abstract members in interfaces", "10.0", "preview").WithLocation(5, 39),
-                // (5,39): error CS8706: 'Test.M02.remove' cannot implement interface member 'I1.M02.remove' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "M02").WithArguments("Test.M02.add", "I1.M02.add", "Test", "static abstract members in interfaces", "10.0", "11.0").WithLocation(5, 39),
+                // (5,39): error CS8706: 'Test.M02.remove' cannot implement interface member 'I1.M02.remove' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 //     public static event System.Action M02;
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "M02").WithArguments("Test.M02.remove", "I1.M02.remove", "Test", "static abstract members in interfaces", "10.0", "preview").WithLocation(5, 39),
-                // (5,39): error CS8706: 'Test.M02' cannot implement interface member 'I1.M02' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "M02").WithArguments("Test.M02.remove", "I1.M02.remove", "Test", "static abstract members in interfaces", "10.0", "11.0").WithLocation(5, 39),
+                // (5,39): error CS8706: 'Test.M02' cannot implement interface member 'I1.M02' in type 'Test' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 //     public static event System.Action M02;
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "M02").WithArguments("Test.M02", "I1.M02", "Test", "static abstract members in interfaces", "10.0", "preview").WithLocation(5, 39),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "M02").WithArguments("Test.M02", "I1.M02", "Test", "static abstract members in interfaces", "10.0", "11.0").WithLocation(5, 39),
                 // (5,39): warning CS0067: The event 'Test.M02' is never used
                 //     public static event System.Action M02;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "M02").WithArguments("Test.M02").WithLocation(5, 39)
@@ -25582,18 +25555,18 @@ typeKeyword + @"
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (4,35): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                // (4,35): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                 //     static event System.Action I1.M01 { add{} remove => throw null; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "preview").WithLocation(4, 35),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "10.0", "11.0").WithLocation(4, 35),
                 // (5,39): warning CS0067: The event 'Test.M02' is never used
                 //     public static event System.Action M02;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "M02").WithArguments("Test.M02").WithLocation(5, 39),
-                // (10,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static event System.Action M01;
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(10, 41),
-                // (11,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static event System.Action M02;
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(11, 41)
+                // (10,41): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static event System.Action M01;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(10, 41),
+                // (11,41): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static event System.Action M02;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(11, 41)
                 );
         }
 
@@ -26136,15 +26109,15 @@ public class C5 : C2, I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (10,23): error CS8706: 'C2.M01.add' cannot implement interface member 'I1.M01.add' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // (10,23): error CS8706: 'C2.M01.add' cannot implement interface member 'I1.M01.add' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 // public class C5 : C2, I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01.add", "I1.M01.add", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23),
-                // (10,23): error CS8706: 'C2.M01.remove' cannot implement interface member 'I1.M01.remove' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01.add", "I1.M01.add", "C5", "static abstract members in interfaces", "10.0", "11.0").WithLocation(10, 23),
+                // (10,23): error CS8706: 'C2.M01.remove' cannot implement interface member 'I1.M01.remove' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 // public class C5 : C2, I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01.remove", "I1.M01.remove", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23),
-                // (10,23): error CS8706: 'C2.M01' cannot implement interface member 'I1.M01' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01.remove", "I1.M01.remove", "C5", "static abstract members in interfaces", "10.0", "11.0").WithLocation(10, 23),
+                // (10,23): error CS8706: 'C2.M01' cannot implement interface member 'I1.M01' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 // public class C5 : C2, I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01", "I1.M01", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("C2.M01", "I1.M01", "C5", "static abstract members in interfaces", "10.0", "11.0").WithLocation(10, 23)
                 );
         }
 
@@ -26214,12 +26187,12 @@ public class C1 : I1
                                                      targetFramework: _supportingFramework);
 
                 compilation1.VerifyEmitDiagnostics(
-                    // (2,19): error CS8706: 'I1.M01.add' cannot implement interface member 'I1.M01.add' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                    // (2,19): error CS8706: 'I1.M01.add' cannot implement interface member 'I1.M01.add' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                     // public class C1 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.M01.add", "I1.M01.add", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19),
-                    // (2,19): error CS8706: 'I1.M01.remove' cannot implement interface member 'I1.M01.remove' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.M01.add", "I1.M01.add", "C1", "static abstract members in interfaces", "10.0", "11.0").WithLocation(2, 19),
+                    // (2,19): error CS8706: 'I1.M01.remove' cannot implement interface member 'I1.M01.remove' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                     // public class C1 : I1
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.M01.remove", "I1.M01.remove", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1").WithArguments("I1.M01.remove", "I1.M01.remove", "C1", "static abstract members in interfaces", "10.0", "11.0").WithLocation(2, 19)
                     );
 
                 var source2 =
@@ -28454,29 +28427,29 @@ typeKeyword + @"
             if (!isChecked)
             {
                 compilation2.VerifyDiagnostics(
-                    // (4,21): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static explicit I2<Test1>.operator int(Test1 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2<Test1>.").WithArguments("static abstract members in interfaces").WithLocation(4, 21),
-                    // (9,37): error CS8706: 'Test2.explicit operator int(Test2)' cannot implement interface member 'I2<Test2>.explicit operator int(Test2)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
-                    //     public static explicit operator int(Test2 x) => default;
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "int").WithArguments("Test2." + op + " operator int(Test2)", "I2<Test2>." + op + " operator int(Test2)", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(9, 37)
+                    // (4,21): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     static implicit I2<Test1>.operator int(Test1 x) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "I2<Test1>.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(4, 21),
+                    // (9,37): error CS8706: 'Test2.implicit operator int(Test2)' cannot implement interface member 'I2<Test2>.implicit operator int(Test2)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
+                    //     public static implicit operator int(Test2 x) => default;
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "int").WithArguments("Test2." + op + " operator int(Test2)", "I2<Test2>." + op + " operator int(Test2)", "Test2", "static abstract members in interfaces", "10.0", "11.0").WithLocation(9, 37)
                     );
             }
             else
             {
                 compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                    // (4,21): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,21): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //     static explicit I2<Test1>.operator checked int(Test1 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2<Test1>.").WithArguments("static abstract members in interfaces").WithLocation(4, 21),
-                    // (4,40): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "I2<Test1>.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(4, 21),
+                    // (4,40): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //     static explicit I2<Test1>.operator checked int(Test1 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(4, 40),
-                    // (9,37): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(4, 40),
+                    // (9,37): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //     public static explicit operator checked int(Test2 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(9, 37),
-                    // (9,45): error CS8706: 'Test2.explicit operator checked int(Test2)' cannot implement interface member 'I2<Test2>.explicit operator checked int(Test2)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(9, 37),
+                    // (9,45): error CS8706: 'Test2.explicit operator checked int(Test2)' cannot implement interface member 'I2<Test2>.explicit operator checked int(Test2)' in type 'Test2' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                     //     public static explicit operator checked int(Test2 x) => default;
-                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "int").WithArguments("Test2." + op + " operator checked int(Test2)", "I2<Test2>." + op + " operator checked int(Test2)", "Test2", "static abstract members in interfaces", "10.0", "preview").WithLocation(9, 45)
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "int").WithArguments("Test2." + op + " operator checked int(Test2)", "I2<Test2>." + op + " operator checked int(Test2)", "Test2", "static abstract members in interfaces", "10.0", "11.0").WithLocation(9, 45)
                     );
             }
 
@@ -28487,32 +28460,32 @@ typeKeyword + @"
             if (!isChecked)
             {
                 compilation3.VerifyDiagnostics(
-                    // (4,21): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static explicit I2<Test1>.operator int(Test1 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2<Test1>.").WithArguments("static abstract members in interfaces").WithLocation(4, 21),
-                    // (14,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                    //     abstract static explicit operator int(T x);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(14, 39)
+                    // (4,21): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     static implicit I2<Test1>.operator int(Test1 x) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "I2<Test1>.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(4, 21),
+                    // (14,39): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                    //     virtual  static implicit operator int(T x) => throw null;
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(14, 39)
                     );
             }
             else
             {
                 compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                    // (4,21): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,21): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //     static explicit I2<Test1>.operator checked int(Test1 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2<Test1>.").WithArguments("static abstract members in interfaces").WithLocation(4, 21),
-                    // (4,40): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "I2<Test1>.").WithArguments("static abstract members in interfaces", "11.0").WithLocation(4, 21),
+                    // (4,40): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //     static explicit I2<Test1>.operator checked int(Test1 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(4, 40),
-                    // (9,37): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(4, 40),
+                    // (9,37): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //     public static explicit operator checked int(Test2 x) => default;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(9, 37),
-                    // (14,39): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(9, 37),
+                    // (14,39): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //     abstract static explicit operator checked int(T x);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(14, 39),
-                    // (14,47): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(14, 39),
+                    // (14,47): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
                     //     abstract static explicit operator checked int(T x);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(14, 47)
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(14, 47)
                     );
             }
         }
@@ -29071,9 +29044,9 @@ public class C5 : C2, I1<C1>
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (10,23): error CS8706: 'C2.explicit operator int(C1)' cannot implement interface member 'I1<C1>.explicit operator int(C1)' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // (10,23): error CS8706: 'C2.implicit operator int(C1)' cannot implement interface member 'I1<C1>.implicit operator int(C1)' in type 'C5' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 // public class C5 : C2, I1<C1>
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1<C1>").WithArguments("C2." + op + " operator " + checkedKeyword + "int(C1)", "I1<C1>." + op + " operator " + checkedKeyword + "int(C1)", "C5", "static abstract members in interfaces", "10.0", "preview").WithLocation(10, 23)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1<C1>").WithArguments("C2." + op + " operator " + checkedKeyword + "int(C1)", "I1<C1>." + op + " operator " + checkedKeyword + "int(C1)", "C5", "static abstract members in interfaces", "10.0", "11.0").WithLocation(10, 23)
                 );
         }
 
@@ -29131,9 +29104,9 @@ public class C1 : I1<C1>
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyEmitDiagnostics(
-                // (2,19): error CS8706: 'I1<C1>.explicit operator int(C1)' cannot implement interface member 'I1<C1>.explicit operator int(C1)' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // (2,19): error CS8706: 'I1<C1>.implicit operator int(C1)' cannot implement interface member 'I1<C1>.implicit operator int(C1)' in type 'C1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version '11.0' or greater.
                 // public class C1 : I1<C1>
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1<C1>").WithArguments("I1<C1>." + op + " operator " + checkedKeyword + "int(C1)", "I1<C1>." + op + " operator " + checkedKeyword + "int(C1)", "C1", "static abstract members in interfaces", "10.0", "preview").WithLocation(2, 19)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember, "I1<C1>").WithArguments("I1<C1>." + op + " operator " + checkedKeyword + "int(C1)", "I1<C1>." + op + " operator " + checkedKeyword + "int(C1)", "C1", "static abstract members in interfaces", "10.0", "11.0").WithLocation(2, 19)
                 );
 
             var source2 =
@@ -30428,7 +30401,6 @@ class C<T>
 
             verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
 
-
             if (op == "==")
             {
                 verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
@@ -30668,20 +30640,20 @@ class Test
             if (isChecked)
             {
                 compilation2.VerifyDiagnostics(
-                    // (6,16): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         return x;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, (needCast ? "(int)" : "") + "x").WithArguments("static abstract members in interfaces").WithLocation(6, 16),
-                    // (6,16): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (6,16): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //         return (int)x;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int)x").WithArguments("checked user-defined operators").WithLocation(6, 16)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, (needCast ? "(int)" : "") + "x").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 16),
+                    // (6,16): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //         return (int)x;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "(int)x").WithArguments("checked user-defined operators", "11.0").WithLocation(6, 16)
                     );
             }
             else
             {
                 compilation2.VerifyDiagnostics(
-                    // (6,16): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (6,16): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                     //         return x;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, (needCast ? "(int)" : "") + "x").WithArguments("static abstract members in interfaces").WithLocation(6, 16)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, (needCast ? "(int)" : "") + "x").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 16)
                     );
             }
 
@@ -30692,20 +30664,20 @@ class Test
             if (isChecked)
             {
                 compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
-                    // (12,40): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     abstract static explicit operator  checked int(T x);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(12, 40),
-                    // (12,48): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                    //     abstract static explicit operator  checked int(T x);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 48)
+                    // (12,40): error CS8936: Feature 'checked user-defined operators' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     virtual  static explicit operator  checked int(T x) => throw null;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "checked").WithArguments("checked user-defined operators", "11.0").WithLocation(12, 40),
+                    // (12,48): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                    //     virtual  static explicit operator  checked int(T x) => throw null;
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 48)
                     );
             }
             else
             {
                 compilation3.VerifyDiagnostics(
-                    // (12,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                    //     abstract static implicit operator int(T x);
-                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(12, 39)
+                    // (12,39): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                    //     virtual  static implicit operator int(T x) => throw null;
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(12, 39)
                     );
             }
         }
@@ -30752,9 +30724,9 @@ class C<T>
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,13): error CS8936: Feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         _ = x == x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " x").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "x " + op + " x").WithArguments("static abstract members in interfaces", "11.0").WithLocation(6, 13)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -30762,9 +30734,9 @@ class C<T>
                                                  targetFramework: _supportingFramework);
 
             compilation3.VerifyDiagnostics(
-                // (21,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
-                //     abstract static implicit operator bool(T x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "bool").WithArguments(modifier.Trim(), "10.0", "preview").WithLocation(21, 39)
+                // (21,39): error CS8703: The modifier 'virtual' is not valid for this item in C# 10.0. Please use language version '11.0' or greater.
+                //     virtual  static implicit operator bool(T x) => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "bool").WithArguments(modifier.Trim(), "10.0", "11.0").WithLocation(21, 39)
                 );
         }
 
@@ -33345,6 +33317,528 @@ public class C5 : I1<C5>
                     Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C5>").WithArguments("C5", "I1<C5>.op_Implicit(C5)").WithLocation(17, 19)
                     );
             }
+        }
+
+        [Fact, WorkItem(65685, "https://github.com/dotnet/roslyn/issues/65685")]
+        public void NoDuplicateConversionForImplicitAndExplicitImplementations()
+        {
+            CreateCompilation("""
+                interface I1<T> where T : I1<T>
+                {
+                    static abstract T operator +(T a, T b);
+                    static abstract T operator +(T a);
+                }
+
+                interface I2<T> where T : I2<T>
+                {
+                    static abstract implicit operator int(T t);
+                }
+
+                interface I3<T> where T : I3<T>
+                {
+                    static abstract explicit operator int(T t);
+                    static abstract explicit operator checked int(T t);
+                }
+
+                class C12_1 : I1<C12_1>, I2<C12_1>
+                {
+                    static C12_1 I1<C12_1>.operator +(C12_1 a, C12_1 b) => a + b;
+                    public static C12_1 operator +(C12_1 a, C12_1 b) => a;
+
+                    static C12_1 I1<C12_1>.operator +(C12_1 a) => a;
+                    public static C12_1 operator +(C12_1 a) => a;
+
+                    static implicit I2<C12_1>.operator int(C12_1 t) => 1;
+                    public static implicit operator int(C12_1 t) => 42;
+                }
+
+                class C12_2 : I1<C12_2>, I2<C12_2>
+                {
+                    public static C12_2 operator +(C12_2 a, C12_2 b) => a;
+                    static C12_2 I1<C12_2>.operator +(C12_2 a, C12_2 b) => a + b;
+
+                    public static C12_2 operator +(C12_2 a) => a;
+                    static C12_2 I1<C12_2>.operator +(C12_2 a) => a;
+
+                    public static implicit operator int(C12_2 t) => 42;
+                    static implicit I2<C12_2>.operator int(C12_2 t) => 1;
+                }
+
+                class C3_1 : I3<C3_1>
+                {
+                    static explicit I3<C3_1>.operator int(C3_1 t) => 1;
+                    public static explicit operator int(C3_1 t) => 1;
+
+                    static explicit I3<C3_1>.operator checked int(C3_1 t) => 1;
+                    public static explicit operator checked int(C3_1 t) => 1;
+                }
+
+                class C3_2 : I3<C3_2>
+                {
+                    public static explicit operator int(C3_2 t) => 1;
+                    static explicit I3<C3_2>.operator int(C3_2 t) => 1;
+
+                    public static explicit operator checked int(C3_2 t) => 1;
+                    static explicit I3<C3_2>.operator checked int(C3_2 t) => 1;
+                }
+
+                class C23_1 : I2<C23_1>, I3<C23_1>
+                {
+                    static implicit I2<C23_1>.operator int(C23_1 t) => 1;
+                    public static implicit operator int(C23_1 t) => 42;
+
+                    static explicit I3<C23_1>.operator int(C23_1 t) => 1;
+                    public static explicit operator int(C23_1 t) => 1;
+
+                    static explicit I3<C23_1>.operator checked int(C23_1 t) => 1;
+                    public static explicit operator checked int(C23_1 t) => 1;
+                }
+
+                class C23_2 : I2<C23_2>, I3<C23_2>
+                {
+                    public static implicit operator int(C23_2 t) => 42;
+                    static implicit I2<C23_2>.operator int(C23_2 t) => 1;
+
+                    public static explicit operator int(C23_2 t) => 1;
+                    static explicit I3<C23_2>.operator int(C23_2 t) => 1;
+
+                    public static explicit operator checked int(C23_2 t) => 1;
+                    static explicit I3<C23_2>.operator checked int(C23_2 t) => 1;
+                }
+                """, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview, targetFramework: _supportingFramework).VerifyDiagnostics(
+                    // (66,37): error CS0557: Duplicate user-defined conversion in type 'C23_1'
+                    //     public static explicit operator int(C23_1 t) => 1;
+                    Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("C23_1").WithLocation(66, 37),
+                    // (69,45): error CS0557: Duplicate user-defined conversion in type 'C23_1'
+                    //     public static explicit operator checked int(C23_1 t) => 1;
+                    Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("C23_1").WithLocation(69, 45),
+                    // (77,37): error CS0557: Duplicate user-defined conversion in type 'C23_2'
+                    //     public static explicit operator int(C23_2 t) => 1;
+                    Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("C23_2").WithLocation(77, 37),
+                    // (80,45): error CS0557: Duplicate user-defined conversion in type 'C23_2'
+                    //     public static explicit operator checked int(C23_2 t) => 1;
+                    Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("C23_2").WithLocation(80, 45)
+                );
+        }
+
+        [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        public void AbstractEntryPoint()
+        {
+            CreateCompilation("""
+                interface IProgram
+                {
+                    static abstract void Main();
+                }
+                """, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview, targetFramework: _supportingFramework).VerifyDiagnostics(
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        public void VirtualEntryPoint()
+        {
+            CreateCompilation("""
+                using System;
+
+                interface IProgram
+                {
+                    static virtual void Main() => Console.WriteLine("Hello World!, from IProgram");
+                }
+                """, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview, targetFramework: _supportingFramework).VerifyDiagnostics(
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        public void AbstractEntryPointWithImplementation()
+        {
+            CompileAndVerify("""
+                using System;
+
+                interface IProgram
+                {
+                    static abstract void Main();
+                }
+
+                class Program : IProgram
+                {
+                    public static void Main() => Console.WriteLine("Hello World!");
+                }
+                """,
+                expectedOutput: Execute(false) ? "Hello World!" : null,
+                options: TestOptions.DebugExe,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: _supportingFramework,
+                verify: Verification.Skipped);
+        }
+
+        [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        public void AbstractEntryPointWithExplicitImplementation()
+        {
+            CreateCompilation("""
+                using System;
+
+                interface IProgram
+                {
+                    static abstract void Main();
+                }
+
+                class Program : IProgram
+                {
+                    static void IProgram.Main() => Console.WriteLine("Hello World!");
+                }
+                """, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview, targetFramework: _supportingFramework).VerifyDiagnostics(
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        public void VirtualEntryPointWithImplementation()
+        {
+            CompileAndVerify("""
+                using System;
+
+                interface IProgram
+                {
+                    static virtual void Main() => Console.WriteLine("Hello World!, from IProgram");
+                }
+
+                class Program : IProgram
+                {
+                    public static void Main() => Console.WriteLine("Hello World!");
+                }
+                """,
+                expectedOutput: Execute(false) ? "Hello World!" : null,
+                options: TestOptions.DebugExe,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: _supportingFramework,
+                verify: Verification.Skipped);
+        }
+
+        [Fact]
+        [WorkItem(66516, "https://github.com/dotnet/roslyn/issues/66516")]
+        public void VirtualEntryPointWithExplicitImplementation()
+        {
+            CreateCompilation("""
+                using System;
+
+                interface IProgram
+                {
+                    static virtual void Main() => Console.WriteLine("Hello World!, from IProgram");
+                }
+
+                class Program : IProgram
+                {
+                    static void IProgram.Main() => Console.WriteLine("Hello World!");
+                }
+                """, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview, targetFramework: _supportingFramework).VerifyDiagnostics(
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+                );
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68767")]
+        [Theory]
+        [InlineData("I1", "+", "(in I1 x)")]
+        [InlineData("I1", "-", "(in I1 x)")]
+        [InlineData("I1", "!", "(in I1 x)")]
+        [InlineData("I1", "~", "(in I1 x)")]
+        [InlineData("I1", "++", "(in I1 x)")]
+        [InlineData("I1", "--", "(in I1 x)")]
+        [InlineData("I1", "+", "(in I1 x, I1 y)")]
+        [InlineData("I1", "-", "(in I1 x, I1 y)")]
+        [InlineData("I1", "*", "(in I1 x, I1 y)")]
+        [InlineData("I1", "/", "(in I1 x, I1 y)")]
+        [InlineData("I1", "%", "(in I1 x, I1 y)")]
+        [InlineData("I1", "&", "(in I1 x, I1 y)")]
+        [InlineData("I1", "|", "(in I1 x, I1 y)")]
+        [InlineData("I1", "^", "(in I1 x, I1 y)")]
+        [InlineData("I1", "<<", "(in I1 x, int y)")]
+        [InlineData("I1", ">>", "(in I1 x, int y)")]
+        [InlineData("I1", ">>>", "(in I1 x, int y)")]
+        [InlineData("I1", "checked -", "(in I1 x)")]
+        [InlineData("I1", "checked ++", "(in I1 x)")]
+        [InlineData("I1", "checked --", "(in I1 x)")]
+        [InlineData("I1", "checked +", "(in I1 x, I1 y)")]
+        [InlineData("I1", "checked -", "(in I1 x, I1 y)")]
+        [InlineData("I1", "checked *", "(in I1 x, I1 y)")]
+        [InlineData("I1", "checked /", "(in I1 x, I1 y)")]
+        public void InParameters_01(string type, string op, string paramList)
+        {
+            string source2 = InParameter_01_Source2(type, op, paramList);
+            InParameter_01_Validate(InParameter_01_Source1_Abstract(type, op, paramList), source2);
+            InParameter_01_Validate(InParameter_01_Source1_Virtual(type, op, paramList), source2);
+        }
+
+        private static string InParameter_01_Source1_Abstract(string type, string op, string paramList)
+        {
+            var source1 =
+@"
+public partial interface I1
+{
+    abstract static " + type + " operator " + op + " " + paramList + @";
+}
+";
+
+            if (op.StartsWith("checked "))
+            {
+                source1 +=
+@"
+partial interface I1
+{
+    abstract static " + type + " operator " + op.Substring(8) + " " + paramList + @";
+}
+";
+            }
+
+            return source1;
+        }
+
+        private static string InParameter_01_Source1_Virtual(string type, string op, string paramList)
+        {
+            var source1 =
+@"
+public partial interface I1
+{
+    virtual static " + type + " operator " + op + " " + paramList + @" => throw null;
+}
+";
+
+            if (op.StartsWith("checked "))
+            {
+                source1 +=
+@"
+partial interface I1
+{
+    virtual static " + type + " operator " + op.Substring(8) + " " + paramList + @" => throw null;
+}
+";
+            }
+
+            return source1;
+        }
+
+        private static string InParameter_01_Source2(string type, string op, string paramList)
+        {
+            var source2 =
+@"
+partial class C1 : I1
+{
+    static " + type + " I1.operator " + op + " " + paramList + @" => throw null;
+}
+";
+
+            if (op.StartsWith("checked "))
+            {
+                source2 +=
+@"
+partial class C1
+{
+    static " + type + " I1.operator " + op.Substring(8) + " " + paramList + @" => throw null;
+}
+";
+            }
+
+            return source2;
+        }
+
+        private void InParameter_01_Validate(string source1, string source2)
+        {
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { compilation1.ToMetadataReference() },
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation2, verify: Verification.Skipped).VerifyDiagnostics();
+
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { compilation1.EmitToImageReference() },
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation3, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
+                {
+                    var modifier = m01.Parameters.First().RefCustomModifiers.Single();
+                    Assert.Equal("System.Runtime.InteropServices.InAttribute", modifier.Modifier.ToTestDisplayString());
+                    Assert.False(modifier.IsOptional);
+
+                    if (m01.ParameterCount > 1)
+                    {
+                        Assert.Empty(m01.Parameters.Last().RefCustomModifiers);
+                    }
+                }
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68767")]
+        [Theory]
+        [InlineData("I1", "+", "(I1 x, in I1 y)")]
+        [InlineData("I1", "-", "(I1 x, in I1 y)")]
+        [InlineData("I1", "*", "(I1 x, in I1 y)")]
+        [InlineData("I1", "/", "(I1 x, in I1 y)")]
+        [InlineData("I1", "%", "(I1 x, in I1 y)")]
+        [InlineData("I1", "&", "(I1 x, in I1 y)")]
+        [InlineData("I1", "|", "(I1 x, in I1 y)")]
+        [InlineData("I1", "^", "(I1 x, in I1 y)")]
+        [InlineData("I1", "<<", "(I1 x, in int y)")]
+        [InlineData("I1", ">>", "(I1 x, in int y)")]
+        [InlineData("I1", ">>>", "(I1 x, in int y)")]
+        [InlineData("I1", "checked +", "(I1 x, in I1 y)")]
+        [InlineData("I1", "checked -", "(I1 x, in I1 y)")]
+        [InlineData("I1", "checked *", "(I1 x, in I1 y)")]
+        [InlineData("I1", "checked /", "(I1 x, in I1 y)")]
+        public void InParameters_02(string type, string op, string paramList)
+        {
+            string source2 = InParameter_01_Source2(type, op, paramList);
+            InParameter_02_Validate(InParameter_01_Source1_Abstract(type, op, paramList), source2);
+            InParameter_02_Validate(InParameter_01_Source1_Virtual(type, op, paramList), source2);
+        }
+
+        private void InParameter_02_Validate(string source1, string source2)
+        {
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { compilation1.ToMetadataReference() },
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation2, verify: Verification.Skipped).VerifyDiagnostics();
+
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { compilation1.EmitToImageReference() },
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation3, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
+                {
+                    var modifier = m01.Parameters.Last().RefCustomModifiers.Single();
+                    Assert.Equal("System.Runtime.InteropServices.InAttribute", modifier.Modifier.ToTestDisplayString());
+                    Assert.False(modifier.IsOptional);
+
+                    Assert.Empty(m01.Parameters.First().RefCustomModifiers);
+                }
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68767")]
+        [Theory]
+        [InlineData("bool", "true", "false", "(in I1<T> x)")]
+        [InlineData("I1<T>", ">", "<", "(in I1<T> x, I1<T> y)")]
+        [InlineData("I1<T>", ">=", "<=", "(in I1<T> x, I1<T> y)")]
+        [InlineData("T", "==", "!=", "(in T x, T y)")]
+        public void InParameters_03(string type, string op1, string op2, string paramList)
+        {
+            string source2 = InParameter_03_Source2(type, op1, op2, paramList);
+            InParameter_01_Validate(InParameter_03_Source1_Abstract(type, op1, op2, paramList), source2);
+            InParameter_01_Validate(InParameter_03_Source1_Virtual(type, op1, op2, paramList), source2);
+        }
+
+        private static string InParameter_03_Source1_Abstract(string type, string op1, string op2, string paramList)
+        {
+            var source1 =
+@"
+public partial interface I1<T> where T : I1<T>
+{
+    abstract static " + type + " operator " + op1 + " " + paramList + @";
+    abstract static " + type + " operator " + op2 + " " + paramList + @";
+}
+";
+
+            return source1;
+        }
+
+        private static string InParameter_03_Source1_Virtual(string type, string op1, string op2, string paramList)
+        {
+            var source1 =
+@"
+public partial interface I1<T> where T : I1<T>
+{
+    virtual static " + type + " operator " + op1 + " " + paramList + @" => throw null;
+    virtual static " + type + " operator " + op2 + " " + paramList + @" => throw null;
+}
+";
+
+            return source1;
+        }
+
+        private static string InParameter_03_Source2(string type, string op1, string op2, string paramList)
+        {
+            var source2 =
+@"
+partial class C1 : I1<C1>
+{
+    static " + type + " I1<C1>.operator " + op1 + " " + paramList + @" => throw null;
+    static " + type + " I1<C1>.operator " + op2 + " " + paramList + @" => throw null;
+}
+";
+
+            return source2.Replace("T", "C1");
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68767")]
+        [Theory]
+        [InlineData("I1<T>", ">", "<", "(I1<T> x, in I1<T> y)")]
+        [InlineData("I1<T>", ">=", "<=", "(I1<T> x, in I1<T> y)")]
+        [InlineData("T", "==", "!=", "(T x, in T y)")]
+        public void InParameters_04(string type, string op1, string op2, string paramList)
+        {
+            string source2 = InParameter_03_Source2(type, op1, op2, paramList);
+            InParameter_02_Validate(InParameter_03_Source1_Abstract(type, op1, op2, paramList), source2);
+            InParameter_02_Validate(InParameter_03_Source1_Virtual(type, op1, op2, paramList), source2);
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/68767")]
+        [Fact]
+        public void InParameters_05()
+        {
+            var source1_Abstract =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static implicit operator int(in T x);
+    abstract static explicit operator T(in int x);
+    abstract static explicit operator checked T(in int x);
+}
+";
+            var source1_Virtual =
+@"
+public interface I1<T> where T : I1<T>
+{
+    virtual static implicit operator int(in T x) => throw null;
+    virtual static explicit operator T(in int x) => throw null;
+    virtual static explicit operator checked T(in int x) => throw null;
+}
+";
+
+            var source2 =
+@"
+partial class C1 : I1<C1>
+{
+    static implicit I1<C1>.operator int(in C1 x) => throw null;
+    static explicit I1<C1>.operator C1(in int x) => throw null;
+    static explicit I1<C1>.operator checked C1(in int x) => throw null;
+}
+";
+
+            InParameter_01_Validate(source1_Abstract, source2);
+            InParameter_01_Validate(source1_Virtual, source2);
         }
     }
 }

@@ -10,13 +10,17 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -28,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
 
         protected internal override string GetLanguage() => LanguageNames.CSharp;
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
             => new CSharpSyncNamespaceCodeRefactoringProvider();
 
         protected static string ProjectRootPath
@@ -59,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
         protected async Task TestMoveFileToMatchNamespace(string initialMarkup, List<string[]> expectedFolders = null)
         {
             var testOptions = new TestParameters();
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, testOptions))
+            using (var workspace = (EditorTestWorkspace)CreateWorkspaceFromOptions(initialMarkup, testOptions))
             {
                 if (expectedFolders?.Count > 0)
                 {
@@ -104,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
 
             async Task<List<Tuple<Solution, Solution>>> TestOperationAsync(
                 TestParameters parameters,
-                TestWorkspace workspace,
+                EditorTestWorkspace workspace,
                 string expectedCode)
             {
                 var results = new List<Tuple<Solution, Solution>>();
@@ -186,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                         }));
 
                     var actualText = (await modifiedOriginalDocument.GetTextAsync()).ToString();
-                    Assert.Equal(expectedSourceOriginal, actualText);
+                    AssertEx.EqualOrDiff(expectedSourceOriginal, actualText);
 
                     if (expectedSourceReference == null)
                     {
@@ -216,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                 }
             }
 
-            async Task<Tuple<Solution, Solution>> TestOperationAsync(TestParameters parameters, TestWorkspace workspace)
+            async Task<Tuple<Solution, Solution>> TestOperationAsync(TestParameters parameters, EditorTestWorkspace workspace)
             {
                 var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
                 var changeNamespaceAction = actions.Single(a => a is CodeAction.SolutionChangeAction);

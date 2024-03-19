@@ -1864,7 +1864,7 @@ class Base
             Assert.Equal(SpecialType.System_Void, returnType.SpecialType);
 
             // Force completion of entire symbol.  Calls EnsureMetadataVirtual on Base.Finalize.
-            derived.ForceComplete(locationOpt: null, cancellationToken: CancellationToken.None);
+            derived.ForceComplete(locationOpt: null, filter: null, cancellationToken: CancellationToken.None);
         }
 
         [Fact]
@@ -2036,7 +2036,6 @@ public class D : B, I
             var synthesized = derivedType.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Single();
             Assert.Equal(baseMethod, synthesized.ImplementingMethod);
             Assert.Equal(interfaceMethod, synthesized.ExplicitInterfaceImplementations.Single());
-
 
             // Still get a use site error if you actually call the method.
             var source2 = @"

@@ -121,10 +121,7 @@ namespace Roslyn.Test.Performance.Utilities
                 string workingDirectory = null,
                 CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (workingDirectory == null)
-            {
-                workingDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            }
+            workingDirectory ??= AppDomain.CurrentDomain.BaseDirectory;
 
             var tcs = new TaskCompletionSource<ProcessResult>();
             var startInfo = new ProcessStartInfo(file, args);

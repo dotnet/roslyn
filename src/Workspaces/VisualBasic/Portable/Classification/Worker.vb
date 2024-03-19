@@ -4,19 +4,20 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
     Partial Friend Class Worker
-        Private ReadOnly _list As ArrayBuilder(Of ClassifiedSpan)
+        Private ReadOnly _list As SegmentedList(Of ClassifiedSpan)
         Private ReadOnly _textSpan As TextSpan
         Private ReadOnly _docCommentClassifier As DocumentationCommentClassifier
         Private ReadOnly _xmlClassifier As XmlClassifier
         Private ReadOnly _cancellationToken As CancellationToken
 
-        Private Sub New(textSpan As TextSpan, list As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Private Sub New(textSpan As TextSpan, list As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken)
             _textSpan = textSpan
             _list = list
             _docCommentClassifier = New DocumentationCommentClassifier(Me)
@@ -25,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         End Sub
 
         Friend Shared Sub CollectClassifiedSpans(
-            tokens As IEnumerable(Of SyntaxToken), textSpan As TextSpan, list As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+            tokens As IEnumerable(Of SyntaxToken), textSpan As TextSpan, list As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken)
             Dim worker = New Worker(textSpan, list, cancellationToken)
 
             For Each token In tokens
@@ -34,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         End Sub
 
         Friend Shared Sub CollectClassifiedSpans(
-            node As SyntaxNode, textSpan As TextSpan, list As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+            node As SyntaxNode, textSpan As TextSpan, list As SegmentedList(Of ClassifiedSpan), cancellationToken As CancellationToken)
             Dim worker = New Worker(textSpan, list, cancellationToken)
             worker.ClassifyNode(node)
         End Sub

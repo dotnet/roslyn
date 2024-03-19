@@ -23,8 +23,17 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// Returns true if GAC is available on the current platform.
         /// </summary>
         public static bool IsAvailable
-            // Since mscorlib may not be loaded from the GAC on Mono, also check if the platform is Mono which supports a GAC.
-            => typeof(object).Assembly.GlobalAssemblyCache || PlatformInformation.IsRunningOnMono;
+        {
+            get
+            {
+                // Since mscorlib may not be loaded from the GAC on Mono, also check if the platform is Mono which supports a GAC.
+                return
+#if !NETCOREAPP
+                typeof(object).Assembly.GlobalAssemblyCache ||
+#endif
+                PlatformInformation.IsRunningOnMono;
+            }
+        }
 
         /// <summary>
         /// Architecture filter used when resolving assembly references.

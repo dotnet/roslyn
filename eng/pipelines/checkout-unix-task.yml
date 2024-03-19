@@ -1,0 +1,13 @@
+# Shallow checkout sources on Unix
+
+parameters:
+- name: depth
+  type: number
+  default: 1
+
+steps:
+  - checkout: self
+    fetchDepth: ${{ parameters.depth }}
+    fetchTags: false
+
+  

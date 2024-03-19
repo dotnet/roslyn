@@ -35,7 +35,6 @@ Imports System.IO
                                                </errors>, suppressInfos:=False)
         End Sub
 
-
         <Fact()>
         Public Sub TestSpeculativeBindingDoesNotAffectUsedUsings()
             Dim compilation = CreateCompilationWithMscorlib40(

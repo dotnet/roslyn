@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         /// <summary>
-        /// If this test fails, please update the <see cref="CSharpCompilationOptions.GetHashCode"/>
+        /// If this test fails, please update the <see cref="CompilationOptions.GetHashCode"/>
         /// and <see cref="CSharpCompilationOptions.Equals(CSharpCompilationOptions)"/> methods to
         /// make sure they are doing the right thing with your new field and then update the baseline
         /// here.

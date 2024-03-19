@@ -26,7 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-
 #If DEBUG Then
         Private Sub Validate()
             Debug.Assert(DefaultArguments.IsNull OrElse Not Arguments.IsEmpty)

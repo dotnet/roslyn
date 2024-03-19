@@ -6,14 +6,13 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
-{
-    internal static class UnitTestingSolutionExtensions
-    {
-        public static int GetWorkspaceVersion(this Solution solution)
-            => solution.WorkspaceVersion;
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 
-        public static async Task<UnitTestingChecksumWrapper> GetChecksumAsync(this Solution solution, CancellationToken cancellationToken)
-            => new UnitTestingChecksumWrapper(await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false));
-    }
+internal static class UnitTestingSolutionExtensions
+{
+    public static int GetWorkspaceVersion(this Solution solution)
+        => solution.WorkspaceVersion;
+
+    public static async Task<UnitTestingChecksumWrapper> GetChecksumAsync(this Solution solution, CancellationToken cancellationToken)
+        => new UnitTestingChecksumWrapper(await solution.CompilationState.GetChecksumAsync(cancellationToken).ConfigureAwait(false));
 }

@@ -4,23 +4,17 @@
 
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 
-namespace Microsoft.CodeAnalysis.Classification
-{
-    /// <summary>
-    /// Use this attribute to export a <see cref="IEmbeddedLanguageClassifier"/>.
-    /// </summary>
-    internal class ExportEmbeddedLanguageClassifierAttribute : ExportEmbeddedLanguageFeatureServiceAttribute
-    {
-        public ExportEmbeddedLanguageClassifierAttribute(
-            string name, string[] languages, params string[] identifiers)
-            : this(name, languages, supportsUnannotatedAPIs: false, identifiers)
-        {
-        }
+namespace Microsoft.CodeAnalysis.Classification;
 
-        public ExportEmbeddedLanguageClassifierAttribute(
-            string name, string[] languages, bool supportsUnannotatedAPIs, params string[] identifiers)
-            : base(typeof(IEmbeddedLanguageClassifier), name, languages, supportsUnannotatedAPIs, identifiers)
-        {
-        }
+/// <summary>
+/// Use this attribute to export a <see cref="IEmbeddedLanguageClassifier"/>.
+/// </summary>
+internal class ExportEmbeddedLanguageClassifierAttribute(
+    string name, string[] languages, bool supportsUnannotatedAPIs, params string[] identifiers) : ExportEmbeddedLanguageFeatureServiceAttribute(typeof(IEmbeddedLanguageClassifier), name, languages, supportsUnannotatedAPIs, identifiers)
+{
+    public ExportEmbeddedLanguageClassifierAttribute(
+        string name, string[] languages, params string[] identifiers)
+        : this(name, languages, supportsUnannotatedAPIs: false, identifiers)
+    {
     }
 }

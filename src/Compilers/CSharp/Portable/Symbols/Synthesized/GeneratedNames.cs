@@ -2,19 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class GeneratedNames
     {
-        private const char IdSeparator = '_';
-        private const char GenerationSeparator = '#';
-
         internal static bool IsGeneratedMemberName(string memberName)
         {
             return memberName.Length > 0 && memberName[0] == '<';
@@ -26,14 +24,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<" + propertyName + ">k__BackingField";
         }
 
-        internal static string MakeIteratorFinallyMethodName(int finalizeState)
+        internal static string MakePrimaryConstructorParameterFieldName(string parameterName)
         {
-            Debug.Assert(finalizeState < -2);
+            Debug.Assert((char)GeneratedNameKind.PrimaryConstructorParameter == 'P');
+            return "<" + parameterName + ">P";
+        }
+
+        internal static string MakeIteratorFinallyMethodName(StateMachineState finalizeState)
+        {
+            Debug.Assert((int)finalizeState < -2);
 
             // It is important that the name is only derived from the finalizeState, so that when 
             // editing method during EnC the Finally methods corresponding to matching states have matching names.
             Debug.Assert((char)GeneratedNameKind.IteratorFinallyMethod == 'm');
-            return "<>m__Finally" + StringExtensions.GetNumeral(-(finalizeState + 2));
+            return "<>m__Finally" + StringExtensions.GetNumeral(-((int)finalizeState + 2));
         }
 
         internal static string MakeStaticLambdaDisplayClassName(int methodOrdinal, int generation)
@@ -130,6 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(entityOrdinal >= -1);
             Debug.Assert(entityGeneration >= 0 || entityGeneration == -1 && entityOrdinal == -1);
             Debug.Assert(entityGeneration == -1 || entityGeneration >= methodGeneration);
+            Debug.Assert(suffixTerminator != GeneratedNameConstants.IdSeparator);
 
             var result = PooledStringBuilder.GetInstance();
             var builder = result.Builder;
@@ -175,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (methodOrdinal >= 0)
                     {
-                        builder.Append(IdSeparator);
+                        builder.Append(GeneratedNameConstants.IdSeparator);
                     }
 
                     builder.Append(entityOrdinal);
@@ -190,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (generation > 0)
             {
-                builder.Append(GenerationSeparator);
+                builder.Append(GeneratedNameConstants.GenerationSeparator);
                 builder.Append(generation);
             }
         }
@@ -318,6 +323,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>l__initialThreadId";
         }
 
+        internal static string MakeStateMachineStateIdFieldName()
+        {
+            Debug.Assert((char)GeneratedNameKind.StateMachineStateIdField == 'I');
+            return "<>I";
+        }
+
         internal static string ThisProxyFieldName()
         {
             Debug.Assert((char)GeneratedNameKind.ThisProxyField == '4');
@@ -339,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return MakeMethodScopedSynthesizedName(GeneratedNameKind.DynamicCallSiteContainerType, methodOrdinal, generation,
                                                    suffix: localFunctionOrdinal != -1 ? localFunctionOrdinal.ToString() : null,
-                                                   suffixTerminator: localFunctionOrdinal != -1 ? '_' : default);
+                                                   suffixTerminator: localFunctionOrdinal != -1 ? '|' : default);
         }
 
         internal static string MakeDynamicCallSiteFieldName(int uniqueId)
@@ -348,6 +359,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>p__" + StringExtensions.GetNumeral(uniqueId);
         }
 
+        internal const string AnonymousTypeNameWithoutModulePrefix = "<>f__AnonymousType";
+        internal const string AnonymousDelegateNameWithoutModulePrefix = "<>f__AnonymousDelegate";
         internal const string ActionDelegateNamePrefix = "<>A";
         internal const string FuncDelegateNamePrefix = "<>F";
         private const int DelegateNamePrefixLength = 3;
@@ -428,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (nameEndIndex < name.Length - 1)
             {
                 // Format is a '#' followed by the generation number
-                if (name[nameEndIndex + 1] != '#')
+                if (name[nameEndIndex + 1] != GeneratedNameConstants.GenerationSeparator)
                 {
                     return false;
                 }
@@ -441,6 +454,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(name == MakeSynthesizedDelegateName(byRefs, returnsVoid, generation));
             return true;
+        }
+
+        internal static string MakeSynthesizedInlineArrayName(int arrayLength, int generation)
+        {
+            Debug.Assert((char)GeneratedNameKind.InlineArrayType == 'y');
+            var name = "<>y__InlineArray" + arrayLength;
+
+            // Synthesized inline arrays need to have unique name across generations because they are not reused.
+            return (generation > 0) ? name + GeneratedNameConstants.GenerationSeparator + generation : name;
+        }
+
+        internal static string MakeSynthesizedReadOnlyListName(SynthesizedReadOnlyListKind kind, int generation)
+        {
+            Debug.Assert((char)GeneratedNameKind.ReadOnlyListType == 'z');
+            string name = kind switch
+            {
+                SynthesizedReadOnlyListKind.Array => "<>z__ReadOnlyArray",
+                SynthesizedReadOnlyListKind.List => "<>z__ReadOnlyList",
+                SynthesizedReadOnlyListKind.SingleElement => "<>z__ReadOnlySingleElementList",
+                var v => throw ExceptionUtilities.UnexpectedValue(v)
+            };
+
+            // Synthesized list types need to have unique name across generations because they are not reused.
+            return (generation > 0) ? name + CommonGeneratedNames.GenerationSeparator + generation : name;
         }
 
         internal static string AsyncBuilderFieldName()
@@ -466,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (ownerUniqueId > -1)
             {
-                builder.Append(IdSeparator).Append(ownerUniqueId);
+                builder.Append(GeneratedNameConstants.IdSeparator).Append(ownerUniqueId);
             }
 
             AppendOptionalGeneration(builder, generation);
@@ -493,6 +530,68 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static string LambdaCopyParameterName(int ordinal)
         {
             return "<p" + StringExtensions.GetNumeral(ordinal) + ">";
+        }
+
+        internal static string AnonymousDelegateParameterName(int index, int parameterCount)
+        {
+            // SPEC: parameter names arg1, ..., argn or arg if a single parameter
+            if (parameterCount == 1)
+            {
+                return "arg";
+            }
+            return "arg" + StringExtensions.GetNumeral(index + 1);
+        }
+
+        internal static string MakeFileTypeMetadataNamePrefix(string filePath, ImmutableArray<byte> checksumOpt)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var sb = pooledBuilder.Builder;
+            sb.Append('<');
+            AppendFileName(filePath, sb);
+            sb.Append('>');
+            sb.Append((char)GeneratedNameKind.FileType);
+            if (checksumOpt.IsDefault)
+            {
+                // Note: this is an error condition.
+                // This is only included for clarity for users inspecting the value of 'MetadataName'.
+                sb.Append("<no checksum>");
+            }
+            else
+            {
+                foreach (var b in checksumOpt)
+                {
+                    sb.AppendFormat("{0:X2}", b);
+                }
+            }
+            sb.Append("__");
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        internal static string GetDisplayFilePath(string filePath)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            AppendFileName(filePath, pooledBuilder.Builder);
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        private static void AppendFileName(string filePath, StringBuilder sb)
+        {
+            var fileName = FileNameUtilities.GetFileName(filePath, includeExtension: false);
+            if (fileName is null)
+            {
+                return;
+            }
+
+            foreach (var ch in fileName)
+            {
+                sb.Append(ch switch
+                {
+                    >= 'a' and <= 'z' => ch,
+                    >= 'A' and <= 'Z' => ch,
+                    >= '0' and <= '9' => ch,
+                    _ => '_'
+                });
+            }
         }
     }
 }

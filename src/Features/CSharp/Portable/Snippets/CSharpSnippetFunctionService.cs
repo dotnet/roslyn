@@ -59,7 +59,7 @@ internal class CSharpSnippetFunctionService : SnippetFunctionService
         var textChange = new TextChange(caseGenerationLocation, str);
         var typeSpan = new TextSpan(caseGenerationLocation.Start + "case ".Length, fullyQualifiedTypeName.Length);
 
-        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var documentWithCaseAdded = document.WithText(text.WithChanges(textChange));
 
         return (documentWithCaseAdded, typeSpan);

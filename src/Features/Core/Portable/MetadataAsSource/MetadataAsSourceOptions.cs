@@ -31,6 +31,13 @@ internal readonly record struct MetadataAsSourceOptions(
     [DataMember]
     public bool AlwaysUseDefaultSymbolServers { get; init; } = true;
 
-    public static MetadataAsSourceOptions GetDefault(HostLanguageServices languageServices)
+    /// <summary>
+    /// <see langword="false"/> to disallow downloading PDBs and trying to find source from
+    /// Source Link or embedded source.
+    /// </summary>
+    [DataMember]
+    public bool NavigateToSourceLinkAndEmbeddedSources { get; init; } = true;
+
+    public static MetadataAsSourceOptions GetDefault(LanguageServices languageServices)
         => new(GenerationOptions: CleanCodeGenerationOptions.GetDefault(languageServices));
 }

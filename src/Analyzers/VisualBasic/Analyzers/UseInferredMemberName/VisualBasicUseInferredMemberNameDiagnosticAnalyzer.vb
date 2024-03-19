@@ -44,7 +44,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
             Dim syntaxTree = context.Node.SyntaxTree
             Dim argument = DirectCast(nameColonEquals.Parent, SimpleArgumentSyntax)
             Dim preference = context.GetAnalyzerOptions().PreferInferredTupleNames
-            If Not preference.Value OrElse Not CanSimplifyTupleName(argument, DirectCast(syntaxTree.Options, VisualBasicParseOptions)) Then
+            If Not preference.Value OrElse
+               ShouldSkipAnalysis(context, preference.Notification) OrElse
+               Not CanSimplifyTupleName(argument, DirectCast(syntaxTree.Options, VisualBasicParseOptions)) Then
                 Return
             End If
 
@@ -54,7 +56,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                 DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     nameColonEquals.GetLocation(),
-                    preference.Notification.Severity,
+                    preference.Notification,
+                    context.Options,
                     additionalLocations:=ImmutableArray(Of Location).Empty,
                     additionalUnnecessaryLocations:=ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))))
         End Sub
@@ -77,7 +80,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                 DiagnosticHelper.CreateWithLocationTags(
                     Descriptor,
                     syntaxTree.GetLocation(fadeSpan),
-                    preference.Notification.Severity,
+                    preference.Notification,
+                    context.Options,
                     additionalLocations:=ImmutableArray(Of Location).Empty,
                     additionalUnnecessaryLocations:=ImmutableArray.Create(syntaxTree.GetLocation(fadeSpan))))
         End Sub

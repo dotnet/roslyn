@@ -971,7 +971,6 @@ Class2.Method<U>(0, a)",
                 });
         }
 
-
         [Fact]
         public void ReImplementInterfaceInGrandChild()
         {
@@ -1511,7 +1510,6 @@ Derived1.Method`2",
                 // (19,35): warning CS0693: Type parameter 'Y' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Derived1<X, Y>'
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "Y").WithArguments("Y", "Outer<T>.Inner<U>.Derived1<X, Y>"));
         }
-
 
         [Fact]
         public void TestImplementationInBaseGenericType()

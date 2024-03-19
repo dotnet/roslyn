@@ -21,11 +21,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
+            Solution originalSolution,
             ITextBuffer subjectBuffer,
             IFixAllState fixAllState,
             CodeAction originalCodeAction)
-            : base(threadingContext, sourceProvider, workspace, subjectBuffer, fixAllState,
-                   originalCodeAction, new FixAllCodeRefactoringCodeAction(fixAllState))
+            : base(threadingContext,
+                   sourceProvider,
+                   workspace,
+                   originalSolution,
+                   subjectBuffer,
+                   fixAllState,
+                   originalCodeAction,
+                   new FixAllCodeRefactoringCodeAction(fixAllState))
         {
         }
     }

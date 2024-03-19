@@ -281,7 +281,6 @@ class Derived : Base<int, int>
             }
         }
 
-
         [Fact]
         public void TestAmbiguousOverridesOptionalParameters()
         {

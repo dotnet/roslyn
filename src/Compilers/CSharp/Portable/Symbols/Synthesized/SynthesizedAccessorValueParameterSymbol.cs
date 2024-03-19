@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -15,15 +17,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// This parameter has no source location/syntax, but may have attributes.
     /// Attributes with 'param' target specifier on the accessor must be applied to the this parameter.
     /// </summary>
-    internal sealed class SynthesizedAccessorValueParameterSymbol : SourceComplexParameterSymbolBase
+    internal abstract class SynthesizedAccessorValueParameterSymbol : SourceComplexParameterSymbolBase
     {
-        public SynthesizedAccessorValueParameterSymbol(SourceMemberMethodSymbol accessor, TypeWithAnnotations paramType, int ordinal)
-            : base(accessor, ordinal, paramType, RefKind.None, ParameterSymbol.ValueParameterName, accessor.Locations,
+        public SynthesizedAccessorValueParameterSymbol(SourceMemberMethodSymbol accessor, int ordinal)
+            : base(accessor, ordinal, RefKind.None, ParameterSymbol.ValueParameterName, accessor.TryGetFirstLocation(),
                    syntaxRef: null,
+                   hasParamsModifier: false,
                    isParams: false,
                    isExtensionMethodThis: false,
-                   scope: DeclarationScope.Unscoped)
+                   scope: ScopedKind.None)
         {
+            Debug.Assert(accessor.Locations.Length <= 1);
         }
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
@@ -82,12 +86,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var annotations = FlowAnalysisAnnotations;
                 if ((annotations & FlowAnalysisAnnotations.DisallowNull) != 0)
                 {
-                    AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(property.DisallowNullAttributeIfExists));
+                    AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(property.DisallowNullAttributeIfExists));
                 }
                 if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0)
                 {
-                    AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(property.AllowNullAttributeIfExists));
+                    AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(property.AllowNullAttributeIfExists));
                 }
+            }
+        }
+    }
+
+    internal sealed class SynthesizedPropertyAccessorValueParameterSymbol : SynthesizedAccessorValueParameterSymbol
+    {
+        public SynthesizedPropertyAccessorValueParameterSymbol(SourcePropertyAccessorSymbol accessor, int ordinal)
+            : base(accessor, ordinal)
+        {
+            Debug.Assert(accessor.Locations.Length <= 1);
+        }
+
+        public override TypeWithAnnotations TypeWithAnnotations => ((PropertySymbol)((SourcePropertyAccessorSymbol)ContainingSymbol).AssociatedSymbol).TypeWithAnnotations;
+    }
+
+    internal sealed class SynthesizedEventAccessorValueParameterSymbol : SynthesizedAccessorValueParameterSymbol
+    {
+        private SingleInitNullable<TypeWithAnnotations> _lazyParameterType;
+
+        public SynthesizedEventAccessorValueParameterSymbol(SourceEventAccessorSymbol accessor, int ordinal)
+            : base(accessor, ordinal)
+        {
+            Debug.Assert(accessor.Locations.Length <= 1);
+        }
+
+        public override TypeWithAnnotations TypeWithAnnotations
+        {
+            get
+            {
+                return _lazyParameterType.Initialize(static (SourceEventAccessorSymbol accessor) =>
+                                                     {
+                                                         SourceEventSymbol @event = accessor.AssociatedEvent;
+
+                                                         if (accessor.MethodKind == MethodKind.EventAdd)
+                                                         {
+                                                             return @event.TypeWithAnnotations;
+                                                         }
+                                                         else if (@event.IsWindowsRuntimeEvent)
+                                                         {
+                                                             TypeSymbol eventTokenType = @event.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken);
+                                                             // Use-site info is collected by SourceEventAccessorSymbol.MethodChecks
+                                                             return TypeWithAnnotations.Create(eventTokenType);
+                                                         }
+                                                         else
+                                                         {
+                                                             return @event.TypeWithAnnotations;
+                                                         }
+                                                     },
+                                                     (SourceEventAccessorSymbol)this.ContainingSymbol);
             }
         }
     }

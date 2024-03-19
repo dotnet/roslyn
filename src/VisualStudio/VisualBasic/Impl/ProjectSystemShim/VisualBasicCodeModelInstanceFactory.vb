@@ -31,7 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 ' with the correct "parent" object.
                 '
                 ' Because the VB project system lacks these hooks, we simulate the same operations that those hooks perform.
-                Dim document = _project.Workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault(Function(d) d.ProjectId Is _project.VisualStudioProject.Id)
+                Dim document = _project.Workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault(Function(d) d.ProjectId Is _project.ProjectSystemProject.Id)
 
                 If document Is Nothing Then
                     Throw New ArgumentException(NameOf(filePath))

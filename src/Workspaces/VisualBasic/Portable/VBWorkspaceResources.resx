@@ -270,4 +270,7 @@
   <data name="Sort_Imports" xml:space="preserve">
     <value>&amp;Sort Imports</value>
   </data>
+  <data name="VB_Coding_Conventions" xml:space="preserve">
+    <value>VB Coding Conventions</value>
+  </data>
 </root>

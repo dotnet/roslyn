@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.IGenericTypeInstanceReference,
         Cci.ISpecializedNestedTypeReference
     {
+        bool Cci.IDefinition.IsEncDeleted
+            => false;
+
         bool Cci.ITypeReference.IsEnum
         {
             get { return AdaptedNamedTypeSymbol.TypeKind == TypeKind.Enum; }
@@ -140,7 +143,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-
         Cci.INestedTypeReference Cci.ITypeReference.AsNestedTypeReference
         {
             get
@@ -215,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
             //We've not yet discovered a scenario in which we need this.
             //If you're hitting this exception. Uncomment the code below
             //and add a unit test.
@@ -508,8 +510,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case TypeKind.Enum:
                     case TypeKind.Delegate:
-                    //C# interfaces don't have fields so the flag doesn't really matter, but Dev10 omits it
-                    case TypeKind.Interface:
                         return false;
                 }
 
@@ -756,6 +756,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+        string? Cci.INamedTypeReference.AssociatedFileIdentifier
+        {
+            get
+            {
+                return AdaptedNamedTypeSymbol.GetFileLocalTypeMetadataNamePrefix();
+            }
+        }
+#nullable disable
+
         string Cci.INamedEntity.Name
         {
             get
@@ -803,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert((object)AdaptedNamedTypeSymbol.ContainingType == null && AdaptedNamedTypeSymbol.ContainingModule is SourceModuleSymbol);
 
-                return PEModuleBuilder.MemberVisibility(AdaptedNamedTypeSymbol) == Cci.TypeMemberVisibility.Public;
+                return AdaptedNamedTypeSymbol.MetadataVisibility == Cci.TypeMemberVisibility.Public;
             }
         }
 
@@ -839,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert((object)AdaptedNamedTypeSymbol.ContainingType != null);
                 CheckDefinitionInvariant();
 
-                return PEModuleBuilder.MemberVisibility(AdaptedNamedTypeSymbol);
+                return AdaptedNamedTypeSymbol.MetadataVisibility;
             }
         }
 
@@ -898,6 +908,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal new NamedTypeSymbolAdapter GetCciAdapter()
         {
+            Debug.Assert(this is not SynthesizedPrivateImplementationDetailsType);
+
             if (_lazyAdapter is null)
             {
                 return InterlockedOperations.Initialize(ref _lazyAdapter, new NamedTypeSymbolAdapter(this));
@@ -1034,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (underlyingNamedTypeSymbol is NativeIntegerTypeSymbol)
             {
                 // Emit should use underlying symbol only.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

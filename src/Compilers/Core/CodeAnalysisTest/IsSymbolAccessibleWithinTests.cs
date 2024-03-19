@@ -7,7 +7,9 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.VisualBasic.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -18,8 +20,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void CrossLanguageException()
         {
-            var csharpTree = CSharpSyntaxTree.ParseText("class A { }");
-            var vbTree = VisualBasicSyntaxTree.ParseText(
+            var csharpTree = CSharpTestSource.Parse("class A { }");
+            var vbTree = BasicTestSource.Parse(
 @"Class A
 End Class
 ");

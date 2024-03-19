@@ -249,7 +249,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub ERR_UndefinedType1()
             Dim source = "
@@ -290,8 +290,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1151888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")>
-        <Fact>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1151888")>
         Public Sub ERR_NameNotMember2()
             Const source = "
 Imports System.Linq
@@ -341,9 +340,8 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1124725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")>
-        <WorkItem(597, "GitHub")>
-        <Fact>
+        <Fact, WorkItem(597, "GitHub")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124725")>
         Public Sub PseudoVariableType()
             Const source = "
 Public Class C
@@ -383,7 +381,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub NotYetLoadedWinMds()
             Dim source = "
@@ -425,7 +423,7 @@ End Class
         ''' <remarks>
         ''' Windows.UI.Xaml is the only (win8) winmd with more than two parts.
         ''' </remarks>
-        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub NotYetLoadedWinMds_MultipleParts()
             Dim source = "
@@ -464,7 +462,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1114866, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114866")>
         <ConditionalFact(GetType(OSVersionWin8))>
         Public Sub NotYetLoadedWinMds_GetType()
             Dim source = "
@@ -504,8 +502,7 @@ End Class
                 End Sub)
         End Sub
 
-        <WorkItem(1154988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")>
-        <Fact>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1154988")>
         Public Sub CompileWithRetrySameErrorReported()
             Dim source = " 
 Class C 
@@ -613,7 +610,7 @@ End Class"
   .maxstack  1
   .locals init (Integer V_0, //x
                 System.ValueTuple(Of Integer, Integer) V_1, //y
-                System.ValueTuple(Of Integer, Integer, (Integer, Integer)) V_2) //z
+                System.ValueTuple(Of Integer, Integer, System.ValueTuple(Of Integer, Integer)) V_2) //z
   IL_0000:  ldloc.1
   IL_0001:  ret
 }")
@@ -638,14 +635,13 @@ End Class"
   .maxstack  1
   .locals init (Integer V_0, //x
                 System.ValueTuple(Of Integer, Integer) V_1, //y
-                System.ValueTuple(Of Integer, Integer, (Integer, Integer)) V_2) //z
+                System.ValueTuple(Of Integer, Integer, System.ValueTuple(Of Integer, Integer)) V_2) //z
   IL_0000:  ldloc.1
   IL_0001:  ret
 }", LanguageVersion.VisualBasic15_3)
         End Sub
 
-        <WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")>
-        <Fact>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16879")>
         Public Sub NonTupleNoSystemRuntime()
             Const source =
 "Class C
@@ -664,7 +660,7 @@ End Class"
   .maxstack  1
   .locals init (Integer V_0, //x
                 System.ValueTuple(Of Integer, Integer) V_1, //y
-                System.ValueTuple(Of Integer, Integer, (Integer, Integer)) V_2) //z
+                System.ValueTuple(Of Integer, Integer, System.ValueTuple(Of Integer, Integer)) V_2) //z
   IL_0000:  ldloc.0
   IL_0001:  ret
 }")

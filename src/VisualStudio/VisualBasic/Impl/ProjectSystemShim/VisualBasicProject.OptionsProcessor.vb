@@ -9,6 +9,7 @@ Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.Workspaces.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
 
@@ -19,7 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     ''' <remarks></remarks>
     Partial Friend NotInheritable Class VisualBasicProject
         Friend NotInheritable Class OptionsProcessor
-            Inherits VisualStudioProjectOptionsProcessor
+            Inherits ProjectSystemProjectOptionsProcessor
 
             Private _rawOptions As VBCompilerOptions
             Private ReadOnly _imports As New List(Of GlobalImport)
@@ -40,7 +41,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             ''' </summary>
             Private Shared ReadOnly s_importsCache As Dictionary(Of String, GlobalImport) = New Dictionary(Of String, GlobalImport)
 
-            Public Sub New(project As VisualStudioProject, workspaceServices As HostWorkspaceServices)
+            Public Sub New(project As ProjectSystemProject, workspaceServices As SolutionServices)
                 MyBase.New(project, workspaceServices)
             End Sub
 

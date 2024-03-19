@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             SegmentedList<T> beforeList = list.ToSegmentedList();
             Predicate<T> predicate = _alwaysTrueDelegate;
 
-
             //[] Verify Null match
             Assert.Throws<ArgumentNullException>(() => list.FindLastIndex(0, null!)); //"Err_858ahia Expected null match to throw ArgumentNullException"
 
@@ -85,7 +84,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             SegmentedList<T> list = GenericListFactory(count);
             SegmentedList<T> beforeList = list.ToSegmentedList();
             Predicate<T> predicate = delegate (T item) { return true; };
-
 
             //[] Verify Null match
             Assert.Throws<ArgumentNullException>(() => list.FindIndex(0, 0, null!)); //"Err_858ahia Expected null match to throw ArgumentNullException"
@@ -672,7 +670,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             SegmentedList<T> beforeList = list.ToSegmentedList();
             int index;
             Predicate<T> EqualsDelegate = delegate (T item) { return expectedItem == null ? item == null : expectedItem.Equals(item); };
-
 
             //[] Verify FinIndex returns the correct index
             for (int i = 0; i < count; ++i)

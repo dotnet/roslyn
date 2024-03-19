@@ -216,7 +216,7 @@ class C
         public void SimpleDisplayString()
         {
             var source =
-    @"class A
+@"class A
 {
     string s1 = ""S1"";
     string s2 = ""S2"";
@@ -294,6 +294,48 @@ class B
             Verify(more,
                 EvalResult("s2", @"""S2""", "string", "(new B()).a2.s2", DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.CanFavorite | DkmEvaluationResultFlags.IsFavorite, editableValue: @"""S2"""),
                 EvalResult("s1", @"""S1""", "string", "(new B()).a2.s1", DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.CanFavorite, editableValue: @"""S1"""));
+        }
+
+        [Fact]
+        public void DuplicateNames()
+        {
+            var source =
+@"class A
+{
+    public string S1 { get; }
+    public string S2 { get; }
+}
+class B : A
+{
+    public new string S1 { get; }
+    public string S3 { get; }
+}";
+
+            var assembly = GetAssembly(source);
+            var type = assembly.GetType("B");
+            var rootExpr = "new B()";
+
+            var favoritesByTypeName = new Dictionary<string, DkmClrObjectFavoritesInfo>()
+            {
+                { "B", new DkmClrObjectFavoritesInfo(new[] { "S1" }) },
+                { "A", new DkmClrObjectFavoritesInfo(new[] { "S2" }) }
+            };
+
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(assembly), favoritesByTypeName);
+
+            var value = CreateDkmClrValue(
+                value: Activator.CreateInstance(type),
+                type: runtime.GetType((TypeImpl)type));
+
+            var evalResult = FormatResult(rootExpr, value);
+            Verify(evalResult,
+                EvalResult(rootExpr, "{B}", "B", rootExpr, DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.HasFavorites));
+            var children = GetChildren(evalResult);
+            Verify(children,
+                EvalResult("S1", @"null", "string", "(new B()).S1", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite | DkmEvaluationResultFlags.IsFavorite),
+                EvalResult("S1 (A)", @"null", "string", "((A)(new B())).S1", DkmEvaluationResultFlags.ReadOnly), /* Inherited and hidden does not currently support favorites */
+                EvalResult("S2", @"null", "string", "(new B()).S2", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("S3", @"null", "string", "(new B()).S3", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
         }
     }
 }

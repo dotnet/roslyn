@@ -7,21 +7,14 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Classification
+namespace Microsoft.CodeAnalysis.Classification;
+
+internal readonly struct ClassifiedSpansAndHighlightSpan(
+    ImmutableArray<ClassifiedSpan> classifiedSpans,
+    TextSpan highlightSpan)
 {
-    internal readonly struct ClassifiedSpansAndHighlightSpan
-    {
-        public const string Key = nameof(ClassifiedSpansAndHighlightSpan);
+    public const string Key = nameof(ClassifiedSpansAndHighlightSpan);
 
-        public readonly ImmutableArray<ClassifiedSpan> ClassifiedSpans;
-        public readonly TextSpan HighlightSpan;
-
-        public ClassifiedSpansAndHighlightSpan(
-            ImmutableArray<ClassifiedSpan> classifiedSpans,
-            TextSpan highlightSpan)
-        {
-            ClassifiedSpans = classifiedSpans;
-            HighlightSpan = highlightSpan;
-        }
-    }
+    public readonly ImmutableArray<ClassifiedSpan> ClassifiedSpans = classifiedSpans;
+    public readonly TextSpan HighlightSpan = highlightSpan;
 }

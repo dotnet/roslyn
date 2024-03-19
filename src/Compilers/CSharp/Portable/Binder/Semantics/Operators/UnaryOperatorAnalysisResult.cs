@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal struct UnaryOperatorAnalysisResult
+    internal readonly struct UnaryOperatorAnalysisResult
     {
         public readonly UnaryOperatorSignature Signature;
         public readonly Conversion Conversion;

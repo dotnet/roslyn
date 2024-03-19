@@ -462,7 +462,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     {
                         builder.Append("this[");
                         AppendParametersPrototype(builder, symbol.Parameters, PrototypeFlags.ParameterTypes | PrototypeFlags.ParameterNames);
-                        builder.Append("]");
+                        builder.Append(']');
                     }
                     else
                     {

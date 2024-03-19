@@ -23,44 +23,40 @@ namespace Microsoft.CodeAnalysis
         IncludeType = 1 << 0,
 
         /// <summary>
-        /// Includes the modifiers of the member.
-        /// For example, "static readonly" in C# or "Shared ReadOnly" in Visual Basic.
-        /// </summary>
-        /// <remarks>
+        /// Includes the modifiers of the member. For example, "static readonly" in C# or "Shared ReadOnly" in Visual Basic.
+        /// <para>
         /// Accessibility modifiers are controlled separately by <see cref="IncludeAccessibility"/>.
-        /// </remarks>
+        /// </para>
+        /// </summary>
         IncludeModifiers = 1 << 1,
 
         /// <summary>
-        /// Includes the accessibility modifiers of the member.
-        /// For example, "public" in C# or "Public" in Visual Basic.
+        /// Includes the accessibility modifiers of the member. For example, "public" in C# or "Public" in Visual Basic.
         /// </summary>
         IncludeAccessibility = 1 << 2,
 
         /// <summary>
-        /// Includes the name of corresponding interface on members that explicitly implement
-        /// interface members.
-        /// For example, "IGoo.Bar { get; }".
-        /// </summary>
-        /// <remarks>
+        /// Includes the name of corresponding interface on members that explicitly implement interface members. For example, "IGoo.Bar { get; }".        
+        /// <para>
         /// This option has no effect in Visual Basic.
-        /// </remarks>
+        /// </para>
+        /// </summary>
         IncludeExplicitInterface = 1 << 3,
 
         /// <summary>
-        /// Includes the parameters of methods and properties/indexers.
-        /// </summary>
-        /// <remarks>
+        /// Includes the parameters of methods and properties/indexers.        
+        /// <para>
         /// See <see cref="SymbolDisplayParameterOptions"/> for finer-grained settings.
-        /// </remarks>
+        /// </para>
+        /// </summary>
         IncludeParameters = 1 << 4,
 
         /// <summary>
-        /// Includes the name of the type containing the member.
-        /// </summary>
-        /// <remarks>
+        /// Includes the name of the type containing the member.        
+        /// <para>
         /// The format of the containing type is determined by <see cref="SymbolDisplayTypeQualificationStyle"/>.
-        /// </remarks>
+        /// </para>
+        /// </summary>
         IncludeContainingType = 1 << 5,
 
         /// <summary>

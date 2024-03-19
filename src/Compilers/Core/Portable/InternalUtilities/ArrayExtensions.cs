@@ -153,6 +153,29 @@ namespace Roslyn.Utilities
             return ~low;
         }
 
+        public static bool SequenceEqual<T>(this T[]? first, T[]? second, Func<T, T, bool> comparer)
+        {
+            RoslynDebug.Assert(comparer != null);
+
+            if (first == second)
+            {
+                return true;
+            }
+
+            if (first == null || second == null || first.Length != second.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < first.Length; i++)
+            {
+                if (!comparer(first[i], second[i]))
+                    return false;
+            }
+
+            return true;
+        }
+
         /// <summary>
         /// Search a sorted integer array for the target value in O(log N) time.
         /// </summary>

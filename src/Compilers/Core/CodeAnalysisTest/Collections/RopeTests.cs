@@ -103,6 +103,26 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         }
 
         [Fact]
+        public void MaxLength()
+        {
+            var r = shortRopes.Aggregate(Rope.Concat);
+            var concatted = shortStrings.Aggregate((a, b) => a + b);
+            Assert.Equal(r.Length, concatted.Length);
+
+            for (int i = 0; i < concatted.Length; i++)
+            {
+                Assert.Equal(concatted[..i], r.ToString(i));
+            }
+        }
+
+        [Fact]
+        public void MaxLength_Invalid()
+        {
+            var r = Rope.ForString("x");
+            Assert.Throws<InvalidOperationException>(() => r.ToString(-1));
+        }
+
+        [Fact]
         public void Overflow()
         {
             Rope r = Rope.ForString("x");

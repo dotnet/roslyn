@@ -1380,8 +1380,6 @@ BC30237: Parameter already declared with name 'x'.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
         End Sub
 
-
-
         <Fact>
         Public Sub BC30237ERR_DuplicateParamName1_ExternalMethods()
             Dim source =
@@ -7258,7 +7256,6 @@ End Class
     ]]></file>
     </compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidMultipleAttributeUsage1, "A1()").WithArguments("A1"))
         End Sub
-
 
         <Fact()>
         Public Sub BC30663ERR_InvalidMultipleAttributeUsage1d()
@@ -19434,7 +19431,6 @@ Namespace ns1
                         Namespace ns1
                         End Namespace
                     ]]></file>
-
         <file name="b.vb"><![CDATA[
                         Namespace Ns1
                         End Namespace
@@ -19447,7 +19443,6 @@ Namespace ns1
           ~~~
 ]]></errors>)
 
-
             compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="NamespaceCaseMismatch3">
         <file name="a.vb"><![CDATA[
@@ -19458,7 +19453,6 @@ Namespace ns1
                         End Namespace
 
                     ]]></file>
-
         <file name="b.vb"><![CDATA[
                         Namespace NS.Ab
                         End Namespace
@@ -22524,7 +22518,6 @@ End Class
             Assert.Equal(errTypeSym.CandidateSymbols.Length, errTypeSym.IErrorTypeSymbol_CandidateSymbols.Length)
         End Sub
 
-
         <Fact>
         Public Sub ConstructorErrors1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -24351,10 +24344,23 @@ End Namespace"
                 options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 assemblyName:="D").EmitToImageReference()
 
-            CompileAndVerify(
+            ' ECMA-335 "II.22.14 ExportedType : 0x27" rule 14: "Ignoring nested Types, there shall be no duplicate rows, based upon FullName [ERROR]".
+            Dim verifier = CompileAndVerify(
                 source:=codeA,
                 references:={referenceB, referenceC2, referenceD},
-                expectedOutput:="obj is nothing")
+                expectedOutput:="obj is nothing",
+                verify:=Verification.FailsILVerify.WithILVerifyMessage("[Main]: Unable to resolve token. { Offset = 0x1, Token = 167772166 }"))
+
+            verifier.VerifyIL("A.ClassA.Main()", "
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  call       ""Function B.ClassB.MethodB(C.ClassC) As String""
+  IL_0006:  call       ""Sub System.Console.WriteLine(String)""
+  IL_000b:  ret
+}
+")
         End Sub
 
         <Fact>

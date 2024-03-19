@@ -13,6 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Class DummySyntaxTree
             Inherits VisualBasicSyntaxTree
 
+            Private Const ChecksumAlgorithm As SourceHashAlgorithm = SourceHashAlgorithm.Sha1
+
             Private ReadOnly _node As CompilationUnitSyntax
 
             Public Sub New()
@@ -24,11 +26,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function GetText(Optional cancellationToken As CancellationToken = Nothing) As SourceText
-                Return SourceText.From(String.Empty, Encoding.UTF8)
+                Return SourceText.From(String.Empty, Me.Encoding, ChecksumAlgorithm)
             End Function
 
             Public Overrides Function TryGetText(ByRef text As SourceText) As Boolean
-                text = SourceText.From(String.Empty, Encoding.UTF8)
+                text = SourceText.From(String.Empty, Me.Encoding, ChecksumAlgorithm)
                 Return True
             End Function
 
@@ -86,11 +88,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Property
 
             Public Overrides Function WithRootAndOptions(root As SyntaxNode, options As ParseOptions) As SyntaxTree
-                Return SyntaxFactory.SyntaxTree(root, options:=options, path:=FilePath, encoding:=Nothing)
+                Return Create(DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), FilePath, Encoding, ChecksumAlgorithm)
             End Function
 
             Public Overrides Function WithFilePath(path As String) As SyntaxTree
-                Return SyntaxFactory.SyntaxTree(_node, options:=Me.Options, path:=path, encoding:=Nothing)
+                Return Create(_node, Options, path, Encoding, ChecksumAlgorithm)
             End Function
 
             Public Overrides Function WithDiagnosticOptions(options As ImmutableDictionary(Of String, ReportDiagnostic)) As SyntaxTree

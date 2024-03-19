@@ -2793,7 +2793,6 @@ End Module
     </file>
 </compilation>
 
-
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -2835,7 +2834,6 @@ Module Module1
 End Module
     </file>
 </compilation>
-
 
             Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On),
                       expectedOutput:=
@@ -2904,7 +2902,6 @@ Module Module1
 End Module
     </file>
 </compilation>
-
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 

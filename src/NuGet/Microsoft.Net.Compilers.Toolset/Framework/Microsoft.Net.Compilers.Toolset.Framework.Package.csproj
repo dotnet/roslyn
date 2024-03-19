@@ -1,0 +1,47 @@
+﻿<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+
+    <IsPackable>true</IsPackable>
+    <NuspecPackageId>Microsoft.Net.Compilers.Toolset.Framework</NuspecPackageId>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <PackageDescription>
+      .NET Framework Compilers Toolset Package
+
+      Referencing this package will cause the project to be built using the C# and Visual Basic framework compilers contained in the package, as opposed to the version installed with MSBuild.
+
+      This package is an implementation detail of a .NET SDK feature. Directly referencing this package is not supported. 
+
+      $(RoslynPackageDescriptionDetails)
+    </PackageDescription>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
+    <!-- Remove NU5128 once https://github.com/NuGet/Home/issues/8583 is fixed -->
+    <NoWarn>$(NoWarn);NU5100;NU5128</NoWarn>
+
+    <_DependsOn>InitializeDesktopCompilerArtifacts</_DependsOn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Compilers\CSharp\csc\AnyCpu\csc.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\Compilers\VisualBasic\vbc\AnyCpu\vbc.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\Interactive\csi\csi.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\Compilers\Server\VBCSCompiler\AnyCpu\VBCSCompiler.csproj" PrivateAssets="All"/>
+  </ItemGroup>
+
+  <Target Name="_GetFilesToPackage" DependsOnTargets="$(_DependsOn)">
+    <ItemGroup>
+      <_File Include="@(DesktopCompilerArtifact)" TargetDir="tasks/net472"/>
+      <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tasks/net472"/>
+      <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="build" />
+      <_File Include="$(MSBuildProjectDirectory)\buildMultiTargeting\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="buildMultiTargeting" />
+     
+      <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
+    </ItemGroup>
+  </Target>
+
+  <Import Project="..\DesktopCompilerArtifacts.targets" />
+</Project>

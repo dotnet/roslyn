@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(root.Language is LanguageNames.CSharp);
-            return Formatter.GetFormattedTextChanges(root, span, services, GetFormattingOptions(indentationOptions), cancellationToken);
+            return Formatter.GetFormattedTextChanges(root, span, services.SolutionServices, GetFormattingOptions(indentationOptions), cancellationToken);
         }
 
         public static SyntaxNode Format(
@@ -75,16 +75,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(root.Language is LanguageNames.CSharp);
-            return Formatter.Format(root, services, GetFormattingOptions(indentationOptions), cancellationToken: cancellationToken);
+            return Formatter.Format(root, services.SolutionServices, GetFormattingOptions(indentationOptions), cancellationToken: cancellationToken);
         }
 
         private static SyntaxFormattingOptions GetFormattingOptions(RazorIndentationOptions indentationOptions)
-            => CSharpSyntaxFormattingOptions.Default.With(new LineFormattingOptions()
+            => new CSharpSyntaxFormattingOptions()
             {
-                UseTabs = indentationOptions.UseTabs,
-                TabSize = indentationOptions.TabSize,
-                IndentationSize = indentationOptions.IndentationSize,
-                NewLine = CSharpSyntaxFormattingOptions.Default.NewLine
-            });
+                LineFormatting = new()
+                {
+                    UseTabs = indentationOptions.UseTabs,
+                    TabSize = indentationOptions.TabSize,
+                    IndentationSize = indentationOptions.IndentationSize,
+                    NewLine = CSharpSyntaxFormattingOptions.Default.NewLine
+                }
+            };
     }
 }

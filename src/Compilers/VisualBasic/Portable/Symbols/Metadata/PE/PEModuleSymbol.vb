@@ -81,6 +81,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private _lazyCachedCompilerFeatureRequiredDiagnosticInfo As DiagnosticInfo = ErrorFactory.EmptyDiagnosticInfo
 
+        Private _lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
+
         Friend Sub New(assemblySymbol As PEAssemblySymbol, [module] As PEModule, importOptions As MetadataImportOptions, ordinal As Integer)
             Me.New(DirectCast(assemblySymbol, AssemblySymbol), [module], importOptions, ordinal)
             Debug.Assert(ordinal >= 0)
@@ -340,8 +342,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             ' First, check this module
             Dim currentModuleResult As NamedTypeSymbol = Me.LookupTopLevelMetadataType(emittedName)
+            Debug.Assert(If(Not currentModuleResult?.IsErrorType(), True))
 
-            If IsAcceptableSystemTypeSymbol(currentModuleResult) Then
+            If currentModuleResult IsNot Nothing Then
+                Debug.Assert(IsAcceptableSystemTypeSymbol(currentModuleResult))
+
                 ' It doesn't matter if there's another System.Type in a referenced assembly -
                 ' we prefer the one in the current module.
                 Return currentModuleResult
@@ -350,7 +355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             ' If we didn't find it in this module, check the referenced assemblies
             Dim referencedAssemblyResult As NamedTypeSymbol = Nothing
             For Each assembly As AssemblySymbol In Me.GetReferencedAssemblySymbols()
-                Dim currResult As NamedTypeSymbol = assembly.LookupTopLevelMetadataType(emittedName, digThroughForwardedTypes:=True)
+                Dim currResult As NamedTypeSymbol = assembly.LookupDeclaredOrForwardedTopLevelMetadataType(emittedName, visitedAssemblies:=Nothing)
                 If IsAcceptableSystemTypeSymbol(currResult) Then
                     If referencedAssemblyResult Is Nothing Then
                         referencedAssemblyResult = currResult
@@ -372,27 +377,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return referencedAssemblyResult
             End If
 
-            Debug.Assert(currentModuleResult IsNot Nothing)
-            Return currentModuleResult
+            Return New MissingMetadataTypeSymbol.TopLevel(Me, emittedName)
         End Function
 
-
         Private Shared Function IsAcceptableSystemTypeSymbol(candidate As NamedTypeSymbol) As Boolean
-            Return candidate.Kind <> SymbolKind.ErrorType AndAlso Not (TypeOf candidate Is MissingMetadataTypeSymbol)
-
+            Return candidate.Kind <> SymbolKind.ErrorType OrElse Not (TypeOf candidate Is MissingMetadataTypeSymbol)
         End Function
 
         Friend Overrides ReadOnly Property HasAssemblyCompilationRelaxationsAttribute As Boolean
             Get
-                Dim assemblyAttributes = GetAssemblyAttributes()
-                Return assemblyAttributes.IndexOfAttribute(Me, AttributeDescription.CompilationRelaxationsAttribute) >= 0
+                ' This API is called only for added modules. Assembly level attributes from added modules are 
+                ' copied to the resulting assembly and that is done by using VisualBasicAttributeData for them.
+                ' Therefore, it is acceptable to implement this property by using the same VisualBasicAttributeData
+                ' objects rather than trying to avoid creating them and going to metadata directly.
+                Dim assemblyAttributes As ImmutableArray(Of VisualBasicAttributeData) = GetAssemblyAttributes()
+                Return assemblyAttributes.IndexOfAttribute(AttributeDescription.CompilationRelaxationsAttribute) >= 0
             End Get
         End Property
 
         Friend Overrides ReadOnly Property HasAssemblyRuntimeCompatibilityAttribute As Boolean
             Get
-                Dim assemblyAttributes = GetAssemblyAttributes()
-                Return assemblyAttributes.IndexOfAttribute(Me, AttributeDescription.RuntimeCompatibilityAttribute) >= 0
+                ' This API is called only for added modules. Assembly level attributes from added modules are 
+                ' copied to the resulting assembly and that is done by using VisualBasicAttributeData for them.
+                ' Therefore, it is acceptable to implement this property by using the same VisualBasicAttributeData
+                ' objects rather than trying to avoid creating them and going to metadata directly.
+                Dim assemblyAttributes As ImmutableArray(Of VisualBasicAttributeData) = GetAssemblyAttributes()
+                Return assemblyAttributes.IndexOfAttribute(AttributeDescription.RuntimeCompatibilityAttribute) >= 0
             End Get
         End Property
 
@@ -417,14 +427,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             If scope Is Nothing Then
                 ' We failed to locate the namespace
-                isNoPiaLocalType = False
-                result = New MissingMetadataTypeSymbol.TopLevel(Me, emittedName)
+                result = Nothing
             Else
-                result = scope.LookupMetadataType(emittedName, isNoPiaLocalType)
-                Debug.Assert(result IsNot Nothing)
+                result = scope.LookupMetadataType(emittedName)
+
+                If result Is Nothing Then
+                    result = scope.UnifyIfNoPiaLocalType(emittedName)
+
+                    If result IsNot Nothing Then
+                        isNoPiaLocalType = True
+                        Return result
+                    End If
+                End If
             End If
 
-            Return result
+            isNoPiaLocalType = False
+            Return If(result, New MissingMetadataTypeSymbol.TopLevel(Me, emittedName))
         End Function
 
         ''' <summary>
@@ -468,7 +486,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                     Yield ContainingAssembly.CreateMultipleForwardingErrorTypeSymbol(name, Me, firstSymbol, secondSymbol)
                 Else
-                    Yield firstSymbol.LookupTopLevelMetadataType(name, digThroughForwardedTypes:=True)
+                    Yield firstSymbol.LookupDeclaredOrForwardedTopLevelMetadataType(name, visitedAssemblies:=Nothing)
                 End If
             Next
         End Function
@@ -499,5 +517,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return MyBase.HasUnsupportedMetadata
             End Get
         End Property
+
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                If _lazyObsoleteAttributeData Is ObsoleteAttributeData.Uninitialized Then
+                    Dim experimentalData = _module.TryDecodeExperimentalAttributeData(EntityHandle.ModuleDefinition, New MetadataDecoder(Me))
+                    Interlocked.CompareExchange(_lazyObsoleteAttributeData, experimentalData, ObsoleteAttributeData.Uninitialized)
+                End If
+
+                Return _lazyObsoleteAttributeData
+            End Get
+        End Property
+
     End Class
 End Namespace

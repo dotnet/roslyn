@@ -8,6 +8,7 @@ Imports System.Runtime.InteropServices
 Imports EnvDTE
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -25,6 +26,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         Public ReadOnly Composition As TestComposition = VisualStudioTestCompositions.LanguageServices.AddParts(
             GetType(MockServiceProvider),
+            GetType(StubVsServiceExporter(Of )),
+            GetType(StubVsServiceExporter(Of ,)),
             GetType(MockVisualStudioWorkspace),
             GetType(ProjectCodeModelFactory))
 
@@ -46,7 +49,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         <HandleProcessCorruptedStateExceptions()>
         Public Function CreateCodeModelTestState(definition As XElement) As CodeModelTestState
-            Dim workspace = TestWorkspace.Create(definition, composition:=Composition)
+            Dim workspace = EditorTestWorkspace.Create(definition, composition:=Composition)
 
             Dim result As CodeModelTestState = Nothing
             Try
@@ -64,7 +67,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Dim state = New CodeModelState(
                     threadingContext,
                     workspace.ExportProvider.GetExportedValue(Of MockServiceProvider),
-                    project.LanguageServices,
+                    project.Services,
                     visualStudioWorkspace,
                     workspace.ExportProvider.GetExportedValue(Of ProjectCodeModelFactory))
 

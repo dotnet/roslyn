@@ -91,10 +91,10 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, new[] { vbComp }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
-                // (6,16): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Class1.Test(out object, ref object, int)'
+                // (6,16): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Class1.Test(out object, ref object, int)'
                 //         Class1.Test();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("x", "Class1.Test(out object, ref object, int)").WithLocation(6, 16),
-                // (9,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'x1' of 'I1.M1(out object)'
+                // (9,12): error CS7036: There is no argument given that corresponds to the required parameter 'x1' of 'I1.M1(out object)'
                 //         i1.M1();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M1").WithArguments("x1", "I1.M1(out object)").WithLocation(9, 12)
                 );

@@ -171,7 +171,9 @@ namespace Microsoft.CodeAnalysis
         private const PipeOptions CurrentUserOption = PipeOptions.CurrentUserOnly;
 
         // Validation is handled by CurrentUserOnly
+#pragma warning disable IDE0060 // Remove unused parameter
         internal static bool CheckPipeConnectionOwnership(NamedPipeClientStream pipeStream) => true;
+#pragma warning restore IDE0060 // Remove unused parameter
 
         // Validation is handled by CurrentUserOnly
         internal static PipeSecurity? CreatePipeSecurity() => null;

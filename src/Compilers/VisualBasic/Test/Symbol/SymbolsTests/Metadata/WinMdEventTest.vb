@@ -134,7 +134,6 @@ End Class
                 </file>
             </compilation>
 
-
         Public Sub New()
             ' The following two libraries are shrunk code pulled from
             ' corresponding files in the csharp5 legacy tests
@@ -788,7 +787,6 @@ End Class
             options:=TestOptions.ReleaseWinMD)
             comp.VerifyEmitDiagnostics(Diagnostic(ERRID.ERR_WinRTEventWithoutDelegate, "E"))
         End Sub
-
 
         ''' <summary>
         ''' Verify that WinRT events compile into the IL that we 

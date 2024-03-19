@@ -7,25 +7,24 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal sealed class LinkedFileMergeSessionResult
 {
-    internal sealed class LinkedFileMergeSessionResult
+    public Solution MergedSolution { get; }
+
+    private readonly Dictionary<DocumentId, IEnumerable<TextSpan>> _mergeConflictCommentSpans = [];
+    public Dictionary<DocumentId, IEnumerable<TextSpan>> MergeConflictCommentSpans => _mergeConflictCommentSpans;
+
+    public LinkedFileMergeSessionResult(Solution mergedSolution, IEnumerable<LinkedFileMergeResult> fileMergeResults)
     {
-        public Solution MergedSolution { get; }
+        this.MergedSolution = mergedSolution;
 
-        private readonly Dictionary<DocumentId, IEnumerable<TextSpan>> _mergeConflictCommentSpans = new();
-        public Dictionary<DocumentId, IEnumerable<TextSpan>> MergeConflictCommentSpans => _mergeConflictCommentSpans;
-
-        public LinkedFileMergeSessionResult(Solution mergedSolution, IEnumerable<LinkedFileMergeResult> fileMergeResults)
+        foreach (var fileMergeResult in fileMergeResults)
         {
-            this.MergedSolution = mergedSolution;
-
-            foreach (var fileMergeResult in fileMergeResults)
+            foreach (var documentId in fileMergeResult.DocumentIds)
             {
-                foreach (var documentId in fileMergeResult.DocumentIds)
-                {
-                    _mergeConflictCommentSpans.Add(documentId, fileMergeResult.MergeConflictResolutionSpans);
-                }
+                _mergeConflictCommentSpans.Add(documentId, fileMergeResult.MergeConflictResolutionSpans);
             }
         }
     }

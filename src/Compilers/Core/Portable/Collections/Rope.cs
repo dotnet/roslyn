@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -16,6 +17,7 @@ namespace Microsoft.CodeAnalysis
     {
         public static readonly Rope Empty = ForString("");
         public abstract override string ToString();
+        public abstract string ToString(int maxLength);
         public abstract int Length { get; }
         protected abstract IEnumerable<char> GetChars();
         private Rope() { }
@@ -86,6 +88,23 @@ namespace Microsoft.CodeAnalysis
             private readonly string _value;
             public StringRope(string value) => _value = value;
             public override string ToString() => _value;
+
+            public override string ToString(int maxLength)
+            {
+                return ToString(maxLength, out _);
+            }
+
+            public string ToString(int maxLength, out int wrote)
+            {
+                if (maxLength < 0)
+                {
+                    throw ExceptionUtilities.UnexpectedValue(nameof(maxLength));
+                }
+
+                wrote = Math.Min(maxLength, _value.Length);
+                return _value[..wrote];
+            }
+
             public override int Length => _value.Length;
             protected override IEnumerable<char> GetChars() => _value;
         }
@@ -116,6 +135,38 @@ namespace Microsoft.CodeAnalysis
                     {
                         case StringRope s:
                             psb.Builder.Append(s.ToString());
+                            break;
+                        case ConcatRope c:
+                            stack.Push(c._right);
+                            stack.Push(c._left);
+                            break;
+                        case var v:
+                            throw ExceptionUtilities.UnexpectedValue(v.GetType().Name);
+                    }
+                }
+
+                return psb.ToStringAndFree();
+            }
+
+            public override string ToString(int maxLength)
+            {
+                if (maxLength < 0)
+                {
+                    throw ExceptionUtilities.UnexpectedValue(nameof(maxLength));
+                }
+
+                var psb = PooledStringBuilder.GetInstance();
+                var stack = new Stack<Rope>();
+                stack.Push(this);
+
+                int rem = maxLength;
+                while (stack.Count != 0 && rem > 0)
+                {
+                    switch (stack.Pop())
+                    {
+                        case StringRope s:
+                            psb.Builder.Append(s.ToString(rem, out var wrote));
+                            rem -= wrote;
                             break;
                         case ConcatRope c:
                             stack.Push(c._right);

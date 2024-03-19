@@ -12,18 +12,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     internal class OptionBinding<T> : INotifyPropertyChanged
     {
         private readonly OptionStore _optionStore;
-        private readonly Option2<T> _key;
+        private readonly Option2<T> _option;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public OptionBinding(OptionStore optionStore, Option2<T> key)
+        public OptionBinding(OptionStore optionStore, Option2<T> option)
         {
             _optionStore = optionStore;
-            _key = key;
+            _option = option;
 
             _optionStore.OptionChanged += (sender, e) =>
             {
-                if (e.Option == _key)
+                if (e.Option == _option)
                 {
                     PropertyChanged?.Raise(this, new PropertyChangedEventArgs(nameof(Value)));
                 }
@@ -34,12 +34,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             get
             {
-                return _optionStore.GetOption(_key);
+                return _optionStore.GetOption<T>(_option);
             }
 
             set
             {
-                _optionStore.SetOption(_key, value);
+                _optionStore.SetOption(_option, value);
             }
         }
     }

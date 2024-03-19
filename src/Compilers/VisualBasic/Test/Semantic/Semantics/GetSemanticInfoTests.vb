@@ -85,7 +85,6 @@ End Class
     </file>
     </compilation>)
 
-
             Dim tree = compilation.SyntaxTrees(0)
             Dim node = FindNodeFromText(tree, "read = create")
 
@@ -1266,7 +1265,6 @@ End Module
 
     </file>
     </compilation>)
-
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim node = FindNodeFromText(tree, "Module M1")
@@ -2959,7 +2957,6 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-
         <Fact()>
         Public Sub HandlesContainer_WithEventsHandlesInDerived()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -3024,7 +3021,6 @@ End Module
 
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
-
 
         <Fact>
         Public Sub HandledEvent001()
@@ -3893,7 +3889,6 @@ End Module
 
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
-
 
 #Region "Diagnostics"
 
@@ -5985,7 +5980,7 @@ End Module
             Dim symbolInfo = model.GetSymbolInfo(node)
 
             Assert.Null(symbolInfo.Symbol)
-            Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason)
+            Assert.Equal(CandidateReason.StaticInstanceMismatch, symbolInfo.CandidateReason)
         End Sub
 
         <Fact, WorkItem(1068547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068547")>

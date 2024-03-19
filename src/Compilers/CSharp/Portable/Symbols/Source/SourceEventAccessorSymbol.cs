@@ -18,21 +18,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
 
-        private ImmutableArray<ParameterSymbol> _lazyParameters;
+        private readonly ImmutableArray<ParameterSymbol> _parameters;
         private TypeWithAnnotations _lazyReturnType;
 
         public SourceEventAccessorSymbol(
             SourceEventSymbol @event,
             SyntaxReference syntaxReference,
-            ImmutableArray<Location> locations,
+            Location location,
             EventSymbol explicitlyImplementedEventOpt,
             string aliasQualifierOpt,
             bool isAdder,
             bool isIterator,
-            bool isNullableAnalysisEnabled)
-            : base(@event.containingType, syntaxReference, locations, isIterator)
+            bool isNullableAnalysisEnabled,
+            bool isExpressionBodied)
+            : base(@event.containingType, syntaxReference, location, isIterator,
+                   (@event.Modifiers, MakeFlags(
+                                                isAdder ? MethodKind.EventAdd : MethodKind.EventRemove,
+                                                RefKind.None,
+                                                @event.Modifiers,
+                                                returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
+                                                returnsVoidIsSet: false,
+                                                isExpressionBodied: isExpressionBodied,
+                                                isExtensionMethod: false,
+                                                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                                                isVarArg: false,
+                                                isExplicitInterfaceImplementation: @event.IsExplicitInterfaceImplementation,
+                                                hasThisInitializer: false)))
         {
             _event = @event;
+            _parameters = ImmutableArray.Create<ParameterSymbol>(new SynthesizedEventAccessorValueParameterSymbol(this, 0));
 
             string name;
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations;
@@ -51,15 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
-
-            this.MakeFlags(
-                isAdder ? MethodKind.EventAdd : MethodKind.EventRemove,
-                @event.Modifiers,
-                returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
-                isExtensionMethod: false,
-                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                isMetadataVirtualIgnoringModifiers: @event.IsExplicitInterfaceImplementation && (@event.Modifiers & DeclarationModifiers.Static) == 0);
-
             _name = GetOverriddenAccessorName(@event, isAdder) ?? name;
         }
 
@@ -93,8 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(_lazyParameters.IsDefault != _lazyReturnType.HasType);
-
             // CONSIDER: currently, we're copying the custom modifiers of the event overridden
             // by this method's associated event (by using the associated event's type, which is
             // copied from the overridden event).  It would be more correct to copy them from
@@ -116,11 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // EventRegistrationToken add_E(EventDelegate d);
 
-                        // Leave the returns void bit in this.flags false.
                         _lazyReturnType = TypeWithAnnotations.Create(eventTokenType);
-
-                        var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.TypeWithAnnotations, 0);
-                        _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
+                        this.SetReturnsVoid(returnsVoid: false);
                     }
                     else
                     {
@@ -132,9 +132,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Binder.ReportUseSite(voidType, diagnostics, this.Location);
                         _lazyReturnType = TypeWithAnnotations.Create(voidType);
                         this.SetReturnsVoid(returnsVoid: true);
-
-                        var parameter = new SynthesizedAccessorValueParameterSymbol(this, TypeWithAnnotations.Create(eventTokenType), 0);
-                        _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
                     }
                 }
                 else
@@ -146,9 +143,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Binder.ReportUseSite(voidType, diagnostics, this.Location);
                     _lazyReturnType = TypeWithAnnotations.Create(voidType);
                     this.SetReturnsVoid(returnsVoid: true);
-
-                    var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.TypeWithAnnotations, 0);
-                    _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
                 }
             }
         }
@@ -161,11 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!_lazyReturnType.IsDefault);
                 return base.ReturnsVoid;
             }
-        }
-
-        public override RefKind RefKind
-        {
-            get { return RefKind.None; }
         }
 
         public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
@@ -190,15 +179,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                LazyMethodChecks();
-                Debug.Assert(!_lazyParameters.IsDefault);
-                return _lazyParameters;
+                return _parameters;
             }
-        }
-
-        public sealed override bool IsVararg
-        {
-            get { return false; }
         }
 
         public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -217,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 Debug.Assert(this.Locations.Length == 1);
-                return this.Locations[0];
+                return this.GetFirstLocation();
             }
         }
 
@@ -245,12 +227,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return null;
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            // Events cannot be expression-bodied
-            get { return false; }
         }
     }
 }

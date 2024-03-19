@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 
         public int ErrorCode { get { throw new NotImplementedException(); } }
 
-        public DkmEvaluationResult Result { get { return _result; } }
+        public readonly DkmEvaluationResult Result { get { return _result; } }
 
         internal Exception Exception { get; set; }
 

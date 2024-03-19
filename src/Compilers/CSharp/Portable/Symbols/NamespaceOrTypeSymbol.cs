@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -17,6 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class NamespaceOrTypeSymbol : Symbol, INamespaceOrTypeSymbolInternal
     {
+        protected static readonly ObjectPool<PooledDictionary<ReadOnlyMemory<char>, object>> s_nameToObjectPool =
+            PooledDictionary<ReadOnlyMemory<char>, object>.CreatePool(ReadOnlyMemoryOfCharComparer.Instance);
+
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
         // Do not make any changes to the public interface without making the corresponding change
@@ -152,7 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>An ImmutableArray containing all the types that are members of this symbol with the given name.
         /// If this symbol has no type members with this name,
         /// returns an empty ImmutableArray. Never returns null.</returns>
-        public abstract ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name);
+        public ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+            => GetTypeMembers(name.AsMemory());
 
         /// <summary>
         /// Get all the members of this symbol that are types that have a particular name and arity
@@ -160,11 +166,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>An IEnumerable containing all the types that are members of this symbol with the given name and arity.
         /// If this symbol has no type members with this name and arity,
         /// returns an empty IEnumerable. Never returns null.</returns>
-        public virtual ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+        public ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+            => GetTypeMembers(name.AsMemory(), arity);
+
+        /// <inheritdoc cref="GetTypeMembers(string)"/>
+        public abstract ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name);
+
+        /// <inheritdoc cref="GetTypeMembers(string, int)"/>
+        public virtual ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
             // default implementation does a post-filter. We can override this if its a performance burden, but 
             // experience is that it won't be.
-            return GetTypeMembers(name).WhereAsArray((t, arity) => t.Arity == arity, arity);
+            return GetTypeMembers(name).WhereAsArray(static (t, arity) => t.Arity == arity, arity);
         }
 
         /// <summary>
@@ -236,17 +249,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Simple type name, possibly with generic name mangling.
         /// </param>
         /// <returns>
-        /// Symbol for the type, or MissingMetadataSymbol if the type isn't found.
+        /// Symbol for the type, or null if the type isn't found.
         /// </returns>
-        internal virtual NamedTypeSymbol LookupMetadataType(ref MetadataTypeName emittedTypeName)
+        internal virtual NamedTypeSymbol? LookupMetadataType(ref MetadataTypeName emittedTypeName)
         {
             Debug.Assert(!emittedTypeName.IsNull);
 
             NamespaceOrTypeSymbol scope = this;
+            Debug.Assert(scope is not MergedNamespaceSymbol);
+            Debug.Assert(scope is NamespaceSymbol or NamedTypeSymbol);
 
             if (scope.Kind == SymbolKind.ErrorType)
             {
-                return new MissingMetadataTypeSymbol.Nested((NamedTypeSymbol)scope, ref emittedTypeName);
+                return null;
             }
 
             NamedTypeSymbol? namedType = null;
@@ -263,13 +278,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (emittedTypeName.ForcedArity == -1 || emittedTypeName.ForcedArity == emittedTypeName.InferredArity)
                 {
                     // Let's handle mangling case first.
-                    namespaceOrTypeMembers = scope.GetTypeMembers(emittedTypeName.UnmangledTypeName);
+                    namespaceOrTypeMembers = scope.GetTypeMembers(emittedTypeName.UnmangledTypeNameMemory);
 
                     foreach (var named in namespaceOrTypeMembers)
                     {
-                        if (emittedTypeName.InferredArity == named.Arity && named.MangleName)
+                        if (emittedTypeName.InferredArity == named.Arity &&
+                            named.MangleName &&
+                            ReadOnlyMemoryOfCharComparer.Equals(named.MetadataName.AsSpan(), emittedTypeName.TypeNameMemory))
                         {
-                            if ((object?)namedType != null)
+                            if (namedType is not null)
                             {
                                 namedType = null;
                                 break;
@@ -309,13 +326,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            namespaceOrTypeMembers = scope.GetTypeMembers(emittedTypeName.TypeName);
+            namespaceOrTypeMembers = scope.GetTypeMembers(emittedTypeName.TypeNameMemory);
 
             foreach (var named in namespaceOrTypeMembers)
             {
-                if (!named.MangleName && (forcedArity == -1 || forcedArity == named.Arity))
+                if (!named.MangleName &&
+                    (forcedArity == -1 || forcedArity == named.Arity) &&
+                    ReadOnlyMemoryOfCharComparer.Equals(named.MetadataName.AsSpan(), emittedTypeName.TypeNameMemory))
                 {
-                    if ((object?)namedType != null)
+                    if (namedType is not null)
                     {
                         namedType = null;
                         break;
@@ -326,15 +345,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
 Done:
-            if ((object?)namedType == null)
+            if (isTopLevel
+                && (emittedTypeName.ForcedArity == -1 || emittedTypeName.ForcedArity == emittedTypeName.InferredArity)
+                // Quick check so we don't have to realize the expensive `UnmangledTypeName` in the common case.
+                && emittedTypeName.TypeNameMemory.Span is [GeneratedNameParser.FileTypeNameStartChar, ..]
+                && GeneratedNameParser.TryParseFileTypeName(
+                    emittedTypeName.UnmangledTypeName,
+                    out string? displayFileName,
+                    out byte[]? checksum,
+                    out string? sourceName))
             {
-                if (isTopLevel)
+                // also do a lookup for file types from source.
+                namespaceOrTypeMembers = scope.GetTypeMembers(sourceName);
+                foreach (var named in namespaceOrTypeMembers)
                 {
-                    return new MissingMetadataTypeSymbol.TopLevel(scope.ContainingModule, ref emittedTypeName);
-                }
-                else
-                {
-                    return new MissingMetadataTypeSymbol.Nested((NamedTypeSymbol)scope, ref emittedTypeName);
+                    if (named.AssociatedFileIdentifier is FileIdentifier identifier
+                        && identifier.DisplayFilePath == displayFileName
+                        && !identifier.FilePathChecksumOpt.IsDefault
+                        && identifier.FilePathChecksumOpt.SequenceEqual(checksum)
+                        && named.Arity == emittedTypeName.InferredArity)
+                    {
+                        if ((object?)namedType != null)
+                        {
+                            namedType = null;
+                            break;
+                        }
+
+                        namedType = named;
+                    }
                 }
             }
 

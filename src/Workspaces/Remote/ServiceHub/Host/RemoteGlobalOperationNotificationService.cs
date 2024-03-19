@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Notification;
 
 namespace Microsoft.CodeAnalysis.Remote.Services
 {
-    [ExportWorkspaceService(typeof(IGlobalOperationNotificationService), WorkspaceKind.RemoteWorkspace), Shared]
+    [Export(typeof(IGlobalOperationNotificationService)), Shared]
     internal sealed class RemoteGlobalOperationNotificationService : IGlobalOperationNotificationService
     {
         public event EventHandler? Started;

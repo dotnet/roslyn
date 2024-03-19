@@ -314,7 +314,7 @@ class C
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=15, lineLength:=31)))
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint_ExplicitlyImplementedIndexer()
             Dim code =
@@ -346,7 +346,7 @@ class C1 : I1
                      TextPoint(line:=9, lineOffset:=5, absoluteOffset:=76, lineLength:=22)))
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint_ExplicitlyImplementedProperty()
             Dim code =
@@ -618,7 +618,7 @@ class C
                      TextPoint(line:=13, lineOffset:=6, absoluteOffset:=182, lineLength:=5)))
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint_ExplicitlyImplementedProperty()
             Dim code =
@@ -649,7 +649,7 @@ class C1 : I1
                      TextPoint(line:=18, lineOffset:=6, absoluteOffset:=178, lineLength:=5)))
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint_ExplicitlyImplementedIndexer()
             Dim code =
@@ -733,7 +733,7 @@ class C
             TestFullName(code, "C.this")
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestFullName_ExplicitlyImplementedProperty()
             Dim code =
@@ -762,7 +762,7 @@ class C1 : I1
             TestFullName(code, "C1.I1.Prop1")
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestFullName_ExplicitlyImplementedIndexer()
             Dim code =
@@ -904,7 +904,7 @@ class C
             TestName(code, "this")
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestName_ExplicitlyImplementedProperty()
             Dim code =
@@ -933,7 +933,7 @@ class C1 : I1
             TestName(code, "I1.Prop1")
         End Sub
 
-        <WorkItem(2437, "https://github.com/dotnet/roslyn/issues/2437")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2437")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestName_ExplicitlyImplementedIndexer()
             Dim code =
@@ -1539,7 +1539,7 @@ public interface I
 
 #Region "Parameter name tests"
 
-        <WorkItem(1147885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147885")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestParameterNameWithEscapeCharacters()
             Dim code =
@@ -1629,7 +1629,7 @@ class C
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
         End Function
 
-        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2825")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute_BelowDocComment() As Task
             Dim code =

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -18,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public readonly IMethodSymbol MoveNextMethod;
 
         public readonly bool IsAsynchronous;
+        public readonly IConvertibleConversion? InlineArrayConversion;
+        public readonly bool CollectionIsInlineArrayValue;
         public readonly bool NeedsDispose;
         public readonly bool KnownToImplementIDisposable;
         public readonly IMethodSymbol? PatternDisposeMethod;
@@ -43,6 +46,8 @@ namespace Microsoft.CodeAnalysis.Operations
             IPropertySymbol currentProperty,
             IMethodSymbol moveNextMethod,
             bool isAsynchronous,
+            IConvertibleConversion? inlineArrayConversion,
+            bool collectionIsInlineArrayValue,
             bool needsDispose,
             bool knownToImplementIDisposable,
             IMethodSymbol? patternDisposeMethod,
@@ -53,11 +58,15 @@ namespace Microsoft.CodeAnalysis.Operations
             ImmutableArray<IArgumentOperation> currentArguments = default,
             ImmutableArray<IArgumentOperation> disposeArguments = default)
         {
+            Debug.Assert(!collectionIsInlineArrayValue || inlineArrayConversion is { });
+
             ElementType = elementType;
             GetEnumeratorMethod = getEnumeratorMethod;
             CurrentProperty = currentProperty;
             MoveNextMethod = moveNextMethod;
             IsAsynchronous = isAsynchronous;
+            InlineArrayConversion = inlineArrayConversion;
+            CollectionIsInlineArrayValue = collectionIsInlineArrayValue;
             KnownToImplementIDisposable = knownToImplementIDisposable;
             NeedsDispose = needsDispose;
             PatternDisposeMethod = patternDisposeMethod;

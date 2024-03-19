@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Structure containing all semantic information about an await expression.
     /// </summary>
-    public struct AwaitExpressionInfo : IEquatable<AwaitExpressionInfo>
+    public readonly struct AwaitExpressionInfo : IEquatable<AwaitExpressionInfo>
     {
         public IMethodSymbol? GetAwaiterMethod { get; }
 

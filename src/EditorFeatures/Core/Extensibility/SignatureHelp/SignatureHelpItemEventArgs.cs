@@ -7,13 +7,9 @@
 using System;
 using Microsoft.CodeAnalysis.SignatureHelp;
 
-namespace Microsoft.CodeAnalysis.Editor
-{
-    internal class SignatureHelpItemEventArgs : EventArgs
-    {
-        public SignatureHelpItem SignatureHelpItem { get; }
+namespace Microsoft.CodeAnalysis.Editor;
 
-        public SignatureHelpItemEventArgs(SignatureHelpItem signatureHelpItem)
-            => this.SignatureHelpItem = signatureHelpItem;
-    }
+internal class SignatureHelpItemEventArgs(SignatureHelpItem signatureHelpItem) : EventArgs
+{
+    public SignatureHelpItem SignatureHelpItem { get; } = signatureHelpItem;
 }

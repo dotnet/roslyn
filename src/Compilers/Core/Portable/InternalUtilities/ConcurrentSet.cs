@@ -113,7 +113,7 @@ namespace Roslyn.Utilities
             _dictionary.Clear();
         }
 
-        public struct KeyEnumerator
+        public readonly struct KeyEnumerator
         {
             private readonly IEnumerator<KeyValuePair<T, byte>> _kvpEnumerator;
 

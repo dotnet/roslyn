@@ -564,7 +564,7 @@ namespace Goo;
 
 #End Region
 
-        <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestChildren1()
             Dim code =
@@ -583,7 +583,7 @@ namespace N$$
                 IsElement("C3", EnvDTE.vsCMElement.vsCMElementClass))
         End Sub
 
-        <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestChildren1_FileScopedNamespace()
             Dim code =
@@ -601,7 +601,7 @@ class C3 { }
                 IsElement("C3", EnvDTE.vsCMElement.vsCMElementClass))
         End Sub
 
-        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub NoChildrenForInvalidMembers()
             Dim code =

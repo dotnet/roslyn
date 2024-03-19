@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             bodyBuilder.Add(
                 Me.F.Assignment(
                     stateFieldAsLValue,
-                    Me.F.Literal(StateMachineStates.NotStartedStateMachine)))
+                    Me.F.Literal(StateMachineState.NotStartedOrRunningState)))
 
             ' STAT:   localStateMachine.$builder = System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of typeArgs).Create()
             Dim constructedBuilderField As FieldSymbol = Me._builderField.AsMember(frameType)

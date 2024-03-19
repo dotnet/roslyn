@@ -5,16 +5,10 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FileHeaders;
 
-namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
-{
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpFileHeaderDiagnosticAnalyzer : AbstractFileHeaderDiagnosticAnalyzer
-    {
-        public CSharpFileHeaderDiagnosticAnalyzer()
-            : base(LanguageNames.CSharp)
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.FileHeaders;
 
-        protected override AbstractFileHeaderHelper FileHeaderHelper => CSharpFileHeaderHelper.Instance;
-    }
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal class CSharpFileHeaderDiagnosticAnalyzer : AbstractFileHeaderDiagnosticAnalyzer
+{
+    protected override AbstractFileHeaderHelper FileHeaderHelper => CSharpFileHeaderHelper.Instance;
 }

@@ -105,7 +105,7 @@ class GooAttribute : System.Attribute
             End Using
         End Sub
 
-        <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub NoChildrenForInvalidMembers()
             Dim code =
@@ -960,7 +960,7 @@ class $$C
 
 #End Region
 
-        <WorkItem(921220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/921220")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/921220")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestClosedDocument()
             Dim code =
@@ -986,7 +986,7 @@ class $$C
             End Using
         End Sub
 
-        <WorkItem(1980, "https://github.com/dotnet/roslyn/issues/1980")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/1980")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCreateUnknownElementForConversionOperator() As Task
             Dim oldCode =
@@ -1014,7 +1014,7 @@ class D
 </Workspace>
 
             Using originalWorkspaceAndFileCodeModel = CreateCodeModelTestState(GetWorkspaceDefinition(oldCode))
-                Using changedWorkspace = TestWorkspace.Create(changedDefinition, composition:=CodeModelTestHelpers.Composition)
+                Using changedWorkspace = EditorTestWorkspace.Create(changedDefinition, composition:=CodeModelTestHelpers.Composition)
 
                     Dim originalDocument = originalWorkspaceAndFileCodeModel.Workspace.CurrentSolution.GetDocument(originalWorkspaceAndFileCodeModel.Workspace.Documents(0).Id)
                     Dim originalTree = Await originalDocument.GetSyntaxTreeAsync()
@@ -1037,7 +1037,7 @@ class D
             End Using
         End Function
 
-        <WorkItem(925569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925569")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925569")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestChangeClassNameAndGetNameOfChildFunction()
             Dim code =
@@ -1064,7 +1064,7 @@ class C
                 End Sub)
         End Sub
 
-        <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeElements_PropertyAccessor()
             Dim code =
@@ -1117,7 +1117,7 @@ class C
                 End Sub)
         End Sub
 
-        <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeElements_EventAccessor()
             Dim code =
@@ -1171,7 +1171,7 @@ class C
                 End Sub)
         End Sub
 
-        <WorkItem(671189, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/671189")>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/671189")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function AddShouldNotFailAfterCodeIsDeleted() As Task
             ' This test attempts to add and remove a method several times via code model,
@@ -1233,7 +1233,7 @@ class C
             End Using
         End Function
 
-        <WorkItem(31735, "https://github.com/dotnet/roslyn/issues/31735")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/31735")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub RenameShouldWorkAndElementsShouldBeUsableAfter()
             Dim code =

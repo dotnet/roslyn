@@ -608,9 +608,10 @@ class Program
         var d = stackalloc dynamic[10];
     }
 }").VerifyDiagnostics(
-                // (6,33): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                // (6,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
                 //         var d = stackalloc dynamic[10];
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(6, 28));
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(6, 28)
+                );
         }
 
         [Fact]
@@ -627,7 +628,8 @@ class Program
 }").VerifyDiagnostics(
                 // (7,38): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
                 //         Span<dynamic> d = stackalloc dynamic[10];
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(7, 38));
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(7, 38)
+                );
         }
 
         [Fact]

@@ -122,7 +122,12 @@ namespace Microsoft.CodeAnalysis
             DocumentationProvider? documentation = null,
             string? filePath = null)
         {
-            var metadata = AssemblyMetadata.CreateFromImage(peImage);
+            Metadata metadata = properties.Kind switch
+            {
+                MetadataImageKind.Module => ModuleMetadata.CreateFromImage(peImage),
+                _ => AssemblyMetadata.CreateFromImage(peImage),
+            };
+
             return new MetadataImageReference(metadata, properties, documentation, filePath, display: null);
         }
 
@@ -155,7 +160,12 @@ namespace Microsoft.CodeAnalysis
             DocumentationProvider? documentation = null,
             string? filePath = null)
         {
-            var metadata = AssemblyMetadata.CreateFromImage(peImage);
+            Metadata metadata = properties.Kind switch
+            {
+                MetadataImageKind.Module => ModuleMetadata.CreateFromImage(peImage),
+                _ => AssemblyMetadata.CreateFromImage(peImage),
+            };
+
             return new MetadataImageReference(metadata, properties, documentation, filePath, display: null);
         }
 
@@ -193,7 +203,11 @@ namespace Microsoft.CodeAnalysis
             string? filePath = null)
         {
             // Prefetch data and close the stream. 
-            var metadata = AssemblyMetadata.CreateFromStream(peStream, PEStreamOptions.PrefetchEntireImage);
+            Metadata metadata = properties.Kind switch
+            {
+                MetadataImageKind.Module => ModuleMetadata.CreateFromStream(peStream, PEStreamOptions.PrefetchEntireImage),
+                _ => AssemblyMetadata.CreateFromStream(peStream, PEStreamOptions.PrefetchEntireImage),
+            };
 
             return new MetadataImageReference(metadata, properties, documentation, filePath, display: null);
         }

@@ -18,7 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageService
         <Name(VisualBasicRemoveUnusedVariableCodeFixProvider.BC42024)>
         <Order(After:=IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)>
         <ConfigurationKey("unused")>
-        <HelpLink("https://docs.microsoft.com/dotnet/visual-basic/misc/bc42024")>
+        <HelpLink("https://learn.microsoft.com/dotnet/visual-basic/misc/bc42024")>
         <LocalizedName(GetType(FeaturesResources), NameOf(FeaturesResources.Remove_unused_variables))>
         Public Shared ReadOnly BC42024 As FixIdDefinition
 
@@ -27,7 +27,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageService
         <Name(IDEDiagnosticIds.SimplifyObjectCreationDiagnosticId)>
         <Order(After:=IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)>
         <ConfigurationKey("unused")>
-        <HelpLink("https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0140")>
+        <HelpLink("https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0140")>
         <LocalizedName(GetType(VBFeaturesResources), NameOf(VBFeaturesResources.Apply_object_creation_preferences))>
         Public Shared ReadOnly SimplifyObjectCreationDiagnosticId As FixIdDefinition
 
@@ -36,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageService
         <Name(IDEDiagnosticIds.UseIsNotExpressionDiagnosticId)>
         <Order(After:=IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)>
         <ConfigurationKey("unused")>
-        <HelpLink("https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0084")>
+        <HelpLink("https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0084")>
         <LocalizedName(GetType(VBFeaturesResources), NameOf(VBFeaturesResources.Apply_isnot_preferences))>
         Public Shared ReadOnly UseIsNotExpressionDiagnosticId As FixIdDefinition
     End Class

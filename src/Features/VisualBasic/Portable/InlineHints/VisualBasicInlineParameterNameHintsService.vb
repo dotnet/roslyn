@@ -6,7 +6,7 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.InlineHints
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
             Next
         End Sub
 
-        Private Function GetKind(arg As ExpressionSyntax) As HintKind
+        Private Shared Function GetKind(arg As ExpressionSyntax) As HintKind
             If TypeOf arg Is LiteralExpressionSyntax OrElse
                TypeOf arg Is InterpolatedStringExpressionSyntax Then
                 Return HintKind.Literal

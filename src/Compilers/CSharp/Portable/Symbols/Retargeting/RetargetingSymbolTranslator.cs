@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     RetargetingTranslator.Retarget(tupleErrorField.ContainingType, RetargetOptions.RetargetPrimitiveTypesByName),
                     tupleErrorField.Name,
                     tupleErrorField.TupleElementIndex,
-                    tupleErrorField.Locations.IsEmpty ? null : tupleErrorField.Locations[0],
+                    tupleErrorField.TryGetFirstLocation(),
                     this.RetargetingTranslator.Retarget(tupleErrorField.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                     tupleErrorField.GetUseSiteInfo().DiagnosticInfo,
                     tupleErrorField.IsImplicitlyDeclared,
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         // This is a local type explicitly declared in source. Get information from TypeIdentifier attribute.
                         foreach (var attrData in type.GetAttributes())
                         {
-                            int signatureIndex = attrData.GetTargetAttributeSignatureIndex(type, AttributeDescription.TypeIdentifierAttribute);
+                            int signatureIndex = attrData.GetTargetAttributeSignatureIndex(AttributeDescription.TypeIdentifierAttribute);
 
                             if (signatureIndex != -1)
                             {
@@ -396,19 +396,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 return cached;
             }
 
+#nullable enable
+
             private static NamedTypeSymbol RetargetNamedTypeDefinition(PENamedTypeSymbol type, PEModuleSymbol addedModule)
             {
                 Debug.Assert(!type.ContainingModule.Equals(addedModule) &&
                              ReferenceEquals(((PEModuleSymbol)type.ContainingModule).Module, addedModule.Module));
 
-                TypeSymbol cached;
+                TypeSymbol? cached;
 
                 if (addedModule.TypeHandleToTypeMap.TryGetValue(type.Handle, out cached))
                 {
                     return (NamedTypeSymbol)cached;
                 }
 
-                NamedTypeSymbol result;
+                NamedTypeSymbol? result;
 
                 NamedTypeSymbol containingType = type.ContainingType;
                 MetadataTypeName mdName;
@@ -422,16 +424,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                     mdName = MetadataTypeName.FromTypeName(type.MetadataName, forcedArity: type.Arity);
                     result = scope.LookupMetadataType(ref mdName);
-                    Debug.Assert((object)result != null && result.Arity == type.Arity);
                 }
                 else
                 {
                     string namespaceName = type.ContainingNamespace.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat);
                     mdName = MetadataTypeName.FromNamespaceAndTypeName(namespaceName, type.MetadataName, forcedArity: type.Arity);
                     result = addedModule.LookupTopLevelMetadataType(ref mdName);
-
-                    Debug.Assert(result.Arity == type.Arity);
                 }
+
+                Debug.Assert(result is PENamedTypeSymbol peResult && peResult.Handle == type.Handle);
 
                 return result;
             }
@@ -440,13 +441,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 ref DestinationData destination,
                 NamedTypeSymbol type)
             {
-                NamedTypeSymbol result;
+                NamedTypeSymbol? result;
 
                 if (!destination.SymbolMap.TryGetValue(type, out result))
                 {
                     // Lookup by name as a TypeRef.
                     NamedTypeSymbol containingType = type.ContainingType;
-                    NamedTypeSymbol result1;
+                    NamedTypeSymbol? result1;
                     MetadataTypeName mdName;
 
                     if ((object)containingType != null)
@@ -457,16 +458,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         NamedTypeSymbol scope = PerformTypeRetargeting(ref destination, containingType);
                         mdName = MetadataTypeName.FromTypeName(type.MetadataName, forcedArity: type.Arity);
                         result1 = scope.LookupMetadataType(ref mdName);
-                        Debug.Assert((object)result1 != null && result1.Arity == type.Arity);
+                        Debug.Assert(result1?.IsErrorType() != true);
+
+                        result1 ??= new MissingMetadataTypeSymbol.Nested(scope, ref mdName);
                     }
                     else
                     {
                         string namespaceName = type.ContainingNamespace.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat);
                         mdName = MetadataTypeName.FromNamespaceAndTypeName(namespaceName, type.MetadataName, forcedArity: type.Arity);
-                        result1 = destination.To.LookupTopLevelMetadataType(ref mdName, digThroughForwardedTypes: true);
-
-                        Debug.Assert(result1.Arity == type.Arity);
+                        result1 = destination.To.LookupDeclaredOrForwardedTopLevelMetadataType(ref mdName, visitedAssemblies: null);
                     }
+
+                    Debug.Assert(result1.Arity == type.Arity);
 
                     result = destination.SymbolMap.GetOrAdd(type, result1);
                     Debug.Assert(TypeSymbol.Equals(result1, result, TypeCompareKind.ConsiderEverything2));
@@ -474,6 +477,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                 return result;
             }
+
+#nullable disable
 
             public NamedTypeSymbol Retarget(NamedTypeSymbol type, RetargetOptions options)
             {
@@ -821,68 +826,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             public ImmutableArray<Symbol> Retarget(ImmutableArray<Symbol> arr)
             {
-                var symbols = ArrayBuilder<Symbol>.GetInstance(arr.Length);
-
-                foreach (var s in arr)
-                {
-                    symbols.Add(Retarget(s));
-                }
-
-                return symbols.ToImmutableAndFree();
+                return arr.SelectAsArray(
+                    static (s, self) => self.Retarget(s),
+                    this);
             }
 
             public ImmutableArray<NamedTypeSymbol> Retarget(ImmutableArray<NamedTypeSymbol> sequence)
             {
-                var result = ArrayBuilder<NamedTypeSymbol>.GetInstance(sequence.Length);
-
-                foreach (var nts in sequence)
-                {
-                    // If there is an error type in the base type list, it will end up in the interface list (rather
-                    // than as the base class), so it might end up passing through here.  If it is specified using
-                    // a primitive type keyword, then it will have a primitive type code, even if corlib is missing.
-                    Debug.Assert(nts.TypeKind == TypeKind.Error || nts.PrimitiveTypeCode == Cci.PrimitiveTypeCode.NotPrimitive);
-                    result.Add(Retarget(nts, RetargetOptions.RetargetPrimitiveTypesByName));
-                }
-
-                return result.ToImmutableAndFree();
+                return sequence.SelectAsArray(
+                    static (nts, self) =>
+                    {
+                        // If there is an error type in the base type list, it will end up in the interface list (rather
+                        // than as the base class), so it might end up passing through here.  If it is specified using
+                        // a primitive type keyword, then it will have a primitive type code, even if corlib is missing.
+                        Debug.Assert(nts.TypeKind == TypeKind.Error || nts.PrimitiveTypeCode == Cci.PrimitiveTypeCode.NotPrimitive);
+                        return self.Retarget(nts, RetargetOptions.RetargetPrimitiveTypesByName);
+                    },
+                    this);
             }
 
             public ImmutableArray<TypeSymbol> Retarget(ImmutableArray<TypeSymbol> sequence)
             {
-                var result = ArrayBuilder<TypeSymbol>.GetInstance(sequence.Length);
-
-                foreach (var ts in sequence)
-                {
-                    // In incorrect code, a type parameter constraint list can contain primitive types.
-                    Debug.Assert(ts.TypeKind == TypeKind.Error || ts.PrimitiveTypeCode == Cci.PrimitiveTypeCode.NotPrimitive);
-                    result.Add(Retarget(ts, RetargetOptions.RetargetPrimitiveTypesByName));
-                }
-
-                return result.ToImmutableAndFree();
+                return sequence.SelectAsArray(
+                    static (ts, self) =>
+                    {
+                        // In incorrect code, a type parameter constraint list can contain primitive types.
+                        Debug.Assert(ts.TypeKind == TypeKind.Error || ts.PrimitiveTypeCode == Cci.PrimitiveTypeCode.NotPrimitive);
+                        return self.Retarget(ts, RetargetOptions.RetargetPrimitiveTypesByName);
+                    },
+                    this);
             }
 
             public ImmutableArray<TypeWithAnnotations> Retarget(ImmutableArray<TypeWithAnnotations> sequence)
             {
-                var result = ArrayBuilder<TypeWithAnnotations>.GetInstance(sequence.Length);
-
-                foreach (var ts in sequence)
-                {
-                    result.Add(Retarget(ts, RetargetOptions.RetargetPrimitiveTypesByName));
-                }
-
-                return result.ToImmutableAndFree();
+                return sequence.SelectAsArray(
+                    static (ts, self) => self.Retarget(ts, RetargetOptions.RetargetPrimitiveTypesByName),
+                    this);
             }
 
             public ImmutableArray<TypeParameterSymbol> Retarget(ImmutableArray<TypeParameterSymbol> list)
             {
-                var parameters = ArrayBuilder<TypeParameterSymbol>.GetInstance(list.Length);
-
-                foreach (var tps in list)
-                {
-                    parameters.Add(Retarget(tps));
-                }
-
-                return parameters.ToImmutableAndFree();
+                return list.SelectAsArray(
+                    static (tps, self) => self.Retarget(tps),
+                    this);
             }
 
             public MethodSymbol Retarget(MethodSymbol method)
@@ -1013,18 +999,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     IEqualityComparer<MethodSymbol> retargetedMethodComparer
                 )
                 {
-                    bool modifiersHaveChanged_Ignored; //ignored
-
-                    var targetParamsBuilder = ArrayBuilder<ParameterSymbol>.GetInstance(method.Parameters.Length);
-                    foreach (var param in method.Parameters)
-                    {
-                        targetParamsBuilder.Add(
-                            new SignatureOnlyParameterSymbol(
-                                translator.Retarget(param.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
-                                translator.RetargetModifiers(param.RefCustomModifiers, out modifiersHaveChanged_Ignored),
-                                param.IsParams,
-                                param.RefKind));
-                    }
+                    var targetParams = method.Parameters.SelectAsArray(
+                        static ParameterSymbol (param, translator) => new SignatureOnlyParameterSymbol(
+                            translator.Retarget(param.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
+                            translator.RetargetModifiers(param.RefCustomModifiers, modifiersHaveChanged: out _),
+                            isParamsArray: param.IsParamsArray,
+                            isParamsCollection: param.IsParamsCollection,
+                            param.RefKind),
+                        translator);
 
                     // We will be using this symbol only for the purpose of method signature comparison,
                     // IndexedTypeParameterSymbols should work just fine as the type parameters for the method.
@@ -1036,12 +1018,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         method.MethodKind,
                         method.CallingConvention,
                         IndexedTypeParameterSymbol.TakeSymbols(method.Arity),
-                        targetParamsBuilder.ToImmutableAndFree(),
+                        targetParams,
                         method.RefKind,
                         method.IsInitOnly,
                         method.IsStatic,
                         translator.Retarget(method.ReturnTypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
-                        translator.RetargetModifiers(method.RefCustomModifiers, out modifiersHaveChanged_Ignored),
+                        translator.RetargetModifiers(method.RefCustomModifiers, modifiersHaveChanged: out _),
                         ImmutableArray<MethodSymbol>.Empty);
 
                     foreach (var retargetedMember in retargetedType.GetMembers(method.Name))
@@ -1085,32 +1067,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     }
                     while (containingType is object);
 
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
             private PropertySymbol FindPropertyInRetargetedType(PropertySymbol property, NamedTypeSymbol retargetedType, IEqualityComparer<PropertySymbol> retargetedPropertyComparer)
             {
-                bool modifiersHaveChanged_Ignored; //ignored
-
-                var targetParamsBuilder = ArrayBuilder<ParameterSymbol>.GetInstance(property.Parameters.Length);
-                foreach (var param in property.Parameters)
-                {
-                    targetParamsBuilder.Add(
-                        new SignatureOnlyParameterSymbol(
-                            Retarget(param.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
-                            RetargetModifiers(param.RefCustomModifiers, out modifiersHaveChanged_Ignored),
-                            param.IsParams,
-                            param.RefKind));
-                }
+                var targetParams = property.Parameters.SelectAsArray(
+                    static ParameterSymbol (param, self) => new SignatureOnlyParameterSymbol(
+                        self.Retarget(param.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
+                        self.RetargetModifiers(param.RefCustomModifiers, modifiersHaveChanged: out _),
+                        isParamsArray: param.IsParamsArray,
+                        isParamsCollection: param.IsParamsCollection,
+                        param.RefKind),
+                    this);
 
                 var targetProperty = new SignatureOnlyPropertySymbol(
                     property.Name,
                     retargetedType,
-                    targetParamsBuilder.ToImmutableAndFree(),
+                    targetParams,
                     property.RefKind,
                     Retarget(property.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
-                    RetargetModifiers(property.RefCustomModifiers, out modifiersHaveChanged_Ignored),
+                    RetargetModifiers(property.RefCustomModifiers, modifiersHaveChanged: out _),
                     property.IsStatic,
                     ImmutableArray<PropertySymbol>.Empty);
 
@@ -1169,11 +1147,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             internal IEnumerable<CSharpAttributeData> RetargetAttributes(IEnumerable<CSharpAttributeData> attributes)
             {
-#if DEBUG
-                SynthesizedAttributeData x = null;
-                SourceAttributeData y = x; // Code below relies on the fact that SynthesizedAttributeData derives from SourceAttributeData.
-                x = (SynthesizedAttributeData)y;
-#endif
                 foreach (var attributeData in attributes)
                 {
                     yield return this.RetargetAttributeData(attributeData);
@@ -1182,14 +1155,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             private CSharpAttributeData RetargetAttributeData(CSharpAttributeData oldAttributeData)
             {
-                SourceAttributeData oldAttribute = (SourceAttributeData)oldAttributeData;
-
-                MethodSymbol oldAttributeCtor = oldAttribute.AttributeConstructor;
+                MethodSymbol oldAttributeCtor = oldAttributeData.AttributeConstructor;
                 MethodSymbol newAttributeCtor = (object)oldAttributeCtor == null ?
                     null :
                     Retarget(oldAttributeCtor, MemberSignatureComparer.RetargetedExplicitImplementationComparer);
 
-                NamedTypeSymbol oldAttributeType = oldAttribute.AttributeClass;
+                NamedTypeSymbol oldAttributeType = oldAttributeData.AttributeClass;
                 NamedTypeSymbol newAttributeType;
                 if ((object)newAttributeCtor != null)
                 {
@@ -1204,24 +1175,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     newAttributeType = null;
                 }
 
-                ImmutableArray<TypedConstant> oldAttributeCtorArguments = oldAttribute.CommonConstructorArguments;
+                ImmutableArray<TypedConstant> oldAttributeCtorArguments = oldAttributeData.CommonConstructorArguments;
                 ImmutableArray<TypedConstant> newAttributeCtorArguments = RetargetAttributeConstructorArguments(oldAttributeCtorArguments);
 
-                ImmutableArray<KeyValuePair<string, TypedConstant>> oldAttributeNamedArguments = oldAttribute.CommonNamedArguments;
+                ImmutableArray<KeyValuePair<string, TypedConstant>> oldAttributeNamedArguments = oldAttributeData.CommonNamedArguments;
                 ImmutableArray<KeyValuePair<string, TypedConstant>> newAttributeNamedArguments = RetargetAttributeNamedArguments(oldAttributeNamedArguments);
 
                 // Must create a RetargetingAttributeData even if the types and
                 // arguments are unchanged since the AttributeData instance is
                 // used to resolve System.Type which may require retargeting.
                 return new RetargetingAttributeData(
-                    oldAttribute.ApplicationSyntaxReference,
+                    oldAttributeData,
                     newAttributeType,
                     newAttributeCtor,
                     newAttributeCtorArguments,
-                    oldAttribute.ConstructorArgumentsSourceIndices,
-                    newAttributeNamedArguments,
-                    oldAttribute.HasErrors,
-                    oldAttribute.IsConditionallyOmitted);
+                    newAttributeNamedArguments);
             }
 
             private ImmutableArray<TypedConstant> RetargetAttributeConstructorArguments(ImmutableArray<TypedConstant> constructorArguments)
@@ -1385,7 +1353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             public override Symbol VisitParameter(ParameterSymbol symbol, RetargetOptions options)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public override Symbol VisitField(FieldSymbol symbol, RetargetOptions options)

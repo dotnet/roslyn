@@ -4,194 +4,186 @@
 
 using System.Text;
 
-namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
+namespace Microsoft.CodeAnalysis.EditorConfig.Parsing;
+
+internal readonly partial struct SectionMatcher
 {
-    internal readonly partial struct SectionMatcher
+    private struct Lexer(string headerText)
     {
-        private struct Lexer
+        public int Position { get; set; } = 0;
+
+        public readonly bool IsDone => Position >= headerText.Length;
+
+        public TokenKind Lex()
         {
-            private readonly string _headerText;
-            public int Position { get; set; }
-
-            public Lexer(string headerText)
+            var tokenKind = GetTokenKindAtPosition(headerText, Position);
+            switch (tokenKind)
             {
-                _headerText = headerText;
-                Position = 0;
-            }
-
-            public bool IsDone => Position >= _headerText.Length;
-
-            public TokenKind Lex()
-            {
-                var tokenKind = GetTokenKindAtPosition(_headerText, Position);
-                switch (tokenKind)
-                {
-                    case TokenKind.StarStar:
-                        Position += 2;
-                        break;
-                    case TokenKind.SimpleCharacter:
-                        if (_headerText[Position] == '\\')
-                        {
-                            // Backslash escapes the next character
-                            Position++;
-                        }
-
-                        // Don't increment position, since caller needs to fetch the character
-                        break;
-                    case TokenKind.Question:
-                    case TokenKind.OpenCurly:
-                    case TokenKind.Comma:
-                    case TokenKind.OpenBracket:
-                    case TokenKind.CloseCurly:
-                    case TokenKind.Star:
+                case TokenKind.StarStar:
+                    Position += 2;
+                    break;
+                case TokenKind.SimpleCharacter:
+                    if (headerText[Position] == '\\')
+                    {
+                        // Backslash escapes the next character
                         Position++;
-                        break;
-                    case TokenKind.BadToken:
-                    default:
-                        break;
-                }
+                    }
 
-                return tokenKind;
+                    // Don't increment position, since caller needs to fetch the character
+                    break;
+                case TokenKind.Question:
+                case TokenKind.OpenCurly:
+                case TokenKind.Comma:
+                case TokenKind.OpenBracket:
+                case TokenKind.CloseCurly:
+                case TokenKind.Star:
+                    Position++;
+                    break;
+                case TokenKind.BadToken:
+                default:
+                    break;
             }
 
-            public bool TryPeekNext(out TokenKind kind)
-            {
-                var position = Position;
-                position++;
-                if (position < _headerText.Length)
-                {
-                    kind = GetTokenKindAtPosition(_headerText, position);
-                    return true;
-                }
+            return tokenKind;
+        }
 
-                kind = default;
-                return false;
+        public readonly bool TryPeekNext(out TokenKind kind)
+        {
+            var position = Position;
+            position++;
+            if (position < headerText.Length)
+            {
+                kind = GetTokenKindAtPosition(headerText, position);
+                return true;
             }
 
-            public bool TryPeekPrevious(out TokenKind kind)
-            {
-                var position = Position;
-                position--;
-                if (position >= 0)
-                {
-                    kind = GetTokenKindAtPosition(_headerText, position);
-                    return true;
-                }
+            kind = default;
+            return false;
+        }
 
-                kind = default;
-                return false;
+        public readonly bool TryPeekPrevious(out TokenKind kind)
+        {
+            var position = Position;
+            position--;
+            if (position >= 0)
+            {
+                kind = GetTokenKindAtPosition(headerText, position);
+                return true;
             }
 
-            private static TokenKind GetTokenKindAtPosition(string headerText, int position)
+            kind = default;
+            return false;
+        }
+
+        private static TokenKind GetTokenKindAtPosition(string headerText, int position)
+        {
+            switch (headerText[position])
             {
-                switch (headerText[position])
-                {
-                    case '*':
-                        {
-                            position++;
-                            if (position < headerText.Length &&
-                                headerText[position] == '*')
-                            {
-                                return TokenKind.StarStar;
-                            }
-                            else
-                            {
-                                return TokenKind.Star;
-                            }
-                        }
-
-                    case '?':
-                        return TokenKind.Question;
-
-                    case '{':
-                        return TokenKind.OpenCurly;
-
-                    case ',':
-                        return TokenKind.Comma;
-
-                    case '}':
-                        return TokenKind.CloseCurly;
-
-                    case '[':
-                        return TokenKind.OpenBracket;
-
-                    case '\\':
+                case '*':
+                    {
                         position++;
-                        if (position >= headerText.Length)
+                        if (position < headerText.Length &&
+                            headerText[position] == '*')
                         {
-                            return TokenKind.BadToken;
+                            return TokenKind.StarStar;
                         }
+                        else
+                        {
+                            return TokenKind.Star;
+                        }
+                    }
 
-                        return TokenKind.SimpleCharacter;
-                    default:
-                        return TokenKind.SimpleCharacter;
-                }
+                case '?':
+                    return TokenKind.Question;
+
+                case '{':
+                    return TokenKind.OpenCurly;
+
+                case ',':
+                    return TokenKind.Comma;
+
+                case '}':
+                    return TokenKind.CloseCurly;
+
+                case '[':
+                    return TokenKind.OpenBracket;
+
+                case '\\':
+                    position++;
+                    if (position >= headerText.Length)
+                    {
+                        return TokenKind.BadToken;
+                    }
+
+                    return TokenKind.SimpleCharacter;
+                default:
+                    return TokenKind.SimpleCharacter;
             }
+        }
 
-            public char CurrentCharacter => _headerText[Position];
+        public readonly char CurrentCharacter => headerText[Position];
 
-            public char EatCurrentCharacter() => _headerText[Position++];
+        public char EatCurrentCharacter() => headerText[Position++];
 
-            public bool TryEatCurrentCharacter(out char nextChar)
+        public bool TryEatCurrentCharacter(out char nextChar)
+        {
+            if (IsDone)
             {
-                if (IsDone)
+                nextChar = default;
+                return false;
+            }
+            else
+            {
+                nextChar = EatCurrentCharacter();
+                return true;
+            }
+        }
+
+        public readonly char this[int position] => headerText[position];
+
+        public string? TryLexNumber()
+        {
+            var start = true;
+            var sb = new StringBuilder();
+
+            while (!IsDone)
+            {
+                var currentChar = CurrentCharacter;
+                if (start && currentChar == '-')
                 {
-                    nextChar = default;
-                    return false;
+                    Position++;
+                    sb.Append('-');
+                }
+                else if (char.IsDigit(currentChar))
+                {
+                    Position++;
+                    sb.Append(currentChar);
                 }
                 else
                 {
-                    nextChar = EatCurrentCharacter();
-                    return true;
-                }
-            }
-
-            public char this[int position] => _headerText[position];
-
-            public string? TryLexNumber()
-            {
-                var start = true;
-                var sb = new StringBuilder();
-
-                while (!IsDone)
-                {
-                    var currentChar = CurrentCharacter;
-                    if (start && currentChar == '-')
-                    {
-                        Position++;
-                        sb.Append('-');
-                    }
-                    else if (char.IsDigit(currentChar))
-                    {
-                        Position++;
-                        sb.Append(currentChar);
-                    }
-                    else
-                    {
-                        break;
-                    }
-
-                    start = false;
+                    break;
                 }
 
-                var str = sb.ToString();
-                return str.Length == 0 || str == "-"
-                    ? null
-                    : str;
+                start = false;
             }
-        }
 
-        private enum TokenKind
-        {
-            BadToken,
-            SimpleCharacter,
-            Star,
-            StarStar,
-            Question,
-            OpenCurly,
-            CloseCurly,
-            Comma,
-            OpenBracket,
+            var str = sb.ToString();
+            return str.Length == 0 || str == "-"
+                ? null
+                : str;
         }
+    }
+
+    private enum TokenKind
+    {
+        BadToken,
+        SimpleCharacter,
+        Star,
+        StarStar,
+        Question,
+        OpenCurly,
+        CloseCurly,
+        Comma,
+        OpenBracket,
     }
 }

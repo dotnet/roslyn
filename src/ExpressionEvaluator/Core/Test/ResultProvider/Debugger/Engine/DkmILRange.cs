@@ -13,7 +13,7 @@ using System;
 
 namespace Microsoft.VisualStudio.Debugger.Clr
 {
-    public struct DkmILRange
+    public readonly struct DkmILRange
     {
         public readonly uint StartOffset;
 

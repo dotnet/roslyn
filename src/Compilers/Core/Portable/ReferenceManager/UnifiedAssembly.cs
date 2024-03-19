@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     /// Created only for assemblies that require runtime binding redirection policy,
     /// i.e. not for Framework assemblies.
     /// </summary>
-    internal struct UnifiedAssembly<TAssemblySymbol>
+    internal readonly struct UnifiedAssembly<TAssemblySymbol>
         where TAssemblySymbol : class, IAssemblySymbolInternal
     {
         /// <summary>

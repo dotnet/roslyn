@@ -18,6 +18,7 @@ using Roslyn.Utilities;
 using Cci = Microsoft.Cci;
 using Microsoft.CodeAnalysis.Symbols;
 using System.Diagnostics;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Roslyn.Test.Utilities
 {
@@ -45,23 +46,16 @@ namespace Roslyn.Test.Utilities
         {
             if (operandType == OperandType.InlineTok)
             {
-                // Check for an encoding of the maximum method token index value.
-                if ((token & 0xff000000) == 0x40000000)
+                switch ((Cci.MetadataWriter.RawTokenEncoding)(token >> 24))
                 {
-                    return "Max Method Token Index";
+                    case Cci.MetadataWriter.RawTokenEncoding.GreatestMethodDefinitionRowId:
+                        return "Max Method Token Index";
+
+                    case Cci.MetadataWriter.RawTokenEncoding.DocumentRowId:
+                        return "Source Document " + (token & 0x00ffffff).ToString();
                 }
 
-                // Check for an encoding of a source document index.
-                if ((token & 0xff000000) == 0x20000000)
-                {
-                    return "Source Document " + (token & 0x00ffffff).ToString();
-                }
-
-                // Check for a raw token value, encoded with a 1 high-order bit.
-                if ((token & 0x80000000) != 0 && token != 0xffffffff)
-                {
-                    token &= 0x7fffffff;
-                }
+                token &= 0xffffff;
             }
 
             object reference = _tokenDeferral.GetReferenceFromToken(token);

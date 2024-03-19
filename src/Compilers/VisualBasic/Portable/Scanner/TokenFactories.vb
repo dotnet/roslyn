@@ -40,7 +40,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Shared ReadOnly s_twelveSpacesWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("            ")
         Private Shared ReadOnly s_sixteenSpacesWhitespaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia("                ")
 
-
         Private Shared Function CreateWsTable() As CachingFactory(Of TriviaKey, SyntaxTrivia)
             Dim table = New CachingFactory(Of TriviaKey, SyntaxTrivia)(TABLE_LIMIT, Nothing, s_triviaKeyHasher, s_triviaKeyEquality)
 

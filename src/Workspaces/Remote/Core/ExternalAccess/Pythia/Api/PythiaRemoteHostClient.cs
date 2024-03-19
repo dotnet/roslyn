@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 
         public static async Task<PythiaRemoteHostClient?> TryGetClientAsync(HostWorkspaceServices services, PythiaServiceDescriptorsWrapper serviceDescriptors, PythiaRemoteServiceCallbackDispatcherRegistry callbackDispatchers, CancellationToken cancellationToken = default)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(services.SolutionServices, cancellationToken).ConfigureAwait(false);
             if (client is null)
                 return null;
 

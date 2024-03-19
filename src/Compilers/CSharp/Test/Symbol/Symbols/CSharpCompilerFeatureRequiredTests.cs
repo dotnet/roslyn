@@ -85,12 +85,12 @@ public class CSharpCompilerFeatureRequiredTests : BaseCompilerFeatureRequiredTes
             // (4,10): error CS9041: 'OnMethod.M()' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnMethod.M();
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "M").WithArguments("OnMethod.M()", "test").WithLocation(4, 10),
-            // (5,16): error CS9041: 'void' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // (5,16): error CS9041: 'void value' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnMethodReturn.M();
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "M").WithArguments("void", "test").WithLocation(5, 16),
-            // (6,13): error CS9041: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "M").WithArguments("void value", "test").WithLocation(5, 16),
+            // (6,13): error CS9041: 'int param' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnParameter.M(1);
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "M").WithArguments("int", "test").WithLocation(6, 13),
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "M").WithArguments("int param", "test").WithLocation(6, 13),
             // (7,13): error CS9041: 'OnField.Field' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnField.Field;
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Field").WithArguments("OnField.Field", "test").WithLocation(7, 13),
@@ -127,18 +127,18 @@ public class CSharpCompilerFeatureRequiredTests : BaseCompilerFeatureRequiredTes
             // (24,1): error CS9041: 'OnDelegateType' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnDelegateType onDelegateType;
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnDelegateType").WithArguments("OnDelegateType", "test").WithLocation(24, 1),
-            // (25,28): error CS9041: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // (25,28): error CS9041: 'int param' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnIndexedPropertyParameter.set_Property(1, 1);
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "set_Property").WithArguments("int", "test").WithLocation(25, 28),
-            // (26,32): error CS9041: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "set_Property").WithArguments("int param", "test").WithLocation(25, 28),
+            // (26,32): error CS9041: 'int param' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnIndexedPropertyParameter.get_Property(1);
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "get_Property").WithArguments("int", "test").WithLocation(26, 32),
-            // (27,1): error CS9041: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "get_Property").WithArguments("int param", "test").WithLocation(26, 32),
+            // (27,1): error CS9041: 'int i' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // new OnThisIndexerParameter()[1] = 1;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "new OnThisIndexerParameter()[1]").WithArguments("int", "test").WithLocation(27, 1),
-            // (28,5): error CS9041: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "new OnThisIndexerParameter()[1]").WithArguments("int i", "test").WithLocation(27, 1),
+            // (28,5): error CS9041: 'int i' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = new OnThisIndexerParameter()[1];
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "new OnThisIndexerParameter()[1]").WithArguments("int", "test").WithLocation(28, 5)
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "new OnThisIndexerParameter()[1]").WithArguments("int i", "test").WithLocation(28, 5)
         );
 
         var onType = comp.GetTypeByMetadataName("OnType");

@@ -1,0 +1,15 @@
+# These are common build variables that need to be injected to ensure
+# we have diagnostic logs available for investigation
+
+parameters:
+- name: configuration
+  type: string
+  default: 'Debug'
+
+variables:
+- name: ROSLYNCOMMANDLINELOGFILE
+  value: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}/Build.Server.log'
+- name: MSBUILDDEBUGCOMM
+  value: 1
+- name: MSBUILDDEBUGPATH
+  value: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}/MSBuild.comm.log'

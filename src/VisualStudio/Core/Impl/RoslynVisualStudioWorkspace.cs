@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return null;
             }
 
-            var codeModelService = project.LanguageServices.GetService<ICodeModelService>();
+            var codeModelService = project.Services.GetService<ICodeModelService>();
             if (codeModelService == null)
             {
                 return null;

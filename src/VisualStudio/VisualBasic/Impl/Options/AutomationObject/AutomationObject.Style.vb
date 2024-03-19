@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
@@ -77,24 +76,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
             Set(value As String)
                 SetXmlOption(CodeStyleOptions2.PreferCollectionInitializer, value)
-            End Set
-        End Property
-
-        Public Property Style_PreferObjectInitializer_FadeOutCode As Boolean
-            Get
-                Return GetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutComplexObjectInitialization)
-            End Get
-            Set(value As Boolean)
-                SetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutComplexObjectInitialization, value)
-            End Set
-        End Property
-
-        Public Property Style_PreferCollectionInitializer_FadeOutCode As Boolean
-            Get
-                Return GetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutComplexCollectionInitialization)
-            End Get
-            Set(value As Boolean)
-                SetBooleanOption(IdeAnalyzerOptionsStorage.FadeOutComplexCollectionInitialization, value)
             End Set
         End Property
 

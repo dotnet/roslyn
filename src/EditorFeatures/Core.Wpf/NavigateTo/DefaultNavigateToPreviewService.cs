@@ -4,14 +4,16 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
     internal sealed class DefaultNavigateToPreviewService : INavigateToPreviewService
     {
-        public int GetProvisionalViewingStatus(Document document)
-            => 0;
+        public __VSPROVISIONALVIEWINGSTATUS GetProvisionalViewingStatus(INavigableItem.NavigableDocument document)
+            => __VSPROVISIONALVIEWINGSTATUS.PVS_Disabled;
 
         public bool CanPreview(Document document)
             => true;

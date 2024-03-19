@@ -259,12 +259,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public Assembly LoadAssembly(AssemblyName assemblyName)
                 => Assembly.Load(assemblyName);
 
-            public Assembly LoadAssembly(string assemblyFullName, string codeBasePath)
+            public Assembly LoadAssembly(string assemblyFullName, string? codeBasePath)
             {
                 var assemblyName = new AssemblyName(assemblyFullName);
                 if (!string.IsNullOrEmpty(codeBasePath))
                 {
+#pragma warning disable SYSLIB0044
                     assemblyName.CodeBase = codeBasePath;
+#pragma warning restore SYSLIB0044
                 }
 
                 return this.LoadAssembly(assemblyName);

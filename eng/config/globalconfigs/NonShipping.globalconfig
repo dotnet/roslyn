@@ -23,5 +23,8 @@ dotnet_diagnostic.RS1033.severity = none
 # Do not call 'GetTestAccessor()' from production code: does not apply to tests
 dotnet_diagnostic.RS0043.severity = none
 
+# RS1037: Add "CompilationEnd" custom tag to compilation end diagnostic descriptor - we don't care for tests.
+dotnet_diagnostic.RS1037.severity = none
+
 # VSTHRD200: Use "Async" suffix for async methods
 dotnet_diagnostic.VSTHRD200.severity = none

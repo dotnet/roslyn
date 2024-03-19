@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.KeywordHighlighting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlighting
+    <Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
     Public Class MethodDeclarationHighlighterTests
         Inherits AbstractVisualBasicKeywordHighlighterTests
 
@@ -12,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return GetType(MethodDeclarationHighlighter)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethodExample1_1() As Task
             Await TestAsync(<Text>
 Public Class C1
@@ -23,7 +24,7 @@ Public Class C1
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethodExample1_2() As Task
             Await TestAsync(<Text>
 Public Class C1
@@ -34,7 +35,7 @@ Public Class C1
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethodExample1_3() As Task
             Await TestAsync(<Text>
 Public Class C1
@@ -45,7 +46,7 @@ Public Class C1
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethodExample2_1() As Task
             Await TestAsync(<Text>
 Public Class C1
@@ -55,7 +56,7 @@ Public Class C1
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethodExample2_2() As Task
             Await TestAsync(<Text>
 Public Class C1
@@ -65,7 +66,7 @@ Public Class C1
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethodExample2_3() As Task
             Await TestAsync(<Text>
 Public Class C1
@@ -75,7 +76,7 @@ Public Class C1
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethodExample3_1() As Task
             Await TestAsync(<Text>
 Public Class C1
@@ -86,7 +87,7 @@ Public Class C1
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethodExample3_2() As Task
             Await TestAsync(<Text>
 Public Class C1
@@ -97,7 +98,7 @@ Public Class C1
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethodExample3_3() As Task
             Await TestAsync(<Text>
 Public Class C1
@@ -108,7 +109,7 @@ Public Class C1
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethodExample4_1() As Task
             Await TestAsync(<Text>
 Public Class C1
@@ -118,7 +119,7 @@ Public Class C1
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethodExample4_2() As Task
             Await TestAsync(<Text>
 Public Class C1
@@ -128,7 +129,7 @@ Public Class C1
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethodExample4_3() As Task
             Await TestAsync(<Text>
 Public Class C1
@@ -138,7 +139,7 @@ Public Class C1
 End Class</Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethod_AsyncExample1_1() As Task
             Await TestAsync(
 <Text>
@@ -169,7 +170,7 @@ End Class
 </Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethod_AsyncExample1_2() As Task
             Await TestAsync(
 <Text>
@@ -200,7 +201,7 @@ End Class
 </Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethod_AsyncExample1_3() As Task
             Await TestAsync(
 <Text>
@@ -231,7 +232,7 @@ End Class
 </Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethod_AsyncExample1_4() As Task
             Await TestAsync(
 <Text>
@@ -262,7 +263,7 @@ End Class
 </Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethod_AsyncExample1_5() As Task
             Await TestAsync(
 <Text>
@@ -293,7 +294,7 @@ End Class
 </Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethod_AsyncExample1_6() As Task
             Await TestAsync(
 <Text>
@@ -324,7 +325,7 @@ End Class
 </Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethod_Async_NestedAwaits1() As Task
             Await TestAsync(
 <Text>
@@ -340,7 +341,7 @@ End Class
 </Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethod_Async_NestedAwaits2() As Task
             Await TestAsync(
 <Text>
@@ -356,7 +357,7 @@ End Class
 </Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethod_Async_NestedAwaits3() As Task
             Await TestAsync(
 <Text>
@@ -372,7 +373,7 @@ End Class
 </Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethod_IteratorExample1_1() As Task
             Await TestAsync(
 <Text>
@@ -398,7 +399,7 @@ End Class
 </Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethod_IteratorExample1_2() As Task
             Await TestAsync(
 <Text>
@@ -424,7 +425,7 @@ End Class
 </Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethod_IteratorExample1_3() As Task
             Await TestAsync(
 <Text>
@@ -450,7 +451,7 @@ End Class
 </Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethod_IteratorExample1_4() As Task
             Await TestAsync(
 <Text>
@@ -476,7 +477,7 @@ End Class
 </Text>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <Fact>
         Public Async Function TestMethod_IteratorExample1_5() As Task
             Await TestAsync(
 <Text>

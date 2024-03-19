@@ -17,6 +17,12 @@ namespace RunTests
     {
         internal static int? TryGetParentProcessId(Process p)
         {
+            // System.Management is not supported outside of Windows.
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return null;
+            }
+
             try
             {
                 ManagementObject mo = new ManagementObject("win32_process.handle='" + p.Id + "'");

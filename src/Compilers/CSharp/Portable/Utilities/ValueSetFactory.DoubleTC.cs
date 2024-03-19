@@ -11,8 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class ValueSetFactory
     {
-        private struct DoubleTC : FloatingTC<double>, INumericTC<double>
+        private class DoubleTC : FloatingTC<double>, INumericTC<double>
         {
+            public static readonly DoubleTC Instance = new DoubleTC();
+
             double INumericTC<double>.MinValue => double.NegativeInfinity;
 
             double INumericTC<double>.MaxValue => double.PositiveInfinity;
@@ -90,7 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 value == double.NegativeInfinity ? "-Inf" :
                 value == double.PositiveInfinity ? "Inf" :
                 FormattableString.Invariant($"{value:G17}");
-
 
             double INumericTC<double>.Prev(double value)
             {

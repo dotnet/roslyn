@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -15,6 +16,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
     {
         private readonly string? _solutionName;
         private readonly string? _projectTemplate;
+        private readonly string? _templateGroupId;
 
         protected AbstractEditorTest()
         {
@@ -25,10 +27,11 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
         }
 
-        protected AbstractEditorTest(string solutionName, string projectTemplate)
+        protected AbstractEditorTest(string solutionName, string projectTemplate, string? templateGroupId = null)
         {
             _solutionName = solutionName;
             _projectTemplate = projectTemplate;
+            _templateGroupId = templateGroupId;
         }
 
         protected abstract string LanguageName { get; }
@@ -42,7 +45,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 RoslynDebug.AssertNotNull(_projectTemplate);
 
                 await TestServices.SolutionExplorer.CreateSolutionAsync(_solutionName, HangMitigatingCancellationToken);
-                await TestServices.SolutionExplorer.AddProjectAsync(ProjectName, _projectTemplate, LanguageName, HangMitigatingCancellationToken);
+                await TestServices.SolutionExplorer.AddProjectAsync(ProjectName, _projectTemplate, _templateGroupId, LanguageName, HangMitigatingCancellationToken);
                 await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ProjectName, HangMitigatingCancellationToken);
 
                 // Winforms and XAML do not open text files on creation
@@ -50,7 +53,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 if (_projectTemplate is not WellKnownProjectTemplates.WinFormsApplication and
                     not WellKnownProjectTemplates.WpfApplication and
                     not WellKnownProjectTemplates.CSharpNetCoreClassLibrary and
-                    not WellKnownProjectTemplates.VisualBasicNetCoreClassLibrary)
+                    not WellKnownProjectTemplates.VisualBasicNetCoreClassLibrary and
+                    not WellKnownProjectTemplates.Blazor)
                 {
                     await ClearEditorAsync(HangMitigatingCancellationToken);
                 }

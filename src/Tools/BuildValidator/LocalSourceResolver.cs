@@ -48,7 +48,7 @@ namespace BuildValidator
             onDiskPath ??= originalFilePath;
 
             using var fileStream = File.OpenRead(onDiskPath);
-            var sourceText = SourceText.From(fileStream, encoding: sourceTextInfo.SourceTextEncoding, checksumAlgorithm: SourceHashAlgorithm.Sha256, canBeEmbedded: false);
+            var sourceText = SourceText.From(fileStream, encoding: sourceTextInfo.SourceTextEncoding, checksumAlgorithm: sourceTextInfo.HashAlgorithm, canBeEmbedded: false);
             if (!sourceText.GetChecksum().SequenceEqual(sourceTextInfo.Hash))
             {
                 throw new Exception($@"File ""{onDiskPath}"" has incorrect hash");

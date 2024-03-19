@@ -104,7 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // c is [ 1, prop: 0 ]
                 Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments(",").WithLocation(1, 17));
 
-
             N(SyntaxKind.IsPatternExpression);
             {
                 N(SyntaxKind.IdentifierName);

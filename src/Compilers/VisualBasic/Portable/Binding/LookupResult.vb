@@ -528,7 +528,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-
         ' Merge two results, returning the best. If there are
         ' multiple viable results, either produce a result with both symbols if they can overload each other,
         ' or use the current one..

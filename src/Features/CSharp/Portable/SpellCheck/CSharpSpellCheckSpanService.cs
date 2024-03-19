@@ -4,19 +4,14 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.CSharp.Classification;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SpellCheck;
 
-namespace Microsoft.CodeAnalysis.CSharp.SpellCheck
+namespace Microsoft.CodeAnalysis.CSharp.SpellCheck;
+
+[ExportLanguageService(typeof(ISpellCheckSpanService), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class CSharpSpellCheckSpanService() : AbstractSpellCheckSpanService('\\')
 {
-    [ExportLanguageService(typeof(ISpellCheckSpanService), LanguageNames.CSharp), Shared]
-    internal class CSharpSpellCheckSpanService : AbstractSpellCheckSpanService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpSpellCheckSpanService()
-        {
-        }
-    }
 }

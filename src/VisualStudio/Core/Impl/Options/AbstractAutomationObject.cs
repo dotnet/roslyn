@@ -11,25 +11,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     public abstract class AbstractAutomationObject
     {
-        private readonly Workspace _workspace;
+        private readonly ILegacyGlobalOptionService _legacyGlobalOptions;
         private readonly string _languageName;
 
-        protected AbstractAutomationObject(Workspace workspace, string languageName)
-            => (_workspace, _languageName) = (workspace, languageName);
+        internal AbstractAutomationObject(ILegacyGlobalOptionService legacyGlobalOptions, string languageName)
+            => (_legacyGlobalOptions, _languageName) = (legacyGlobalOptions, languageName);
 
-        private protected T GetOption<T>(PerLanguageOption2<T> key)
-            => _workspace.Options.GetOption(key, _languageName);
+        private protected T GetOption<T>(PerLanguageOption2<T> option)
+            => _legacyGlobalOptions.GlobalOptions.GetOption(option, _languageName);
 
-        private protected void SetOption<T>(PerLanguageOption2<T> key, T value)
-            => _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(key, _languageName, value)));
+        private protected void SetOption<T>(PerLanguageOption2<T> option, T value)
+        {
+            _legacyGlobalOptions.GlobalOptions.SetGlobalOption(option, _languageName, value);
 
-        private protected T GetOption<T>(Option2<T> key)
-            => _workspace.Options.GetOption(key);
+            // May be updating an internally-defined public option stored in solution snapshots:
+            _legacyGlobalOptions.UpdateRegisteredWorkspaces();
+        }
 
-        private protected void SetOption<T>(Option2<T> key, T value)
-            => _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(key, value)));
+        private protected T GetOption<T>(Option2<T> option)
+            => _legacyGlobalOptions.GlobalOptions.GetOption(option);
+
+        private protected void SetOption<T>(Option2<T> option, T value)
+        {
+            _legacyGlobalOptions.GlobalOptions.SetGlobalOption(option, value);
+
+            // May be updating an internally-defined public option stored in solution snapshots:
+            _legacyGlobalOptions.UpdateRegisteredWorkspaces();
+        }
 
         private protected int GetBooleanOption(PerLanguageOption2<bool?> key)
             => NullableBooleanToInteger(GetOption(key));

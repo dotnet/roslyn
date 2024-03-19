@@ -16,58 +16,57 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
+namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeStructFieldsWritable), Shared]
+internal class CSharpMakeStructFieldsWritableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeStructFieldsWritable), Shared]
-    internal class CSharpMakeStructFieldsWritableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpMakeStructFieldsWritableCodeFixProvider()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpMakeStructFieldsWritableCodeFixProvider()
-        {
-        }
+    }
 
-        public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.MakeStructFieldsWritable);
+    public override ImmutableArray<string> FixableDiagnosticIds
+        => [IDEDiagnosticIds.MakeStructFieldsWritable];
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            RegisterCodeFix(context, CSharpAnalyzersResources.Make_readonly_fields_writable, nameof(CSharpAnalyzersResources.Make_readonly_fields_writable));
-            return Task.CompletedTask;
-        }
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    {
+        RegisterCodeFix(context, CSharpAnalyzersResources.Make_readonly_fields_writable, nameof(CSharpAnalyzersResources.Make_readonly_fields_writable));
+        return Task.CompletedTask;
+    }
 
-        protected override Task FixAllAsync(
-            Document document,
-            ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor,
-            CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override Task FixAllAsync(
+        Document document,
+        ImmutableArray<Diagnostic> diagnostics,
+        SyntaxEditor editor,
+        CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    {
+        foreach (var diagnostic in diagnostics)
         {
-            foreach (var diagnostic in diagnostics)
+            var diagnosticNode = diagnostic.Location.FindNode(cancellationToken);
+
+            if (diagnosticNode is not StructDeclarationSyntax structDeclaration)
             {
-                var diagnosticNode = diagnostic.Location.FindNode(cancellationToken);
-
-                if (diagnosticNode is not StructDeclarationSyntax structDeclaration)
-                {
-                    continue;
-                }
-
-                var fieldDeclarations = structDeclaration.Members
-                    .OfType<FieldDeclarationSyntax>();
-
-                foreach (var fieldDeclaration in fieldDeclarations)
-                {
-                    var fieldDeclarationModifiers = editor.Generator.GetModifiers(fieldDeclaration);
-                    var containsReadonlyModifier =
-                        (fieldDeclarationModifiers & DeclarationModifiers.ReadOnly) == DeclarationModifiers.ReadOnly;
-
-                    if (containsReadonlyModifier)
-                    {
-                        editor.SetModifiers(fieldDeclaration, fieldDeclarationModifiers.WithIsReadOnly(false));
-                    }
-                }
+                continue;
             }
 
-            return Task.CompletedTask;
+            var fieldDeclarations = structDeclaration.Members
+                .OfType<FieldDeclarationSyntax>();
+
+            foreach (var fieldDeclaration in fieldDeclarations)
+            {
+                var fieldDeclarationModifiers = editor.Generator.GetModifiers(fieldDeclaration);
+                var containsReadonlyModifier =
+                    (fieldDeclarationModifiers & DeclarationModifiers.ReadOnly) == DeclarationModifiers.ReadOnly;
+
+                if (containsReadonlyModifier)
+                {
+                    editor.SetModifiers(fieldDeclaration, fieldDeclarationModifiers.WithIsReadOnly(false));
+                }
+            }
         }
+
+        return Task.CompletedTask;
     }
 }

@@ -4,12 +4,14 @@
 
 Imports System
 Imports System.Composition
+Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
     <ExportLanguageService(GetType(ICodeStyleService), LanguageNames.VisualBasic), [Shared]>
-    Friend NotInheritable Class CSharpCodeStyleService
+    Friend NotInheritable Class VisualBasicCodeStyleService
         Implements ICodeStyleService
 
         <ImportingConstructor>
@@ -22,5 +24,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
                 Return VisualBasicIdeCodeStyleOptions.Default
             End Get
         End Property
+
+        Public Function GetIdeCodeStyleOptions(options As IOptionsReader, fallbackOptions As IdeCodeStyleOptions) As IdeCodeStyleOptions Implements ICodeStyleService.GetIdeCodeStyleOptions
+            Return New VisualBasicIdeCodeStyleOptions(options, DirectCast(fallbackOptions, VisualBasicIdeCodeStyleOptions))
+        End Function
     End Class
 End Namespace

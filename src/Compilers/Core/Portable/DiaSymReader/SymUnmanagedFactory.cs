@@ -154,6 +154,9 @@ namespace Microsoft.DiaSymReader
         {
             if (lazyType == null)
             {
+#if NET6_0_OR_GREATER
+                System.Diagnostics.Debug.Assert(OperatingSystem.IsWindows());
+#endif
                 lazyType = Marshal.GetTypeFromCLSID(clsid);
             }
 

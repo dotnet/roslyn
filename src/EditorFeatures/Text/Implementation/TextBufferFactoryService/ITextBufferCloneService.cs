@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
-    internal interface ITextBufferCloneService : IWorkspaceService
+    internal interface ITextBufferCloneService
     {
         /// <summary>
         /// get new <see cref="ITextBuffer"/> from <see cref="SnapshotSpan"/> with <see cref="IContentTypeRegistryService.UnknownContentType"/>

@@ -7,6 +7,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -18,19 +19,20 @@ using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpe
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DeclarationInfoTests
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class DeclarationNameCompletion_ContextTests
     {
         protected CSharpTestWorkspaceFixture fixture = new CSharpTestWorkspaceFixture();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterTypeInClass1()
         {
-            var markup = @"
-class C
-{
-    int $$
-}
-";
+            var markup = """
+                class C
+                {
+                    int $$
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Field),
                 new SymbolKindOrTypeKind(SymbolKind.Property),
@@ -40,15 +42,15 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterTypeInClassWithAccessibility()
         {
-            var markup = @"
-class C
-{
-    public int $$
-}
-";
+            var markup = """
+                class C
+                {
+                    public int $$
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Field),
                 new SymbolKindOrTypeKind(SymbolKind.Property),
@@ -58,15 +60,15 @@ class C
             await VerifyAccessibility(markup, Accessibility.Public);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterTypeInClassVirtual()
         {
-            var markup = @"
-class C
-{
-    public virtual int $$
-}
-";
+            var markup = """
+                class C
+                {
+                    public virtual int $$
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Property),
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
@@ -75,15 +77,15 @@ class C
             await VerifyAccessibility(markup, Accessibility.Public);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterTypeInClassStatic()
         {
-            var markup = @"
-class C
-{
-    private static int $$
-}
-";
+            var markup = """
+                class C
+                {
+                    private static int $$
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Field),
                 new SymbolKindOrTypeKind(SymbolKind.Property),
@@ -93,15 +95,15 @@ class C
             await VerifyAccessibility(markup, Accessibility.Private);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task AfterTypeInClassConst()
         {
-            var markup = @"
-class C
-{
-    private const int $$
-}
-";
+            var markup = """
+                class C
+                {
+                    private const int $$
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Field));
             await VerifyModifiers(markup, new DeclarationModifiers(isConst: true));
@@ -109,18 +111,18 @@ class C
             await VerifyAccessibility(markup, Accessibility.Private);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task VariableDeclaration1()
         {
-            var markup = @"
-class C
-{
-    void goo()
-    {
-        int $$
-    }
-}
-";
+            var markup = """
+                class C
+                {
+                    void goo()
+                    {
+                        int $$
+                    }
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local),
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
@@ -129,18 +131,18 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task VariableDeclaration2()
         {
-            var markup = @"
-class C
-{
-    void goo()
-    {
-        int c1, $$
-    }
-}
-";
+            var markup = """
+                class C
+                {
+                    void goo()
+                    {
+                        int c1, $$
+                    }
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local));
             await VerifyModifiers(markup, new DeclarationModifiers());
@@ -148,18 +150,18 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ReadonlyVariableDeclaration1()
         {
-            var markup = @"
-class C
-{
-    void goo()
-    {
-        readonly int $$
-    }
-}
-";
+            var markup = """
+                class C
+                {
+                    void goo()
+                    {
+                        readonly int $$
+                    }
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local),
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
@@ -168,18 +170,18 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ReadonlyVariableDeclaration2()
         {
-            var markup = @"
-class C
-{
-    void goo()
-    {
-        readonly int c1, $$
-    }
-}
-";
+            var markup = """
+                class C
+                {
+                    void goo()
+                    {
+                        readonly int c1, $$
+                    }
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local));
             await VerifyModifiers(markup, new DeclarationModifiers(isReadOnly: true));
@@ -187,18 +189,18 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task UsingVariableDeclaration1()
         {
-            var markup = @"
-class C
-{
-    void M()
-    {
-        using (int i$$
-    }
-}
-";
+            var markup = """
+                class C
+                {
+                    void M()
+                    {
+                        using (int i$$
+                    }
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local));
             await VerifyModifiers(markup, new DeclarationModifiers());
@@ -206,18 +208,18 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task UsingVariableDeclaration2()
         {
-            var markup = @"
-class C
-{
-    void M()
-    {
-        using (int i1, $$
-    }
-}
-";
+            var markup = """
+                class C
+                {
+                    void M()
+                    {
+                        using (int i1, $$
+                    }
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local));
             await VerifyModifiers(markup, new DeclarationModifiers());
@@ -225,18 +227,18 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ForVariableDeclaration1()
         {
-            var markup = @"
-class C
-{
-    void M()
-    {
-        for (int i$$
-    }
-}
-";
+            var markup = """
+                class C
+                {
+                    void M()
+                    {
+                        for (int i$$
+                    }
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local));
             await VerifyModifiers(markup, new DeclarationModifiers());
@@ -244,18 +246,18 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ForVariableDeclaration2()
         {
-            var markup = @"
-class C
-{
-    void M()
-    {
-        for (int i1, $$
-    }
-}
-";
+            var markup = """
+                class C
+                {
+                    void M()
+                    {
+                        for (int i1, $$
+                    }
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local));
             await VerifyModifiers(markup, new DeclarationModifiers());
@@ -263,18 +265,18 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ForEachVariableDeclaration()
         {
-            var markup = @"
-class C
-{
-    void M()
-    {
-        foreach (int $$
-    }
-}
-";
+            var markup = """
+                class C
+                {
+                    void M()
+                    {
+                        foreach (int $$
+                    }
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local));
             await VerifyModifiers(markup, new DeclarationModifiers());
@@ -282,16 +284,16 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task Parameter1()
         {
-            var markup = @"
-class C
-{
-    void goo(C $$
-    }
-}
-";
+            var markup = """
+                class C
+                {
+                    void goo(C $$
+                    }
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Parameter));
             await VerifyModifiers(markup, new DeclarationModifiers());
@@ -299,16 +301,16 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task Parameter2()
         {
-            var markup = @"
-class C
-{
-    void goo(C c1, C $$
-    }
-}
-";
+            var markup = """
+                class C
+                {
+                    void goo(C c1, C $$
+                    }
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Parameter));
             await VerifyModifiers(markup, new DeclarationModifiers());
@@ -316,16 +318,16 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ParameterAfterPredefinedType1()
         {
-            var markup = @"
-class C
-{
-    void goo(string $$
-    }
-}
-";
+            var markup = """
+                class C
+                {
+                    void goo(string $$
+                    }
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Parameter));
             await VerifyModifiers(markup, new DeclarationModifiers());
@@ -333,16 +335,16 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ParameterAfterPredefinedType2()
         {
-            var markup = @"
-class C
-{
-    void goo(C c1, string $$
-    }
-}
-";
+            var markup = """
+                class C
+                {
+                    void goo(C c1, string $$
+                    }
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Parameter));
             await VerifyModifiers(markup, new DeclarationModifiers());
@@ -350,17 +352,17 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ParameterAfterGeneric()
         {
-            var markup = @"
-using System.Collections.Generic;
-class C
-{
-    void goo(C c1, List<string> $$
-    }
-}
-";
+            var markup = """
+                using System.Collections.Generic;
+                class C
+                {
+                    void goo(C c1, List<string> $$
+                    }
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Parameter));
             await VerifyModifiers(markup, new DeclarationModifiers());
@@ -368,142 +370,142 @@ class C
             await VerifyAccessibility(markup, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ClassTypeParameter1()
         {
-            var markup = @"
-class C<$$
-{
-}
-";
+            var markup = """
+                class C<$$
+                {
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.TypeParameter));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ClassTypeParameter2()
         {
-            var markup = @"
-class C<T1, $$
-{
-}
-";
+            var markup = """
+                class C<T1, $$
+                {
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.TypeParameter));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ModifierExclusion1()
         {
-            var markup = @"
-class C
-{
-    readonly int $$
-}
-";
+            var markup = """
+                class C
+                {
+                    readonly int $$
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Field));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ModifierExclusion2()
         {
-            var markup = @"
-class C
-{
-    const int $$
-}
-";
+            var markup = """
+                class C
+                {
+                    const int $$
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Field));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ModifierExclusion3()
         {
-            var markup = @"
-class C
-{
-    abstract int $$
-}
-";
+            var markup = """
+                class C
+                {
+                    abstract int $$
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Property),
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ModifierExclusion4()
         {
-            var markup = @"
-class C
-{
-    virtual int $$
-}
-";
+            var markup = """
+                class C
+                {
+                    virtual int $$
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Property),
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ModifierExclusion5()
         {
-            var markup = @"
-class C
-{
-    sealed int $$
-}
-";
+            var markup = """
+                class C
+                {
+                    sealed int $$
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Property),
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ModifierExclusion6()
         {
-            var markup = @"
-class C
-{
-    override int $$
-}
-";
+            var markup = """
+                class C
+                {
+                    override int $$
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Property),
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ModifierExclusion7()
         {
-            var markup = @"
-class C
-{
-    async int $$
-}
-";
+            var markup = """
+                class C
+                {
+                    async int $$
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task ModifierExclusion8()
         {
             // Note that the async is not included in the incomplete member syntax
-            var markup = @"
-class C
-{
-    partial int $$
-}
-";
+            var markup = """
+                class C
+                {
+                    partial int $$
+                }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Field),
                 new SymbolKindOrTypeKind(SymbolKind.Property),
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
@@ -523,7 +525,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Local));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
@@ -543,7 +545,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Local));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
@@ -565,7 +567,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Local));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
@@ -588,7 +590,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
@@ -608,7 +610,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
@@ -630,7 +632,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
@@ -650,7 +652,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
@@ -670,7 +672,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory]
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
@@ -692,80 +694,80 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task LocalInsideMethod1()
         {
-            var markup = @"
-namespace ConsoleApp1
-{
-    class ReallyLongClassName { }
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            ReallyLongClassName $$
-        }
-    }
-";
+            var markup = """
+                namespace ConsoleApp1
+                {
+                    class ReallyLongClassName { }
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                            ReallyLongClassName $$
+                        }
+                    }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local),
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task LocalInsideMethod2()
         {
-            var markup = @"
-namespace ConsoleApp1
-{
-    class ReallyLongClassName<T> { }
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            ReallyLongClassName<int> $$
-        }
-    }
-";
+            var markup = """
+                namespace ConsoleApp1
+                {
+                    class ReallyLongClassName<T> { }
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                            ReallyLongClassName<int> $$
+                        }
+                    }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local),
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task LocalInsideMethodAfterPredefinedTypeKeyword()
         {
-            var markup = @"
-namespace ConsoleApp1
-{
-    class ReallyLongClassName { }
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            string $$
-        }
-    }
-";
+            var markup = """
+                namespace ConsoleApp1
+                {
+                    class ReallyLongClassName { }
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                            string $$
+                        }
+                    }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local),
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task LocalInsideMethodAfterArray()
         {
-            var markup = @"
-namespace ConsoleApp1
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            string[] $$
-        }
-    }
-";
+            var markup = """
+                namespace ConsoleApp1
+                {
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                            string[] $$
+                        }
+                    }
+                """;
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local),
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));

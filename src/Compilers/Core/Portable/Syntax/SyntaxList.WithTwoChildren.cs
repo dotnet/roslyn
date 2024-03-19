@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Syntax
 {
     internal partial class SyntaxList
     {
-        internal class WithTwoChildren : SyntaxList
+        internal sealed class WithTwoChildren : SyntaxList
         {
             private SyntaxNode? _child0;
             private SyntaxNode? _child1;

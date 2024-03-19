@@ -919,7 +919,7 @@ public class C
             End Using
         End Function
 
-        <WorkItem(56006, "https://github.com/dotnet/roslyn/issues/56006")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/56006")>
         Public Async Function SyntaxIsLikeLocalFunction() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[

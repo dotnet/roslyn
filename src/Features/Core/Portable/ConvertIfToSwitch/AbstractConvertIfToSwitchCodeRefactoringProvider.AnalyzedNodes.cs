@@ -5,138 +5,97 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
+namespace Microsoft.CodeAnalysis.ConvertIfToSwitch;
+
+internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider<
+    TIfStatementSyntax,
+    TExpressionSyntax,
+    TIsExpressionSyntax,
+    TPatternSyntax>
+    where TIfStatementSyntax : SyntaxNode
+    where TExpressionSyntax : SyntaxNode
+    where TIsExpressionSyntax : SyntaxNode
+    where TPatternSyntax : SyntaxNode
 {
-    internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider<
-        TIfStatementSyntax,
-        TExpressionSyntax,
-        TIsExpressionSyntax,
-        TPatternSyntax>
-        where TIfStatementSyntax : SyntaxNode
-        where TExpressionSyntax : SyntaxNode
-        where TIsExpressionSyntax : SyntaxNode
-        where TPatternSyntax : SyntaxNode
+    /// <summary>
+    /// Represents a switch-section constructed from a series of
+    /// if-conditions, possibly combined with logical-or operator
+    /// </summary>
+    internal sealed class AnalyzedSwitchSection(ImmutableArray<AnalyzedSwitchLabel> labels, IOperation body, SyntaxNode syntaxToRemove)
     {
-        /// <summary>
-        /// Represents a switch-section constructed from a series of
-        /// if-conditions, possibly combined with logical-or operator
-        /// </summary>
-        internal sealed class AnalyzedSwitchSection
-        {
-            public readonly ImmutableArray<AnalyzedSwitchLabel> Labels;
-            public readonly IOperation Body;
-            public readonly SyntaxNode SyntaxToRemove;
+        public readonly ImmutableArray<AnalyzedSwitchLabel> Labels = labels;
+        public readonly IOperation Body = body;
+        public readonly SyntaxNode SyntaxToRemove = syntaxToRemove;
+    }
 
-            public AnalyzedSwitchSection(ImmutableArray<AnalyzedSwitchLabel> labels, IOperation body, SyntaxNode syntaxToRemove)
-            {
-                Labels = labels;
-                Body = body;
-                SyntaxToRemove = syntaxToRemove;
-            }
+    /// <summary>
+    /// Represents a switch-label constructed from a series of
+    /// if-conditions, possibly combined by logical-and operator
+    /// </summary>
+    internal sealed class AnalyzedSwitchLabel(AnalyzedPattern pattern, ImmutableArray<TExpressionSyntax> guards)
+    {
+        public readonly AnalyzedPattern Pattern = pattern;
+        public readonly ImmutableArray<TExpressionSyntax> Guards = guards;
+    }
+
+    /// <summary>
+    /// Base class to represents a case clause (pattern) constructed from various checks
+    /// </summary>
+    internal abstract class AnalyzedPattern
+    {
+        private AnalyzedPattern()
+        {
         }
 
         /// <summary>
-        /// Represents a switch-label constructed from a series of
-        /// if-conditions, possibly combined by logical-and operator
+        /// Represents a type-pattern, constructed from is-expression
         /// </summary>
-        internal sealed class AnalyzedSwitchLabel
+        internal sealed class Type(TIsExpressionSyntax expression) : AnalyzedPattern
         {
-            public readonly AnalyzedPattern Pattern;
-            public readonly ImmutableArray<TExpressionSyntax> Guards;
-
-            public AnalyzedSwitchLabel(AnalyzedPattern pattern, ImmutableArray<TExpressionSyntax> guards)
-            {
-                Pattern = pattern;
-                Guards = guards;
-            }
+            public readonly TIsExpressionSyntax IsExpressionSyntax = expression;
         }
 
         /// <summary>
-        /// Base class to represents a case clause (pattern) constructed from various checks
+        /// Represents a source-pattern constructed from C# patterns
         /// </summary>
-        internal abstract class AnalyzedPattern
+        internal sealed class Source(TPatternSyntax patternSyntax) : AnalyzedPattern
         {
-            private AnalyzedPattern()
-            {
-            }
+            public readonly TPatternSyntax PatternSyntax = patternSyntax;
+        }
 
-            /// <summary>
-            /// Represents a type-pattern, constructed from is-expression
-            /// </summary>
-            internal sealed class Type : AnalyzedPattern
-            {
-                public readonly TIsExpressionSyntax IsExpressionSyntax;
+        /// <summary>
+        /// Represents a constant-pattern constructed from an equality check
+        /// </summary>
+        internal sealed class Constant(TExpressionSyntax expression) : AnalyzedPattern
+        {
+            public readonly TExpressionSyntax ExpressionSyntax = expression;
+        }
 
-                public Type(TIsExpressionSyntax expression)
-                    => IsExpressionSyntax = expression;
-            }
+        /// <summary>
+        /// Represents a relational-pattern constructed from comparison operators
+        /// </summary>
+        internal sealed class Relational(BinaryOperatorKind operatorKind, TExpressionSyntax value) : AnalyzedPattern
+        {
+            public readonly BinaryOperatorKind OperatorKind = operatorKind;
+            public readonly TExpressionSyntax Value = value;
+        }
 
-            /// <summary>
-            /// Represents a source-pattern constructed from C# patterns
-            /// </summary>
-            internal sealed class Source : AnalyzedPattern
-            {
-                public readonly TPatternSyntax PatternSyntax;
+        /// <summary>
+        /// Represents a range-pattern constructed from a couple of comparison operators
+        /// </summary>
+        internal sealed class Range(TExpressionSyntax lowerBound, TExpressionSyntax higherBound) : AnalyzedPattern
+        {
+            public readonly TExpressionSyntax LowerBound = lowerBound;
+            public readonly TExpressionSyntax HigherBound = higherBound;
+        }
 
-                public Source(TPatternSyntax patternSyntax)
-                    => PatternSyntax = patternSyntax;
-            }
-
-            /// <summary>
-            /// Represents a constant-pattern constructed from an equality check
-            /// </summary>
-            internal sealed class Constant : AnalyzedPattern
-            {
-                public readonly TExpressionSyntax ExpressionSyntax;
-
-                public Constant(TExpressionSyntax expression)
-                    => ExpressionSyntax = expression;
-            }
-
-            /// <summary>
-            /// Represents a relational-pattern constructed from comparison operators
-            /// </summary>
-            internal sealed class Relational : AnalyzedPattern
-            {
-                public readonly BinaryOperatorKind OperatorKind;
-                public readonly TExpressionSyntax Value;
-
-                public Relational(BinaryOperatorKind operatorKind, TExpressionSyntax value)
-                {
-                    OperatorKind = operatorKind;
-                    Value = value;
-                }
-            }
-
-            /// <summary>
-            /// Represents a range-pattern constructed from a couple of comparison operators
-            /// </summary>
-            internal sealed class Range : AnalyzedPattern
-            {
-                public readonly TExpressionSyntax LowerBound;
-                public readonly TExpressionSyntax HigherBound;
-
-                public Range(TExpressionSyntax lowerBound, TExpressionSyntax higherBound)
-                {
-                    LowerBound = lowerBound;
-                    HigherBound = higherBound;
-                }
-            }
-
-            /// <summary>
-            /// Represents an and-pattern, constructed from two other patterns.
-            /// </summary>
-            internal sealed class And : AnalyzedPattern
-            {
-                public readonly AnalyzedPattern LeftPattern;
-                public readonly AnalyzedPattern RightPattern;
-
-                public And(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern)
-                {
-                    LeftPattern = leftPattern;
-                    RightPattern = rightPattern;
-                }
-            }
+        /// <summary>
+        /// Represents an and-pattern, constructed from two other patterns.
+        /// </summary>
+        internal sealed class And(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern) : AnalyzedPattern
+        {
+            public readonly AnalyzedPattern LeftPattern = leftPattern;
+            public readonly AnalyzedPattern RightPattern = rightPattern;
         }
     }
 }

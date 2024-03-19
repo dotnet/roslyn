@@ -132,9 +132,6 @@
   <data name="Insert_the_missing_0" xml:space="preserve">
     <value>Insert the missing '{0}'.</value>
   </data>
-  <data name="Inline_temporary_variable" xml:space="preserve">
-    <value>Inline temporary variable</value>
-  </data>
   <data name="Conflict_s_detected" xml:space="preserve">
     <value>Conflict(s) detected.</value>
   </data>
@@ -947,9 +944,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Enables_reporting_of_specified_warnings_in_the_portion_of_the_source_file_below_the_current_line" xml:space="preserve">
     <value>Enables reporting of specified warnings in the portion of the source file below the current line.</value>
   </data>
-  <data name="Make_0_an_Async_Function" xml:space="preserve">
-    <value>Make {0} an Async Function.</value>
-  </data>
   <data name="Use_the_correct_control_variable" xml:space="preserve">
     <value>Use the correct control variable</value>
   </data>
@@ -1167,12 +1161,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Property_setter_name" xml:space="preserve">
     <value>{0}.set</value>
     <comment>The name of a property setter like "public int MyProperty { set; }" where "{0}" is the property name</comment>
-  </data>
-  <data name="Make_Async_Function" xml:space="preserve">
-    <value>Make Async Function</value>
-  </data>
-  <data name="Make_Async_Sub" xml:space="preserve">
-    <value>Make Async Sub</value>
   </data>
   <data name="Multiple_Types" xml:space="preserve">
     <value>&lt;Multiple Types&gt;</value>

@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 set => ((IDictionary)GetOrCreateMutableDictionary())[key] = value;
             }
 
-            private SegmentedDictionary<TKey, TValue> GetOrCreateMutableDictionary()
+            internal SegmentedDictionary<TKey, TValue> GetOrCreateMutableDictionary()
             {
                 if (_mutableDictionary is null)
                 {

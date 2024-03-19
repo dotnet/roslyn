@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 stream.Position = 0;
 
                 using var reader = ObjectReader.TryGetReader(stream);
-                var recovered = SourceTextExtensions.ReadFrom(textService, reader, originalText.Encoding, CancellationToken.None);
+                var recovered = SourceTextExtensions.ReadFrom(textService, reader, originalText.Encoding, originalText.ChecksumAlgorithm, CancellationToken.None);
 
                 Assert.Equal(originalText.ToString(), recovered.ToString());
             }

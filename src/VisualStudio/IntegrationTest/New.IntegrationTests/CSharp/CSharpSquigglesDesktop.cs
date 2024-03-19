@@ -6,16 +6,10 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
-{
-    [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
-    public class CSharpSquigglesDesktop : CSharpSquigglesCommon
-    {
-        protected override bool SupportsGlobalUsings => false;
+namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
-        public CSharpSquigglesDesktop()
-            : base(WellKnownProjectTemplates.ClassLibrary)
-        {
-        }
-    }
+[Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+public sealed class CSharpSquigglesDesktop() : CSharpSquigglesCommon(WellKnownProjectTemplates.ClassLibrary)
+{
+    protected override bool SupportsGlobalUsings => false;
 }

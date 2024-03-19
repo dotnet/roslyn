@@ -13,7 +13,7 @@ using System;
 
 namespace Microsoft.VisualStudio.Debugger.Evaluation
 {
-    public struct DkmCompilerId
+    public readonly struct DkmCompilerId
     {
         public readonly Guid LanguageId;
         public readonly Guid VendorId;

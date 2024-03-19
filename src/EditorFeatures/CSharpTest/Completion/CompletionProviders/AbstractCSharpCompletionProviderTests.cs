@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Xunit;
 using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
@@ -39,8 +40,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     </Project>
 </Workspace>";
 
-        protected override TestWorkspace CreateWorkspace(string fileContents)
-            => TestWorkspace.CreateCSharp(fileContents, exportProvider: ExportProvider);
+        protected override EditorTestWorkspace CreateWorkspace(string fileContents)
+            => EditorTestWorkspace.CreateCSharp(fileContents, composition: GetComposition());
 
         internal override CompletionService GetCompletionService(Project project)
             => Assert.IsType<CSharpCompletionService>(base.GetCompletionService(project));
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         protected override string ItemPartiallyWritten(string expectedItemOrNull)
-            => expectedItemOrNull[0] == '@' ? expectedItemOrNull.Substring(1, 1) : expectedItemOrNull.Substring(0, 1);
+            => expectedItemOrNull[0] == '@' ? expectedItemOrNull.Substring(1, 1) : expectedItemOrNull[..1];
 
         private async Task VerifyInFrontOfCommentAsync(
             string code, int position, string insertText, bool usePreviousCharAsTrigger,
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit, List<CompletionFilter> matchingFilters,
             CompletionOptions options, bool skipSpeculation = false)
         {
-            code = code.Substring(0, position) + insertText + "/**/" + code.Substring(position);
+            code = code[..position] + insertText + "/**/" + code[position..];
             position += insertText.Length;
 
             await base.VerifyWorkerAsync(
@@ -139,23 +140,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         protected static string AddInsideMethod(string text)
         {
             return
-@"class C
-{
-  void F()
-  {
-    " + text +
-@"  }
-}";
+                """
+                class C
+                {
+                  void F()
+                  {
+                """ + text +
+                """
+                  }
+                }
+                """;
         }
 
         protected static string AddUsingDirectives(string usingDirectives, string text)
         {
             return
 usingDirectives +
-@"
+"""
 
-
-" +
+""" +
 text;
         }
 

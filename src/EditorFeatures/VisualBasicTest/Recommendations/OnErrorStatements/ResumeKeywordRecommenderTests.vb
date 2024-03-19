@@ -3,23 +3,21 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class ResumeKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ResumeNextAfterOnErrorTest()
             VerifyRecommendationsContain(<MethodBody>On Error |</MethodBody>, "Resume Next")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ResumeInMethodBodyTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Resume")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ResumeNotInLambdaTest()
             ' On Error statements are never allowed within lambdas
             VerifyRecommendationsMissing(<MethodBody>

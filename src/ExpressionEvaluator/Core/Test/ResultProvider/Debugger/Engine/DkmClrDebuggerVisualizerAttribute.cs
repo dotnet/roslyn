@@ -25,13 +25,15 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         /// <param name="debuggeeSideVisualizerTypeName">[Required] The full name of the debuggee-side visualizer type</param>
         /// <param name="debuggeeSideVisualizerAssemblyName">[Required] The full name of the debuggee-side visualizer assembly</param>
         /// <param name="visualizerDescription">[Required] The visualizer description</param>
+        /// <param name="extensionPartId">[Required] This is a unique id for visualizers that are installed via the ExtensionPartManager.</param>
         internal DkmClrDebuggerVisualizerAttribute(string targetMember,
             string uiSideVisualizerTypeName,
             string uiSideVisualizerAssemblyName,
             DkmClrCustomVisualizerAssemblyLocation uiSideVisualizerAssemblyLocation,
             string debuggeeSideVisualizerTypeName,
             string debuggeeSideVisualizerAssemblyName,
-            string visualizerDescription) :
+            string visualizerDescription,
+            System.Guid extensionPartId) :
             base(null)
         {
             UISideVisualizerTypeName = uiSideVisualizerTypeName;
@@ -40,6 +42,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             DebuggeeSideVisualizerTypeName = debuggeeSideVisualizerTypeName;
             DebuggeeSideVisualizerAssemblyName = debuggeeSideVisualizerAssemblyName;
             VisualizerDescription = visualizerDescription;
+            ExtensionPartId = extensionPartId;
         }
 
         public readonly string UISideVisualizerTypeName;
@@ -48,6 +51,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         public readonly string DebuggeeSideVisualizerTypeName;
         public readonly string DebuggeeSideVisualizerAssemblyName;
         public readonly string VisualizerDescription;
+        public readonly System.Guid ExtensionPartId;
     }
 }
 

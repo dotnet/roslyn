@@ -68,10 +68,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [InlineData("#loa\"$$", false)]
         [InlineData("#load\"$$", true)]
         [InlineData(" # load \"$$", true)]
-        [InlineData(" # load \"$$\"", true)]
+        [InlineData("""
+            # load "$$"
+            """, true)]
         [InlineData(" # load \"\"$$", true)]
-        [InlineData("$$ # load \"\"", false)]
-        [InlineData(" # load $$\"\"", false)]
+        [InlineData("""
+            $$ # load ""
+            """, false)]
+        [InlineData("""
+            # load $$""
+            """, false)]
         public void ShouldTriggerCompletion(string textWithPositionMarker, bool expectedResult)
         {
             var position = textWithPositionMarker.IndexOf("$$");
@@ -80,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
             var provider = workspace.ExportProvider.GetExports<CompletionProvider, CompletionProviderMetadata>().Single(p => p.Metadata.Language == LanguageNames.CSharp && p.Metadata.Name == nameof(LoadDirectiveCompletionProvider)).Value;
             var languageServices = workspace.Services.GetLanguageServices(LanguageNames.CSharp);
-            Assert.Equal(expectedResult, provider.ShouldTriggerCompletion(languageServices, SourceText.From(text), position, trigger: default, CompletionOptions.Default, OptionValueSet.Empty));
+            Assert.Equal(expectedResult, provider.ShouldTriggerCompletion(languageServices.LanguageServices, SourceText.From(text), position, trigger: default, CompletionOptions.Default, OptionSet.Empty));
         }
     }
 }

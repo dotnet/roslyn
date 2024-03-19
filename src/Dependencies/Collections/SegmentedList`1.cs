@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 else
                 {
                     _items = new SegmentedArray<T>(count);
-                    if ((T[][])_items.SyncRoot is { Length: 1 } segments)
+                    if (SegmentedCollectionsMarshal.AsSegments(_items) is { Length: 1 } segments)
                     {
                         c.CopyTo(segments[0], 0);
                         _size = count;
@@ -1176,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 _current = default;
             }
 
-            public void Dispose()
+            public readonly void Dispose()
             {
             }
 
@@ -1205,9 +1205,9 @@ namespace Microsoft.CodeAnalysis.Collections
                 return false;
             }
 
-            public T Current => _current!;
+            public readonly T Current => _current!;
 
-            object? IEnumerator.Current
+            readonly object? IEnumerator.Current
             {
                 get
                 {
@@ -1229,6 +1229,14 @@ namespace Microsoft.CodeAnalysis.Collections
                 _index = 0;
                 _current = default;
             }
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor(SegmentedList<T> instance)
+        {
+            public ref SegmentedArray<T> Items => ref instance._items;
         }
     }
 }

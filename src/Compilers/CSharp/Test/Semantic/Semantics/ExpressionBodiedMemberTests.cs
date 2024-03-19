@@ -1044,14 +1044,13 @@ public class C
             CreateCompilation(source, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (5,9): error CS8059: Feature 'expression body constructor and destructor' is not available in C# 6. Please use language version 7.0 or greater.
                 //     C() => Console.WriteLine(1);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=> Console.WriteLine(1)").WithArguments("expression body constructor and destructor", "7.0").WithLocation(5, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=>").WithArguments("expression body constructor and destructor", "7.0").WithLocation(5, 9),
                 // (6,10): error CS8059: Feature 'expression body constructor and destructor' is not available in C# 6. Please use language version 7.0 or greater.
                 //     ~C() => Console.WriteLine(2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=> Console.WriteLine(2)").WithArguments("expression body constructor and destructor", "7.0").WithLocation(6, 10),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=>").WithArguments("expression body constructor and destructor", "7.0").WithLocation(6, 10),
                 // (7,17): error CS8059: Feature 'expression body property accessor' is not available in C# 6. Please use language version 7.0 or greater.
                 //     int P { set => Console.WriteLine(value); }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=> Console.WriteLine(value)").WithArguments("expression body property accessor", "7.0").WithLocation(7, 17)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=>").WithArguments("expression body property accessor", "7.0").WithLocation(7, 17));
         }
     }
 }

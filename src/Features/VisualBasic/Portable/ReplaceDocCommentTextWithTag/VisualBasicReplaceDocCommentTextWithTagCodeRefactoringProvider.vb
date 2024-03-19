@@ -13,21 +13,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReplaceDocCommentTextWithTag
     Friend Class VisualBasicReplaceDocCommentTextWithTagCodeRefactoringProvider
         Inherits AbstractReplaceDocCommentTextWithTagCodeRefactoringProvider
 
-        Private Shared ReadOnly s_keywords As New HashSet(Of String) From
-            {
-            SyntaxFacts.GetText(SyntaxKind.NothingKeyword),
-            SyntaxFacts.GetText(SyntaxKind.SharedKeyword),
-            SyntaxFacts.GetText(SyntaxKind.OverridableKeyword),
-            SyntaxFacts.GetText(SyntaxKind.TrueKeyword),
-            SyntaxFacts.GetText(SyntaxKind.FalseKeyword),
-            SyntaxFacts.GetText(SyntaxKind.MustInheritKeyword),
-            SyntaxFacts.GetText(SyntaxKind.NotOverridableKeyword),
-            SyntaxFacts.GetText(SyntaxKind.AsyncKeyword),
-            SyntaxFacts.GetText(SyntaxKind.AwaitKeyword),
-            SyntaxFacts.GetText(SyntaxKind.MyBaseKeyword),
-            SyntaxFacts.GetText(SyntaxKind.MyClassKeyword)
-            }
-
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
@@ -43,12 +28,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReplaceDocCommentTextWithTag
         End Function
 
         Protected Overrides Function IsKeyword(text As String) As Boolean
-            Return s_keywords.Contains(text)
+            Return SyntaxFacts.IsKeywordKind(SyntaxFacts.GetKeywordKind(text)) OrElse SyntaxFacts.IsContextualKeyword(SyntaxFacts.GetContextualKeywordKind(text))
         End Function
 
         Protected Overrides Function ParseExpression(text As String) As SyntaxNode
             Return SyntaxFactory.ParseExpression(text)
         End Function
-
     End Class
 End Namespace

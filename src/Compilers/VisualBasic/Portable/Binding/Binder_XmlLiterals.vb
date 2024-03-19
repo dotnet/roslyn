@@ -1713,6 +1713,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property IsRequired As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Private NotInheritable Class ReducedExtensionAccessorSymbol
             Inherits MethodSymbol
 
@@ -1987,6 +1993,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
                 Throw ExceptionUtilities.Unreachable
             End Function
+
+            Friend Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
         End Class
 
         Private NotInheritable Class ReducedAccessorParameterSymbol

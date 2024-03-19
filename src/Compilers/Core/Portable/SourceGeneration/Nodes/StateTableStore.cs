@@ -26,11 +26,16 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<T> GetStateTableOrEmpty<T>(object input)
         {
+            return GetStateTable<T>(input) ?? NodeStateTable<T>.Empty;
+        }
+
+        public NodeStateTable<T>? GetStateTable<T>(object input)
+        {
             if (TryGetValue(input, out var output))
             {
                 return (NodeStateTable<T>)output;
             }
-            return NodeStateTable<T>.Empty;
+            return null;
         }
 
         public sealed class Builder

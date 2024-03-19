@@ -4,9 +4,11 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
@@ -18,11 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
     public abstract class SarifErrorLoggerTests : CommandLineTestBase
     {
         protected abstract string ErrorLogQualifier { get; }
-        internal abstract string GetExpectedOutputForNoDiagnostics(CommonCompiler cmd);
-        internal abstract string GetExpectedOutputForSimpleCompilerDiagnostics(CommonCompiler cmd, string sourceFile);
-        internal abstract string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(CommonCompiler cmd, string sourceFile);
+        internal abstract string GetExpectedOutputForNoDiagnostics(MockCSharpCompiler cmd);
+        internal abstract string GetExpectedOutputForSimpleCompilerDiagnostics(MockCSharpCompiler cmd, string sourceFile);
+        internal abstract string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(MockCSharpCompiler cmd, string sourceFile, params string[] suppressionKinds);
         internal abstract string GetExpectedOutputForAnalyzerDiagnosticsWithAndWithoutLocation(MockCSharpCompiler cmd);
-        internal abstract string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification);
+        internal abstract string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification, string suppressionType, params string[] suppressionKinds);
+        internal abstract string GetExpectedOutputForAnalyzerDiagnosticsWithWarnAsError(MockCSharpCompiler cmd);
 
         protected void NoDiagnosticsImpl()
         {
@@ -118,7 +121,7 @@ public class C
             Assert.NotEqual(0, exitCode);
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
-            string expectedOutput = GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(cmd, sourceFile);
+            string expectedOutput = GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(cmd, sourceFile, suppressionKinds: "inSource");
 
             Assert.Equal(expectedOutput, actualOutput);
 
@@ -140,7 +143,7 @@ public class C
             string[] arguments = new[] { "/nologo", "/t:library", $"/out:{outputFilePath}", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
+               analyzers: new[] { new AnalyzerForErrorLogTest() });
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
@@ -176,7 +179,7 @@ class C
             string[] arguments = new[] { "/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
+               analyzers: new[] { new AnalyzerForErrorLogTest() });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             var exitCode = cmd.Run(outWriter);
@@ -188,7 +191,7 @@ class C
             Assert.NotEqual(0, exitCode);
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
-            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(cmd, "Justification1");
+            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(cmd, "Justification1", suppressionType: "SuppressMessageAttribute", suppressionKinds: "inSource");
 
             Assert.Equal(expectedOutput, actualOutput);
 
@@ -211,7 +214,7 @@ class C
             string[] arguments = new[] { "/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
+               analyzers: new[] { new AnalyzerForErrorLogTest() });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             var exitCode = cmd.Run(outWriter);
@@ -223,7 +226,7 @@ class C
             Assert.NotEqual(0, exitCode);
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
-            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(cmd, null);
+            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(cmd, null, suppressionType: "SuppressMessageAttribute", suppressionKinds: "inSource");
 
             Assert.Equal(expectedOutput, actualOutput);
 
@@ -246,7 +249,7 @@ class C
             string[] arguments = new[] { "/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
+               analyzers: new[] { new AnalyzerForErrorLogTest() });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             var exitCode = cmd.Run(outWriter);
@@ -258,7 +261,7 @@ class C
             Assert.NotEqual(0, exitCode);
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
-            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(cmd, "");
+            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(cmd, "", suppressionType: "SuppressMessageAttribute", suppressionKinds: "inSource");
 
             Assert.Equal(expectedOutput, actualOutput);
 
@@ -281,7 +284,7 @@ class C
             string[] arguments = new[] { "/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
 
             var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
+               analyzers: new[] { new AnalyzerForErrorLogTest() });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             var exitCode = cmd.Run(outWriter);
@@ -293,7 +296,39 @@ class C
             Assert.NotEqual(0, exitCode);
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
-            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(cmd, null);
+            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(cmd, null, suppressionType: "SuppressMessageAttribute", suppressionKinds: "inSource");
+
+            Assert.Equal(expectedOutput, actualOutput);
+
+            CleanupAllGeneratedFiles(sourceFile);
+            CleanupAllGeneratedFiles(errorLogFile);
+        }
+
+        protected void AnalyzerDiagnosticsWithWarnAsErrorImpl()
+        {
+            var source = @"
+class C
+{
+}";
+            var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
+            var errorLogDir = Temp.CreateDirectory();
+            var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
+
+            string[] arguments = new[] { "/nologo", "/t:library", "/warnaserror", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
+
+            var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
+               analyzers: new[] { new AnalyzerForErrorLogTest() });
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            var exitCode = cmd.Run(outWriter);
+            var actualConsoleOutput = outWriter.ToString().Trim();
+
+            Assert.Contains("error ID1", actualConsoleOutput);
+            Assert.Contains("error ID2", actualConsoleOutput);
+            Assert.NotEqual(0, exitCode);
+
+            var actualOutput = File.ReadAllText(errorLogFile).Trim();
+            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithWarnAsError(cmd);
 
             Assert.Equal(expectedOutput, actualOutput);
 

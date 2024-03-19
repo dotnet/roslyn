@@ -9,9 +9,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 {
+    [Trait(Traits.Feature, Traits.Features.CodeGeneration)]
     public class StatementGenerationTests : AbstractCodeGenerationTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact]
         public void TestThrowStatement1()
         {
             Test(f => f.ThrowStatement(),
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vbSimple: null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact]
         public void TestThrowStatement2()
         {
             Test(f => f.ThrowStatement(
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vbSimple: null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact]
         public void TestThrowStatement3()
         {
             Test(f => f.ThrowStatement(
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vbSimple: null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact]
         public void TestReturnStatement1()
         {
             Test(f => f.ReturnStatement(),
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vbSimple: null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact]
         public void TestReturnStatement2()
         {
             Test(f => f.ReturnStatement(
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vbSimple: null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [Fact]
         public void TestReturnStatement3()
         {
             Test(f => f.ReturnStatement(

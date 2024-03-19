@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 Assert.True(list.Contains(item)); //"Expect it to contain the item."
                 Assert.Equal(list.Count, items.Length + repeat); //"Expect to be the same."
 
-
                 for (int i = 0; i < index; i++)
                 {
                     Assert.Equal(list[i], items[i]); //"Expect to be the same."
@@ -60,7 +59,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 {
                     Assert.Equal(list[i], item); //"Expect to be the same."
                 }
-
 
                 for (int i = index + repeat; i < list.Count; i++)
                 {
@@ -100,7 +98,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 {
                     Assert.Equal((object?)list[i], item); //"Expected them to be equal."
                 }
-
 
                 for (int i = index + repeat; i < list.Count; i++)
                 {
@@ -977,7 +974,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             IntDriver.NonGenericIListMultipleValues(intArr1, 5);
             IntDriver.NonGenericIListMultipleValues(intArr1, 17);
             IntDriver.NonGenericIListContainsTestParams();
-
 
             Driver<string> StringDriver = new Driver<string>();
             string[] stringArr1 = new string[10];

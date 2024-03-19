@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     cancellationToken);
 
             var compileFunc = GetCompileFunc(language);
-            return new BuildClient(language, compileFunc, compileOnServerFunc);
+            return new BuildClient(logger, language, compileFunc, compileOnServerFunc);
         }
 
         internal static CompileFunc GetCompileFunc(RequestLanguage language)

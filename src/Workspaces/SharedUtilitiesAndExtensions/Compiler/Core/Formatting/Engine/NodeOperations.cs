@@ -2,37 +2,46 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Formatting;
+
+/// <summary>
+/// this collector gathers formatting operations that are based on a node
+/// </summary>
+internal sealed class NodeOperations : IDisposable
 {
-    /// <summary>
-    /// this collector gathers formatting operations that are based on a node
-    /// </summary>
-    internal class NodeOperations
+    private static readonly ObjectPool<SegmentedList<IndentBlockOperation>> s_indentBlockOperationPool = new(() => []);
+    private static readonly ObjectPool<SegmentedList<SuppressOperation>> s_suppressOperationPool = new(() => []);
+    private static readonly ObjectPool<SegmentedList<AlignTokensOperation>> s_alignTokensOperationPool = new(() => []);
+    private static readonly ObjectPool<SegmentedList<AnchorIndentationOperation>> s_anchorIndentationOperationPool = new(() => []);
+
+    public static NodeOperations Empty = new();
+
+    public SegmentedList<IndentBlockOperation> IndentBlockOperation { get; } = s_indentBlockOperationPool.Allocate();
+    public SegmentedList<SuppressOperation> SuppressOperation { get; } = s_suppressOperationPool.Allocate();
+    public SegmentedList<AlignTokensOperation> AlignmentOperation { get; } = s_alignTokensOperationPool.Allocate();
+    public SegmentedList<AnchorIndentationOperation> AnchorIndentationOperations { get; } = s_anchorIndentationOperationPool.Allocate();
+
+    public void Dispose()
     {
-        public static NodeOperations Empty = new();
+        if (this == Empty)
+            return;
 
-        public List<IndentBlockOperation> IndentBlockOperation { get; }
-        public List<SuppressOperation> SuppressOperation { get; }
-        public List<AlignTokensOperation> AlignmentOperation { get; }
-        public List<AnchorIndentationOperation> AnchorIndentationOperations { get; }
+        // Intentionally don't call ClearAndFree as these pooled lists can easily exceed the threshold
+        IndentBlockOperation.Clear();
+        s_indentBlockOperationPool.Free(IndentBlockOperation);
 
-        public NodeOperations(List<IndentBlockOperation> indentBlockOperation, List<SuppressOperation> suppressOperation, List<AnchorIndentationOperation> anchorIndentationOperations, List<AlignTokensOperation> alignmentOperation)
-        {
-            this.IndentBlockOperation = indentBlockOperation;
-            this.SuppressOperation = suppressOperation;
-            this.AlignmentOperation = alignmentOperation;
-            this.AnchorIndentationOperations = anchorIndentationOperations;
-        }
+        SuppressOperation.Clear();
+        s_suppressOperationPool.Free(SuppressOperation);
 
-        private NodeOperations()
-        {
-            this.IndentBlockOperation = new List<IndentBlockOperation>();
-            this.SuppressOperation = new List<SuppressOperation>();
-            this.AlignmentOperation = new List<AlignTokensOperation>();
-            this.AnchorIndentationOperations = new List<AnchorIndentationOperation>();
-        }
+        AlignmentOperation.Clear();
+        s_alignTokensOperationPool.Free(AlignmentOperation);
+
+        AnchorIndentationOperations.Clear();
+        s_anchorIndentationOperationPool.Free(AnchorIndentationOperations);
     }
 }

@@ -107,7 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             //Structure - As method parameter type in external assembly (test this by passing the parameter with a variable which was declared in the current assembly)
 
-
             var localTypeSource = @"static class TypeSubstitution
 {
     FooStruct myOwnVar = null;
@@ -209,7 +208,6 @@ static class TypeSubstitution
         public void NoPIALocalTypesEquivalentToEachOtherEnumAsReturnTypeInExternalAssembly()
         {
             //Enum - As return type in external assembly
-
 
             var localTypeSource = @"static class TypeSubstitution
 {
@@ -349,7 +347,9 @@ static class TypeSubstitution
             NamedTypeSymbol classRefLocalType = localConsumerRefsAsm.First(arg => arg.Name == "ExternalAsm1").GlobalNamespace.GetTypeMembers("SubFuncProp").Single();
             MethodSymbol methodSymbol = classRefLocalType.GetMembers("Foo").OfType<MethodSymbol>().Single();
 
-            Assert.Equal(0, methodSymbol.ExplicitInterfaceImplementations.Length);
+            MethodSymbol explicitImpl = methodSymbol.ExplicitInterfaceImplementations.Single();
+            Assert.Equal("void ISubFuncProp.Foo(System.Int32[missing] p)", explicitImpl.ToTestDisplayString());
+            Assert.Same(canonicalType, explicitImpl.ContainingType);
         }
 
         [Fact]

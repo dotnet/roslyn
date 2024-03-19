@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private bool HasUnderlyingString(DkmClrValue value, DkmInspectionContext inspectionContext)
         {
-            return GetUnderlyingString(value, inspectionContext) != null;
+            return value.EvalFlags.HasFlag(DkmEvaluationResultFlags.TruncatedString) || GetUnderlyingString(value, inspectionContext) != null;
         }
 
         private string GetUnderlyingString(DkmClrValue value, DkmInspectionContext inspectionContext)
@@ -236,6 +236,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             if (lmrType.IsString())
             {
+                if (value.EvalFlags.HasFlag(DkmEvaluationResultFlags.TruncatedString))
+                {
+                    var extendedInspectionContext = inspectionContext.With(DkmEvaluationFlags.IncreaseMaxStringSize);
+                    return value.EvaluateToString(extendedInspectionContext);
+                }
+
                 return (string)value.HostObjectValue;
             }
             else if (!IsPredefinedType(lmrType))
@@ -396,7 +402,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        private string GetEditableValue(DkmClrValue value, DkmInspectionContext inspectionContext, DkmClrCustomTypeInfo customTypeInfo)
+        private string GetEditableValue(DkmClrValue value, DkmInspectionContext inspectionContext)
         {
             if (value.IsError())
             {
@@ -463,9 +469,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private static string IncludeObjectId(DkmClrValue value, string valueStr, GetValueFlags flags)
         {
             Debug.Assert(valueStr != null);
-            return (flags & GetValueFlags.IncludeObjectId) == 0 ?
-                valueStr :
-                value.IncludeObjectId(valueStr);
+            return (flags & GetValueFlags.IncludeObjectId) == 0
+                ? valueStr
+                : value.IncludeObjectId(valueStr);
         }
 
         #region Language-specific value formatting behavior

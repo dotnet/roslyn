@@ -4,19 +4,18 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api;
+
+internal readonly struct PythiaSyntaxFactsServiceWrapper
 {
-    internal readonly struct PythiaSyntaxFactsServiceWrapper
-    {
-        internal readonly ISyntaxFactsService UnderlyingObject;
+    internal readonly ISyntaxFactsService UnderlyingObject;
 
-        internal PythiaSyntaxFactsServiceWrapper(ISyntaxFactsService underlyingObject)
-            => UnderlyingObject = underlyingObject;
+    internal PythiaSyntaxFactsServiceWrapper(ISyntaxFactsService underlyingObject)
+        => UnderlyingObject = underlyingObject;
 
-        public static PythiaSyntaxFactsServiceWrapper Create(Document document)
-            => new(document.GetRequiredLanguageService<ISyntaxFactsService>());
-    }
+    public static PythiaSyntaxFactsServiceWrapper Create(Document document)
+        => new(document.GetRequiredLanguageService<ISyntaxFactsService>());
 }

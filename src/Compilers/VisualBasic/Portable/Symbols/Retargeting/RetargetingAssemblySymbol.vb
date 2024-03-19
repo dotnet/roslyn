@@ -172,6 +172,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
+        Public Overrides ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+            Get
+                Return _underlyingAssembly.HasImportedFromTypeLibAttribute
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
+            Get
+                Return _underlyingAssembly.HasPrimaryInteropAssemblyAttribute
+            End Get
+        End Property
+
         ''' <summary>
         ''' Lookup declaration for FX type in this Assembly.
         ''' </summary>
@@ -222,6 +234,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return _underlyingAssembly.GetInternalsVisibleToPublicKeys(simpleName)
         End Function
 
+        Friend Overrides Function GetInternalsVisibleToAssemblyNames() As IEnumerable(Of String)
+            Return _underlyingAssembly.GetInternalsVisibleToAssemblyNames()
+        End Function
+
         Friend Overrides Function AreInternalsVisibleToThisAssembly(potentialGiverOfAccess As AssemblySymbol) As Boolean
             Return _underlyingAssembly.AreInternalsVisibleToThisAssembly(potentialGiverOfAccess)
         End Function
@@ -264,5 +280,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         Public Overrides Function GetMetadata() As AssemblyMetadata
             Return _underlyingAssembly.GetMetadata()
         End Function
+
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                Return _underlyingAssembly.ObsoleteAttributeData
+            End Get
+        End Property
+
     End Class
 End Namespace

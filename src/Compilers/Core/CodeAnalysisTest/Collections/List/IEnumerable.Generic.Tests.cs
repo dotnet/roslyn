@@ -73,6 +73,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         protected virtual bool Enumerator_Current_UndefinedOperation_Throws => false;
 
         /// <summary>
+        /// Same as <see cref="Enumerator_Current_UndefinedOperation_Throws"/> but only on empty collections.
+        /// </summary>
+        protected virtual bool Enumerator_Current_UndefinedOperation_Throws_On_Empty => false;
+
+        /// <summary>
         /// When calling MoveNext or Reset after modification of the enumeration, the resulting behavior is
         /// undefined. Tests are included to cover two behavioral scenarios:
         ///   - Throwing an InvalidOperationException
@@ -581,15 +586,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             // Ensures that the elements returned from enumeration are exactly the same collection of
             // elements returned from a previous enumeration
             IEnumerable<T> enumerable = GenericIEnumerableFactory(count);
-            Dictionary<T, int> firstValues = new Dictionary<T, int>(count);
-            Dictionary<T, int> secondValues = new Dictionary<T, int>(count);
+            HashSet<T> firstValues = new HashSet<T>(count);
+            HashSet<T> secondValues = new HashSet<T>(count);
             foreach (T item in enumerable)
-                firstValues[item] = firstValues.ContainsKey(item) ? firstValues[item]++ : 1;
+                Assert.True(firstValues.Add(item));
             foreach (T item in enumerable)
-                secondValues[item] = secondValues.ContainsKey(item) ? secondValues[item]++ : 1;
+                Assert.True(secondValues.Add(item));
             Assert.Equal(firstValues.Count, secondValues.Count);
-            foreach (T key in firstValues.Keys)
-                Assert.Equal(firstValues[key], secondValues[key]);
+            foreach (T item in firstValues)
+                Assert.True(secondValues.Contains(item));
         }
 
         [Theory]
@@ -601,6 +606,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             using (IEnumerator<T> enumerator = enumerable.GetEnumerator())
             {
                 if (Enumerator_Current_UndefinedOperation_Throws)
+                    Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+                else if (Enumerator_Current_UndefinedOperation_Throws_On_Empty && count == 0)
                     Assert.Throws<InvalidOperationException>(() => enumerator.Current);
                 else
                     current = enumerator.Current;
@@ -617,6 +624,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             {
                 while (enumerator.MoveNext()) ;
                 if (Enumerator_Current_UndefinedOperation_Throws)
+                    Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+                else if (Enumerator_Current_UndefinedOperation_Throws_On_Empty && count == 0)
                     Assert.Throws<InvalidOperationException>(() => enumerator.Current);
                 else
                     current = enumerator.Current;

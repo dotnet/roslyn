@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -469,6 +470,118 @@ class C { void c() { } }
                             SyntaxKind.IdentifierName,
                             SyntaxKind.IdentifierName,
                             SyntaxKind.SemicolonToken);
+        }
+
+        [Fact]
+        public void TestAttributeToCollectionExpression1()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        [A] Method();
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+
+            Assert.True(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is AttributeSyntax));
+            Assert.False(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionExpressionSyntax));
+
+            var text = tree.GetText();
+            var span = new TextSpan(source.IndexOf("]") + 1, length: 1);
+            var change = new TextChange(span, ".");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+
+            Assert.False(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is AttributeSyntax));
+            Assert.True(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionExpressionSyntax));
+
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        public void TestCollectionExpressionToAttribute1()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        [A].Method();
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+
+            Assert.False(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is AttributeSyntax));
+            Assert.True(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionExpressionSyntax));
+
+            var text = tree.GetText();
+            var span = new TextSpan(source.IndexOf("."), length: 1);
+            var change = new TextChange(span, " ");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+
+            Assert.True(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is AttributeSyntax));
+            Assert.False(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionExpressionSyntax));
+
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        public void TestLocalFunctionCollectionVsAccessParsing()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        var v = a ? b?[() =>
+                            {
+                                var v = whatever();
+                                int LocalFunc()
+                                {
+                                    var v = a ? [b] : c;
+                                }
+                                var v = whatever();
+                            }] : d;
+                    }
+                }
+                """;
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            Assert.Empty(tree.GetDiagnostics());
+
+            var localFunc1 = tree.GetRoot().DescendantNodesAndSelf().Single(n => n is LocalFunctionStatementSyntax);
+            var innerConditionalExpr1 = localFunc1.DescendantNodesAndSelf().Single(n => n is ConditionalExpressionSyntax);
+
+            var text = tree.GetText();
+
+            var prefix = "var v = a ? b?[() =>";
+            var suffix = "] : d;";
+
+            var prefixSpan = new TextSpan(source.IndexOf(prefix), length: prefix.Length);
+            var suffixSpan = new TextSpan(source.IndexOf(suffix), length: suffix.Length);
+            text = text.WithChanges(new TextChange(prefixSpan, ""), new TextChange(suffixSpan, ""));
+            tree = tree.WithChangedText(text);
+            Assert.Empty(tree.GetDiagnostics());
+
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            Assert.Empty(fullTree.GetDiagnostics());
+
+            var localFunc2 = tree.GetRoot().DescendantNodesAndSelf().Single(n => n is LocalFunctionStatementSyntax);
+            var innerConditionalExpr2 = localFunc2.DescendantNodesAndSelf().Single(n => n is ConditionalExpressionSyntax);
+
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
 
         #region "Regression"
@@ -2685,7 +2798,6 @@ class D { }
                 var oldTree = SyntaxFactory.SyntaxTree(oldRoot, options: tempTree.Options, path: tempTree.FilePath);
                 var newTree = oldTree.WithInsertAt(text.Length, " ");
 
-
                 var oldClassC = extractGreenClassC(oldTree);
                 var newClassC = extractGreenClassC(newTree);
 
@@ -2696,7 +2808,6 @@ class D { }
                 Assert.NotSame(oldClassC, newClassC);
                 // ...even though the text is the same.
                 Assert.Equal(oldClassC.ToFullString(), newClassC.ToFullString());
-
 
                 var oldToken = ((Syntax.InternalSyntax.ClassDeclarationSyntax)oldClassC).Identifier;
                 var newToken = ((Syntax.InternalSyntax.ClassDeclarationSyntax)newClassC).Identifier;
@@ -2736,7 +2847,6 @@ class D { }
 
             WalkTreeAndVerify(incrTree.GetRoot(), fullTree.GetRoot());
         }
-
 
         [Fact]
         public void TestRescanInterpolatedString()
@@ -3251,6 +3361,43 @@ if (b) { }
             var substring = "Goo[Goo]";
             var span = new TextSpan(start: source.IndexOf(substring), length: 3); // Goo[Goo] -> [Goo]
             var change = new TextChange(span, "");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        [WorkItem(62126, "https://github.com/dotnet/roslyn/issues/62126")]
+        public void StartAttributeOnABlock()
+        {
+            var source = @"
+using System;
+
+switch (getVirtualKey())
+{
+	case VirtualKey.Up or VirtualKey.Down or VirtualKey.Left or VirtualKey.Right:
+	{
+
+	}
+}
+
+// A local function to simulate get operation.
+static VirtualKey getVirtualKey() => VirtualKey.Up;
+
+
+enum VirtualKey
+{
+	Up,
+	Down,
+	Left,
+	Right
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var span = new TextSpan(start: source.IndexOf(":") + 1, length: 0);
+            var change = new TextChange(span, "[");
             text = text.WithChanges(change);
             tree = tree.WithChangedText(text);
             var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());

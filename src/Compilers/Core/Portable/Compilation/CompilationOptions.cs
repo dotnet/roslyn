@@ -261,6 +261,8 @@ namespace Microsoft.CodeAnalysis
 
         private readonly Lazy<ImmutableArray<Diagnostic>> _lazyErrors;
 
+        private int _hashCode;
+
         // Expects correct arguments.
         internal CompilationOptions(
             OutputKind outputKind,
@@ -651,7 +653,18 @@ namespace Microsoft.CodeAnalysis
             return equal;
         }
 
-        public abstract override int GetHashCode();
+        public sealed override int GetHashCode()
+        {
+            if (_hashCode == 0)
+            {
+                var hashCode = ComputeHashCode();
+                _hashCode = hashCode == 0 ? 1 : hashCode;
+            }
+
+            return _hashCode;
+        }
+
+        protected abstract int ComputeHashCode();
 
         protected int GetHashCodeHelper()
         {

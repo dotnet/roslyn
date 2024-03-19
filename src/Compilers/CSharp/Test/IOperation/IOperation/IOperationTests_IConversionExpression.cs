@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -3373,6 +3374,36 @@ Block[B2] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ConversionExpression_Implicit_InlineArray()
+        {
+            string source = @"
+class C
+{
+    public void F(Buffer10 arg)
+    {
+        System.ReadOnlySpan<char> /*<bind>*/span = arg/*</bind>*/;
+    }
+}
+";
+
+            string expectedOperationTree = @"
+IVariableDeclaratorOperation (Symbol: System.ReadOnlySpan<System.Char> span) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'span = arg')
+  Initializer:
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= arg')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.ReadOnlySpan<System.Char>, IsImplicit) (Syntax: 'arg')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand:
+          IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: Buffer10) (Syntax: 'arg')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilation(source + IOperationTests_IInlineArrayAccessOperation.Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(comp, expectedOperationTree, expectedDiagnostics,
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
+
         #endregion
 
         #region Explicit Conversion
@@ -5213,6 +5244,32 @@ class Class
             var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
             var iopTree = (IAssignmentOperation)model.GetOperation(assignment);
             Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, iopTree.Value.Type.NullableAnnotation);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ConversionExpression_Explicit_InlineArray()
+        {
+            string source = @"
+class C
+{
+    public void F(Buffer10 arg)
+    {
+        var a = /*<bind>*/(System.Span<char>)arg/*</bind>*/;
+    }
+}
+";
+
+            string expectedOperationTree = @"
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Span<System.Char>) (Syntax: '(System.Span<char>)arg')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand:
+    IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: Buffer10) (Syntax: 'arg')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilation(source + IOperationTests_IInlineArrayAccessOperation.Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
         }
 
         #endregion

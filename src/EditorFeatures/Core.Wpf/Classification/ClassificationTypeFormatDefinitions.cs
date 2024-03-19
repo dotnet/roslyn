@@ -731,6 +731,42 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
 
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.TestCode)]
+        [Name(ClassificationTypeNames.TestCode)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class TestCodeFormatDefinition : ClassificationFormatDefinition
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public TestCodeFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.Roslyn_Test_Code;
+                this.BackgroundColor = Color.FromRgb(0xe5, 0xe5, 0xe5);
+            }
+        }
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.TestCodeMarkdown)]
+        [Name(ClassificationTypeNames.TestCodeMarkdown)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class TestCodeMarkdownFormatDefinition : ClassificationFormatDefinition
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public TestCodeMarkdownFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.Roslyn_Test_Code_Markup;
+                this.ForegroundColor = Color.FromRgb(0xff, 0x00, 0xc1);
+            }
+        }
+
         #region Regex
 
         [Export(typeof(EditorFormatDefinition))]

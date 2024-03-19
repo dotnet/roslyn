@@ -5,20 +5,19 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
 
-namespace Microsoft.CodeAnalysis.GenerateType
+namespace Microsoft.CodeAnalysis.GenerateType;
+
+internal interface IGenerateTypeOptionsService : IWorkspaceService
 {
-    internal interface IGenerateTypeOptionsService : IWorkspaceService
-    {
-        GenerateTypeOptionsResult GetGenerateTypeOptions(
-            string className,
-            GenerateTypeDialogOptions generateTypeDialogOptions,
-            Document document,
-            INotificationService notificationService,
-            IProjectManagementService projectManagementService,
-            ISyntaxFactsService syntaxFactsService);
-    }
+    GenerateTypeOptionsResult GetGenerateTypeOptions(
+        string className,
+        GenerateTypeDialogOptions generateTypeDialogOptions,
+        Document document,
+        INotificationService notificationService,
+        IProjectManagementService projectManagementService,
+        ISyntaxFactsService syntaxFactsService);
 }

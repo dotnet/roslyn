@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public MustInherit Class AbstractVisualBasicCompletionProviderTests
         Inherits AbstractCompletionProviderTests(Of VisualBasicTestWorkspaceFixture)
 
-        Protected Overrides Function CreateWorkspace(fileContents As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(fileContents, exportProvider:=ExportProvider)
+        Protected Overrides Function CreateWorkspace(fileContents As String) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(fileContents, composition:=GetComposition())
         End Function
 
         Friend Overrides Function GetCompletionService(project As Project) As CompletionService
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Protected Async Function VerifySendEnterThroughToEditorAsync(
                 initialMarkup As String, textTypedSoFar As String, expected As Boolean, Optional sourceCodeKind As SourceCodeKind = SourceCodeKind.Regular) As Task
-            Using workspace = TestWorkspace.CreateVisualBasic(initialMarkup, exportProvider:=ExportProvider)
+            Using workspace = TestWorkspace.CreateVisualBasic(initialMarkup, composition:=GetComposition())
                 Dim hostDocument = workspace.DocumentWithCursor
                 workspace.OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind)
                 Dim documentId = workspace.GetDocumentId(hostDocument)

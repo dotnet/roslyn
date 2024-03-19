@@ -38,9 +38,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _current = current
             End Sub
 
-            Protected Overrides ReadOnly Property FirstIncreasingResumableState As Integer
+            Protected Overrides ReadOnly Property FirstIncreasingResumableState As StateMachineState
                 Get
-                    Return StateMachineStates.FirstResumableIteratorState
+                    Return StateMachineState.FirstResumableIteratorState
                 End Get
             End Property
 
@@ -58,18 +58,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 F.CurrentMethod = moveNextMethod
 
                 Dim initialLabel As GeneratedLabelSymbol = Nothing
-                AddState(StateMachineStates.InitialIteratorState, initialLabel)
+                AddState(StateMachineState.InitialIteratorState, initialLabel)
 
                 Me._methodValue = Me.F.SynthesizedLocal(F.CurrentMethod.ReturnType, SynthesizedLocalKind.StateMachineReturnValue, F.Syntax)
 
                 Dim newBody = DirectCast(Visit(Body), BoundStatement)
                 ' Select Me.state
-                '    Case 0: 
+                '    Case 0:
                 '       GoTo state_0
-                '    Case 1: 
+                '    Case 1:
                 '       GoTo state_1
                 '    'etc
-                '    Case Else: 
+                '    Case Else:
                 '       return false
                 ' }
                 ' state_0:
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dispatch(isOutermost:=True),
                         GenerateReturn(finished:=True),
                         F.Label(initialLabel),
-                        F.Assignment(F.Field(F.Me, Me.StateField, True), Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(StateMachineStates.NotStartedStateMachine))),
+                        F.Assignment(F.Field(F.Me, Me.StateField, True), Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(StateMachineState.NotStartedOrRunningState))),
                         newBody,
                         HandleReturn()
                     ))
@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         F.Select(
                             F.Field(F.Me, Me.StateField, False),
                             sections),
-                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.Literal(StateMachineStates.NotStartedStateMachine)),
+                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.Literal(StateMachineState.NotStartedOrRunningState)),
                         F.Label(breakLabel),
                         F.ExpressionStatement(F.Call(F.Me, moveNextMethod)),
                         F.Return()
@@ -187,10 +187,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '     Me.current = expression
                 '     Me.state = <next_state>
                 '     return true
-                ' <next_state_label>: 
+                ' <next_state_label>:
                 '     Me.state = -1
 
-                Dim stateNumber As Integer = 0
+                Dim stateNumber As StateMachineState = 0
                 Dim resumeLabel As GeneratedLabelSymbol = Nothing
                 AddResumableState(node.Syntax, stateNumber, resumeLabel)
 
@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         F.Assignment(F.Field(F.Me, Me.StateField, True), F.AssignmentExpression(F.Local(Me.CachedState, True), F.Literal(stateNumber))),
                         GenerateReturn(finished:=False),
                         F.Label(resumeLabel),
-                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.AssignmentExpression(F.Local(Me.CachedState, True), F.Literal(StateMachineStates.NotStartedStateMachine)))
+                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.AssignmentExpression(F.Local(Me.CachedState, True), F.Literal(StateMachineState.NotStartedOrRunningState)))
                     )
                 )
 

@@ -332,7 +332,6 @@ End Module
 
     End Sub
 
-
     <Fact>
     Public Sub BC30636ERR_ExpectedGreater_ParseMissingGreaterTokenInEndElement()
         ' Basic xml literal test
@@ -346,7 +345,6 @@ End Module
                  </errors>)
 
     End Sub
-
 
     <Fact>
     Public Sub ParseAttributeMemberAccess()
@@ -1276,7 +1274,6 @@ MyBase.New(<?xml version="1.0" encoding=<%=
                        </errors>)
     End Sub
 
-
     <WorkItem(903557, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseBadXmlDocument()
@@ -1543,7 +1540,6 @@ End Module
                 <error id="31150"/>
             </errors>)
     End Sub
-
 
     <WorkItem(924043, "DevDiv/Personal")>
     <Fact>

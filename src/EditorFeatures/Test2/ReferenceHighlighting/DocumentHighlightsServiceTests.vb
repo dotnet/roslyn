@@ -12,8 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
     <UseExportProvider, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
     Public Class DocumentHighlightsServiceTests
 
-        <WorkItem(441151, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/441151")>
         <Theory, CombinatorialData>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/441151")>
         Public Async Function TestMultipleLanguagesPassedToAPI(testHost As TestHost) As Task
             Dim workspaceElement =
                 <Workspace>
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                         </Document>
                     </Project>
                 </Workspace>
-            Using workspace = TestWorkspace.Create(workspaceElement, composition:=EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost))
+            Using workspace = EditorTestWorkspace.Create(workspaceElement, composition:=EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost))
                 Dim position = workspace.DocumentWithCursor.CursorPosition.Value
 
                 Dim solution = workspace.CurrentSolution

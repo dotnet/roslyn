@@ -14,339 +14,301 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Services;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute;
+
+[ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
+internal class VisualStudioDesignerAttributeService :
+    ForegroundThreadAffinitizedObject, IDesignerAttributeDiscoveryService.ICallback, IEventListener<object>, IDisposable
 {
-    [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-    internal class VisualStudioDesignerAttributeService
-        : ForegroundThreadAffinitizedObject, IDesignerAttributeListener, IEventListener<object>, IDisposable
+    private readonly VisualStudioWorkspaceImpl _workspace;
+
+    /// <summary>
+    /// Used to acquire the legacy project designer service.
+    /// </summary>
+    private readonly IServiceProvider _serviceProvider;
+    private readonly IAsynchronousOperationListener _listener;
+
+    /// <summary>
+    /// Cache from project to the CPS designer service for it.  Computed on demand (which
+    /// requires using the UI thread), but then cached for all subsequent notifications about
+    /// that project.
+    /// </summary>
+    private readonly ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?> _cpsProjects = [];
+
+    /// <summary>
+    /// Cached designer service for notifying legacy projects about designer attributes.
+    /// </summary>
+    private IVSMDDesignerService? _legacyDesignerService;
+
+    private readonly AsyncBatchingWorkQueue _workQueue;
+
+    // We'll get notifications from the OOP server about new attribute arguments. Collect those notifications and
+    // deliver them to VS in batches to prevent flooding the UI thread.
+    private readonly AsyncBatchingWorkQueue<DesignerAttributeData> _projectSystemNotificationQueue;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VisualStudioDesignerAttributeService(
+        VisualStudioWorkspaceImpl workspace,
+        IThreadingContext threadingContext,
+        IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
+        Shell.SVsServiceProvider serviceProvider)
+        : base(threadingContext)
     {
-        private readonly VisualStudioWorkspaceImpl _workspace;
+        _workspace = workspace;
+        _serviceProvider = serviceProvider;
 
-        /// <summary>
-        /// Used to acquire the legacy project designer service.
-        /// </summary>
-        private readonly IServiceProvider _serviceProvider;
+        _listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.DesignerAttributes);
 
-        /// <summary>
-        /// Our connection to the remote OOP server. Created on demand when we startup and then
-        /// kept around for the lifetime of this service.
-        /// </summary>
-        private RemoteServiceConnection<IRemoteDesignerAttributeDiscoveryService>? _lazyConnection;
+        _workQueue = new AsyncBatchingWorkQueue(
+            DelayTimeSpan.Idle,
+            this.ProcessWorkspaceChangeAsync,
+            _listener,
+            ThreadingContext.DisposalToken);
 
-        /// <summary>
-        /// Cache from project to the CPS designer service for it.  Computed on demand (which
-        /// requires using the UI thread), but then cached for all subsequent notifications about
-        /// that project.
-        /// </summary>
-        private readonly ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?> _cpsProjects
-            = new();
+        _projectSystemNotificationQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
+            DelayTimeSpan.Idle,
+            this.NotifyProjectSystemAsync,
+            _listener,
+            ThreadingContext.DisposalToken);
+    }
 
-        /// <summary>
-        /// Cached designer service for notifying legacy projects about designer attributes.
-        /// </summary>
-        private IVSMDDesignerService? _legacyDesignerService;
+    public void Dispose()
+    {
+        _workspace.WorkspaceChanged -= OnWorkspaceChanged;
+    }
 
-        // We'll get notifications from the OOP server about new attribute arguments. Batch those
-        // notifications up and deliver them to VS every second.
-        private readonly AsyncBatchingWorkQueue<DesignerAttributeData>? _workQueue;
+    void IEventListener<object>.StartListening(Workspace workspace, object _)
+    {
+        if (workspace != _workspace)
+            return;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioDesignerAttributeService(
-            VisualStudioWorkspaceImpl workspace,
-            IThreadingContext threadingContext,
-            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-            Shell.SVsServiceProvider serviceProvider)
-            : base(threadingContext)
+        _workspace.WorkspaceChanged += OnWorkspaceChanged;
+        _workQueue.AddWork(cancelExistingWork: true);
+    }
+
+    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    {
+        _workQueue.AddWork(cancelExistingWork: true);
+    }
+
+    private async ValueTask ProcessWorkspaceChangeAsync(CancellationToken cancellationToken)
+    {
+        var statusService = _workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+        await statusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var solution = _workspace.CurrentSolution;
+        foreach (var (projectId, _) in _cpsProjects)
         {
-            _workspace = workspace;
-            _serviceProvider = serviceProvider;
-
-            _workQueue = new AsyncBatchingWorkQueue<DesignerAttributeData>(
-                TimeSpan.FromSeconds(1),
-                this.NotifyProjectSystemAsync,
-                asynchronousOperationListenerProvider.GetListener(FeatureAttribute.DesignerAttributes),
-                ThreadingContext.DisposalToken);
+            if (!solution.ContainsProject(projectId))
+                _cpsProjects.TryRemove(projectId, out _);
         }
 
-        public void Dispose()
-        {
-            _lazyConnection?.Dispose();
-        }
+        var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+        if (client == null)
+            return;
 
-        void IEventListener<object>.StartListening(Workspace workspace, object _)
-        {
-            if (workspace is VisualStudioWorkspace)
-                _ = StartAsync();
-        }
+        var trackingService = solution.Services.GetRequiredService<IDocumentTrackingService>();
+        await DesignerAttributeDiscoveryService.DiscoverDesignerAttributesAsync(
+            solution, trackingService.GetActiveDocument(solution), client, _listener, this, cancellationToken).ConfigureAwait(false);
+    }
 
-        private async Task StartAsync()
-        {
-            // Have to catch all exceptions coming through here as this is called from a
-            // fire-and-forget method and we want to make sure nothing leaks out.
-            try
-            {
-                await StartWorkerAsync().ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-                // Cancellation is normal (during VS closing).  Just ignore.
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
-            {
-                // Otherwise report a watson for any other exception.  Don't bring down VS.  This is
-                // a BG service we don't want impacting the user experience.
-            }
-        }
+    private async ValueTask NotifyProjectSystemAsync(
+        ImmutableSegmentedList<DesignerAttributeData> data, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
 
-        private async Task StartWorkerAsync()
-        {
-            var cancellationToken = ThreadingContext.DisposalToken;
+        using var _ = ArrayBuilder<DesignerAttributeData>.GetInstance(out var filteredInfos);
+        AddFilteredInfos(data, filteredInfos);
 
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                StartScanningForDesignerAttributesInCurrentProcess(cancellationToken);
-                return;
-            }
-
-            // Pass ourselves in as the callback target for the OOP service.  As it discovers
-            // designer attributes it will call back into us to notify VS about it.
-            _lazyConnection = client.CreateConnection<IRemoteDesignerAttributeDiscoveryService>(callbackTarget: this);
-
-            // Now kick off scanning in the OOP process.
-            // If the call fails an error has already been reported and there is nothing more to do.
-            _ = await _lazyConnection.TryInvokeAsync(
-                (service, callbackId, cancellationToken) => service.StartScanningForDesignerAttributesAsync(callbackId, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-        }
-
-        public void StartScanningForDesignerAttributesInCurrentProcess(CancellationToken cancellation)
-        {
-            var registrationService = _workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            var analyzerProvider = new InProcDesignerAttributeIncrementalAnalyzerProvider(this);
-
-            registrationService.AddAnalyzerProvider(
-                analyzerProvider,
-                new IncrementalAnalyzerProviderMetadata(
-                    nameof(InProcDesignerAttributeIncrementalAnalyzerProvider),
-                    highPriorityForActiveFile: false,
-                    workspaceKinds: WorkspaceKind.Host));
-        }
-
-        private async ValueTask NotifyProjectSystemAsync(
-            ImmutableSegmentedList<DesignerAttributeData> data, CancellationToken cancellationToken)
+        // Now, group all the notifications by project and update that project at once.
+        foreach (var group in filteredInfos.GroupBy(a => a.DocumentId.ProjectId))
         {
             cancellationToken.ThrowIfCancellationRequested();
+            await NotifyProjectSystemAsync(group.Key, group, cancellationToken).ConfigureAwait(false);
+        }
+    }
 
-            using var _1 = ArrayBuilder<DesignerAttributeData>.GetInstance(out var filteredInfos);
-            AddFilteredInfos(data, filteredInfos);
+    private static void AddFilteredInfos(ImmutableSegmentedList<DesignerAttributeData> data, ArrayBuilder<DesignerAttributeData> filteredData)
+    {
+        using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
 
-            // Now, group all the notifications by project and update all the projects in parallel.
-            using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
-            foreach (var group in filteredInfos.GroupBy(a => a.DocumentId.ProjectId))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                tasks.Add(NotifyProjectSystemAsync(group.Key, group, cancellationToken));
-            }
+        // Walk the list of designer items in reverse, and skip any items for a project once
+        // we've already seen it once.  That way, we're only reporting the most up to date
+        // information for a project, and we're skipping the stale information.
+        for (var i = data.Count - 1; i >= 0; i--)
+        {
+            var info = data[i];
+            if (seenDocumentIds.Add(info.DocumentId))
+                filteredData.Add(info);
+        }
+    }
 
-            // Wait until all project updates have happened before processing the next batch.
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+    private async Task NotifyProjectSystemAsync(
+        ProjectId projectId,
+        IEnumerable<DesignerAttributeData> data,
+        CancellationToken cancellationToken)
+    {
+        // Delegate to the CPS or legacy notification services as necessary.
+        var cpsUpdateService = await GetUpdateServiceIfCpsProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
+        var task = cpsUpdateService == null
+            ? NotifyLegacyProjectSystemAsync(projectId, data, cancellationToken)
+            : NotifyCpsProjectSystemAsync(projectId, cpsUpdateService, data, cancellationToken);
+
+        await task.ConfigureAwait(false);
+    }
+
+    private async Task NotifyLegacyProjectSystemAsync(
+        ProjectId projectId,
+        IEnumerable<DesignerAttributeData> data,
+        CancellationToken cancellationToken)
+    {
+        // legacy project system can only be talked to on the UI thread.
+        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+
+        AssertIsForeground();
+
+        var designerService = _legacyDesignerService ??= (IVSMDDesignerService)_serviceProvider.GetService(typeof(SVSMDDesignerService));
+        if (designerService == null)
+            return;
+
+        var hierarchy = _workspace.GetHierarchy(projectId);
+        if (hierarchy == null)
+            return;
+
+        foreach (var info in data)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            NotifyLegacyProjectSystemOnUIThread(designerService, hierarchy, info);
+        }
+    }
+
+    private void NotifyLegacyProjectSystemOnUIThread(
+        IVSMDDesignerService designerService,
+        IVsHierarchy hierarchy,
+        DesignerAttributeData data)
+    {
+        this.AssertIsForeground();
+
+        var itemId = hierarchy.TryGetItemId(data.FilePath);
+        if (itemId == VSConstants.VSITEMID_NIL)
+            return;
+
+        // PERF: Avoid sending the message if the project system already has the current value.
+        if (ErrorHandler.Succeeded(hierarchy.GetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ItemSubType, out var currentValue)))
+        {
+            var currentStringValue = string.IsNullOrEmpty(currentValue as string) ? null : (string)currentValue;
+            if (string.Equals(currentStringValue, data.Category, StringComparison.OrdinalIgnoreCase))
+                return;
         }
 
-        private static void AddFilteredInfos(ImmutableSegmentedList<DesignerAttributeData> data, ArrayBuilder<DesignerAttributeData> filteredData)
+        try
         {
-            using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
-
-            // Walk the list of designer items in reverse, and skip any items for a project once
-            // we've already seen it once.  That way, we're only reporting the most up to date
-            // information for a project, and we're skipping the stale information.
-            for (var i = data.Count - 1; i >= 0; i--)
-            {
-                var info = data[i];
-                if (seenDocumentIds.Add(info.DocumentId))
-                    filteredData.Add(info);
-            }
+            designerService.RegisterDesignViewAttribute(
+                hierarchy, (int)itemId, dwClass: 0,
+                pwszAttributeValue: data.Category);
         }
-
-        private async Task NotifyProjectSystemAsync(
-            ProjectId projectId,
-            IEnumerable<DesignerAttributeData> data,
-            CancellationToken cancellationToken)
+        catch
         {
-            // Delegate to the CPS or legacy notification services as necessary.
-            var cpsUpdateService = await GetUpdateServiceIfCpsProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
-            var task = cpsUpdateService == null
-                ? NotifyLegacyProjectSystemAsync(projectId, data, cancellationToken)
-                : NotifyCpsProjectSystemAsync(projectId, cpsUpdateService, data, cancellationToken);
-
-            await task.ConfigureAwait(false);
+            // DevDiv # 933717
+            // turns out RegisterDesignViewAttribute can throw in certain cases such as a file failed to be checked out by source control
+            // or IVSHierarchy failed to set a property for this project
+            //
+            // just swallow it. don't crash VS.
         }
+    }
 
-        private async Task NotifyLegacyProjectSystemAsync(
-            ProjectId projectId,
-            IEnumerable<DesignerAttributeData> data,
-            CancellationToken cancellationToken)
+    private async Task NotifyCpsProjectSystemAsync(
+        ProjectId projectId,
+        IProjectItemDesignerTypeUpdateService updateService,
+        IEnumerable<DesignerAttributeData> data,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // We may have updates for many different configurations of the same logical project system project.
+        // However, the project system only associates designer attributes with one of those projects.  So just drop
+        // the notifications for any sibling configurations.
+        if (!_workspace.IsPrimaryProject(projectId))
+            return;
+
+        foreach (var info in data)
         {
-            // legacy project system can only be talked to on the UI thread.
+            cancellationToken.ThrowIfCancellationRequested();
+            await NotifyCpsProjectSystemAsync(updateService, info, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private static async Task NotifyCpsProjectSystemAsync(
+        IProjectItemDesignerTypeUpdateService updateService,
+        DesignerAttributeData data,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        try
+        {
+            await updateService.SetProjectItemDesignerTypeAsync(data.FilePath, data.Category).ConfigureAwait(false);
+        }
+        catch (ObjectDisposedException)
+        {
+            // we might call update service after project is already removed and get object disposed exception.
+            // we will catch the exception and ignore. 
+            // see this PR for more detail - https://github.com/dotnet/roslyn/pull/35383
+        }
+    }
+
+    private async Task<IProjectItemDesignerTypeUpdateService?> GetUpdateServiceIfCpsProjectAsync(
+        ProjectId projectId, CancellationToken cancellationToken)
+    {
+        if (!_cpsProjects.TryGetValue(projectId, out var updateService))
+        {
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-
-            AssertIsForeground();
-
-            var designerService = _legacyDesignerService ??= (IVSMDDesignerService)_serviceProvider.GetService(typeof(SVSMDDesignerService));
-            if (designerService == null)
-                return;
-
-            var hierarchy = _workspace.GetHierarchy(projectId);
-            if (hierarchy == null)
-                return;
-
-            foreach (var info in data)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                NotifyLegacyProjectSystemOnUIThread(designerService, hierarchy, info);
-            }
-        }
-
-        private void NotifyLegacyProjectSystemOnUIThread(
-            IVSMDDesignerService designerService,
-            IVsHierarchy hierarchy,
-            DesignerAttributeData data)
-        {
             this.AssertIsForeground();
 
-            var itemId = hierarchy.TryGetItemId(data.FilePath);
-            if (itemId == VSConstants.VSITEMID_NIL)
-                return;
-
-            // PERF: Avoid sending the message if the project system already has the current value.
-            if (ErrorHandler.Succeeded(hierarchy.GetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ItemSubType, out var currentValue)))
-            {
-                var currentStringValue = string.IsNullOrEmpty(currentValue as string) ? null : (string)currentValue;
-                if (string.Equals(currentStringValue, data.Category, StringComparison.OrdinalIgnoreCase))
-                    return;
-            }
-
-            try
-            {
-                designerService.RegisterDesignViewAttribute(
-                    hierarchy, (int)itemId, dwClass: 0,
-                    pwszAttributeValue: data.Category);
-            }
-            catch
-            {
-                // DevDiv # 933717
-                // turns out RegisterDesignViewAttribute can throw in certain cases such as a file failed to be checked out by source control
-                // or IVSHierarchy failed to set a property for this project
-                //
-                // just swallow it. don't crash VS.
-            }
+            updateService = ComputeUpdateService();
+            _cpsProjects.TryAdd(projectId, updateService);
         }
 
-        private async Task NotifyCpsProjectSystemAsync(
-            ProjectId projectId,
-            IProjectItemDesignerTypeUpdateService updateService,
-            IEnumerable<DesignerAttributeData> data,
-            CancellationToken cancellationToken)
+        return updateService;
+
+        IProjectItemDesignerTypeUpdateService? ComputeUpdateService()
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            if (!_workspace.IsCPSProject(projectId))
+                return null;
 
-            // We may have updates for many different configurations of the same logical project system project.
-            // However, the project system only associates designer attributes with one of those projects.  So just drop
-            // the notifications for any sibling configurations.
-            if (!_workspace.IsPrimaryProject(projectId))
-                return;
+            var vsProject = (IVsProject?)_workspace.GetHierarchy(projectId);
+            if (vsProject == null)
+                return null;
 
-            // Broadcast all the information about all the documents in parallel to CPS.
+            if (ErrorHandler.Failed(vsProject.GetItemContext((uint)VSConstants.VSITEMID.Root, out var projectServiceProvider)))
+                return null;
 
-            using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
-
-            foreach (var info in data)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                tasks.Add(NotifyCpsProjectSystemAsync(updateService, info, cancellationToken));
-            }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            var serviceProvider = new Shell.ServiceProvider(projectServiceProvider);
+            return serviceProvider.GetService(typeof(IProjectItemDesignerTypeUpdateService)) as IProjectItemDesignerTypeUpdateService;
         }
+    }
 
-        private static async Task NotifyCpsProjectSystemAsync(
-            IProjectItemDesignerTypeUpdateService updateService,
-            DesignerAttributeData data,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            try
-            {
-                await updateService.SetProjectItemDesignerTypeAsync(data.FilePath, data.Category).ConfigureAwait(false);
-            }
-            catch (ObjectDisposedException)
-            {
-                // we might call update service after project is already removed and get object disposed exception.
-                // we will catch the exception and ignore. 
-                // see this PR for more detail - https://github.com/dotnet/roslyn/pull/35383
-            }
-        }
-
-        private async Task<IProjectItemDesignerTypeUpdateService?> GetUpdateServiceIfCpsProjectAsync(
-            ProjectId projectId, CancellationToken cancellationToken)
-        {
-            if (!_cpsProjects.TryGetValue(projectId, out var updateService))
-            {
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-                this.AssertIsForeground();
-
-                updateService = ComputeUpdateService();
-                _cpsProjects.TryAdd(projectId, updateService);
-            }
-
-            return updateService;
-
-            IProjectItemDesignerTypeUpdateService? ComputeUpdateService()
-            {
-                if (!_workspace.IsCPSProject(projectId))
-                    return null;
-
-                var vsProject = (IVsProject?)_workspace.GetHierarchy(projectId);
-                if (vsProject == null)
-                    return null;
-
-                if (ErrorHandler.Failed(vsProject.GetItemContext((uint)VSConstants.VSITEMID.Root, out var projectServiceProvider)))
-                    return null;
-
-                var serviceProvider = new Shell.ServiceProvider(projectServiceProvider);
-                return serviceProvider.GetService(typeof(IProjectItemDesignerTypeUpdateService)) as IProjectItemDesignerTypeUpdateService;
-            }
-        }
-
-        /// <summary>
-        /// Callback from the OOP service back into us.
-        /// </summary>
-        public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_workQueue);
-            _workQueue.AddWork(data);
-            return ValueTaskFactory.CompletedTask;
-        }
-
-        public ValueTask OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
-        {
-            _cpsProjects.TryRemove(projectId, out _);
-            return ValueTaskFactory.CompletedTask;
-        }
+    /// <summary>
+    /// Callback from the OOP service back into us.
+    /// </summary>
+    public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfNull(_projectSystemNotificationQueue);
+        _projectSystemNotificationQueue.AddWork(data);
+        return ValueTaskFactory.CompletedTask;
     }
 }

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a field initializer, a property initializer, or a global statement in script code.
     /// </summary>
-    internal struct FieldOrPropertyInitializer
+    internal readonly struct FieldOrPropertyInitializer
     {
         /// <summary>
         /// The field being initialized (possibly a backing field of a property), or null if this is a top-level statement in script code.

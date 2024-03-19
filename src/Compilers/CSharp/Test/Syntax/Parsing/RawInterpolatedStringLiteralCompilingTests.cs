@@ -71,9 +71,9 @@ public class RawInterpolatedStringLiteralCompilingTests : CompilingTestBase
 {
     const string s = $"""""" """""";
 }", parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-            // (3,22): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     const string s = """ """;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$"""""" """"""").WithArguments("raw string literals").WithLocation(3, 22));
+            // (3,22): error CS8936: Feature 'raw string literals' is not available in C# 10.0. Please use language version 11.0 or greater.
+            //     const string s = $""" """;
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, @"$"""""" """"""").WithArguments("raw string literals", "11.0").WithLocation(3, 22));
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class RawInterpolatedStringLiteralCompilingTests : CompilingTestBase
 @"class C
 {
     const string s = $"""""" """""";
-}", parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+}", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
     }
 
     [Fact]
@@ -284,14 +284,14 @@ class C
 """"""}"";
     }
 }", parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (5,20): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,20): error CS8773: Feature 'raw string literals' is not available in C# 9.0. Please use language version 11.0 or greater.
                 //         var v = $"{$"""
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""""""
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""""""
 
-""""""").WithArguments("raw string literals").WithLocation(5, 20),
-                // (7,4): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 9.0. Please use language version preview or greater.
+""""""").WithArguments("raw string literals", "11.0").WithLocation(5, 20),
+                // (7,4): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 9.0. Please use language version 11.0 or greater.
                 // """}";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("9.0", "preview").WithLocation(7, 4));
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("9.0", "11.0").WithLocation(7, 4));
     }
 
     [Fact]
@@ -1249,6 +1249,40 @@ System.Console.Write(
     }
 
     [Fact]
+    public void MultiLineCase34_A()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+    a
+{42}
+    b
+    {43}
+    c
+    """""");",
+                // (5,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
+                //   {42}
+                Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(5, 1));
+    }
+
+    [Fact]
+    public void MultiLineCase34_B()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $$""""""
+    a
+{{42}}
+    b
+    {43}
+    c
+    """""");",
+                // (5,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
+                //   {42}
+                Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(5, 1));
+    }
+
+    [Fact]
     public void MultiLineCase35()
     {
         RenderAndVerify(@"
@@ -1280,6 +1314,23 @@ System.Console.Write(
                 // (7,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   {43}
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(7, 1));
+    }
+
+    [Fact]
+    public void MultiLineCase36_A()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+    a
+    {42}
+    b
+{43}
+    c
+    """""");",
+                // (7,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
+                //   {43}
+                Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(7, 1));
     }
 
     [Fact]
@@ -1336,6 +1387,24 @@ System.Console.Write(
     }
 
     [Fact]
+    public void MultiLineCase39_A()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+    a
+    {42}
+{42}
+    b
+    {43}
+    c
+    """""");",
+                // (6,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
+                //   {42}
+                Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(6, 1));
+    }
+
+    [Fact]
     public void MultiLineCase40()
     {
         RenderAndVerify(@"
@@ -1369,6 +1438,24 @@ System.Console.Write(
                 // (8,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
                 //   {43}
                 Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(8, 1));
+    }
+
+    [Fact]
+    public void MultiLineCase41_A()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+    a
+    {42}
+    b
+    {43}
+{43}
+    c
+    """""");",
+                // (8,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
+                //   {43}
+                Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(8, 1));
     }
 
     [Fact]
@@ -1778,6 +1865,267 @@ System.Console.Write(
     }
 
     [Fact]
+    public void MultiLineCase67()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+{1+1}
+"""""");", expectedOutput: @"2");
+    }
+
+    [Fact]
+    public void MultiLineCase68()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+  {1+1}
+"""""");", expectedOutput: @"  2");
+    }
+
+    [Fact]
+    public void MultiLineCase69()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+  {1+1}  
+"""""");", expectedOutput: @"  2  ");
+    }
+
+    [Fact]
+    public void MultiLineCase70()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+{1+1}  
+"""""");", expectedOutput: @"2  ");
+    }
+
+    [Fact]
+    public void MultiLineCase71()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+{1+1}
+    """""");",
+            // (4,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            // {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void MultiLineCase72()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+    a
+{1+1}
+    """""");",
+            // (5,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            // {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(5, 1));
+    }
+
+    [Fact]
+    public void MultiLineCase73()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+    a
+    b
+{1+1}
+    """""");",
+            // (6,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            // {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(6, 1));
+    }
+
+    [Fact]
+    public void MultiLineCase74()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+    a
+{1+1}
+    b
+    """""");",
+            // (5,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            // {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(5, 1));
+    }
+
+    [Fact]
+    public void MultiLineCase75()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+{1+1}
+    a
+    b
+    """""");",
+            // (4,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            // {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void MultiLineCase76()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+{1+1}
+    a
+  {1+1}
+    b
+    """""");",
+            // (4,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            // {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(4, 1),
+            // (6,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            //   {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(6, 1));
+    }
+
+    [Fact]
+    public void MultiLineCase77()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+{1+1}
+    a
+    b
+  {1+1}
+    """""");",
+            // (4,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            // {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(4, 1),
+            // (7,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            //   {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(7, 1));
+    }
+
+    [Fact]
+    public void MultiLineCase78()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+    a
+{1+1}
+    b
+  {1+1}
+    """""");",
+            // (5,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            // {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(5, 1),
+            // (7,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            //   {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(7, 1));
+    }
+
+    [Fact]
+    public void MultiLineCase79()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+    a
+    b
+{1+1}
+  {1+1}
+    """""");",
+            // (6,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            // {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(6, 1),
+            // (7,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            //   {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(7, 1));
+    }
+
+    [Fact]
+    public void MultiLineCase80()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+{1+1}
+    a
+    b
+{1+1}
+  {1+1}
+    """""");",
+            // (4,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            // {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(4, 1),
+            // (7,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            // {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(7, 1),
+            // (8,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            //   {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(8, 1));
+    }
+
+    [Fact]
+    public void MultiLineCase81()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+    a
+{1+1}
+    b
+{1+1}
+  {1+1}
+    """""");",
+            // (5,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            // {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(5, 1),
+            // (7,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            // {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(7, 1),
+            // (8,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            //   {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(8, 1));
+    }
+
+    [Fact]
+    public void MultiLineCase82()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $""""""
+  {1+1}
+    a
+{1+1}
+    b
+{1+1}
+  {1+1}
+    """""");",
+            // (4,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            //   {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(4, 1),
+            // (6,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            // {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(6, 1),
+            // (8,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            // {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "{").WithLocation(8, 1),
+            // (9,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal.
+            //   {1+1}
+            Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(9, 1));
+    }
+
+    [Fact]
     public void TestOutVarOrderOfEvaluation1()
     {
         CompileAndVerify(
@@ -1813,7 +2161,6 @@ int M(out int val)
                 // Console.Write($"""{x} {M(out var x)}""");
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(4, 20));
     }
-
 
     [Fact]
     public void TestWhitespaceMismatch1()
@@ -1930,5 +2277,23 @@ System.Console.Write(
     $$$$""""""
     {{{1 + 2}}}
     """""");", expectedOutput: "{{{1 + 2}}}");
+    }
+
+    [Fact]
+    public void TestNonEscape()
+    {
+        CompileAndVerify(
+@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Console.Write($""""""
+                       \e
+                       """""");
+    }
+}", expectedOutput: "\\e");
     }
 }

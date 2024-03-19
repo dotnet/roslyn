@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.Instrument &&
                 (!node.WasCompilerGenerated || (node.Syntax.Kind() == SyntaxKind.Block && _factory.CurrentFunction?.IsAsync == false)))
             {
-                result = _instrumenter.InstrumentYieldBreakStatement(node, result);
+                result = Instrumenter.InstrumentYieldBreakStatement(node, result);
             }
 
             return result;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = (BoundStatement)base.VisitYieldReturnStatement(node)!;
             if (this.Instrument && !node.WasCompilerGenerated)
             {
-                result = _instrumenter.InstrumentYieldReturnStatement(node, result);
+                result = Instrumenter.InstrumentYieldReturnStatement(node, result);
             }
 
             return result;

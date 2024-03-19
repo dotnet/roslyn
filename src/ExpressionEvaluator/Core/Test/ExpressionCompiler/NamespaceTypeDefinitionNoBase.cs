@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             UnderlyingType = underlyingType;
         }
 
+        bool IDefinition.IsEncDeleted => false;
+
         ushort ITypeDefinition.Alignment => UnderlyingType.Alignment;
 
         IGenericMethodParameterReference ITypeReference.AsGenericMethodParameterReference => UnderlyingType.AsGenericMethodParameterReference;
@@ -77,6 +79,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         bool INamedTypeReference.MangleName => UnderlyingType.MangleName;
 
+#nullable enable
+        string? INamedTypeReference.AssociatedFileIdentifier => UnderlyingType.AssociatedFileIdentifier;
+#nullable disable
+
         string INamedEntity.Name => UnderlyingType.Name;
 
         string INamespaceTypeReference.NamespaceName => UnderlyingType.NamespaceName;
@@ -126,13 +132,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         public sealed override bool Equals(object obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
     }
 }

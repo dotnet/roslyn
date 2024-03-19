@@ -448,7 +448,6 @@ hasBucket:
             return leftRight;
         }
 
-
         private void HandleInsert(AvlNode node, AvlNode? parent, K key, V value, bool add)
         {
             Node? currentNode = node;
@@ -504,7 +503,7 @@ hasBucket:
 
         public KeyCollection Keys => new KeyCollection(this);
 
-        internal struct KeyCollection : IEnumerable<K>
+        internal readonly struct KeyCollection : IEnumerable<K>
         {
             private readonly SmallDictionary<K, V> _dict;
 
@@ -619,7 +618,7 @@ hasBucket:
 
         public ValueCollection Values => new ValueCollection(this);
 
-        internal struct ValueCollection : IEnumerable<V>
+        internal readonly struct ValueCollection : IEnumerable<V>
         {
             private readonly SmallDictionary<K, V> _dict;
 

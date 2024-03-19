@@ -135,7 +135,6 @@ End Class
 ]]></file>
 </compilation>
 
-
             Dim comp1 = CreateCompilation(source1, references:={ilReference}, options:=TestOptions.DebugDll.WithOverflowChecks(enabled:=overflowChecksEnabled))
             comp1.AssertTheseDiagnostics(
 <errors>
@@ -186,12 +185,21 @@ End Class
 
             Dim c0_3 = comp3.GetTypeByMetadataName("C0")
 
-            For Each m In c0_3.GetMembers().OfType(Of IMethodSymbol)()
-                If m.MethodKind <> MethodKind.Constructor Then
-                    Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind)
-                End If
+            Dim operators = c0_3.GetMembers().OfType(Of IMethodSymbol)().Where(Function(m) m.MethodKind <> MethodKind.Constructor).ToArray()
+
+            Assert.Equal(3, operators.Length)
+
+            For Each m In operators
+                Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind)
             Next
 
+            Assert.Equal("Function C0.op_CheckedUnaryNegation(x As C0) As C0", SymbolDisplay.ToDisplayString(operators(0), SymbolDisplayFormat.TestFormat))
+            Assert.Equal("Function C0.op_CheckedDecrement(x As C0) As C0", SymbolDisplay.ToDisplayString(operators(1), SymbolDisplayFormat.TestFormat))
+            Assert.Equal("Function C0.op_CheckedIncrement(x As C0) As C0", SymbolDisplay.ToDisplayString(operators(2), SymbolDisplayFormat.TestFormat))
+
+            Assert.Equal("Public Shared Function op_CheckedUnaryNegation(x As C0) As C0", SymbolDisplay.ToDisplayString(operators(0)))
+            Assert.Equal("Public Shared Function op_CheckedDecrement(x As C0) As C0", SymbolDisplay.ToDisplayString(operators(1)))
+            Assert.Equal("Public Shared Function op_CheckedIncrement(x As C0) As C0", SymbolDisplay.ToDisplayString(operators(2)))
         End Sub
 
         <Theory>
@@ -364,12 +372,13 @@ End Class
 
             Dim c0_3 = comp3.GetTypeByMetadataName("C0")
 
-            For Each m In c0_3.GetMembers().OfType(Of IMethodSymbol)()
-                If m.MethodKind <> MethodKind.Constructor Then
-                    Assert.Equal(MethodKind.UserDefinedOperator, m.MethodKind)
-                End If
-            Next
+            Dim operators = c0_3.GetMembers().OfType(Of IMethodSymbol)().Where(Function(m) m.MethodKind <> MethodKind.Constructor).ToArray()
 
+            Assert.Equal(1, operators.Length)
+
+            Assert.Equal(MethodKind.UserDefinedOperator, operators(0).MethodKind)
+            Assert.Equal("Function C0." + metadataName + "(x As C0, y As C0) As C0", SymbolDisplay.ToDisplayString(operators(0), SymbolDisplayFormat.TestFormat))
+            Assert.Equal("Public Shared Function " + metadataName + "(x As C0, y As C0) As C0", SymbolDisplay.ToDisplayString(operators(0)))
         End Sub
 
         <Theory>
@@ -502,7 +511,6 @@ End Class
 ]]></file>
 </compilation>
 
-
             Dim comp1 = CreateCompilation(source1, references:={ilReference}, options:=TestOptions.DebugDll.WithOverflowChecks(enabled:=overflowChecksEnabled))
             comp1.AssertTheseDiagnostics(
 <errors>
@@ -543,15 +551,14 @@ End Class
 
             Dim c0_3 = comp3.GetTypeByMetadataName("C0")
 
-            For Each m In c0_3.GetMembers().OfType(Of IMethodSymbol)()
-                If m.MethodKind <> MethodKind.Constructor Then
-                    Assert.Equal(MethodKind.Conversion, m.MethodKind)
-                End If
-            Next
+            Dim operators = c0_3.GetMembers().OfType(Of IMethodSymbol)().Where(Function(m) m.MethodKind <> MethodKind.Constructor).ToArray()
 
+            Assert.Equal(1, operators.Length)
+
+            Assert.Equal(MethodKind.Conversion, operators(0).MethodKind)
+            Assert.Equal("Function C0.op_CheckedExplicit(x As C0) As System.Int64", SymbolDisplay.ToDisplayString(operators(0), SymbolDisplayFormat.TestFormat))
+            Assert.Equal("Public Shared Function op_CheckedExplicit(x As C0) As Long", SymbolDisplay.ToDisplayString(operators(0)))
         End Sub
-
-        'Public shared Narrowing Operator CType 
 
         <Theory>
         <CombinatorialData>
@@ -591,7 +598,6 @@ Public Class Program
 End Class
 ]]></file>
 </compilation>
-
 
             For Each comp0Reference In {comp0.ToMetadataReference(), comp0.EmitToImageReference()}
 

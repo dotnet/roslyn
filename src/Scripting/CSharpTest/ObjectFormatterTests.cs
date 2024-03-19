@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
                 };
 
                 var actual = s_formatter.FormatObject(obj, printOptions);
-                var expected = output.Substring(0, i) + "...";
+                var expected = output[..i] + "...";
                 Assert.Equal(expected, actual);
             }
         }
@@ -780,8 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
         }
 
-        [Fact]
-        [WorkItem(10838, "https://github.com/mono/mono/issues/10838")]
+        [Fact, WorkItem("https://github.com/mono/mono/issues/10838")]
         public void DebuggerProxy_FrameworkTypes_Task()
         {
             var obj = new MockDesktopTask(TaskMethod);
@@ -874,8 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             );
         }
 
-        [WorkItem(8542, "https://github.com/dotnet/roslyn/issues/8452")]
-        [Fact]
+        [Fact, WorkItem(8542, "https://github.com/dotnet/roslyn/issues/8452")]
         public void FormatConstructorSignature()
         {
             var constructor = typeof(object).GetTypeInfo().DeclaredConstructors.Single();
@@ -922,8 +920,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_NonGeneric()
         {
             try
@@ -945,8 +943,8 @@ $@"{new Exception().Message}
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericMethod()
         {
             try
@@ -969,8 +967,8 @@ $@"{new Exception().Message}
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericType()
         {
             try
@@ -993,8 +991,8 @@ $@"{new Exception().Message}
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericMethodInGenericType()
         {
             try
@@ -1025,8 +1023,8 @@ $@"{new Exception().Message}
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9221"), WorkItem(9221, "https://github.com/dotnet/roslyn/issues/9221")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9221"), WorkItem("https://github.com/dotnet/roslyn/issues/9221")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_Dynamic()
         {
             try
@@ -1065,8 +1063,8 @@ $@"'object' does not contain a definition for 'x'
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_RefOutParameters()
         {
             try
@@ -1090,8 +1088,8 @@ $@"{new Exception().Message}
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
-        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
-        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericRefParameter()
         {
             try

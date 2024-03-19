@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
         public static AspNetCoreCSharpVirtualCharService Instance => _instance;
 
         /// <inheritdoc cref="IVirtualCharService.TryConvertToVirtualChars"/>
-        public AspNetCoreVirtualCharSequence TryConvertToVirtualChars(SyntaxToken token) =>
-            new(_virtualCharService.TryConvertToVirtualChars(token));
+        public AspNetCoreVirtualCharSequence TryConvertToVirtualChars(SyntaxToken token)
+            => new(_virtualCharService.TryConvertToVirtualChars(token));
     }
 }

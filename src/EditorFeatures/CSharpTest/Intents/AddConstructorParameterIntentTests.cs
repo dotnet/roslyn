@@ -29,134 +29,212 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
         public async Task AddConstructorParameterWithField()
         {
             var initialText =
-@"class C
-{
-    private readonly int _someInt;{|priorSelection:|}
+                """
+                class C
+                {
+                    private readonly int _someInt;{|priorSelection:|}
 
-    public C({|typed:int som|})
-    {
-    }
-}";
+                    public C()
+                    {
+                    }
+                }
+                """;
+
+            var currentText =
+                """
+                class C
+                {
+                    private readonly int _someInt;
+
+                    public C(int som)
+                    {
+                    }
+                }
+                """;
             var expectedText =
-@"class C
-{
-    private readonly int _someInt;
+                """
+                class C
+                {
+                    private readonly int _someInt;
 
-    public C(int someInt)
-    {
-        _someInt = someInt;
-    }
-}";
+                    public C(int someInt)
+                    {
+                        _someInt = someInt;
+                    }
+                }
+                """;
 
-            await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, expectedText).ConfigureAwait(false);
+            await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, currentText, expectedText).ConfigureAwait(false);
         }
 
         [Fact]
         public async Task AddConstructorParameterWithProperty()
         {
             var initialText =
-@"class C
-{
-    public int SomeInt { get; }{|priorSelection:|}
+                """
+                class C
+                {
+                    public int SomeInt { get; }{|priorSelection:|}
 
-    public C({|typed:int som|})
-    {
-    }
-}";
+                    public C()
+                    {
+                    }
+                }
+                """;
+            var currentText =
+                """
+                class C
+                {
+                    public int SomeInt { get; }
+
+                    public C(int som)
+                    {
+                    }
+                }
+                """;
             var expectedText =
-@"class C
-{
-    public int SomeInt { get; }
+                """
+                class C
+                {
+                    public int SomeInt { get; }
 
-    public C(int someInt)
-    {
-        SomeInt = someInt;
-    }
-}";
+                    public C(int someInt)
+                    {
+                        SomeInt = someInt;
+                    }
+                }
+                """;
 
-            await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, expectedText).ConfigureAwait(false);
+            await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, currentText, expectedText).ConfigureAwait(false);
         }
 
         [Fact]
         public async Task AddMultipleConstructorParameters()
         {
             var initialText =
-@"class C
-{
-    {|priorSelection:private readonly int _someInt;
-    private readonly string _someString;|}
+                """
+                class C
+                {
+                    {|priorSelection:private readonly int _someInt;
+                    private readonly string _someString;|}
 
-    public C({|typed:int som|})
-    {
-    }
-}";
+                    public C()
+                    {
+                    }
+                }
+                """;
+            var currentText =
+                """
+                class C
+                {
+                    {|priorSelection:private readonly int _someInt;
+                    private readonly string _someString;|}
+
+                    public C(int som)
+                    {
+                    }
+                }
+                """;
             var expectedText =
-@"class C
-{
-    private readonly int _someInt;
-    private readonly string _someString;
+                """
+                class C
+                {
+                    private readonly int _someInt;
+                    private readonly string _someString;
 
-    public C(int someInt, string someString)
-    {
-        _someInt = someInt;
-        _someString = someString;
-    }
-}";
+                    public C(int someInt, string someString)
+                    {
+                        _someInt = someInt;
+                        _someString = someString;
+                    }
+                }
+                """;
 
-            await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, expectedText).ConfigureAwait(false);
+            await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, currentText, expectedText).ConfigureAwait(false);
         }
 
         [Fact]
         public async Task AddConstructorParameterOnlyAddsSelected()
         {
             var initialText =
-@"class C
-{
-    private readonly int _someInt;{|priorSelection:|}
-    private readonly string _someString;
+                """
+                class C
+                {
+                    private readonly int _someInt;{|priorSelection:|}
+                    private readonly string _someString;
 
-    public C({|typed:int som|})
-    {
-    }
-}";
+                    public C()
+                    {
+                    }
+                }
+                """;
+            var currentText =
+                """
+                class C
+                {
+                    private readonly int _someInt;{|priorSelection:|}
+                    private readonly string _someString;
+
+                    public C(int som)
+                    {
+                    }
+                }
+                """;
             var expectedText =
-@"class C
-{
-    private readonly int _someInt;
-    private readonly string _someString;
+                """
+                class C
+                {
+                    private readonly int _someInt;
+                    private readonly string _someString;
 
-    public C(int someInt)
-    {
-        _someInt = someInt;
-    }
-}";
+                    public C(int someInt)
+                    {
+                        _someInt = someInt;
+                    }
+                }
+                """;
 
-            await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, expectedText).ConfigureAwait(false);
+            await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, currentText, expectedText).ConfigureAwait(false);
         }
 
         [Fact]
         public async Task AddConstructorParameterUsesCodeStyleOption()
         {
             var initialText =
-@"class C
-{
-    private readonly int _someInt;{|priorSelection:|}
+                """
+                class C
+                {
+                    private readonly int _someInt;{|priorSelection:|}
 
-    public C({|typed:int som|})
-    {
-    }
-}";
+                    public C()
+                    {
+                    }
+                }
+                """;
+            var currentText =
+                """
+                class C
+                {
+                    private readonly int _someInt;{|priorSelection:|}
+
+                    public C(int som)
+                    {
+                    }
+                }
+                """;
             var expectedText =
-@"class C
-{
-    private readonly int _someInt;
+                """
+                class C
+                {
+                    private readonly int _someInt;
 
-    public C(int someInt)
-    {
-        this._someInt = someInt;
-    }
-}";
-            await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, expectedText,
+                    public C(int someInt)
+                    {
+                        this._someInt = someInt;
+                    }
+                }
+                """;
+            await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, currentText, expectedText,
                 options: new OptionsCollection(LanguageNames.CSharp)
                 {
                     { CodeStyleOptions2.QualifyFieldAccess, true }
@@ -167,26 +245,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
         public async Task AddConstructorParameterUsesExistingAccessibility()
         {
             var initialText =
-@"class C
-{
-    private readonly int _someInt;{|priorSelection:|}
+                """
+                class C
+                {
+                    private readonly int _someInt;{|priorSelection:|}
 
-    protected C({|typed:int som|})
-    {
-    }
-}";
+                    protected C()
+                    {
+                    }
+                }
+                """;
+            var currentText =
+                """
+                class C
+                {
+                    private readonly int _someInt;{|priorSelection:|}
+
+                    protected C(int som)
+                    {
+                    }
+                }
+                """;
             var expectedText =
-@"class C
-{
-    private readonly int _someInt;
+                """
+                class C
+                {
+                    private readonly int _someInt;
 
-    protected C(int someInt)
-    {
-        _someInt = someInt;
-    }
-}";
+                    protected C(int someInt)
+                    {
+                        _someInt = someInt;
+                    }
+                }
+                """;
 
-            await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, expectedText).ConfigureAwait(false);
+            await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, currentText, expectedText).ConfigureAwait(false);
         }
     }
 }

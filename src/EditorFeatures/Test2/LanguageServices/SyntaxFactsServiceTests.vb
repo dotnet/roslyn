@@ -2,10 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.LanguageServices
@@ -203,7 +204,7 @@ $$End Class
         End Function
 
         Private Shared Async Function VerifyGetMemberBodySpanForSpeculativeBindingAsync(workspaceDefinition As XElement) As Tasks.Task
-            Using workspace = TestWorkspace.Create(workspaceDefinition)
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition)
                 Dim cursorDocument = workspace.DocumentWithCursor
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
 
@@ -212,7 +213,8 @@ $$End Class
                 Dim node = root.FindNode(New TextSpan(cursorPosition, 0))
                 Dim syntaxFactsService = document.GetLanguageService(Of ISyntaxFactsService)()
 
-                Dim expected = If(cursorDocument.AnnotatedSpans.ContainsKey("MemberBodySpan"), cursorDocument.AnnotatedSpans!MemberBodySpan.Single(), Nothing)
+                Dim spans As ImmutableArray(Of TextSpan) = Nothing
+                Dim expected = If(cursorDocument.AnnotatedSpans.TryGetValue("MemberBodySpan", spans), spans.Single(), Nothing)
                 Dim actual = syntaxFactsService.GetMemberBodySpanForSpeculativeBinding(node)
 
                 Assert.Equal(expected, actual)

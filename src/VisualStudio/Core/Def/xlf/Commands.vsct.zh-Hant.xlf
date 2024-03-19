@@ -7,6 +7,46 @@
         <target state="translated">針對選取範圍執行程式碼分析(&amp;A)</target>
         <note />
       </trans-unit>
+      <trans-unit id="StackTraceExplorerContextMenu|ButtonText">
+        <source>StackTrace Explorer</source>
+        <target state="translated">StackTrace 總管</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StackTraceExplorerContextMenu|MenuText">
+        <source>StackTrace Explorer</source>
+        <target state="translated">StackTrace 總管</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdClearStackTraceExplorer|ButtonText">
+        <source>Clear</source>
+        <target state="translated">清除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdClearStackTraceExplorer|CommandName">
+        <source>CleearStackTraceExplorerCommandName</source>
+        <target state="translated">CleearStackTraceExplorerCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdClearStackTraceExplorer|LocCanonicalName">
+        <source>ClearStackTraceExplorer</source>
+        <target state="translated">ClearStackTraceExplorer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdPasteStackTraceExplorer|ButtonText">
+        <source>Paste</source>
+        <target state="translated">貼上</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdPasteStackTraceExplorer|CommandName">
+        <source>PasteStackTraceExplorerCommandName</source>
+        <target state="translated">PasteStackTraceExplorerCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdPasteStackTraceExplorer|LocCanonicalName">
+        <source>PasteStackTraceExplorer</source>
+        <target state="translated">PasteStackTraceExplorer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|ButtonText">
         <source>Stack Trace Explorer</source>
         <target state="translated">堆疊追蹤總管</target>
@@ -140,6 +180,116 @@
       <trans-unit id="cmdidCSharpOrganizeRemoveAndSort|LocCanonicalName">
         <source>RemoveAndSort</source>
         <target state="translated">RemoveAndSort</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineCollapseAll|ButtonText">
+        <source>Collapse All</source>
+        <target state="translated">全部摺疊</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineCollapseAll|LocCanonicalName">
+        <source>DocumentOutlineCollapseAll</source>
+        <target state="translated">DocumentOutlineCollapseAll</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineCollapseAll|MenuText">
+        <source>Collapse All</source>
+        <target state="translated">全部摺疊</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineCollapseAll|ToolTipText">
+        <source>Collapse All</source>
+        <target state="translated">全部摺疊</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineExpandAll|ButtonText">
+        <source>Expand All</source>
+        <target state="translated">全部展開</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineExpandAll|LocCanonicalName">
+        <source>DocumentOutlineExpandAll</source>
+        <target state="translated">DocumentOutlineExpandAll</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineExpandAll|MenuText">
+        <source>Expand All</source>
+        <target state="translated">全部展開</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineExpandAll|ToolTipText">
+        <source>Expand All</source>
+        <target state="translated">全部展開</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByName|ButtonText">
+        <source>Sort By Name</source>
+        <target state="translated">依名稱排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByName|LocCanonicalName">
+        <source>DocumentOutlineSortByName</source>
+        <target state="translated">DocumentOutlineSortByName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByName|MenuText">
+        <source>Sort By Name</source>
+        <target state="translated">依名稱排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByName|ToolTipText">
+        <source>Sort By Name</source>
+        <target state="translated">依名稱排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByOrder|ButtonText">
+        <source>Sort By Order</source>
+        <target state="translated">依順序排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByOrder|LocCanonicalName">
+        <source>DocumentOutlineSortByOrder</source>
+        <target state="translated">DocumentOutlineSortByOrder</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByOrder|MenuText">
+        <source>Sort By Order</source>
+        <target state="translated">依順序排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByOrder|ToolTipText">
+        <source>Sort By Order</source>
+        <target state="translated">依順序排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByType|ButtonText">
+        <source>Sort By Type</source>
+        <target state="translated">依類型排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByType|LocCanonicalName">
+        <source>DocumentOutlineSortByType</source>
+        <target state="translated">DocumentOutlineSortByType</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByType|MenuText">
+        <source>Sort By Type</source>
+        <target state="translated">依類型排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineSortByType|ToolTipText">
+        <source>Sort By Type</source>
+        <target state="translated">依類型排序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineToolbar|ButtonText">
+        <source>Document Outline</source>
+        <target state="translated">文件大綱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidDocumentOutlineToolbar|LocCanonicalName">
+        <source>RoslynDocumentOutlineToolbar</source>
+        <target state="translated">RoslynDocumentOutlineToolbar</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityDefault|ButtonText">

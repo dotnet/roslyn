@@ -16,10 +16,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
+    [Trait(Traits.Feature, Traits.Features.Formatting)]
     public class FormattingEngineElasticTriviaTests : CSharpFormattingTestBase
     {
         [Fact(Skip = "530167")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatElasticTrivia()
         {
             var expected = @"extern alias A1;
@@ -41,63 +41,53 @@ class B
 {
 }";
             var compilation = SyntaxFactory.CompilationUnit(
-                externs: SyntaxFactory.SingletonList<ExternAliasDirectiveSyntax>(
-                            SyntaxFactory.ExternAliasDirective("A1")),
+                externs: [SyntaxFactory.ExternAliasDirective("A1")],
                 usings: default,
-                attributeLists: SyntaxFactory.SingletonList<AttributeListSyntax>(
-                                SyntaxFactory.AttributeList(
+                attributeLists: [SyntaxFactory.AttributeList(
                                     SyntaxFactory.Token(
-                                        SyntaxFactory.TriviaList(
-                                            SyntaxFactory.Trivia(
-                                                SyntaxFactory.LineDirectiveTrivia(
-                                                    SyntaxFactory.Literal("99", 99), false))),
+                                        [SyntaxFactory.Trivia(
+                                            SyntaxFactory.LineDirectiveTrivia(
+                                                SyntaxFactory.Literal("99", 99), false))],
                                         SyntaxKind.OpenBracketToken,
                                         SyntaxFactory.TriviaList()),
                                     SyntaxFactory.AttributeTargetSpecifier(
                                         SyntaxFactory.Identifier("assembly")),
-                                    SyntaxFactory.SingletonSeparatedList<AttributeSyntax>(
-                                        SyntaxFactory.Attribute(
-                                            SyntaxFactory.ParseName("My"))),
+                                    [SyntaxFactory.Attribute(
+                                        SyntaxFactory.ParseName("My"))],
                                     SyntaxFactory.Token(
-                                        SyntaxKind.CloseBracketToken))),
-                members: SyntaxFactory.List<MemberDeclarationSyntax>(
-                new MemberDeclarationSyntax[]
-                {
+                                        SyntaxKind.CloseBracketToken))],
+                members:
+                [
                     SyntaxFactory.ClassDeclaration(
                         default,
-                        SyntaxFactory.TokenList(),
+                        modifiers: [],
                         SyntaxFactory.Identifier("My"),
                         null,
-                        SyntaxFactory.BaseList(
-                            SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
-                                SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName("System.Attribute")))),
-                                default,
-                                default),
+                        SyntaxFactory.BaseList([SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName("System.Attribute"))]),
+                        default,
+                        default),
                     SyntaxFactory.ClassDeclaration("A"),
                     SyntaxFactory.ClassDeclaration(
-                        attributeLists: SyntaxFactory.SingletonList<AttributeListSyntax>(
-                            SyntaxFactory.AttributeList(
-                                SyntaxFactory.SingletonSeparatedList<AttributeSyntax>(
+                        attributeLists: [
+                            SyntaxFactory.AttributeList([
                                     SyntaxFactory.Attribute(
-                                        SyntaxFactory.ParseName("My"))))),
-                        modifiers: SyntaxFactory.TokenList(),
+                                        SyntaxFactory.ParseName("My"))])],
+                        modifiers: [],
                         identifier: SyntaxFactory.Identifier("B"),
                         typeParameterList: null,
                         baseList: null,
                         constraintClauses: default,
                         members: default)
-                }));
+                ]);
 
             Assert.NotNull(compilation);
 
             using var workspace = new AdhocWorkspace();
-            var newCompilation = Formatter.Format(compilation, workspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
+            var newCompilation = Formatter.Format(compilation, workspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
             Assert.Equal(expected, newCompilation.ToFullString());
         }
 
-        [WorkItem(1947, "https://github.com/dotnet/roslyn/issues/1947")]
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1947")]
         public void ElasticLineBreaksBetweenMembers()
         {
             var text = @"
@@ -133,19 +123,17 @@ public class C
 public class SomeAttribute : System.Attribute { }
 ";
 
-            var formatted = Formatter.Format(newRoot, workspace.Services, options, CancellationToken.None).ToFullString();
+            var formatted = Formatter.Format(newRoot, workspace.Services.SolutionServices, options, CancellationToken.None).ToFullString();
             Assert.Equal(expected, formatted);
 
-            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, workspace.Services, options, CancellationToken.None).ToFullString();
+            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, workspace.Services.SolutionServices, options, CancellationToken.None).ToFullString();
             Assert.Equal(expected, elasticOnlyFormatted);
 
-            var annotationFormatted = Formatter.Format(newRoot, Formatter.Annotation, workspace.Services, options, CancellationToken.None).ToFullString();
+            var annotationFormatted = Formatter.Format(newRoot, Formatter.Annotation, workspace.Services.SolutionServices, options, CancellationToken.None).ToFullString();
             Assert.Equal(expected, annotationFormatted);
         }
 
-        [WorkItem(408, "https://roslyn.codeplex.com/workitem/408")]
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact, WorkItem("https://roslyn.codeplex.com/workitem/408")]
         public void FormatElasticTriviaBetweenPropertiesWithoutAccessors()
         {
             var expected = @"class PropertyTest
@@ -156,7 +144,7 @@ public class SomeAttribute : System.Attribute { }
 }";
             var property = SyntaxFactory.PropertyDeclaration(
                 attributeLists: default,
-                modifiers: SyntaxFactory.TokenList(),
+                modifiers: [],
                 type: SyntaxFactory.PredefinedType(
                     SyntaxFactory.Token(
                         SyntaxKind.StringKeyword)),
@@ -180,23 +168,18 @@ public class SomeAttribute : System.Attribute { }
                 {
                     SyntaxFactory.ClassDeclaration(
                         attributeLists: default,
-                        modifiers: SyntaxFactory.TokenList(),
+                        modifiers: [],
                         identifier: SyntaxFactory.Identifier("PropertyTest"),
                         typeParameterList: null,
                         baseList: null,
                         constraintClauses: default,
-                        members: SyntaxFactory.List(
-                            new MemberDeclarationSyntax[]
-                            {
-                                property,
-                                property
-                            }))
+                        members: [property, property])
                 }));
 
             Assert.NotNull(compilation);
 
             using var workspace = new AdhocWorkspace();
-            var newCompilation = Formatter.Format(compilation, workspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
+            var newCompilation = Formatter.Format(compilation, workspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
             Assert.Equal(expected, newCompilation.ToFullString());
         }
     }

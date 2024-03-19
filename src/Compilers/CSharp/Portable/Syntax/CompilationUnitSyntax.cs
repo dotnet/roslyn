@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
@@ -19,9 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         internal IList<ReferenceDirectiveTriviaSyntax> GetReferenceDirectives(Func<ReferenceDirectiveTriviaSyntax, bool>? filter)
         {
+            if (!this.ContainsDirectives)
+                return SpecializedCollections.EmptyList<ReferenceDirectiveTriviaSyntax>();
+
             // #r directives are always on the first token of the compilation unit.
             var firstToken = (SyntaxNodeOrToken)this.GetFirstToken(includeZeroWidth: true);
-            return firstToken.GetDirectives<ReferenceDirectiveTriviaSyntax>(filter);
+            return firstToken.GetDirectives(filter);
         }
 
         /// <summary>
@@ -29,34 +33,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// </summary>
         public IList<LoadDirectiveTriviaSyntax> GetLoadDirectives()
         {
+            if (!this.ContainsDirectives)
+                return SpecializedCollections.EmptyList<LoadDirectiveTriviaSyntax>();
+
             // #load directives are always on the first token of the compilation unit.
             var firstToken = (SyntaxNodeOrToken)this.GetFirstToken(includeZeroWidth: true);
             return firstToken.GetDirectives<LoadDirectiveTriviaSyntax>(filter: null);
         }
 
-        internal Syntax.InternalSyntax.DirectiveStack GetConditionalDirectivesStack()
-        {
-            IEnumerable<DirectiveTriviaSyntax> directives = this.GetDirectives(filter: IsActiveConditionalDirective);
-            var directiveStack = Syntax.InternalSyntax.DirectiveStack.Empty;
-            foreach (DirectiveTriviaSyntax directive in directives)
-            {
-                var internalDirective = (Syntax.InternalSyntax.DirectiveTriviaSyntax)directive.Green;
-                directiveStack = internalDirective.ApplyDirectives(directiveStack);
-            }
-            return directiveStack;
-        }
+        internal bool HasReferenceDirectives
+            // #r and #load directives are always on the first token of the compilation unit.
+            => HasFirstTokenDirective(static n => n is ReferenceDirectiveTriviaSyntax);
 
-        private static bool IsActiveConditionalDirective(DirectiveTriviaSyntax directive)
+        internal bool HasLoadDirectives
+            // #r and #load directives are always on the first token of the compilation unit.
+            => HasFirstTokenDirective(static n => n is LoadDirectiveTriviaSyntax);
+
+        private bool HasFirstTokenDirective(Func<SyntaxNode, bool> predicate)
         {
-            switch (directive.Kind())
+            if (this.ContainsDirectives)
             {
-                case SyntaxKind.DefineDirectiveTrivia:
-                    return ((DefineDirectiveTriviaSyntax)directive).IsActive;
-                case SyntaxKind.UndefDirectiveTrivia:
-                    return ((UndefDirectiveTriviaSyntax)directive).IsActive;
-                default:
-                    return false;
+                var firstToken = this.GetFirstToken(includeZeroWidth: true);
+                if (firstToken.ContainsDirectives)
+                {
+                    foreach (var trivia in firstToken.LeadingTrivia)
+                    {
+                        if (trivia.GetStructure() is { } structure &&
+                            predicate(structure))
+                        {
+                            return true;
+                        }
+                    }
+                }
             }
+
+            return false;
         }
     }
 }

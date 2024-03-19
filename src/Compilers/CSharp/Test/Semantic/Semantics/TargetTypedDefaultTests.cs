@@ -30,10 +30,12 @@ class C
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
+                // (6,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         int x = default;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 13),
                 // (6,17): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //         int x = default;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(6, 17)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(6, 17));
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -1025,6 +1027,9 @@ class C
                 // (8,37): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //         System.Console.Write(nameof(default));
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(8, 37),
+                // (8,37): error CS8081: Expression does not have a name.
+                //         System.Console.Write(nameof(default));
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "default").WithLocation(8, 37),
                 // (9,15): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //         throw default;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(9, 15),
@@ -1033,8 +1038,7 @@ class C
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(9, 15),
                 // (13,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'C' is null
                 //         default(C).ToString();
-                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("C").WithLocation(13, 9)
-                );
+                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("C").WithLocation(13, 9));
         }
 
         [Fact]
@@ -3753,6 +3757,47 @@ class C
                 // (14,2): error CS0181: Attribute constructor parameter 'y2' has type 'S?', which is not a valid attribute parameter type
                 // [A]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("y2", "S?").WithLocation(14, 2)
+                );
+        }
+
+        [Fact]
+        public void TypelessExpressionInBinaryOperation()
+        {
+            string source = """
+MyDelegate d = M;
+d += M;
+
+d = new MyDelegate(M);
+d += new MyDelegate(M);
+
+d = null;
+d += null;
+
+d = new(M);
+d += new(M); // 1
+
+d = default;
+d += default; // 2
+
+bool b = true;
+d += b switch { _ => new(M) };
+d += b switch { _ => null };
+d += b switch { _ => default };
+
+d.Invoke();
+
+void M() { }
+
+public delegate void MyDelegate();
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,1): error CS8310: Operator '+=' cannot be applied to operand 'new(method group)'
+                // d += new(M); // 1
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "d += new(M)").WithArguments("+=", "new(method group)").WithLocation(11, 1),
+                // (14,1): error CS8310: Operator '+=' cannot be applied to operand 'default'
+                // d += default; // 2
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "d += default").WithArguments("+=", "default").WithLocation(14, 1)
                 );
         }
     }

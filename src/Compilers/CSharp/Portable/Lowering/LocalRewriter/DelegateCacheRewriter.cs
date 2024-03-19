@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
@@ -79,7 +80,7 @@ internal sealed class DelegateCacheRewriter
         //               Func<T> d = SomeMethod<T>;
         //               static void LF4 () { Func<T> d = SomeMethod<T>; }
         //           }
-        //           
+        //
         //           void LF5()
         //           {
         //               Func<T> d = SomeMethod<T>;

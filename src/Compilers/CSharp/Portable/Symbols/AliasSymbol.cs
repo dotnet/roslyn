@@ -235,8 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object?)target != null && Locations.Length > 0)
             {
                 var corLibrary = this.ContainingAssembly.CorLibrary;
-                var conversions = new TypeConversions(corLibrary);
-                target.CheckAllConstraints(DeclaringCompilation, conversions, Locations[0], diagnostics);
+                var conversions = corLibrary.TypeConversions;
+                target.CheckAllConstraints(DeclaringCompilation, conversions, GetFirstLocation(), diagnostics);
             }
         }
 
@@ -255,17 +255,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AliasSymbol? other = obj as AliasSymbol;
 
             return (object?)other != null &&
-                Equals(this.Locations.FirstOrDefault(), other.Locations.FirstOrDefault()) &&
+                Equals(this.TryGetFirstLocation(), other.TryGetFirstLocation()) &&
                 Equals(this.ContainingSymbol, other.ContainingSymbol, compareKind);
         }
 
         public override int GetHashCode()
-        {
-            if (this.Locations.Length > 0)
-                return this.Locations.First().GetHashCode();
-            else
-                return Name.GetHashCode();
-        }
+            => this.TryGetFirstLocation()?.GetHashCode() ?? Name.GetHashCode();
 
         internal abstract override bool RequiresCompletion
         {
@@ -322,11 +317,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // symbol. If it is an extern alias then find the target in the list of metadata references.
                 var newDiagnostics = BindingDiagnosticBag.GetInstance();
 
-                NamespaceOrTypeSymbol symbol = this.IsExtern ?
-                    ResolveExternAliasTarget(newDiagnostics) :
-                    ResolveAliasTarget(((UsingDirectiveSyntax)_directive.GetSyntax()).Name, newDiagnostics, basesBeingResolved);
+                NamespaceOrTypeSymbol symbol = this.IsExtern
+                    ? ResolveExternAliasTarget(newDiagnostics)
+                    : ResolveAliasTarget((UsingDirectiveSyntax)_directive.GetSyntax(), newDiagnostics, basesBeingResolved);
 
-                if ((object?)Interlocked.CompareExchange(ref _aliasTarget, symbol, null) == null)
+                if (Interlocked.CompareExchange(ref _aliasTarget, symbol, null) is null)
                 {
                     // Note: It's important that we don't call newDiagnosticsToReadOnlyAndFree here. That call
                     // can force the prompt evaluation of lazy initialized diagnostics.  That in turn can 
@@ -363,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamespaceSymbol? target;
             if (!ContainingSymbol.DeclaringCompilation.GetExternAliasTarget(Name, out target))
             {
-                diagnostics.Add(ErrorCode.ERR_BadExternAlias, Locations[0], Name);
+                diagnostics.Add(ErrorCode.ERR_BadExternAlias, GetFirstLocation(), Name);
             }
 
             RoslynDebug.Assert(target is object);
@@ -372,10 +367,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return target;
         }
 
-        private NamespaceOrTypeSymbol ResolveAliasTarget(NameSyntax syntax, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol>? basesBeingResolved)
+        private NamespaceOrTypeSymbol ResolveAliasTarget(
+            UsingDirectiveSyntax usingDirective,
+            BindingDiagnosticBag diagnostics,
+            ConsList<TypeSymbol>? basesBeingResolved)
         {
-            var declarationBinder = ContainingSymbol.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax).WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
-            return declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
+            if (usingDirective.UnsafeKeyword != default)
+            {
+                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective.UnsafeKeyword);
+            }
+            else if (usingDirective.NamespaceOrType is not NameSyntax)
+            {
+                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective.NamespaceOrType);
+            }
+
+            var syntax = usingDirective.NamespaceOrType;
+            var flags = BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks;
+            if (usingDirective.UnsafeKeyword != default)
+            {
+                this.CheckUnsafeModifier(DeclarationModifiers.Unsafe, usingDirective.UnsafeKeyword.GetLocation(), diagnostics);
+                flags |= BinderFlags.UnsafeRegion;
+            }
+            else
+            {
+                // Prior to C#12, allow the alias to be an unsafe region.  This allows us to maintain compat with prior
+                // versions of the compiler that allowed `using X = List<int*[]>` to be written.  In 12.0 and onwards
+                // though, we require the code to explicitly contain the `unsafe` keyword.
+                if (!DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingTypeAlias))
+                    flags |= BinderFlags.UnsafeRegion;
+            }
+
+            var declarationBinder = ContainingSymbol.DeclaringCompilation
+                .GetBinderFactory(syntax.SyntaxTree)
+                .GetBinder(syntax)
+                .WithAdditionalFlags(flags);
+
+            var annotatedNamespaceOrType = declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved);
+
+            // `using X = RefType?;` is not legal.
+            if (usingDirective.NamespaceOrType is NullableTypeSyntax nullableType &&
+                annotatedNamespaceOrType.TypeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated &&
+                annotatedNamespaceOrType.TypeWithAnnotations.Type?.IsReferenceType is true)
+            {
+                diagnostics.Add(ErrorCode.ERR_BadNullableReferenceTypeInUsingAlias, nullableType.QuestionToken.GetLocation());
+            }
+
+            var namespaceOrType = annotatedNamespaceOrType.NamespaceOrTypeSymbol;
+            if (namespaceOrType is TypeSymbol { IsNativeIntegerWrapperType: true } &&
+                (usingDirective.NamespaceOrType.IsNint || usingDirective.NamespaceOrType.IsNuint))
+            {
+                // using X = nint;
+                MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective.NamespaceOrType);
+            }
+
+            return namespaceOrType;
         }
 
         internal override bool RequiresCompletion

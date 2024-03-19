@@ -187,7 +187,6 @@ End Namespace
 Namespace C
 End Namespace
     </file>
-
     <file name="b.vb">
 Namespace A.B
 End Namespace
@@ -198,7 +197,6 @@ End Namespace
 Namespace e
 End Namespace
     </file>
-
     <file name="c.vb">
 Namespace A.b.D
 End Namespace

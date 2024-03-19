@@ -10,10 +10,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
 [MetadataAttribute]
 [AttributeUsage(AttributeTargets.Class)]
-internal class VSTypeScriptMethodAttribute : MethodAttribute
+internal class VSTypeScriptMethodAttribute(string method) : MethodAttribute(method)
 {
-    public VSTypeScriptMethodAttribute(string method) : base(method)
-    {
-    }
 }
 

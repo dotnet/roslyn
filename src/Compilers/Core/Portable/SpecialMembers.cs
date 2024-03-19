@@ -964,6 +964,14 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.GenericTypeParameter, 0,
 
+                // System_Nullable_T_GetValueOrDefaultDefaultValue
+                (byte)MemberFlags.Method,                                                                                   // Flags
+                (byte)SpecialType.System_Nullable_T,                                                                        // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
+
                 // System_Nullable_T_get_Value
                 (byte)MemberFlags.PropertyGet,                                                                              // Flags
                 (byte)SpecialType.System_Nullable_T,                                                                        // DeclaringTypeId
@@ -1044,6 +1052,14 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+
+                // System_Runtime_CompilerServices_InlineArrayAttribute__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute,                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
             };
 
             string[] allNames = new string[(int)SpecialMember.Count]
@@ -1163,6 +1179,7 @@ namespace Microsoft.CodeAnalysis
                 "op_Explicit",                              // System_UIntPtr__op_Explicit_FromUInt32
                 "op_Explicit",                              // System_UIntPtr__op_Explicit_FromUInt64
                 "GetValueOrDefault",                        // System_Nullable_T_GetValueOrDefault
+                "GetValueOrDefault",                        // System_Nullable_T_GetValueOrDefaultDefaultValue
                 "get_Value",                                // System_Nullable_T_get_Value
                 "get_HasValue",                             // System_Nullable_T_get_HasValue
                 ".ctor",                                    // System_Nullable_T__ctor
@@ -1173,8 +1190,9 @@ namespace Microsoft.CodeAnalysis
                 "CovariantReturnsOfClasses",                // System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses
                 "VirtualStaticsInInterfaces",               // System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces
                 "NumericIntPtr",                            // System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr
-                "ByRefFields",                // System_Runtime_CompilerServices_RuntimeFeature__ByRefFields
+                "ByRefFields",                              // System_Runtime_CompilerServices_RuntimeFeature__ByRefFields
                 ".ctor",                                    // System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
+                ".ctor",                                    // System_Runtime_CompilerServices_InlineArrayAttribute__ctor
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

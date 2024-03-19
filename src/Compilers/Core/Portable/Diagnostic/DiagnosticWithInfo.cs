@@ -66,7 +66,6 @@ namespace Microsoft.CodeAnalysis
             get { return this.Info.Category; }
         }
 
-
         internal sealed override int Code
         {
             get { return this.Info.Code; }
@@ -133,6 +132,18 @@ namespace Microsoft.CodeAnalysis
             {
                 return _info.Severity == InternalDiagnosticSeverity.Unknown ||
                     _info.Severity == InternalDiagnosticSeverity.Void;
+            }
+        }
+
+        /// <summary>
+        /// Usage is unexpected unless <see cref="HasLazyInfo"/> is true.
+        /// </summary>
+        internal DiagnosticInfo LazyInfo
+        {
+            get
+            {
+                Debug.Assert(HasLazyInfo);
+                return _info;
             }
         }
 

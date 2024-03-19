@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
@@ -40,6 +41,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return BadExpression(node, ErrorTypeSymbol.UnknownResultType)
             End If
 
+#Disable Warning BC40000 ' Type or member is obsolete
+            Dim result As BoundExpression = BindExpressionCore(node, isInvocationOrAddressOf, isOperandOfConditionalBranch, eventContext, diagnostics)
+#Enable Warning BC40000 ' Type or member is obsolete
+
+            If IsEarlyAttributeBinder AndAlso result.Kind = BoundKind.MethodGroup AndAlso Not IsNameOfArgument(node) Then
+
+                Dim boundMethodGroup = DirectCast(result, BoundMethodGroup)
+                Dim compilation As VisualBasicCompilation = Me.Compilation
+
+                For Each method In boundMethodGroup.Methods
+                    If Not EarlyWellKnownAttributeBinder.IsConstantOptimizableLibraryMethod(compilation, method) Then
+                        Return BadExpression(node, ErrorTypeSymbol.UnknownResultType)
+                    End If
+                Next
+            End If
+
+            Return result
+        End Function
+
+        <Obsolete("Use BindExpression that is immediately above instead.")>
+        Private Function BindExpressionCore(node As ExpressionSyntax, isInvocationOrAddressOf As Boolean, isOperandOfConditionalBranch As Boolean, eventContext As Boolean, diagnostics As BindingDiagnosticBag) As BoundExpression
             Select Case node.Kind
                 Case SyntaxKind.MeExpression
                     Return BindMeExpression(DirectCast(node, MeExpressionSyntax), diagnostics)
@@ -909,7 +931,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return receiver
         End Function
 
-
         ''' <summary>
         ''' Adjusts receiver of a call or a member access if it is a value
         '''  * will turn Unknown property access into Get property access
@@ -1078,7 +1099,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 "End Class" & vbCrLf
 
             ' It looks like Dev11 ignores project level conditional compilation here, which makes sense since expression cannot contain #If directives.
-            Dim tree = VisualBasicSyntaxTree.ParseText(codeToParse)
+            Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(codeToParse))
             Dim root As CompilationUnitSyntax = tree.GetCompilationUnitRoot()
             Dim hasErrors As Boolean = False
 
@@ -1775,7 +1796,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ReportDiagnostic(diagnostics, expr.Syntax, err)
         End Sub
-
 
         Public Shared Function ExpressionRefersToReadonlyVariable(
             node As BoundExpression,
@@ -2714,7 +2734,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If leftType IsNot Nothing Then
                         Dim leftName = node.Identifier.ValueText
                         If CaseInsensitiveComparison.Equals(leftType.Name, leftName) AndAlso leftType.TypeKind <> TYPEKIND.TypeParameter Then
-                            Dim typeDiagnostics = BindingDiagnosticBag.Create(diagnostics)
+                            Dim typeDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
                             Dim boundType = Me.BindNamespaceOrTypeExpression(node, typeDiagnostics)
                             If TypeSymbol.Equals(boundType.Type, leftType, TypeCompareKind.ConsiderEverything) Then
                                 Dim err As ERRID = Nothing
@@ -2725,14 +2745,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     Return boundType
                                 End If
 
-                                Dim valueDiagnostics = BindingDiagnosticBag.Create(diagnostics)
+                                Dim valueDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics)
                                 valueDiagnostics.AddRangeAndFree(leftDiagnostics)
                                 If propertyDiagnostics IsNot Nothing Then
                                     valueDiagnostics.AddRangeAndFree(propertyDiagnostics)
                                 End If
 
-                                Return New BoundTypeOrValueExpression(leftOpt, New BoundTypeOrValueData(boundValue, valueDiagnostics, boundType, typeDiagnostics), leftType)
+                                Return New BoundTypeOrValueExpression(leftOpt, New BoundTypeOrValueData(boundValue, valueDiagnostics.ToReadOnlyAndFree(), boundType, typeDiagnostics.ToReadOnlyAndFree()), leftType)
                             End If
+
+                            typeDiagnostics.Free()
                         End If
                     End If
                 End If
@@ -3943,7 +3965,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim expressionType As TypeSymbol = GetExpressionType(symbolReference, symbols(i), constantFieldsInProgress, discardedDiagnostics)
 
-
                 If expressionType IsNot Nothing Then
                     If commonType Is Nothing Then
                         commonType = expressionType
@@ -4464,7 +4485,6 @@ lElseClause:
             ' "Winner" information might be useful if you are calculating the dominant type of "{}" and "{Nothing}"
             ' and you need to know who the winner is so you can report appropriate warnings on him.
 
-
             ' The dominant type of a list of elements means:
             ' (1) for each element, attempt to classify it as a value in a context where the target
             ' type is unknown. So unbound lambdas get classified as anonymous delegates, and array literals get
@@ -4545,7 +4565,6 @@ lElseClause:
                     ' this will pick up AddressOf expressions.
                 End If
             Next
-
 
             ' Here we calculate the dominant type.
             ' Note: if there were no candidate types in the list, this will fail with errorReason = NoneBest.
@@ -4896,14 +4915,6 @@ lElseClause:
                 getResult = BadExpression(node, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
             End If
 
-            Dim resultType As TypeSymbol
-
-            If bindAsStatement Then
-                resultType = GetSpecialType(SpecialType.System_Void, node, diagnostics)
-            Else
-                resultType = getResult.Type
-            End If
-
             If Not hasErrors Then
                 diagnostics.AddRange(allIgnoreDiagnostics)
             End If
@@ -4913,7 +4924,7 @@ lElseClause:
             Return New BoundAwaitOperator(node, operand,
                                           awaitableInstancePlaceholder, getAwaiter,
                                           awaiterInstancePlaceholder, isCompleted, getResult,
-                                          resultType, hasErrors)
+                                          type:=getResult.Type, hasErrors)
         End Function
 
         Private Shared Function DiagnosticBagHasErrorsOtherThanObsoleteOnes(bag As DiagnosticBag) As Boolean

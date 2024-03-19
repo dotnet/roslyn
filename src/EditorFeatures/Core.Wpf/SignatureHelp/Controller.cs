@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    _providers = document.Project.LanguageServices.WorkspaceServices.SelectMatchingExtensionValues(
+                    _providers = document.Project.Solution.Services.SelectMatchingExtensionValues(
                         _allProviders, this.SubjectBuffer.ContentType).ToImmutableArray();
                     _lastSeenContentType = currentContentType;
                 }

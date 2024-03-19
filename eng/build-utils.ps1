@@ -12,9 +12,8 @@ $PublishDataUrl = "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/conf
 
 $binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $false }
 $nodeReuse = if (Test-Path variable:nodeReuse) { $nodeReuse } else { $false }
-$bootstrapDir = if (Test-Path variable:bootstrapDir) { $bootstrapDir } else { "" }
-$bootstrapConfiguration = if (Test-Path variable:bootstrapConfiguration) { $bootstrapConfiguration } else { "Release" }
 $properties = if (Test-Path variable:properties) { $properties } else { @() }
+$originalTemp = $env:TEMP;
 
 function GetProjectOutputBinary([string]$fileName, [string]$projectName = "", [string]$configuration = $script:configuration, [string]$tfm = "net472", [string]$rid = "", [bool]$published = $false) {
   $projectName = if ($projectName -ne "") { $projectName } else { [System.IO.Path]::GetFileNameWithoutExtension($fileName) }
@@ -68,27 +67,11 @@ function GetReleasePublishData([string]$releaseName) {
   }
 }
 
-# Handy function for executing a command in powershell and throwing if it 
-# fails.
-#
-# Use this when the full command is known at script authoring time and 
-# doesn't require any dynamic argument build up.  Example:
-#
-#   Exec-Block { & $msbuild Test.proj }
-# 
-# Original sample came from: http://jameskovacs.com/2010/02/25/the-exec-problem/
-function Exec-Block([scriptblock]$cmd) {
-  & $cmd
-
-  # Need to check both of these cases for errors as they represent different items
-  # - $?: did the powershell script block throw an error
-  # - $lastexitcode: did a windows command executed by the script block end in error
-  if ((-not $?) -or ($lastexitcode -ne 0)) {
-    throw "Command failed to execute: $cmd"
+function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useConsole = $true, [switch]$echoCommand = $true) {
+  if ($echoCommand) {
+    Write-Host "$command $commandArgs"
   }
-}
 
-function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useConsole = $true) {
   if ($useConsole) {
     $exitCode = Exec-Process $command $commandArgs
     if ($exitCode -ne 0) { 
@@ -150,26 +133,25 @@ function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useCo
 #   $args = "/p:ManualBuild=true Test.proj"
 #   Exec-Command $msbuild $args
 # 
-function Exec-Command([string]$command, [string]$commandArgs) {
-  Exec-CommandCore -command $command -commandArgs $commandargs -useConsole:$false
+# The -useConsole argument controls if the process should re-use the current
+# console for output or return output as a string
+function Exec-Command([string]$command, [string]$commandArgs, [switch]$useConsole = $false, [switch]$echoCommand = $true) {
+  if ($args -ne "") {
+    throw "Extra arguments passed to Exec-Command: $args"
+  }
+  Exec-CommandCore -command $command -commandArgs $commandArgs -useConsole:$useConsole -echoCommand:$echoCommand
 }
 
-# Functions exactly like Exec-Command but lets the process re-use the current 
-# console. This means items like colored output will function correctly.
-#
-# In general this command should be used in place of
-#   Exec-Command $msbuild $args | Out-Host
-#
-function Exec-Console([string]$command, [string]$commandArgs) {
-  Exec-CommandCore -command $command -commandArgs $commandargs -useConsole:$true
+# Handy function for executing a dotnet command without having to track down the 
+# proper dotnet executable or ensure it's on the path.
+function Exec-DotNet([string]$commandArgs = "", [switch]$useConsole = $true, [switch]$echoCommand = $true) {
+  if ($args -ne "") {
+    throw "Extra arguments passed to Exec-DotNet: $args"
+  }
+  $dotnet = Ensure-DotNetSdk
+  Exec-CommandCore -command $dotnet -commandArgs $commandArgs -useConsole:$useConsole -echoCommand:$echoCommand
 }
 
-# Handy function for executing a powershell script in a clean environment with 
-# arguments.  Prefer this over & sourcing a script as it will both use a clean
-# environment and do proper error checking
-function Exec-Script([string]$script, [string]$scriptArgs = "") {
-  Exec-Command "powershell" "-noprofile -executionPolicy RemoteSigned -file `"$script`" $scriptArgs"
-}
 
 # Ensure the proper .NET Core SDK is available. Returns the location to the dotnet.exe.
 function Ensure-DotnetSdk() {
@@ -185,6 +167,12 @@ function Ensure-DotnetSdk() {
   }
 
   throw "Could not find dotnet executable in $dotnetInstallDir"
+}
+
+function Test-LastExitCode() {
+  if ($LASTEXITCODE -ne 0) {
+    throw "Last command failed with exit code $LASTEXITCODE"
+  }
 }
 
 # Walks up the source tree, starting at the given file's directory, and returns a FileInfo object for the first .csproj file it finds, if any.
@@ -261,86 +249,6 @@ function Get-PackageDir([string]$name, [string]$version = "") {
   return $p
 }
 
-function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$summary = $true, [switch]$warnAsError = $true, [string]$configuration = $script:configuration, [switch]$runAnalyzers = $false) {
-  # Because we override the C#/VB toolset to build against our LKG package, it is important
-  # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
-  # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
-  # MSBuildAdditionalCommandLineArgs=
-  $args = "/p:TreatWarningsAsErrors=true /nologo /nodeReuse:false /p:Configuration=$configuration ";
-
-  if ($warnAsError) {
-    $args += " /warnaserror"
-  }
-
-  if ($summary) {
-    $args += " /consoleloggerparameters:Verbosity=minimal;summary"
-  } else {        
-    $args += " /consoleloggerparameters:Verbosity=minimal"
-  }
-
-  if ($parallel) {
-    $args += " /m"
-  }
-
-  if ($runAnalyzers) {
-    $args += " /p:RunAnalyzersDuringBuild=true"
-  }
-
-  if ($binaryLog) {
-    if ($logFileName -eq "") {
-      $logFileName = [IO.Path]::GetFileNameWithoutExtension($projectFilePath)
-    }
-    $logFileName = [IO.Path]::ChangeExtension($logFileName, ".binlog")
-    $logFilePath = Join-Path $LogDir $logFileName
-    $args += " /bl:$logFilePath"
-  }
-
-  if ($officialBuildId) {
-    $args += " /p:OfficialBuildId=" + $officialBuildId
-  }
-
-  if ($ci) {
-    $args += " /p:ContinuousIntegrationBuild=true"
-  }
-
-  if ($bootstrapDir -ne "") {
-    $args += " /p:BootstrapBuildPath=$bootstrapDir"
-  }
-
-  $args += " $buildArgs"
-  $args += " $projectFilePath"
-  $args += " $properties"
-
-  $buildTool = InitializeBuildTool
-  Exec-Console $buildTool.Path "$($buildTool.Command) $args"
-}
-
-# Create a bootstrap build of the compiler.  Returns the directory where the bootstrap build
-# is located.
-#
-# Important to not set $script:bootstrapDir here yet as we're actually in the process of
-# building the bootstrap.
-function Make-BootstrapBuild([switch]$force32 = $false) {
-  Write-Host "Building bootstrap compiler"
-
-  $dir = Join-Path $ArtifactsDir "Bootstrap"
-  Remove-Item -re $dir -ErrorAction SilentlyContinue
-  Create-Directory $dir
-
-  $packageName = "Microsoft.Net.Compilers.Toolset"
-  $projectPath = "src\NuGet\$packageName\AnyCpu\$packageName.Package.csproj"
-  $force32Flag = if ($force32) { " /p:BOOTSTRAP32=true" } else { "" }
-
-  Run-MSBuild $projectPath "/restore /t:Pack /p:RoslynEnforceCodeStyle=false /p:RunAnalyzersDuringBuild=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false /p:PublishWindowsPdb=false $force32Flag" -logFileName "Bootstrap" -configuration $bootstrapConfiguration -runAnalyzers
-  $packageFile = Get-ChildItem -Path $dir -Filter "$packageName.*.nupkg"
-  Unzip (Join-Path $dir $packageFile.Name) $dir
-
-  Write-Host "Cleaning Bootstrap compiler artifacts"
-  Run-MSBuild $projectPath "/t:Clean" -logFileName "BootstrapClean"
-
-  return $dir
-}
-
 function Subst-TempDir() {
   if ($ci) {
     Exec-Command "subst" "T: $TempDir"
@@ -353,5 +261,9 @@ function Subst-TempDir() {
 function Unsubst-TempDir() {
   if ($ci) {
     Exec-Command "subst" "T: /d"
+
+    # Restore the original temp directory
+    $env:TEMP=$originalTemp
+    $env:TMP=$originalTemp
   }
 }

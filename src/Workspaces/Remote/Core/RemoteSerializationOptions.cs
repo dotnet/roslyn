@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal readonly struct RemoteSerializationOptions
     {
-        internal static readonly RemoteSerializationOptions Default = new(ImmutableArray<IMessagePackFormatter>.Empty, ImmutableArray<IFormatterResolver>.Empty);
+        internal static readonly RemoteSerializationOptions Default = new([], []);
 
         // Enables remote APIs to pass Stream as parameter.
         private static readonly MultiplexingStream.Options s_multiplexingStreamOptions = new MultiplexingStream.Options
@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.Remote
             => _options is MessagePackSerializerOptions ? ServiceJsonRpcDescriptor.Formatters.MessagePack : ServiceJsonRpcDescriptor.Formatters.UTF8;
 
         public ServiceJsonRpcDescriptor.MessageDelimiters MessageDelimiters
-           => _options is MessagePackSerializerOptions ?
-               ServiceJsonRpcDescriptor.MessageDelimiters.BigEndianInt32LengthHeader :
-               ServiceJsonRpcDescriptor.MessageDelimiters.HttpLikeHeaders;
+           => _options is MessagePackSerializerOptions
+               ? ServiceJsonRpcDescriptor.MessageDelimiters.BigEndianInt32LengthHeader
+               : ServiceJsonRpcDescriptor.MessageDelimiters.HttpLikeHeaders;
 
         public MultiplexingStream.Options? MultiplexingStreamOptions
             => _options is MessagePackSerializerOptions ? s_multiplexingStreamOptions : null;

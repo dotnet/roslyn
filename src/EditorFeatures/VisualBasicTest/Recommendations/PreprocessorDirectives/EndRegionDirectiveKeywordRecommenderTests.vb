@@ -3,17 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class EndRegionDirectiveKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashEndRegionNotInFileTest()
             VerifyRecommendationsMissing(<File>|</File>, "#End Region")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashEndRegionInFileAfterRegionTest()
             VerifyRecommendationsContain(<File>
 #Region "goo"
@@ -21,7 +20,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub RegionAfterHashEndEndTest()
             VerifyRecommendationsContain(<File>
 #Region "goo"
@@ -29,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotHashEndRegionAfterHashEndTest()
             VerifyRecommendationsMissing(<File>
 #Region "goo"

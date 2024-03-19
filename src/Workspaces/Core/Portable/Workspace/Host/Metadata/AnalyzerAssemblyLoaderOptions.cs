@@ -2,15 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Host
-{
-    internal readonly struct AnalyzerAssemblyLoaderOptions
-    {
-        public bool ShadowCopy { get; }
+namespace Microsoft.CodeAnalysis.Host;
 
-        public AnalyzerAssemblyLoaderOptions(bool shadowCopy)
-        {
-            ShadowCopy = shadowCopy;
-        }
-    }
+internal readonly struct AnalyzerAssemblyLoaderOptions(bool shadowCopy)
+{
+    public bool ShadowCopy { get; } = shadowCopy;
 }

@@ -304,7 +304,6 @@ End Class
                                         {mscorlibRef, netModule1.GetReference(), netModule2.GetReference()},
                                         TestOptions.ReleaseDll)
 
-
             Dim class1 = c1.GlobalNamespace.GetMembers("Class1")
             Assert.Equal(1, class1.Count())
 
@@ -752,7 +751,6 @@ Class TC3(Of T8)
 End Class
     </file>
 </compilation>, TestOptions.ReleaseExe)
-
 
             CompileAndVerify(compilation, <![CDATA[
 TC1

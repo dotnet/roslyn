@@ -2,15 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal enum WellKnownLspServerKinds
 {
+    /// <summary>
+    /// Razor LSP server for Razor document requests (.razor and .cshtml files)
+    /// </summary>
+    RazorCohostServer,
+
     /// <summary>
     /// Roslyn LSP server for razor c# requests.
     /// </summary>
@@ -55,6 +57,7 @@ internal static class WellKnownLspServerExtensions
     {
         return server switch
         {
+            WellKnownLspServerKinds.RazorCohostServer => "Razor Cohost Language Server Client",
             WellKnownLspServerKinds.RazorLspServer => "Razor C# Language Server Client",
             WellKnownLspServerKinds.LiveShareLspServer => "Live Share C#/Visual Basic Language Server Client",
             WellKnownLspServerKinds.AlwaysActiveVSLspServer => "Roslyn Language Server Client",
@@ -72,6 +75,8 @@ internal static class WellKnownLspServerExtensions
     {
         return server switch
         {
+            WellKnownLspServerKinds.RazorCohostServer => "RazorCohostLanguageClient",
+
             // Telemetry was previously reported as RazorInProcLanguageClient.GetType().Name
             WellKnownLspServerKinds.RazorLspServer => "RazorInProcLanguageClient",
 
@@ -99,6 +104,7 @@ internal static class WellKnownLspServerExtensions
     {
         return server switch
         {
+            WellKnownLspServerKinds.RazorCohostServer => ProtocolConstants.RazorCohostContract,
             WellKnownLspServerKinds.RazorLspServer => ProtocolConstants.RoslynLspLanguagesContract,
             WellKnownLspServerKinds.LiveShareLspServer => ProtocolConstants.RoslynLspLanguagesContract,
             WellKnownLspServerKinds.AlwaysActiveVSLspServer => ProtocolConstants.RoslynLspLanguagesContract,

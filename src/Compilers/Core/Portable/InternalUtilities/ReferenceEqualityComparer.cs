@@ -30,8 +30,7 @@ namespace Roslyn.Utilities
 
         public static int GetHashCode(object? a)
         {
-            // https://github.com/dotnet/roslyn/issues/41539
-            return RuntimeHelpers.GetHashCode(a!);
+            return RuntimeHelpers.GetHashCode(a);
         }
     }
 }

@@ -24,10 +24,7 @@ namespace Microsoft.CodeAnalysis
 
         private static string GetString(string resourceName)
         {
-            if (s_codeAnalysisResourceManager == null)
-            {
-                s_codeAnalysisResourceManager = new ResourceManager(typeof(CodeAnalysisResources).FullName, typeof(Compilation).Assembly);
-            }
+            s_codeAnalysisResourceManager ??= new ResourceManager(typeof(CodeAnalysisResources).FullName, typeof(Compilation).Assembly);
 
             return s_codeAnalysisResourceManager.GetString(resourceName);
         }

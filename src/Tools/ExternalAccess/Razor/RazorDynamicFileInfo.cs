@@ -41,5 +41,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         /// return <see cref="IRazorDocumentServiceProvider"/> for the contents it provides
         /// </summary>
         public IRazorDocumentServiceProvider DocumentServiceProvider { get; }
+
+        /// <summary>
+        /// Constructs a new <see cref="DocumentInfo"/> from an existing <see cref="DocumentInfo"/> but with updated
+        /// text loader and document service provider coming from this instance.
+        /// </summary>
+        public DocumentInfo ToUpdatedDocumentInfo(DocumentInfo existingDocumentInfo)
+        {
+            var serviceProvider = new RazorDocumentServiceProviderWrapper(this.DocumentServiceProvider);
+            return new DocumentInfo(existingDocumentInfo.Attributes, this.TextLoader, serviceProvider);
+        }
     }
 }

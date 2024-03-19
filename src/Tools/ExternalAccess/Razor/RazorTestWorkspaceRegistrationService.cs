@@ -12,17 +12,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     [Export(typeof(RazorTestWorkspaceRegistrationService))]
     [Export(typeof(LspWorkspaceRegistrationService))]
     [Shared, PartNotDiscoverable]
-    internal class RazorTestWorkspaceRegistrationService : LspWorkspaceRegistrationService
+    internal sealed class RazorTestWorkspaceRegistrationService : LspWorkspaceRegistrationService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RazorTestWorkspaceRegistrationService()
         {
-        }
-
-        public override string GetHostWorkspaceKind()
-        {
-            return WorkspaceKind.Host;
         }
 
         // Method purposely doesn't override the base so any changes to the method

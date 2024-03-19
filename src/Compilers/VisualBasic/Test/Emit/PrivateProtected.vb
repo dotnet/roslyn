@@ -946,4 +946,3 @@ BC30456: 'SomeExtension' is not a member of 'String'.
     End Class
 End Namespace
 
-

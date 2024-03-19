@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+namespace Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+/// <summary>
+/// Marker interface to indicate whether given diagnostic args are from live analysis.
+/// </summary>
+internal interface ISupportLiveUpdate
 {
-    /// <summary>
-    /// Marker interface to indicate whether given diagnostic args are from live analysis.
-    /// </summary>
-    internal interface ISupportLiveUpdate
-    {
-    }
 }

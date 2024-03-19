@@ -10,80 +10,55 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
+namespace Microsoft.VisualStudio.LanguageServices.Options;
+
+internal sealed class FeatureFlagPersister
 {
-    /// <summary>
-    /// Serializes options marked with <see cref="FeatureFlagStorageLocation"/> to the feature flag storage maintained by VS.
-    /// </summary>
-    internal sealed class FeatureFlagPersister : IOptionPersister
+    private readonly IVsFeatureFlags? _featureFlags;
+
+    public FeatureFlagPersister(IVsFeatureFlags? featureFlags)
     {
-        private readonly IVsFeatureFlags? _featureFlags;
+        _featureFlags = featureFlags;
+    }
 
-        public FeatureFlagPersister(IVsFeatureFlags? featureFlags)
+    public bool TryFetch(OptionKey2 optionKey, string flagName, [NotNullWhen(true)] out object? value)
+    {
+        if (_featureFlags == null)
         {
-            _featureFlags = featureFlags;
+            value = null;
+            return false;
         }
 
-        public bool TryFetch(OptionKey optionKey, [NotNullWhen(true)] out object? value)
+        if (optionKey.Option.DefaultValue is not bool defaultValue)
         {
-            if (_featureFlags == null)
-            {
-                value = null;
-                return false;
-            }
-
-            var location = optionKey.Option.StorageLocations.OfType<FeatureFlagStorageLocation>().FirstOrDefault();
-            if (location == null)
-            {
-                value = null;
-                return false;
-            }
-
-            if (optionKey.Option.DefaultValue is not bool defaultValue)
-            {
-                throw ExceptionUtilities.UnexpectedValue(optionKey.Option.DefaultValue);
-            }
-
-            try
-            {
-                value = _featureFlags.IsFeatureEnabled(location.Name, defaultValue);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
-            {
-                value = defaultValue;
-            }
-
-            return true;
+            throw ExceptionUtilities.UnexpectedValue(optionKey.Option.DefaultValue);
         }
 
-        public bool TryPersist(OptionKey optionKey, object? value)
+        try
         {
-            if (_featureFlags == null)
-            {
-                return false;
-            }
+            value = _featureFlags.IsFeatureEnabled(flagName, defaultValue);
+        }
+        catch (Exception e) when (FatalError.ReportAndCatch(e))
+        {
+            value = defaultValue;
+        }
 
-            var location = optionKey.Option.StorageLocations.OfType<FeatureFlagStorageLocation>().FirstOrDefault();
-            if (location == null)
-            {
-                return false;
-            }
+        return true;
+    }
 
-            if (value is not bool flag)
-            {
-                throw ExceptionUtilities.UnexpectedValue(value);
-            }
+    public void Persist(string flagName, object? value)
+    {
+        if (value is not bool flag)
+        {
+            throw ExceptionUtilities.UnexpectedValue(value);
+        }
 
-            try
-            {
-                ((IVsFeatureFlags2)_featureFlags).EnableFeatureFlag(location.Name, flag);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
-            {
-                return false;
-            }
-
-            return true;
+        try
+        {
+            ((IVsFeatureFlags2?)_featureFlags)?.EnableFeatureFlag(flagName, flag);
+        }
+        catch (Exception e) when (FatalError.ReportAndCatch(e))
+        {
         }
     }
 }

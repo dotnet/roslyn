@@ -46,8 +46,8 @@ namespace IdeBenchmarks
             using var workspace = TestWorkspace.CreateCSharp(text);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
             var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
-            var options = workspace.GlobalOptions.GetSyntaxFormattingOptions(document.Project.LanguageServices);
-            return Formatter.GetFormattedTextChanges(root, workspace.Services, options, CancellationToken.None);
+            var options = workspace.GlobalOptions.GetSyntaxFormattingOptions(document.Project.Services);
+            return Formatter.GetFormattedTextChanges(root, workspace.Services.SolutionServices, options, CancellationToken.None);
         }
 
         [Benchmark]
@@ -59,8 +59,8 @@ namespace IdeBenchmarks
             using var workspace = TestWorkspace.CreateVisualBasic(text);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
             var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
-            var options = workspace.GlobalOptions.GetSyntaxFormattingOptions(document.Project.LanguageServices);
-            return Formatter.GetFormattedTextChanges(root, workspace.Services, options, CancellationToken.None);
+            var options = workspace.GlobalOptions.GetSyntaxFormattingOptions(document.Project.Services);
+            return Formatter.GetFormattedTextChanges(root, workspace.Services.SolutionServices, options, CancellationToken.None);
         }
     }
 }

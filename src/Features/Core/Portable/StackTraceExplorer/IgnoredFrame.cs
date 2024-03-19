@@ -5,20 +5,14 @@
 using System;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
-namespace Microsoft.CodeAnalysis.StackTraceExplorer
+namespace Microsoft.CodeAnalysis.StackTraceExplorer;
+
+internal sealed class IgnoredFrame(VirtualCharSequence originalText) : ParsedFrame
 {
-    internal sealed class IgnoredFrame : ParsedFrame
+    private readonly VirtualCharSequence _originalText = originalText;
+
+    public override string ToString()
     {
-        private readonly VirtualCharSequence _originalText;
-
-        public IgnoredFrame(VirtualCharSequence originalText)
-        {
-            _originalText = originalText;
-        }
-
-        public override string ToString()
-        {
-            return _originalText.CreateString();
-        }
+        return _originalText.CreateString();
     }
 }

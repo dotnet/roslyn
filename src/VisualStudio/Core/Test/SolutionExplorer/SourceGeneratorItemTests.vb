@@ -15,8 +15,9 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.Diagnostics)>
     Public Class SourceGeneratorItemTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Sub SourceGeneratorsListed()
             Dim workspaceXml =
                 <Workspace>
@@ -24,7 +25,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim projectId = workspace.Projects.Single().Id
 
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
@@ -36,7 +37,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function PlaceholderItemCreateIfGeneratorProducesNoFiles() As Task
             Dim workspaceXml =
                 <Workspace>
@@ -44,7 +45,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
@@ -60,7 +61,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function SingleSourceGeneratedFileProducesItem() As Task
             Dim workspaceXml =
                 <Workspace>
@@ -69,7 +70,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
@@ -89,7 +90,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function MultipleSourceGeneratedFilesProducesSortedItem() As Task
             Dim workspaceXml =
                 <Workspace>
@@ -103,7 +104,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
@@ -121,7 +122,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function ChangeToRemoveAllGeneratedDocumentsUpdatesListCorrectly() As Task
             Dim workspaceXml =
                 <Workspace>
@@ -130,7 +131,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
@@ -150,7 +151,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function AddingAGeneratedDocumentUpdatesListCorrectly() As Task
             Dim workspaceXml =
                 <Workspace>
@@ -158,7 +159,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
@@ -191,7 +192,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact>
         Public Async Function GeneratedDocumentsStayingTheSameWorksCorrectly() As Task
             Dim workspaceXml =
                 <Workspace>
@@ -200,7 +201,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
@@ -225,7 +226,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             End Using
         End Function
 
-        Private Shared Function CreateItemSourceForAnalyzerReference(workspace As TestWorkspace, projectId As ProjectId) As BaseDiagnosticAndGeneratorItemSource
+        Private Shared Function CreateItemSourceForAnalyzerReference(workspace As EditorTestWorkspace, projectId As ProjectId) As BaseDiagnosticAndGeneratorItemSource
             Dim analyzerReference = New TestGeneratorReference(New GenerateFileForEachAdditionalFileWithContentsCommented())
             workspace.OnAnalyzerReferenceAdded(projectId, analyzerReference)
 
@@ -235,13 +236,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 workspace.GetService(Of IDiagnosticAnalyzerService))
         End Function
 
-        Private Shared Function CreateSourceGeneratedFilesItemSource(workspace As TestWorkspace, generatorItem As SourceGeneratorItem) As Shell.IAttachedCollectionSource
+        Private Shared Function CreateSourceGeneratedFilesItemSource(workspace As EditorTestWorkspace, generatorItem As SourceGeneratorItem) As Shell.IAttachedCollectionSource
             Dim asyncListener = workspace.GetService(Of IAsynchronousOperationListenerProvider).GetListener(FeatureAttribute.SourceGenerators)
 
             Return New SourceGeneratedFileItemSource(generatorItem, workspace, asyncListener, workspace.GetService(Of IThreadingContext)())
         End Function
 
-        Private Shared Function WaitForGeneratorsAndItemSourcesAsync(workspace As TestWorkspace) As Task
+        Private Shared Function WaitForGeneratorsAndItemSourcesAsync(workspace As EditorTestWorkspace) As Task
             Dim service = workspace.GetService(Of AsynchronousOperationListenerProvider)
 
             ' We wait for the Workspace to ensure that any WorkspaceChanged events have been raised; we wait for SourceGenerators

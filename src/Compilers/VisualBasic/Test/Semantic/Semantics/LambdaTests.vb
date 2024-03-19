@@ -170,7 +170,6 @@ End Module
 <expected>
 </expected>)
 
-
             CompileAndVerify(compilation, <![CDATA[
 1
 1
@@ -968,7 +967,6 @@ BC30518: Overload resolution failed because no accessible 'M1' can be called wit
 
         End Sub
 
-
         <Fact>
         Public Sub Test11()
 
@@ -1002,7 +1000,6 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
-
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
     <![CDATA[
@@ -1019,7 +1016,6 @@ BC36918: Single-line statement lambdas must include exactly one statement.
 </expected>)
 
         End Sub
-
 
         <Fact>
         Public Sub Test12()
@@ -1476,7 +1472,6 @@ BC36670: Nested sub does not have a signature that is compatible with delegate '
                                      ~~~~~~~~~~~~~~~
 </expected>)
         End Sub
-
 
         <Fact>
         Public Sub Error_BC36625()
@@ -2380,6 +2375,76 @@ End Class
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="22")
+        End Sub
+
+        <WorkItem(64392, "https://github.com/dotnet/roslyn/issues/64392")>
+        <Fact()>
+        Public Sub ReferToFieldWithinLambdaInTypeAttribute_01()
+
+            Dim compilationDef =
+"
+<Display(Function() $""{Name}"")>
+public class Test
+    <Display(Name:=""Name"")>
+    public readonly property Name As String
+end class
+
+public class DisplayAttribute
+    Inherits System.Attribute
+
+    public Sub New()
+    end Sub
+End Class
+"
+            Dim compilation = CompilationUtils.CreateCompilation(compilationDef)
+            compilation.AssertTheseEmitDiagnostics(
+<expected><![CDATA[
+BC30057: Too many arguments to 'Public Sub New()'.
+<Display(Function() $"{Name}")>
+         ~~~~~~~~~~~~~~~~~~~~
+BC30059: Constant expression is required.
+<Display(Function() $"{Name}")>
+         ~~~~~~~~~~~~~~~~~~~~
+BC30661: Field or property 'Name' is not found.
+    <Display(Name:="Name")>
+             ~~~~
+]]></expected>
+            )
+        End Sub
+
+        <WorkItem(64392, "https://github.com/dotnet/roslyn/issues/64392")>
+        <Fact()>
+        Public Sub ReferToFieldWithinLambdaInTypeAttribute_02()
+
+            Dim compilationDef =
+"
+<Display(Function() Name)>
+public class Test
+    <Display(Name:=""Name"")>
+    public readonly property Name As String
+end class
+
+public class DisplayAttribute
+    Inherits System.Attribute
+
+    public Sub New()
+    end Sub
+End Class
+"
+            Dim compilation = CompilationUtils.CreateCompilation(compilationDef)
+            compilation.AssertTheseEmitDiagnostics(
+<expected><![CDATA[
+BC30057: Too many arguments to 'Public Sub New()'.
+<Display(Function() Name)>
+         ~~~~~~~~~~~~~~~
+BC30059: Constant expression is required.
+<Display(Function() Name)>
+         ~~~~~~~~~~~~~~~
+BC30661: Field or property 'Name' is not found.
+    <Display(Name:="Name")>
+             ~~~~
+]]></expected>
+            )
         End Sub
 
     End Class

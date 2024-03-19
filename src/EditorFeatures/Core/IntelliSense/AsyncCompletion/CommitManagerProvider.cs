@@ -12,37 +12,31 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
+
+[Export(typeof(IAsyncCompletionCommitManagerProvider))]
+[Name("Roslyn Completion Commit Manager")]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class CommitManagerProvider(
+    IThreadingContext threadingContext,
+    RecentItemsManager recentItemsManager,
+    IGlobalOptionService globalOptions,
+    [Import(AllowDefault = true)] ILanguageServerSnippetExpander? languageServerSnippetExpander) : IAsyncCompletionCommitManagerProvider
 {
-    [Export(typeof(IAsyncCompletionCommitManagerProvider))]
-    [Name("Roslyn Completion Commit Manager")]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    internal class CommitManagerProvider : IAsyncCompletionCommitManagerProvider
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly RecentItemsManager _recentItemsManager = recentItemsManager;
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
+    private readonly ILanguageServerSnippetExpander? _languageServerSnippetExpander = languageServerSnippetExpander;
+
+    IAsyncCompletionCommitManager? IAsyncCompletionCommitManagerProvider.GetOrCreate(ITextView textView)
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly RecentItemsManager _recentItemsManager;
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CommitManagerProvider(
-            IThreadingContext threadingContext,
-            RecentItemsManager recentItemsManager,
-            IGlobalOptionService globalOptions)
+        if (textView.IsInLspEditorContext())
         {
-            _threadingContext = threadingContext;
-            _recentItemsManager = recentItemsManager;
-            _globalOptions = globalOptions;
+            return null;
         }
 
-        IAsyncCompletionCommitManager? IAsyncCompletionCommitManagerProvider.GetOrCreate(ITextView textView)
-        {
-            if (textView.IsInLspEditorContext())
-            {
-                return null;
-            }
-
-            return new CommitManager(textView, _recentItemsManager, _globalOptions, _threadingContext);
-        }
+        return new CommitManager(textView, _recentItemsManager, _globalOptions, _threadingContext, _languageServerSnippetExpander);
     }
 }

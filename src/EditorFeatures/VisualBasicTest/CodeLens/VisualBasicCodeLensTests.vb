@@ -5,10 +5,11 @@
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeLens
+    <Trait(Traits.Feature, Traits.Features.CodeLens)>
     Public Class VisualBasicCodeLensTests
         Inherits AbstractCodeLensTest
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeLens)>
+        <Fact>
         Public Async Function TestCount() As Task
             Dim input =
 <Workspace>
@@ -34,7 +35,7 @@ End Class
             Await RunCountTest(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeLens)>
+        <Fact>
         Public Async Function TestCapping() As Task
             Dim input =
 <Workspace>
@@ -60,7 +61,7 @@ End Class
             Await RunCountTest(input, 1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeLens)>
+        <Fact>
         Public Async Function TestDisplay() As Task
             Dim input =
 <Workspace>
@@ -86,7 +87,7 @@ End Class
             Await RunReferenceTest(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeLens)>
+        <Fact>
         Public Async Function TestMethodReferences() As Task
             Dim input =
 <Workspace>
@@ -112,7 +113,7 @@ End Class
             Await RunMethodReferenceTest(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeLens)>
+        <Fact>
         Public Async Function TestMethodReferencesWithDocstrings() As Task
             Dim input =
 <Workspace>

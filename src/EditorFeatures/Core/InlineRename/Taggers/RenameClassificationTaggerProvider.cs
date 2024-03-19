@@ -12,27 +12,20 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+
+[Export(typeof(ITaggerProvider))]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[TagType(typeof(IClassificationTag))]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class RenameClassificationTaggerProvider(
+    InlineRenameService renameService,
+    IClassificationTypeRegistryService classificationTypeRegistryService) : ITaggerProvider
 {
-    [Export(typeof(ITaggerProvider))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [TagType(typeof(IClassificationTag))]
-    internal class RenameClassificationTaggerProvider : ITaggerProvider
-    {
-        private readonly InlineRenameService _renameService;
-        private readonly IClassificationType _classificationType;
+    private readonly InlineRenameService _renameService = renameService;
+    private readonly IClassificationType _classificationType = classificationTypeRegistryService.GetClassificationType(ClassificationTypeDefinitions.InlineRenameField);
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RenameClassificationTaggerProvider(
-            InlineRenameService renameService,
-            IClassificationTypeRegistryService classificationTypeRegistryService)
-        {
-            _renameService = renameService;
-            _classificationType = classificationTypeRegistryService.GetClassificationType(ClassificationTypeDefinitions.InlineRenameField);
-        }
-
-        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
-            => new RenameClassificationTagger(buffer, _renameService, _classificationType) as ITagger<T>;
-    }
+    public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
+        => new RenameClassificationTagger(buffer, _renameService, _classificationType) as ITagger<T>;
 }

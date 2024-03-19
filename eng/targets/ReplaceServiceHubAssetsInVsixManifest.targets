@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+  <Import Project="GenerateServiceHubConfigurationFiles.targets" />
+  <!--
+    Injects generated Asset entries for ServiceHub configuration files to vsixmanifest:    
+      <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="{service-name}.servicehub.service.json"/>
+  -->
+  
+  <Target Name="GetGeneratedVsixManifestPath">
+    <PropertyGroup>
+      <_GeneratedVsixManifestPath>$(IntermediateOutputPath)source.extension.g.vsixmanifest</_GeneratedVsixManifestPath>
+    </PropertyGroup>
+  </Target>
+    
+  <!--
+    Redefines VSSDK target FindSourceVsixManifest to allow adding generated content to the manifest.
+    Workaround for: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1179780
+  -->
+  <Target Name="FindSourceVsixManifest"
+          DependsOnTargets="GetGeneratedVsixManifestPath;CalculateServiceHubConfigurationFiles"
+          Inputs="$(VsixSourceManifestPath);$(MSBuildAllProjects)"
+          Outputs="$(_GeneratedVsixManifestPath)">
+    <PropertyGroup>
+      <_Placeholder><![CDATA[<!--#SERVICEHUB_ASSETS#-->]]></_Placeholder>
+      <_Replacement>@(ServiceHubServiceJsonFile->'&lt;Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="%(FileName)%(Extension)" /&gt;', '
+    ')</_Replacement>
+    </PropertyGroup>
+    
+    <Copy SourceFiles="$(VsixSourceManifestPath)" DestinationFiles="$(_GeneratedVsixManifestPath)" />
+
+    <WriteLinesToFile 
+      File="$(_GeneratedVsixManifestPath)"
+      Lines="$([System.IO.File]::ReadAllText('$(_GeneratedVsixManifestPath)').Replace('$(_Placeholder)', '$(_Replacement)'))"
+      Overwrite="true"
+      Encoding="UTF-8"/>
+
+    <ItemGroup>
+      <FileWrites Include="$(_GeneratedVsixManifestPath)" />
+      <SourceVsixManifest Include="$(_GeneratedVsixManifestPath)" />
+    </ItemGroup>
+  </Target>
+</Project>

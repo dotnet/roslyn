@@ -4,22 +4,16 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
-{
-    internal abstract class RQMethodBase : RQMethodOrProperty
-    {
-        public RQMethodBase(
-            RQUnconstructedType containingType,
-            RQMethodPropertyOrEventName memberName,
-            int typeParameterCount,
-            IList<RQParameter> parameters)
-            : base(containingType, memberName, typeParameterCount, parameters)
-        {
-        }
+namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 
-        protected override string RQKeyword
-        {
-            get { return RQNameStrings.Meth; }
-        }
+internal abstract class RQMethodBase(
+    RQUnconstructedType containingType,
+    RQMethodPropertyOrEventName memberName,
+    int typeParameterCount,
+    IList<RQParameter> parameters) : RQMethodOrProperty(containingType, memberName, typeParameterCount, parameters)
+{
+    protected override string RQKeyword
+    {
+        get { return RQNameStrings.Meth; }
     }
 }

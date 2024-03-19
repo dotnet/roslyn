@@ -6,31 +6,25 @@ using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+
+internal partial class TaggerEventSources
 {
-    internal partial class TaggerEventSources
+    private class DocumentActiveContextChangedEventSource(ITextBuffer subjectBuffer) : AbstractWorkspaceTrackingTaggerEventSource(subjectBuffer)
     {
-        private class DocumentActiveContextChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
+        protected override void ConnectToWorkspace(Workspace workspace)
+            => workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
+
+        protected override void DisconnectFromWorkspace(Workspace workspace)
+            => workspace.DocumentActiveContextChanged -= OnDocumentActiveContextChanged;
+
+        private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)
         {
-            public DocumentActiveContextChangedEventSource(ITextBuffer subjectBuffer)
-                : base(subjectBuffer)
+            var document = SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+
+            if (document != null && document.Id == e.NewActiveContextDocumentId)
             {
-            }
-
-            protected override void ConnectToWorkspace(Workspace workspace)
-                => workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
-
-            protected override void DisconnectFromWorkspace(Workspace workspace)
-                => workspace.DocumentActiveContextChanged -= OnDocumentActiveContextChanged;
-
-            private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)
-            {
-                var document = SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-
-                if (document != null && document.Id == e.NewActiveContextDocumentId)
-                {
-                    this.RaiseChanged();
-                }
+                this.RaiseChanged();
             }
         }
     }

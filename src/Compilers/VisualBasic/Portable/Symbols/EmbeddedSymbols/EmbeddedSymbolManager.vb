@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -17,6 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Shared s_embeddedSyntax As SyntaxTree = Nothing
         Private Shared s_vbCoreSyntax As SyntaxTree = Nothing
         Private Shared s_internalXmlHelperSyntax As SyntaxTree = Nothing
+
+        Private Shared Function ParseResourceText(text As String) As SyntaxTree
+            Return VisualBasicSyntaxTree.ParseText(SourceText.From(text, Encoding.UTF8, SourceHashAlgorithms.Default))
+        End Function
 
         Friend Shared Function GetEmbeddedKind(tree As SyntaxTree) As EmbeddedSymbolKind
             Debug.Assert(tree IsNot Nothing)
@@ -49,9 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Shared ReadOnly Property EmbeddedSyntax As SyntaxTree
             Get
                 If s_embeddedSyntax Is Nothing Then
-                    Interlocked.CompareExchange(s_embeddedSyntax,
-                                                VisualBasicSyntaxTree.ParseText(EmbeddedResources.Embedded),
-                                                Nothing)
+                    Interlocked.CompareExchange(s_embeddedSyntax, ParseResourceText(EmbeddedResources.Embedded), Nothing)
                     If s_embeddedSyntax.GetDiagnostics().Any() Then
                         Throw ExceptionUtilities.Unreachable
                     End If
@@ -66,9 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Shared ReadOnly Property VbCoreSyntaxTree As SyntaxTree
             Get
                 If s_vbCoreSyntax Is Nothing Then
-                    Interlocked.CompareExchange(s_vbCoreSyntax,
-                                                VisualBasicSyntaxTree.ParseText(EmbeddedResources.VbCoreSourceText),
-                                                Nothing)
+                    Interlocked.CompareExchange(s_vbCoreSyntax, ParseResourceText(EmbeddedResources.VbCoreSourceText), Nothing)
                     If s_vbCoreSyntax.GetDiagnostics().Any() Then
                         Throw ExceptionUtilities.Unreachable
                     End If
@@ -80,9 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Shared ReadOnly Property InternalXmlHelperSyntax As SyntaxTree
             Get
                 If s_internalXmlHelperSyntax Is Nothing Then
-                    Interlocked.CompareExchange(s_internalXmlHelperSyntax,
-                                                VisualBasicSyntaxTree.ParseText(EmbeddedResources.InternalXmlHelper),
-                                                Nothing)
+                    Interlocked.CompareExchange(s_internalXmlHelperSyntax, ParseResourceText(EmbeddedResources.InternalXmlHelper), Nothing)
                     If s_internalXmlHelperSyntax.GetDiagnostics().Any() Then
                         Throw ExceptionUtilities.Unreachable
                     End If

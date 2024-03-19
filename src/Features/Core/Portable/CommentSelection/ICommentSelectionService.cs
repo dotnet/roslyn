@@ -9,12 +9,9 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CommentSelection
-{
-    internal interface ICommentSelectionService : ILanguageService
-    {
-        Task<CommentSelectionInfo> GetInfoAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+namespace Microsoft.CodeAnalysis.CommentSelection;
 
-        Task<Document> FormatAsync(Document document, ImmutableArray<TextSpan> changes, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken);
-    }
+internal interface ICommentSelectionService : ILanguageService
+{
+    CommentSelectionInfo GetInfo();
 }

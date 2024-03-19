@@ -4,19 +4,13 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
-using System.Xml.Serialization;
+using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.SourceGeneration;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis;
-
-using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
 public readonly struct GeneratorAttributeSyntaxContext
 {
@@ -71,7 +65,7 @@ public partial struct SyntaxValueProvider
     /// cref="SyntaxNode"/>s if that node has an attribute on it that binds to a <see cref="INamedTypeSymbol"/> with the
     /// same fully-qualified metadata as the provided <paramref name="fullyQualifiedMetadataName"/>. <paramref
     /// name="fullyQualifiedMetadataName"/> should be the fully-qualified, metadata name of the attribute, including the
-    /// <c>Attribute</c> suffix.  For example <c>"System.CLSCompliantAttribute</c> for <see
+    /// <c>Attribute</c> suffix.  For example <c>"System.CLSCompliantAttribute"</c> for <see
     /// cref="System.CLSCompliantAttribute"/>.
     /// </summary>
     /// <param name="predicate">A function that determines if the given <see cref="SyntaxNode"/> attribute target (<see
@@ -92,51 +86,41 @@ public partial struct SyntaxValueProvider
 
         var nodesWithAttributesMatchingSimpleName = this.ForAttributeWithSimpleName(metadataName.UnmangledTypeName, predicate);
 
-        var collectedNodes = nodesWithAttributesMatchingSimpleName
-            .Collect()
-            .WithComparer(ImmutableArrayValueComparer<SyntaxNode>.Instance)
-            .WithTrackingName("collectedNodes_ForAttributeWithMetadataName");
-
-        // Group all the nodes by syntax tree, so we can process a whole syntax tree at a time.  This will let us make
-        // the required semantic model for it once, instead of potentially many times (in the rare, but possible case of
-        // a single file with a ton of matching nodes in it).
-        var groupedNodes = collectedNodes.SelectMany(
-            static (array, cancellationToken) =>
-                array.GroupBy(static n => n.SyntaxTree)
-                     .Select(static g => new SyntaxNodeGrouping<SyntaxNode>(g))).WithTrackingName("groupedNodes_ForAttributeWithMetadataName");
-
-        var compilationAndGroupedNodesProvider = groupedNodes
+        var compilationAndGroupedNodesProvider = nodesWithAttributesMatchingSimpleName
             .Combine(_context.CompilationProvider)
             .WithTrackingName("compilationAndGroupedNodes_ForAttributeWithMetadataName");
 
         var syntaxHelper = _context.SyntaxHelper;
         var finalProvider = compilationAndGroupedNodesProvider.SelectMany((tuple, cancellationToken) =>
         {
-            var (grouping, compilation) = tuple;
+            var ((syntaxTree, syntaxNodes), compilation) = tuple;
+            Debug.Assert(syntaxNodes.All(n => n.SyntaxTree == syntaxTree));
 
             var result = ArrayBuilder<T>.GetInstance();
             try
             {
-                var syntaxTree = grouping.SyntaxTree;
-                var semanticModel = compilation.GetSemanticModel(syntaxTree);
-
-                foreach (var targetNode in grouping.SyntaxNodes)
+                if (!syntaxNodes.IsEmpty)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    var semanticModel = compilation.GetSemanticModel(syntaxTree);
 
-                    var targetSymbol =
-                        targetNode is ICompilationUnitSyntax compilationUnit ? semanticModel.Compilation.Assembly :
-                        syntaxHelper.IsLambdaExpression(targetNode) ? semanticModel.GetSymbolInfo(targetNode, cancellationToken).Symbol :
-                        semanticModel.GetDeclaredSymbol(targetNode, cancellationToken);
-                    if (targetSymbol is null)
-                        continue;
-
-                    var attributes = getMatchingAttributes(targetNode, targetSymbol, fullyQualifiedMetadataName);
-                    if (attributes.Length > 0)
+                    foreach (var targetNode in syntaxNodes)
                     {
-                        result.Add(transform(
-                            new GeneratorAttributeSyntaxContext(targetNode, targetSymbol, semanticModel, attributes),
-                            cancellationToken));
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        var targetSymbol =
+                            targetNode is ICompilationUnitSyntax compilationUnit ? semanticModel.Compilation.Assembly :
+                            syntaxHelper.IsLambdaExpression(targetNode) ? semanticModel.GetSymbolInfo(targetNode, cancellationToken).Symbol :
+                            semanticModel.GetDeclaredSymbol(targetNode, cancellationToken);
+                        if (targetSymbol is null)
+                            continue;
+
+                        var attributes = getMatchingAttributes(targetNode, targetSymbol, fullyQualifiedMetadataName);
+                        if (attributes.Length > 0)
+                        {
+                            result.Add(transform(
+                                new GeneratorAttributeSyntaxContext(targetNode, targetSymbol, semanticModel, attributes),
+                                cancellationToken));
+                        }
                     }
                 }
 

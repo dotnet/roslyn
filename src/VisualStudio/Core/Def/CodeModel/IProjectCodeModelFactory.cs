@@ -9,12 +9,11 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
+
+internal interface IProjectCodeModelFactory
 {
-    internal interface IProjectCodeModelFactory
-    {
-        IProjectCodeModel CreateProjectCodeModel(ProjectId id, ICodeModelInstanceFactory codeModelInstanceFactory);
-        EnvDTE.FileCodeModel GetOrCreateFileCodeModel(ProjectId id, string filePath);
-        EnvDTE.FileCodeModel CreateFileCodeModel(SourceGeneratedDocument sourceGeneratedDocument);
-    }
+    IProjectCodeModel CreateProjectCodeModel(ProjectId id, ICodeModelInstanceFactory codeModelInstanceFactory);
+    EnvDTE.FileCodeModel GetOrCreateFileCodeModel(ProjectId id, string filePath);
+    EnvDTE.FileCodeModel CreateFileCodeModel(SourceGeneratedDocument sourceGeneratedDocument);
 }

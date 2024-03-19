@@ -3,17 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class GoToKeywordRecommenderTests
         Inherits RecommenderTests
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub GoToAfterOnErrorTest()
             VerifyRecommendationsContain(<MethodBody>On Error |</MethodBody>, "GoTo")
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub GoToNotAfterOnErrorInLambdaTest()
             VerifyRecommendationsAreExactly(<MethodBody>
 Dim x = Sub()

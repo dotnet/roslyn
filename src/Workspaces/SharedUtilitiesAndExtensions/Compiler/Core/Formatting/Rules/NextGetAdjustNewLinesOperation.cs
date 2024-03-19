@@ -5,37 +5,27 @@
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Formatting.Rules
+namespace Microsoft.CodeAnalysis.Formatting.Rules;
+
+[NonDefaultable]
+internal readonly struct NextGetAdjustNewLinesOperation(
+    ImmutableArray<AbstractFormattingRule> formattingRules,
+    int index)
 {
-    [NonDefaultable]
-    internal readonly struct NextGetAdjustNewLinesOperation
+    private NextGetAdjustNewLinesOperation NextOperation
+        => new(formattingRules, index + 1);
+
+    public AdjustNewLinesOperation? Invoke(in SyntaxToken previousToken, in SyntaxToken currentToken)
     {
-        private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
-        private readonly int _index;
-
-        public NextGetAdjustNewLinesOperation(
-            ImmutableArray<AbstractFormattingRule> formattingRules,
-            int index)
+        // If we have no remaining handlers to execute, then we'll execute our last handler
+        if (index >= formattingRules.Length)
         {
-            _formattingRules = formattingRules;
-            _index = index;
+            return null;
         }
-
-        private NextGetAdjustNewLinesOperation NextOperation
-            => new(_formattingRules, _index + 1);
-
-        public AdjustNewLinesOperation? Invoke(in SyntaxToken previousToken, in SyntaxToken currentToken)
+        else
         {
-            // If we have no remaining handlers to execute, then we'll execute our last handler
-            if (_index >= _formattingRules.Length)
-            {
-                return null;
-            }
-            else
-            {
-                // Call the handler at the index, passing a continuation that will come back to here with index + 1
-                return _formattingRules[_index].GetAdjustNewLinesOperation(in previousToken, in currentToken, NextOperation);
-            }
+            // Call the handler at the index, passing a continuation that will come back to here with index + 1
+            return formattingRules[index].GetAdjustNewLinesOperation(in previousToken, in currentToken, NextOperation);
         }
     }
 }

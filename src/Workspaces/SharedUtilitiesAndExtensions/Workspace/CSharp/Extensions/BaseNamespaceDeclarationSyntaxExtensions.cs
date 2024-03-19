@@ -6,28 +6,27 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
+
+internal static class BaseNamespaceDeclarationSyntaxExtensions
 {
-    internal static class BaseNamespaceDeclarationSyntaxExtensions
+    public static TNamespaceDeclarationSyntax AddUsingDirectives<TNamespaceDeclarationSyntax>(
+        this TNamespaceDeclarationSyntax namespaceDeclaration,
+        IList<UsingDirectiveSyntax> usingDirectives,
+        bool placeSystemNamespaceFirst,
+        params SyntaxAnnotation[] annotations) where TNamespaceDeclarationSyntax : BaseNamespaceDeclarationSyntax
     {
-        public static TNamespaceDeclarationSyntax AddUsingDirectives<TNamespaceDeclarationSyntax>(
-            this TNamespaceDeclarationSyntax namespaceDeclaration,
-            IList<UsingDirectiveSyntax> usingDirectives,
-            bool placeSystemNamespaceFirst,
-            params SyntaxAnnotation[] annotations) where TNamespaceDeclarationSyntax : BaseNamespaceDeclarationSyntax
-        {
-            if (usingDirectives.Count == 0)
-                return namespaceDeclaration;
+        if (usingDirectives.Count == 0)
+            return namespaceDeclaration;
 
-            var newUsings = new List<UsingDirectiveSyntax>();
-            newUsings.AddRange(namespaceDeclaration.Usings);
-            newUsings.AddRange(usingDirectives);
+        var newUsings = new List<UsingDirectiveSyntax>();
+        newUsings.AddRange(namespaceDeclaration.Usings);
+        newUsings.AddRange(usingDirectives);
 
-            newUsings.SortUsingDirectives(namespaceDeclaration.Usings, placeSystemNamespaceFirst);
-            newUsings = newUsings.Select(u => u.WithAdditionalAnnotations(annotations)).ToList();
+        newUsings.SortUsingDirectives(namespaceDeclaration.Usings, placeSystemNamespaceFirst);
+        newUsings = newUsings.Select(u => u.WithAdditionalAnnotations(annotations)).ToList();
 
-            var newNamespace = namespaceDeclaration.WithUsings(newUsings.ToSyntaxList());
-            return (TNamespaceDeclarationSyntax)newNamespace;
-        }
+        var newNamespace = namespaceDeclaration.WithUsings([.. newUsings]);
+        return (TNamespaceDeclarationSyntax)newNamespace;
     }
 }

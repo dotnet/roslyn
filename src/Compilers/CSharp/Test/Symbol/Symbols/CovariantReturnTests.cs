@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
@@ -447,7 +448,7 @@ namespace System.Runtime.CompilerServices
             CSharpCompilation comp,
             string assignments)
         {
-            return comp.AddSyntaxTrees(CSharpSyntaxTree.ParseText(assignments, (CSharpParseOptions)comp.SyntaxTrees[0].Options));
+            return comp.AddSyntaxTrees(CSharpSyntaxTree.ParseText(assignments, (CSharpParseOptions)comp.SyntaxTrees[0].Options, path: "assignments.cs", encoding: Encoding.UTF8));
         }
 
         private static CSharpCompilation CompilationReferenceView(
@@ -503,7 +504,7 @@ namespace System.Runtime.CompilerServices
                 MetadataReference alternateCorlib =
                     (coreLibrary == CorelibraryWithCovariantReturnSupport1) ? CorelibraryWithCovariantReturnSupport2 :
                     (coreLibrary == CorelibraryWithoutCovariantReturnSupport1) ? CorelibraryWithoutCovariantReturnSupport2 :
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 references = references.Prepend(alternateCorlib).ToArray();
             }
             var parseOptions = (CSharpParseOptions)comp.SyntaxTrees[0].Options;
@@ -1565,7 +1566,10 @@ public class Program
             verify(CompilationReferenceView(comp, assignments, references));
             verify(MetadataView(comp, assignments, references));
             verify(RetargetingView(comp, assignments, references));
-            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
+
+            var c = CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped);
+
+            c.VerifyMethodBody("Program.M(Base, Derived)", @"
 {
   // Code size       17 (0x11)
   .maxstack  2

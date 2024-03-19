@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         }
     }
 
-    public struct ValueComparable<T> : IComparable<ValueComparable<T>> where T : IComparable<T>
+    public readonly struct ValueComparable<T> : IComparable<ValueComparable<T>> where T : IComparable<T>
     {
         public ValueComparable(T value)
         {

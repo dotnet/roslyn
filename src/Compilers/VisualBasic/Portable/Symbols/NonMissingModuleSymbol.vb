@@ -144,26 +144,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Full type name, possibly with generic name mangling.
         ''' </param>
         ''' <returns>
-        ''' Symbol for the type, or MissingMetadataSymbol if the type isn't found.
+        ''' Symbol for the type, or Nothing if the type isn't found.
         ''' </returns>
         ''' <remarks></remarks>
         Friend NotOverridable Overrides Function LookupTopLevelMetadataType(
             ByRef emittedName As MetadataTypeName
         ) As NamedTypeSymbol
 
-            Dim result As NamedTypeSymbol = Nothing
+            Dim result As NamedTypeSymbol
             Dim scope As NamespaceSymbol
 
             scope = Me.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments)
 
             If scope Is Nothing Then
                 ' We failed to locate the namespace
-                result = New MissingMetadataTypeSymbol.TopLevel(Me, emittedName)
+                result = Nothing
             Else
                 result = scope.LookupMetadataType(emittedName)
             End If
 
-            Debug.Assert(result IsNot Nothing)
+            Debug.Assert(If(Not result?.IsErrorType(), True))
             Return result
         End Function
 

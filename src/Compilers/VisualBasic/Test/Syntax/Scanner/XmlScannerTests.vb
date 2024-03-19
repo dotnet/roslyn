@@ -318,7 +318,6 @@ Public Class XmlInternalSyntax
         End Using
     End Sub
 
-
     <Fact>
     Public Sub ScannerXml_CharEntity()
 

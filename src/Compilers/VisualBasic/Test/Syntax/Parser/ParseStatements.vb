@@ -543,7 +543,6 @@ End Module
         ]]>)
     End Sub
 
-
     <WorkItem(539209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539209")>
     <Fact>
     Public Sub ParseSingleLineSubWithSingleLineIfFollowedByColonComma()
@@ -1928,7 +1927,6 @@ End Module
         statement = SyntaxFactory.ParseExecutableStatement(str)
         Assert.Equal(False, statement.ContainsDiagnostics)
         Assert.Equal(SyntaxKind.EmptyStatement, statement.Kind)
-
 
         str = "     " & vbCrLf & vbCrLf
 

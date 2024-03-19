@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
         {
             if (code == null)
                 throw new ArgumentNullException(nameof(code));
-            return Script.CreateInitialScript<T>(CSharpScriptCompiler.Instance, SourceText.From(code, options?.FileEncoding), options, globalsType, assemblyLoader);
+            return Script.CreateInitialScript<T>(CSharpScriptCompiler.Instance, SourceText.From(code, options?.FileEncoding, SourceHashAlgorithms.Default), options, globalsType, assemblyLoader);
         }
 
         /// <summary>

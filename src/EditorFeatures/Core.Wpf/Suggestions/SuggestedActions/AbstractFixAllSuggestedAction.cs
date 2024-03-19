@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -28,12 +27,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
+            Solution originalSolution,
             ITextBuffer subjectBuffer,
             IFixAllState fixAllState,
             CodeAction originalCodeAction,
             AbstractFixAllCodeAction fixAllCodeAction)
-            : base(threadingContext, sourceProvider, workspace, subjectBuffer,
-                   fixAllState.FixAllProvider, fixAllCodeAction)
+            : base(threadingContext,
+                   sourceProvider,
+                   workspace,
+                   originalSolution,
+                   subjectBuffer,
+                   fixAllState.FixAllProvider,
+                   fixAllCodeAction)
         {
             OriginalCodeAction = originalCodeAction;
             FixAllState = fixAllState;
@@ -49,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         protected override async Task InnerInvokeAsync(
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+            IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -63,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             using (Logger.LogBlock(functionId, FixAllLogger.CreateCorrelationLogMessage(FixAllState.CorrelationId), cancellationToken))
             {
-                await base.InnerInvokeAsync(progressTracker, cancellationToken).ConfigureAwait(false);
+                await base.InnerInvokeAsync(progress, cancellationToken).ConfigureAwait(false);
             }
         }
     }

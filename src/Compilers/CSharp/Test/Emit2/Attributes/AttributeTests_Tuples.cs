@@ -172,10 +172,12 @@ class C
         d((0, 0));
     }
 }";
-            var comp = CreateEmptyCompilation(source0);
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var comp = CreateEmptyCompilation(source0, parseOptions: parseOptions);
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
             comp = CreateEmptyCompilation(source1,
+                parseOptions: parseOptions,
                 references: s_attributeRefs.Concat(new[] { ref0 }));
             comp.VerifyDiagnostics(
                 // (6,11): error CS0518: Predefined type 'System.String' is not defined or imported
@@ -208,10 +210,12 @@ class C
 {
     static (int x, int y) M() => (0, 0);
 }";
-            var comp = CreateEmptyCompilation(source0);
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var comp = CreateEmptyCompilation(source0, parseOptions: parseOptions);
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
             comp = CreateEmptyCompilation(source1,
+                parseOptions: parseOptions,
                 references: new[] { ref0, ValueTupleRef });
             comp.VerifyDiagnostics(
                 // (4,12): error CS0518: Predefined type 'System.String' is not defined or imported
@@ -298,7 +302,7 @@ class C
             return $"{symbol.Name}: {symbolString}";
         }
 
-        private struct TupleAttributeValidator
+        private readonly struct TupleAttributeValidator
         {
             private readonly NamedTypeSymbol
                 _base0Class,
@@ -941,6 +945,7 @@ public interface I3<T>
 
             CompileAndVerifyWithMscorlib40(src,
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
                 assemblyValidator: validator,
                 symbolValidator: symbolValidator);
         }
@@ -1040,6 +1045,7 @@ public interface I3 : I1<(int c, int d)> {}";
 
             CompileAndVerifyWithMscorlib40(src,
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
                 assemblyValidator: validator,
                 symbolValidator: symbolValidator);
         }

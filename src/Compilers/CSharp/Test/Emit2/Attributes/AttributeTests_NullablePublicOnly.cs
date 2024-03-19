@@ -519,7 +519,7 @@ public class Program
 {
     public object? F;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithNullablePublicOnly());
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithNullablePublicOnly().WithNoRefSafetyRulesAttribute());
             comp.MakeTypeMissing(WellKnownType.System_AttributeUsageAttribute);
             comp.VerifyEmitDiagnostics(
                 // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'

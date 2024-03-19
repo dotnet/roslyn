@@ -7,7 +7,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis
 {
-    public struct PreprocessingSymbolInfo : IEquatable<PreprocessingSymbolInfo>
+    public readonly struct PreprocessingSymbolInfo : IEquatable<PreprocessingSymbolInfo>
     {
         internal static readonly PreprocessingSymbolInfo None = new PreprocessingSymbolInfo(null, false);
 

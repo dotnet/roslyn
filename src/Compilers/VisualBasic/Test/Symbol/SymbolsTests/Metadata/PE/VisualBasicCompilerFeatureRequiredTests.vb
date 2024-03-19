@@ -667,7 +667,6 @@ End Enum
 <CompilerFeatureRequired("OnDelegate")>
 Public Delegate Sub OnDelegate()
 ]]>
-
                                                                      </file>
                                                                      <file name="CompilerFeatureRequiredAttribute.cs"><![CDATA[
 Namespace System.Runtime.CompilerServices
@@ -685,7 +684,6 @@ Namespace System.Runtime.CompilerServices
     End Class
 End Namespace
 ]]>
-
                                                                      </file>
                                                                  </compilation>)
 

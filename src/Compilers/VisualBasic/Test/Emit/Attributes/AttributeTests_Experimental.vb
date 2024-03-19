@@ -9,7 +9,7 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
-    Public Class AttributeTests_Experimental
+    Public Class AttributeTests_WindowsExperimental
         Inherits BasicTestBase
 
         Private Shared ReadOnly DeprecatedAndExperimentalAttributeSource As XElement =

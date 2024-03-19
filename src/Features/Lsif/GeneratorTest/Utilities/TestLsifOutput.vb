@@ -2,23 +2,41 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.LanguageServer
 Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
-Imports LSP = Microsoft.VisualStudio.LanguageServer.Protocol
+Imports Microsoft.CodeAnalysis.Shared.Extensions
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.Extensions.Logging
+Imports Roslyn.Utilities
+Imports LSP = Roslyn.LanguageServer.Protocol
 
 Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.Utilities
     Friend Class TestLsifOutput
         Private ReadOnly _testLsifJsonWriter As TestLsifJsonWriter
-        Private ReadOnly _workspace As TestWorkspace
+        Private ReadOnly _workspace As EditorTestWorkspace
 
-        Public Sub New(testLsifJsonWriter As TestLsifJsonWriter, workspace As TestWorkspace)
+        ''' <summary>
+        ''' A MEF composition that matches the exact same MEF composition that will be used in the actual LSIF tool.
+        ''' </summary>
+        Public Shared ReadOnly TestComposition As TestComposition = TestComposition.Empty.AddAssemblies(Composition.MefCompositionAssemblies)
+
+        Public Sub New(testLsifJsonWriter As TestLsifJsonWriter, workspace As EditorTestWorkspace)
             _testLsifJsonWriter = testLsifJsonWriter
             _workspace = workspace
         End Sub
 
-        Public Shared Async Function GenerateForWorkspaceAsync(workspace As TestWorkspace) As Task(Of TestLsifOutput)
+        Public Shared Function GenerateForWorkspaceAsync(workspaceElement As XElement) As Task(Of TestLsifOutput)
+            Dim workspace = EditorTestWorkspace.CreateWorkspace(workspaceElement, openDocuments:=False, composition:=TestComposition)
+            Return GenerateForWorkspaceAsync(workspace)
+        End Function
+
+        Public Shared Async Function GenerateForWorkspaceAsync(workspace As EditorTestWorkspace) As Task(Of TestLsifOutput)
             Dim testLsifJsonWriter = New TestLsifJsonWriter()
 
             Await GenerateForWorkspaceAsync(workspace, testLsifJsonWriter)
@@ -26,8 +44,13 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
             Return New TestLsifOutput(testLsifJsonWriter, workspace)
         End Function
 
-        Public Shared Async Function GenerateForWorkspaceAsync(workspace As TestWorkspace, jsonWriter As ILsifJsonWriter) As Task
-            Dim lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(jsonWriter)
+        Public Shared Async Function GenerateForWorkspaceAsync(workspace As EditorTestWorkspace, jsonWriter As ILsifJsonWriter) As Task
+            ' We always want to assert that we're running with the correct composition, or otherwise the test doesn't reflect the real
+            ' world function of the indexer.
+            Assert.Equal(workspace.Composition, TestComposition)
+
+            Dim logger = New TestLogger()
+            Dim lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(jsonWriter, logger)
 
             For Each project In workspace.CurrentSolution.Projects
                 Dim compilation = Await project.GetCompilationAsync()
@@ -35,12 +58,38 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
                 ' Assert we don't have any errors to prevent any typos in the tests
                 Assert.Empty(compilation.GetDiagnostics().Where(Function(d) d.Severity = DiagnosticSeverity.Error))
 
-                Await lsifGenerator.GenerateForCompilationAsync(compilation, project.FilePath, project.LanguageServices, GeneratorOptions.Default)
+                Await lsifGenerator.GenerateForProjectAsync(project, GeneratorOptions.Default, CancellationToken.None)
             Next
+
+            ' The only things would have logged were an error, so this should be empty
+            Assert.Empty(logger.LoggedMessages)
         End Function
+
+        Private Class TestLogger
+            Implements ILogger
+
+            Public ReadOnly LoggedMessages As New ConcurrentBag(Of String)
+
+            Public Sub Log(Of TState)(logLevel As LogLevel, eventId As EventId, state As TState, exception As Exception, formatter As Func(Of TState, Exception, String)) Implements ILogger.Log
+                Dim message = formatter(state, exception)
+                LoggedMessages.Add(message)
+            End Sub
+
+            Public Function IsEnabled(logLevel As LogLevel) As Boolean Implements ILogger.IsEnabled
+                Return True
+            End Function
+
+            Public Function BeginScope(Of TState)(state As TState) As IDisposable Implements ILogger.BeginScope
+                Throw New NotImplementedException()
+            End Function
+        End Class
 
         Public Function GetElementById(Of T As Element)(id As Id(Of T)) As T
             Return _testLsifJsonWriter.GetElementById(id)
+        End Function
+
+        Public Function GetLinkedVertices(Of T As Vertex)(vertex As Graph.Vertex, predicate As Func(Of Edge, Boolean)) As ImmutableArray(Of T)
+            Return _testLsifJsonWriter.GetLinkedVertices(Of T)(vertex, predicate)
         End Function
 
         ''' <summary>
@@ -56,10 +105,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
             End Get
         End Property
 
-        ''' <summary>
-        ''' Returns the <see cref="Range" /> verticies in the output that corresponds to the selected range in the <see cref="TestWorkspace" />.
-        ''' </summary>
-        Public Async Function GetSelectedRangesAsync() As Task(Of IEnumerable(Of Graph.Range))
+        Private Async Function GetRangesAsync(selector As Func(Of TestHostDocument, IEnumerable(Of TextSpan))) As Task(Of IEnumerable(Of Graph.Range))
             Dim builder = ImmutableArray.CreateBuilder(Of Range)
 
             For Each testDocument In _workspace.Documents
@@ -69,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
                                                         .Single()
                 Dim rangeVertices = GetLinkedVertices(Of Range)(documentVertex, "contains")
 
-                For Each selectedSpan In testDocument.SelectedSpans
+                For Each selectedSpan In selector(testDocument)
                     Dim document = _workspace.CurrentSolution.GetDocument(testDocument.Id)
                     Dim text = Await document.GetTextAsync()
                     Dim linePositionSpan = text.Lines.GetLinePositionSpan(selectedSpan)
@@ -85,17 +131,54 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
             Return builder.ToImmutable()
         End Function
 
+        ''' <summary>
+        ''' Returns the <see cref="Range" /> vertices in the output that corresponds to the selected range in the <see cref="TestWorkspace" />.
+        ''' </summary>
+        Public Function GetSelectedRangesAsync() As Task(Of IEnumerable(Of Graph.Range))
+            Return GetRangesAsync(Function(testDocument) testDocument.SelectedSpans)
+        End Function
+
         Public Async Function GetSelectedRangeAsync() As Task(Of Graph.Range)
             Return (Await GetSelectedRangesAsync()).Single()
         End Function
 
+        Public Function GetAnnotatedRangesAsync(annotation As String) As Task(Of IEnumerable(Of Graph.Range))
+            Return GetRangesAsync(Function(testDocument) testDocument.AnnotatedSpans.GetValueOrDefault(annotation))
+        End Function
+
+        Public Async Function GetAnnotatedRangeAsync(annotation As String) As Task(Of Graph.Range)
+            Return (Await GetAnnotatedRangesAsync(annotation)).Single()
+        End Function
+
+        ''' <summary>
+        ''' Returns an LSP Range type for the text span annotated with the given name. This is distinct from returning an LSIF Range vertex, which is what <see cref="GetAnnotatedRangeAsync(String)"/> does.
+        ''' </summary>
+        Public Async Function GetAnnotatedLspRangeAsync(annotation As String) As Task(Of LSP.Range)
+            Dim annotatedDocument = _workspace.Documents.Single(Function(d) d.AnnotatedSpans.ContainsKey(annotation))
+            Dim annotatedSpan = annotatedDocument.AnnotatedSpans(annotation).Single()
+
+            Dim text = Await _workspace.CurrentSolution.GetRequiredDocument(annotatedDocument.Id).GetTextAsync()
+            Dim linePositionSpan = text.Lines.GetLinePositionSpan(annotatedSpan)
+            Return ProtocolConversions.LinePositionToRange(linePositionSpan)
+        End Function
+
         Public Function GetFoldingRanges(document As Document) As LSP.FoldingRange()
-            Dim documentVertex = _testLsifJsonWriter.Vertices _
-                                                        .OfType(Of LsifDocument) _
-                                                        .Where(Function(d) d.Uri.LocalPath = document.FilePath) _
-                                                        .Single()
+            Dim documentVertex = _testLsifJsonWriter.Vertices.
+                                                        OfType(Of LsifDocument).
+                                                        Where(Function(d) d.Uri.LocalPath = document.FilePath).
+                                                        Single()
             Dim foldingRangeVertex = GetLinkedVertices(Of FoldingRangeResult)(documentVertex, "textDocument/foldingRange").Single()
             Return foldingRangeVertex.Result
+        End Function
+
+        Public Function GetSemanticTokens(document As Document) As LSP.SemanticTokens
+            Dim documentVertex = _testLsifJsonWriter.Vertices.
+                OfType(Of LsifDocument).
+                Where(Function(d) d.Uri.LocalPath = document.FilePath).
+                Single()
+
+            Dim semanticTokensVertex = GetLinkedVertices(Of SemanticTokensResult)(documentVertex, "textDocument/semanticTokens/full").Single()
+            Return semanticTokensVertex.Result
         End Function
     End Class
 End Namespace

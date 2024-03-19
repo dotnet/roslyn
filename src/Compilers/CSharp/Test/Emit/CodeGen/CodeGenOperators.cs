@@ -4,14 +4,14 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
-using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Test.Utilities;
-using System.Collections.Immutable;
-using System.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -3228,7 +3228,6 @@ class C
             // SPEC PROPOSAL:    the result type is B. At run-time, a is first evaluated. If a is not null, a is converted to type B, and this becomes the result.
             // SPEC PROPOSAL:    Otherwise, b is evaluated and becomes the result.
 
-
             string source = @"
 struct SnapshotPoint
 {
@@ -3910,21 +3909,25 @@ False");
         {
             var text = @"
 using System;
+using System.Globalization;
  
 class C
 {
     static void Main()
     {
-        Console.WriteLine(+0f == -0f);
-        Console.WriteLine(1f / 0f);
-        Console.WriteLine(1f / -0f);
-        Console.WriteLine(-1f / 0f);
-        Console.WriteLine(-1f / -0f);
-        Console.WriteLine(1f / (1f * 0f));
-        Console.WriteLine(1f / (1f * -0f));
-        Console.WriteLine(1f / (-1f * 0f));
-        Console.WriteLine(1f / (-1f * -0f));
+        WriteLine(+0f == -0f);
+        WriteLine(1f / 0f);
+        WriteLine(1f / -0f);
+        WriteLine(-1f / 0f);
+        WriteLine(-1f / -0f);
+        WriteLine(1f / (1f * 0f));
+        WriteLine(1f / (1f * -0f));
+        WriteLine(1f / (-1f * 0f));
+        WriteLine(1f / (-1f * -0f));
     }
+
+    static void WriteLine(bool b) => Console.WriteLine(b);
+    static void WriteLine(float f) => Console.WriteLine(f.ToString(CultureInfo.InvariantCulture));
 }";
 
             var comp = CompileAndVerify(text, expectedOutput: @"
@@ -3946,21 +3949,24 @@ Infinity");
         {
             var text = @"
 using System;
+using System.Globalization;
  
 class C
 {
     static void Main()
     {
-        Console.WriteLine(+0d == -0d);
-        Console.WriteLine(1d / 0d);
-        Console.WriteLine(1d / -0d);
-        Console.WriteLine(-1d / 0d);
-        Console.WriteLine(-1d / -0d);
-        Console.WriteLine(1d / (1d * 0d));
-        Console.WriteLine(1d / (1d * -0d));
-        Console.WriteLine(1d / (-1d * 0d));
-        Console.WriteLine(1d / (-1d * -0d));
+        WriteLine(+0d == -0d);
+        WriteLine(1d / 0d);
+        WriteLine(1d / -0d);
+        WriteLine(-1d / 0d);
+        WriteLine(-1d / -0d);
+        WriteLine(1d / (1d * 0d));
+        WriteLine(1d / (1d * -0d));
+        WriteLine(1d / (-1d * 0d));
+        WriteLine(1d / (-1d * -0d));
     }
+    static void WriteLine(bool b) => Console.WriteLine(b);
+    static void WriteLine(double d) => Console.WriteLine(d.ToString(CultureInfo.InvariantCulture));
 }";
 
             var comp = CompileAndVerify(text, expectedOutput: @"
@@ -3983,21 +3989,25 @@ Infinity");
         {
             var text = @"
 using System;
+using System.Globalization;
  
 class C
 {
     static void Main()
     {
-        Console.WriteLine(+0m == -0m);
-        Console.WriteLine(1d / (double)(0m));
-        Console.WriteLine(1d / (double)(-0m));
-        Console.WriteLine(-1d / (double)(0m));
-        Console.WriteLine(-1d / (double)(-0m));
-        Console.WriteLine(1d / (double)(1m * 0m));
-        Console.WriteLine(1d / (double)(1m * -0m));
-        Console.WriteLine(1d / (double)(-1m * 0m));
-        Console.WriteLine(1d / (double)(-1m * -0m));
+        WriteLine(+0m == -0m);
+        WriteLine(1d / (double)(0m));
+        WriteLine(1d / (double)(-0m));
+        WriteLine(-1d / (double)(0m));
+        WriteLine(-1d / (double)(-0m));
+        WriteLine(1d / (double)(1m * 0m));
+        WriteLine(1d / (double)(1m * -0m));
+        WriteLine(1d / (double)(-1m * 0m));
+        WriteLine(1d / (double)(-1m * -0m));
     }
+
+    static void WriteLine(bool b) => Console.WriteLine(b);
+    static void WriteLine(double d) => Console.WriteLine(d.ToString(CultureInfo.InvariantCulture));
 }";
 
             var comp = CompileAndVerify(text, expectedOutput: @"
@@ -4129,8 +4139,6 @@ struct S
 }
 ");
         }
-
-
 
         [Fact]
         public void TestTernary_InterfaceRegression1a()
@@ -4290,7 +4298,6 @@ public class Test
 }
 ");
         }
-
 
         [Fact]
         public void TestTernary_InterfaceRegression2()
@@ -4973,35 +4980,188 @@ class Program
 ");
         }
 
-        [WorkItem(732269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/732269")]
         [Fact]
+        [WorkItem(732269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/732269")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
         public void NullCoalesce()
         {
-            var source = @"
-class Program
-{
-    static int Main(int? x, int y) { return x ?? y; }
-}
-";
+            var source = """
+                class Program
+                {
+                    static int Main(int? x, int y) { return x ?? y; }
+                }
+                """;
+
             var comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.Main", @"
-{
-  // Code size       21 (0x15)
-  .maxstack  1
-  .locals init (int? V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool int?.HasValue.get""
-  IL_0009:  brtrue.s   IL_000d
-  IL_000b:  ldarg.1
-  IL_000c:  ret
-  IL_000d:  ldloca.s   V_0
-  IL_000f:  call       ""int int?.GetValueOrDefault()""
-  IL_0014:  ret
-}
-");
+            comp.VerifyIL("Program.Main", """
+                {
+                  // Code size        9 (0x9)
+                  .maxstack  2
+                  IL_0000:  ldarga.s   V_0
+                  IL_0002:  ldarg.1
+                  IL_0003:  call       "int int?.GetValueOrDefault(int)"
+                  IL_0008:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
+        [InlineData("ref")]
+        [InlineData("in")]
+        [InlineData("ref readonly")]
+        public void NullCoalesce_RefParameter(string refKeyword)
+        {
+            var source = $$"""
+                class Program
+                {
+                    static int Main(int? x, {{refKeyword}} int y) { return x ?? y; }
+                }
+                """;
+
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+
+            // Dereferencing might throw, so no `GetValueOrDefault(defaultValue)` optimization here
+            comp.VerifyIL("Program.Main", """
+                {
+                  // Code size       22 (0x16)
+                  .maxstack  1
+                  .locals init (int? V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_0
+                  IL_0004:  call       "bool int?.HasValue.get"
+                  IL_0009:  brtrue.s   IL_000e
+                  IL_000b:  ldarg.1
+                  IL_000c:  ldind.i4
+                  IL_000d:  ret
+                  IL_000e:  ldloca.s   V_0
+                  IL_0010:  call       "int int?.GetValueOrDefault()"
+                  IL_0015:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
+        public void NullCoalesce_OutParameter()
+        {
+            var source = """
+                class Program
+                {
+                    static int Main(int? x, out int y)
+                    {
+                        y = 0;
+                        return x ?? y;
+                    }
+                }
+                """;
+
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+
+            // Dereferencing might throw, so no `GetValueOrDefault(defaultValue)` optimization here
+            comp.VerifyIL("Program.Main", """
+                {
+                  // Code size       25 (0x19)
+                  .maxstack  2
+                  .locals init (int? V_0)
+                  IL_0000:  ldarg.1
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stind.i4
+                  IL_0003:  ldarg.0
+                  IL_0004:  stloc.0
+                  IL_0005:  ldloca.s   V_0
+                  IL_0007:  call       "bool int?.HasValue.get"
+                  IL_000c:  brtrue.s   IL_0011
+                  IL_000e:  ldarg.1
+                  IL_000f:  ldind.i4
+                  IL_0010:  ret
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "int int?.GetValueOrDefault()"
+                  IL_0018:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
+        public void NullCoalesce_Local()
+        {
+            var source = """
+                class Program
+                {
+                    static int Main(int? x)
+                    {
+                        var y = 3;
+                        var z = x ?? y;
+                        return y + z;
+                    }
+                }
+                """;
+
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Program.Main", """
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  2
+                  .locals init (int V_0, //y
+                                int V_1) //z
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  stloc.0
+                  IL_0002:  ldarga.s   V_0
+                  IL_0004:  ldloc.0
+                  IL_0005:  call       "int int?.GetValueOrDefault(int)"
+                  IL_000a:  stloc.1
+                  IL_000b:  ldloc.0
+                  IL_000c:  ldloc.1
+                  IL_000d:  add
+                  IL_000e:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        public void NullCoalesce_RefLocal(string refKeyword)
+        {
+            var source = $$"""
+                class Program
+                {
+                    static int Main(int? x, ref int y)
+                    {
+                        {{refKeyword}} int z = ref y;
+                        return x ?? z;
+                    }
+                }
+                """;
+
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+
+            // Dereferencing might throw, so no `GetValueOrDefault(defaultValue)` optimization here
+            comp.VerifyIL("Program.Main", """
+                {
+                  // Code size       24 (0x18)
+                  .maxstack  1
+                  .locals init (int& V_0, //z
+                                int? V_1)
+                  IL_0000:  ldarg.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldarg.0
+                  IL_0003:  stloc.1
+                  IL_0004:  ldloca.s   V_1
+                  IL_0006:  call       "bool int?.HasValue.get"
+                  IL_000b:  brtrue.s   IL_0010
+                  IL_000d:  ldloc.0
+                  IL_000e:  ldind.i4
+                  IL_000f:  ret
+                  IL_0010:  ldloca.s   V_1
+                  IL_0012:  call       "int int?.GetValueOrDefault()"
+                  IL_0017:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -5068,7 +5228,7 @@ class test<T> where T : c0
 1");
             compilation.VerifyIL("test<T>.Repro1(T)", @"
 {
-  // Code size       80 (0x50)
+  // Code size       88 (0x58)
   .maxstack  4
   .locals init (T& V_0)
   IL_0000:  ldarg.0
@@ -5081,26 +5241,28 @@ class test<T> where T : c0
   IL_0013:  ldarga.s   V_0
   IL_0015:  stloc.0
   IL_0016:  ldloc.0
-  IL_0017:  ldloc.0
-  IL_0018:  constrained. ""T""
-  IL_001e:  callvirt   ""int c0.P1.get""
-  IL_0023:  ldc.i4.1
-  IL_0024:  add
-  IL_0025:  constrained. ""T""
-  IL_002b:  callvirt   ""void c0.P1.set""
-  IL_0030:  ldarga.s   V_0
-  IL_0032:  stloc.0
-  IL_0033:  ldloc.0
-  IL_0034:  ldc.i4.1
-  IL_0035:  ldloc.0
-  IL_0036:  ldc.i4.1
-  IL_0037:  constrained. ""T""
-  IL_003d:  callvirt   ""int c0.this[int].get""
+  IL_0017:  ldobj      ""T""
+  IL_001c:  box        ""T""
+  IL_0021:  ldloc.0
+  IL_0022:  constrained. ""T""
+  IL_0028:  callvirt   ""int c0.P1.get""
+  IL_002d:  ldc.i4.1
+  IL_002e:  add
+  IL_002f:  callvirt   ""void c0.P1.set""
+  IL_0034:  ldarga.s   V_0
+  IL_0036:  stloc.0
+  IL_0037:  ldloc.0
+  IL_0038:  ldobj      ""T""
+  IL_003d:  box        ""T""
   IL_0042:  ldc.i4.1
-  IL_0043:  add
-  IL_0044:  constrained. ""T""
-  IL_004a:  callvirt   ""void c0.this[int].set""
-  IL_004f:  ret
+  IL_0043:  ldloc.0
+  IL_0044:  ldc.i4.1
+  IL_0045:  constrained. ""T""
+  IL_004b:  callvirt   ""int c0.this[int].get""
+  IL_0050:  ldc.i4.1
+  IL_0051:  add
+  IL_0052:  callvirt   ""void c0.this[int].set""
+  IL_0057:  ret
 }
 ").VerifyIL("test<T>.Repro2(T)", @"
 {
@@ -5173,7 +5335,7 @@ class Test
 
     public static long Calculate1(long[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_01() };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_01()};" + @"
     }
 
     public static long Calculate2(long[] f)
@@ -5214,6 +5376,7 @@ class Test
 
         [ConditionalFact(typeof(NoIOperationValidation))]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [WorkItem(63689, "https://github.com/dotnet/roslyn/issues/63689")]
         public void EmitSequenceOfBinaryExpressions_02()
         {
             var source =
@@ -5233,12 +5396,17 @@ class Test
 
     public static double Calculate(long[] f)
     {
-" + $"        return checked({ BuildSequenceOfBinaryExpressions_01() });" + @"
+" + $"        return checked({BuildSequenceOfBinaryExpressions_01()});" + @"
     }
 }
 ";
 
             var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "11461640193");
+
+            var tree = result.Compilation.SyntaxTrees.Single();
+            var model = result.Compilation.GetSemanticModel(tree);
+
+            ControlFlowGraph.Create((IMethodBodyOperation)model.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Calculate").Single()));
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
@@ -5264,7 +5432,7 @@ class Test
 
     public static bool Calculate(bool[] a, bool[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_03(count) };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_03(count)};" + @"
     }
 }
 ";
@@ -5274,9 +5442,9 @@ class Test
             }
 
             diagnostics.Verify(
-    // (10,16): error CS8078: An expression is too long or complex to compile
-    //         return a[0] && f[0] || a[1] && f[1] || a[2] && f[2] || ...
-    Diagnostic(ErrorCode.ERR_InsufficientStack, "a").WithLocation(10, 16)
+                // (10,16): error CS8078: An expression is too long or complex to compile
+                //         return a[0] & f[0] | a[1] & f[1] | a[2] & f[2] | ...
+                Diagnostic(ErrorCode.ERR_InsufficientStack, "a").WithLocation(10, 16)
                 );
         }
 
@@ -5288,16 +5456,16 @@ class Test
             {
                 builder.Append("a[");
                 builder.Append(i);
-                builder.Append("]");
-                builder.Append(" && ");
+                builder.Append(']');
+                builder.Append(" & ");
                 builder.Append("f[");
                 builder.Append(i);
-                builder.Append("] || ");
+                builder.Append("] | ");
             }
 
             builder.Append("a[");
             builder.Append(i);
-            builder.Append("]");
+            builder.Append(']');
 
             return builder.ToString();
         }
@@ -5323,7 +5491,7 @@ class Test
 
     public static double? Calculate(float?[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_01() };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_01()};" + @"
     }
 }
 ";
@@ -5364,7 +5532,7 @@ class Test
 
     public static double? Calculate(double?[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_01(count) };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_01(count)};" + @"
     }
 
     static void Test2()
@@ -5380,7 +5548,7 @@ class Test
 
     public static double Calculate(double[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_01(count) };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_01(count)};" + @"
     }
 }
 ";
@@ -5403,7 +5571,7 @@ class Test
 
     public static bool Calculate(S1[] a, S1[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_03() };" + @"
+" + $"        return {BuildSequenceOfBinaryExpressions_06()};" + @"
     }
 }
 
@@ -5442,6 +5610,129 @@ struct S1
     //         return a[0] && f[0] || a[1] && f[1] || a[2] && f[2] || ...
     Diagnostic(ErrorCode.ERR_InsufficientStack, "a").WithLocation(10, 16)
                 );
+        }
+
+        private static string BuildSequenceOfBinaryExpressions_06(int count = 8192)
+        {
+            var builder = new System.Text.StringBuilder();
+            int i;
+            for (i = 0; i < count; i++)
+            {
+                builder.Append("a[");
+                builder.Append(i);
+                builder.Append(']');
+                builder.Append(" && ");
+                builder.Append("f[");
+                builder.Append(i);
+                builder.Append("] || ");
+            }
+
+            builder.Append("a[");
+            builder.Append(i);
+            builder.Append(']');
+
+            return builder.ToString();
+        }
+
+        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
+        [WorkItem(63689, "https://github.com/dotnet/roslyn/issues/63689")]
+        public void EmitSequenceOfBinaryExpressions_07()
+        {
+            const int start = 1024;
+            const int step = 1024;
+            const int limit = start * 8;
+
+            bool passed = false;
+
+            for (int count = start; count <= limit; count += step)
+            {
+                var source =
+@"
+class Test
+{ 
+    static void Main()
+    {
+    }
+
+    public static bool Calculate(S1[] a, S1[] f)
+    {
+" + $"        return {BuildSequenceOfBinaryExpressions_06(count)};" + @"
+    }
+}
+
+struct S1
+{
+    public static S1 operator & (S1 x, S1 y)
+    {
+        return new S1();
+    }
+
+    public static S1 operator |(S1 x, S1 y)
+    {
+        return new S1();
+    }
+
+    public static bool operator true(S1 x)
+    {
+        return true;
+    }
+
+    public static bool operator false(S1 x)
+    {
+        return true;
+    }
+
+    public static implicit operator bool (S1 x)
+    {
+        return true;
+    }
+}
+";
+
+                var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+                var tree = compilation.SyntaxTrees.Single();
+                var model = compilation.GetSemanticModel(tree);
+
+                try
+                {
+                    ControlFlowGraph.Create((IMethodBodyOperation)model.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Calculate").Single()));
+                }
+                catch (System.InsufficientExecutionStackException)
+                {
+                    passed = true;
+                    break;
+                }
+            }
+
+            Assert.True(passed);
+        }
+
+        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
+        [WorkItem(63689, "https://github.com/dotnet/roslyn/issues/63689")]
+        public void EmitSequenceOfBinaryExpressions_08()
+        {
+            var source =
+@"
+class Test
+{ 
+    static void Main()
+    {
+    }
+
+    public static bool Calculate(bool[] a, bool[] f)
+    {
+" + $"        return {BuildSequenceOfBinaryExpressions_06(2048)};" + @"
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            ControlFlowGraph.Create((IMethodBodyOperation)model.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Calculate").Single()));
         }
 
         [Fact, WorkItem(7262, "https://github.com/dotnet/roslyn/issues/7262")]
@@ -5635,8 +5926,8 @@ class Program
 }");
         }
 
-        [Fact]
-        public void TestNullCoalesce_NullableWithNonDefault_NoOptimization()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
+        public void TestNullCoalesce_NullableWithNonDefault()
         {
             var source = @"
 class Program
@@ -5690,34 +5981,20 @@ class Program
 *null*";
             var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyIL("Program.CoalesceWithNonDefault1", @"{
-  // Code size       21 (0x15)
-  .maxstack  1
-  .locals init (int? V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool int?.HasValue.get""
-  IL_0009:  brtrue.s   IL_000d
-  IL_000b:  ldc.i4.2
-  IL_000c:  ret
-  IL_000d:  ldloca.s   V_0
-  IL_000f:  call       ""int int?.GetValueOrDefault()""
-  IL_0014:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.2
+  IL_0003:  call       ""int int?.GetValueOrDefault(int)""
+  IL_0008:  ret
 }");
             comp.VerifyIL("Program.CoalesceWithNonDefault2", @"{
-  // Code size       21 (0x15)
-  .maxstack  1
-  .locals init (int? V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool int?.HasValue.get""
-  IL_0009:  brtrue.s   IL_000d
-  IL_000b:  ldarg.1
-  IL_000c:  ret
-  IL_000d:  ldloca.s   V_0
-  IL_000f:  call       ""int int?.GetValueOrDefault()""
-  IL_0014:  ret
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldarg.1
+  IL_0003:  call       ""int int?.GetValueOrDefault(int)""
+  IL_0008:  ret
 }");
             comp.VerifyIL("Program.CoalesceWithNonDefault3", @"{
   // Code size       15 (0xf)
@@ -5787,27 +6064,122 @@ class Program
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
         public void TestNullCoalesce_NullableDefault_MissingGetValueOrDefault()
         {
-            var source = @"
-class Program
-{
-    static int Coalesce(int? x)
-    {
-        return x ?? 0;
-    }
-}";
+            var source = """
+                class Program
+                {
+                    static int Coalesce(int? x)
+                    {
+                        return x ?? 0;
+                    }
+                }
+                """;
+
             var comp = CreateCompilation(source);
             comp.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
 
+            // We gracefully fallback to calling `GetValueOrDefault(defaultValue)` member
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp);
+
+            verifier.VerifyIL("Program.Coalesce", """
+                {
+                  // Code size        9 (0x9)
+                  .maxstack  2
+                  IL_0000:  ldarga.s   V_0
+                  IL_0002:  ldc.i4.0
+                  IL_0003:  call       "int int?.GetValueOrDefault(int)"
+                  IL_0008:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
+        public void TestNullCoalesce_NullableDefault_MissingGetValueOrDefaultAndGetValueOrDefaultWithADefaultValueParameter()
+        {
+            var source = """
+                class Program
+                {
+                    static int Coalesce(int? x)
+                    {
+                        return x ?? 0;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            comp.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue);
+
             comp.VerifyEmitDiagnostics(
-                // (6,16): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                // (5,16): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //         return x ?? 0;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(6, 16),
-                // (6,16): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
-                //         return x ?? 0;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(5, 16)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
+        public void TestNullCoalesce_NullableNonDefaultConstant_MissingGetValueOrDefaultWithDefaultValue()
+        {
+            var source = """
+                class Program
+                {
+                    static int Coalesce(int? x)
+                    {
+                        return x ?? 1;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue);
+
+            // We gracefully fallback to less efficient implementation with branching
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp);
+
+            verifier.VerifyIL("Program.Coalesce", """
+                {
+                  // Code size       21 (0x15)
+                  .maxstack  1
+                  .locals init (int? V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_0
+                  IL_0004:  call       "bool int?.HasValue.get"
+                  IL_0009:  brtrue.s   IL_000d
+                  IL_000b:  ldc.i4.1
+                  IL_000c:  ret
+                  IL_000d:  ldloca.s   V_0
+                  IL_000f:  call       "int int?.GetValueOrDefault()"
+                  IL_0014:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")]
+        public void TestNullCoalesce_NullableNonDefaultConstant_MissingGetValueOrDefaultAndGetValueOrDefaultWithADefaultValueParameter()
+        {
+            var source = """
+                class Program
+                {
+                    static int Coalesce(int? x)
+                    {
+                        return x ?? 1;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            comp.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue);
+
+            comp.VerifyEmitDiagnostics(
+                // (5,16): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //         return x ?? 1;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(5, 16)
                 );
         }
 

@@ -63,43 +63,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string Name { get { return _name; } }
 
+        internal sealed override bool HasUnscopedRefAttribute => false;
+
         #region Not used by PropertySignatureComparer
 
-        internal override bool HasSpecialName { get { throw ExceptionUtilities.Unreachable; } }
+        internal override bool HasSpecialName { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override Cci.CallingConvention CallingConvention { get { throw ExceptionUtilities.Unreachable; } }
+        internal override Cci.CallingConvention CallingConvention { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override ImmutableArray<Location> Locations { get { throw ExceptionUtilities.Unreachable; } }
+        public override ImmutableArray<Location> Locations { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences { get { throw ExceptionUtilities.Unreachable; } }
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override Accessibility DeclaredAccessibility { get { throw ExceptionUtilities.Unreachable; } }
+        public override Accessibility DeclaredAccessibility { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override bool IsVirtual { get { throw ExceptionUtilities.Unreachable; } }
+        public override bool IsVirtual { get { throw ExceptionUtilities.Unreachable(); } }
 
         public override bool IsOverride => false;
 
-        public override bool IsAbstract { get { throw ExceptionUtilities.Unreachable; } }
+        public override bool IsAbstract { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override bool IsSealed { get { throw ExceptionUtilities.Unreachable; } }
+        public override bool IsSealed { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override bool IsExtern { get { throw ExceptionUtilities.Unreachable; } }
+        public override bool IsExtern { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override bool IsRequired => throw ExceptionUtilities.Unreachable;
+        internal override bool IsRequired => throw ExceptionUtilities.Unreachable();
 
-        internal override ObsoleteAttributeData ObsoleteAttributeData { get { throw ExceptionUtilities.Unreachable; } }
+        internal override ObsoleteAttributeData ObsoleteAttributeData { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override AssemblySymbol ContainingAssembly { get { throw ExceptionUtilities.Unreachable; } }
+        public override AssemblySymbol ContainingAssembly { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable; } }
+        internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable(); } }
 
-        internal override bool MustCallMethodsDirectly { get { throw ExceptionUtilities.Unreachable; } }
+        internal override bool MustCallMethodsDirectly { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override MethodSymbol SetMethod { get { throw ExceptionUtilities.Unreachable; } }
+        public override MethodSymbol SetMethod { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override MethodSymbol GetMethod { get { throw ExceptionUtilities.Unreachable; } }
+        public override MethodSymbol GetMethod { get { throw ExceptionUtilities.Unreachable(); } }
 
-        public override bool IsIndexer { get { throw ExceptionUtilities.Unreachable; } }
+        public override bool IsIndexer { get { throw ExceptionUtilities.Unreachable(); } }
 
         #endregion Not used by PropertySignatureComparer
     }

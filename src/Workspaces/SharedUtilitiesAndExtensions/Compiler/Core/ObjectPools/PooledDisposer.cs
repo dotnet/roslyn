@@ -5,18 +5,12 @@
 using System;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.PooledObjects
+namespace Microsoft.CodeAnalysis.PooledObjects;
+
+[NonCopyable]
+internal readonly struct PooledDisposer<TPoolable>(TPoolable instance) : IDisposable
+    where TPoolable : class, IPooled
 {
-    [NonCopyable]
-    internal readonly struct PooledDisposer<TPoolable> : IDisposable
-        where TPoolable : class, IPooled
-    {
-        private readonly TPoolable _pooledObject;
-
-        public PooledDisposer(TPoolable instance)
-            => _pooledObject = instance;
-
-        void IDisposable.Dispose()
-            => _pooledObject?.Free();
-    }
+    void IDisposable.Dispose()
+        => instance?.Free();
 }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -12,6 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// Represents a span of text in a source code file in terms of file name, line number, and offset within line.
     /// However, the file is actually whatever was passed in when asked to parse; there may not really be a file.
     /// </summary>
+    [DataContract]
     public readonly struct FileLinePositionSpan : IEquatable<FileLinePositionSpan>
     {
         /// <summary>
@@ -20,7 +22,14 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Path may be <see cref="string.Empty"/> if not available.
         /// </remarks>
+        [DataMember(Order = 0)]
         public string Path { get; }
+
+        /// <summary>
+        /// Gets the span.
+        /// </summary>
+        [DataMember(Order = 1)]
+        public LinePositionSpan Span { get; }
 
         /// <summary>
         /// True if the <see cref="Path"/> is a mapped path.
@@ -28,12 +37,8 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// A mapped path is a path specified in source via <c>#line</c> (C#) or <c>#ExternalSource</c> (VB) directives.
         /// </remarks>
+        [DataMember(Order = 2)]
         public bool HasMappedPath { get; }
-
-        /// <summary>
-        /// Gets the span.
-        /// </summary>
-        public LinePositionSpan Span { get; }
 
         /// <summary>
         /// Initializes the <see cref="FileLinePositionSpan"/> instance.

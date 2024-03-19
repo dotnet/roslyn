@@ -13,8 +13,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.GenerateType;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -58,16 +58,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             IList<TypeKindOptions> assertTypeKindAbsent = null,
             bool isCancelled = false)
         {
-            var workspace = TestWorkspace.IsWorkspaceElement(initial)
-                ? TestWorkspace.Create(initial, composition: s_composition)
+            using var workspace = TestWorkspace.IsWorkspaceElement(initial)
+                ? EditorTestWorkspace.Create(initial, composition: s_composition)
                 : languageName == LanguageNames.CSharp
-                  ? TestWorkspace.CreateCSharp(initial, composition: s_composition)
-                  : TestWorkspace.CreateVisualBasic(initial, composition: s_composition);
+                  ? EditorTestWorkspace.CreateCSharp(initial, composition: s_composition)
+                  : EditorTestWorkspace.CreateVisualBasic(initial, composition: s_composition);
 
             var testOptions = new TestParameters();
             var (diagnostics, actions, _) = await GetDiagnosticAndFixesAsync(workspace, testOptions);
 
-            using var testState = new GenerateTypeTestState(workspace, projectToBeModified: projectName, typeName, existingFilename);
+            var testState = new GenerateTypeTestState(workspace, projectToBeModified: projectName, typeName, existingFilename);
 
             // Initialize the viewModel values
             testState.TestGenerateTypeOptionsService.SetGenerateTypeOptions(
@@ -102,7 +102,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var action = fixActions.ElementAt(index);
 
             Assert.Equal(action.Title, FeaturesResources.Generate_new_type);
-            var operations = await action.GetOperationsAsync(CancellationToken.None);
+            var operations = await action.GetOperationsAsync(
+                workspace.CurrentSolution, CodeAnalysisProgress.None, CancellationToken.None);
             Tuple<Solution, Solution> oldSolutionAndNewSolution = null;
 
             if (!isNewFile)

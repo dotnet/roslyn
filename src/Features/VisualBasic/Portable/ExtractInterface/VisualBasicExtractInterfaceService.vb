@@ -83,8 +83,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
 
             For Each docId In documentIds
                 ' We include this check just so that we're resilient to cases that we haven't considered.
-                If docToRootMap.ContainsKey(docId) Then
-                    finalSolution = finalSolution.WithDocumentSyntaxRoot(docId, docToRootMap(docId), PreservationMode.PreserveIdentity)
+                Dim root As CompilationUnitSyntax = Nothing
+                If docToRootMap.TryGetValue(docId, root) Then
+                    finalSolution = finalSolution.WithDocumentSyntaxRoot(docId, root, PreservationMode.PreserveIdentity)
                 End If
             Next
 
@@ -117,9 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
                 Dim currentRoot As CompilationUnitSyntax = Nothing
 
                 For Each candidateDocId In documentIds
-                    If docToRootMap.ContainsKey(candidateDocId) Then
-                        currentRoot = docToRootMap(candidateDocId)
-                    Else
+                    If Not docToRootMap.TryGetValue(candidateDocId, currentRoot) Then
                         Dim document = Await unformattedSolution.GetDocument(candidateDocId).GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
                         currentRoot = CType(document, CompilationUnitSyntax)
                     End If

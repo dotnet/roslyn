@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     // From https://github.com/dotnet/runtime-assets/blob/main/src/System.Text.RegularExpressions.TestData/Regex_RealWorldPatterns.json
     public partial class CSharpRegexParserTests
     {
-        [Fact, WorkItem(58186, "https://github.com/dotnet/roslyn/issues/58186")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58186")]
         public void TestDeepAlternation()
         {
             // Tree is too large to convert to string and still fit within dll limits.  So we just validate that

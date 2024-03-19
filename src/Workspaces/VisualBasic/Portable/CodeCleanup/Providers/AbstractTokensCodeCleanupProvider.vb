@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Return If(root Is newRoot, document, document.WithSyntaxRoot(newRoot))
         End Function
 
-        Public Async Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), options As SyntaxFormattingOptions, services As HostWorkspaceServices, cancellationToken As CancellationToken) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
+        Public Async Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), options As SyntaxFormattingOptions, services As SolutionServices, cancellationToken As CancellationToken) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
             Dim rewriter As Rewriter = Await GetRewriterAsync(Nothing, root, spans, cancellationToken).ConfigureAwait(False)
             Return rewriter.Visit(root)
         End Function
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         Protected MustInherit Class Rewriter
             Inherits VisualBasicSyntaxRewriter
 
-            Protected ReadOnly _spans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)
+            Protected ReadOnly _spans As TextSpanIntervalTree
             Protected ReadOnly _cancellationToken As CancellationToken
 
             ' a global state indicating whether the visitor is visiting structured trivia or not
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 MyBase.New(visitIntoStructuredTrivia:=True)
 
                 _cancellationToken = cancellationToken
-                _spans = New SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)(New TextSpanIntervalIntrospector(), spans)
+                _spans = New TextSpanIntervalTree(spans)
                 _underStructuredTrivia = False
             End Sub
 

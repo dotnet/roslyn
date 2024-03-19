@@ -16,6 +16,16 @@ namespace Roslyn.Test.Utilities
         // on the stack in this method or targetFactory get cleaned up. Otherwise, they might still
         // be alive when we want to make later assertions.
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public static ObjectReference<T> CreateFromFactory<T, TArg>(Func<TArg, T> targetFactory, TArg arg)
+            where T : class
+        {
+            return new ObjectReference<T>(targetFactory(arg));
+        }
+
+        // We want to ensure this isn't inlined, because we need to ensure that any temporaries
+        // on the stack in this method or targetFactory get cleaned up. Otherwise, they might still
+        // be alive when we want to make later assertions.
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static ObjectReference<T> CreateFromFactory<T>(Func<T> targetFactory) where T : class
         {
             return new ObjectReference<T>(targetFactory());

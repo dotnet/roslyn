@@ -27,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyTemplate = EmbeddedSymbolKind.LastValue << 1
         End Enum
 
-
         Private _embeddedKind As SyntaxTreeKind
         Private _treeOrdinal As Integer
         Private _position As Integer

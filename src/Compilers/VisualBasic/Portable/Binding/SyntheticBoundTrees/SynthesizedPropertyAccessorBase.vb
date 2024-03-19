@@ -299,7 +299,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         syntax,
                         valueSettingExpression).MakeCompilerGenerated()))
 
-
                 ' after setting new event source, hookup handlers
                 If eventsToHookup IsNot Nothing Then
                     statements.Add(withEventsLocalStore)

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         protected override DocumentationProvider CreateDocumentationProvider()
         {
             // documentation provider is initialized in the constructor
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
             {
                 sb.Append(" Aliases={");
                 sb.Append(string.Join(", ", Properties.Aliases));
-                sb.Append("}");
+                sb.Append('}');
             }
 
             if (Properties.EmbedInteropTypes)
@@ -74,14 +74,14 @@ namespace Microsoft.CodeAnalysis
             {
                 sb.Append(" Path='");
                 sb.Append(FilePath);
-                sb.Append("'");
+                sb.Append('\'');
             }
 
             if (_display != null)
             {
                 sb.Append(" Display='");
                 sb.Append(_display);
-                sb.Append("'");
+                sb.Append('\'');
             }
 
             return sb.ToString();
