@@ -1376,15 +1376,7 @@ internal sealed partial class SolutionCompilationState
                 var oldDocumentState = oldProjectState.DocumentStates.GetState(documentId);
 
                 if (oldDocumentState is null)
-                {
-                    if (!missingDocumentStates.TryGetValue(oldProjectState, out var projectDocumentStates))
-                    {
-                        projectDocumentStates = ArrayBuilder<DocumentState>.GetInstance();
-                        missingDocumentStates.Add(oldProjectState, projectDocumentStates);
-                    }
-
-                    projectDocumentStates.Add(newDocumentState);
-                }
+                    missingDocumentStates.MultiAdd(oldProjectState, newDocumentState);
             }
 
             // Now, add all missing documents per project.
