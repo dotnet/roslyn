@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -1353,28 +1354,52 @@ internal sealed partial class SolutionCompilationState
             CancellationToken cancellationToken)
         {
             var currentState = frozenCompilationState;
-            foreach (var newDocumentState in documentStates)
+
+            using var _ = PooledDictionary<ProjectState, ArrayBuilder<DocumentState>>.GetInstance(out var missingDocumentStates);
+            try
             {
-                var documentId = newDocumentState.Id;
-                var oldProjectState = currentState.SolutionState.GetRequiredProjectState(documentId.ProjectId);
-                var oldDocumentState = oldProjectState.DocumentStates.GetState(documentId);
+                foreach (var newDocumentState in documentStates)
+                {
+                    var documentId = newDocumentState.Id;
+                    var oldProjectState = currentState.SolutionState.GetRequiredProjectState(documentId.ProjectId);
+                    var oldDocumentState = oldProjectState.DocumentStates.GetState(documentId);
 
-                if (oldDocumentState is null)
-                {
-                    // Project doesn't have this document, attempt to fork it with the document added.
-                    currentState = currentState.AddDocumentsToMultipleProjects(
-                        [(oldProjectState, [newDocumentState])],
-                        static (oldProjectState, newDocumentStates) =>
-                            new TranslationAction.AddDocumentsAction(oldProjectState, oldProjectState.AddDocuments(newDocumentStates), newDocumentStates));
+                    if (oldDocumentState is null)
+                    {
+                        if (!missingDocumentStates.TryGetValue(oldProjectState, out var projectDocumentStates))
+                        {
+                            projectDocumentStates = ArrayBuilder<DocumentState>.GetInstance();
+                            missingDocumentStates.Add(oldProjectState, projectDocumentStates);
+                        }
+
+                        projectDocumentStates.Add(newDocumentState);
+                    }
+                    else
+                    {
+                        // Project has this document, attempt to fork it with the new contents.
+                        currentState = currentState.WithDocumentState(newDocumentState);
+                    }
                 }
-                else
+
+                foreach (var (oldProjectState, projectDocumentStates) in missingDocumentStates)
                 {
-                    // Project has this document, attempt to fork it with the new contents.
-                    currentState = currentState.WithDocumentState(newDocumentState);
+                    foreach (var chunk in projectDocumentStates.Chunk(TranslationAction.AddDocumentsAction.AddDocumentsBatchSize))
+                    {
+                        var newDocumentStates = ImmutableCollectionsMarshal.AsImmutableArray(chunk);
+                        currentState = currentState.AddDocumentsToMultipleProjects(
+                            [(oldProjectState, newDocumentStates)],
+                            static (oldProjectState, newDocumentStates) =>
+                                new TranslationAction.AddDocumentsAction(oldProjectState, oldProjectState.AddDocuments(newDocumentStates), newDocumentStates));
+                    }
                 }
+
+                return currentState;
             }
-
-            return currentState;
+            finally
+            {
+                foreach (var (_, arrayBuilder) in missingDocumentStates)
+                    arrayBuilder.Free();
+            }
         }
     }
 

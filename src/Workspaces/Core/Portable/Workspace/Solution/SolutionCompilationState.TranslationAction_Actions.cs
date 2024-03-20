@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -126,17 +127,31 @@ internal partial class SolutionCompilationState
             ImmutableArray<DocumentState> documents)
             : TranslationAction(oldProjectState, newProjectState)
         {
+            /// <summary>
+            /// Amount to break batches of documents into.  That allows us to process things in parallel, without also
+            /// creating too many individual actions that then need to be processed.
+            /// </summary>
+            public const int AddDocumentsBatchSize = 128;
+
             public readonly ImmutableArray<DocumentState> Documents = documents;
 
             public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {
-                // Parse all the documents in parallel.
-                using var _ = ArrayBuilder<Task<SyntaxTree>>.GetInstance(this.Documents.Length, out var tasks);
-                foreach (var document in this.Documents)
-                    tasks.Add(Task.Run(async () => await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken));
+                // Parse all the documents in chunks in parallel.
+                using var _ = ArrayBuilder<Task<SyntaxTree>>.GetInstance(out var tasks);
+                var currentCompilation = oldCompilation;
+                foreach (var chunk in this.Documents.Chunk(AddDocumentsBatchSize))
+                {
+                    tasks.Clear();
 
-                var trees = await Task.WhenAll(tasks).ConfigureAwait(false);
-                return oldCompilation.AddSyntaxTrees(trees);
+                    foreach (var document in chunk)
+                        tasks.Add(Task.Run(async () => await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken));
+
+                    var trees = await Task.WhenAll(tasks).ConfigureAwait(false);
+                    currentCompilation = currentCompilation.AddSyntaxTrees(trees);
+                }
+
+                return currentCompilation;
             }
 
             // This action adds the specified trees, but leaves the generated trees untouched.
