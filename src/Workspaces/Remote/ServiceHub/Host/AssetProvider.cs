@@ -138,6 +138,21 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             {
                 if (!_assetCache.TryGetAsset<object>(checksum, out _))
                 {
+                    if (missingChecksumsCount == missingChecksums.Length)
+                    {
+                        // This can happen if the asset cache has been modified by another thread during this method's execution.
+                        var newMissingChecksums = new Checksum[missingChecksumsCount * 2];
+                        Array.Copy(missingChecksums, newMissingChecksums, missingChecksumsCount);
+
+                        if (usePool)
+                        {
+                            s_checksumPool.Free(missingChecksums);
+                            usePool = false;
+                        }
+
+                        missingChecksums = newMissingChecksums;
+                    }
+
                     missingChecksums[missingChecksumsCount] = checksum;
                     missingChecksumsCount++;
                 }

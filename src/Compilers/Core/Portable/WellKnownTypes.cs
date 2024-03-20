@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -252,10 +251,10 @@ namespace Microsoft.CodeAnalysis
         CSharp7Sentinel = System_IFormatProvider, // all types that were known before CSharp7 should remain above this sentinel
 
         System_ValueTuple,
-        System_ValueTuple_T1,
 
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
+        System_ValueTuple_T1,
         System_ValueTuple_T2,
         System_ValueTuple_T3,
         System_ValueTuple_T4,
@@ -585,10 +584,10 @@ namespace Microsoft.CodeAnalysis
             "System.IFormatProvider",
 
             "System.ValueTuple",
-            "System.ValueTuple`1",
 
             "", // extension marker
 
+            "System.ValueTuple`1",
             "System.ValueTuple`2",
             "System.ValueTuple`3",
             "System.ValueTuple`4",
