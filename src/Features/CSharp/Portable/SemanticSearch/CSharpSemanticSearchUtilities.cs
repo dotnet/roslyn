@@ -30,9 +30,8 @@ internal sealed class CSharpSemanticSearchUtilities
             global using Microsoft.CodeAnalysis;
             """,
         EditorConfig = """
-            root = true
+            is_global = true
 
-            [*.cs]
             dotnet_analyzer_diagnostic.category-Documentation.severity = none
             dotnet_analyzer_diagnostic.category-Globalization.severity = none
             dotnet_analyzer_diagnostic.category-Interoperability.severity = none

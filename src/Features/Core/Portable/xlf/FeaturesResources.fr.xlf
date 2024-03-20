@@ -2811,8 +2811,8 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
-        <source>Undable to load type '{0}': '{1}'</source>
-        <target state="new">Undable to load type '{0}': '{1}'</target>
+        <source>Unable to load type '{0}': '{1}'</source>
+        <target state="new">Unable to load type '{0}': '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_property">

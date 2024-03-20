@@ -62,14 +62,13 @@ internal sealed class SemanticSearchToolWindowImpl(
     IGlobalOptionService globalOptions,
     VisualStudioWorkspace workspace,
     IStreamingFindUsagesPresenter resultsPresenter,
-    SVsServiceProvider serviceProvider) : ISemanticSearchWorkspaceHost, OptionsProvider<ClassificationOptions>
+    IVsService<SVsUIShell, IVsUIShell> vsUIShellProvider) : ISemanticSearchWorkspaceHost, OptionsProvider<ClassificationOptions>
 {
     private const int ToolBarHeight = 26;
     private const int ToolBarButtonSize = 20;
 
     private static readonly Lazy<ControlTemplate> s_buttonTemplate = new(CreateButtonTemplate);
 
-    private readonly IVsUIShell _vsUIShell = (IVsUIShell)serviceProvider.GetService(typeof(SVsUIShell));
     private readonly IContentType _contentType = contentTypeRegistry.GetContentType(ContentTypeNames.CSharpContentType);
     private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.SemanticSearch);
 
@@ -98,7 +97,9 @@ internal sealed class SemanticSearchToolWindowImpl(
         // The WPF control needs to be created on an UI thread
         await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        var textViewHost = CreateTextViewHost(_vsUIShell);
+        var vsUIShell = await vsUIShellProvider.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+        var textViewHost = CreateTextViewHost(vsUIShell);
         var textViewControl = textViewHost.HostControl;
         _textView = textViewHost.TextView;
         _textBuffer = textViewHost.TextView.TextBuffer;
