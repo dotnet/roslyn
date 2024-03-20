@@ -3259,6 +3259,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
     <value>Method '{0}' must have a single parameter of type '{1}' and return '{2}'</value>
   </data>
   <data name="Unable_to_load_type_0_1" xml:space="preserve">
-    <value>Undable to load type '{0}': '{1}'</value>
+    <value>Unable to load type '{0}': '{1}'</value>
   </data>
 </root>

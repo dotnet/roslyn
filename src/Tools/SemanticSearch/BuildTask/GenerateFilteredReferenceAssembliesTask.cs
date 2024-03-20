@@ -98,8 +98,18 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
                 Log.LogWarning($"Invalid API pattern at {specPath} line {line}: {message}");
             }
 
-            File.Copy(originalReferencePath, filteredReferencePath, overwrite: true);
-            Rewrite(filteredReferencePath, patterns.ToImmutableArray());
+            var peImageBuffer = File.ReadAllBytes(originalReferencePath);
+            Rewrite(peImageBuffer, patterns.ToImmutableArray());
+
+            try
+            {
+                File.WriteAllBytes(filteredReferencePath, peImageBuffer);
+            }
+            catch when (File.Exists(filteredReferencePath))
+            {
+                // Another instance of the task might already be writing the content. 
+                Log.LogMessage($"Output file '{filteredReferencePath}' already exists.");
+            }
         }
     }
 
@@ -252,7 +262,7 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
             _ => throw ExceptionUtilities.UnexpectedValue(symbol.Kind)
         };
 
-    internal static unsafe void Rewrite(string path, ImmutableArray<ApiPattern> patterns)
+    internal static unsafe void Rewrite(byte[] peImage, ImmutableArray<ApiPattern> patterns)
     {
         // Include all APIs if no patterns are specified.
         if (patterns.IsEmpty)
@@ -260,7 +270,8 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
             return;
         }
 
-        var metadataRef = MetadataReference.CreateFromFile(path);
+        using var readableStream = new MemoryStream(peImage, writable: false);
+        var metadataRef = MetadataReference.CreateFromStream(readableStream);
         var compilation = CSharpCompilation.Create("Metadata", references: [metadataRef]);
 
         // Collect all member definitions that have visibility flags:
@@ -269,9 +280,10 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
         var fields = new List<IFieldSymbol>();
         GetAllMembers(compilation, types, methods, fields);
 
-        using var stream = File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
-        using var peReader = new PEReader(stream);
-        using var writer = new BinaryWriter(stream);
+        // Update visibility flags:
+        using var writableStream = new MemoryStream(peImage, writable: true);
+        using var peReader = new PEReader(writableStream);
+        using var writer = new BinaryWriter(writableStream);
 
         var headers = peReader.PEHeaders;
         Debug.Assert(headers.PEHeader != null);
@@ -304,7 +316,7 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
         if (headers.PEHeader.CertificateTableDirectory.Size > 0)
         {
             var certificateTableDirectoryOffset = (headers.PEHeader.Magic == PEMagic.PE32Plus) ? 144 : 128;
-            stream.Position = peReader.PEHeaders.PEHeaderStartOffset + certificateTableDirectoryOffset;
+            writableStream.Position = peReader.PEHeaders.PEHeaderStartOffset + certificateTableDirectoryOffset;
             writer.Write((long)0);
         }
 
@@ -314,11 +326,11 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
         var moduleDef = metadataReader.GetModuleDefinition();
         var mvidOffset = metadataOffset + metadataReader.GetHeapMetadataOffset(HeapIndex.Guid) + (MetadataTokens.GetHeapOffset(moduleDef.Mvid) - 1) * sizeof(Guid);
 #if DEBUG
-        stream.Position = mvidOffset;
-        Debug.Assert(metadataReader.GetGuid(moduleDef.Mvid) == ReadGuid(stream));
+        writableStream.Position = mvidOffset;
+        Debug.Assert(metadataReader.GetGuid(moduleDef.Mvid) == ReadGuid(writableStream));
 #endif
-        var newMvid = CreateMvid(stream);
-        stream.Position = mvidOffset;
+        var newMvid = CreateMvid(writableStream);
+        writableStream.Position = mvidOffset;
         WriteGuid(writer, newMvid);
 
         writer.Flush();
