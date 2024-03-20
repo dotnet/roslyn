@@ -35,28 +35,28 @@ public class SyntaxTokenParserTests
 
         var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
 
-        AssertToken(SyntaxKind.ClassKeyword, SyntaxKind.None, """
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, """
             // Hello world
             class 
             """, parser.ParseNextToken());
 
-        AssertToken(SyntaxKind.IdentifierToken, SyntaxKind.None, """
+        AssertToken(expectedKind: SyntaxKind.IdentifierToken, expectedContextualKind: SyntaxKind.None, """
             C
 
             """, parser.ParseNextToken());
 
-        AssertToken(SyntaxKind.OpenBraceToken, SyntaxKind.None, """
+        AssertToken(expectedKind: SyntaxKind.OpenBraceToken, expectedContextualKind: SyntaxKind.None, """
             {
 
             """, parser.ParseNextToken());
 
-        AssertToken(SyntaxKind.CloseBraceToken, SyntaxKind.None, """
+        AssertToken(expectedKind: SyntaxKind.CloseBraceToken, expectedContextualKind: SyntaxKind.None, """
 
             }
             """, parser.ParseNextToken());
 
-        AssertToken(SyntaxKind.EndOfFileToken, SyntaxKind.None, "", parser.ParseNextToken());
-        AssertToken(SyntaxKind.EndOfFileToken, SyntaxKind.None, "", parser.ParseNextToken());
+        AssertToken(expectedKind: SyntaxKind.EndOfFileToken, expectedContextualKind: SyntaxKind.None, "", parser.ParseNextToken());
+        AssertToken(expectedKind: SyntaxKind.EndOfFileToken, expectedContextualKind: SyntaxKind.None, "", parser.ParseNextToken());
     }
 
     [Fact]
@@ -73,29 +73,29 @@ public class SyntaxTokenParserTests
             """);
         var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
 
-        AssertToken(SyntaxKind.ClassKeyword, SyntaxKind.None, """
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, """
             #if true
             class 
             """, parser.ParseNextToken());
 
-        AssertToken(SyntaxKind.IdentifierToken, SyntaxKind.None, """
+        AssertToken(expectedKind: SyntaxKind.IdentifierToken, expectedContextualKind: SyntaxKind.None, """
             C
 
             """, parser.ParseNextToken());
 
-        AssertToken(SyntaxKind.OpenBraceToken, SyntaxKind.None, """
+        AssertToken(expectedKind: SyntaxKind.OpenBraceToken, expectedContextualKind: SyntaxKind.None, """
             {
 
             """, parser.ParseNextToken());
 
-        AssertToken(SyntaxKind.EndOfFileToken, SyntaxKind.None, """
+        AssertToken(expectedKind: SyntaxKind.EndOfFileToken, expectedContextualKind: SyntaxKind.None, """
 
             #else
             }
             #endif
             """, parser.ParseNextToken());
 
-        AssertToken(SyntaxKind.EndOfFileToken, SyntaxKind.None, "", parser.ParseNextToken());
+        AssertToken(expectedKind: SyntaxKind.EndOfFileToken, expectedContextualKind: SyntaxKind.None, "", parser.ParseNextToken());
     }
 
     [Fact]
@@ -114,19 +114,19 @@ public class SyntaxTokenParserTests
 
         parser.SkipForwardTo(16);
 
-        AssertToken(SyntaxKind.ClassKeyword, SyntaxKind.None, """
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, """
             // Hello world
             class 
             """, parser.ParseNextToken());
 
         parser.SkipForwardTo(39);
 
-        AssertToken(SyntaxKind.OpenBraceToken, SyntaxKind.None, """
+        AssertToken(expectedKind: SyntaxKind.OpenBraceToken, expectedContextualKind: SyntaxKind.None, """
             {
 
             """, parser.ParseNextToken());
 
-        AssertToken(SyntaxKind.CloseBraceToken, SyntaxKind.None, """
+        AssertToken(expectedKind: SyntaxKind.CloseBraceToken, expectedContextualKind: SyntaxKind.None, """
 
             }
             """, parser.ParseNextToken());
@@ -139,7 +139,7 @@ public class SyntaxTokenParserTests
         var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
         parser.SkipForwardTo(1);
 
-        AssertToken(SyntaxKind.IdentifierToken, SyntaxKind.None, """lass""", parser.ParseNextToken());
+        AssertToken(expectedKind: SyntaxKind.IdentifierToken, expectedContextualKind: SyntaxKind.None, """lass""", parser.ParseNextToken());
     }
 
     [Fact]
@@ -156,13 +156,13 @@ public class SyntaxTokenParserTests
             """);
         var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
 
-        AssertToken(SyntaxKind.ClassKeyword, SyntaxKind.None, """
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, """
             #if true
             class 
             """, parser.ParseNextToken());
 
         SyntaxTokenParser.Result cTokenResult = parser.ParseNextToken();
-        AssertToken(SyntaxKind.IdentifierToken, SyntaxKind.None, """
+        AssertToken(expectedKind: SyntaxKind.IdentifierToken, expectedContextualKind: SyntaxKind.None, """
             C
 
             """, cTokenResult);
@@ -177,12 +177,12 @@ public class SyntaxTokenParserTests
 
         static void verifyAfterC(SyntaxTokenParser parser)
         {
-            AssertToken(SyntaxKind.OpenBraceToken, SyntaxKind.None, """
+            AssertToken(expectedKind: SyntaxKind.OpenBraceToken, expectedContextualKind: SyntaxKind.None, """
                 {
 
                 """, parser.ParseNextToken());
 
-            AssertToken(SyntaxKind.EndOfFileToken, SyntaxKind.None, """
+            AssertToken(expectedKind: SyntaxKind.EndOfFileToken, expectedContextualKind: SyntaxKind.None, """
 
                 #else
                 }
@@ -197,9 +197,9 @@ public class SyntaxTokenParserTests
         var sourceText = SourceText.From("when identifier class");
         var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
 
-        AssertToken(SyntaxKind.IdentifierToken, SyntaxKind.WhenKeyword, "when ", parser.ParseNextToken());
-        AssertToken(SyntaxKind.IdentifierToken, SyntaxKind.None, "identifier ", parser.ParseNextToken());
-        AssertToken(SyntaxKind.ClassKeyword, SyntaxKind.None, "class", parser.ParseNextToken());
+        AssertToken(expectedKind: SyntaxKind.IdentifierToken, expectedContextualKind: SyntaxKind.WhenKeyword, "when ", parser.ParseNextToken());
+        AssertToken(expectedKind: SyntaxKind.IdentifierToken, expectedContextualKind: SyntaxKind.None, "identifier ", parser.ParseNextToken());
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, "class", parser.ParseNextToken());
     }
 
     private static void AssertToken(SyntaxKind expectedKind, SyntaxKind expectedContextualKind, string expectedText, SyntaxTokenParser.Result result)
@@ -207,5 +207,6 @@ public class SyntaxTokenParserTests
         Assert.Equal(expectedKind, result.Token.Kind());
         Assert.Equal(expectedContextualKind, result.ContextualKind);
         AssertEx.Equal(expectedText, result.Token.ToFullString());
+        Assert.Null(result.Token.Parent);
     }
 }
