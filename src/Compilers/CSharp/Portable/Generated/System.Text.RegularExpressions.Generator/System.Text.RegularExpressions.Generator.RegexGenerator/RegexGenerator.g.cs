@@ -9,7 +9,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     partial class GeneratedRegexes
     {
         /// <remarks>
-        /// Pattern explanation:<br/>
+        /// Pattern:<br/>
+        /// <code>v1:(.*)\\((\\d+),(\\d+)\\)</code><br/>
+        /// Explanation:<br/>
         /// <code>
         /// ○ Match the string "v1:".<br/>
         /// ○ 1st capture group.<br/>
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// ○ Match ')'.<br/>
         /// </code>
         /// </remarks>
-        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Text.RegularExpressions.Generator", "7.0.9.7226")]
+        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Text.RegularExpressions.Generator", "8.0.9.8001")]
         internal static partial global::System.Text.RegularExpressions.Regex GetInterceptsLocationSpecifierRegex() => global::System.Text.RegularExpressions.Generated.GetInterceptsLocationSpecifierRegex_0.Instance;
     }
 }
@@ -31,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 namespace System.Text.RegularExpressions.Generated
 {
     using System;
+    using System.Buffers;
     using System.CodeDom.Compiler;
     using System.Collections;
     using System.ComponentModel;
@@ -40,7 +43,7 @@ namespace System.Text.RegularExpressions.Generated
     using System.Threading;
 
     /// <summary>Custom <see cref="Regex"/>-derived type for the GetInterceptsLocationSpecifierRegex method.</summary>
-    [GeneratedCodeAttribute("System.Text.RegularExpressions.Generator", "7.0.9.7226")]
+    [GeneratedCodeAttribute("System.Text.RegularExpressions.Generator", "8.0.9.8001")]
     [SkipLocalsInit]
     file sealed class GetInterceptsLocationSpecifierRegex_0 : Regex
     {
@@ -276,13 +279,13 @@ namespace System.Text.RegularExpressions.Generated
     }
     
     /// <summary>Helper methods used by generated <see cref="Regex"/>-derived implementations.</summary>
-    [GeneratedCodeAttribute("System.Text.RegularExpressions.Generator", "7.0.9.7226")]
+    [GeneratedCodeAttribute("System.Text.RegularExpressions.Generator", "8.0.9.8001")]
     file static class Utilities
     {
         /// <summary>Default timeout value set in <see cref="AppContext"/>, or <see cref="Regex.InfiniteMatchTimeout"/> if none was set.</summary>
         internal static readonly TimeSpan s_defaultTimeout = AppContext.GetData("REGEX_DEFAULT_MATCH_TIMEOUT") is TimeSpan timeout ? timeout : Regex.InfiniteMatchTimeout;
         
         /// <summary>Whether <see cref="s_defaultTimeout"/> is non-infinite.</summary>
-        internal static readonly bool s_hasTimeout = s_defaultTimeout != Timeout.InfiniteTimeSpan;
+        internal static readonly bool s_hasTimeout = s_defaultTimeout != Regex.InfiniteMatchTimeout;
     }
 }

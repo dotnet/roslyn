@@ -228,13 +228,18 @@ namespace Microsoft.CodeAnalysis
     public readonly struct GeneratorSyntaxContext
     {
         internal readonly ISyntaxHelper SyntaxHelper;
+        
+        /// <summary>Base directory for the output files of a particular generator.</summary>
+        internal readonly string BaseDirectory;
+
         private readonly Lazy<SemanticModel>? _semanticModel;
 
-        internal GeneratorSyntaxContext(SyntaxNode node, Lazy<SemanticModel>? semanticModel, ISyntaxHelper syntaxHelper)
+        internal GeneratorSyntaxContext(SyntaxNode node, Lazy<SemanticModel>? semanticModel, ISyntaxHelper syntaxHelper, string baseDirectory)
         {
             Node = node;
             _semanticModel = semanticModel;
             SyntaxHelper = syntaxHelper;
+            BaseDirectory = baseDirectory;
         }
 
         /// <summary>

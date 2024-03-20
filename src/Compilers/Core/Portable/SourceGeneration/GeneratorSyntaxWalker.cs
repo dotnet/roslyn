@@ -11,13 +11,16 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly ISyntaxContextReceiver _syntaxReceiver;
         private readonly ISyntaxHelper _syntaxHelper;
+        private readonly string _baseDirectory;
 
         internal GeneratorSyntaxWalker(
             ISyntaxContextReceiver syntaxReceiver,
-            ISyntaxHelper syntaxHelper)
+            ISyntaxHelper syntaxHelper,
+            string baseDirectory)
         {
             _syntaxReceiver = syntaxReceiver;
             _syntaxHelper = syntaxHelper;
+            _baseDirectory = baseDirectory;
         }
 
         public void VisitWithModel(Lazy<SemanticModel>? model, SyntaxNode node)
@@ -28,7 +31,8 @@ namespace Microsoft.CodeAnalysis
             foreach (var child in node.DescendantNodesAndSelf())
             {
                 Debug.Assert(model.Value.SyntaxTree == child.SyntaxTree);
-                _syntaxReceiver.OnVisitSyntaxNode(new GeneratorSyntaxContext(child, model, _syntaxHelper));
+                // TODO2: test non-incremental generator use of interceptors api
+                _syntaxReceiver.OnVisitSyntaxNode(new GeneratorSyntaxContext(child, model, _syntaxHelper, _baseDirectory));
             }
         }
     }

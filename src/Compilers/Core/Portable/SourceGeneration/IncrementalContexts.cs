@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis
         private readonly ArrayBuilder<SyntaxInputNode> _syntaxInputBuilder;
         private readonly ArrayBuilder<IIncrementalGeneratorOutputNode> _outputNodes;
         private readonly string _sourceExtension;
+        private readonly string _baseDirectory;
 
         internal readonly ISyntaxHelper SyntaxHelper;
         internal readonly bool CatchAnalyzerExceptions;
@@ -33,16 +34,18 @@ namespace Microsoft.CodeAnalysis
             ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes,
             ISyntaxHelper syntaxHelper,
             string sourceExtension,
-            bool catchAnalyzerExceptions)
+            bool catchAnalyzerExceptions,
+            string baseDirectory)
         {
             _syntaxInputBuilder = syntaxInputBuilder;
             _outputNodes = outputNodes;
             SyntaxHelper = syntaxHelper;
             _sourceExtension = sourceExtension;
+            _baseDirectory = baseDirectory;
             CatchAnalyzerExceptions = catchAnalyzerExceptions;
         }
 
-        public SyntaxValueProvider SyntaxProvider => new(this, _syntaxInputBuilder, RegisterOutput, SyntaxHelper);
+        public SyntaxValueProvider SyntaxProvider => new(this, _syntaxInputBuilder, RegisterOutput, SyntaxHelper, _baseDirectory);
 
         public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.Compilation), CatchAnalyzerExceptions);
 
