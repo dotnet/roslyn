@@ -311,11 +311,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     try
                     {
-                        // Create a chain of translation steps where we add each document one at a time to an initially
-                        // empty compilation.  This allows us to then process that chain of actions like we would do any
-                        // other.  It also means that if we're in the process of parsing documents in that chain, that
-                        // we'll see the results of how far we've gotten if someone asks for a frozen snapshot midway
-                        // through.
+                        // Create a chain of translation steps where we add a chunk of documents at a time to an
+                        // initially empty compilation.  This allows us to then process that chain of actions like we
+                        // would do any other.  It also means that if we're in the process of parsing documents in that
+                        // chain, that we'll see the results of how far we've gotten if someone asks for a frozen
+                        // snapshot midway through.
                         var initialProjectState = this.ProjectState.RemoveAllNormalDocuments();
                         var initialCompilation = this.CreateEmptyCompilation();
 
