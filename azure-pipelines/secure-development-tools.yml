@@ -47,7 +47,7 @@ steps:
     toolVersion: Latest
   condition: and(succeeded(), ${{ parameters.EnableAPIScan }}, ne(variables.ApiScanClientId, ''))
   env:
-    AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
+    AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId)
 
 - task: SdtReport@2
   displayName: 📃 Create Security Analysis Report
