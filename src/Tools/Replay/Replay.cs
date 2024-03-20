@@ -133,7 +133,7 @@ static async IAsyncEnumerable<BuildData> BuildAllAsync(
     {
         while (tasks.Count < maxParallel && index < compilerCalls.Count)
         {
-            var compilerCall = compilerCalls[index];;
+            var compilerCall = compilerCalls[index];
             tasks.Add(BuildAsync(options, compilerCall, GetOutputName(compilerCall), compilerServerLogger, cancellationToken));
             index++;
         }
