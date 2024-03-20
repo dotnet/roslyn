@@ -29,6 +29,7 @@ internal sealed class LanguageServerWorkspaceFactory
         IFileChangeWatcher fileChangeWatcher,
         [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, Host.Mef.FileExtensionsMetadata>> dynamicFileInfoProviders,
         ProjectTargetFrameworkManager projectTargetFrameworkManager,
+        ServerConfigurationFactory serverConfigurationFactory,
         ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerWorkspaceFactory));
@@ -40,10 +41,11 @@ internal sealed class LanguageServerWorkspaceFactory
 
         analyzerLoader.InitializeDiagnosticsServices();
 
+        var razorSourceGenerator = serverConfigurationFactory?.ServerConfiguration?.RazorSourceGenerator;
         ProjectSystemHostInfo = new ProjectSystemHostInfo(
             DynamicFileInfoProviders: dynamicFileInfoProviders.ToImmutableArray(),
             new ProjectSystemDiagnosticSource(),
-            new HostDiagnosticAnalyzerProvider());
+            new HostDiagnosticAnalyzerProvider(razorSourceGenerator));
 
         TargetFrameworkManager = projectTargetFrameworkManager;
     }
