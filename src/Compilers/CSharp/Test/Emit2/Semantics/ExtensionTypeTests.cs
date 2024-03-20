@@ -30869,6 +30869,7 @@ implicit extension E2 for Derived<string>
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        // PROTOTYPE(static) consider warning for certain nullability differences
         CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
