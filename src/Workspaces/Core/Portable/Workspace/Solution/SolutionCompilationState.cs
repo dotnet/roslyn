@@ -1112,7 +1112,7 @@ internal sealed partial class SolutionCompilationState
                 }
             },
             (documentStatesByProjectId, this.SolutionState),
-            skipEmptyCallback: documentStatesByProjectId.Count == 0);
+            skipEmptyCallback: false);
 
         // We pass the same solution state, since this change is only a change of the generated documents -- none of the core
         // documents or project structure changes in any way.
