@@ -1052,7 +1052,7 @@ internal sealed class NonCopyableAttribute : System.Attribute {{ }}
         [Theory]
         [CombinatorialData]
         public async Task AllowUnsafeAsRefParameterReference2Async(
-            [CombinatorialValues("ref", "in")] string parameterModifiers,
+            [CombinatorialValues("ref", "in", "ref readonly")] string parameterModifiers,
             [CombinatorialValues("in", "scoped in", "ref readonly", "scoped ref readonly")] string asRefParameterModifiers)
         {
             var source = $@"

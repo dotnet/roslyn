@@ -1351,9 +1351,8 @@ namespace Roslyn.Diagnostics.Analyzers
                 return (sourceRefKind, targetRefKind) switch
                 {
                     (RefKind.None, _) => true,
-                    (RefKind.Ref, RefKind.Ref) => true,
-                    (RefKind.Ref, RefKind.RefReadOnly or RefKindEx.RefReadOnlyParameter) => true,
-                    (RefKind.RefReadOnly, RefKind.RefReadOnly or RefKindEx.RefReadOnlyParameter) => true,
+                    (RefKind.Ref, RefKind.Ref or RefKind.RefReadOnly or RefKindEx.RefReadOnlyParameter) => true,
+                    (RefKind.RefReadOnly or RefKindEx.RefReadOnlyParameter, RefKind.RefReadOnly or RefKindEx.RefReadOnlyParameter) => true,
                     _ => false,
                 };
             }
