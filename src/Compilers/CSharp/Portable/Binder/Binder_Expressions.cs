@@ -8489,13 +8489,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!result.Symbols.Any(s => s.IsIndexer()));
 
             SymbolKind kind = result.Symbols[0].Kind;
-            foreach (var symbol in result.Symbols)
+            if (!result.Symbols.All(static (s, kind) => s.Kind == kind, kind))
             {
-                if (symbol.Kind != kind)
-                {
-                    // ambiguous
-                    return ResultSymbol(result, plainName, arity, node, diagnostics, false, wasError: out _, qualifierOpt);
-                }
+                // ambiguous
+                return ResultSymbol(result, plainName, arity, node, diagnostics, false, wasError: out _, qualifierOpt);
             }
 
             if (kind is SymbolKind.Method or SymbolKind.Property
