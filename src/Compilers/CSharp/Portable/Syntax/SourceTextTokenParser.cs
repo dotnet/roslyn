@@ -90,7 +90,14 @@ public sealed class SyntaxTokenParser : IDisposable
         /// If the parsed token is potentially a contextual keyword, this will return the contextual kind of the token. Otherwise, it
         /// will return <see cref="SyntaxKind.None"/>.
         /// </summary>
-        public readonly SyntaxKind ContextualKind => Token.ContextualKind();
+        public readonly SyntaxKind ContextualKind
+        {
+            get
+            {
+                var contextualKind = Token.ContextualKind();
+                return contextualKind == Token.Kind() ? SyntaxKind.None : contextualKind;
+            }
+        }
 
         internal readonly InternalSyntax.DirectiveStack ContextStartDirectiveStack;
 
