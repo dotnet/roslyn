@@ -1363,13 +1363,13 @@ internal sealed partial class SolutionCompilationState
                 var oldProjectState = currentState.SolutionState.GetRequiredProjectState(documentId.ProjectId);
                 var oldDocumentState = oldProjectState.DocumentStates.GetState(documentId);
 
-                if (oldDocumentState is not null)
+                if (oldDocumentState is null)
                 {
-                    currentState = currentState.WithDocumentState(newDocumentState);
+                    missingDocumentStates.MultiAdd(documentId.ProjectId, newDocumentState);
                 }
                 else
                 {
-                    missingDocumentStates.MultiAdd(documentId.ProjectId, newDocumentState);
+                    currentState = currentState.WithDocumentState(newDocumentState);
                 }
             }
 
