@@ -1355,6 +1355,18 @@ internal sealed partial class SolutionCompilationState
         {
             var currentState = frozenCompilationState;
 
+            // First, add in all the changed documents.
+            foreach (var newDocumentState in documentStates)
+            {
+                var documentId = newDocumentState.Id;
+                var oldProjectState = currentState.SolutionState.GetRequiredProjectState(documentId.ProjectId);
+                var oldDocumentState = oldProjectState.DocumentStates.GetState(documentId);
+
+                if (oldDocumentState is not null)
+                    currentState = currentState.WithDocumentState(newDocumentState);
+            }
+
+            // Then find and group all missing documents.
             using var _ = PooledDictionary<ProjectState, ArrayBuilder<DocumentState>>.GetInstance(out var missingDocumentStates);
 
             foreach (var newDocumentState in documentStates)
@@ -1373,13 +1385,9 @@ internal sealed partial class SolutionCompilationState
 
                     projectDocumentStates.Add(newDocumentState);
                 }
-                else
-                {
-                    // Project has this document, attempt to fork it with the new contents.
-                    currentState = currentState.WithDocumentState(newDocumentState);
-                }
             }
 
+            // Now, add all missing documents per project.
             foreach (var (oldProjectState, projectDocumentStates) in missingDocumentStates)
             {
                 currentState = currentState.AddDocumentsToMultipleProjects(
