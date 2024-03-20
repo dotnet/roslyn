@@ -74,6 +74,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 return resolveData.TextDocument.Uri;
             }
 
+            // HACK: Workaround the fact that Razor doesn't use our protocol types yet
+            // This is the reflection equivalent of the ITextDocumentParams check above
+            var textDoc = request?.GetType().GetProperty(nameof(ITextDocumentParams.TextDocument))?.GetValue(request);
+            if (textDoc?.GetType().GetProperty(nameof(TextDocumentIdentifier.Uri))?.GetValue(textDoc) is Uri uri)
+            {
+                return uri;
+            }
+
             return null;
 
             static bool IsDocumentResolveMethod(string methodName)
