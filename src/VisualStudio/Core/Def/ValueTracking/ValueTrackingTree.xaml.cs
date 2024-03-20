@@ -5,125 +5,124 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
+namespace Microsoft.VisualStudio.LanguageServices.ValueTracking;
+
+/// <summary>
+/// Interaction logic for ValueTrackingTree.xaml
+/// </summary>
+internal partial class ValueTrackingTree : UserControl
 {
-    /// <summary>
-    /// Interaction logic for ValueTrackingTree.xaml
-    /// </summary>
-    internal partial class ValueTrackingTree : UserControl
+    private readonly ValueTrackingTreeViewModel _viewModel;
+
+    public ValueTrackingTree(ValueTrackingTreeViewModel viewModel)
     {
-        private readonly ValueTrackingTreeViewModel _viewModel;
+        DataContext = _viewModel = viewModel;
+        InitializeComponent();
+    }
 
-        public ValueTrackingTree(ValueTrackingTreeViewModel viewModel)
+    private void ValueTrackingTree_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        e.Handled = e.Handled || e.Key switch
         {
-            DataContext = _viewModel = viewModel;
-            InitializeComponent();
+            Key.Down => TrySelectItem(GetNextItem(expandNode: false), navigate: true),
+            Key.Up => TrySelectItem(GetPreviousItem(), navigate: true),
+            Key.F8 => e.KeyboardDevice.Modifiers == ModifierKeys.Shift ? TrySelectItem(GetPreviousItem(), navigate: true) : TrySelectItem(GetNextItem(expandNode: true), navigate: true),
+            Key.Enter => TrySelectItem(ValueTrackingTreeView.SelectedItem as TreeViewItemBase, navigate: true),
+            Key.Right => TrySetExpanded(ValueTrackingTreeView.SelectedItem as TreeViewItemBase, true),
+            Key.Left => TrySetExpanded(ValueTrackingTreeView.SelectedItem as TreeViewItemBase, false),
+            Key.Space => TryToggleExpanded(ValueTrackingTreeView.SelectedItem as TreeViewItemBase),
+            _ => false
+        };
+
+        // Local Functions
+
+        bool TrySelectItem(TreeViewItemBase? node, bool navigate)
+        {
+            if (node is null)
+            {
+                return false;
+            }
+
+            SelectItem(node, navigate);
+            return true;
         }
 
-        private void ValueTrackingTree_PreviewKeyDown(object sender, KeyEventArgs e)
+        bool TrySetExpanded(TreeViewItemBase? node, bool expanded)
         {
-            e.Handled = e.Handled || e.Key switch
+            if (node is null)
             {
-                Key.Down => TrySelectItem(GetNextItem(expandNode: false), navigate: true),
-                Key.Up => TrySelectItem(GetPreviousItem(), navigate: true),
-                Key.F8 => e.KeyboardDevice.Modifiers == ModifierKeys.Shift ? TrySelectItem(GetPreviousItem(), navigate: true) : TrySelectItem(GetNextItem(expandNode: true), navigate: true),
-                Key.Enter => TrySelectItem(ValueTrackingTreeView.SelectedItem as TreeViewItemBase, navigate: true),
-                Key.Right => TrySetExpanded(ValueTrackingTreeView.SelectedItem as TreeViewItemBase, true),
-                Key.Left => TrySetExpanded(ValueTrackingTreeView.SelectedItem as TreeViewItemBase, false),
-                Key.Space => TryToggleExpanded(ValueTrackingTreeView.SelectedItem as TreeViewItemBase),
-                _ => false
-            };
-
-            // Local Functions
-
-            bool TrySelectItem(TreeViewItemBase? node, bool navigate)
-            {
-                if (node is null)
-                {
-                    return false;
-                }
-
-                SelectItem(node, navigate);
-                return true;
+                return false;
             }
 
-            bool TrySetExpanded(TreeViewItemBase? node, bool expanded)
-            {
-                if (node is null)
-                {
-                    return false;
-                }
-
-                node.IsNodeExpanded = expanded;
-                return true;
-            }
-
-            bool TryToggleExpanded(TreeViewItemBase? node)
-            {
-                return TrySetExpanded(node, node is null ? false : !node.IsNodeExpanded);
-            }
+            node.IsNodeExpanded = expanded;
+            return true;
         }
 
-        private void ValueTrackingTree_MouseDoubleClickPreview(object sender, MouseButtonEventArgs e)
+        bool TryToggleExpanded(TreeViewItemBase? node)
         {
-            if (e.ChangedButton != MouseButton.Left)
-            {
-                return;
-            }
+            return TrySetExpanded(node, node is null ? false : !node.IsNodeExpanded);
+        }
+    }
 
-            if (sender is TreeViewItemBase viewModel)
-            {
-                SelectItem(viewModel, true);
-                e.Handled = true;
-            }
-            else if (sender is TreeView)
-            {
-                SelectItem(_viewModel.SelectedItem, true);
-                e.Handled = true;
-            }
+    private void ValueTrackingTree_MouseDoubleClickPreview(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != MouseButton.Left)
+        {
+            return;
         }
 
-        private void SelectItem(TreeViewItemBase? item, bool navigate = false)
+        if (sender is TreeViewItemBase viewModel)
         {
-            _viewModel.SelectedItem = item;
+            SelectItem(viewModel, true);
+            e.Handled = true;
+        }
+        else if (sender is TreeView)
+        {
+            SelectItem(_viewModel.SelectedItem, true);
+            e.Handled = true;
+        }
+    }
 
-            if (navigate && item is TreeItemViewModel navigatableItem)
-            {
-                navigatableItem.NavigateTo();
-            }
+    private void SelectItem(TreeViewItemBase? item, bool navigate = false)
+    {
+        _viewModel.SelectedItem = item;
+
+        if (navigate && item is TreeItemViewModel navigatableItem)
+        {
+            navigatableItem.NavigateTo();
+        }
+    }
+
+    private TreeViewItemBase GetNextItem(bool expandNode)
+    {
+        if (ValueTrackingTreeView.SelectedItem is null)
+        {
+            return (TreeViewItemBase)ValueTrackingTreeView.Items[0];
         }
 
-        private TreeViewItemBase GetNextItem(bool expandNode)
+        var item = (TreeViewItemBase)ValueTrackingTreeView.SelectedItem;
+
+        if (expandNode)
         {
-            if (ValueTrackingTreeView.SelectedItem is null)
-            {
-                return (TreeViewItemBase)ValueTrackingTreeView.Items[0];
-            }
-
-            var item = (TreeViewItemBase)ValueTrackingTreeView.SelectedItem;
-
-            if (expandNode)
-            {
-                item.IsNodeExpanded = true;
-            }
-
-            return item.GetNextInTree();
+            item.IsNodeExpanded = true;
         }
 
-        private TreeViewItemBase GetPreviousItem()
-        {
-            if (ValueTrackingTreeView.SelectedItem is null)
-            {
-                return (TreeViewItemBase)ValueTrackingTreeView.Items[ValueTrackingTreeView.Items.Count - 1];
-            }
+        return item.GetNextInTree();
+    }
 
-            var item = (TreeViewItemBase)ValueTrackingTreeView.SelectedItem;
-            return item.GetPreviousInTree();
+    private TreeViewItemBase GetPreviousItem()
+    {
+        if (ValueTrackingTreeView.SelectedItem is null)
+        {
+            return (TreeViewItemBase)ValueTrackingTreeView.Items[ValueTrackingTreeView.Items.Count - 1];
         }
 
-        private void ValueTrackingTree_SelectedItemChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<object> e)
-        {
-            _viewModel.SelectedItem = ValueTrackingTreeView.SelectedItem as TreeViewItemBase;
-        }
+        var item = (TreeViewItemBase)ValueTrackingTreeView.SelectedItem;
+        return item.GetPreviousInTree();
+    }
+
+    private void ValueTrackingTree_SelectedItemChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<object> e)
+    {
+        _viewModel.SelectedItem = ValueTrackingTreeView.SelectedItem as TreeViewItemBase;
     }
 }

@@ -12,29 +12,28 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
+
+internal static class VsTextSpanExtensions
 {
-    internal static class VsTextSpanExtensions
+    public static async Task<VsTextSpan?> MapSpanFromSecondaryBufferToPrimaryBufferAsync(
+        this VsTextSpan spanInSecondaryBuffer,
+        IThreadingContext threadingContext,
+        DocumentId documentId,
+        CancellationToken cancellationToken)
     {
-        public static async Task<VsTextSpan?> MapSpanFromSecondaryBufferToPrimaryBufferAsync(
-            this VsTextSpan spanInSecondaryBuffer,
-            IThreadingContext threadingContext,
-            DocumentId documentId,
-            CancellationToken cancellationToken)
-        {
-            var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
-            if (containedDocument == null)
-                return null;
+        var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
+        if (containedDocument == null)
+            return null;
 
-            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            var bufferCoordinator = containedDocument.BufferCoordinator;
+        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        var bufferCoordinator = containedDocument.BufferCoordinator;
 
-            var primary = new VsTextSpan[1];
-            var hresult = bufferCoordinator.MapSecondaryToPrimarySpan(spanInSecondaryBuffer, primary);
+        var primary = new VsTextSpan[1];
+        var hresult = bufferCoordinator.MapSecondaryToPrimarySpan(spanInSecondaryBuffer, primary);
 
-            var result = primary[0];
+        var result = primary[0];
 
-            return ErrorHandler.Succeeded(hresult) ? result : null;
-        }
+        return ErrorHandler.Succeeded(hresult) ? result : null;
     }
 }

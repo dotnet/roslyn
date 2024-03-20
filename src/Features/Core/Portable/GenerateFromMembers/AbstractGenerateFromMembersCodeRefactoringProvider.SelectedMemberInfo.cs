@@ -5,18 +5,17 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 
-namespace Microsoft.CodeAnalysis.GenerateFromMembers
+namespace Microsoft.CodeAnalysis.GenerateFromMembers;
+
+internal abstract partial class AbstractGenerateFromMembersCodeRefactoringProvider : CodeRefactoringProvider
 {
-    internal abstract partial class AbstractGenerateFromMembersCodeRefactoringProvider : CodeRefactoringProvider
+    protected class SelectedMemberInfo(
+        INamedTypeSymbol containingType,
+        ImmutableArray<SyntaxNode> selectedDeclarations,
+        ImmutableArray<ISymbol> selectedMembers)
     {
-        protected class SelectedMemberInfo(
-            INamedTypeSymbol containingType,
-            ImmutableArray<SyntaxNode> selectedDeclarations,
-            ImmutableArray<ISymbol> selectedMembers)
-        {
-            public readonly INamedTypeSymbol ContainingType = containingType;
-            public readonly ImmutableArray<SyntaxNode> SelectedDeclarations = selectedDeclarations;
-            public readonly ImmutableArray<ISymbol> SelectedMembers = selectedMembers;
-        }
+        public readonly INamedTypeSymbol ContainingType = containingType;
+        public readonly ImmutableArray<SyntaxNode> SelectedDeclarations = selectedDeclarations;
+        public readonly ImmutableArray<ISymbol> SelectedMembers = selectedMembers;
     }
 }

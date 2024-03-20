@@ -13,75 +13,73 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers
+namespace Microsoft.CodeAnalysis.Completion.Providers;
+
+internal abstract class AbstractTypeImportCompletionProvider<AliasDeclarationTypeNode> : AbstractImportCompletionProvider
+    where AliasDeclarationTypeNode : SyntaxNode
 {
-    internal abstract class AbstractTypeImportCompletionProvider<AliasDeclarationTypeNode> : AbstractImportCompletionProvider
-        where AliasDeclarationTypeNode : SyntaxNode
+    protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
+        => syntaxContext.IsTypeContext || syntaxContext.IsEnumBaseListContext;
+
+    protected override void LogCommit()
+        => CompletionProvidersLogger.LogCommitOfTypeImportCompletionItem();
+
+    protected override void WarmUpCacheInBackground(Document document)
     {
-        protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
-            => syntaxContext.IsTypeContext || syntaxContext.IsEnumBaseListContext;
+        var typeImportCompletionService = document.GetRequiredLanguageService<ITypeImportCompletionService>();
+        typeImportCompletionService.QueueCacheWarmUpTask(document.Project);
+    }
 
-        protected override void LogCommit()
-            => CompletionProvidersLogger.LogCommitOfTypeImportCompletionItem();
-
-        protected abstract ImmutableArray<AliasDeclarationTypeNode> GetAliasDeclarationNodes(SyntaxNode node);
-
-        protected override void WarmUpCacheInBackground(Document document)
+    protected override async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, CancellationToken cancellationToken)
+    {
+        using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
         {
-            var typeImportCompletionService = document.GetRequiredLanguageService<ITypeImportCompletionService>();
-            typeImportCompletionService.QueueCacheWarmUpTask(document.Project);
+            var telemetryCounter = new TelemetryCounter();
+            var typeImportCompletionService = completionContext.Document.GetRequiredLanguageService<ITypeImportCompletionService>();
+
+            var (itemsFromAllAssemblies, isPartialResult) = await typeImportCompletionService.GetAllTopLevelTypesAsync(
+                syntaxContext,
+                forceCacheCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
+                completionContext.CompletionOptions,
+                cancellationToken).ConfigureAwait(false);
+
+            var aliasTargetNamespaceToTypeNameMap = GetAliasTypeDictionary(completionContext.Document, syntaxContext, cancellationToken);
+            foreach (var items in itemsFromAllAssemblies)
+                AddItems(items, completionContext, namespacesInScope, aliasTargetNamespaceToTypeNameMap, telemetryCounter);
+
+            if (isPartialResult)
+                telemetryCounter.CacheMiss = true;
+
+            telemetryCounter.Report();
         }
+    }
 
-        protected override async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, CancellationToken cancellationToken)
+    /// <summary>
+    /// Get a multi-Dictionary stores the information about the target of all alias Symbol in the syntax tree.
+    /// Multiple aliases might live under same namespace.
+    /// Key is the namespace of the symbol, value is the name of the symbol.
+    /// </summary>
+    private static MultiDictionary<string, string> GetAliasTypeDictionary(
+        Document document,
+        SyntaxContext syntaxContext,
+        CancellationToken cancellationToken)
+    {
+        var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var dictionary = new MultiDictionary<string, string>(syntaxFactsService.StringComparer);
+
+        foreach (var scope in syntaxContext.SemanticModel.GetImportScopes(syntaxContext.Position, cancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
+            foreach (var symbol in scope.Aliases)
             {
-                var telemetryCounter = new TelemetryCounter();
-                var typeImportCompletionService = completionContext.Document.GetRequiredLanguageService<ITypeImportCompletionService>();
-
-                var (itemsFromAllAssemblies, isPartialResult) = await typeImportCompletionService.GetAllTopLevelTypesAsync(
-                    completionContext.Document.Project,
-                    syntaxContext,
-                    forceCacheCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
-                    completionContext.CompletionOptions,
-                    cancellationToken).ConfigureAwait(false);
-
-                var aliasTargetNamespaceToTypeNameMap = GetAliasTypeDictionary(completionContext.Document, syntaxContext, cancellationToken);
-                foreach (var items in itemsFromAllAssemblies)
-                    AddItems(items, completionContext, namespacesInScope, aliasTargetNamespaceToTypeNameMap, telemetryCounter);
-
-                if (isPartialResult)
-                    telemetryCounter.CacheMiss = true;
-
-                telemetryCounter.Report();
-            }
-        }
-
-        /// <summary>
-        /// Get a multi-Dictionary stores the information about the target of all alias Symbol in the syntax tree.
-        /// Multiple aliases might live under same namespace.
-        /// Key is the namespace of the symbol, value is the name of the symbol.
-        /// </summary>
-        private MultiDictionary<string, string> GetAliasTypeDictionary(
-            Document document,
-            SyntaxContext syntaxContext,
-            CancellationToken cancellationToken)
-        {
-            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var dictionary = new MultiDictionary<string, string>(syntaxFactsService.StringComparer);
-
-            var nodeToCheck = syntaxContext.LeftToken.Parent;
-            if (nodeToCheck == null)
-            {
-                return dictionary;
-            }
-
-            // In case the caret is at the beginning of the file, take the root node.
-            var aliasDeclarations = GetAliasDeclarationNodes(nodeToCheck);
-            foreach (var aliasNode in aliasDeclarations)
-            {
-                var symbol = syntaxContext.SemanticModel.GetDeclaredSymbol(aliasNode, cancellationToken);
-                if (symbol is IAliasSymbol { Target: ITypeSymbol { TypeKind: not TypeKind.Error } target })
+                if (symbol is
+                    {
+                        Target: ITypeSymbol
+                        {
+                            Name: not null,
+                            ContainingNamespace: not null,
+                            TypeKind: not TypeKind.Error
+                        } target
+                    })
                 {
                     // If the target type is a type constructs from generics type, e.g.
                     // using AliasBar = Bar<int>
@@ -110,81 +108,81 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
                 }
             }
-
-            return dictionary;
         }
 
-        private static void AddItems(
-            ImmutableArray<CompletionItem> items,
-            CompletionContext completionContext,
+        return dictionary;
+    }
+
+    private static void AddItems(
+        ImmutableArray<CompletionItem> items,
+        CompletionContext completionContext,
+        HashSet<string> namespacesInScope,
+        MultiDictionary<string, string> aliasTargetNamespaceToTypeNameMap,
+        TelemetryCounter counter)
+    {
+        counter.ReferenceCount++;
+        foreach (var item in items)
+        {
+            if (ShouldAddItem(item, namespacesInScope, aliasTargetNamespaceToTypeNameMap))
+            {
+                // We can return cached item directly, item's span will be fixed by completion service.
+                // On the other hand, because of this (i.e. mutating the  span of cached item for each run),
+                // the provider can not be used as a service by components that might be run in parallel
+                // with completion, which would be a race.
+                completionContext.AddItem(item);
+                counter.ItemsCount++;
+            }
+        }
+
+        static bool ShouldAddItem(
+            CompletionItem item,
             HashSet<string> namespacesInScope,
-            MultiDictionary<string, string> aliasTargetNamespaceToTypeNameMap,
-            TelemetryCounter counter)
+            MultiDictionary<string, string> aliasTargetNamespaceToTypeNameMap)
         {
-            counter.ReferenceCount++;
-            foreach (var item in items)
+            var containingNamespace = ImportCompletionItem.GetContainingNamespace(item);
+            // 1. if the namespace of the item is in scoop. Don't add the item
+            if (namespacesInScope.Contains(containingNamespace))
             {
-                if (ShouldAddItem(item, namespacesInScope, aliasTargetNamespaceToTypeNameMap))
-                {
-                    // We can return cached item directly, item's span will be fixed by completion service.
-                    // On the other hand, because of this (i.e. mutating the  span of cached item for each run),
-                    // the provider can not be used as a service by components that might be run in parallel
-                    // with completion, which would be a race.
-                    completionContext.AddItem(item);
-                    counter.ItemsCount++;
-                }
+                return false;
             }
 
-            static bool ShouldAddItem(
-                CompletionItem item,
-                HashSet<string> namespacesInScope,
-                MultiDictionary<string, string> aliasTargetNamespaceToTypeNameMap)
+            // 2. If the item might be an alias target. First check if the target alias map has any value then
+            // check if the type name is in the dictionary.
+            // It is done in this way to avoid calling ImportCompletionItem.GetTypeName for all the CompletionItems
+            if (!aliasTargetNamespaceToTypeNameMap.IsEmpty
+                && aliasTargetNamespaceToTypeNameMap[containingNamespace].Contains(ImportCompletionItem.GetTypeName(item)))
             {
-                var containingNamespace = ImportCompletionItem.GetContainingNamespace(item);
-                // 1. if the namespace of the item is in scoop. Don't add the item
-                if (namespacesInScope.Contains(containingNamespace))
-                {
-                    return false;
-                }
-
-                // 2. If the item might be an alias target. First check if the target alias map has any value then
-                // check if the type name is in the dictionary.
-                // It is done in this way to avoid calling ImportCompletionItem.GetTypeName for all the CompletionItems
-                if (!aliasTargetNamespaceToTypeNameMap.IsEmpty
-                    && aliasTargetNamespaceToTypeNameMap[containingNamespace].Contains(ImportCompletionItem.GetTypeName(item)))
-                {
-                    return false;
-                }
-
-                return true;
+                return false;
             }
+
+            return true;
+        }
+    }
+
+    private class TelemetryCounter
+    {
+        private readonly SharedStopwatch _elapsedTime;
+
+        public int ItemsCount { get; set; }
+        public int ReferenceCount { get; set; }
+        public bool CacheMiss { get; set; }
+
+        public TelemetryCounter()
+        {
+            _elapsedTime = SharedStopwatch.StartNew();
         }
 
-        private class TelemetryCounter
+        public void Report()
         {
-            private readonly SharedStopwatch _elapsedTime;
-
-            public int ItemsCount { get; set; }
-            public int ReferenceCount { get; set; }
-            public bool CacheMiss { get; set; }
-
-            public TelemetryCounter()
+            if (CacheMiss)
             {
-                _elapsedTime = SharedStopwatch.StartNew();
+                CompletionProvidersLogger.LogTypeImportCompletionCacheMiss();
             }
 
-            public void Report()
-            {
-                if (CacheMiss)
-                {
-                    CompletionProvidersLogger.LogTypeImportCompletionCacheMiss();
-                }
-
-                // cache miss still count towards the cost of completion, so we need to log regardless of it.
-                CompletionProvidersLogger.LogTypeImportCompletionTicksDataPoint(_elapsedTime.Elapsed);
-                CompletionProvidersLogger.LogTypeImportCompletionItemCountDataPoint(ItemsCount);
-                CompletionProvidersLogger.LogTypeImportCompletionReferenceCountDataPoint(ReferenceCount);
-            }
+            // cache miss still count towards the cost of completion, so we need to log regardless of it.
+            CompletionProvidersLogger.LogTypeImportCompletionTicksDataPoint(_elapsedTime.Elapsed);
+            CompletionProvidersLogger.LogTypeImportCompletionItemCountDataPoint(ItemsCount);
+            CompletionProvidersLogger.LogTypeImportCompletionReferenceCountDataPoint(ReferenceCount);
         }
     }
 }

@@ -11,5 +11,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
 /// </summary>
 /// <param name="ResultId">the resultId associated with the inlay hint created on original request.</param>
 /// <param name="ListIndex">the index of the specific inlay hint item in the original list.</param>
-/// /// <param name="TextDocument">the text document associated with the inlay hint to resolve.</param>
-internal sealed record InlayHintResolveData(long ResultId, int ListIndex, TextDocumentIdentifier TextDocument);
+/// <param name="TextDocument">the text document associated with the inlay hint to resolve.</param>
+internal sealed record InlayHintResolveData(long ResultId, int ListIndex, TextDocumentIdentifier TextDocument) : DocumentResolveData(TextDocument);

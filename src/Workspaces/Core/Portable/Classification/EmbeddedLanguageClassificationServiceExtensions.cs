@@ -8,28 +8,27 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Classification
+namespace Microsoft.CodeAnalysis.Classification;
+
+internal static class EmbeddedLanguageClassificationServiceExtensions
 {
-    internal static class EmbeddedLanguageClassificationServiceExtensions
+    public static void AddEmbeddedLanguageClassifications(
+        this IEmbeddedLanguageClassificationService classificationService,
+        SolutionServices solutionServices,
+        Project project,
+        SemanticModel semanticModel,
+        TextSpan textSpan,
+        ClassificationOptions options,
+        SegmentedList<ClassifiedSpan> result,
+        CancellationToken cancellationToken)
     {
-        public static void AddEmbeddedLanguageClassifications(
-            this IEmbeddedLanguageClassificationService classificationService,
-            SolutionServices solutionServices,
-            Project project,
-            SemanticModel semanticModel,
-            TextSpan textSpan,
-            ClassificationOptions options,
-            SegmentedList<ClassifiedSpan> result,
-            CancellationToken cancellationToken)
-        {
-            classificationService.AddEmbeddedLanguageClassifications(
-                solutionServices,
-                project,
-                semanticModel,
-                [textSpan],
-                options,
-                result,
-                cancellationToken);
-        }
+        classificationService.AddEmbeddedLanguageClassifications(
+            solutionServices,
+            project,
+            semanticModel,
+            [textSpan],
+            options,
+            result,
+            cancellationToken);
     }
 }

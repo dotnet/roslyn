@@ -12,92 +12,91 @@ using IVsEnumBSTR = Microsoft.VisualStudio.TextManager.Interop.IVsEnumBSTR;
 using IVsTextBuffer = Microsoft.VisualStudio.TextManager.Interop.IVsTextBuffer;
 using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
+
+internal partial class AbstractLanguageService<TPackage, TLanguageService> : IVsLanguageDebugInfo
 {
-    internal partial class AbstractLanguageService<TPackage, TLanguageService> : IVsLanguageDebugInfo
+    int IVsLanguageDebugInfo.GetLanguageID(IVsTextBuffer pBuffer, int iLine, int iCol, out Guid pguidLanguageID)
     {
-        int IVsLanguageDebugInfo.GetLanguageID(IVsTextBuffer pBuffer, int iLine, int iCol, out Guid pguidLanguageID)
+        try
         {
-            try
-            {
-                return LanguageDebugInfo.GetLanguageID(pBuffer, iLine, iCol, out pguidLanguageID);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
+            return LanguageDebugInfo.GetLanguageID(pBuffer, iLine, iCol, out pguidLanguageID);
         }
-
-        int IVsLanguageDebugInfo.GetLocationOfName(string pszName, out string pbstrMkDoc, out TextSpan pspanLocation)
+        catch (Exception e) when (FatalError.ReportAndPropagate(e))
         {
-            try
-            {
-                return LanguageDebugInfo.GetLocationOfName(pszName, out pbstrMkDoc, out pspanLocation);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
+            throw ExceptionUtilities.Unreachable();
         }
+    }
 
-        int IVsLanguageDebugInfo.GetNameOfLocation(IVsTextBuffer pBuffer, int iLine, int iCol, out string pbstrName, out int piLineOffset)
+    int IVsLanguageDebugInfo.GetLocationOfName(string pszName, out string pbstrMkDoc, out TextSpan pspanLocation)
+    {
+        try
         {
-            try
-            {
-                return LanguageDebugInfo.GetNameOfLocation(pBuffer, iLine, iCol, out pbstrName, out piLineOffset);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
+            return LanguageDebugInfo.GetLocationOfName(pszName, out pbstrMkDoc, out pspanLocation);
         }
-
-        int IVsLanguageDebugInfo.GetProximityExpressions(IVsTextBuffer pBuffer, int iLine, int iCol, int cLines, out IVsEnumBSTR ppEnum)
+        catch (Exception e) when (FatalError.ReportAndPropagate(e))
         {
-            try
-            {
-                return LanguageDebugInfo.GetProximityExpressions(pBuffer, iLine, iCol, cLines, out ppEnum);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
+            throw ExceptionUtilities.Unreachable();
         }
+    }
 
-        int IVsLanguageDebugInfo.IsMappedLocation(IVsTextBuffer pBuffer, int iLine, int iCol)
+    int IVsLanguageDebugInfo.GetNameOfLocation(IVsTextBuffer pBuffer, int iLine, int iCol, out string pbstrName, out int piLineOffset)
+    {
+        try
         {
-            try
-            {
-                return LanguageDebugInfo.IsMappedLocation(pBuffer, iLine, iCol);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
+            return LanguageDebugInfo.GetNameOfLocation(pBuffer, iLine, iCol, out pbstrName, out piLineOffset);
         }
-
-        int IVsLanguageDebugInfo.ResolveName(string pszName, uint dwFlags, out IVsEnumDebugName ppNames)
+        catch (Exception e) when (FatalError.ReportAndPropagate(e))
         {
-            try
-            {
-                return LanguageDebugInfo.ResolveName(pszName, dwFlags, out ppNames);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
+            throw ExceptionUtilities.Unreachable();
         }
+    }
 
-        int IVsLanguageDebugInfo.ValidateBreakpointLocation(IVsTextBuffer pBuffer, int iLine, int iCol, TextSpan[] pCodeSpan)
+    int IVsLanguageDebugInfo.GetProximityExpressions(IVsTextBuffer pBuffer, int iLine, int iCol, int cLines, out IVsEnumBSTR ppEnum)
+    {
+        try
         {
-            try
-            {
-                return LanguageDebugInfo.ValidateBreakpointLocation(pBuffer, iLine, iCol, pCodeSpan);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
+            return LanguageDebugInfo.GetProximityExpressions(pBuffer, iLine, iCol, cLines, out ppEnum);
+        }
+        catch (Exception e) when (FatalError.ReportAndPropagate(e))
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+    }
+
+    int IVsLanguageDebugInfo.IsMappedLocation(IVsTextBuffer pBuffer, int iLine, int iCol)
+    {
+        try
+        {
+            return LanguageDebugInfo.IsMappedLocation(pBuffer, iLine, iCol);
+        }
+        catch (Exception e) when (FatalError.ReportAndPropagate(e))
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+    }
+
+    int IVsLanguageDebugInfo.ResolveName(string pszName, uint dwFlags, out IVsEnumDebugName ppNames)
+    {
+        try
+        {
+            return LanguageDebugInfo.ResolveName(pszName, dwFlags, out ppNames);
+        }
+        catch (Exception e) when (FatalError.ReportAndPropagate(e))
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+    }
+
+    int IVsLanguageDebugInfo.ValidateBreakpointLocation(IVsTextBuffer pBuffer, int iLine, int iCol, TextSpan[] pCodeSpan)
+    {
+        try
+        {
+            return LanguageDebugInfo.ValidateBreakpointLocation(pBuffer, iLine, iCol, pCodeSpan);
+        }
+        catch (Exception e) when (FatalError.ReportAndPropagate(e))
+        {
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

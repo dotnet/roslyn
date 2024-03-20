@@ -876,6 +876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindInterpolatedStringHandlerInMemberCall(
             BoundExpression unconvertedString,
+            TypeSymbol handlerType,
             ArrayBuilder<BoundExpression> arguments,
             ImmutableArray<ParameterSymbol> parameters,
             ref MemberAnalysisResult memberAnalysisResult,
@@ -886,22 +887,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(unconvertedString is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
             var interpolatedStringConversion = memberAnalysisResult.ConversionForArg(interpolatedStringArgNum);
             Debug.Assert(interpolatedStringConversion.IsInterpolatedStringHandler);
-            var interpolatedStringParameter = GetCorrespondingParameter(ref memberAnalysisResult, parameters, interpolatedStringArgNum);
-            Debug.Assert(interpolatedStringParameter is { Type: NamedTypeSymbol { IsInterpolatedStringHandlerType: true } }
-#pragma warning disable format
-                                                     or
-                                                     {
-                                                         IsParams: true,
-                                                         Type: ArrayTypeSymbol { ElementType: NamedTypeSymbol { IsInterpolatedStringHandlerType: true } },
-                                                         InterpolatedStringHandlerArgumentIndexes.IsEmpty: true
-                                                     });
-#pragma warning restore format
-            Debug.Assert(!interpolatedStringParameter.IsParams || memberAnalysisResult.Kind == MemberResolutionKind.ApplicableInExpandedForm);
+            Debug.Assert(handlerType is NamedTypeSymbol { IsInterpolatedStringHandlerType: true });
 
-            if (interpolatedStringParameter.HasInterpolatedStringHandlerArgumentError)
+            var correspondingParameter = GetCorrespondingParameter(ref memberAnalysisResult, parameters, interpolatedStringArgNum);
+            var handlerParameterIndexes = correspondingParameter.InterpolatedStringHandlerArgumentIndexes;
+
+            if (memberAnalysisResult.Kind == MemberResolutionKind.ApplicableInExpandedForm && correspondingParameter.Ordinal == parameters.Length - 1)
+            {
+                Debug.Assert(handlerParameterIndexes.IsEmpty);
+
+                // No arguments, fall back to the standard conversion steps.
+                return CreateConversion(
+                    unconvertedString.Syntax,
+                    unconvertedString,
+                    interpolatedStringConversion,
+                    isCast: false,
+                    conversionGroupOpt: null,
+                    handlerType,
+                    diagnostics);
+            }
+
+            if (correspondingParameter.HasInterpolatedStringHandlerArgumentError)
             {
                 // The InterpolatedStringHandlerArgumentAttribute applied to parameter '{0}' is malformed and cannot be interpreted. Construct an instance of '{1}' manually.
-                diagnostics.Add(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, unconvertedString.Syntax.Location, interpolatedStringParameter, interpolatedStringParameter.Type);
+                diagnostics.Add(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, unconvertedString.Syntax.Location, correspondingParameter, handlerType);
                 return CreateConversion(
                     unconvertedString.Syntax,
                     unconvertedString,
@@ -909,12 +918,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isCast: false,
                     conversionGroupOpt: null,
                     wasCompilerGenerated: false,
-                    interpolatedStringParameter.Type,
+                    handlerType,
                     diagnostics,
                     hasErrors: true);
             }
 
-            var handlerParameterIndexes = interpolatedStringParameter.InterpolatedStringHandlerArgumentIndexes;
             if (handlerParameterIndexes.IsEmpty)
             {
                 // No arguments, fall back to the standard conversion steps.
@@ -924,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     interpolatedStringConversion,
                     isCast: false,
                     conversionGroupOpt: null,
-                    interpolatedStringParameter.IsParams ? ((ArrayTypeSymbol)interpolatedStringParameter.Type).ElementType : interpolatedStringParameter.Type,
+                    handlerType,
                     diagnostics);
             }
 
@@ -997,14 +1005,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // If it is optional, then they could otherwise not specify the parameter and that's an error
                             var originalParameterIndex = handlerParameterIndexes[i];
                             var parameter = parameters[originalParameterIndex];
-                            if (parameter.IsOptional || (originalParameterIndex + 1 == parameters.Length && OverloadResolution.IsValidParamsParameter(parameter)))
+                            if (parameter.IsOptional ||
+                                (memberAnalysisResult.Kind == MemberResolutionKind.ApplicableInExpandedForm && originalParameterIndex + 1 == parameters.Length))
                             {
                                 // Parameter '{0}' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter '{1}'. Specify the value of '{0}' before '{1}'.
                                 diagnostics.Add(
                                     ErrorCode.ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified,
                                     unconvertedString.Syntax.Location,
                                     parameter.Name,
-                                    interpolatedStringParameter.Name);
+                                    correspondingParameter.Name);
                                 hasErrors = true;
                             }
 
@@ -1023,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     ErrorCode.ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString,
                                     arguments[argumentIndex].Syntax.Location,
                                     parameter.Name,
-                                    interpolatedStringParameter.Name);
+                                    correspondingParameter.Name);
                                 hasErrors = true;
                             }
 
@@ -1070,7 +1079,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var interpolatedString = BindUnconvertedInterpolatedExpressionToHandlerType(
                 unconvertedString,
-                (NamedTypeSymbol)interpolatedStringParameter.Type,
+                (NamedTypeSymbol)handlerType,
                 diagnostics,
                 additionalConstructorArguments: argumentPlaceholdersBuilder.ToImmutableAndFree(),
                 additionalConstructorRefKinds: argumentRefKindsBuilder.ToImmutableAndFree());
@@ -1083,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 explicitCastInCode: false,
                 conversionGroupOpt: null,
                 constantValueOpt: null,
-                interpolatedStringParameter.Type,
+                handlerType,
                 hasErrors || interpolatedString.HasErrors);
         }
     }

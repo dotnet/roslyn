@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// This is consumed as 'generated' code in a source package and therefore requires an explicit nullable enable
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -46,10 +49,14 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// more messages, and a new queue will need to be created.
 /// </para>
 /// </remarks>
+#if BINARY_COMPAT // TODO - Remove with https://github.com/dotnet/roslyn/issues/72251
 public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRequestContext>
+#else
+internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRequestContext>
+#endif
 {
     protected readonly ILspLogger _logger;
-    private readonly IHandlerProvider _handlerProvider;
+    protected readonly AbstractHandlerProvider _handlerProvider;
     private readonly AbstractLanguageServer<TRequestContext> _languageServer;
 
     /// <summary>
@@ -67,7 +74,20 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
 
     public CancellationToken CancellationToken => _cancelSource.Token;
 
+    [Obsolete($"Use constructor with {nameof(AbstractHandlerProvider)} instead.", error: false)]
     public RequestExecutionQueue(AbstractLanguageServer<TRequestContext> languageServer, ILspLogger logger, IHandlerProvider handlerProvider)
+    {
+        _languageServer = languageServer;
+        _logger = logger;
+        if (handlerProvider is AbstractHandlerProvider abstractHandlerProvider)
+        {
+            _handlerProvider = abstractHandlerProvider;
+        }
+
+        _handlerProvider = new WrappedHandlerProvider(handlerProvider);
+    }
+
+    public RequestExecutionQueue(AbstractLanguageServer<TRequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider)
     {
         _languageServer = languageServer;
         _logger = logger;
@@ -78,16 +98,6 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
     {
         // Start the queue processing
         _queueProcessingTask = ProcessQueueAsync();
-    }
-
-    protected IMethodHandler GetMethodHandler<TRequest, TResponse>(string methodName)
-    {
-        var requestType = typeof(TRequest) == typeof(NoValue) ? null : typeof(TRequest);
-        var responseType = typeof(TResponse) == typeof(NoValue) ? null : typeof(TResponse);
-
-        var handler = _handlerProvider.GetMethodHandler(methodName, requestType, responseType);
-
-        return handler;
     }
 
     /// <summary>
@@ -109,6 +119,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
     /// </summary>
     /// <param name="request">The request to handle.</param>
     /// <param name="methodName">The name of the LSP method.</param>
+    /// <param name="lspServices">The set of LSP services to use.</param>
     /// <param name="requestCancellationToken">A cancellation token that will cancel the handing of this request.
     /// The request could also be cancelled by the queue shutting down.</param>
     /// <returns>A task that can be awaited to observe the results of the handing of this request.</returns>
@@ -120,17 +131,13 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
     {
         // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
 
-        var handler = GetMethodHandler<TRequest, TResponse>(methodName);
         // Create a combined cancellation token so either the client cancelling it's token or the queue
         // shutting down cancels the request.
         var combinedTokenSource = _cancelSource.Token.CombineWith(requestCancellationToken);
         var combinedCancellationToken = combinedTokenSource.Token;
         var (item, resultTask) = CreateQueueItem<TRequest, TResponse>(
-            handler.MutatesSolutionState,
             methodName,
-            handler,
             request,
-            handler,
             lspServices,
             combinedCancellationToken);
 
@@ -150,20 +157,23 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
     }
 
     internal (IQueueItem<TRequestContext>, Task<TResponse>) CreateQueueItem<TRequest, TResponse>(
-        bool mutatesSolutionState,
         string methodName,
-        IMethodHandler methodHandler,
         TRequest request,
-        IMethodHandler handler,
         ILspServices lspServices,
-        CancellationToken cancellationToken) => QueueItem<TRequest, TResponse, TRequestContext>.Create(mutatesSolutionState,
-            methodName,
-            methodHandler,
+        CancellationToken cancellationToken)
+    {
+        var language = GetLanguageForRequest<TRequest>(methodName, request);
+
+        return QueueItem<TRequest, TResponse, TRequestContext>.Create(methodName,
+            language,
             request,
-            handler,
             lspServices,
             _logger,
             cancellationToken);
+    }
+
+    protected virtual string GetLanguageForRequest<TRequest>(string methodName, TRequest request)
+        => LanguageServerConstants.DefaultLanguageName;
 
     private async Task ProcessQueueAsync()
     {
@@ -217,8 +227,9 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                     Trace.CorrelationManager.ActivityId = activityId;
                     // The request context must be created serially inside the queue to so that requests always run
                     // on the correct snapshot as of the last request.
-                    var context = await work.CreateRequestContextAsync(cancellationToken).ConfigureAwait(false);
-                    if (work.MutatesServerState)
+                    var handler = GetHandlerForRequest(work);
+                    var context = await work.CreateRequestContextAsync(handler, cancellationToken).ConfigureAwait(false);
+                    if (handler.MutatesSolutionState)
                     {
                         if (CancelInProgressWorkUponMutatingRequest)
                         {
@@ -233,10 +244,10 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                             await Task.WhenAll(concurrentlyExecutingTasksArray.Select(kvp => kvp.Key)).NoThrowAwaitable(captureContext: false);
                         }
 
-                        Debug.Assert(!concurrentlyExecutingTasks.Any(), "The tasks should have all been drained before continuing");
+                        Debug.Assert(!concurrentlyExecutingTasks.Any(t => !t.Key.IsCompleted), "The tasks should have all been drained before continuing");
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
                         // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
-                        await WrapStartRequestTaskAsync(work.StartRequestAsync(context, cancellationToken), rethrowExceptions: true).ConfigureAwait(false);
+                        await WrapStartRequestTaskAsync(work.StartRequestAsync(context, handler, cancellationToken), rethrowExceptions: true).ConfigureAwait(false);
                     }
                     else
                     {
@@ -245,7 +256,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                         // though these errors don't put us into a bad state as far as the rest of the queue goes.
                         // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
                         // blocking the request queue for longer periods of time (it enforces parallelizability).
-                        var currentWorkTask = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync(context, cancellationToken), cancellationToken), rethrowExceptions: false);
+                        var currentWorkTask = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync(context, handler, cancellationToken), cancellationToken), rethrowExceptions: false);
 
                         if (CancelInProgressWorkUponMutatingRequest)
                         {
@@ -298,10 +309,17 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
     }
 
     /// <summary>
+    /// Choose the method handler for the given request. By default this calls the <see cref="AbstractHandlerProvider"/>.
+    /// </summary>
+    protected virtual IMethodHandler GetHandlerForRequest(IQueueItem<TRequestContext> work)
+        => _handlerProvider.GetMethodHandler(work.MethodName, work.RequestType, work.ResponseType, work.Language);
+
+    /// <summary>
     /// Provides an extensibility point to log or otherwise inspect errors thrown from non-mutating requests,
     /// which would otherwise be lost to the fire-and-forget task in the queue.
     /// </summary>
     /// <param name="nonMutatingRequestTask">The task to be inspected.</param>
+    /// <param name="rethrowExceptions">If exceptions should be re-thrown.</param>
     /// <returns>The task from <paramref name="nonMutatingRequestTask"/>, to allow chained calls if needed.</returns>
     public virtual Task WrapStartRequestTaskAsync(Task nonMutatingRequestTask, bool rethrowExceptions)
     {
@@ -335,7 +353,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
         public TestAccessor(RequestExecutionQueue<TRequestContext> queue)
             => _queue = queue;
 
-        public IHandlerProvider GetHandlerProvider() => _queue._handlerProvider;
+        public AbstractHandlerProvider GetHandlerProvider() => _queue._handlerProvider;
 
         public bool IsComplete() => _queue._queue.IsCompleted && _queue._queue.IsEmpty;
 

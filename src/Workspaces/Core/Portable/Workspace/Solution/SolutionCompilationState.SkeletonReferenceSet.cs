@@ -3,10 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -25,14 +21,13 @@ internal partial class SolutionCompilationState
         string? assemblyName,
         DeferredDocumentationProvider documentationProvider)
     {
-
         /// <summary>
         /// Lock this object while reading/writing from it.  Used so we can return the same reference for the same
         /// properties.  While this is isn't strictly necessary (as the important thing to keep the same is the
         /// AssemblyMetadata), this allows higher layers to see that reference instances are the same which allow
         /// reusing the same higher level objects (for example, the set of references a compilation has).
         /// </summary>
-        private readonly Dictionary<MetadataReferenceProperties, PortableExecutableReference> _referenceMap = new();
+        private readonly Dictionary<MetadataReferenceProperties, PortableExecutableReference> _referenceMap = [];
 
         public PortableExecutableReference GetOrCreateMetadataReference(MetadataReferenceProperties properties)
         {

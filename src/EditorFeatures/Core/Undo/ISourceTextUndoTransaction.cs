@@ -7,22 +7,21 @@
 using System;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Undo
+namespace Microsoft.CodeAnalysis.Editor.Undo;
+
+/// <summary>
+/// Represents undo transaction for a <see cref="Microsoft.CodeAnalysis.Text.SourceText"/>
+/// with a display string by which the IDE's undo stack UI refers to the transaction.
+/// </summary>
+internal interface ISourceTextUndoTransaction : IDisposable
 {
     /// <summary>
-    /// Represents undo transaction for a <see cref="Microsoft.CodeAnalysis.Text.SourceText"/>
-    /// with a display string by which the IDE's undo stack UI refers to the transaction.
+    /// The <see cref="Microsoft.CodeAnalysis.Text.SourceText"/> for this undo transaction.
     /// </summary>
-    internal interface ISourceTextUndoTransaction : IDisposable
-    {
-        /// <summary>
-        /// The <see cref="Microsoft.CodeAnalysis.Text.SourceText"/> for this undo transaction.
-        /// </summary>
-        SourceText SourceText { get; }
+    SourceText SourceText { get; }
 
-        /// <summary>
-        /// The display string by which the IDE's undo stack UI refers to the transaction.
-        /// </summary>
-        string Description { get; }
-    }
+    /// <summary>
+    /// The display string by which the IDE's undo stack UI refers to the transaction.
+    /// </summary>
+    string Description { get; }
 }

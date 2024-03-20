@@ -110,6 +110,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             Descriptor,
             memberAccess.Name.Identifier.GetLocation(),
             option.Notification,
+            context.Options,
             additionalLocations: ImmutableArray.Create(invocation.GetLocation()),
             properties: analysisResult.Value.ChangesSemantics ? ChangesSemantics : null));
 

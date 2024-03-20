@@ -3,8 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.Tracing;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -57,9 +56,22 @@ internal partial class SolutionCompilationState
     /// memory.
     /// </para>
     /// </summary>
-    private partial class SkeletonReferenceCache
+    /// <remarks>
+    /// Note: this is a mutable struct that updates itself in place atomically.  As such, it should never be copied by
+    /// consumers (hence the <see cref="NonCopyableAttribute"/> restriction).  Consumers wanting to make a copy should
+    /// only do so by calling <see cref="Clone"/>.
+    /// </remarks>
+    [NonCopyable]
+    private struct SkeletonReferenceCache
     {
         private static readonly EmitOptions s_metadataOnlyEmitOptions = new(metadataOnly: true);
+
+        /// <summary>
+        /// Lock around <see cref="_version"/> and <see cref="_skeletonReferenceSet"/> to ensure they are updated/read
+        /// in an atomic fashion.  Static to keep this only as a single allocation.  As this is only for reading/writing
+        /// very small pieces of data, this is fine.
+        /// </summary>
+        private static readonly object s_stateGate = new();
 
         /// <summary>
         /// Static conditional mapping from a compilation to the skeleton set produced for it.  This is valuable for a
@@ -78,54 +90,40 @@ internal partial class SolutionCompilationState
         private static readonly ConditionalWeakTable<Compilation, AsyncLazy<SkeletonReferenceSet?>> s_compilationToSkeletonSet = new();
 
         /// <summary>
-        /// Lock around <see cref="_version"/> and <see cref="_skeletonReferenceSet"/> to ensure they are updated/read 
-        /// in an atomic fashion.
+        /// The <see cref="Project.GetDependentSemanticVersionAsync"/> version of the project that the <see
+        /// cref="_skeletonReferenceSet"/> corresponds to.  Initially set to <see cref="VersionStamp.Default"/>.
         /// </summary>
-        private readonly object _stateGate = new();
-
-        /// <summary>
-        /// The <see cref="Project.GetDependentSemanticVersionAsync"/> version of the project that the
-        /// <see cref="_skeletonReferenceSet"/> corresponds to.
-        /// </summary>
-        private VersionStamp? _version;
+        private VersionStamp _version;
 
         /// <summary>
         /// Mapping from metadata-reference-properties to the actual metadata reference for them.
         /// </summary>
         private SkeletonReferenceSet? _skeletonReferenceSet;
 
-        public SkeletonReferenceCache()
-            : this(version: null, skeletonReferenceSet: null)
-        {
-        }
-
-        private SkeletonReferenceCache(
-            VersionStamp? version,
-            SkeletonReferenceSet? skeletonReferenceSet)
-        {
-            _version = version;
-            _skeletonReferenceSet = skeletonReferenceSet;
-        }
-
         /// <summary>
         /// Produces a copy of the <see cref="SkeletonReferenceCache"/>, allowing forks of <see cref="ProjectState"/> to
-        /// reuse <see cref="MetadataReference"/>s when their dependent semantic version matches ours.  In the case where
-        /// the version is different, then the clone will attempt to make a new skeleton reference for that version.  If it
-        /// succeeds, it will use that.  If it fails however, it can still use our skeletons.
+        /// reuse <see cref="MetadataReference"/>s when their dependent semantic version matches ours.  In the case
+        /// where the version is different, then the clone will attempt to make a new skeleton reference for that
+        /// version.  If it succeeds, it will use that.  If it fails however, it can still use our skeletons.
         /// </summary>
-        public SkeletonReferenceCache Clone()
+        public readonly SkeletonReferenceCache Clone()
         {
-            lock (_stateGate)
+            lock (s_stateGate)
             {
                 // pass along the best version/reference-set we computed for ourselves.  That way future ProjectStates
-                // can use this data if either the version changed, or they weren't able to build a skeleton for themselves.
-                // By passing along a copy we ensure that if they have a different version, they'll end up producing a new
-                // SkeletonReferenceSet where they'll store their own data in which will not affect prior ProjectStates.
-                return new SkeletonReferenceCache(_version, _skeletonReferenceSet);
+                // can use this data if either the version changed, or they weren't able to build a skeleton for
+                // themselves. By passing along a copy we ensure that if they have a different version, they'll end up
+                // producing a new SkeletonReferenceSet where they'll store their own data in which will not affect
+                // prior ProjectStates.
+                return new SkeletonReferenceCache
+                {
+                    _version = this._version,
+                    _skeletonReferenceSet = this._skeletonReferenceSet,
+                };
             }
         }
 
-        public MetadataReference? TryGetAlreadyBuiltMetadataReference(MetadataReferenceProperties properties)
+        public readonly MetadataReference? TryGetAlreadyBuiltMetadataReference(MetadataReferenceProperties properties)
             => _skeletonReferenceSet?.GetOrCreateMetadataReference(properties);
 
         public async Task<MetadataReference?> GetOrBuildReferenceAsync(
@@ -136,6 +134,8 @@ internal partial class SolutionCompilationState
         {
             var version = await compilationTracker.GetDependentSemanticVersionAsync(
                 compilationState, cancellationToken).ConfigureAwait(false);
+
+            Debug.Assert(version != VersionStamp.Default);
             var referenceSet = await TryGetOrCreateReferenceSetAsync(
                 compilationTracker, compilationState, version, cancellationToken).ConfigureAwait(false);
             if (referenceSet == null)
@@ -150,16 +150,23 @@ internal partial class SolutionCompilationState
             VersionStamp version,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(version != VersionStamp.Default);
+
             // First, just see if we have cached a reference set that is complimentary with the version of the project
             // being passed in.  If so, we can just reuse what we already computed before.
-            if (TryReadSkeletonReferenceSetAtThisVersion(version, out var referenceSet))
-                return referenceSet;
+            lock (s_stateGate)
+            {
+                // if we're asking about the same version as we've cached, then return whatever have (regardless of
+                // whether it succeeded or not.
+                if (version == _version)
+                    return _skeletonReferenceSet;
+            }
 
             // okay, we don't have anything cached with this version. so create one now.
 
             var currentSkeletonReferenceSet = await CreateSkeletonReferenceSetAsync(compilationTracker, compilationState, cancellationToken).ConfigureAwait(false);
 
-            lock (_stateGate)
+            lock (s_stateGate)
             {
                 // If we successfully created the metadata storage, then create the new set that points to it.
                 // if we didn't, that's ok too, we'll just say that for this requested version, that we can
@@ -190,8 +197,9 @@ internal partial class SolutionCompilationState
             // concurrent requests asynchronously wait for that work to be done.
 
             var lazy = s_compilationToSkeletonSet.GetValue(compilation,
-                compilation => AsyncLazy.Create(
-                    cancellationToken => Task.FromResult(CreateSkeletonSet(services, compilation, cancellationToken))));
+                compilation => AsyncLazy.Create(static (arg, cancellationToken) =>
+                    Task.FromResult(CreateSkeletonSet(arg.services, arg.compilation, cancellationToken)),
+                    arg: (services, compilation)));
 
             return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -211,23 +219,6 @@ internal partial class SolutionCompilationState
                 metadata,
                 compilation.AssemblyName,
                 new DeferredDocumentationProvider(compilation));
-        }
-
-        private bool TryReadSkeletonReferenceSetAtThisVersion(VersionStamp version, out SkeletonReferenceSet? result)
-        {
-            lock (_stateGate)
-            {
-                // if we're asking about the same version as we've cached, then return whatever have (regardless of
-                // whether it succeeded or not.
-                if (version == _version)
-                {
-                    result = _skeletonReferenceSet;
-                    return true;
-                }
-            }
-
-            result = null;
-            return false;
         }
 
         private static ITemporaryStreamStorageInternal? TryCreateMetadataStorage(SolutionServices services, Compilation compilation, CancellationToken cancellationToken)

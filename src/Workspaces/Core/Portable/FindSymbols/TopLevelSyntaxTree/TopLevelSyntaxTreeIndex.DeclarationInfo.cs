@@ -8,30 +8,29 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindSymbols
+namespace Microsoft.CodeAnalysis.FindSymbols;
+
+internal sealed partial class TopLevelSyntaxTreeIndex
 {
-    internal sealed partial class TopLevelSyntaxTreeIndex
+    private readonly struct DeclarationInfo(ImmutableArray<DeclaredSymbolInfo> declaredSymbolInfos)
     {
-        private readonly struct DeclarationInfo(ImmutableArray<DeclaredSymbolInfo> declaredSymbolInfos)
+        public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos { get; } = declaredSymbolInfos;
+
+        public void WriteTo(ObjectWriter writer)
+            => writer.WriteArray(DeclaredSymbolInfos, static (w, d) => d.WriteTo(w));
+
+        public static DeclarationInfo? TryReadFrom(StringTable stringTable, ObjectReader reader)
         {
-            public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos { get; } = declaredSymbolInfos;
-
-            public void WriteTo(ObjectWriter writer)
-                => writer.WriteArray(DeclaredSymbolInfos, static (w, d) => d.WriteTo(w));
-
-            public static DeclarationInfo? TryReadFrom(StringTable stringTable, ObjectReader reader)
+            try
             {
-                try
-                {
-                    var infos = reader.ReadArray(static (r, stringTable) => DeclaredSymbolInfo.ReadFrom_ThrowsOnFailure(stringTable, r), stringTable);
-                    return new DeclarationInfo(infos);
-                }
-                catch (Exception)
-                {
-                }
-
-                return null;
+                var infos = reader.ReadArray(static (r, stringTable) => DeclaredSymbolInfo.ReadFrom_ThrowsOnFailure(stringTable, r), stringTable);
+                return new DeclarationInfo(infos);
             }
+            catch (Exception)
+            {
+            }
+
+            return null;
         }
     }
 }
