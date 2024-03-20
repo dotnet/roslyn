@@ -9,7 +9,7 @@ The other advantage is tool allows for easy testing of performance changes to th
 The first step is to run a build locally and collect a binary log. For example:
 
 ```cmd
-e:\code\example> msbuild -bl -v:m -m Example.sln
+e:\code\example> dotnet msbuild -bl -v:m -m Example.sln
 ```
 
 Then run the replay tool against that log.
