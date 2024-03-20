@@ -13,6 +13,7 @@ using System.IO;
 using System.IO.Hashing;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -265,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             ValidateChecksumAlgorithm(checksumAlgorithm);
 
-            string text = Decode(buffer, length, encoding ?? s_utf8EncodingWithNoBOM, out encoding);
+            string text = Decode(buffer.AsSpan(0, length), encoding ?? s_utf8EncodingWithNoBOM, out encoding);
             if (throwIfBinaryDetected && IsBinary(text))
             {
                 throw new InvalidDataException();
@@ -323,19 +324,17 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Decode text from a byte array.
         /// </summary>
-        /// <param name="buffer">The byte array containing encoded text.</param>
-        /// <param name="length">The count of valid bytes in <paramref name="buffer"/>.</param>
+        /// <param name="buffer">The buffer containing encoded text.</param>
         /// <param name="encoding">The encoding to use if an encoding cannot be determined from the byte order mark.</param>
         /// <param name="actualEncoding">The actual encoding used.</param>
         /// <returns>The decoded text.</returns>
         /// <exception cref="DecoderFallbackException">If the given encoding is set to use a throwing decoder as a fallback</exception>
-        private static string Decode(byte[] buffer, int length, Encoding encoding, out Encoding actualEncoding)
+        private static string Decode(ReadOnlySpan<byte> buffer, Encoding encoding, out Encoding actualEncoding)
         {
-            RoslynDebug.Assert(buffer != null);
             RoslynDebug.Assert(encoding != null);
             int preambleLength;
-            actualEncoding = TryReadByteOrderMark(buffer, length, out preambleLength) ?? encoding;
-            return actualEncoding.GetString(buffer, preambleLength, length - preambleLength);
+            actualEncoding = TryReadByteOrderMark(buffer, out preambleLength) ?? encoding;
+            return actualEncoding.GetString(buffer[preambleLength..]);
         }
 
         /// <summary>
@@ -644,10 +643,9 @@ namespace Microsoft.CodeAnalysis.Text
                         hash.Append(MemoryMarshal.AsBytes(charBuffer.AsSpan(0, charsToCopy)));
                     }
 
-                    // Switch this to ImmutableCollectionsMarshal.AsImmutableArray(hash.GetHashAndReset()) when we move to S.C.I v8.
-                    Span<byte> destination = stackalloc byte[128 / 8];
-                    hash.GetHashAndReset(destination);
-                    return destination.ToImmutableArray();
+                    // GetHashAndReset returns a freshly allocated array so it is safe to convert
+                    // to ImmutableArray inline.
+                    return ImmutableCollectionsMarshal.AsImmutableArray(hash.GetHashAndReset());
                 }
                 finally
                 {
@@ -660,26 +658,60 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
+#if NETCOREAPP
+        internal static ImmutableArray<byte> CalculateChecksum(ReadOnlySpan<byte> buffer, SourceHashAlgorithm algorithmId)
+        {
+            using var algorithm = CryptographicHashProvider.GetAlgorithm(algorithmId);
+            int size = algorithmId switch
+            {
+                SourceHashAlgorithm.Sha1 => SHA1.HashSizeInBytes,
+                SourceHashAlgorithm.Sha256 => SHA256.HashSizeInBytes,
+                _ => throw ExceptionUtilities.UnexpectedValue(algorithmId)
+            };
+
+            Span<byte> hashBuffer = stackalloc byte[size];
+            if (!algorithm.TryComputeHash(buffer, hashBuffer, out int bytesWritten))
+            {
+                throw new InvalidOperationException();
+            }
+
+            return ImmutableArray.Create(hashBuffer.Slice(0, bytesWritten));
+        }
+#endif
+
         internal static ImmutableArray<byte> CalculateChecksum(byte[] buffer, int offset, int count, SourceHashAlgorithm algorithmId)
         {
-            using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
-            {
-                RoslynDebug.Assert(algorithm != null);
-                return ImmutableArray.Create(algorithm.ComputeHash(buffer, offset, count));
-            }
+#if NETCOREAPP
+            return CalculateChecksum(new ReadOnlySpan<byte>(buffer, offset, count), algorithmId);
+#else
+            using var algorithm = CryptographicHashProvider.GetAlgorithm(algorithmId);
+            var bytes = algorithm.ComputeHash(buffer, offset, count);
+
+            // ComputeHash return a freshly allocated array so it's safe to convert to ImmutableArray inline.
+            return ImmutableCollectionsMarshal.AsImmutableArray(bytes);
+#endif
         }
 
         internal static ImmutableArray<byte> CalculateChecksum(Stream stream, SourceHashAlgorithm algorithmId)
         {
-            using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
+            using var algorithm = CryptographicHashProvider.GetAlgorithm(algorithmId);
+            if (stream.CanSeek)
             {
-                RoslynDebug.Assert(algorithm != null);
-                if (stream.CanSeek)
+                stream.Seek(0, SeekOrigin.Begin);
+
+#if NETCOREAPP
+                if (stream.Length <= 1024)
                 {
-                    stream.Seek(0, SeekOrigin.Begin);
+                    Span<byte> buffer = stackalloc byte[(int)stream.Length];
+                    stream.ReadExactly(buffer);
+                    return CalculateChecksum(buffer, algorithmId);
                 }
-                return ImmutableArray.Create(algorithm.ComputeHash(stream));
+#endif
             }
+
+            var bytes = algorithm.ComputeHash(stream);
+            // ComputeHash return a freshly allocated array so it's safe to convert to ImmutableArray inline.
+            return ImmutableCollectionsMarshal.AsImmutableArray(bytes);
         }
 
         /// <summary>
@@ -1188,14 +1220,11 @@ namespace Microsoft.CodeAnalysis.Text
         /// Detect an encoding by looking for byte order marks.
         /// </summary>
         /// <param name="source">A buffer containing the encoded text.</param>
-        /// <param name="length">The length of valid data in the buffer.</param>
         /// <param name="preambleLength">The length of any detected byte order marks.</param>
         /// <returns>The detected encoding or null if no recognized byte order mark was present.</returns>
-        internal static Encoding? TryReadByteOrderMark(byte[] source, int length, out int preambleLength)
+        internal static Encoding? TryReadByteOrderMark(ReadOnlySpan<byte> source, out int preambleLength)
         {
-            RoslynDebug.Assert(source != null);
-            Debug.Assert(length <= source.Length);
-
+            int length = source.Length;
             if (length >= 2)
             {
                 switch (source[0])

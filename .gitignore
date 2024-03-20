@@ -17,6 +17,7 @@
 [Bb]inaries/
 [Bb]in/
 [Oo]bj/
+[Bb]enchmarkDotNet.[Aa]rtifacts/
 .dotnet/
 .tools/
 .packages/

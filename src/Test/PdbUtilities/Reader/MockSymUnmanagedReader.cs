@@ -320,8 +320,8 @@ namespace Roslyn.Test.Utilities
         {
             if (name != null)
             {
-                var builder = ArrayBuilder<char>.GetInstance();
-                builder.AddRange(name);
+                var builder = ArrayBuilder<char>.GetInstance(name.Length + 1);
+                builder.AddRange(name.AsSpan());
                 builder.AddRange('\0');
                 _nameChars = builder.ToImmutableAndFree();
             }

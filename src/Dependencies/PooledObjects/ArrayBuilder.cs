@@ -599,6 +599,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             _builder.AddRange(items, length);
         }
 
+        public void AddRange(ReadOnlySpan<T> items)
+        {
+            _builder.AddRange(items);
+        }
+
         public void Clip(int limit)
         {
             Debug.Assert(limit <= Count);

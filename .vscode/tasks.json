@@ -42,19 +42,6 @@
         "group": "build"
     },
     {
-        "label": "build csc",
-        "command": "dotnet",
-        "type": "shell",
-        "args": [
-          "msbuild",
-          "-p:RunAnalyzersDuringBuild=false",
-          "-p:GenerateFullPaths=true",
-          "src/Compilers/CSharp/csc/AnyCpu/csc.csproj"
-        ],
-        "problemMatcher": "$msCompile",
-        "group": "build"
-    },
-    {
         "label": "build Compilers.slnf",
         "command": "dotnet",
         "type": "shell",
@@ -68,6 +55,32 @@
         "group": "build"
     },
     {
+        "label": "build Roslyn.sln",
+        "command": "dotnet",
+        "type": "shell",
+        "args": [
+          "build",
+          "-p:RunAnalyzersDuringBuild=false",
+          "-p:GenerateFullPaths=true",
+          "Roslyn.sln"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "build csc",
+        "command": "dotnet",
+        "type": "shell",
+        "args": [
+          "build",
+          "-p:RunAnalyzersDuringBuild=false",
+          "-p:GenerateFullPaths=true",
+          "src/Compilers/CSharp/csc/AnyCpu/csc.csproj"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
         "label": "build current project",
         "type": "shell",
         "command": "dotnet",
@@ -75,20 +88,8 @@
           "pwsh",
           "${workspaceFolder}/scripts/vscode-build.ps1",
           "-filePath",
-          "${file}",
-          "-msbuildEngine",
-          "dotnet"
+          "${file}"
         ],
-        "windows": {
-          "command": "powershell",
-          "args": [
-            "${workspaceFolder}/scripts/vscode-build.ps1",
-            "-filePath",
-            "${file}",
-            "-msbuildEngine",
-            "dotnet"
-          ],
-        },
         "problemMatcher": "$msCompile",
         "group": "build"
     },

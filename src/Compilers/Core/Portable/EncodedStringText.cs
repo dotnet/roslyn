@@ -174,10 +174,10 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             // PERF: If the input is a FileStream, we may be able to minimize allocations
-            var fileStream = data as FileStream;
-            if (fileStream != null)
+            if (data is FileStream fileStream)
             {
-                return TryGetBytesFromFileStream(fileStream, out bytes);
+                bytes = new ArraySegment<byte>(GetBytesFromFileStream(fileStream));
+                return true;
             }
 
             bytes = new ArraySegment<byte>(Array.Empty<byte>());
@@ -188,10 +188,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// Read the contents of a FileStream into a byte array.
         /// </summary>
         /// <param name="stream">The FileStream with encoded text.</param>
-        /// <param name="bytes">A byte array filled with the contents of the file.</param>
-        /// <returns>True if a byte array could be created.</returns>
-        private static bool TryGetBytesFromFileStream(FileStream stream,
-                                                      out ArraySegment<byte> bytes)
+        private static byte[] GetBytesFromFileStream(FileStream stream)
         {
             RoslynDebug.Assert(stream != null);
             RoslynDebug.Assert(stream.Position == 0);
@@ -199,8 +196,7 @@ namespace Microsoft.CodeAnalysis.Text
             int length = (int)stream.Length;
             if (length == 0)
             {
-                bytes = new ArraySegment<byte>(Array.Empty<byte>());
-                return true;
+                return Array.Empty<byte>();
             }
 
             // PERF: While this is an obvious byte array allocation, it is still cheaper than
@@ -216,13 +212,8 @@ namespace Microsoft.CodeAnalysis.Text
             // than the buffer size. The default buffer size is 4KB, so this will incur a 4KB
             // allocation for any files less than 4KB. That's why, for example, the command
             // line compiler actually specifies a very small buffer size.
-            var success = stream.TryReadAll(buffer, 0, length) == length;
-
-            bytes = success
-                ? new ArraySegment<byte>(buffer)
-                : new ArraySegment<byte>(Array.Empty<byte>());
-
-            return success;
+            stream.ReadExactly(buffer, 0, length);
+            return buffer;
         }
 
         internal static class TestAccessor

@@ -56,5 +56,20 @@ namespace Microsoft.CodeAnalysis
 
             return false;
         }
+
+#if !NETCOREAPP
+        internal static unsafe string GetString(this Encoding encoding, ReadOnlySpan<byte> buffer)
+        {
+            if (buffer.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            fixed (byte* bytes = buffer)
+            {
+                return encoding.GetString(bytes, buffer.Length);
+            }
+        }
+#endif
     }
 }
