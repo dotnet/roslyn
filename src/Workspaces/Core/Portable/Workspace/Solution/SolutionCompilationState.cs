@@ -1377,7 +1377,7 @@ internal sealed partial class SolutionCompilationState
             currentState = currentState.AddDocumentsToMultipleProjects(
                 // Do a SelectAsArray here to ensure that we realize the array once, and as such only call things like
                 // ToImmutableAndFree once per ArrayBuilder.
-                missingDocumentStates.SelectAsArray(kvp => (currentState.SolutionState.GetRequiredProjectState(kvp.Key), kvp.Value.ToImmutableAndFree())),
+                missingDocumentStates.SelectAsArray(kvp => (kvp.Key, kvp.Value.ToImmutableAndFree())),
                 static (oldProjectState, newDocumentStates) =>
                     new TranslationAction.AddDocumentsAction(oldProjectState, oldProjectState.AddDocuments(newDocumentStates), newDocumentStates));
 
@@ -1454,20 +1454,21 @@ internal sealed partial class SolutionCompilationState
                 var projectId = g.Key;
                 this.SolutionState.CheckContainsProject(projectId);
                 var projectState = this.SolutionState.GetRequiredProjectState(projectId);
-                return (projectState, newDocumentStates: g.SelectAsArray(di => createDocumentState(di, projectState)));
+                return (projectId, newDocumentStates: g.SelectAsArray(di => createDocumentState(di, projectState)));
             }),
             addDocumentsToProjectState);
     }
 
     private SolutionCompilationState AddDocumentsToMultipleProjects<TDocumentState>(
-        IEnumerable<(ProjectState oldProjectState, ImmutableArray<TDocumentState> newDocumentStates)> projectIdAndNewDocuments,
+        IEnumerable<(ProjectId projectId, ImmutableArray<TDocumentState> newDocumentStates)> projectIdAndNewDocuments,
         Func<ProjectState, ImmutableArray<TDocumentState>, TranslationAction> addDocumentsToProjectState)
         where TDocumentState : TextDocumentState
     {
         var newCompilationState = this;
 
-        foreach (var (oldProjectState, newDocumentStates) in projectIdAndNewDocuments)
+        foreach (var (projectId, newDocumentStates) in projectIdAndNewDocuments)
         {
+            var oldProjectState = newCompilationState.SolutionState.GetRequiredProjectState(projectId);
             var compilationTranslationAction = addDocumentsToProjectState(oldProjectState, newDocumentStates);
             var newProjectState = compilationTranslationAction.NewProjectState;
 
