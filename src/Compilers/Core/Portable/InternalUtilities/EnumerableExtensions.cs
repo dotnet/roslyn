@@ -7,14 +7,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Threading;
-using Microsoft.CodeAnalysis.Collections.Internal;
-using System.Diagnostics;
 
 #if DEBUG
 using System.Diagnostics;
