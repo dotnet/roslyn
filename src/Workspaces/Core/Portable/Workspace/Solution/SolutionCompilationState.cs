@@ -1354,7 +1354,9 @@ internal sealed partial class SolutionCompilationState
         {
             var currentState = frozenCompilationState;
 
-            // First, add in all the changed documents.
+            using var _ = PooledDictionary<ProjectId, ArrayBuilder<DocumentState>>.GetInstance(out var missingDocumentStates);
+
+            // First, either update documents that have changed, or keep track of documents that are missing.
             foreach (var newDocumentState in documentStates)
             {
                 var documentId = newDocumentState.Id;
@@ -1362,25 +1364,19 @@ internal sealed partial class SolutionCompilationState
                 var oldDocumentState = oldProjectState.DocumentStates.GetState(documentId);
 
                 if (oldDocumentState is not null)
+                {
                     currentState = currentState.WithDocumentState(newDocumentState);
-            }
-
-            // Then find and group all missing documents.
-            using var _ = PooledDictionary<ProjectState, ArrayBuilder<DocumentState>>.GetInstance(out var missingDocumentStates);
-
-            foreach (var newDocumentState in documentStates)
-            {
-                var documentId = newDocumentState.Id;
-                var oldProjectState = currentState.SolutionState.GetRequiredProjectState(documentId.ProjectId);
-                var oldDocumentState = oldProjectState.DocumentStates.GetState(documentId);
-
-                if (oldDocumentState is null)
-                    missingDocumentStates.MultiAdd(oldProjectState, newDocumentState);
+                }
+                else
+                {
+                    missingDocumentStates.MultiAdd(documentId.ProjectId, newDocumentState);
+                }
             }
 
             // Now, add all missing documents per project.
-            foreach (var (oldProjectState, projectDocumentStates) in missingDocumentStates)
+            foreach (var (projectId, projectDocumentStates) in missingDocumentStates)
             {
+                var oldProjectState = currentState.SolutionState.GetRequiredProjectState(projectId);
                 currentState = currentState.AddDocumentsToMultipleProjects(
                     [(oldProjectState, projectDocumentStates.ToImmutableAndFree())],
                     static (oldProjectState, newDocumentStates) =>
