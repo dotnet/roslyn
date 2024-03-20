@@ -67,11 +67,10 @@ static ReplayOptions ParseOptions(string[] args)
 
 static async Task<int> RunAsync(ReplayOptions options)
 {
-    var stopwatch = new Stopwatch();
-    stopwatch.Start();
     Console.WriteLine($"Binary Log: {options.BinlogPath}");
     Console.WriteLine($"Client Directory: {options.ClientDirectory}");
     Console.WriteLine($"Output Directory: {options.OutputDirectory}");
+    Console.WriteLine($"Pipe Name: {options.PipeName}");
     Console.WriteLine($"Parallel: {options.MaxParallel}");
     Console.WriteLine();
     Console.WriteLine("Starting server");
@@ -85,6 +84,9 @@ static async Task<int> RunAsync(ReplayOptions options)
 
     try
     {
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+
         var compilerCalls = ReadAllCompilerCalls(options.BinlogPath);
         await foreach (var buildData in BuildAllAsync(options, compilerCalls, compilerServerLogger, CancellationToken.None))
         {

@@ -4,6 +4,8 @@ This is a tool for replaying the compilation events from a [binary log][binary-l
 
 The other advantage is tool allows for easy testing of performance changes to the compiler. Developers can have two branches of the code, one with performance changes and one without, then run `replay` against the same binary log and analyze the performance differences.
 
+Note: this is only supported for replaying binary logs on the same machine they were built.
+
 ## Usage
 
 The first step is to run a build locally and collect a binary log. For example:
