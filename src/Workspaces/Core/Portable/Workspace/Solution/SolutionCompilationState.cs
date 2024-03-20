@@ -1376,8 +1376,8 @@ internal sealed partial class SolutionCompilationState
             // Now, add all missing documents per project.
             currentState = currentState.AddDocumentsToMultipleProjects(
                 // Do a SelectAsArray here to ensure that we realize the array once, and as such only call things like
-                // ToImmutableAndClear once per ArrayBuilder.
-                missingDocumentStates.SelectAsArray(kvp => (currentState.SolutionState.GetRequiredProjectState(kvp.Key), kvp.Value.ToImmutableAndClear())),
+                // ToImmutableAndFree once per ArrayBuilder.
+                missingDocumentStates.SelectAsArray(kvp => (currentState.SolutionState.GetRequiredProjectState(kvp.Key), kvp.Value.ToImmutableAndFree())),
                 static (oldProjectState, newDocumentStates) =>
                     new TranslationAction.AddDocumentsAction(oldProjectState, oldProjectState.AddDocuments(newDocumentStates), newDocumentStates));
 
