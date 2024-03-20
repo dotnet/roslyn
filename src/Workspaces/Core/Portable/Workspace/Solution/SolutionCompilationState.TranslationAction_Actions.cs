@@ -138,7 +138,7 @@ internal partial class SolutionCompilationState
             public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {
                 // Parallel parse the documents we have in chunks.
-                using var _ = ArrayBuilder<Task<SyntaxTree>>.GetInstance(out var tasks);
+                using var _ = ArrayBuilder<Task<SyntaxTree>>.GetInstance(AddDocumentsBatchSize, out var tasks);
                 var currentCompilation = oldCompilation;
                 foreach (var chunk in this.Documents.Chunk(AddDocumentsBatchSize))
                 {
