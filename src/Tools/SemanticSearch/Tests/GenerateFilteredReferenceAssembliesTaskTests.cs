@@ -2,18 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Linq;
 using System.Collections.Generic;
-using Roslyn.Test.Utilities;
-using Xunit;
-using Microsoft.CodeAnalysis.Test.Utilities;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
-using System.Collections.Immutable;
-using System.Text.RegularExpressions;
-using System.IO;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Tools.UnitTests;
 
@@ -112,15 +110,15 @@ public sealed class GenerateFilteredReferenceAssembliesTaskTests : CSharpTestBas
             """);
 
         var dir = Temp.CreateDirectory();
-        var lib = dir.CreateFile("lib.dll").WriteAllBytes(libSource.EmitToArray(new EmitOptions(metadataOnly: true)));
+        var libImage = libSource.EmitToArray(new EmitOptions(metadataOnly: true)).ToArray();
 
         var patterns = ImmutableArray.Create(
             new ApiPattern(SymbolKindFlags.NamedType, new Regex(@"M\.E.*"), IsIncluded: true),
             new ApiPattern(SymbolKindFlags.NamedType, new Regex(@"M\.E`1"), IsIncluded: false));
 
-        GenerateFilteredReferenceAssembliesTask.Rewrite(lib.Path, patterns);
+        GenerateFilteredReferenceAssembliesTask.Rewrite(libImage, patterns);
 
-        var libRef = MetadataReference.CreateFromFile(lib.Path);
+        var libRef = MetadataReference.CreateFromImage(libImage);
 
         var c = CreateCompilation("""
             N.C.D d = null;
@@ -157,15 +155,15 @@ public sealed class GenerateFilteredReferenceAssembliesTaskTests : CSharpTestBas
             """);
 
         var dir = Temp.CreateDirectory();
-        var lib = dir.CreateFile("lib.dll").WriteAllBytes(libSource.EmitToArray(new EmitOptions(metadataOnly: true)));
+        var libImage = libSource.EmitToArray(new EmitOptions(metadataOnly: true)).ToArray();
 
         var patterns = ImmutableArray.Create(
             new ApiPattern(SymbolKindFlags.NamedType, new Regex(@".*"), IsIncluded: true),
             new ApiPattern(SymbolKindFlags.Method, new Regex(@"I.M1"), IsIncluded: false));
 
-        GenerateFilteredReferenceAssembliesTask.Rewrite(lib.Path, patterns);
+        GenerateFilteredReferenceAssembliesTask.Rewrite(libImage, patterns);
 
-        var libRef = MetadataReference.CreateFromFile(lib.Path);
+        var libRef = MetadataReference.CreateFromImage(libImage);
 
         var c = CreateCompilation("""
             I i = new C();
@@ -197,7 +195,7 @@ public sealed class GenerateFilteredReferenceAssembliesTaskTests : CSharpTestBas
             """);
 
         var dir = Temp.CreateDirectory();
-        var lib = dir.CreateFile("lib.dll").WriteAllBytes(libSource.EmitToArray(new EmitOptions(metadataOnly: true)));
+        var libImage = libSource.EmitToArray(new EmitOptions(metadataOnly: true)).ToArray();
 
         var patterns = ImmutableArray.Create(
             new ApiPattern(SymbolKindFlags.NamedType, new Regex(@".*"), IsIncluded: true),
@@ -205,9 +203,9 @@ public sealed class GenerateFilteredReferenceAssembliesTaskTests : CSharpTestBas
             new ApiPattern(SymbolKindFlags.Method, new Regex(@"C\.set_.*"), IsIncluded: false),
             new ApiPattern(SymbolKindFlags.Method, new Regex(@"C\.get_P2"), IsIncluded: true));
 
-        GenerateFilteredReferenceAssembliesTask.Rewrite(lib.Path, patterns);
+        GenerateFilteredReferenceAssembliesTask.Rewrite(libImage, patterns);
 
-        var libRef = MetadataReference.CreateFromFile(lib.Path);
+        var libRef = MetadataReference.CreateFromImage(libImage);
 
         var c = CreateCompilation("""
             var d = new D();
