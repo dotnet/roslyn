@@ -142,6 +142,7 @@ internal partial class SolutionCompilationState
                 using var _ = ArrayBuilder<Task<SyntaxTree>>.GetInstance(AddDocumentsBatchSize, out var tasks);
                 var currentCompilation = oldCompilation;
 
+                // Can simplify this to use span-slicing once the language supports using ref-structs in async methods.
                 for (int batchStart = 0, total = this.Documents.Length; batchStart < total; batchStart += AddDocumentsBatchSize)
                 {
                     tasks.Clear();
