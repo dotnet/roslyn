@@ -37,7 +37,6 @@ internal sealed partial class EventHookupSessionManager
     internal class EventHookupSession
     {
         private readonly IThreadingContext _threadingContext;
-        private readonly ITrackingPoint _trackingPoint;
         private readonly ITrackingSpan _trackingSpan;
         private readonly ITextView _textView;
         private readonly ITextBuffer _subjectBuffer;
@@ -50,15 +49,6 @@ internal sealed partial class EventHookupSessionManager
 
         private Task<string?>? _eventNameTask;
         private CancellationTokenSource? _cancellationTokenSource;
-
-        public ITrackingPoint TrackingPoint
-        {
-            get
-            {
-                _threadingContext.ThrowIfNotOnUIThread();
-                return _trackingPoint;
-            }
-        }
 
         public ITrackingSpan TrackingSpan
         {
@@ -114,11 +104,9 @@ internal sealed partial class EventHookupSessionManager
             _globalOptions = globalOptions;
             this.TESTSessionHookupMutex = testSessionHookupMutex;
 
-            _trackingPoint = textView.TextSnapshot.CreateTrackingPoint(position, PointTrackingMode.Negative);
-
             // If the caret is at the end of the document we just create an empty span
-            var length = textView.TextSnapshot.Length > position + 1 ? 1 : 0;
-            _trackingSpan = textView.TextSnapshot.CreateTrackingSpan(new Span(position, length), SpanTrackingMode.EdgeInclusive);
+            var length = subjectBuffer.CurrentSnapshot.Length > position + 1 ? 1 : 0;
+            _trackingSpan = subjectBuffer.CurrentSnapshot.CreateTrackingSpan(new Span(position, length), SpanTrackingMode.EdgeInclusive);
 
             var asyncToken = asyncListener.BeginAsyncOperation(GetType().Name + ".Start");
 
