@@ -142,14 +142,13 @@ internal partial class SolutionCompilationState
                 using var _ = ArrayBuilder<Task<SyntaxTree>>.GetInstance(AddDocumentsBatchSize, out var tasks);
                 var currentCompilation = oldCompilation;
 
-                for (int i = 0, n = this.Documents.Length; i < n; i += AddDocumentsBatchSize)
+                for (int batchStart = 0, total = this.Documents.Length; batchStart < total; batchStart += AddDocumentsBatchSize)
                 {
                     tasks.Clear();
 
-                    var batchEnd = Math.Min(i + AddDocumentsBatchSize, n);
-                    for (var j = i; j < batchEnd; j++)
+                    for (int i = batchStart, batchEnd = Math.Min(batchStart + AddDocumentsBatchSize, total); i < batchEnd; i++)
                     {
-                        var document = this.Documents[j];
+                        var document = this.Documents[i];
                         tasks.Add(Task.Run(async () => await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken));
                     }
 
