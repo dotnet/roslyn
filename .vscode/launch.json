@@ -63,42 +63,6 @@
       "console": "internalConsole"
     },
     {
-      "name": "Launch RunTests.dll",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/artifacts/bin/RunTests/Debug/net7.0/RunTests.dll",
-      "args": ["--runtime", "both", "--artifactspath", "${workspaceFolder}/artifacts/testPayload/artifacts"],
-      "cwd": "${workspaceFolder}/artifacts/bin/RunTests",
-      "stopAtEntry": false,
-      "console": "internalConsole"
-    },
-    {
-      "name": "Launch RunTests.dll",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/artifacts/bin/RunTests/Debug/net7.0/RunTests.dll",
-      "args": ["--runtime", "both", "--artifactspath", "${workspaceFolder}/artifacts/testPayload/artifacts"],
-      "cwd": "${workspaceFolder}/artifacts/bin/RunTests",
-      "stopAtEntry": false,
-      "console": "internalConsole"
-    },
-    {
-      "name": "Launch RunTests.dll",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/artifacts/bin/RunTests/Debug/net7.0/RunTests.dll",
-      "args": ["--runtime", "both", "--artifactspath", "${workspaceFolder}/artifacts/testPayload/artifacts"],
-      "cwd": "${workspaceFolder}/artifacts/bin/RunTests",
-      "stopAtEntry": false,
-      "console": "internalConsole"
-    },
-    {
       "name": ".NET Core Launch (console)",
       "type": "coreclr",
       "request": "launch",
