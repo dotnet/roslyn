@@ -38,6 +38,8 @@ Microsoft.CodeAnalysis.ExternalAccess.Xaml.IResolveCachedDataService
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.IResolveCachedDataService.FromResolveData(object? resolveData) -> (object? data, System.Uri? uri)
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.IResolveCachedDataService.ToResolveData(object! data, System.Uri! uri) -> object!
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.IXamlRequestHandler<TRequest, TResponse>
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.IXamlRequestHandler<TRequest, TResponse>.HandleRequestAsync(TRequest request, Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResponse>!
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.IXamlRequestHandler<TRequest, TResponse>.MutatesSolutionState.get -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.LocationService
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.LocationService.GetLocationAsync(Microsoft.CodeAnalysis.TextDocument! document, Microsoft.CodeAnalysis.Text.TextSpan textSpan, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.FileLinePositionSpan?>!
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.LocationService.GetSymbolLocationsAsync(Microsoft.CodeAnalysis.ISymbol! symbol, Microsoft.CodeAnalysis.Project! project, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.FileLinePositionSpan[]!>!
