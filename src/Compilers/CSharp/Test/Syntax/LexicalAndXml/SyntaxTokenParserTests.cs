@@ -34,30 +34,29 @@ public class SyntaxTokenParserTests
             """);
 
         var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
-        AssertEx.Equal("""
+
+        AssertToken(SyntaxKind.ClassKeyword, SyntaxKind.None, """
             // Hello world
             class 
-            """, parser.ParseNextToken().Token.ToFullString());
-        AssertEx.Equal("""
+            """, parser.ParseNextToken());
+
+        AssertToken(SyntaxKind.IdentifierToken, SyntaxKind.None, """
             C
 
-            """, parser.ParseNextToken().Token.ToFullString());
+            """, parser.ParseNextToken());
 
-        AssertEx.Equal("""
+        AssertToken(SyntaxKind.OpenBraceToken, SyntaxKind.None, """
             {
 
-            """, parser.ParseNextToken().Token.ToFullString());
+            """, parser.ParseNextToken());
 
-        AssertEx.Equal("""
+        AssertToken(SyntaxKind.CloseBraceToken, SyntaxKind.None, """
 
             }
-            """, parser.ParseNextToken().Token.ToFullString());
+            """, parser.ParseNextToken());
 
-        var eofToken = parser.ParseNextToken().Token;
-        Assert.Equal(SyntaxKind.EndOfFileToken, eofToken.Kind());
-        Assert.Equal(0, eofToken.FullWidth);
-
-        Assert.Equal(eofToken, parser.ParseNextToken().Token);
+        AssertToken(SyntaxKind.EndOfFileToken, SyntaxKind.None, "", parser.ParseNextToken());
+        AssertToken(SyntaxKind.EndOfFileToken, SyntaxKind.None, "", parser.ParseNextToken());
     }
 
     [Fact]
@@ -73,27 +72,30 @@ public class SyntaxTokenParserTests
             #endif
             """);
         var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
-        AssertEx.Equal("""
+
+        AssertToken(SyntaxKind.ClassKeyword, SyntaxKind.None, """
             #if true
             class 
-            """, parser.ParseNextToken().Token.ToFullString());
-        AssertEx.Equal("""
+            """, parser.ParseNextToken());
+
+        AssertToken(SyntaxKind.IdentifierToken, SyntaxKind.None, """
             C
 
-            """, parser.ParseNextToken().Token.ToFullString());
-        AssertEx.Equal("""
+            """, parser.ParseNextToken());
+
+        AssertToken(SyntaxKind.OpenBraceToken, SyntaxKind.None, """
             {
 
-            """, parser.ParseNextToken().Token.ToFullString());
+            """, parser.ParseNextToken());
 
-        var eofToken = parser.ParseNextToken().Token;
-        Assert.Equal(SyntaxKind.EndOfFileToken, eofToken.Kind());
-        AssertEx.Equal("""
+        AssertToken(SyntaxKind.EndOfFileToken, SyntaxKind.None, """
 
             #else
             }
             #endif
-            """, eofToken.ToFullString());
+            """, parser.ParseNextToken());
+
+        AssertToken(SyntaxKind.EndOfFileToken, SyntaxKind.None, "", parser.ParseNextToken());
     }
 
     [Fact]
@@ -109,24 +111,25 @@ public class SyntaxTokenParserTests
             }
             """);
         var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
+
         parser.SkipForwardTo(16);
 
-        AssertEx.Equal("""
+        AssertToken(SyntaxKind.ClassKeyword, SyntaxKind.None, """
             // Hello world
             class 
-            """, parser.ParseNextToken().Token.ToFullString());
+            """, parser.ParseNextToken());
 
-        parser.SkipForwardTo(23);
+        parser.SkipForwardTo(39);
 
-        AssertEx.Equal("""
+        AssertToken(SyntaxKind.OpenBraceToken, SyntaxKind.None, """
             {
 
-            """, parser.ParseNextToken().Token.ToFullString());
+            """, parser.ParseNextToken());
 
-        AssertEx.Equal("""
+        AssertToken(SyntaxKind.CloseBraceToken, SyntaxKind.None, """
 
             }
-            """, parser.ParseNextToken().Token.ToFullString());
+            """, parser.ParseNextToken());
     }
 
     [Fact]
@@ -136,7 +139,7 @@ public class SyntaxTokenParserTests
         var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
         parser.SkipForwardTo(1);
 
-        AssertEx.Equal("""lass""", parser.ParseNextToken().Token.ToFullString());
+        AssertToken(SyntaxKind.IdentifierToken, SyntaxKind.None, """lass""", parser.ParseNextToken());
     }
 
     [Fact]
@@ -152,38 +155,39 @@ public class SyntaxTokenParserTests
             #endif
             """);
         var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
-        AssertEx.Equal("""
+
+        AssertToken(SyntaxKind.ClassKeyword, SyntaxKind.None, """
             #if true
             class 
-            """, parser.ParseNextToken().Token.ToFullString());
+            """, parser.ParseNextToken());
 
         SyntaxTokenParser.Result cTokenResult = parser.ParseNextToken();
-        AssertEx.Equal("""
+        AssertToken(SyntaxKind.IdentifierToken, SyntaxKind.None, """
             C
 
-            """, cTokenResult.Token.ToFullString());
+            """, cTokenResult);
 
         verifyAfterC(parser);
+
         parser.ResetTo(cTokenResult);
+
         Assert.Equal(cTokenResult, parser.ParseNextToken());
 
         verifyAfterC(parser);
 
         static void verifyAfterC(SyntaxTokenParser parser)
         {
-            AssertEx.Equal("""
-            {
+            AssertToken(SyntaxKind.OpenBraceToken, SyntaxKind.None, """
+                {
 
-            """, parser.ParseNextToken().Token.ToFullString());
+                """, parser.ParseNextToken());
 
-            var eofToken = parser.ParseNextToken().Token;
-            Assert.Equal(SyntaxKind.EndOfFileToken, eofToken.Kind());
-            AssertEx.Equal("""
+            AssertToken(SyntaxKind.EndOfFileToken, SyntaxKind.None, """
 
-            #else
-            }
-            #endif
-            """, eofToken.ToFullString());
+                #else
+                }
+                #endif
+                """, parser.ParseNextToken());
         }
     }
 
@@ -193,15 +197,15 @@ public class SyntaxTokenParserTests
         var sourceText = SourceText.From("when identifier class");
         var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
 
-        validateKinds(parsedKind: SyntaxKind.IdentifierToken, contextualKind: SyntaxKind.WhenKeyword);
-        validateKinds(parsedKind: SyntaxKind.IdentifierToken, contextualKind: SyntaxKind.None);
-        validateKinds(parsedKind: SyntaxKind.ClassKeyword, contextualKind: SyntaxKind.None);
+        AssertToken(SyntaxKind.IdentifierToken, SyntaxKind.WhenKeyword, "when ", parser.ParseNextToken());
+        AssertToken(SyntaxKind.IdentifierToken, SyntaxKind.None, "identifier ", parser.ParseNextToken());
+        AssertToken(SyntaxKind.ClassKeyword, SyntaxKind.None, "class", parser.ParseNextToken());
+    }
 
-        void validateKinds(SyntaxKind parsedKind, SyntaxKind contextualKind)
-        {
-            var result = parser.ParseNextToken();
-            Assert.Equal(parsedKind, result.Token.Kind());
-            Assert.Equal(contextualKind, result.ContextualKind);
-        }
+    private static void AssertToken(SyntaxKind expectedKind, SyntaxKind expectedContextualKind, string expectedText, SyntaxTokenParser.Result result)
+    {
+        Assert.Equal(expectedKind, result.Token.Kind());
+        Assert.Equal(expectedContextualKind, result.ContextualKind);
+        AssertEx.Equal(expectedText, result.Token.ToFullString());
     }
 }
