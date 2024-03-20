@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>01a9f592-43bd-4b0d-949b-06dfa1a79599</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Shared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Rpc\DiagnosticLogItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Rpc\DocumentFileInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Rpc\JsonSettings.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Rpc\Request.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Rpc\Response.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\MonoMSBuildDiscovery.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Rpc\PackageReference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Rpc\ProjectFileInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Rpc\ProjectFileReference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\TextReaderExtensions.cs" />
+  </ItemGroup>
+</Project>

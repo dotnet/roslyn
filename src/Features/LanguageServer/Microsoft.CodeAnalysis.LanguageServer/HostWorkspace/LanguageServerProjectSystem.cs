@@ -94,17 +94,11 @@ internal sealed class LanguageServerProjectSystem
             _logger.LogInformation(string.Format(LanguageServerResources.Loading_0, solutionFilePath));
             _workspaceFactory.ProjectSystemProjectFactory.SolutionPath = solutionFilePath;
 
-            // We'll load solutions out-of-proc, since it's possible we might be running on a runtime that doesn't have a matching SDK installed,
-            // and we don't want any MSBuild registration to set environment variables in our process that might impact child processes.
+            // We'll load solutions out-of-proc, since it's possible we might be running on a runtime that doesn't have a matching SDK installed and
+            // we aren't deploying MSBuild with our server. We wouldn't want to use MSBuildLocator anyways in case that sets environment variables that
+            // cause problems for child processes.
             await using var buildHostProcessManager = new BuildHostProcessManager(loggerFactory: _loggerFactory);
-            var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
-
-            // If we don't have a .NET Core SDK on this machine at all, try .NET Framework
-            if (!await buildHost.HasUsableMSBuildAsync(solutionFilePath, CancellationToken.None))
-            {
-                var kind = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? BuildHostProcessKind.NetFramework : BuildHostProcessKind.Mono;
-                buildHost = await buildHostProcessManager.GetBuildHostAsync(kind, CancellationToken.None);
-            }
+            var (buildHost, _) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(GetKindForCurrentProcess(), solutionFilePath, CancellationToken.None);
 
             foreach (var project in await buildHost.GetProjectsInSolutionAsync(solutionFilePath, CancellationToken.None))
             {
