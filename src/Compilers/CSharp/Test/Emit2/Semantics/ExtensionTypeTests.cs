@@ -29777,6 +29777,37 @@ implicit extension E<T> for I<T>
     }
 
     [Fact]
+    public void PreferMoreSpecific_Static_MethodAndMethod_OnInterface_TwoSubstitutions_Invocation_Generic()
+    {
+        var src = """
+C.M<int>();
+
+interface I<T> { }
+class C : I<int>, I<string> { }
+
+implicit extension E<T> for I<T>
+{
+    public static void M<U>() { }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,3): error CS0121: The call is ambiguous between the following methods or properties: 'E<string>.M<int>()' and 'E<int>.M<int>()'
+            // C.M<int>();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M<int>").WithArguments("E<string>.M<int>()", "E<int>.M<int>()").WithLocation(1, 3));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M<int>");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+
+        Assert.Equal(["void E<System.String>.M<System.Int32>()", "void E<System.Int32>.M<System.Int32>()"],
+            model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
     public void AmbiguousCallOnInterface()
     {
         var src = """
@@ -29794,6 +29825,26 @@ interface I2 : I<int>, I<string> { }
             // (1,4): error CS0121: The call is ambiguous between the following methods or properties: 'I<T>.M()' and 'I<T>.M()'
             // I2.M();
             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("I<T>.M()", "I<T>.M()").WithLocation(1, 4));
+    }
+
+    [Fact]
+    public void AmbiguousCallOnInterface_Generic()
+    {
+        var src = """
+I2.M<int>();
+
+interface I<T>
+{
+    public static void M<U>() { }
+}
+
+interface I2 : I<int>, I<string> { }
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyDiagnostics(
+            // (1,4): error CS0121: The call is ambiguous between the following methods or properties: 'I<T>.M<U>()' and 'I<T>.M<U>()'
+            // I2.M<int>();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M<int>").WithArguments("I<T>.M<U>()", "I<T>.M<U>()").WithLocation(1, 4));
     }
 
     [Fact]
