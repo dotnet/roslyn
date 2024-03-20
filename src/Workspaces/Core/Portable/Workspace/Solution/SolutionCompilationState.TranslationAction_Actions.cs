@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -140,12 +141,17 @@ internal partial class SolutionCompilationState
                 // Parallel parse the documents we have in chunks.
                 using var _ = ArrayBuilder<Task<SyntaxTree>>.GetInstance(AddDocumentsBatchSize, out var tasks);
                 var currentCompilation = oldCompilation;
-                foreach (var chunk in this.Documents.Chunk(AddDocumentsBatchSize))
+
+                for (int i = 0, n = this.Documents.Length; i < n; i += AddDocumentsBatchSize)
                 {
                     tasks.Clear();
 
-                    foreach (var document in chunk)
+                    var batchEnd = Math.Min(i + AddDocumentsBatchSize, n);
+                    for (var j = i; j < batchEnd; j++)
+                    {
+                        var document = this.Documents[j];
                         tasks.Add(Task.Run(async () => await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken));
+                    }
 
                     var trees = await Task.WhenAll(tasks).ConfigureAwait(false);
                     currentCompilation = currentCompilation.AddSyntaxTrees(trees);
