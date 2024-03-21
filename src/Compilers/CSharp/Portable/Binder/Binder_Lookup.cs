@@ -4,10 +4,10 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -193,6 +193,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             getCompatibleExtensions(this, type, compatibleExtensions, originalBinder, basesBeingResolved);
+
+            // Sort extensions from more specific to less specific
+            var tempUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
+            compatibleExtensions.Sort((x, y) => isMoreSpecificExtension(x, y) ? -1 : 1); // Note: captures tempUseSiteInfo
+            useSiteInfo.MergeAndClear(ref tempUseSiteInfo);
+
             // PROTOTYPE test use-site diagnostics
             var tempResult = LookupResult.GetInstance();
             foreach (NamedTypeSymbol extension in compatibleExtensions)
@@ -202,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LookupMembersInExtension(tempResult, extension, name, arity, basesBeingResolved,
                     options, originalBinder, diagnose: false, ref useSiteInfo);
 
-                MergeHidingLookupResults(result, tempResult, basesBeingResolved, ref useSiteInfo);
+                MergeExtensionLookupResultsHidingLessSpecific(result, tempResult, basesBeingResolved, ref useSiteInfo);
                 tempResult.Clear();
             }
 
@@ -222,23 +228,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    if (isCompatible(extension, type, out NamedTypeSymbol? substitutedExtension))
-                    {
-                        // PROTOTYPE should we deal with duplicate or near-duplicate extensions here instead of in merging/hiding logic?
-                        compatibleExtensions.Add(substitutedExtension);
-                    }
+                    addSubstitutedIfCompatible(extension, type, compatibleExtensions);
                 }
 
                 extensions.Free();
             }
 
-            static bool isCompatible(NamedTypeSymbol extension, TypeSymbol type, [NotNullWhen(true)] out NamedTypeSymbol? substitutedExtension)
+            static void addSubstitutedIfCompatible(NamedTypeSymbol extension, TypeSymbol type, ArrayBuilder<NamedTypeSymbol> compatibleExtensions)
             {
                 Debug.Assert(!type.IsExtension);
                 if (extension.ExtendedTypeNoUseSiteDiagnostics is null)
                 {
-                    substitutedExtension = null;
-                    return false;
+                    return;
                 }
 
                 var baseType = type;
@@ -246,8 +247,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (TypeUnification.CanImplicitlyExtend(extension, baseType, out AbstractTypeParameterMap? map))
                     {
-                        substitutedExtension = map is not null ? (NamedTypeSymbol)map.SubstituteType(extension).Type : extension;
-                        return true;
+                        var substitutedExtension = map is not null ? (NamedTypeSymbol)map.SubstituteType(extension).Type : extension;
+                        compatibleExtensions.Add(substitutedExtension);
+                        break;
                     }
 
                     baseType = baseType.BaseTypeNoUseSiteDiagnostics;
@@ -258,13 +260,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (TypeUnification.CanImplicitlyExtend(extension, implementedInterface, out AbstractTypeParameterMap? map))
                     {
-                        substitutedExtension = map is not null ? (NamedTypeSymbol)map.SubstituteType(extension).Type : extension;
-                        return true;
+                        var substitutedExtension = map is not null ? (NamedTypeSymbol)map.SubstituteType(extension).Type : extension;
+                        compatibleExtensions.Add(substitutedExtension);
                     }
                 }
+            }
 
-                substitutedExtension = null;
-                return false;
+            bool isMoreSpecificExtension(NamedTypeSymbol extension, NamedTypeSymbol other)
+            {
+                if (extension.ExtendedTypeNoUseSiteDiagnostics is not { } extendedType
+                    || other.ExtendedTypeNoUseSiteDiagnostics is not { } otherExtendedType)
+                {
+                    // We wouldn't have gathered these members if we didn't have an extended type for them.
+                    throw ExceptionUtilities.Unreachable();
+                }
+
+                if (extendedType.Equals(otherExtendedType, TypeCompareKind.AllIgnoreOptions))
+                {
+                    return false;
+                }
+
+                // PROTOTYPE(static) revise if we allow extension lookup on type parameters
+                Debug.Assert(!extendedType.IsTypeParameter());
+                Debug.Assert(!otherExtendedType.IsTypeParameter());
+                return DerivesOrImplements(baseTypeOrImplementedInterface: otherExtendedType, derivedType: extendedType, null, this.Compilation, ref tempUseSiteInfo);
             }
         }
 #nullable disable
@@ -1373,15 +1392,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupMembersInBasesWithoutInheritance(current, typeParameter.AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo), name, arity, basesBeingResolved: null, options, originalBinder, typeParameter, diagnose, ref useSiteInfo);
         }
 
-        private static bool IsDerivedType(NamedTypeSymbol baseType, NamedTypeSymbol derivedType, ConsList<TypeSymbol> basesBeingResolved, CSharpCompilation compilation, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal static bool DerivesOrImplements(TypeSymbol baseTypeOrImplementedInterface, TypeSymbol derivedType, ConsList<TypeSymbol> basesBeingResolved, CSharpCompilation compilation, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            Debug.Assert(!TypeSymbol.Equals(baseType, derivedType, TypeCompareKind.ConsiderEverything2));
+            Debug.Assert(!TypeSymbol.Equals(baseTypeOrImplementedInterface, derivedType, TypeCompareKind.AllIgnoreOptions));
+
+            if (baseTypeOrImplementedInterface is NamedTypeSymbol { IsInterface: true })
+            {
+                if (derivedType is NamedTypeSymbol derivedNamedType)
+                {
+                    foreach (var baseInterface in GetBaseInterfaces(derivedNamedType, basesBeingResolved, ref useSiteInfo))
+                    {
+                        if (baseInterface.Equals(baseTypeOrImplementedInterface, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
 
             if (basesBeingResolved?.Any() != true)
             {
                 for (NamedTypeSymbol b = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo); (object)b != null; b = b.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
                 {
-                    if (TypeSymbol.Equals(b, baseType, TypeCompareKind.ConsiderEverything2)) return true;
+                    if (TypeSymbol.Equals(b, baseTypeOrImplementedInterface, TypeCompareKind.AllIgnoreOptions)) return true;
                 }
             }
             else
@@ -1394,7 +1429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     b.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
 
-                    if (TypeSymbol.Equals(b, baseType, TypeCompareKind.ConsiderEverything2))
+                    if (TypeSymbol.Equals(b, baseTypeOrImplementedInterface, TypeCompareKind.AllIgnoreOptions))
                     {
                         visited?.Free();
                         return true;
@@ -1402,11 +1437,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 visited?.Free();
-            }
-
-            if (baseType.IsInterface)
-            {
-                return GetBaseInterfaces(derivedType, basesBeingResolved, ref useSiteInfo).Contains(baseType);
             }
 
             return false;
@@ -1437,14 +1467,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var hidingSym = hidingSymbols[j];
                         var hidingContainer = hidingSym.ContainingType;
 
-                        if (hidingContainer.IsInterface || hidingContainer.IsExtension)
+                        if (hidingContainer.IsInterface)
                         {
+                            if (hiddenContainer.Equals(hidingContainer, TypeCompareKind.AllIgnoreOptions))
+                            {
+                                Debug.Assert(!hiddenContainer.Equals(hidingContainer, TypeCompareKind.ConsiderEverything));
+                                continue; // in error scenarios with multiple members differing by ignorable differences, we'll let an ambiguity error be reported later
+                            }
+
                             // SPEC: For the purposes of member lookup [...] if T is an
                             // SPEC: interface type, the base types of T are the base interfaces
                             // SPEC: of T and the class type object. 
-
-                            if (!IsDerivedType(baseType: hiddenContainer, derivedType: hidingContainer, basesBeingResolved, this.Compilation, useSiteInfo: ref useSiteInfo) &&
-                                !extendedTypeIsOrDerivedFrom(hiddenContainer, hidingContainer, basesBeingResolved, this.Compilation, ref useSiteInfo) &&
+                            if (!DerivesOrImplements(baseTypeOrImplementedInterface: hiddenContainer, derivedType: hidingContainer, basesBeingResolved, this.Compilation, useSiteInfo: ref useSiteInfo) &&
                                 hiddenContainer.SpecialType != SpecialType.System_Object)
                             {
                                 continue; // not in inheritance relationship, so it cannot hide
@@ -1469,30 +1503,62 @@ symIsHidden:;
             {
                 resultHiding.MergePrioritized(resultHidden);
             }
+        }
 
-            return;
+        // Merge extension members based on their extended type, so that more specific extension members "hide" less specific ones.
+        // This method should be called in order (from most specific extension results to least specific).
+        private void MergeExtensionLookupResultsHidingLessSpecific(LookupResult resultHiding, LookupResult resultHidden, ConsList<TypeSymbol> basesBeingResolved, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            // Methods hide non-methods, non-methods hide everything.
 
-            // Checks whether we have an extension type whose extended type is or is derived from the hidden container.
-            static bool extendedTypeIsOrDerivedFrom(NamedTypeSymbol hiddenContainer, NamedTypeSymbol hidingContainer, ConsList<TypeSymbol> basesBeingResolved, CSharpCompilation compilation, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            if (!resultHiding.IsMultiViable || !resultHidden.IsMultiViable)
             {
-                if (!hidingContainer.IsExtension)
-                {
-                    return false;
-                }
-
-                var extendedType = hidingContainer.ExtendedTypeNoUseSiteDiagnostics;
-                if (hiddenContainer.Equals(extendedType, TypeCompareKind.AllIgnoreOptions))
-                {
-                    return true;
-                }
-
-                if (extendedType is NamedTypeSymbol extendedNamedTypeSymbol)
-                {
-                    return IsDerivedType(baseType: hiddenContainer, derivedType: extendedNamedTypeSymbol, basesBeingResolved, compilation, useSiteInfo: ref useSiteInfo);
-                }
-
-                return false;
+                resultHiding.MergePrioritized(resultHidden);
+                return;
             }
+
+            // Check if resultHiding has any non-methods. If so, it hides everything in resultHidden.
+            var hidingSymbols = resultHiding.Symbols;
+            var hidingCount = hidingSymbols.Count;
+            var hiddenSymbols = resultHidden.Symbols;
+            var hiddenCount = hiddenSymbols.Count;
+            for (int i = 0; i < hiddenCount; i++)
+            {
+                var sym = hiddenSymbols[i];
+
+                if (sym.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } symExtendedType)
+                {
+                    // We wouldn't have gathered these members if we didn't have an extended type for them.
+                    throw ExceptionUtilities.Unreachable();
+                }
+
+                // see if sym is hidden
+                for (int j = 0; j < hidingCount; j++)
+                {
+                    var hidingSym = hidingSymbols[j];
+
+                    if (hidingSym.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } hidingSymExtendedType)
+                    {
+                        // We wouldn't have gathered these members if we didn't have an extended type for them.
+                        throw ExceptionUtilities.Unreachable();
+                    }
+
+                    if (!symExtendedType.Equals(hidingSymExtendedType, TypeCompareKind.AllIgnoreOptions)
+                        && DerivesOrImplements(symExtendedType, derivedType: hidingSymExtendedType, basesBeingResolved, Compilation, ref useSiteInfo))
+                    {
+                        if (!IsMethodOrIndexer(hidingSym) || !IsMethodOrIndexer(sym))
+                        {
+                            // any non-method [non-indexer] hides everything in the hiding scope
+                            // any method [indexer] hides non-methods [non-indexers].
+                            goto symIsHidden;
+                        }
+                    }
+                }
+
+                hidingSymbols.Add(sym); // not hidden
+symIsHidden:;
+            }
+            return;
         }
 
         /// <summary>

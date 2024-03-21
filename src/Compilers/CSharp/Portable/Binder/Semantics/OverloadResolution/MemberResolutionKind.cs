@@ -135,7 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// The candidate member was rejected because another member further down in the inheritance hierarchy was
-        /// present.
+        /// present. In the case of extension type members, this means that the candidate member was rejected because
+        /// a more specific extension type member was present.
         /// </summary>
         LessDerived,
 

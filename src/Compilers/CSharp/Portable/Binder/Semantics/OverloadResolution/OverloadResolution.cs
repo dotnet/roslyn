@@ -304,6 +304,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RemoveLessDerivedMembers(results, ref useSiteInfo);
             }
 
+            // PROTOTYPE(instance) The preference for more specific extension members should also apply to classic extension methods (without affecting back compat, somehow).
+            RemoveLessSpecificExtensionMembers(results, ref useSiteInfo);
+
             if (Compilation.LanguageVersion.AllowImprovedOverloadCandidates())
             {
                 RemoveStaticInstanceMismatches(results, arguments, receiver);
@@ -1305,6 +1308,28 @@ outerDefault:
             }
         }
 
+        private void RemoveLessSpecificExtensionMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            where TMember : Symbol
+        {
+            for (int i = 0; i < results.Count; ++i)
+            {
+                var result = results[i];
+
+                if (result.Result.IsValid || result.HasUseSiteDiagnosticToReport)
+                {
+                    if (result.Member.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } extendedType)
+                    {
+                        continue;
+                    }
+
+                    if (IsLessSpecificThanAnyExtensionMember(index: i, extendedType, results, ref useSiteInfo))
+                    {
+                        results[i] = result.WithResult(MemberAnalysisResult.LessDerived());
+                    }
+                }
+            }
+        }
+
         // Is this type a base type (or base type of an extended type) of the containing type of any valid method on the list?
         private static bool IsLessDerivedThanAny<TMember>(int index, TypeSymbol type, ArrayBuilder<MemberResolutionResult<TMember>> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             where TMember : Symbol
@@ -1396,6 +1421,41 @@ outerDefault:
 
                 return false;
             }
+        }
+
+        private bool IsLessSpecificThanAnyExtensionMember<TMember>(int index, TypeSymbol extendedType, ArrayBuilder<MemberResolutionResult<TMember>> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            where TMember : Symbol
+        {
+            for (int j = 0; j < results.Count; ++j)
+            {
+                if (j == index)
+                {
+                    continue;
+                }
+
+                var result = results[j];
+
+                if (!result.Result.IsValid)
+                {
+                    continue;
+                }
+
+                if (result.Member.ContainingType.ExtendedTypeNoUseSiteDiagnostics is not { } currentExtendedType)
+                {
+                    continue;
+                }
+
+                // PROTOTYPE(static) revise if we allow extension lookup on type parameters
+                Debug.Assert(!extendedType.IsTypeParameter());
+                Debug.Assert(!currentExtendedType.IsTypeParameter());
+                if (!extendedType.Equals(currentExtendedType, TypeCompareKind.AllIgnoreOptions)
+                    && Binder.DerivesOrImplements(extendedType, derivedType: currentExtendedType, basesBeingResolved: null, this.Compilation, ref useSiteInfo))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static void RemoveAllInterfaceMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results)

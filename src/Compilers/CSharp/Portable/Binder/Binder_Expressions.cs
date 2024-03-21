@@ -7800,7 +7800,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return extensionResult;
                     }
 
-                    // PROTOTYPE we'll want to revisit to merge extension methods and methods from extension types within the same scope
+                    // PROTOTYPE(instance) we'll want to revisit to merge extension methods and methods from extension types within the same scope
+
                     // If the search in the current scope resulted in any applicable method from an extension type
                     // (regardless of whether a best applicable method could be determined) then our search is complete.
                     // Otherwise, store aside the first non-applicable result and continue searching for an applicable result.
@@ -7881,7 +7882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var members = ArrayBuilder<Symbol>.GetInstance();
-                Symbol symbol = binder.GetSymbolOrMethodOrPropertyGroup(lookupResult, expression, memberName, arity, members, diagnostics, wasError: out _, qualifierOpt: null);
+                Symbol? symbol = binder.GetSymbolOrMethodOrPropertyGroupStrict(lookupResult, expression, memberName, arity, members, diagnostics, qualifierOpt: null);
                 if (symbol is not null)
                 {
                     lookupResult.Free();
@@ -8471,6 +8472,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ResultSymbol(result, plainName, arity, node, diagnostics, false, out wasError, qualifierOpt);
         }
 
+#nullable enable
+        /// <summary>
+        /// Interprets a LookupResult as either a singular symbol or a method/property group.
+        /// It is "strict" in the sense that if the members in the result have different kinds,
+        /// an error result is always returned.
+        /// </summary>
+        private Symbol? GetSymbolOrMethodOrPropertyGroupStrict(LookupResult result, SyntaxNode node, string plainName, int arity,
+            ArrayBuilder<Symbol> methodOrPropertyGroup, BindingDiagnosticBag diagnostics, NamespaceOrTypeSymbol? qualifierOpt)
+        {
+            Debug.Assert(!methodOrPropertyGroup.Any());
+
+            node = GetNameSyntax(node) ?? node;
+
+            Debug.Assert(result.Kind != LookupResultKind.Empty);
+            Debug.Assert(!result.Symbols.Any(s => s.IsIndexer()));
+
+            SymbolKind kind = result.Symbols[0].Kind;
+            if (!result.Symbols.All(static (s, kind) => s.Kind == kind, kind))
+            {
+                // ambiguous
+                return ResultSymbol(result, plainName, arity, node, diagnostics, false, wasError: out _, qualifierOpt);
+            }
+
+            if (kind is SymbolKind.Method or SymbolKind.Property
+                && IsMethodOrPropertyGroup(result.Symbols))
+            {
+                methodOrPropertyGroup.AddRange(result.Symbols);
+                return null;
+            }
+
+            return ResultSymbol(result, plainName, arity, node, diagnostics, false, wasError: out _, qualifierOpt);
+        }
+#nullable disable
+
         private static bool IsMethodOrPropertyGroup(ArrayBuilder<Symbol> members)
         {
             Debug.Assert(members.Count > 0);
@@ -8845,7 +8880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.TypeParameter:
                     return BindIndexerAccess(node, expr, arguments, diagnostics);
 
-                // PROTOTYPE implement indexer access on receiver of extension type
+                // PROTOTYPE(instance) implement indexer access on receiver of extension type
                 case TypeKind.Submission: // script class is synthesized and should not be used as a type of an indexer expression:
                 default:
                     return BadIndexerExpression(node, expr, arguments, null, diagnostics);
@@ -10236,7 +10271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    // PROTOTYPE we'll want to revisit to merge extension methods and methods from extension types within the same scope
+                    // PROTOTYPE(instance) we'll want to revisit to merge extension methods and methods from extension types within the same scope
                     if (foundMethod is not null)
                     {
                         methodGroup.Free();
