@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.TestSourceGenerator;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.TableControl;
-using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
