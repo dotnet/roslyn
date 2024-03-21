@@ -47,7 +47,7 @@
          https://github.com/dotnet/dotnet/blob/main/repo-projects/roslyn.proj. For definitions of the TargetRid
          and other common properties, see https://github.com/dotnet/arcade/blob/main/Documentation/UnifiedBuild/Unified-Build-Controls.md -->
     <RuntimeIdentifiers Condition="'$(TargetRid)' != ''">$(TargetRid)</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="'$(TargetRid)' == ''">win-x64;win-x86;win-arm64;linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="'$(TargetRid)' == ''">win-x64;win-arm64;linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
     <!-- Publish ready to run executables when we're publishing platform specific executables. -->
     <PublishReadyToRun Condition="'$(RuntimeIdentifier)' != '' AND '$(Configuration)' == 'Release' ">true</PublishReadyToRun>
   </PropertyGroup>
