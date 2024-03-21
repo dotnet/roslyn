@@ -9557,7 +9557,7 @@ done:;
             }
 
             var mods = _pool.Allocate();
-            this.ParseDeclarationModifiers(mods, isError: usingKeyword is not null);
+            this.ParseDeclarationModifiers(mods, isUsingDeclaration: usingKeyword is not null);
 
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             try
@@ -9810,7 +9810,7 @@ done:;
             }
         }
 
-        private void ParseDeclarationModifiers(SyntaxListBuilder list, bool isError)
+        private void ParseDeclarationModifiers(SyntaxListBuilder list, bool isUsingDeclaration)
         {
             SyntaxKind k;
             while (IsDeclarationModifier(k = this.CurrentToken.ContextualKind) || IsAdditionalLocalFunctionModifier(k))
@@ -9831,9 +9831,9 @@ done:;
                     mod = this.EatToken();
                 }
 
-                if (isError)
+                if (isUsingDeclaration)
                 {
-                    mod = this.AddError(mod, ErrorCode.ERR_TypeExpected);
+                    mod = this.AddError(mod, ErrorCode.ERR_NoModifiersOnUsing);
                 }
                 else if (k is SyntaxKind.ReadOnlyKeyword or SyntaxKind.VolatileKeyword)
                 {

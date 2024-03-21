@@ -1421,9 +1421,9 @@ class C
                 // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using const var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using const var obj = new object();").WithArguments("object").WithLocation(5, 9),
-                // (5,15): error CS1031: Type expected
+                // (5,15): error CS9218: Modifiers cannot be placed on resource declarations
                 //         using const var obj = new object();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(5, 15));
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(5, 15));
 
             source = """
 using const var obj = new object();
@@ -1433,9 +1433,9 @@ using const var obj = new object();
                 // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 // using const var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using const var obj = new object();").WithArguments("object").WithLocation(1, 1),
-                // (1,7): error CS1031: Type expected
+                // (1,7): error CS9218: Modifiers cannot be placed on resource declarations
                 // using const var obj = new object();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(1, 7));
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(1, 7));
 
             source = """
 using (const var obj2 = new object()) { }
@@ -1478,9 +1478,9 @@ await using const var obj = new object();
                 // (1,1): error CS8410: 'object': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 // await using const var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using const var obj = new object();").WithArguments("object").WithLocation(1, 1),
-                // (1,13): error CS1031: Type expected
+                // (1,13): error CS9218: Modifiers cannot be placed on resource declarations
                 // await using const var obj = new object();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(1, 13));
 
             source = """
 await using (const var obj = new object()) { }
@@ -1529,9 +1529,9 @@ class C
                 // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using readonly var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using readonly var obj = new object();").WithArguments("object").WithLocation(5, 9),
-                // (5,15): error CS1031: Type expected
+                // (5,15): error CS9218: Modifiers cannot be placed on resource declarations
                 //         using readonly var obj = new object();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "readonly").WithLocation(5, 15));
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(5, 15));
 
             source = """
 using readonly var obj = new object();
@@ -1541,9 +1541,9 @@ using readonly var obj = new object();
                 // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 // using readonly var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using readonly var obj = new object();").WithArguments("object").WithLocation(1, 1),
-                // (1,7): error CS1031: Type expected
+                // (1,7): error CS9218: Modifiers cannot be placed on resource declarations
                 // using readonly var obj = new object();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "readonly").WithLocation(1, 7));
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(1, 7));
 
             source = """
 using (readonly var obj2 = new object()) { }
@@ -1587,9 +1587,9 @@ class C
                 // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using static var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using static var obj = new object();").WithArguments("object").WithLocation(5, 9),
-                // (5,15): error CS1031: Type expected
+                // (5,15): error CS9218: Modifiers cannot be placed on resource declarations
                 //         using static var obj = new object();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 15));
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "static").WithLocation(5, 15));
 
             source = """
 using static var obj = new object();
@@ -1599,9 +1599,9 @@ using static var obj = new object();
                 // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 // using static var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using static var obj = new object();").WithArguments("object").WithLocation(1, 1),
-                // (1,7): error CS1031: Type expected
+                // (1,7): error CS9218: Modifiers cannot be placed on resource declarations
                 // using static var obj = new object();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(1, 7));
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "static").WithLocation(1, 7));
 
             source = """
 using (static var obj2 = new object()) { }
@@ -1645,9 +1645,9 @@ class C
                 // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using volatile var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using volatile var obj = new object();").WithArguments("object").WithLocation(5, 9),
-                // (5,15): error CS1031: Type expected
+                // (5,15): error CS9218: Modifiers cannot be placed on resource declarations
                 //         using volatile var obj = new object();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "volatile").WithLocation(5, 15));
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "volatile").WithLocation(5, 15));
 
             source = """
 using volatile var obj = new object();
@@ -1657,9 +1657,9 @@ using volatile var obj = new object();
                 // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 // using volatile var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using volatile var obj = new object();").WithArguments("object").WithLocation(1, 1),
-                // (1,7): error CS1031: Type expected
+                // (1,7): error CS9218: Modifiers cannot be placed on resource declarations
                 // using volatile var obj = new object();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "volatile").WithLocation(1, 7));
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "volatile").WithLocation(1, 7));
 
             source = """
 using (volatile var obj2 = new object()) { }

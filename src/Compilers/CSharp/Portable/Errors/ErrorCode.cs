@@ -2289,6 +2289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_ConvertingLock = 9216,
         ERR_BadSpecialByRefLock = 9217,
+        ERR_NoModifiersOnUsing = 9218,
 
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
