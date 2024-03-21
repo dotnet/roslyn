@@ -136,9 +136,6 @@
     <value>Completed (re)load of all projects in {0}</value>
     <comment>The placeholder is a time duration like 00:15</comment>
   </data>
-  <data name="Debugger_attached" xml:space="preserve">
-    <value>Debugger attached</value>
-  </data>
   <data name="Debugging_tests" xml:space="preserve">
     <value>Debugging tests...</value>
   </data>

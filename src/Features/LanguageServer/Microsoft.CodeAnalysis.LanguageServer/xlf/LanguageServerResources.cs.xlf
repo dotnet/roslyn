@@ -32,11 +32,6 @@
         <target state="translated">Dokončilo se (opětovné) načtení všech projektů v čase {0}</target>
         <note>The placeholder is a time duration like 00:15</note>
       </trans-unit>
-      <trans-unit id="Debugger_attached">
-        <source>Debugger attached</source>
-        <target state="translated">Připojený ladicí program</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Debugging_tests">
         <source>Debugging tests...</source>
         <target state="translated">Ladí se testy…</target>

@@ -32,11 +32,6 @@
         <target state="translated">已完成 {0} 中所有專案的(重新)載入</target>
         <note>The placeholder is a time duration like 00:15</note>
       </trans-unit>
-      <trans-unit id="Debugger_attached">
-        <source>Debugger attached</source>
-        <target state="translated">已連結偵錯工具</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Debugging_tests">
         <source>Debugging tests...</source>
         <target state="translated">正在偵錯測試...</target>

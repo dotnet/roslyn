@@ -32,11 +32,6 @@
         <target state="translated">{0} のすべてのプロジェクトの (再) 読み込みが完了しました</target>
         <note>The placeholder is a time duration like 00:15</note>
       </trans-unit>
-      <trans-unit id="Debugger_attached">
-        <source>Debugger attached</source>
-        <target state="translated">デバッガーがアタッチされました</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Debugging_tests">
         <source>Debugging tests...</source>
         <target state="translated">テストをデバッグしています...</target>
