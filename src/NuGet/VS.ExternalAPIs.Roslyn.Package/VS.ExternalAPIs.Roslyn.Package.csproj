@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <!-- This packs up vs debugger config files, which are only generated when using the VS SDK -->
+    <ExcludeFromBuild Condition="'$(UsingToolVSSDK)' != 'true'">true</ExcludeFromBuild>
 
     <!-- The package is inserted to Visual Studio CoreXT package store -->
     <IsShipping>false</IsShipping>
