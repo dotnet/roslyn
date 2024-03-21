@@ -2580,11 +2580,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">解決: "{0}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Resolve_conflict_markers">
-        <source>Resolve conflict markers</source>
-        <target state="translated">競合マーカーの解決</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Resolve_module_0_of_1">
         <source>Resolve module: '{0}' of '{1}'</source>
         <target state="translated">モジュールの解決: '{1}' の '{0}'</target>

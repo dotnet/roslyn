@@ -82,11 +82,6 @@
         <target state="translated">Zastosuj nowe() preferencje</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_parameter_null_preferences">
-        <source>Apply parameter null preferences</source>
-        <target state="translated">Zastosuj preferencje parametru o wartości null</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_pattern_matching_preferences">
         <source>Apply pattern matching preferences</source>
         <target state="translated">Zastosuj preferencje dopasowywania wzorca</target>

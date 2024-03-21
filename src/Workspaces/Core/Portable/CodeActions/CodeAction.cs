@@ -355,7 +355,7 @@ public abstract class CodeAction
     internal async Task<Solution> GetRequiredChangedSolutionAsync(IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
     {
         var solution = await this.GetChangedSolutionAsync(progressTracker, cancellationToken).ConfigureAwait(false);
-        return solution ?? throw new InvalidOperationException(string.Format(WorkspacesResources.CodeAction__0__did_not_produce_a_changed_solution, this.Title));
+        return solution ?? throw new InvalidOperationException(string.Format(WorkspacesResources.CodeAction_0_did_not_produce_a_changed_solution, this.Title));
     }
 
     /// <summary>

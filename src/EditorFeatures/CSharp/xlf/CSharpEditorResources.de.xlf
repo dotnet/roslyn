@@ -52,11 +52,6 @@
         <target state="translated">     (Zum Einfügen TAB-TASTE drücken)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">Intelligenter Einzug</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Split_raw_string">
         <source>Split raw string</source>
         <target state="translated">Rohzeichenfolge teilen</target>

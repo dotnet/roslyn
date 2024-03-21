@@ -82,11 +82,6 @@
         <target state="translated">new() 적용 기본 설정</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_parameter_null_preferences">
-        <source>Apply parameter null preferences</source>
-        <target state="translated">매개 변수 Null 적용 기본 설정</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_pattern_matching_preferences">
         <source>Apply pattern matching preferences</source>
         <target state="translated">패턴 일치 적용 기본 설정</target>

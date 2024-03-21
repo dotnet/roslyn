@@ -82,11 +82,6 @@
         <target state="translated">Yeni() tercihleri uygula</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_parameter_null_preferences">
-        <source>Apply parameter null preferences</source>
-        <target state="translated">Parametre null tercihlerini uygula</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_pattern_matching_preferences">
         <source>Apply pattern matching preferences</source>
         <target state="translated">Desen eşleştirme tercihlerini uygula</target>

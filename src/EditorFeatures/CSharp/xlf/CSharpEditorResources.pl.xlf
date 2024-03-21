@@ -52,11 +52,6 @@
         <target state="translated">     (Naciśnij klawisz TAB, aby wstawić)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">Inteligentne tworzenie wcięć</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Split_raw_string">
         <source>Split raw string</source>
         <target state="translated">Podziel nieprzetworzony ciąg</target>
