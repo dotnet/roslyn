@@ -548,6 +548,8 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CommonLanguageSer
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonLanguageServerProtocol.Framework.Binary", "src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework.Binary\Microsoft.CommonLanguageServerProtocol.Framework.Binary.csproj", "{730CADBA-701F-4722-9B6F-1FCC0DF2C95D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.Emit3.UnitTests", "src\Compilers\CSharp\Test\Emit3\Microsoft.CodeAnalysis.CSharp.Emit3.UnitTests.csproj", "{4E273CBC-BB1D-4AC1-91DB-C62FC83E0350}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1354,6 +1356,10 @@ Global
 		{730CADBA-701F-4722-9B6F-1FCC0DF2C95D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{730CADBA-701F-4722-9B6F-1FCC0DF2C95D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{730CADBA-701F-4722-9B6F-1FCC0DF2C95D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E273CBC-BB1D-4AC1-91DB-C62FC83E0350}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E273CBC-BB1D-4AC1-91DB-C62FC83E0350}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E273CBC-BB1D-4AC1-91DB-C62FC83E0350}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E273CBC-BB1D-4AC1-91DB-C62FC83E0350}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1605,6 +1611,7 @@ Global
 		{5762E483-75CE-4328-A410-511F30737712} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{64EADED3-4B5D-4431-BBE5-A4ABA1C38C00} = {D449D505-CC6A-4E0B-AF1B-976E2D0AE67A}
 		{730CADBA-701F-4722-9B6F-1FCC0DF2C95D} = {D449D505-CC6A-4E0B-AF1B-976E2D0AE67A}
+		{4E273CBC-BB1D-4AC1-91DB-C62FC83E0350} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
