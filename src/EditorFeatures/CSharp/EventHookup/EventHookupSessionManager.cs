@@ -52,7 +52,7 @@ internal sealed partial class EventHookupSessionManager(
         if (_toolTipPresenter == null &&
             CurrentSession == analyzedSession &&
             caretPoint.HasValue &&
-            IsCaretWithinSpanOrAtEnd(analyzedSession.TrackingSpan, analyzedSession.TextView.TextSnapshot, caretPoint.Value))
+            IsCaretWithinSpanOrAtEnd(analyzedSession.TrackingSpan, analyzedSession.SubjectBuffer.CurrentSnapshot, caretPoint.Value))
         {
             // Create a tooltip presenter that stays alive, even when the user types, without tracking the mouse.
             _toolTipPresenter = _toolTipService.CreatePresenter(analyzedSession.TextView,
@@ -174,7 +174,7 @@ internal sealed partial class EventHookupSessionManager(
             DismissExistingSessions();
         }
 
-        var snapshotSpan = CurrentSession.TrackingSpan.GetSpan(CurrentSession.TextView.TextSnapshot);
+        var snapshotSpan = CurrentSession.TrackingSpan.GetSpan(CurrentSession.SubjectBuffer.CurrentSnapshot);
         if (snapshotSpan.Snapshot != caretPoint.Value.Snapshot || !snapshotSpan.Contains(caretPoint.Value))
         {
             DismissExistingSessions();
