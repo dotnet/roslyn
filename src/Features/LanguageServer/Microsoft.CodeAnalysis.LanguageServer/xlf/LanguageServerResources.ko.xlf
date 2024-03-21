@@ -32,11 +32,6 @@
         <target state="translated">{0}에 있는 모든 프로젝트의 (재)로드가 완료됨</target>
         <note>The placeholder is a time duration like 00:15</note>
       </trans-unit>
-      <trans-unit id="Debugger_attached">
-        <source>Debugger attached</source>
-        <target state="translated">디버거가 연결됨</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Debugging_tests">
         <source>Debugging tests...</source>
         <target state="translated">테스트를 디버그하는 중...</target>
@@ -62,9 +57,9 @@
         <target state="translated">실패:    {0}, 통과:    {1}, 건너뜀:    {2}, 합계:    {3}, 기간: {4}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_read_runsettings_file_at_0:1">
+      <trans-unit id="Failed_to_read_runsettings_file_at_0_1">
         <source>Failed to read .runsettings file at {0}:{1}</source>
-        <target state="translated">{0}:{1}에서 .runsettings 파일을 읽지 못했습니다.</target>
+        <target state="new">Failed to read .runsettings file at {0}:{1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_run_restore_on_0">

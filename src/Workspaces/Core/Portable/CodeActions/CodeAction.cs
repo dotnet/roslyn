@@ -158,6 +158,12 @@ public abstract class CodeAction
         => [];
 
     /// <summary>
+    /// Code actions that should be presented as hyperlinks in the code action preview pane,
+    /// similar to FixAll scopes and Preview Changes but may not apply to ALL CodeAction types.
+    /// </summary>
+    internal virtual ImmutableArray<CodeAction> AdditionalPreviewFlavors => [];
+
+    /// <summary>
     /// Bridge method for sdk. https://github.com/dotnet/roslyn-sdk/issues/1136 tracks removing this.
     /// </summary>
     internal ImmutableArray<CodeAction> NestedCodeActions
@@ -355,7 +361,7 @@ public abstract class CodeAction
     internal async Task<Solution> GetRequiredChangedSolutionAsync(IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
     {
         var solution = await this.GetChangedSolutionAsync(progressTracker, cancellationToken).ConfigureAwait(false);
-        return solution ?? throw new InvalidOperationException(string.Format(WorkspacesResources.CodeAction__0__did_not_produce_a_changed_solution, this.Title));
+        return solution ?? throw new InvalidOperationException(string.Format(WorkspacesResources.CodeAction_0_did_not_produce_a_changed_solution, this.Title));
     }
 
     /// <summary>
