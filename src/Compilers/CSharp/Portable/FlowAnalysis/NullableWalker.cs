@@ -3817,8 +3817,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TargetTypedAnalysisCompletion[node] =
                     (TypeWithAnnotations resultTypeWithAnnotations) =>
                     {
-                        Debug.Assert(TypeSymbol.Equals(resultTypeWithAnnotations.Type, node.Type, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-
                         var type = resultTypeWithAnnotations.Type;
                         MethodSymbol? constructor = getConstructor(node, type);
 
