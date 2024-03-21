@@ -96,8 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
                 If i = SpecialType.System_Runtime_CompilerServices_RuntimeFeature OrElse
                    i = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute OrElse
-                   i = SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute OrElse
-                   i = SpecialType.System_ReadOnlySpan_T Then
+                   i = SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute Then
                     Assert.Equal(type.Kind, SymbolKind.ErrorType) ' Not available
                 Else
                     Assert.NotEqual(type.Kind, SymbolKind.ErrorType)

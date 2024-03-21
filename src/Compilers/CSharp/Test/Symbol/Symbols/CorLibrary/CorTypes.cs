@@ -63,6 +63,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
             {
                 var t = msCorLibRef.GetSpecialType((SpecialType)i);
                 Assert.Equal((SpecialType)i, t.SpecialType);
+                Assert.Equal((ExtendedSpecialType)i, t.ExtendedSpecialType);
+                Assert.Same(msCorLibRef, t.ContainingAssembly);
+                if (knownMissingTypes.Contains(i))
+                {
+                    // not present on dotnet core 3.1
+                    Assert.Equal(TypeKind.Error, t.TypeKind);
+                }
+                else
+                {
+                    Assert.NotEqual(TypeKind.Error, t.TypeKind);
+                }
+            }
+
+            for (int i = (int)InternalSpecialType.First; i < (int)InternalSpecialType.NextAvailable; i++)
+            {
+                var t = msCorLibRef.GetSpecialType((InternalSpecialType)i);
+                Assert.Equal(SpecialType.None, t.SpecialType);
+                Assert.Equal((ExtendedSpecialType)i, t.ExtendedSpecialType);
                 Assert.Same(msCorLibRef, t.ContainingAssembly);
                 if (knownMissingTypes.Contains(i))
                 {
@@ -125,6 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
                 Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
                 var t = msCorLibRef.GetSpecialType((SpecialType)i);
                 Assert.Equal((SpecialType)i, t.SpecialType);
+                Assert.Equal((ExtendedSpecialType)i, t.ExtendedSpecialType);
 
                 if (t.SpecialType == SpecialType.System_Object)
                 {
@@ -133,9 +152,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
                 else
                 {
                     Assert.Equal(TypeKind.Error, t.TypeKind);
-                    Assert.Same(msCorLibRef, t.ContainingAssembly);
                 }
 
+                Assert.Same(msCorLibRef, t.ContainingAssembly);
+            }
+
+            for (int i = (int)InternalSpecialType.First; i < (int)InternalSpecialType.NextAvailable; i++)
+            {
+                Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
+                var t = msCorLibRef.GetSpecialType((InternalSpecialType)i);
+                Assert.Equal(SpecialType.None, t.SpecialType);
+                Assert.Equal((ExtendedSpecialType)i, t.ExtendedSpecialType);
+
+                Assert.Equal(TypeKind.Error, t.TypeKind);
                 Assert.Same(msCorLibRef, t.ContainingAssembly);
             }
 
@@ -167,23 +196,38 @@ namespace System
                     Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
                     var t = c1.GetSpecialType((SpecialType)i);
                     Assert.Equal((SpecialType)i, t.SpecialType);
+                    Assert.Equal((ExtendedSpecialType)i, t.ExtendedSpecialType);
 
                     Assert.Equal(TypeKind.Error, t.TypeKind);
                     Assert.Same(msCorLibRef, t.ContainingAssembly);
                 }
             }
 
+            for (int i = (int)InternalSpecialType.First; i < (int)InternalSpecialType.NextAvailable; i++)
+            {
+                Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
+                var t = c1.GetSpecialType((InternalSpecialType)i);
+                Assert.Equal(SpecialType.None, t.SpecialType);
+                Assert.Equal((ExtendedSpecialType)i, t.ExtendedSpecialType);
+
+                Assert.Equal(TypeKind.Error, t.TypeKind);
+                Assert.Same(msCorLibRef, t.ContainingAssembly);
+            }
+
             var system_object = msCorLibRef.Modules[0].GlobalNamespace.GetMembers("System").
                 Select(m => (NamespaceSymbol)m).Single().GetTypeMembers("Object").Single();
 
             Assert.Equal(SpecialType.System_Object, system_object.SpecialType);
+            Assert.Equal((ExtendedSpecialType)SpecialType.System_Object, system_object.ExtendedSpecialType);
 
             Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
 
             Assert.Same(system_object, c1.GetSpecialType(SpecialType.System_Object));
 
             Assert.Throws<ArgumentOutOfRangeException>(() => c1.GetSpecialType(SpecialType.None));
-            Assert.Throws<ArgumentOutOfRangeException>(() => c1.GetSpecialType(SpecialType.Count + 1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => ((Compilation)c1).GetSpecialType(SpecialType.None));
+            Assert.Throws<ArgumentOutOfRangeException>(() => c1.GetSpecialType(InternalSpecialType.NextAvailable));
+            Assert.Throws<ArgumentOutOfRangeException>(() => ((Compilation)c1).GetSpecialType(SpecialType.Count + 1));
         }
 
         [WorkItem(697521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/697521")]
