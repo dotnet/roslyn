@@ -8,6 +8,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Markup;
@@ -120,11 +121,21 @@ internal sealed class SemanticSearchToolWindowImpl(
         toolbarGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(ToolBarHeight, GridUnitType.Pixel) });
         toolbarGrid.ColumnDefinitions.Add(new ColumnDefinition());
 
-        var executeButton = CreateButton(KnownMonikers.Run, name: "Run", CSharpVSResources.RunQueryCommandToolTip);
+        var executeButton = CreateButton(
+            KnownMonikers.Run,
+            automationName: CSharpVSResources.RunQuery,
+            acceleratorKey: "Ctrl+Enter",
+            toolTip: CSharpVSResources.RunQueryCommandToolTip);
+
         executeButton.Click += (_, _) => RunQuery();
         _executeButton = executeButton;
 
-        var cancelButton = CreateButton(KnownMonikers.Stop, name: "Cancel", CSharpVSResources.CancelQueryCommandToolTip);
+        var cancelButton = CreateButton(
+            KnownMonikers.Stop,
+            automationName: CSharpVSResources.CancelQuery,
+            acceleratorKey: "Escape",
+            toolTip: CSharpVSResources.CancelQueryCommandToolTip);
+
         cancelButton.Click += (_, _) => CancelQuery();
         cancelButton.IsEnabled = false;
         _cancelButton = cancelButton;
@@ -159,7 +170,11 @@ internal sealed class SemanticSearchToolWindowImpl(
 
     SemanticSearchWorkspace ISemanticSearchWorkspaceHost.Workspace => _semanticSearchWorkspace.Value;
 
-    private static Button CreateButton(Imaging.Interop.ImageMoniker moniker, string name, string toolTip)
+    private static Button CreateButton(
+        Imaging.Interop.ImageMoniker moniker,
+        string automationName,
+        string acceleratorKey,
+        string toolTip)
     {
         var image = new CrispImage()
         {
@@ -182,10 +197,12 @@ internal sealed class SemanticSearchToolWindowImpl(
 
         var button = new Button()
         {
-            Name = name,
             Template = s_buttonTemplate.Value,
             Content = holder,
         };
+
+        button.SetValue(AutomationProperties.NameProperty, automationName);
+        button.SetValue(AutomationProperties.AcceleratorKeyProperty, acceleratorKey);
 
         image.SetBinding(CrispImage.GrayscaleProperty, new Binding(UIElement.IsEnabledProperty.Name)
         {
