@@ -82,11 +82,6 @@
         <target state="translated">Použít předvolby new()</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_parameter_null_preferences">
-        <source>Apply parameter null preferences</source>
-        <target state="translated">Použít předvolby parametru null</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_pattern_matching_preferences">
         <source>Apply pattern matching preferences</source>
         <target state="translated">Použít předvolby porovnávání vzorů</target>

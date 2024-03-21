@@ -82,11 +82,6 @@
         <target state="translated">Применить новые настройки</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_parameter_null_preferences">
-        <source>Apply parameter null preferences</source>
-        <target state="translated">Применить настройки со значением NULL для параметров</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_pattern_matching_preferences">
         <source>Apply pattern matching preferences</source>
         <target state="translated">Применить настройки для сопоставления шаблонов</target>

@@ -82,11 +82,6 @@
         <target state="translated">Appliquer les préférences new()</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_parameter_null_preferences">
-        <source>Apply parameter null preferences</source>
-        <target state="translated">Appliquer les préférences null du paramètre</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_pattern_matching_preferences">
         <source>Apply pattern matching preferences</source>
         <target state="translated">Appliquer les préférences relatives aux critères spéciaux</target>

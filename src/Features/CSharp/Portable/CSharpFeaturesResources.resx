@@ -552,9 +552,6 @@
   <data name="Apply_new_preferences" xml:space="preserve">
     <value>Apply new() preferences</value>
   </data>
-  <data name="Apply_parameter_null_preferences" xml:space="preserve">
-    <value>Apply parameter null preferences</value>
-  </data>
   <data name="Apply_pattern_matching_preferences" xml:space="preserve">
     <value>Apply pattern matching preferences</value>
   </data>

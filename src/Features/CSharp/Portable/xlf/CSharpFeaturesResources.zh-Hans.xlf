@@ -82,11 +82,6 @@
         <target state="translated">应用新的()首选项</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_parameter_null_preferences">
-        <source>Apply parameter null preferences</source>
-        <target state="translated">应用参数 Null 首选项</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_pattern_matching_preferences">
         <source>Apply pattern matching preferences</source>
         <target state="translated">应用模式匹配首选项</target>

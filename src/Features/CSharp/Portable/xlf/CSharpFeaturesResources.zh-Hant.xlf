@@ -82,11 +82,6 @@
         <target state="translated">套用新增() 喜好設定</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_parameter_null_preferences">
-        <source>Apply parameter null preferences</source>
-        <target state="translated">套用參數 Null 喜好設定</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_pattern_matching_preferences">
         <source>Apply pattern matching preferences</source>
         <target state="translated">套用模式比對喜好設定</target>

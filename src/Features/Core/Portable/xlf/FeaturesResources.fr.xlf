@@ -2580,11 +2580,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Résoudre : '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Resolve_conflict_markers">
-        <source>Resolve conflict markers</source>
-        <target state="translated">Résoudre les marqueurs de conflit</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Resolve_module_0_of_1">
         <source>Resolve module: '{0}' of '{1}'</source>
         <target state="translated">Résoudre le module '{0}' sur '{1}'</target>
