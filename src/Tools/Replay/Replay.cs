@@ -84,16 +84,17 @@ static async Task<int> RunAsync(ReplayOptions options)
 
     try
     {
+        var compilerCalls = ReadAllCompilerCalls(options.BinlogPath);
         var stopwatch = new Stopwatch();
         stopwatch.Start();
 
-        var compilerCalls = ReadAllCompilerCalls(options.BinlogPath);
         await foreach (var buildData in BuildAllAsync(options, compilerCalls, compilerServerLogger, CancellationToken.None))
         {
             Console.WriteLine($"{buildData.CompilerCall.GetDiagnosticName()} ... {buildData.BuildResponse.Type}");
         }
 
         stopwatch.Stop();
+        Console.WriteLine($"Pipe Name: {options.PipeName}");
         Console.WriteLine($"Compilation Events: {compilerCalls.Count}");
         Console.WriteLine($"Time: {stopwatch.Elapsed:mm\\:ss}");
 
