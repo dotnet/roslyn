@@ -439,12 +439,12 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingAdd">
         <source>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</source>
-        <target state="new">Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</target>
+        <target state="translated">Le type d’expression de collection doit avoir une instance applicable ou une méthode d’extension 'Add' qui peut être appelée avec un argument de type itération '{0}'. La meilleure méthode surchargée est '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingConstructor">
         <source>Collection expression type must have an applicable constructor that can be called with no arguments.</source>
-        <target state="new">Collection expression type must have an applicable constructor that can be called with no arguments.</target>
+        <target state="translated">Le type d’expression de collection doit avoir un constructeur applicable qui peut être appelé sans argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
@@ -454,7 +454,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetNoElementType">
         <source>Collection expression target '{0}' has no element type.</source>
-        <target state="new">Collection expression target '{0}' has no element type.</target>
+        <target state="translated">Le '{0}' cible de l’expression de collection n’a pas de type d’élément.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
@@ -2339,7 +2339,7 @@
       </trans-unit>
       <trans-unit id="IDS_LockObject">
         <source>Lock object</source>
-        <target state="new">Lock object</target>
+        <target state="translated">Verrouiller l’objet</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Missing">
@@ -2584,12 +2584,12 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <target state="translated">Une valeur de type 'System.Threading.Lock' convertie en un autre type utilisera probablement un verrouillage basé sur un moniteur inattendu dans l’instruction 'lock'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock_Title">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <target state="translated">Une valeur de type 'System.Threading.Lock' convertie en un autre type utilisera probablement un verrouillage basé sur un moniteur inattendu dans l’instruction 'lock'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
