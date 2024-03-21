@@ -31,32 +31,32 @@ public class SyntaxTokenParserTests
             {
 
             }
-            """);
+            """.NormalizeLineEndings());
 
         var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
 
-        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 21), """
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 22), """
             // Hello world
             class 
             """, parser.ParseNextToken());
 
-        AssertToken(expectedKind: SyntaxKind.IdentifierToken, expectedContextualKind: SyntaxKind.None, new TextSpan(21, 2), """
+        AssertToken(expectedKind: SyntaxKind.IdentifierToken, expectedContextualKind: SyntaxKind.None, new TextSpan(22, 3), """
             C
 
             """, parser.ParseNextToken());
 
-        AssertToken(expectedKind: SyntaxKind.OpenBraceToken, expectedContextualKind: SyntaxKind.None, new TextSpan(23, 2), """
+        AssertToken(expectedKind: SyntaxKind.OpenBraceToken, expectedContextualKind: SyntaxKind.None, new TextSpan(25, 3), """
             {
 
             """, parser.ParseNextToken());
 
-        AssertToken(expectedKind: SyntaxKind.CloseBraceToken, expectedContextualKind: SyntaxKind.None, new TextSpan(25, 2), """
+        AssertToken(expectedKind: SyntaxKind.CloseBraceToken, expectedContextualKind: SyntaxKind.None, new TextSpan(28, 3), """
 
             }
             """, parser.ParseNextToken());
 
-        AssertToken(expectedKind: SyntaxKind.EndOfFileToken, expectedContextualKind: SyntaxKind.None, new TextSpan(27, 0), "", parser.ParseNextToken());
-        AssertToken(expectedKind: SyntaxKind.EndOfFileToken, expectedContextualKind: SyntaxKind.None, new TextSpan(27, 0), "", parser.ParseNextToken());
+        AssertToken(expectedKind: SyntaxKind.EndOfFileToken, expectedContextualKind: SyntaxKind.None, new TextSpan(31, 0), "", parser.ParseNextToken());
+        AssertToken(expectedKind: SyntaxKind.EndOfFileToken, expectedContextualKind: SyntaxKind.None, new TextSpan(31, 0), "", parser.ParseNextToken());
     }
 
     [Fact]
@@ -70,11 +70,11 @@ public class SyntaxTokenParserTests
             {
 
             }
-            """);
+            """.NormalizeLineEndings());
         var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
 
         var result = parser.ParseNextToken();
-        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 51), """
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 54), """
             /// <summary>
             /// Hello world
             /// </summary>
@@ -85,22 +85,22 @@ public class SyntaxTokenParserTests
         Assert.Equal(SyntaxKind.SingleLineDocumentationCommentTrivia, docCommentTrivia.Kind());
         Assert.NotNull(docCommentTrivia.GetStructure());
 
-        AssertToken(expectedKind: SyntaxKind.IdentifierToken, expectedContextualKind: SyntaxKind.None, new TextSpan(51, 2), """
+        AssertToken(expectedKind: SyntaxKind.IdentifierToken, expectedContextualKind: SyntaxKind.None, new TextSpan(54, 3), """
             C
 
             """, parser.ParseNextToken());
 
-        AssertToken(expectedKind: SyntaxKind.OpenBraceToken, expectedContextualKind: SyntaxKind.None, new TextSpan(53, 2), """
+        AssertToken(expectedKind: SyntaxKind.OpenBraceToken, expectedContextualKind: SyntaxKind.None, new TextSpan(57, 3), """
             {
 
             """, parser.ParseNextToken());
 
-        AssertToken(expectedKind: SyntaxKind.CloseBraceToken, expectedContextualKind: SyntaxKind.None, new TextSpan(55, 2), """
+        AssertToken(expectedKind: SyntaxKind.CloseBraceToken, expectedContextualKind: SyntaxKind.None, new TextSpan(60, 3), """
 
             }
             """, parser.ParseNextToken());
 
-        AssertToken(expectedKind: SyntaxKind.EndOfFileToken, expectedContextualKind: SyntaxKind.None, new TextSpan(57, 0), "", parser.ParseNextToken());
+        AssertToken(expectedKind: SyntaxKind.EndOfFileToken, expectedContextualKind: SyntaxKind.None, new TextSpan(63, 0), "", parser.ParseNextToken());
     }
 
     [Fact]
@@ -114,32 +114,32 @@ public class SyntaxTokenParserTests
             #else
             }
             #endif
-            """);
+            """.NormalizeLineEndings());
         var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
 
-        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 15), """
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 16), """
             #if true
             class 
             """, parser.ParseNextToken());
 
-        AssertToken(expectedKind: SyntaxKind.IdentifierToken, expectedContextualKind: SyntaxKind.None, new TextSpan(15, 2), """
+        AssertToken(expectedKind: SyntaxKind.IdentifierToken, expectedContextualKind: SyntaxKind.None, new TextSpan(16, 3), """
             C
 
             """, parser.ParseNextToken());
 
-        AssertToken(expectedKind: SyntaxKind.OpenBraceToken, expectedContextualKind: SyntaxKind.None, new TextSpan(17, 2), """
+        AssertToken(expectedKind: SyntaxKind.OpenBraceToken, expectedContextualKind: SyntaxKind.None, new TextSpan(19, 3), """
             {
 
             """, parser.ParseNextToken());
 
-        AssertToken(expectedKind: SyntaxKind.EndOfFileToken, expectedContextualKind: SyntaxKind.None, new TextSpan(19, 15), """
+        AssertToken(expectedKind: SyntaxKind.EndOfFileToken, expectedContextualKind: SyntaxKind.None, new TextSpan(22, 18), """
 
             #else
             }
             #endif
             """, parser.ParseNextToken());
 
-        AssertToken(expectedKind: SyntaxKind.EndOfFileToken, expectedContextualKind: SyntaxKind.None, new TextSpan(34, 0), "", parser.ParseNextToken());
+        AssertToken(expectedKind: SyntaxKind.EndOfFileToken, expectedContextualKind: SyntaxKind.None, new TextSpan(40, 0), "", parser.ParseNextToken());
     }
 
     [Fact]
@@ -153,24 +153,24 @@ public class SyntaxTokenParserTests
             {
 
             }
-            """);
+            """.NormalizeLineEndings());
         var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
 
-        parser.SkipForwardTo(16);
+        parser.SkipForwardTo(18);
 
-        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(16, 21), """
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(18, 22), """
             // Hello world
             class 
             """, parser.ParseNextToken());
 
-        parser.SkipForwardTo(39);
+        parser.SkipForwardTo(43);
 
-        AssertToken(expectedKind: SyntaxKind.OpenBraceToken, expectedContextualKind: SyntaxKind.None, new TextSpan(39, 2), """
+        AssertToken(expectedKind: SyntaxKind.OpenBraceToken, expectedContextualKind: SyntaxKind.None, new TextSpan(43, 3), """
             {
 
             """, parser.ParseNextToken());
 
-        AssertToken(expectedKind: SyntaxKind.CloseBraceToken, expectedContextualKind: SyntaxKind.None, new TextSpan(41, 2), """
+        AssertToken(expectedKind: SyntaxKind.CloseBraceToken, expectedContextualKind: SyntaxKind.None, new TextSpan(46, 3), """
 
             }
             """, parser.ParseNextToken());
@@ -216,16 +216,16 @@ public class SyntaxTokenParserTests
             #else
             }
             #endif
-            """);
+            """.NormalizeLineEndings());
         var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
 
-        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 15), """
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 16), """
             #if true
             class 
             """, parser.ParseNextToken());
 
         SyntaxTokenParser.Result cTokenResult = parser.ParseNextToken();
-        AssertToken(expectedKind: SyntaxKind.IdentifierToken, expectedContextualKind: SyntaxKind.None, new TextSpan(15, 2), """
+        AssertToken(expectedKind: SyntaxKind.IdentifierToken, expectedContextualKind: SyntaxKind.None, new TextSpan(16, 3), """
             C
 
             """, cTokenResult);
@@ -240,12 +240,12 @@ public class SyntaxTokenParserTests
 
         static void verifyAfterC(SyntaxTokenParser parser)
         {
-            AssertToken(expectedKind: SyntaxKind.OpenBraceToken, expectedContextualKind: SyntaxKind.None, new TextSpan(17, 2), """
+            AssertToken(expectedKind: SyntaxKind.OpenBraceToken, expectedContextualKind: SyntaxKind.None, new TextSpan(19, 3), """
                 {
 
                 """, parser.ParseNextToken());
 
-            AssertToken(expectedKind: SyntaxKind.EndOfFileToken, expectedContextualKind: SyntaxKind.None, new TextSpan(19, 15), """
+            AssertToken(expectedKind: SyntaxKind.EndOfFileToken, expectedContextualKind: SyntaxKind.None, new TextSpan(22, 18), """
 
                 #else
                 }
@@ -269,7 +269,7 @@ public class SyntaxTokenParserTests
     {
         Assert.Equal(expectedKind, result.Token.Kind());
         Assert.Equal(expectedContextualKind, result.ContextualKind);
-        AssertEx.Equal(expectedText, result.Token.ToFullString());
+        AssertEx.Equal(expectedText.NormalizeLineEndings(), result.Token.ToFullString());
         Assert.Null(result.Token.Parent);
         Assert.Equal(expectedFullSpan, result.Token.FullSpan);
     }
