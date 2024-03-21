@@ -138,27 +138,24 @@ internal partial class SolutionCompilationState
 
             public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {
-                using var _1 = ArrayBuilder<SyntaxTree>.GetInstance(this.Documents.Length, out var trees);
-
 #if NETSTANDARD
 
-                // Parallel parse the documents we have in chunks.
-                using var _2 = ArrayBuilder<Task<SyntaxTree>>.GetInstance(AddDocumentsBatchSize, out var tasks);
+                using var _1 = ArrayBuilder<Task>.GetInstance(this.Documents.Length, out var tasks);
 
-                // Can simplify this to use span-slicing once the language supports using ref-structs in async methods.
-                for (int batchStart = 0, total = this.Documents.Length; batchStart < total; batchStart += AddDocumentsBatchSize)
+                // We want to parse in parallel.  But we don't want to have too many parses going on at the same time.
+                // So we use a semaphore here to only allow that many in at a time.  Once we hit that amount, it will
+                // block further parallel work.  However, as the semaphore is released, new work will be let in.
+                var semaphore = new SemaphoreSlim(initialCount: AddDocumentsBatchSize);
+                foreach (var document in this.Documents)
                 {
-                    tasks.Clear();
-
-                    for (int i = batchStart, batchEnd = Math.Min(batchStart + AddDocumentsBatchSize, total); i < batchEnd; i++)
+                    tasks.Add(Task.Run(async () =>
                     {
-                        var document = this.Documents[i];
-                        tasks.Add(Task.Run(async () => await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken));
-                    }
-
-                    var batch = await Task.WhenAll(tasks).ConfigureAwait(false);
-                    trees.AddRange(batch);
+                        using (await semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                            await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    }, cancellationToken));
                 }
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
 
 #else
 
@@ -168,10 +165,11 @@ internal partial class SolutionCompilationState
                     static async (document, cancellationToken) =>
                         await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
 
+#endif
+                using var _2 = ArrayBuilder<SyntaxTree>.GetInstance(this.Documents.Length, out var trees);
+
                 foreach (var document in this.Documents)
                     trees.Add(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
-
-#endif
 
                 return oldCompilation.AddSyntaxTrees(trees);
             }
