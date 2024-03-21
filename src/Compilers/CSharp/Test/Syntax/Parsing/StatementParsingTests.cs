@@ -2516,10 +2516,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingVarWithInvalidDeclaration()
         {
             UsingStatement("using public readonly var a = b;", TestOptions.Regular8,
-                // (1,7): error CS9218: Modifiers cannot be placed on resource declarations
+                // (1,7): error CS9229: Modifiers cannot be placed on resource declarations
                 // using public readonly var a = b;
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "public").WithLocation(1, 7),
-                // (1,14): error CS9218: Modifiers cannot be placed on resource declarations
+                // (1,14): error CS9229: Modifiers cannot be placed on resource declarations
                 // using public readonly var a = b;
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(1, 14));
 
@@ -3289,7 +3289,7 @@ class C
         public void TestUsingVarReadonlyMultipleDeclarations()
         {
             UsingStatement("using readonly var x, y = ref z;", TestOptions.Regular8,
-                // (1,7): error CS9218: Modifiers cannot be placed on resource declarations
+                // (1,7): error CS9229: Modifiers cannot be placed on resource declarations
                 // using readonly var x, y = ref z;
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(1, 7));
             N(SyntaxKind.LocalDeclarationStatement);

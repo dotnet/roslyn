@@ -2287,7 +2287,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_ConvertingLock = 9216,
         ERR_BadSpecialByRefLock = 9217,
-        ERR_NoModifiersOnUsing = 9218,
 
         ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections = 9218,
         ERR_ParamsCollectionAmbiguousDynamicArgument = 9219,
@@ -2300,6 +2299,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ParamsCollectionExpressionTree = 9226,
         ERR_ParamsCollectionExtensionAddMethod = 9227,
         ERR_ParamsCollectionMissingConstructor = 9228,
+
+        ERR_NoModifiersOnUsing = 9229,
 
         #endregion
 

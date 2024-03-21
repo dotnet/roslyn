@@ -951,10 +951,10 @@ class C
 }
 ";
             CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
-                // (7,15): error CS9218: Modifiers cannot be placed on resource declarations
+                // (7,15): error CS9229: Modifiers cannot be placed on resource declarations
                 //         using public readonly var x = (IDisposable)null;
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "public").WithLocation(7, 15),
-                // (7,22): error CS9218: Modifiers cannot be placed on resource declarations
+                // (7,22): error CS9229: Modifiers cannot be placed on resource declarations
                 //         using public readonly var x = (IDisposable)null;
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(7, 22)
                 );

@@ -1421,7 +1421,7 @@ class C
                 // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using const var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using const var obj = new object();").WithArguments("object").WithLocation(5, 9),
-                // (5,15): error CS9218: Modifiers cannot be placed on resource declarations
+                // (5,15): error CS9229: Modifiers cannot be placed on resource declarations
                 //         using const var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(5, 15));
 
@@ -1433,7 +1433,7 @@ using const var obj = new object();
                 // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 // using const var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using const var obj = new object();").WithArguments("object").WithLocation(1, 1),
-                // (1,7): error CS9218: Modifiers cannot be placed on resource declarations
+                // (1,7): error CS9229: Modifiers cannot be placed on resource declarations
                 // using const var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(1, 7));
 
@@ -1478,7 +1478,7 @@ await using const var obj = new object();
                 // (1,1): error CS8410: 'object': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 // await using const var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using const var obj = new object();").WithArguments("object").WithLocation(1, 1),
-                // (1,13): error CS9218: Modifiers cannot be placed on resource declarations
+                // (1,13): error CS9229: Modifiers cannot be placed on resource declarations
                 // await using const var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(1, 13));
 
@@ -1529,7 +1529,7 @@ class C
                 // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using readonly var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using readonly var obj = new object();").WithArguments("object").WithLocation(5, 9),
-                // (5,15): error CS9218: Modifiers cannot be placed on resource declarations
+                // (5,15): error CS9229: Modifiers cannot be placed on resource declarations
                 //         using readonly var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(5, 15));
 
@@ -1541,7 +1541,7 @@ using readonly var obj = new object();
                 // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 // using readonly var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using readonly var obj = new object();").WithArguments("object").WithLocation(1, 1),
-                // (1,7): error CS9218: Modifiers cannot be placed on resource declarations
+                // (1,7): error CS9229: Modifiers cannot be placed on resource declarations
                 // using readonly var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(1, 7));
 
@@ -1587,7 +1587,7 @@ class C
                 // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using static var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using static var obj = new object();").WithArguments("object").WithLocation(5, 9),
-                // (5,15): error CS9218: Modifiers cannot be placed on resource declarations
+                // (5,15): error CS9229: Modifiers cannot be placed on resource declarations
                 //         using static var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "static").WithLocation(5, 15));
 
@@ -1599,7 +1599,7 @@ using static var obj = new object();
                 // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 // using static var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using static var obj = new object();").WithArguments("object").WithLocation(1, 1),
-                // (1,7): error CS9218: Modifiers cannot be placed on resource declarations
+                // (1,7): error CS9229: Modifiers cannot be placed on resource declarations
                 // using static var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "static").WithLocation(1, 7));
 
@@ -1645,7 +1645,7 @@ class C
                 // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using volatile var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using volatile var obj = new object();").WithArguments("object").WithLocation(5, 9),
-                // (5,15): error CS9218: Modifiers cannot be placed on resource declarations
+                // (5,15): error CS9229: Modifiers cannot be placed on resource declarations
                 //         using volatile var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "volatile").WithLocation(5, 15));
 
@@ -1657,7 +1657,7 @@ using volatile var obj = new object();
                 // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 // using volatile var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using volatile var obj = new object();").WithArguments("object").WithLocation(1, 1),
-                // (1,7): error CS9218: Modifiers cannot be placed on resource declarations
+                // (1,7): error CS9229: Modifiers cannot be placed on resource declarations
                 // using volatile var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "volatile").WithLocation(1, 7));
 

@@ -395,7 +395,7 @@ public sealed class UsingDirectiveParsingTests : ParsingTests
     {
         UsingTree(
 @"using static delegate*<int, void>;",
-            // (1,7): error CS9218: Modifiers cannot be placed on resource declarations
+            // (1,7): error CS9229: Modifiers cannot be placed on resource declarations
             // using static delegate*<int, void>;
             Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "static").WithLocation(1, 7),
             // (1,34): error CS1001: Identifier expected
@@ -455,7 +455,7 @@ public sealed class UsingDirectiveParsingTests : ParsingTests
     {
         UsingTree(
 @"using static int;",
-            // (1,7): error CS9218: Modifiers cannot be placed on resource declarations
+            // (1,7): error CS9229: Modifiers cannot be placed on resource declarations
             // using static int;
             Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "static").WithLocation(1, 7),
             // (1,17): error CS1001: Identifier expected
@@ -494,7 +494,7 @@ public sealed class UsingDirectiveParsingTests : ParsingTests
     {
         UsingTree(
 @"using static int*;",
-            // (1,7): error CS9218: Modifiers cannot be placed on resource declarations
+            // (1,7): error CS9229: Modifiers cannot be placed on resource declarations
             // using static int*;
             Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "static").WithLocation(1, 7),
             // (1,18): error CS1001: Identifier expected
