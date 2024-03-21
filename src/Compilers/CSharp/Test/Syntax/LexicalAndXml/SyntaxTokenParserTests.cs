@@ -83,6 +83,7 @@ public class SyntaxTokenParserTests
 
         var docCommentTrivia = result.Token.GetLeadingTrivia()[0];
         Assert.Equal(SyntaxKind.SingleLineDocumentationCommentTrivia, docCommentTrivia.Kind());
+        Assert.NotNull(docCommentTrivia.GetStructure());
 
         AssertToken(expectedKind: SyntaxKind.IdentifierToken, expectedContextualKind: SyntaxKind.None, new TextSpan(51, 2), """
             C
