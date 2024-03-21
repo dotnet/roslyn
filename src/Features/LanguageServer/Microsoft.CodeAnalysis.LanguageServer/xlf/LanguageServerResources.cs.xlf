@@ -57,9 +57,9 @@
         <target state="translated">Neúspěšné:    {0}, Úspěšné:    {1}, Přeskočeno:    {2}, Celkem:    {3}, Doba trvání: {4}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_read_runsettings_file_at_0:1">
+      <trans-unit id="Failed_to_read_runsettings_file_at_0_1">
         <source>Failed to read .runsettings file at {0}:{1}</source>
-        <target state="translated">Čtení souboru .runsettings na {0} se nezdařilo:{1}</target>
+        <target state="new">Failed to read .runsettings file at {0}:{1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_run_restore_on_0">

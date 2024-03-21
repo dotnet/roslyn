@@ -57,9 +57,9 @@
         <target state="translated">失敗:    {0}、合格:    {1}、スキップ:    {2}、合計:    {3}、期間:    {4}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_read_runsettings_file_at_0:1">
+      <trans-unit id="Failed_to_read_runsettings_file_at_0_1">
         <source>Failed to read .runsettings file at {0}:{1}</source>
-        <target state="translated">{0}:{1} の .runsettings ファイルを読み取れできませんでした</target>
+        <target state="new">Failed to read .runsettings file at {0}:{1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_run_restore_on_0">

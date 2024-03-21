@@ -57,9 +57,9 @@
         <target state="translated">Не пройдено:    {0}, пройдено:    {1}, пропущено:    {2}, всего:    {3}, длительность:    {4}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_read_runsettings_file_at_0:1">
+      <trans-unit id="Failed_to_read_runsettings_file_at_0_1">
         <source>Failed to read .runsettings file at {0}:{1}</source>
-        <target state="translated">Не удалось прочитать файл RUNSETTINGS в {0}:{1}</target>
+        <target state="new">Failed to read .runsettings file at {0}:{1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_run_restore_on_0">

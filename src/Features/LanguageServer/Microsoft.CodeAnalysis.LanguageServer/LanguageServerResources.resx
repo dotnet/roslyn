@@ -151,7 +151,7 @@
   <data name="Failed_0_Passed_1_Skipped_2_Total_3_Duration_4" xml:space="preserve">
     <value>Failed:    {0}, Passed:    {1}, Skipped:    {2}, Total:    {3}, Duration: {4}</value>
   </data>
-  <data name="Failed_to_read_runsettings_file_at_0:1" xml:space="preserve">
+  <data name="Failed_to_read_runsettings_file_at_0_1" xml:space="preserve">
     <value>Failed to read .runsettings file at {0}:{1}</value>
   </data>
   <data name="Failed_to_run_restore_on_0" xml:space="preserve">

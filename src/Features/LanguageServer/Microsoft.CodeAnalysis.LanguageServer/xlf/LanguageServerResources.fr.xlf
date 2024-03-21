@@ -57,9 +57,9 @@
         <target state="translated">Échec : {0}, Réussi : {1}, Ignoré : {2}, Total : {3}, Durée : {4}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_read_runsettings_file_at_0:1">
+      <trans-unit id="Failed_to_read_runsettings_file_at_0_1">
         <source>Failed to read .runsettings file at {0}:{1}</source>
-        <target state="translated">Échec de la lecture du fichier .runsettings à l'adresse {0} :{1}</target>
+        <target state="new">Failed to read .runsettings file at {0}:{1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_run_restore_on_0">

@@ -57,9 +57,9 @@
         <target state="translated">失败: {0} 个，通过: {1} 个，已跳过: {2} 个，总计: {3} 个，持续时间: {4}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_read_runsettings_file_at_0:1">
+      <trans-unit id="Failed_to_read_runsettings_file_at_0_1">
         <source>Failed to read .runsettings file at {0}:{1}</source>
-        <target state="translated">无法读取 {0}:{1}的 .runsettings 文件</target>
+        <target state="new">Failed to read .runsettings file at {0}:{1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_run_restore_on_0">
