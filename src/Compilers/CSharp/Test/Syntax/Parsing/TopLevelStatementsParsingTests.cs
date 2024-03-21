@@ -1874,9 +1874,9 @@ e
             var test = "using static type name;";
 
             UsingTree(test,
-                // (1,7): error CS1031: Type expected
+                // (1,7): error CS9218: Modifiers cannot be placed on resource declarations
                 // using static type name;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(1, 7)
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "static").WithLocation(1, 7)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -1912,9 +1912,9 @@ e
             var test = "using volatile;";
 
             UsingTree(test,
-                // (1,7): error CS1031: Type expected
+                // (1,7): error CS9218: Modifiers cannot be placed on resource declarations
                 // using volatile;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "volatile").WithLocation(1, 7),
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "volatile").WithLocation(1, 7),
                 // (1,15): error CS1031: Type expected
                 // using volatile;
                 Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 15),
@@ -1956,9 +1956,9 @@ e
             var test = "using const;";
 
             UsingTree(test,
-                // (1,7): error CS1031: Type expected
+                // (1,7): error CS9218: Modifiers cannot be placed on resource declarations
                 // using const;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(1, 7),
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(1, 7),
                 // (1,12): error CS1031: Type expected
                 // using const;
                 Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 12),
@@ -2047,9 +2047,9 @@ e
             var test = "using readonly;";
 
             UsingTree(test,
-                // (1,7): error CS1031: Type expected
+                // (1,7): error CS9218: Modifiers cannot be placed on resource declarations
                 // using readonly;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "readonly").WithLocation(1, 7),
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(1, 7),
                 // (1,15): error CS1031: Type expected
                 // using readonly;
                 Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 15),
