@@ -577,11 +577,6 @@
         <target state="translated">XML 文件註解 - 屬性值</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unnecessary_Code">
-        <source>Unnecessary Code</source>
-        <target state="translated">不需要的程式碼</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rude_Edit">
         <source>Rude Edit</source>
         <target state="translated">粗略編輯</target>

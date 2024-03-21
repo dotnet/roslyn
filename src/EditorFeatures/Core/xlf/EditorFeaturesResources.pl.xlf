@@ -577,11 +577,6 @@
         <target state="translated">Komentarze dokumentacji XML — wartość atrybutu</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unnecessary_Code">
-        <source>Unnecessary Code</source>
-        <target state="translated">Zbędny kod</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rude_Edit">
         <source>Rude Edit</source>
         <target state="translated">Edycja blokująca</target>

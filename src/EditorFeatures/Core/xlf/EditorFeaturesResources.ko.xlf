@@ -577,11 +577,6 @@
         <target state="translated">XML 문서 주석 - 특성 값</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unnecessary_Code">
-        <source>Unnecessary Code</source>
-        <target state="translated">불필요한 코드</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rude_Edit">
         <source>Rude Edit</source>
         <target state="translated">편집 다시 실행</target>

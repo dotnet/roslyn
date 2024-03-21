@@ -577,11 +577,6 @@
         <target state="translated">Комментарии XML Doc — значения атрибутов</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unnecessary_Code">
-        <source>Unnecessary Code</source>
-        <target state="translated">Ненужный код</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rude_Edit">
         <source>Rude Edit</source>
         <target state="translated">Грубая редакция</target>

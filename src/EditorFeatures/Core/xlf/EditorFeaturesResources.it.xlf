@@ -577,11 +577,6 @@
         <target state="translated">Commenti in formato documentazione XML - Valore attributo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unnecessary_Code">
-        <source>Unnecessary Code</source>
-        <target state="translated">Codice non necessario</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rude_Edit">
         <source>Rude Edit</source>
         <target state="translated">Modifica non applicabile al momento</target>

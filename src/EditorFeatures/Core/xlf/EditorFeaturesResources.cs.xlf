@@ -577,11 +577,6 @@
         <target state="translated">Komentáře XML – hodnota atributu</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unnecessary_Code">
-        <source>Unnecessary Code</source>
-        <target state="translated">Nepotřebný kód</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rude_Edit">
         <source>Rude Edit</source>
         <target state="translated">Hrubá úprava</target>
