@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
         /// Check for this special type cannot be used to find the "canonical" definition of <see cref="ReadOnlySpan{T}"/>
         /// since it is fully legal for it to come from sources other than the COR library, e.g. from `System.Memory` package.
         /// The <see cref="WellKnownType.System_ReadOnlySpan_T"/> should be used for that purpose instead
-        /// This entry mostly exist so that compiler can tell this type apart when resolving other members of the COR library
+        /// This entry mostly exists so that compiler can tell this type apart when resolving other members of the COR library
         /// </remarks>
         System_ReadOnlySpan_T = First,
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         /// Check for this special type cannot be used to find the "canonical" definition of <see cref="System.Type"/>
         /// since it is fully legal for it to come from sources other than the COR library.
         /// The <see cref="WellKnownType.System_Type"/> should be used for that purpose instead
-        /// This entry mostly exist so that compiler can tell this type apart when resolving other members of the COR library
+        /// This entry mostly exists so that compiler can tell this type apart when resolving other members of the COR library
         /// </remarks>
         System_Type,
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
         /// Check for this special type cannot be used to find the "canonical" definition of <see cref="System.Reflection.MethodBase"/>
         /// since it is fully legal for it to come from sources other than the COR library.
         /// The <see cref="WellKnownType.System_Reflection_MethodBase"/> should be used for that purpose instead
-        /// This entry mostly exist so that compiler can tell this type apart when resolving other members of the COR library
+        /// This entry mostly exists so that compiler can tell this type apart when resolving other members of the COR library
         /// </remarks>
         System_Reflection_MethodBase,
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis
         /// Check for this special type cannot be used to find the "canonical" definition of <see cref="System.Reflection.MethodInfo"/>
         /// since it is fully legal for it to come from sources other than the COR library.
         /// The <see cref="WellKnownType.System_Reflection_MethodInfo"/> should be used for that purpose instead
-        /// This entry mostly exist so that compiler can tell this type apart when resolving other members of the COR library
+        /// This entry mostly exists so that compiler can tell this type apart when resolving other members of the COR library
         /// </remarks>
         System_Reflection_MethodInfo,
 

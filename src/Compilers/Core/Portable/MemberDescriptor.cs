@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
         {
             get
             {
-                return _declaringTypeId < (int)InternalSpecialType.NextAvailable
-                           ? ((ExtendedSpecialType)_declaringTypeId).GetMetadataName()!
-                           : ((WellKnownType)_declaringTypeId).GetMetadataName();
+                return IsSpecialTypeMember
+                           ? DeclaringSpecialType.GetMetadataName()!
+                           : DeclaringWellKnownType.GetMetadataName();
             }
         }
 
