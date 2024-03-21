@@ -78,8 +78,10 @@ internal sealed class SemanticSearchToolWindowImpl(
             threadingContext,
             listenerProvider));
 
+    // access interlocked:
+    private volatile CancellationTokenSource? _pendingExecutionCancellationSource;
+
     // Access on UI thread only:
-    private CancellationTokenSource? _pendingExecutionCancellationSource;
     private Button? _executeButton;
     private Button? _cancelButton;
     private IWpfTextView? _textView;
@@ -294,18 +296,20 @@ internal sealed class SemanticSearchToolWindowImpl(
     private bool IsExecutingUIState()
     {
         Contract.ThrowIfFalse(threadingContext.JoinableTaskContext.IsOnMainThread);
-        return _pendingExecutionCancellationSource != null;
+        Contract.ThrowIfNull(_executeButton);
+
+        return !_executeButton.IsEnabled;
     }
 
-    private void UpdateUIState(CancellationTokenSource? executionCancellationSource)
+    private void UpdateUIState()
     {
         Contract.ThrowIfFalse(threadingContext.JoinableTaskContext.IsOnMainThread);
         Contract.ThrowIfNull(_executeButton);
         Contract.ThrowIfNull(_cancelButton);
 
-        var isExecuting = executionCancellationSource != null;
+        // reflect the actual state in UI:
+        var isExecuting = _pendingExecutionCancellationSource != null;
 
-        _pendingExecutionCancellationSource = executionCancellationSource;
         _executeButton.IsEnabled = !isExecuting;
         _cancelButton.IsEnabled = isExecuting;
     }
@@ -313,18 +317,28 @@ internal sealed class SemanticSearchToolWindowImpl(
     private void CancelQuery()
     {
         Contract.ThrowIfFalse(threadingContext.JoinableTaskContext.IsOnMainThread);
-        Contract.ThrowIfNull(_pendingExecutionCancellationSource);
+        Contract.ThrowIfFalse(IsExecutingUIState());
 
-        _pendingExecutionCancellationSource.Cancel();
-        UpdateUIState(executionCancellationSource: null);
+        // The query might have been cancelled already but the UI may not be updated yet:
+        var pendingExecutionCancellationSource = Interlocked.Exchange(ref _pendingExecutionCancellationSource, null);
+        pendingExecutionCancellationSource?.Cancel();
+
+        UpdateUIState();
     }
 
     private void RunQuery()
     {
         Contract.ThrowIfFalse(threadingContext.JoinableTaskContext.IsOnMainThread);
+        Contract.ThrowIfFalse(!IsExecutingUIState());
         Contract.ThrowIfNull(_textBuffer);
 
         var cancellationSource = new CancellationTokenSource();
+
+        // Cancel execution that's in progress (if any) - may occur when UI state hasn't been updated yet based on the actual state.
+        Interlocked.Exchange(ref _pendingExecutionCancellationSource, cancellationSource)?.Cancel();
+
+        UpdateUIState();
+
         var (presenterContext, presenterCancellationToken) = resultsPresenter.StartSearch(ServicesVSResources.Semantic_search_results, StreamingFindUsagesPresenterOptions.Default);
         presenterCancellationToken.Register(() => cancellationSource?.Cancel());
 
@@ -332,8 +346,6 @@ internal sealed class SemanticSearchToolWindowImpl(
         var queryDocument = SemanticSearchUtilities.GetQueryDocument(querySolution);
 
         var resultsObserver = new ResultsObserver(queryDocument, presenterContext);
-
-        UpdateUIState(cancellationSource);
 
         var completionToken = _asyncListener.BeginAsyncOperation(nameof(SemanticSearchToolWindow) + ".Execute");
         _ = ExecuteAsync(cancellationSource.Token).ReportNonFatalErrorAsync().CompletesAsyncOperation(completionToken);
@@ -385,6 +397,9 @@ internal sealed class SemanticSearchToolWindowImpl(
                 var completionToken = _asyncListener.BeginAsyncOperation(nameof(SemanticSearchToolWindow) + ".Completion");
                 _ = CompleteSearchAsync().ReportNonFatalErrorAsync().CompletesAsyncOperation(completionToken);
 
+                // Only clear pending source if it is the same as our source (otherwise, another execution has already kicked off):
+                Interlocked.CompareExchange(ref _pendingExecutionCancellationSource, value: null, cancellationSource);
+
                 // Dispose cancellation source and clear it, so that the presenterCancellationToken handler won't attempt to cancel:
                 var source = Interlocked.Exchange(ref cancellationSource, null);
                 Contract.ThrowIfNull(source);
@@ -393,7 +408,7 @@ internal sealed class SemanticSearchToolWindowImpl(
                 await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
 
                 // Update UI:
-                UpdateUIState(executionCancellationSource: null);
+                UpdateUIState();
 
                 async Task CompleteSearchAsync()
                 {
