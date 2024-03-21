@@ -12579,5 +12579,21 @@ namespace N
                 Await state.AssertCompletionItemsDoNotContainAny("B1")
             End Using
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72392")>
+        Public Async Function AliasToDynamicType(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System = dynamic;
+$$
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("System", displayTextSuffix:="")
+            End Using
+        End Function
     End Class
 End Namespace

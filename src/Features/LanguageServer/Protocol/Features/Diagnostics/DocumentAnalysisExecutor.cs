@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             try
             {
-                return await InProcOrRemoteHostAnalyzerRunner.GetSourceGeneratorDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
+                return await _diagnosticAnalyzerRunner.GetSourceGeneratorDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
             }
             catch when (_onAnalysisException != null)
             {

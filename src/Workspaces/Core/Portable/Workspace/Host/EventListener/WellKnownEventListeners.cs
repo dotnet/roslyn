@@ -10,5 +10,4 @@ namespace Microsoft.CodeAnalysis.Host;
 internal static class WellKnownEventListeners
 {
     public const string Workspace = nameof(Workspace);
-    public const string DiagnosticService = nameof(DiagnosticService);
 }

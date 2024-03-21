@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
@@ -13,8 +12,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         public IReadOnlyList<string> WorkspaceKinds { get; } = workspaceKinds;
 
         public UnitTestingIncrementalAnalyzerProviderMetadata(IDictionary<string, object> data)
-            : this(name: (string)data[nameof(CodeAnalysis.SolutionCrawler.ExportIncrementalAnalyzerProviderAttribute.Name)],
-                   workspaceKinds: (IReadOnlyList<string>)data[nameof(CodeAnalysis.SolutionCrawler.ExportIncrementalAnalyzerProviderAttribute.WorkspaceKinds)])
+            : this(name: (string)data[nameof(Name)],
+                   workspaceKinds: (IReadOnlyList<string>)data[nameof(WorkspaceKinds)])
         {
         }
     }

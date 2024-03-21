@@ -483,6 +483,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AbstractSpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AliasSymbolCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AnnotationTable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncLazy.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncLazy`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\BidirectionalMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\BKTree.Builder.cs" />
@@ -539,8 +540,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TextSpanExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\CompilerUtilities\CompilerPathUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\CompilerUtilities\ImmutableDictionaryExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\CompilerUtilities\ImmutableHashMap.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\CompilerUtilities\ImmutableHashMapExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ConcatImmutableArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ReferenceCountedDisposable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ReferenceCountedDisposableCache.cs" />

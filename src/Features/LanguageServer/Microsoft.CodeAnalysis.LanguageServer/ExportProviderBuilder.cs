@@ -24,16 +24,6 @@ internal sealed class ExportProviderBuilder
         var assemblyPaths = Directory.EnumerateFiles(baseDirectory, "Microsoft.CodeAnalysis*.dll");
         assemblyPaths = assemblyPaths.Concat(Directory.EnumerateFiles(baseDirectory, "Microsoft.ServiceHub*.dll"));
 
-        // Temporarily explicitly load the dlls we want to add to the MEF composition.  This is due to a runtime bug
-        // in the 7.0.4 runtime where the APIs MEF uses to load assemblies break with R2R assemblies.
-        // See https://github.com/dotnet/runtime/issues/83526
-        //
-        // Once a newer version of the runtime is widely available, we can remove this.
-        foreach (var path in assemblyPaths)
-        {
-            Assembly.LoadFrom(path);
-        }
-
         // DevKit assemblies are not shipped in the main language server folder
         // and not included in ExtensionAssemblyPaths (they get loaded into the default ALC).
         // So manually add them to the MEF catalog here.
