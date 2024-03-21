@@ -3250,7 +3250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitLabelCore(LabelSymbol label, BoundStatement? node = null)
+        private void VisitLabelCore(LabelSymbol label, BoundStatement node = null)
         {
             ResolveBranches(label, node);
             var state = LabelState(label);
