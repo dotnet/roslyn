@@ -563,7 +563,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-<<<<<<< HEAD
         internal bool IsExtensionMemberConversion([NotNullWhen(true)] out Symbol? extensionMember, out Conversion nestedConversion)
         {
             if (Kind != ConversionKind.ExtensionMember)
@@ -584,10 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        internal CollectionExpressionTypeKind GetCollectionExpressionTypeKind(out TypeSymbol? elementType)
-=======
         internal CollectionExpressionTypeKind GetCollectionExpressionTypeKind(out TypeSymbol? elementType, out MethodSymbol? constructor, out bool isExpanded)
->>>>>>> dotnet/main
         {
             if (_uncommonData is CollectionExpressionUncommonData collectionExpressionData)
             {

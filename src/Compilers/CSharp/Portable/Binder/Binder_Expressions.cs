@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // PROTOTYPE test use-site diagnostics
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            MethodGroupResolution resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, ref useSiteInfo);
+            MethodGroupResolution resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, ref useSiteInfo, options: OverloadResolution.Options.None);
             diagnostics.Add(methodGroup.Syntax, useSiteInfo);
             if (resolution.IsExtensionMember(out Symbol? extensionMember))
             {
@@ -7534,7 +7534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (expr is BoundMethodGroup { Methods: [], SearchExtensionMethods: true } methodGroup)
                     {
                         CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                        var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, ref useSiteInfo);
+                        var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, ref useSiteInfo, options: OverloadResolution.Options.None);
                         diagnostics.Add(expr.Syntax, useSiteInfo);
 
                         if (resolution.IsExtensionMember(out Symbol extensionMember))
@@ -7998,9 +7998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool withDependencies,
             in CallingConventionInfo callingConvention = default)
         {
-<<<<<<< HEAD
             Debug.Assert(left.Type is not null);
-=======
             Debug.Assert((options & ~(OverloadResolution.Options.IsMethodGroupConversion |
                                       OverloadResolution.Options.IsFunctionPointerResolution |
                                       OverloadResolution.Options.InferWithDynamic |
@@ -8008,11 +8006,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                       OverloadResolution.Options.DynamicResolution)) == 0);
 
             var firstResult = new MethodGroupResolution();
-            AnalyzedArguments actualArguments = null;
->>>>>>> dotnet/main
-
-            var firstResult = new MethodGroupResolution();
-
             AnalyzedArguments? actualArguments = null;
 
             foreach (var scope in new ExtensionScopes(this))
@@ -8020,7 +8013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE confirm that we want to exclude type parameters from extension member resolution or leave a comment
                 if (!left.Type.IsTypeParameter()
                     && tryResolveExtensionTypeMember(this, expression, memberName, analyzedArguments, left, typeArgumentsWithAnnotations,
-                        isMethodGroupConversion, returnRefKind, returnType, withDependencies, scope,
+                        options, returnRefKind, returnType, withDependencies, scope, in callingConvention,
                         out MethodGroupResolution extensionResult))
                 {
                     if (extensionResult.IsExtensionMember(out _))
@@ -8051,8 +8044,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // PROTOTYPE handle extension methods on the underlying type of an extension type
                 if (tryResolveExtensionMethod(this, expression, memberName, analyzedArguments, left, typeArgumentsWithAnnotations,
-                    isMethodGroupConversion, returnRefKind, returnType, withDependencies, scope,
-                    ref actualArguments, out MethodGroupResolution extensionMethodResult))
+                    options, returnRefKind, returnType, withDependencies, scope,
+                    ref actualArguments, in callingConvention, out MethodGroupResolution extensionMethodResult))
                 {
                     // If the search in the current scope resulted in any applicable method (regardless of whether a best
                     // applicable method could be determined) then our search is complete. Otherwise, store aside the
@@ -8078,25 +8071,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             actualArguments?.Free();
             return firstResult;
 
-            static bool tryResolveExtensionTypeMember(Binder binder, SyntaxNode expression, string memberName, AnalyzedArguments? analyzedArguments, BoundExpression left,
-                ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations, bool isMethodGroupConversion, RefKind returnRefKind,
-                TypeSymbol returnType, bool withDependencies, ExtensionScope scope, out MethodGroupResolution extensionResult)
+            bool tryResolveExtensionTypeMember(Binder binder, SyntaxNode expression, string memberName, AnalyzedArguments? analyzedArguments, BoundExpression left,
+                ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations, OverloadResolution.Options options, RefKind returnRefKind,
+                TypeSymbol returnType, bool withDependencies, ExtensionScope scope, in CallingConventionInfo callingConvention, out MethodGroupResolution extensionResult)
             {
                 var lookupResult = LookupResult.GetInstance();
                 var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies);
 
                 int arity = typeArgumentsWithAnnotations.IsDefault ? 0 : typeArgumentsWithAnnotations.Length;
-                var options = (arity == 0) ? LookupOptions.AllMethodsOnArityZero : LookupOptions.Default;
+                var lookupOptions = (arity == 0) ? LookupOptions.AllMethodsOnArityZero : LookupOptions.Default;
                 if (analyzedArguments is not null)
                 {
-                    options |= LookupOptions.MustBeInvocableIfMember;
+                    lookupOptions |= LookupOptions.MustBeInvocableIfMember;
                 }
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
 
                 scope.Binder.LookupImplicitExtensionMembersInSingleBinder(
                     lookupResult, left.Type!, memberName, arity,
-                    basesBeingResolved: null, options, originalBinder: binder, ref useSiteInfo);
+                    basesBeingResolved: null, lookupOptions, originalBinder: binder, ref useSiteInfo);
 
                 // PROTOTYPE test use-site diagnostics
                 diagnostics.Add(expression, useSiteInfo);
@@ -8139,23 +8132,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                extensionResult = resolveOverloads(binder, methodGroup, analyzedArguments, isMethodGroupConversion, returnType, returnRefKind, expression, diagnostics);
+                extensionResult = resolveOverloads(binder, methodGroup, analyzedArguments, options, returnType, returnRefKind, expression, diagnostics, in callingConvention);
                 return true;
             }
 
-            static bool tryResolveExtensionMethod(
+            bool tryResolveExtensionMethod(
                 Binder binder,
                 SyntaxNode expression,
                 string methodName,
                 AnalyzedArguments? analyzedArguments,
                 BoundExpression left,
                 ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
-                bool isMethodGroupConversion,
+                OverloadResolution.Options options,
                 RefKind returnRefKind,
                 TypeSymbol returnType,
                 bool withDependencies,
                 ExtensionScope scope,
                 ref AnalyzedArguments? actualArguments,
+                in CallingConventionInfo callingConvention,
                 out MethodGroupResolution result)
             {
                 var methodGroup = MethodGroup.GetInstance();
@@ -8196,29 +8190,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CombineExtensionMethodArguments(left, analyzedArguments, actualArguments);
                 }
 
-                result = resolveOverloads(binder, methodGroup, actualArguments, isMethodGroupConversion, returnType, returnRefKind, expression, diagnostics);
+                result = resolveOverloads(binder, methodGroup, actualArguments, options, returnType, returnRefKind, expression, diagnostics, in callingConvention);
                 return true;
             }
 
-            static MethodGroupResolution resolveOverloads(Binder binder, MethodGroup methodGroup, AnalyzedArguments actualArguments, bool isMethodGroupConversion,
-                TypeSymbol returnType, RefKind returnRefKind, SyntaxNode expression, BindingDiagnosticBag diagnostics)
+            MethodGroupResolution resolveOverloads(Binder binder, MethodGroup methodGroup, AnalyzedArguments actualArguments, OverloadResolution.Options options,
+                TypeSymbol returnType, RefKind returnRefKind, SyntaxNode expression, BindingDiagnosticBag diagnostics, in CallingConventionInfo callingConvention)
             {
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
-<<<<<<< HEAD
-                bool allowRefOmittedArguments = binder.AllowRefOmittedArguments(methodGroup.Receiver);
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
-                binder.OverloadResolution.MethodInvocationOverloadResolution(
-=======
-                // If we're in a parameter default value or attribute argument, this is an error scenario, so avoid checking
-                // for COM imported types to avoid a binding cycle.
-                if (!InParameterDefaultValue && !InAttributeArgument && methodGroup.Receiver.IsExpressionOfComImportType())
+                if (binder.AllowRefOmittedArguments(methodGroup.Receiver))
                 {
                     options |= OverloadResolution.Options.AllowRefOmittedArguments;
                 }
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 OverloadResolution.MethodInvocationOverloadResolution(
->>>>>>> dotnet/main
                     methods: methodGroup.Methods,
                     typeArguments: methodGroup.TypeArguments,
                     receiver: methodGroup.Receiver,
@@ -8228,13 +8214,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     options: options | OverloadResolution.Options.IsExtensionMethodResolution,
                     returnRefKind: returnRefKind,
                     returnType: returnType,
-<<<<<<< HEAD
-                    isExtensionMethodResolution: true);
+                    in callingConvention);
 
                 // PROTOTYPE test use-site diagnostics
-=======
-                    in callingConvention);
->>>>>>> dotnet/main
                 diagnostics.Add(expression, useSiteInfo);
                 var sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
 
@@ -9641,9 +9623,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindDynamicIndexer(syntax, receiver, analyzedArguments, finalApplicableCandidates.SelectAsArray(r => r.Member), diagnostics);
             }
 
-<<<<<<< HEAD
-            BoundExpression propertyAccess;
-=======
             return BindIndexerOrIndexedPropertyAccessContinued(syntax, receiver, propertyGroup, analyzedArguments, overloadResolutionResult, diagnostics);
         }
 
@@ -9656,9 +9635,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             BoundExpression propertyAccess;
-            ImmutableArray<string> argumentNames = analyzedArguments.GetNames();
-            ImmutableArray<RefKind> argumentRefKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
->>>>>>> dotnet/main
             if (!overloadResolutionResult.Succeeded)
             {
                 if (TryBindIndexOrRangeImplicitIndexer(
@@ -9778,7 +9754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompoundUseSiteInfo<AssemblySymbol> overloadUseSiteInfo = originalBinder.GetNewCompoundUseSiteInfo(diagnostics);
 
                 originalBinder.OverloadResolution.PropertyOverloadResolution(
-                    indexerGroup, receiver, analyzedArguments, overloadResolutionResult, allowRefOmittedArguments, ref overloadUseSiteInfo);
+                    indexerGroup, receiver, analyzedArguments, overloadResolutionResult, allowRefOmittedArguments, dynamicResolution: false, ref overloadUseSiteInfo);
 
                 // PROTOTYPE test use-site diagnostics
                 diagnostics.Add(syntax, overloadUseSiteInfo);
@@ -10247,27 +10223,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return methodResolution;
         }
 
-<<<<<<< HEAD
-=======
-        internal MethodGroupResolution ResolveMethodGroupForFunctionPointer(
-            BoundMethodGroup methodGroup,
-            AnalyzedArguments analyzedArguments,
-            TypeSymbol returnType,
-            RefKind returnRefKind,
-            in CallingConventionInfo callingConventionInfo,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            return ResolveDefaultMethodGroup(
-                methodGroup,
-                analyzedArguments,
-                ref useSiteInfo,
-                options: OverloadResolution.Options.IsMethodGroupConversion | OverloadResolution.Options.IsFunctionPointerResolution,
-                returnRefKind,
-                returnType,
-                callingConventionInfo);
-        }
-
->>>>>>> dotnet/main
         private MethodGroupResolution ResolveMethodGroupInternal(
             BoundMethodGroup methodGroup,
             SyntaxNode expression,
@@ -10291,16 +10246,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return methodResolution;
             }
 
-<<<<<<< HEAD
             var extensionMethodResolution = ResolveExtension(
-                expression, memberName, analyzedArguments, methodGroup.ReceiverOpt, methodGroup.TypeArgumentsOpt, isMethodGroupConversion,
-                returnRefKind: returnRefKind, returnType: returnType, withDependencies: useSiteInfo.AccumulatesDependencies);
-=======
-            var extensionMethodResolution = BindExtensionMethod(
-                expression, methodName, analyzedArguments, methodGroup.ReceiverOpt, methodGroup.TypeArgumentsOpt, options,
-                returnRefKind: returnRefKind, returnType: returnType, withDependencies: useSiteInfo.AccumulatesDependencies,
-                in callingConvention);
->>>>>>> dotnet/main
+                expression, memberName, analyzedArguments, methodGroup.ReceiverOpt, methodGroup.TypeArgumentsOpt, options,
+                returnRefKind: returnRefKind, returnType: returnType, withDependencies: useSiteInfo.AccumulatesDependencies, in callingConvention);
+
             bool preferExtensionMethodResolution = false;
 
             if (extensionMethodResolution.HasAnyApplicableMethod)
@@ -10403,18 +10352,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var result = OverloadResolutionResult<MethodSymbol>.GetInstance();
-<<<<<<< HEAD
-                bool allowRefOmittedArguments = AllowRefOmittedArguments(methodGroup.Receiver);
-=======
-                // We check for being in a default parameter value or attribute to avoid a cycle. If we're binding these,
-                // this entire expression is bad, so we don't care whether this is a COM import type and we can safely
-                // just pass false here.
-                if (!InParameterDefaultValue && !InAttributeArgument && methodGroup.Receiver.IsExpressionOfComImportType())
+                if (AllowRefOmittedArguments(methodGroup.Receiver))
                 {
                     options |= OverloadResolution.Options.AllowRefOmittedArguments;
                 }
 
->>>>>>> dotnet/main
                 OverloadResolution.MethodInvocationOverloadResolution(
                     methodGroup.Methods,
                     methodGroup.TypeArguments,

@@ -281,12 +281,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureImplicitIndexerInitializer = MessageBase + 12840,
         IDS_FeatureLockObject = MessageBase + 12841,
 
-<<<<<<< HEAD
+        IDS_FeatureParamsCollections = MessageBase + 12842,
+
         IDS_FeatureExtensions = MessageBase + 12850, // PROTOTYPE consolidate feature identifier
         IDS_FeatureBaseExtensions = MessageBase + 12851, // PROTOTYPE remove this temporary feature flag
-=======
-        IDS_FeatureParamsCollections = MessageBase + 12842,
->>>>>>> dotnet/main
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -470,11 +468,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureStringEscapeCharacter:
                 case MessageID.IDS_FeatureImplicitIndexerInitializer:
                 case MessageID.IDS_FeatureLockObject:
-<<<<<<< HEAD
-                case MessageID.IDS_FeatureExtensions:
-=======
                 case MessageID.IDS_FeatureParamsCollections:
->>>>>>> dotnet/main
+                case MessageID.IDS_FeatureExtensions:
                     return LanguageVersion.Preview;
 
                 // C# 12.0 features.

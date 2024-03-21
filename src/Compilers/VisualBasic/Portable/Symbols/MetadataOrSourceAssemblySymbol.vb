@@ -67,12 +67,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <param name="corType"></param>
         Friend Overrides Sub RegisterDeclaredSpecialType(corType As NamedTypeSymbol)
-<<<<<<< HEAD
             ' PROTOTYPE do not consider extension types to be special types
-            Dim typeId As SpecialType = corType.SpecialType
-=======
             Dim typeId As ExtendedSpecialType = corType.ExtendedSpecialType
->>>>>>> dotnet/main
             Debug.Assert(typeId <> SpecialType.None)
             Debug.Assert(corType.ContainingAssembly Is Me)
             Debug.Assert(corType.ContainingModule.Ordinal = 0)

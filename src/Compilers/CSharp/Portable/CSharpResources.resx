@@ -7872,7 +7872,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureLockObject" xml:space="preserve">
     <value>Lock object</value>
   </data>
-<<<<<<< HEAD
   <data name="ERR_BadExtensionUnderlyingType" xml:space="preserve">
     <value>The extended type may not be dynamic, a pointer, a ref struct, or an extension.</value>
   </data>
@@ -7920,7 +7919,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
     <data name="ERR_UnderspecifiedImplicitExtension" xml:space="preserve">
     <value>The underlying type '{0}' of implicit extension '{1}' must reference all the type parameters declared by the extension, but type parameter '{2}' is missing.</value>
-=======
+  </data>
   <data name="IDS_FeatureParamsCollections" xml:space="preserve">
     <value>params collections</value>
   </data>
@@ -7968,6 +7967,5 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_NoModifiersOnUsing" xml:space="preserve">
     <value>Modifiers cannot be placed on using declarations</value>
->>>>>>> dotnet/main
   </data>
 </root>

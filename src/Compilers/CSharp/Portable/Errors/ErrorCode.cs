@@ -2285,15 +2285,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CollectionExpressionTargetNoElementType = 9213,
         ERR_CollectionExpressionMissingConstructor = 9214,
         ERR_CollectionExpressionMissingAdd = 9215,
-<<<<<<< HEAD
-        #endregion
-=======
->>>>>>> dotnet/main
 
         WRN_ConvertingLock = 9216,
         ERR_BadSpecialByRefLock = 9217,
 
-<<<<<<< HEAD
+        ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections = 9218,
+        ERR_ParamsCollectionAmbiguousDynamicArgument = 9219,
+        WRN_DynamicDispatchToParamsCollectionMethod = 9220,
+        WRN_DynamicDispatchToParamsCollectionIndexer = 9221,
+        WRN_DynamicDispatchToParamsCollectionConstructor = 9222,
+        ERR_ParamsCollectionInfiniteChainOfConstructorCalls = 9223,
+        ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember = 9224,
+        ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember = 9225,
+        ERR_ParamsCollectionExpressionTree = 9226,
+        ERR_ParamsCollectionExtensionAddMethod = 9227,
+        ERR_ParamsCollectionMissingConstructor = 9228,
+
         // PROTOTYPE compact error codes
         ERR_BadExtensionUnderlyingType = 9305,
         ERR_StaticBaseTypeOnInstanceExtension = 9306,
@@ -2314,23 +2321,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExtensionMethodInExtension = 9321,
         ERR_MalformedExtensionInMetadata = 9322,
         ERR_UnderspecifiedImplicitExtension = 9328,
-=======
-        ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections = 9218,
-        ERR_ParamsCollectionAmbiguousDynamicArgument = 9219,
-        WRN_DynamicDispatchToParamsCollectionMethod = 9220,
-        WRN_DynamicDispatchToParamsCollectionIndexer = 9221,
-        WRN_DynamicDispatchToParamsCollectionConstructor = 9222,
-        ERR_ParamsCollectionInfiniteChainOfConstructorCalls = 9223,
-        ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember = 9224,
-        ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember = 9225,
-        ERR_ParamsCollectionExpressionTree = 9226,
-        ERR_ParamsCollectionExtensionAddMethod = 9227,
-        ERR_ParamsCollectionMissingConstructor = 9228,
 
         ERR_NoModifiersOnUsing = 9229,
 
         #endregion
->>>>>>> dotnet/main
 
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).

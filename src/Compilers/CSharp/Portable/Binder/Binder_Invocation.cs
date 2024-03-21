@@ -789,21 +789,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (resolution.AnalyzedArguments.HasDynamicArgument &&
                         resolution.OverloadResolutionResult.HasAnyApplicableMember)
                     {
-<<<<<<< HEAD
-                        if (resolution.IsLocalFunctionInvocation)
-                        {
-                            result = BindLocalFunctionInvocationWithDynamicArgument(
-                                syntax, expression, methodName, methodGroup,
-                                diagnostics, queryClause, resolution);
-                        }
-                        // PROTOTYPE need to confirm what we want for invocations with dynamic arguments
-                        else if (resolution.IsExtensionMethodGroup)
-                        {
-                            // error CS1973: 'T' has no applicable method named 'M' but appears to have an
-                            // extension method by that name. Extension methods cannot be dynamically dispatched. Consider
-                            // casting the dynamic arguments or calling the extension method without the extension method
-                            // syntax.
-=======
                         // Note that the runtime binder may consider candidates that haven't passed compile-time final validation 
                         // and an ambiguity error may be reported. Also additional checks are performed in runtime final validation 
                         // that are not performed at compile-time.
@@ -813,7 +798,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                             methodGroup.TypeArgumentsOpt,
                                                                                             invokedAsExtensionMethod: resolution.IsExtensionMethodGroup,
                                                                                             diagnostics);
->>>>>>> dotnet/main
 
                         if (finalApplicableCandidates.Length == 0)
                         {
@@ -830,6 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(finalApplicableCandidates.Length > 0);
 
+                            // PROTOTYPE need to confirm what we want for invocations with dynamic arguments
                             if (resolution.IsExtensionMethodGroup)
                             {
                                 // error CS1973: 'T' has no applicable method named 'M' but appears to have an
@@ -2408,12 +2393,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Check that the method group contains something applicable. Otherwise error.
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-<<<<<<< HEAD
-            var resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteInfo: ref useSiteInfo);
-            // PROTOTYPE we probably want this error for extension members too
-=======
             var resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.None);
->>>>>>> dotnet/main
+            // PROTOTYPE we probably want this error for extension members too
             diagnostics.Add(methodGroup.Syntax, useSiteInfo);
             diagnostics.AddRange(resolution.Diagnostics);
             if (resolution.IsExtensionMethodGroup)

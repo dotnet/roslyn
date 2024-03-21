@@ -2422,7 +2422,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_CollectionExpressionMissingAdd:
                 case ErrorCode.WRN_ConvertingLock:
                 case ErrorCode.ERR_BadSpecialByRefLock:
-<<<<<<< HEAD
                 case ErrorCode.ERR_BadExtensionUnderlyingType:
                 case ErrorCode.ERR_StaticBaseTypeOnInstanceExtension:
                 case ErrorCode.ERR_OnlyBaseExtensionAllowed:
@@ -2442,7 +2441,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ExtensionMethodInExtension:
                 case ErrorCode.ERR_MalformedExtensionInMetadata:
                 case ErrorCode.ERR_UnderspecifiedImplicitExtension:
-=======
                 case ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections:
                 case ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument:
                 case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
@@ -2455,7 +2453,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ParamsCollectionExtensionAddMethod:
                 case ErrorCode.ERR_ParamsCollectionMissingConstructor:
                 case ErrorCode.ERR_NoModifiersOnUsing:
->>>>>>> dotnet/main
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
