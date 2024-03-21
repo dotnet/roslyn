@@ -57,7 +57,7 @@ public sealed class SyntaxTokenParser : IDisposable
     /// <exception cref="ArgumentOutOfRangeException">If the given position is less than the current position of the lexer.</exception>
     public void SkipForwardTo(int position)
     {
-        if (position <= _lexer.TextWindow.Position)
+        if (position < _lexer.TextWindow.Position)
             throw new ArgumentOutOfRangeException(nameof(position));
 
         _lexer.TextWindow.Reset(position);
@@ -67,9 +67,9 @@ public sealed class SyntaxTokenParser : IDisposable
     /// Resets the token parser to an earlier position in the input. The parser is reset the start of the token that was previously
     /// parsed, before any leading trivia, with the directive state that existed at the start of the token.
     /// </summary>
-    public void ResetTo(Result context)
+    public void ResetTo(Result result)
     {
-        _lexer.Reset(context.Token.Position, context.ContextStartDirectiveStack);
+        _lexer.Reset(result.Token.Position, result.ContextStartDirectiveStack);
     }
 
     /// <summary>

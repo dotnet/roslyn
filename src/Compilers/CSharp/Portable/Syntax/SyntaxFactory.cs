@@ -1672,7 +1672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static SyntaxTokenParser CreateTokenParser(SourceText sourceText, CSharpParseOptions? options)
+        public static SyntaxTokenParser CreateTokenParser(SourceText sourceText, CSharpParseOptions? options = null)
         {
             return new SyntaxTokenParser(new InternalSyntax.Lexer(sourceText, options ?? CSharpParseOptions.Default));
         }
