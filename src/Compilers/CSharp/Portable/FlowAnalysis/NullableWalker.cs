@@ -3682,21 +3682,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithState convertCollection(BoundCollectionExpression node, TypeWithAnnotations targetCollectionType, ArrayBuilder<Func<TypeWithAnnotations, TypeWithState>> completions)
             {
                 var strippedTargetCollectionType = targetCollectionType.Type.StrippedType();
+                Debug.Assert(TypeSymbol.Equals(strippedTargetCollectionType, node.Type, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
                 // https://github.com/dotnet/roslyn/issues/68786: Use inferInitialObjectState() to set the initial
                 // state of the instance: see the call to InheritNullableStateOfTrackableStruct() in particular.
 
                 // Process the element conversions now that we have the target-type
                 var (collectionKind, targetElementType) = getCollectionDetails(node, strippedTargetCollectionType);
-
-                // Target type might be wrong in error scenarios.
-                if (!targetElementType.HasType)
-                {
-                    strippedTargetCollectionType = node.Type.StrippedType();
-                    (collectionKind, targetElementType) = getCollectionDetails(node, strippedTargetCollectionType);
-                }
-
-                Debug.Assert(TypeSymbol.Equals(strippedTargetCollectionType, node.Type, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
                 // We should analyze the Create method
                 // Tracked by https://github.com/dotnet/roslyn/issues/68786
@@ -3817,6 +3809,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TargetTypedAnalysisCompletion[node] =
                     (TypeWithAnnotations resultTypeWithAnnotations) =>
                     {
+                        Debug.Assert(TypeSymbol.Equals(resultTypeWithAnnotations.Type, node.Type, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+
                         var type = resultTypeWithAnnotations.Type;
                         MethodSymbol? constructor = getConstructor(node, type);
 
@@ -6724,8 +6718,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (ParameterSymbol? parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool isExpandedParamsArgument) =
                             GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded, ref paramsIterationType);
 
-                        if (parameter is null)
+                        if (// This is known to happen for certain error scenarios, because
+                            // the parameter matching logic above is not as flexible as the one we use in `Binder.BuildArgumentsForErrorRecovery`
+                            // so we may end up with a pending conversion completion for an argument apparently without a corresponding parameter.
+                            parameter is null ||
+                            // In error recovery with named arguments, target-typing cannot work as we can get a different parameter type
+                            // from our GetCorrespondingParameter logic than Binder.BuildArgumentsForErrorRecovery does.
+                            node is BoundCall { HasErrors: true, ArgumentNamesOpt.IsDefaultOrEmpty: false })
                         {
+                            Debug.Assert(parameter is null
+                                ? method is ErrorMethodSymbol
+                                : node is BoundCall { ArgsToParamsOpt.IsDefault: true });
+
                             if (IsTargetTypedExpression(argumentNoConversion) && _targetTypedAnalysisCompletionOpt?.TryGetValue(argumentNoConversion, out var completion) is true)
                             {
                                 // We've done something wrong if we have a target-typed expression and registered an analysis continuation for it
@@ -6733,11 +6737,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // We flush the completion with a plausible/dummy type and remove it.
                                 completion(TypeWithAnnotations.Create(argument.Type));
                                 TargetTypedAnalysisCompletion.Remove(argumentNoConversion);
-
-                                // This is known to happen for certain error scenarios, because
-                                // the parameter matching logic above is not as flexible as the one we use in `Binder.BuildArgumentsForErrorRecovery`
-                                // so we may end up with a pending conversion completion for an argument apparently without a corresponding parameter.
-                                Debug.Assert(method is ErrorMethodSymbol);
                             }
                             continue;
                         }
