@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// This is consumed as 'generated' code in a source package and therefore requires an explicit nullable enable
+#nullable enable
+
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,7 +21,11 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// </para>
 /// </summary>
 /// <typeparam name="TRequestContext">The type of the RequestContext to be used by the handler.</typeparam>
+#if BINARY_COMPAT // TODO - Remove with https://github.com/dotnet/roslyn/issues/72251
 public abstract class AbstractRequestContextFactory<TRequestContext>
+#else
+internal abstract class AbstractRequestContextFactory<TRequestContext>
+#endif
 {
     /// <summary>
     /// Create a <typeparamref name="TRequestContext"/> object from the given <see cref="IQueueItem{RequestContextType}"/>.

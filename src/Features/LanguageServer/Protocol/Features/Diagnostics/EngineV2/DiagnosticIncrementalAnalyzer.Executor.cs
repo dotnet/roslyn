@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return true;
         }
 
-        private static async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> MergeProjectDiagnosticAnalyzerDiagnosticsAsync(
+        private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> MergeProjectDiagnosticAnalyzerDiagnosticsAsync(
             Project project,
             ImmutableArray<DiagnosticAnalyzer> ideAnalyzers,
             Compilation? compilation,
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        private static async Task<(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> results, ImmutableHashSet<Document>? failedDocuments)> UpdateWithDocumentLoadAndGeneratorFailuresAsync(
+        private async Task<(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> results, ImmutableHashSet<Document>? failedDocuments)> UpdateWithDocumentLoadAndGeneratorFailuresAsync(
             ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> results,
             Project project,
             VersionStamp version,
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     others: [],
                     documentIds: null));
 
-            var generatorDiagnostics = await InProcOrRemoteHostAnalyzerRunner.GetSourceGeneratorDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
+            var generatorDiagnostics = await _diagnosticAnalyzerRunner.GetSourceGeneratorDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
             var diagnosticResultBuilder = new DiagnosticAnalysisResultBuilder(project, version);
             foreach (var generatorDiagnostic in generatorDiagnostics)
             {

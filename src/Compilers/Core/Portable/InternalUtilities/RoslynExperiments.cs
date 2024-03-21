@@ -11,4 +11,7 @@ internal static class RoslynExperiments
 {
     internal const string NullableDisabledSemanticModel = "RSEXPERIMENTAL001";
     internal const string NullableDisabledSemanticModel_Url = "https://github.com/dotnet/roslyn/issues/70609";
+
+    internal const string Interceptors = "RSEXPERIMENTAL002";
+    internal const string Interceptors_Url = "https://github.com/dotnet/csharplang/issues/7009";
 }
