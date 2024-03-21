@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         .WithSourceReferenceResolver(new SourceFileResolver([], projectDirectory))
                         // TODO: https://github.com/dotnet/roslyn/issues/4967
                         .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver([], projectDirectory)))
-                        .WithStrongNameProvider(new DesktopStrongNameProvider(commandLineArgs.KeyFileSearchPaths))
+                        .WithStrongNameProvider(new DesktopStrongNameProvider(commandLineArgs.KeyFileSearchPaths, Path.GetTempPath()))
                         .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
                     var documents = CreateDocumentInfos(projectFileInfo.Documents, projectId, commandLineArgs.Encoding);
