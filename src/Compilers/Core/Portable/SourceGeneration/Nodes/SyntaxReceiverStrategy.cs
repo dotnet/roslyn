@@ -16,15 +16,18 @@ namespace Microsoft.CodeAnalysis
         private readonly SyntaxContextReceiverCreator _receiverCreator;
         private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
         private readonly ISyntaxHelper _syntaxHelper;
+        private readonly string _baseDirectory;
 
         public SyntaxReceiverStrategy(
             SyntaxContextReceiverCreator receiverCreator,
             Action<IIncrementalGeneratorOutputNode> registerOutput,
-            ISyntaxHelper syntaxHelper)
+            ISyntaxHelper syntaxHelper,
+            string baseDirectory)
         {
             _receiverCreator = receiverCreator;
             _registerOutput = registerOutput;
             _syntaxHelper = syntaxHelper;
+            _baseDirectory = baseDirectory;
         }
 
         public ISyntaxInputBuilder GetBuilder(StateTableStore table, object key, bool trackIncrementalSteps, string? name, IEqualityComparer<T>? comparer) => new Builder(this, key, table, trackIncrementalSteps);
@@ -52,7 +55,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (_receiver is object)
                 {
-                    _walker = new GeneratorSyntaxWalker(_receiver, owner._syntaxHelper);
+                    _walker = new GeneratorSyntaxWalker(_receiver, owner._syntaxHelper, owner._baseDirectory);
                 }
             }
 

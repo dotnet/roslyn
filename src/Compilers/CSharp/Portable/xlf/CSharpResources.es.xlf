@@ -1027,6 +1027,11 @@
         <target state="translated">El archivo especificado tiene '{0}' líneas, que es menor que el número de línea proporcionado '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptorLocationSpecifierInvalidFormat">
+        <source>Location specifier does not match expected format 'v1:path(line,character)'.</source>
+        <target state="new">Location specifier does not match expected format 'v1:path(line,character)'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorMethodMustBeOrdinary">
         <source>An interceptor method must be an ordinary member method.</source>
         <target state="translated">Un método interceptor debe ser un método de miembro común.</target>

@@ -1027,6 +1027,11 @@
         <target state="translated">给定文件具有 {0} 行，这少于提供的行数“{1}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptorLocationSpecifierInvalidFormat">
+        <source>Location specifier does not match expected format 'v1:path(line,character)'.</source>
+        <target state="new">Location specifier does not match expected format 'v1:path(line,character)'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorMethodMustBeOrdinary">
         <source>An interceptor method must be an ordinary member method.</source>
         <target state="translated">侦听器方法必须是普通成员方法。</target>

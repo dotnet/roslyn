@@ -217,8 +217,10 @@ namespace Microsoft.CodeAnalysis
                     var outputBuilder = ArrayBuilder<IIncrementalGeneratorOutputNode>.GetInstance();
                     var inputBuilder = ArrayBuilder<SyntaxInputNode>.GetInstance();
                     var postInitSources = ImmutableArray<GeneratedSyntaxTree>.Empty;
+
+                    var baseDirectory = GetFilePathPrefixForGenerator(_state.DriverOptions.BaseDirectory, sourceGenerator);
                     var pipelineContext = new IncrementalGeneratorInitializationContext(
-                        inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension, compilation.CatchAnalyzerExceptions);
+                        inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension, compilation.CatchAnalyzerExceptions, baseDirectory);
 
                     Exception? ex = null;
                     try

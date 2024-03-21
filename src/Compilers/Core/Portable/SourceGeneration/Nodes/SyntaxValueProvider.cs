@@ -19,17 +19,20 @@ namespace Microsoft.CodeAnalysis
         private readonly ArrayBuilder<SyntaxInputNode> _inputNodes;
         private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
         private readonly ISyntaxHelper _syntaxHelper;
+        private readonly string _baseDirectory;
 
         internal SyntaxValueProvider(
             IncrementalGeneratorInitializationContext context,
             ArrayBuilder<SyntaxInputNode> inputNodes,
             Action<IIncrementalGeneratorOutputNode> registerOutput,
-            ISyntaxHelper syntaxHelper)
+            ISyntaxHelper syntaxHelper,
+            string baseDirectory)
         {
             _context = context;
             _inputNodes = inputNodes;
             _registerOutput = registerOutput;
             _syntaxHelper = syntaxHelper;
+            _baseDirectory = baseDirectory;
         }
 
         /// <summary>
@@ -44,7 +47,7 @@ namespace Microsoft.CodeAnalysis
             // registration of the input is deferred until we know the node is used
             return new IncrementalValuesProvider<T>(
                 new SyntaxInputNode<T>(
-                    new PredicateSyntaxStrategy<T>(predicate.WrapUserFunction(_context.CatchAnalyzerExceptions), transform.WrapUserFunction(_context.CatchAnalyzerExceptions), _syntaxHelper),
+                    new PredicateSyntaxStrategy<T>(predicate.WrapUserFunction(_context.CatchAnalyzerExceptions), transform.WrapUserFunction(_context.CatchAnalyzerExceptions), _syntaxHelper, _baseDirectory),
                     RegisterOutputAndDeferredInput),
                 _context.CatchAnalyzerExceptions);
         }
@@ -55,7 +58,7 @@ namespace Microsoft.CodeAnalysis
         internal IncrementalValueProvider<ISyntaxContextReceiver?> CreateSyntaxReceiverProvider(SyntaxContextReceiverCreator creator)
         {
             var node = new SyntaxInputNode<ISyntaxContextReceiver?>(
-                new SyntaxReceiverStrategy<ISyntaxContextReceiver?>(creator, _registerOutput, _syntaxHelper), RegisterOutputAndDeferredInput);
+                new SyntaxReceiverStrategy<ISyntaxContextReceiver?>(creator, _registerOutput, _syntaxHelper, _baseDirectory), RegisterOutputAndDeferredInput);
             _inputNodes.Add(node);
             return new IncrementalValueProvider<ISyntaxContextReceiver?>(node, _context.CatchAnalyzerExceptions);
         }

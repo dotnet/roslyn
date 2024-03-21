@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -1637,6 +1638,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var csModel = semanticModel as CSharpSemanticModel;
             return csModel?.GetInterceptorMethod(node, cancellationToken);
+        }
+
+#pragma warning disable RS0016 // TODO2 update public API
+        /// <summary>
+        /// Gets a location specifier (attribute argument to InterceptsLocationAttribute) for the given node.
+        /// </summary>
+        /// <param name="hintDirectory">
+        /// The name of the subdirectory that the generated file will be written to.
+        /// A non-null value is needed here only if the file containing the location specifier will have a hintName containing slashes.
+        /// <see cref="SourceProductionContext.AddSource(string, string)" />
+        /// </param>
+        [Experimental(RoslynExperiments.Interceptors, UrlFormat = RoslynExperiments.Interceptors_Url)]
+        public static string? GetInterceptsLocationAttributeArgument(this GeneratorSyntaxContext context, InvocationExpressionSyntax node, string? hintDirectory = null)
+        {
+            if (node.GetInterceptableNameSyntax() is not { } nameSyntax)
+            {
+                return null;
+            }
+
+            // TODO2: apply similar constraints to hintDirectory was we apply in AdditionalSourcesCollection.Add?
+            var interceptorFilePath = PathUtilities.CombinePaths(context.BaseDirectory, hintDirectory);
+            var relativePath = PathUtilities.NormalizeWithForwardSlash(PathUtilities.GetRelativePath(interceptorFilePath, node.SyntaxTree.FilePath));
+            var lineSpan = nameSyntax.Location.GetLineSpan().Span.Start;
+            var lineNumberOneIndexed = lineSpan.Line + 1;
+            var characterNumberOneIndexed = lineSpan.Character + 1;
+
+            return SymbolDisplay.FormatLiteral($"""v1:{relativePath}({lineNumberOneIndexed},{characterNumberOneIndexed})""", quote: true);
         }
         #endregion
     }

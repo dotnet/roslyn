@@ -18,16 +18,19 @@ namespace Microsoft.CodeAnalysis
         private readonly Func<GeneratorSyntaxContext, CancellationToken, T> _transformFunc;
         private readonly ISyntaxHelper _syntaxHelper;
         private readonly Func<SyntaxNode, CancellationToken, bool> _filterFunc;
+        private readonly string _baseDirectory;
         private readonly object _filterKey = new object();
 
         internal PredicateSyntaxStrategy(
             Func<SyntaxNode, CancellationToken, bool> filterFunc,
             Func<GeneratorSyntaxContext, CancellationToken, T> transformFunc,
-            ISyntaxHelper syntaxHelper)
+            ISyntaxHelper syntaxHelper,
+            string baseDirectory)
         {
             _transformFunc = transformFunc;
             _syntaxHelper = syntaxHelper;
             _filterFunc = filterFunc;
+            _baseDirectory = baseDirectory;
         }
 
         public ISyntaxInputBuilder GetBuilder(StateTableStore table, object key, bool trackIncrementalSteps, string? name, IEqualityComparer<T>? comparer) => new Builder(this, key, table, trackIncrementalSteps, name, comparer ?? EqualityComparer<T>.Default);
@@ -101,7 +104,7 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         var stopwatch = SharedStopwatch.StartNew();
-                        var value = new GeneratorSyntaxContext(entry.GetItem(i), model, _owner._syntaxHelper);
+                        var value = new GeneratorSyntaxContext(entry.GetItem(i), model, _owner._syntaxHelper, _owner._baseDirectory);
                         var transformed = _owner._transformFunc(value, cancellationToken);
 
                         // The SemanticModel we provide to GeneratorSyntaxContext is never guaranteed to be the same between runs,

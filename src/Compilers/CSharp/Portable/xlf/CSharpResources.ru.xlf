@@ -1027,6 +1027,11 @@
         <target state="translated">В данном файле есть строки ' {0} ', что меньше предоставленного номера строки ' {1} '.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptorLocationSpecifierInvalidFormat">
+        <source>Location specifier does not match expected format 'v1:path(line,character)'.</source>
+        <target state="new">Location specifier does not match expected format 'v1:path(line,character)'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorMethodMustBeOrdinary">
         <source>An interceptor method must be an ordinary member method.</source>
         <target state="translated">Метод-перехватчик должен быть обычным методом-элементом.</target>

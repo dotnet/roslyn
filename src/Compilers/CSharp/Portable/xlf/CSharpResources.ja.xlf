@@ -1027,6 +1027,11 @@
         <target state="translated">与えられたファイルは '{0}' 行しかなく、指定された行数 '{1}' を下回っています。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterceptorLocationSpecifierInvalidFormat">
+        <source>Location specifier does not match expected format 'v1:path(line,character)'.</source>
+        <target state="new">Location specifier does not match expected format 'v1:path(line,character)'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterceptorMethodMustBeOrdinary">
         <source>An interceptor method must be an ordinary member method.</source>
         <target state="translated">インターセプター メソッドは通常のメンバー メソッドである必要があります。</target>
