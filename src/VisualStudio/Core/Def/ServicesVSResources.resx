@@ -1897,8 +1897,8 @@ Additional information: {1}</value>
   <data name="AssemblyNameAndVersionDisplay" xml:space="preserve">
     <value>{0} ({1})</value>
   </data>
-  <data name="automatically_may_degrade_performance" xml:space="preserve">
-    <value>automatically (may degrade performance)</value>
+  <data name="Automatic_Source_generators_will_run_after_any_change" xml:space="preserve">
+    <value>Automatic. Source generators will run after any change.</value>
   </data>
   <data name="Run_source_generators" xml:space="preserve">
     <value>Run source generators:</value>
@@ -1906,7 +1906,7 @@ Additional information: {1}</value>
   <data name="Source_Generators" xml:space="preserve">
     <value>Source Generators</value>
   </data>
-  <data name="when_builds_complete" xml:space="preserve">
-    <value>when builds complete</value>
+  <data name="Balanced_Source_generators_will_run_after_building_and_saving" xml:space="preserve">
+    <value>Balanced. Source generators will run after building and saving.</value>
   </data>
 </root>
