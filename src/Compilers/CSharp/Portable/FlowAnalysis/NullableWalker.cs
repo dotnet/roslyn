@@ -6724,12 +6724,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             parameter is null ||
                             // In error recovery with named arguments, target-typing cannot work as we can get a different parameter type
                             // from our GetCorrespondingParameter logic than Binder.BuildArgumentsForErrorRecovery does.
-                            node is BoundCall { HasErrors: true, ArgumentNamesOpt.IsDefaultOrEmpty: false })
+                            node is BoundCall { HasErrors: true, ArgumentNamesOpt.IsDefaultOrEmpty: false, ArgsToParamsOpt.IsDefault: true })
                         {
-                            Debug.Assert(parameter is null
-                                ? method is ErrorMethodSymbol
-                                : node is BoundCall { ArgsToParamsOpt.IsDefault: true });
-
                             if (IsTargetTypedExpression(argumentNoConversion) && _targetTypedAnalysisCompletionOpt?.TryGetValue(argumentNoConversion, out var completion) is true)
                             {
                                 // We've done something wrong if we have a target-typed expression and registered an analysis continuation for it
@@ -6737,6 +6733,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // We flush the completion with a plausible/dummy type and remove it.
                                 completion(TypeWithAnnotations.Create(argument.Type));
                                 TargetTypedAnalysisCompletion.Remove(argumentNoConversion);
+
+                                Debug.Assert(parameter is not null || method is ErrorMethodSymbol);
                             }
                             continue;
                         }
