@@ -158,6 +158,12 @@ public abstract class CodeAction
         => [];
 
     /// <summary>
+    /// Code actions that should be presented as hyperlinks in the code action preview pane,
+    /// similar to FixAll scopes and Preview Changes but may not apply to ALL CodeAction types.
+    /// </summary>
+    internal virtual ImmutableArray<CodeAction> AdditionalPreviewFlavors => [];
+
+    /// <summary>
     /// Bridge method for sdk. https://github.com/dotnet/roslyn-sdk/issues/1136 tracks removing this.
     /// </summary>
     internal ImmutableArray<CodeAction> NestedCodeActions
