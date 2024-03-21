@@ -6,7 +6,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.WithReadOnlyKeyword(Mic
 Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser
 Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Dispose() -> void
 Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.ParseNextToken() -> Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result
-Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.ResetTo(Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result context) -> void
+Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.ResetTo(Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result result) -> void
 Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result
 Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result.ContextualKind.get -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result.Result() -> void
