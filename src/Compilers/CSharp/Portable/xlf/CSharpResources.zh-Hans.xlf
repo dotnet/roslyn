@@ -439,12 +439,12 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingAdd">
         <source>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</source>
-        <target state="new">Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</target>
+        <target state="translated">集合表达式类型必须具有适用的实例或扩展方法 “Add”，该方法可以使用迭代类型的参数调用 '{0}'。最佳重载方法 '{1}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingConstructor">
         <source>Collection expression type must have an applicable constructor that can be called with no arguments.</source>
-        <target state="new">Collection expression type must have an applicable constructor that can be called with no arguments.</target>
+        <target state="translated">集合表达式类型必须具有一个适用的构造函数，该构造函数可在没有参数的情况下调用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
@@ -454,7 +454,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetNoElementType">
         <source>Collection expression target '{0}' has no element type.</source>
-        <target state="new">Collection expression target '{0}' has no element type.</target>
+        <target state="translated">集合表达式目标 '{0}' 没有元素类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
@@ -2339,7 +2339,7 @@
       </trans-unit>
       <trans-unit id="IDS_LockObject">
         <source>Lock object</source>
-        <target state="new">Lock object</target>
+        <target state="translated">锁定对象</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Missing">
@@ -2584,12 +2584,12 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <target state="translated">转换为不同类型的 “System.Threading.Lock” 类型的值将在 “lock” 语句中使用可能的基于监视器的锁定。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock_Title">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <target state="translated">转换为不同类型的 “System.Threading.Lock” 类型的值将在 “lock” 语句中使用可能的基于监视器的锁定。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">

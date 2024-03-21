@@ -9,12 +9,12 @@
       </trans-unit>
       <trans-unit id="CSharpLanguageServiceExtension.OpenSemanticSearchWindow.DisplayName">
         <source>C# Semantic Search</source>
-        <target state="new">C# Semantic Search</target>
+        <target state="translated">Sémantické vyhledávání jazyka C#</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharpLanguageServiceExtension.ResetInteractiveWindowFromProject.DisplayName">
         <source>Initialize Interactive with Project</source>
-        <target state="new">Initialize Interactive with Project</target>
+        <target state="translated">Inicializovat Interactive přes projekt</target>
         <note />
       </trans-unit>
     </body>

@@ -367,7 +367,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
         <source>TODO</source>
-        <target state="new">TODO</target>
+        <target state="translated">TODO</target>
         <note>"TODO" is an indication that there is work still to be done.</note>
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterOmitValue">

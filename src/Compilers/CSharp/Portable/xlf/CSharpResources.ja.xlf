@@ -439,12 +439,12 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingAdd">
         <source>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</source>
-        <target state="new">Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</target>
+        <target state="translated">コレクション式の型には、イテレーション型の引数で呼び出すことができる適用可能なインスタンスまたは拡張メソッド 'Add' '{0}' 必要があります。最適なオーバーロードメソッドが '{1}' です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingConstructor">
         <source>Collection expression type must have an applicable constructor that can be called with no arguments.</source>
-        <target state="new">Collection expression type must have an applicable constructor that can be called with no arguments.</target>
+        <target state="translated">コレクション式の型には、引数なしで呼び出すことができる適用可能なコンストラクターが必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
@@ -454,7 +454,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetNoElementType">
         <source>Collection expression target '{0}' has no element type.</source>
-        <target state="new">Collection expression target '{0}' has no element type.</target>
+        <target state="translated">コレクション式のターゲット '{0}' に要素型がありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
@@ -2339,7 +2339,7 @@
       </trans-unit>
       <trans-unit id="IDS_LockObject">
         <source>Lock object</source>
-        <target state="new">Lock object</target>
+        <target state="translated">オブジェクトのロック</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Missing">
@@ -2584,12 +2584,12 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <target state="translated">型 'System.Threading.Lock' の値が別の型に変換されると、'lock' ステートメントで意図しないモニター ベースのロックが使用される可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock_Title">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <target state="translated">型 'System.Threading.Lock' の値が別の型に変換されると、'lock' ステートメントで意図しないモニター ベースのロックが使用される可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
