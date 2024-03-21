@@ -140,6 +140,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 intermediateOutputFilePath = GetAbsolutePathRelativeToProject(intermediateOutputFilePath);
             }
 
+            var intermediateOutputPath = project.ReadPropertyString(PropertyNames.IntermediateOutputPath);
+            if (!RoslynString.IsNullOrWhiteSpace(intermediateOutputPath))
+            {
+                intermediateOutputPath = GetAbsolutePathRelativeToProject(intermediateOutputPath);
+            }
+
             var projectAssetsFilePath = project.ReadPropertyString(PropertyNames.ProjectAssetsFile);
 
             // Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
@@ -181,6 +187,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 outputFilePath,
                 outputRefFilePath,
                 intermediateOutputFilePath,
+                intermediateOutputPath,
                 defaultNamespace,
                 targetFramework,
                 targetFrameworkIdentifier,

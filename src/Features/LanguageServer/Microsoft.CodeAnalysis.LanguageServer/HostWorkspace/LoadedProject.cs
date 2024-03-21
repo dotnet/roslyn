@@ -59,6 +59,15 @@ internal sealed class LoadedProject : IDisposable
 
     private void FileChangedContext_FileChanged(object? sender, string filePath)
     {
+        var mostRecentIntermediateOutputPath = _mostRecentFileInfo?.IntermediateOutputPath;
+        if (mostRecentIntermediateOutputPath is not null
+            && PathUtilities.IsChildPath(mostRecentIntermediateOutputPath, filePath))
+        {
+            // We ignore changes to source files in the obj/ directory to prevent infinite loops caused by
+            // generation recreating .cs, .editorconfig, etc. files during design time build (causing file watcher notifications to reload the proj and rerun design time build).
+            return;
+        }
+
         NeedsReload?.Invoke(this, EventArgs.Empty);
     }
 
