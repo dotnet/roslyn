@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -29,13 +30,6 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     private readonly SolutionAssetCache _assetCache = assetCache;
     private readonly IAssetSource _assetSource = assetSource;
 
-    private T GetRequiredAsset<T>(Checksum checksum)
-    {
-        Contract.ThrowIfTrue(checksum == Checksum.Null);
-        Contract.ThrowIfFalse(_assetCache.TryGetAsset<T>(checksum, out var asset));
-        return asset;
-    }
-
     public override async ValueTask<T> GetAssetAsync<T>(
         AssetHint assetHint, Checksum checksum, CancellationToken cancellationToken)
     {
@@ -43,27 +37,33 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
         if (_assetCache.TryGetAsset<T>(checksum, out var asset))
             return asset;
 
-        using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
+        using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksums);
         checksums.Add(checksum);
 
-        await this.SynchronizeAssetsAsync(assetHint, checksums, cancellationToken).ConfigureAwait(false);
+        using var _2 = PooledDictionary<Checksum, object>.GetInstance(out var results);
+        await this.SynchronizeAssetsAsync(assetHint, checksums, results, cancellationToken).ConfigureAwait(false);
 
-        return GetRequiredAsset<T>(checksum);
+        return (T)results[checksum];
     }
 
-    public async ValueTask<ImmutableArray<ValueTuple<Checksum, T>>> GetAssetsAsync<T>(
+    public async ValueTask<ImmutableArray<(Checksum checksum, T asset)>> GetAssetsAsync<T>(
         AssetHint assetHint, HashSet<Checksum> checksums, CancellationToken cancellationToken)
     {
+        using var _ = PooledDictionary<Checksum, object>.GetInstance(out var results);
+
         // bulk synchronize checksums first
         var syncer = new ChecksumSynchronizer(this);
-        await syncer.SynchronizeAssetsAsync(assetHint, checksums, cancellationToken).ConfigureAwait(false);
+        await syncer.SynchronizeAssetsAsync(assetHint, checksums, results, cancellationToken).ConfigureAwait(false);
 
-        // this will be fast since we actually synchronized the checksums above.
-        using var _ = ArrayBuilder<ValueTuple<Checksum, T>>.GetInstance(checksums.Count, out var list);
-        foreach (var checksum in checksums)
-            list.Add(ValueTuple.Create(checksum, GetRequiredAsset<T>(checksum)));
+        var result = new (Checksum checksum, T asset)[checksums.Count];
+        var index = 0;
+        foreach (var (checksum, assetObject) in results)
+        {
+            result[index] = (checksum, (T)assetObject);
+            index++;
+        }
 
-        return list.ToImmutableAndClear();
+        return ImmutableCollectionsMarshal.AsImmutableArray(result);
     }
 
     public async ValueTask SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
@@ -113,7 +113,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     }
 
     public async ValueTask SynchronizeAssetsAsync(
-        AssetHint assetHint, HashSet<Checksum> checksums, CancellationToken cancellationToken)
+        AssetHint assetHint, HashSet<Checksum> checksums, Dictionary<Checksum, object>? results, CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
         if (checksums.Count == 0)
@@ -136,27 +136,63 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
             missingChecksumsCount = 0;
             foreach (var checksum in checksums)
             {
-                if (!_assetCache.TryGetAsset<object>(checksum, out _))
+                if (_assetCache.TryGetAsset<object>(checksum, out var existing))
                 {
+                    AddResult(checksum, existing);
+                }
+                else
+                {
+                    if (missingChecksumsCount == missingChecksums.Length)
+                    {
+                        // This can happen if the asset cache has been modified by another thread during this method's execution.
+                        var newMissingChecksums = new Checksum[missingChecksumsCount * 2];
+                        Array.Copy(missingChecksums, newMissingChecksums, missingChecksumsCount);
+
+                        if (usePool)
+                        {
+                            s_checksumPool.Free(missingChecksums);
+                            usePool = false;
+                        }
+
+                        missingChecksums = newMissingChecksums;
+                    }
+
                     missingChecksums[missingChecksumsCount] = checksum;
                     missingChecksumsCount++;
                 }
             }
 
-            var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
-            var assets = await RequestAssetsAsync(assetHint, missingChecksumsMemory, cancellationToken).ConfigureAwait(false);
+            if (missingChecksumsCount > 0)
+            {
+                var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
+                var missingAssets = await RequestAssetsAsync(assetHint, missingChecksumsMemory, cancellationToken).ConfigureAwait(false);
 
-            Contract.ThrowIfTrue(missingChecksumsMemory.Length != assets.Length);
+                Contract.ThrowIfTrue(missingChecksumsMemory.Length != missingAssets.Length);
 
-            for (int i = 0, n = assets.Length; i < n; i++)
-                _assetCache.GetOrAdd(missingChecksums[i], assets[i]);
+                for (int i = 0, n = missingAssets.Length; i < n; i++)
+                {
+                    var missingChecksum = missingChecksums[i];
+                    var missingAsset = missingAssets[i];
+
+                    AddResult(missingChecksum, missingAsset);
+                    _assetCache.GetOrAdd(missingChecksum, missingAsset);
+                }
+            }
 
             if (usePool)
                 s_checksumPool.Free(missingChecksums);
         }
+
+        return;
+
+        void AddResult(Checksum checksum, object result)
+        {
+            if (results != null)
+                results[checksum] = result;
+        }
     }
 
-    private async Task<ImmutableArray<object>> RequestAssetsAsync(
+    private async ValueTask<ImmutableArray<object>> RequestAssetsAsync(
         AssetHint assetHint, ReadOnlyMemory<Checksum> checksums, CancellationToken cancellationToken)
     {
 #if NETCOREAPP
