@@ -5,13 +5,10 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Markup;
 using System.Windows.Media;
@@ -32,6 +29,7 @@ using Microsoft.CodeAnalysis.SemanticSearch;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -122,12 +120,12 @@ internal sealed class SemanticSearchToolWindowImpl(
         toolbarGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(ToolBarHeight, GridUnitType.Pixel) });
         toolbarGrid.ColumnDefinitions.Add(new ColumnDefinition());
 
-        var executeButton = CreateButton(KnownMonikers.Run, EditorFeaturesResources.Run);
-        executeButton.Click += ExecuteButton_Click;
+        var executeButton = CreateButton(KnownMonikers.Run, CSharpVSResources.RunQueryCommandToolTip);
+        executeButton.Click += (_, _) => RunQuery();
         _executeButton = executeButton;
 
-        var cancelButton = CreateButton(KnownMonikers.Stop, EditorFeaturesResources.Cancel);
-        cancelButton.Click += CancelButton_Click;
+        var cancelButton = CreateButton(KnownMonikers.Stop, CSharpVSResources.CancelQueryCommandToolTip);
+        cancelButton.Click += (_, _) => CancelQuery();
         cancelButton.IsEnabled = false;
         _cancelButton = cancelButton;
 
@@ -270,7 +268,15 @@ internal sealed class SemanticSearchToolWindowImpl(
 
         ErrorHandler.ThrowOnFailure(windowFrame.SetProperty((int)__VSFPROPID.VSFPROPID_ViewHelper, textViewAdapter));
 
+        _ = new CommandFilter(this, textViewAdapter);
+
         return textViewHost;
+    }
+
+    private bool IsExecutingUIState()
+    {
+        Contract.ThrowIfFalse(threadingContext.JoinableTaskContext.IsOnMainThread);
+        return _pendingExecutionCancellationSource != null;
     }
 
     private void UpdateUIState(CancellationTokenSource? executionCancellationSource)
@@ -286,7 +292,7 @@ internal sealed class SemanticSearchToolWindowImpl(
         _cancelButton.IsEnabled = isExecuting;
     }
 
-    private void CancelButton_Click(object sender, RoutedEventArgs e)
+    private void CancelQuery()
     {
         Contract.ThrowIfFalse(threadingContext.JoinableTaskContext.IsOnMainThread);
         Contract.ThrowIfNull(_pendingExecutionCancellationSource);
@@ -295,7 +301,7 @@ internal sealed class SemanticSearchToolWindowImpl(
         UpdateUIState(executionCancellationSource: null);
     }
 
-    private void ExecuteButton_Click(object sender, RoutedEventArgs e)
+    private void RunQuery()
     {
         Contract.ThrowIfFalse(threadingContext.JoinableTaskContext.IsOnMainThread);
         Contract.ThrowIfNull(_textBuffer);
@@ -466,6 +472,50 @@ internal sealed class SemanticSearchToolWindowImpl(
             {
                 await presenterContext.OnDefinitionFoundAsync(new SearchCompilationFailureDefinitionItem(error, queryDocument), cancellationToken).ConfigureAwait(false);
             }
+        }
+    }
+
+    internal sealed class CommandFilter : IOleCommandTarget
+    {
+        private readonly SemanticSearchToolWindowImpl _window;
+        private readonly IOleCommandTarget _editorCommandTarget;
+
+        public CommandFilter(SemanticSearchToolWindowImpl window, IVsTextView textView)
+        {
+            _window = window;
+            ErrorHandler.ThrowOnFailure(textView.AddCommandFilter(this, out _editorCommandTarget));
+        }
+
+        public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
+            => _editorCommandTarget.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
+
+        public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
+        {
+            if (pguidCmdGroup == VSConstants.VSStd2K)
+            {
+                switch ((VSConstants.VSStd2KCmdID)nCmdID)
+                {
+                    case VSConstants.VSStd2KCmdID.OPENLINEABOVE:
+                        if (!_window.IsExecutingUIState())
+                        {
+                            _window.RunQuery();
+                            return VSConstants.S_OK;
+                        }
+
+                        break;
+
+                    case VSConstants.VSStd2KCmdID.CANCEL:
+                        if (_window.IsExecutingUIState())
+                        {
+                            _window.RunQuery();
+                            return VSConstants.S_OK;
+                        }
+
+                        break;
+                }
+            }
+
+            return _editorCommandTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
         }
     }
 }
