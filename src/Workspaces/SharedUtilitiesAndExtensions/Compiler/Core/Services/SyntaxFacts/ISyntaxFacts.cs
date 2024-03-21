@@ -402,6 +402,7 @@ internal interface ISyntaxFacts
     // Violation.  This is a feature level API.  How 'position' relates to 'containment' is not defined.
     SyntaxNode? GetContainingTypeDeclaration(SyntaxNode root, int position);
     SyntaxNode? GetContainingMemberDeclaration(SyntaxNode root, int position, bool useFullSpan = true);
+    SyntaxNode? GetContainingMethodDeclaration(SyntaxNode root, int position, bool useFullSpan = true);
     SyntaxNode? GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode? node);
 
     // Violation.  This is a feature level API.
