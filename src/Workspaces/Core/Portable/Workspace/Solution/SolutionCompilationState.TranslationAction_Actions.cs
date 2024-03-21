@@ -138,9 +138,12 @@ internal partial class SolutionCompilationState
 
             public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {
+                using var _1 = ArrayBuilder<SyntaxTree>.GetInstance(this.Documents.Length, out var trees);
+
+#if NETSTANDARD
+
                 // Parallel parse the documents we have in chunks.
-                using var _ = ArrayBuilder<Task<SyntaxTree>>.GetInstance(AddDocumentsBatchSize, out var tasks);
-                var currentCompilation = oldCompilation;
+                using var _2 = ArrayBuilder<Task<SyntaxTree>>.GetInstance(AddDocumentsBatchSize, out var tasks);
 
                 // Can simplify this to use span-slicing once the language supports using ref-structs in async methods.
                 for (int batchStart = 0, total = this.Documents.Length; batchStart < total; batchStart += AddDocumentsBatchSize)
@@ -153,11 +156,24 @@ internal partial class SolutionCompilationState
                         tasks.Add(Task.Run(async () => await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken));
                     }
 
-                    var trees = await Task.WhenAll(tasks).ConfigureAwait(false);
-                    currentCompilation = currentCompilation.AddSyntaxTrees(trees);
+                    var batch = await Task.WhenAll(tasks).ConfigureAwait(false);
+                    trees.AddRange(batch);
                 }
 
-                return currentCompilation;
+#else
+
+                await Parallel.ForEachAsync(
+                    this.Documents,
+                    cancellationToken,
+                    static async (document, cancellationToken) =>
+                        await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
+
+                foreach (var document in this.Documents)
+                    trees.Add(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+
+#endif
+
+                return oldCompilation.AddSyntaxTrees(trees);
             }
 
             // This action adds the specified trees, but leaves the generated trees untouched.
