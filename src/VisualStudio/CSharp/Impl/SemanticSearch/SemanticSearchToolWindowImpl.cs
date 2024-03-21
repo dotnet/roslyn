@@ -507,7 +507,7 @@ internal sealed class SemanticSearchToolWindowImpl(
                     case VSConstants.VSStd2KCmdID.CANCEL:
                         if (_window.IsExecutingUIState())
                         {
-                            _window.RunQuery();
+                            _window.CancelQuery();
                             return VSConstants.S_OK;
                         }
 
