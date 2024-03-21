@@ -1756,6 +1756,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return TypeOf node Is SimpleNameSyntax
         End Function
 
+        Public Function IsAnyName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnyName
+            Return TypeOf node Is NameSyntax
+        End Function
+
+        Public Function IsAnyType(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnyType
+            Return TypeOf node Is TypeSyntax
+        End Function
+
         Public Function IsNamedMemberInitializer(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNamedMemberInitializer
             Return TypeOf node Is NamedFieldInitializerSyntax
         End Function

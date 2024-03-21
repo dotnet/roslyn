@@ -1552,6 +1552,12 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node)
         => node is SimpleNameSyntax;
 
+    public bool IsAnyName([NotNullWhen(true)] SyntaxNode? node)
+        => node is NameSyntax;
+
+    public bool IsAnyType([NotNullWhen(true)] SyntaxNode? node)
+        => node is TypeSyntax;
+
     public bool IsNamedMemberInitializer([NotNullWhen(true)] SyntaxNode? node)
         => node is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) { Left: IdentifierNameSyntax };
 
