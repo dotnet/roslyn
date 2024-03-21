@@ -1408,9 +1408,27 @@ class C2
         public void ModifiersInUsingLocalDeclarations_Const()
         {
             var source = """
-using const var obj = new object();
+class C
+{
+    void M()
+    {
+        using const var obj = new object();
+    }
+}
 """;
             var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                //         using const var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using const var obj = new object();").WithArguments("object").WithLocation(5, 9),
+                // (5,15): error CS1031: Type expected
+                //         using const var obj = new object();
+                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(5, 15));
+
+            source = """
+using const var obj = new object();
+""";
+            comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 // using const var obj = new object();
@@ -1498,9 +1516,27 @@ await using (const var obj = new object()) { }
         public void ModifiersInUsingLocalDeclarations_Readonly()
         {
             var source = """
-using readonly var obj = new object();
+class C
+{
+    void M()
+    {
+        using readonly var obj = new object();
+    }
+}
 """;
             var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                //         using readonly var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using readonly var obj = new object();").WithArguments("object").WithLocation(5, 9),
+                // (5,15): error CS1031: Type expected
+                //         using readonly var obj = new object();
+                Diagnostic(ErrorCode.ERR_TypeExpected, "readonly").WithLocation(5, 15));
+
+            source = """
+using readonly var obj = new object();
+""";
+            comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 // using readonly var obj = new object();
@@ -1538,9 +1574,27 @@ using (readonly var obj2 = new object()) { }
         public void ModifiersInUsingLocalDeclarations_Static()
         {
             var source = """
-using static var obj = new object();
+class C
+{
+    void M()
+    {
+        using static var obj = new object();
+    }
+}
 """;
             var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                //         using static var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using static var obj = new object();").WithArguments("object").WithLocation(5, 9),
+                // (5,15): error CS1031: Type expected
+                //         using static var obj = new object();
+                Diagnostic(ErrorCode.ERR_TypeExpected, "static").WithLocation(5, 15));
+
+            source = """
+using static var obj = new object();
+""";
+            comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 // using static var obj = new object();
@@ -1578,9 +1632,27 @@ using (static var obj2 = new object()) { }
         public void ModifiersInUsingLocalDeclarations_Volatile()
         {
             var source = """
-using volatile var obj = new object();
+class C
+{
+    void M()
+    {
+        using volatile var obj = new object();
+    }
+}
 """;
             var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                //         using volatile var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using volatile var obj = new object();").WithArguments("object").WithLocation(5, 9),
+                // (5,15): error CS1031: Type expected
+                //         using volatile var obj = new object();
+                Diagnostic(ErrorCode.ERR_TypeExpected, "volatile").WithLocation(5, 15));
+
+            source = """
+using volatile var obj = new object();
+""";
+            comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 // using volatile var obj = new object();
@@ -1618,10 +1690,23 @@ using (volatile var obj2 = new object()) { }
         public void ModifiersInUsingLocalDeclarations_Scoped()
         {
             var source = """
-using scoped var obj = new S();
+class C
+{
+    void M()
+    {
+        using scoped var obj = new S();
+    }
+}
 ref struct S { public void Dispose() { } }
 """;
             var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            source = """
+using scoped var obj = new S();
+ref struct S { public void Dispose() { } }
+""";
+            comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
 
             source = """
@@ -1636,10 +1721,29 @@ ref struct S { public void Dispose() { } }
         public void ModifiersInUsingLocalDeclarations_Ref()
         {
             var source = """
+class C
+{
+    void M()
+    {
+        var x = new object();
+        using ref object y = ref x;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                //         using ref object y = ref x;
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using ref object y = ref x;").WithArguments("object").WithLocation(6, 9),
+                // (6,15): error CS1073: Unexpected token 'ref'
+                //         using ref object y = ref x;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 15));
+
+            source = """
 var x = new object();
 using ref object y = ref x;
 """;
-            var comp = CreateCompilation(source);
+            comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (2,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 // using ref object y = ref x;
