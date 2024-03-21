@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // lower the decision dag.
                 ImmutableArray<BoundStatement> loweredDag = LowerDecisionDagCore(decisionDag);
+
                 return _factory.Sequence(
                     _tempAllocator.AllTemps(),
                     sideEffectsBuilder.ToImmutableAndFree(),
