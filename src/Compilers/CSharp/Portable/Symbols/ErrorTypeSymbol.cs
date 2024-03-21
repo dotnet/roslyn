@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract partial class ErrorTypeSymbol : NamedTypeSymbol
     {
         internal static readonly ErrorTypeSymbol UnknownResultType = new UnsupportedMetadataTypeSymbol();
+        internal static readonly ErrorTypeSymbol EmptyParamsCollectionElementTypeSentinel = new UnsupportedMetadataTypeSymbol();
 
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
 

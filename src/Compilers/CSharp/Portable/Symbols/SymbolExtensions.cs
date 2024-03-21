@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ((MethodSymbol)symbol).ConstructedFrom;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+                    return symbol;
             }
         }
 

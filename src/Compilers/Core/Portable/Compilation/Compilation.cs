@@ -3351,8 +3351,6 @@ namespace Microsoft.CodeAnalysis
             RSAParameters? privateKeyOpt,
             CancellationToken cancellationToken)
         {
-            bool emitSecondaryAssembly = getMetadataPeStreamOpt != null;
-
             bool includePrivateMembersOnPrimaryOutput = metadataOnly ? includePrivateMembers : true;
             bool deterministicPrimaryOutput = (metadataOnly && !includePrivateMembers) || isDeterministic;
             if (!Cci.PeWriter.WritePeToStream(
@@ -3372,7 +3370,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // produce the secondary output (ref assembly) if needed
-            if (emitSecondaryAssembly)
+            if (getMetadataPeStreamOpt is not null)
             {
                 Debug.Assert(!metadataOnly);
                 Debug.Assert(!includePrivateMembers);

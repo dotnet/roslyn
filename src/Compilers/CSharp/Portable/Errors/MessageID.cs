@@ -280,6 +280,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureImplicitIndexerInitializer = MessageBase + 12840,
         IDS_FeatureLockObject = MessageBase + 12841,
+
+        IDS_FeatureParamsCollections = MessageBase + 12842,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -463,6 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureStringEscapeCharacter:
                 case MessageID.IDS_FeatureImplicitIndexerInitializer:
                 case MessageID.IDS_FeatureLockObject:
+                case MessageID.IDS_FeatureParamsCollections:
                     return LanguageVersion.Preview;
 
                 // C# 12.0 features.

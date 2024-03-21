@@ -28,9 +28,19 @@ namespace Microsoft.CodeAnalysis
         ScopedKind ScopedKind { get; }
 
         /// <summary>
-        /// Returns true if the parameter was declared as a parameter array. 
+        /// Returns true if the parameter was declared as a parameter array or as a parameter collection. 
         /// </summary>
         bool IsParams { get; }
+
+        /// <summary>
+        /// Returns true if the parameter was declared as a parameter array. 
+        /// </summary>
+        bool IsParamsArray { get; }
+
+        /// <summary>
+        /// Returns true if the parameter was declared as a parameter collection. 
+        /// </summary>
+        bool IsParamsCollection { get; }
 
         /// <summary>
         /// Returns true if the parameter is optional.

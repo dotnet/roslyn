@@ -67,38 +67,34 @@ internal class AlwaysActivateInProcLanguageClient(
         serverCapabilities.ProjectContextProvider = true;
         serverCapabilities.BreakableRangeProvider = true;
 
-        var isPullDiagnostics = GlobalOptions.IsLspPullDiagnostics();
-        if (isPullDiagnostics)
+        serverCapabilities.SupportsDiagnosticRequests = true;
+        serverCapabilities.DiagnosticProvider ??= new();
+        serverCapabilities.DiagnosticProvider = serverCapabilities.DiagnosticProvider with
         {
-            serverCapabilities.SupportsDiagnosticRequests = true;
-            serverCapabilities.DiagnosticProvider ??= new();
-            serverCapabilities.DiagnosticProvider = serverCapabilities.DiagnosticProvider with
-            {
-                SupportsMultipleContextsDiagnostics = true,
-                DiagnosticKinds =
-                [
-                    // Support a specialized requests dedicated to task-list items.  This way the client can ask just
-                    // for these, independently of other diagnostics.  They can also throttle themselves to not ask if
-                    // the task list would not be visible.
-                    new(PullDiagnosticCategories.Task),
-                    // Dedicated request for workspace-diagnostics only.  We will only respond to these if FSA is on.
-                    new(PullDiagnosticCategories.WorkspaceDocumentsAndProject),
-                    // Fine-grained diagnostics requests.  Importantly, this separates out syntactic vs semantic
-                    // requests, allowing the former to quickly reach the user without blocking on the latter.  In a
-                    // similar vein, compiler diagnostics are explicitly distinct from analyzer-diagnostics, allowing
-                    // the former to appear as soon as possible as they are much more critical for the user and should
-                    // not be delayed by a slow analyzer.
-                    new(PullDiagnosticCategories.DocumentCompilerSyntax),
-                    new(PullDiagnosticCategories.DocumentCompilerSemantic),
-                    new(PullDiagnosticCategories.DocumentAnalyzerSyntax),
-                    new(PullDiagnosticCategories.DocumentAnalyzerSemantic),
-                ],
-                BuildOnlyDiagnosticIds = _buildOnlyDiagnostics
-                    .SelectMany(lazy => lazy.Metadata.BuildOnlyDiagnostics)
-                    .Distinct()
-                    .ToArray(),
-            };
-        }
+            SupportsMultipleContextsDiagnostics = true,
+            DiagnosticKinds =
+            [
+                // Support a specialized requests dedicated to task-list items.  This way the client can ask just
+                // for these, independently of other diagnostics.  They can also throttle themselves to not ask if
+                // the task list would not be visible.
+                new(PullDiagnosticCategories.Task),
+                // Dedicated request for workspace-diagnostics only.  We will only respond to these if FSA is on.
+                new(PullDiagnosticCategories.WorkspaceDocumentsAndProject),
+                // Fine-grained diagnostics requests.  Importantly, this separates out syntactic vs semantic
+                // requests, allowing the former to quickly reach the user without blocking on the latter.  In a
+                // similar vein, compiler diagnostics are explicitly distinct from analyzer-diagnostics, allowing
+                // the former to appear as soon as possible as they are much more critical for the user and should
+                // not be delayed by a slow analyzer.
+                new(PullDiagnosticCategories.DocumentCompilerSyntax),
+                new(PullDiagnosticCategories.DocumentCompilerSemantic),
+                new(PullDiagnosticCategories.DocumentAnalyzerSyntax),
+                new(PullDiagnosticCategories.DocumentAnalyzerSemantic),
+            ],
+            BuildOnlyDiagnosticIds = _buildOnlyDiagnostics
+                .SelectMany(lazy => lazy.Metadata.BuildOnlyDiagnostics)
+                .Distinct()
+                .ToArray(),
+        };
 
         // This capability is always enabled as we provide cntrl+Q VS search only via LSP in ever scenario.
         serverCapabilities.WorkspaceSymbolProvider = true;
@@ -132,12 +128,7 @@ internal class AlwaysActivateInProcLanguageClient(
         return serverCapabilities;
     }
 
-    /// <summary>
-    /// When pull diagnostics is enabled, ensure that initialization failures are displayed to the user as
-    /// they will get no diagnostics.  When not enabled we don't show the failure box (failure will still be recorded in the task status center)
-    /// as the failure is not catastrophic.
-    /// </summary>
-    public override bool ShowNotificationOnInitializeFailed => GlobalOptions.IsLspPullDiagnostics();
+    public override bool ShowNotificationOnInitializeFailed => true;
 
     public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.AlwaysActiveVSLspServer;
 }

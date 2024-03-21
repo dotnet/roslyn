@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             _commandsFactory = commandsFactory;
             _commands = commands;
 
-            _workspace = new InteractiveWindowWorkspace(hostServices, editorOptionsService.GlobalOptions);
+            _workspace = new InteractiveWindowWorkspace(hostServices);
 
             _session = new InteractiveSession(
                 _workspace,

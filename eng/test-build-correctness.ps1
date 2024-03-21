@@ -45,12 +45,14 @@ try {
 
   if ($bootstrapDir -eq "") {
     Write-Host "Building bootstrap compiler"
-    $bootstrapDir = Join-Path $ArtifactsDir "bootstrap" "correctness"
-    Exec-Script (Join-Path $PSScriptRoot "make-bootstrap.ps1") "-output $bootstrapDir -ci:$ci"
+    $bootstrapDir = Join-Path $ArtifactsDir (Join-Path "bootstrap" "correctness")
+    & eng/make-bootstrap.ps1 -output $bootstrapDir -ci:$ci
+    Test-LastExitCode
   }
 
   Write-Host "Building Roslyn"
-  Exec-Script (Join-Path $PSScriptRoot "build.ps1") "-restore -build -bootstrapDir:$bootstrapDir -ci:$true -prepareMachine:$true -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties `"/p:RoslynEnforceCodeStyle=true`""
+  & eng/build.ps1 -restore -build -bootstrapDir:$bootstrapDir -ci:$ci -prepareMachine:$prepareMachine -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties:"/p:RoslynEnforceCodeStyle=true"
+  Test-LastExitCode
 
   Subst-TempDir
 
@@ -62,7 +64,8 @@ try {
 
   # Verify the state of our generated syntax files
   Write-Host "Checking generated compiler files"
-  Exec-Script (Join-Path $PSScriptRoot "generate-compiler-code.ps1") "-test -configuration:$configuration"
+  & eng/generate-compiler-code.ps1 -test -configuration:$configuration
+  Test-LastExitCode
   Exec-DotNet "tool run dotnet-format whitespace . --folder --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --verify-no-changes"
   Write-Host ""
 

@@ -338,6 +338,9 @@
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.WRN_ConvertingLock:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
                     return true;
                 default:
                     return false;

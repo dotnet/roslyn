@@ -60,6 +60,9 @@ namespace Roslyn.Utilities
         private bool HasOneItem
             => _many.IsDefault;
 
+        public bool IsDefault
+            => _one == null && _many.IsDefault;
+
         public T this[int index]
         {
             get
