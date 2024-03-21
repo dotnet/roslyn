@@ -1346,6 +1346,10 @@ internal sealed partial class SolutionCompilationState
             CancellationToken cancellationToken)
         {
             var currentState = frozenCompilationState;
+
+            using var _ = PooledDictionary<ProjectId, ArrayBuilder<DocumentState>>.GetInstance(out var missingDocumentStates);
+
+            // First, either update documents that have changed, or keep track of documents that are missing.
             foreach (var newDocumentState in documentStates)
             {
                 var documentId = newDocumentState.Id;
@@ -1354,18 +1358,21 @@ internal sealed partial class SolutionCompilationState
 
                 if (oldDocumentState is null)
                 {
-                    // Project doesn't have this document, attempt to fork it with the document added.
-                    currentState = currentState.AddDocumentsToMultipleProjects(
-                        [(oldProjectState, [newDocumentState])],
-                        static (oldProjectState, newDocumentStates) =>
-                            new TranslationAction.AddDocumentsAction(oldProjectState, oldProjectState.AddDocuments(newDocumentStates), newDocumentStates));
+                    missingDocumentStates.MultiAdd(documentId.ProjectId, newDocumentState);
                 }
                 else
                 {
-                    // Project has this document, attempt to fork it with the new contents.
                     currentState = currentState.WithDocumentState(newDocumentState);
                 }
             }
+
+            // Now, add all missing documents per project.
+            currentState = currentState.AddDocumentsToMultipleProjects(
+                // Do a SelectAsArray here to ensure that we realize the array once, and as such only call things like
+                // ToImmutableAndFree once per ArrayBuilder.
+                missingDocumentStates.SelectAsArray(kvp => (kvp.Key, kvp.Value.ToImmutableAndFree())),
+                static (oldProjectState, newDocumentStates) =>
+                    new TranslationAction.AddDocumentsAction(oldProjectState, oldProjectState.AddDocuments(newDocumentStates), newDocumentStates));
 
             return currentState;
         }
@@ -1440,20 +1447,21 @@ internal sealed partial class SolutionCompilationState
                 var projectId = g.Key;
                 this.SolutionState.CheckContainsProject(projectId);
                 var projectState = this.SolutionState.GetRequiredProjectState(projectId);
-                return (projectState, newDocumentStates: g.SelectAsArray(di => createDocumentState(di, projectState)));
+                return (projectId, newDocumentStates: g.SelectAsArray(di => createDocumentState(di, projectState)));
             }),
             addDocumentsToProjectState);
     }
 
     private SolutionCompilationState AddDocumentsToMultipleProjects<TDocumentState>(
-        IEnumerable<(ProjectState oldProjectState, ImmutableArray<TDocumentState> newDocumentStates)> projectIdAndNewDocuments,
+        IEnumerable<(ProjectId projectId, ImmutableArray<TDocumentState> newDocumentStates)> projectIdAndNewDocuments,
         Func<ProjectState, ImmutableArray<TDocumentState>, TranslationAction> addDocumentsToProjectState)
         where TDocumentState : TextDocumentState
     {
         var newCompilationState = this;
 
-        foreach (var (oldProjectState, newDocumentStates) in projectIdAndNewDocuments)
+        foreach (var (projectId, newDocumentStates) in projectIdAndNewDocuments)
         {
+            var oldProjectState = newCompilationState.SolutionState.GetRequiredProjectState(projectId);
             var compilationTranslationAction = addDocumentsToProjectState(oldProjectState, newDocumentStates);
             var newProjectState = compilationTranslationAction.NewProjectState;
 

@@ -237,20 +237,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
                 If targetToken.IsChildToken(Function(n As XmlNameSyntax) n.LocalName) AndAlso targetToken.Parent Is tagNameSyntax Then
                     ' <exception |
-                    items.AddRange(GetAttributes(tagName, tagAttributes))
+                    items.AddRange(GetAttributes(token, tagName, tagAttributes))
                 End If
 
                 '<exception a|
                 If targetToken.IsChildToken(Function(n As XmlNameSyntax) n.LocalName) AndAlso targetToken.Parent.IsParentKind(SyntaxKind.XmlAttribute) Then
                     ' <exception |
-                    items.AddRange(GetAttributes(tagName, tagAttributes))
+                    items.AddRange(GetAttributes(token, tagName, tagAttributes))
                 End If
 
                 '<exception a=""|
                 If (targetToken.IsChildToken(Function(s As XmlStringSyntax) s.EndQuoteToken) AndAlso targetToken.Parent.IsParentKind(SyntaxKind.XmlAttribute)) OrElse
                     targetToken.IsChildToken(Function(a As XmlNameAttributeSyntax) a.EndQuoteToken) OrElse
                     targetToken.IsChildToken(Function(a As XmlCrefAttributeSyntax) a.EndQuoteToken) Then
-                    items.AddRange(GetAttributes(tagName, tagAttributes))
+                    items.AddRange(GetAttributes(token, tagName, tagAttributes))
                 End If
 
                 ' <param name="|"
@@ -330,9 +330,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return TryCast(attribute, XmlNameAttributeSyntax)?.Reference?.Identifier.ValueText
         End Function
 
-        Private Function GetAttributes(tagName As String, attributes As SyntaxList(Of XmlNodeSyntax)) As IEnumerable(Of CompletionItem)
+        Private Function GetAttributes(token As SyntaxToken, tagName As String, attributes As SyntaxList(Of XmlNodeSyntax)) As IEnumerable(Of CompletionItem)
             Dim existingAttributeNames = attributes.Select(AddressOf GetAttributeName).WhereNotNull().ToSet()
-            Return GetAttributeItems(tagName, existingAttributeNames)
+            Dim nextToken = token.GetNextToken()
+            Return GetAttributeItems(tagName, existingAttributeNames,
+                                     addEqualsAndQuotes:=Not nextToken.IsKind(SyntaxKind.EqualsToken) Or nextToken.HasLeadingTrivia)
         End Function
 
         Private Shared Function GetAttributeName(node As XmlNodeSyntax) As String
