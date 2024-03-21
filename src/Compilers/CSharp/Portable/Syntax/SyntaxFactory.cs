@@ -1672,6 +1672,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Creates a token parser that can be used to parse tokens from a given source text.
+        /// </summary>
+        /// <param name="sourceText">The source to parse tokens from.</param>
+        /// <param name="options">Parse options for the source.</param>
         public static SyntaxTokenParser CreateTokenParser(SourceText sourceText, CSharpParseOptions? options = null)
         {
             return new SyntaxTokenParser(new InternalSyntax.Lexer(sourceText, options ?? CSharpParseOptions.Default));
