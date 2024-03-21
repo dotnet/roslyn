@@ -1421,7 +1421,7 @@ class C
                 // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using const var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using const var obj = new object();").WithArguments("object").WithLocation(5, 9),
-                // (5,15): error CS9229: Modifiers cannot be placed on resource declarations
+                // (5,15): error CS9229: Modifiers cannot be placed on using declarations
                 //         using const var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(5, 15));
 
@@ -1433,7 +1433,7 @@ using const var obj = new object();
                 // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 // using const var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using const var obj = new object();").WithArguments("object").WithLocation(1, 1),
-                // (1,7): error CS9229: Modifiers cannot be placed on resource declarations
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
                 // using const var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(1, 7));
 
@@ -1478,7 +1478,7 @@ await using const var obj = new object();
                 // (1,1): error CS8410: 'object': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 // await using const var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using const var obj = new object();").WithArguments("object").WithLocation(1, 1),
-                // (1,13): error CS9229: Modifiers cannot be placed on resource declarations
+                // (1,13): error CS9229: Modifiers cannot be placed on using declarations
                 // await using const var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(1, 13));
 
@@ -1513,6 +1513,126 @@ await using (const var obj = new object()) { }
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72496")]
+        public void ModifiersInUsingLocalDeclarations_Const_ExplicitType()
+        {
+            var source = """
+class C
+{
+    void M()
+    {
+        using const System.IAsyncDisposable obj = null;
+    }
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS8418: 'IAsyncDisposable': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?
+                //         using const System.IAsyncDisposable obj = null;
+                Diagnostic(ErrorCode.ERR_NoConvToIDispWrongAsync, "using const System.IAsyncDisposable obj = null;").WithArguments("System.IAsyncDisposable").WithLocation(5, 9),
+                // (5,15): error CS9229: Modifiers cannot be placed on using declarations
+                //         using const System.IAsyncDisposable obj = null;
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(5, 15),
+                // (5,45): warning CS0219: The variable 'obj' is assigned but its value is never used
+                //         using const System.IAsyncDisposable obj = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "obj").WithArguments("obj").WithLocation(5, 45));
+
+            source = """
+using const System.IAsyncDisposable obj = null;
+""";
+            comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (1,1): error CS8418: 'IAsyncDisposable': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?
+                // using const System.IAsyncDisposable obj = null;
+                Diagnostic(ErrorCode.ERR_NoConvToIDispWrongAsync, "using const System.IAsyncDisposable obj = null;").WithArguments("System.IAsyncDisposable").WithLocation(1, 1),
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
+                // using const System.IAsyncDisposable obj = null;
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(1, 7),
+                // (1,37): warning CS0219: The variable 'obj' is assigned but its value is never used
+                // using const System.IAsyncDisposable obj = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "obj").WithArguments("obj").WithLocation(1, 37));
+
+            source = """
+using (const System.IAsyncDisposable obj) { }
+""";
+            comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (1,8): error CS1525: Invalid expression term 'const'
+                // using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "const").WithArguments("const").WithLocation(1, 8),
+                // (1,8): error CS1026: ) expected
+                // using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "const").WithLocation(1, 8),
+                // (1,8): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                // using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const System.IAsyncDisposable obj) ").WithLocation(1, 8),
+                // (1,38): error CS0145: A const field requires a value to be provided
+                // using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, "obj").WithLocation(1, 38),
+                // (1,38): warning CS0168: The variable 'obj' is declared but never used
+                // using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "obj").WithArguments("obj").WithLocation(1, 38),
+                // (1,41): error CS1003: Syntax error, ',' expected
+                // using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 41),
+                // (1,43): error CS1002: ; expected
+                // using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 43));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72496")]
+        public void ModifiersInUsingLocalDeclarations_Const_Async_ExplicitType()
+        {
+            var source = """
+await using const System.IAsyncDisposable obj = null;
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (1,1): warning CS0028: '<top-level-statements-entry-point>' has the wrong signature to be an entry point
+                // await using const System.IAsyncDisposable obj = null;
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "await using const System.IAsyncDisposable obj = null;").WithArguments("<top-level-statements-entry-point>").WithLocation(1, 1),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+                // (1,13): error CS9229: Modifiers cannot be placed on using declarations
+                // await using const System.IAsyncDisposable obj = null;
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(1, 13),
+                // (1,43): warning CS0219: The variable 'obj' is assigned but its value is never used
+                // await using const System.IAsyncDisposable obj = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "obj").WithArguments("obj").WithLocation(1, 43));
+
+            source = """
+await using (const System.IAsyncDisposable obj) { }
+""";
+            comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (1,1): warning CS0028: '<top-level-statements-entry-point>' has the wrong signature to be an entry point
+                // await using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "await using (const System.IAsyncDisposable obj) { }").WithArguments("<top-level-statements-entry-point>").WithLocation(1, 1),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+                // (1,14): error CS1525: Invalid expression term 'const'
+                // await using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "const").WithArguments("const").WithLocation(1, 14),
+                // (1,14): error CS1026: ) expected
+                // await using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "const").WithLocation(1, 14),
+                // (1,14): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                // await using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const System.IAsyncDisposable obj) ").WithLocation(1, 14),
+                // (1,44): error CS0145: A const field requires a value to be provided
+                // await using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, "obj").WithLocation(1, 44),
+                // (1,44): warning CS0168: The variable 'obj' is declared but never used
+                // await using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "obj").WithArguments("obj").WithLocation(1, 44),
+                // (1,47): error CS1003: Syntax error, ',' expected
+                // await using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 47),
+                // (1,49): error CS1002: ; expected
+                // await using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 49));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72496")]
         public void ModifiersInUsingLocalDeclarations_Readonly()
         {
             var source = """
@@ -1529,7 +1649,7 @@ class C
                 // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using readonly var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using readonly var obj = new object();").WithArguments("object").WithLocation(5, 9),
-                // (5,15): error CS9229: Modifiers cannot be placed on resource declarations
+                // (5,15): error CS9229: Modifiers cannot be placed on using declarations
                 //         using readonly var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(5, 15));
 
@@ -1541,7 +1661,7 @@ using readonly var obj = new object();
                 // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 // using readonly var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using readonly var obj = new object();").WithArguments("object").WithLocation(1, 1),
-                // (1,7): error CS9229: Modifiers cannot be placed on resource declarations
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
                 // using readonly var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(1, 7));
 
@@ -1587,7 +1707,7 @@ class C
                 // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using static var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using static var obj = new object();").WithArguments("object").WithLocation(5, 9),
-                // (5,15): error CS9229: Modifiers cannot be placed on resource declarations
+                // (5,15): error CS9229: Modifiers cannot be placed on using declarations
                 //         using static var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "static").WithLocation(5, 15));
 
@@ -1599,7 +1719,7 @@ using static var obj = new object();
                 // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 // using static var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using static var obj = new object();").WithArguments("object").WithLocation(1, 1),
-                // (1,7): error CS9229: Modifiers cannot be placed on resource declarations
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
                 // using static var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "static").WithLocation(1, 7));
 
@@ -1645,7 +1765,7 @@ class C
                 // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using volatile var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using volatile var obj = new object();").WithArguments("object").WithLocation(5, 9),
-                // (5,15): error CS9229: Modifiers cannot be placed on resource declarations
+                // (5,15): error CS9229: Modifiers cannot be placed on using declarations
                 //         using volatile var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "volatile").WithLocation(5, 15));
 
@@ -1657,7 +1777,7 @@ using volatile var obj = new object();
                 // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 // using volatile var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using volatile var obj = new object();").WithArguments("object").WithLocation(1, 1),
-                // (1,7): error CS9229: Modifiers cannot be placed on resource declarations
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
                 // using volatile var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "volatile").WithLocation(1, 7));
 

@@ -1418,8 +1418,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoModifiersOnUsing">
-        <source>Modifiers cannot be placed on resource declarations</source>
-        <target state="new">Modifiers cannot be placed on resource declarations</target>
+        <source>Modifiers cannot be placed on using declarations</source>
+        <target state="new">Modifiers cannot be placed on using declarations</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">

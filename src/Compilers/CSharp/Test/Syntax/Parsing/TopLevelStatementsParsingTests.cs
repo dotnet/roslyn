@@ -1874,7 +1874,7 @@ e
             var test = "using static type name;";
 
             UsingTree(test,
-                // (1,7): error CS9229: Modifiers cannot be placed on resource declarations
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
                 // using static type name;
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "static").WithLocation(1, 7)
                 );
@@ -1912,7 +1912,7 @@ e
             var test = "using volatile;";
 
             UsingTree(test,
-                // (1,7): error CS9229: Modifiers cannot be placed on resource declarations
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
                 // using volatile;
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "volatile").WithLocation(1, 7),
                 // (1,15): error CS1031: Type expected
@@ -1956,7 +1956,7 @@ e
             var test = "using const;";
 
             UsingTree(test,
-                // (1,7): error CS9229: Modifiers cannot be placed on resource declarations
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
                 // using const;
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(1, 7),
                 // (1,12): error CS1031: Type expected
@@ -2047,7 +2047,7 @@ e
             var test = "using readonly;";
 
             UsingTree(test,
-                // (1,7): error CS9229: Modifiers cannot be placed on resource declarations
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
                 // using readonly;
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(1, 7),
                 // (1,15): error CS1031: Type expected
