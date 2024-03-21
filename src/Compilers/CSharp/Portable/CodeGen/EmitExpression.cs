@@ -882,8 +882,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // CONSIDER:    This will allow us to remove the below check before emitting the value.
 
             Debug.Assert(sequence.Value.Kind != BoundKind.TypeExpression || !used);
-            Debug.Assert(sequence.Type.SpecialType == SpecialType.System_Boolean || sense);
-
             if (sequence.Value.Kind != BoundKind.TypeExpression)
             {
                 if (used && sequence.Type.SpecialType == SpecialType.System_Boolean)
@@ -892,6 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else
                 {
+                    Debug.Assert(sense);
                     EmitExpression(sequence.Value, used: used);
                 }
             }
