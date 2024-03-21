@@ -120,11 +120,11 @@ internal sealed class SemanticSearchToolWindowImpl(
         toolbarGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(ToolBarHeight, GridUnitType.Pixel) });
         toolbarGrid.ColumnDefinitions.Add(new ColumnDefinition());
 
-        var executeButton = CreateButton(KnownMonikers.Run, CSharpVSResources.RunQueryCommandToolTip);
+        var executeButton = CreateButton(KnownMonikers.Run, name: "Run", CSharpVSResources.RunQueryCommandToolTip);
         executeButton.Click += (_, _) => RunQuery();
         _executeButton = executeButton;
 
-        var cancelButton = CreateButton(KnownMonikers.Stop, CSharpVSResources.CancelQueryCommandToolTip);
+        var cancelButton = CreateButton(KnownMonikers.Stop, name: "Cancel", CSharpVSResources.CancelQueryCommandToolTip);
         cancelButton.Click += (_, _) => CancelQuery();
         cancelButton.IsEnabled = false;
         _cancelButton = cancelButton;
@@ -159,7 +159,7 @@ internal sealed class SemanticSearchToolWindowImpl(
 
     SemanticSearchWorkspace ISemanticSearchWorkspaceHost.Workspace => _semanticSearchWorkspace.Value;
 
-    private static Button CreateButton(Imaging.Interop.ImageMoniker moniker, string toolTip)
+    private static Button CreateButton(Imaging.Interop.ImageMoniker moniker, string name, string toolTip)
     {
         var image = new CrispImage()
         {
@@ -182,6 +182,7 @@ internal sealed class SemanticSearchToolWindowImpl(
 
         var button = new Button()
         {
+            Name = name,
             Template = s_buttonTemplate.Value,
             Content = holder,
         };
