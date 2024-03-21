@@ -640,6 +640,12 @@
   <data name="SemanticSearch" xml:space="preserve">
     <value>Semantic Search</value>
   </data>
+  <data name="RunQuery" xml:space="preserve">
+    <value>Run Query</value>
+  </data>
+  <data name="CancelQuery" xml:space="preserve">
+    <value>Cancel Query</value>
+  </data>
   <data name="RunQueryCommandToolTip" xml:space="preserve">
     <value>Run (Ctrl+Enter)</value>
   </data>
