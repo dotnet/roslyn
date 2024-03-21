@@ -4063,7 +4063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (size.Kind() != SyntaxKind.OmittedArraySizeExpression)
                         {
-                            builder.Add(BindExpression(size, BindingDiagnosticBag.Discarded));
+                            builder.Add(BindToTypeForErrorRecovery(BindExpression(size, BindingDiagnosticBag.Discarded)));
                         }
                     }
                 }

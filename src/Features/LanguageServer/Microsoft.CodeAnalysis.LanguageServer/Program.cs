@@ -57,6 +57,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     var logger = loggerFactory.CreateLogger<Program>();
 
+    logger.Log(serverConfiguration.LaunchDebugger ? LogLevel.Critical : LogLevel.Trace, "Server started with process ID {processId}", Environment.ProcessId);
     if (serverConfiguration.LaunchDebugger)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -66,8 +67,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         }
         else
         {
-            var timeout = TimeSpan.FromMinutes(1);
-            logger.LogCritical($"Server started with process ID {Environment.ProcessId}");
+            var timeout = TimeSpan.FromMinutes(2);
             logger.LogCritical($"Waiting {timeout:g} for a debugger to attach");
             using var timeoutSource = new CancellationTokenSource(timeout);
             while (!Debugger.IsAttached && !timeoutSource.Token.IsCancellationRequested)
@@ -198,6 +198,12 @@ static CliRootCommand CreateCommandLineParser()
         Required = false
     };
 
+    var razorSourceGeneratorOption = new CliOption<string?>("--razorSourceGenerator")
+    {
+        Description = "Full path to the Razor source generator (optional).",
+        Required = false
+    };
+
     var rootCommand = new CliRootCommand()
     {
         debugOption,
@@ -208,6 +214,7 @@ static CliRootCommand CreateCommandLineParser()
         sessionIdOption,
         extensionAssemblyPathsOption,
         devKitDependencyPathOption,
+        razorSourceGeneratorOption,
         extensionLogDirectoryOption
     };
     rootCommand.SetAction((parseResult, cancellationToken) =>
@@ -219,6 +226,7 @@ static CliRootCommand CreateCommandLineParser()
         var sessionId = parseResult.GetValue(sessionIdOption);
         var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
         var devKitDependencyPath = parseResult.GetValue(devKitDependencyPathOption);
+        var razorSourceGenerator = parseResult.GetValue(razorSourceGeneratorOption);
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
 
         var serverConfiguration = new ServerConfiguration(
@@ -229,6 +237,7 @@ static CliRootCommand CreateCommandLineParser()
             SessionId: sessionId,
             ExtensionAssemblyPaths: extensionAssemblyPaths,
             DevKitDependencyPath: devKitDependencyPath,
+            RazorSourceGenerator: razorSourceGenerator,
             ExtensionLogDirectory: extensionLogDirectory);
 
         return RunAsync(serverConfiguration, cancellationToken);

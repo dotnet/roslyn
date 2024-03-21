@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Collections.Immutable;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -28,7 +27,7 @@ public partial class Solution
     private readonly SolutionCompilationState _compilationState;
 
     // Values for all these are created on demand.
-    private ImmutableHashMap<ProjectId, Project> _projectIdToProjectMap;
+    private ImmutableDictionary<ProjectId, Project> _projectIdToProjectMap;
 
     /// <summary>
     /// Result of calling <see cref="WithFrozenPartialCompilationsAsync"/>.
@@ -45,7 +44,7 @@ public partial class Solution
         SolutionCompilationState compilationState,
         AsyncLazy<Solution>? cachedFrozenSolution = null)
     {
-        _projectIdToProjectMap = [];
+        _projectIdToProjectMap = ImmutableDictionary<ProjectId, Project>.Empty;
         _compilationState = compilationState;
 
         _cachedFrozenSolution = cachedFrozenSolution ??
@@ -141,7 +140,7 @@ public partial class Solution
     {
         if (this.ContainsProject(projectId))
         {
-            return ImmutableHashMapExtensions.GetOrAdd(ref _projectIdToProjectMap, projectId, s_createProjectFunction, this);
+            return ImmutableInterlocked.GetOrAdd(ref _projectIdToProjectMap, projectId, s_createProjectFunction, this);
         }
 
         return null;

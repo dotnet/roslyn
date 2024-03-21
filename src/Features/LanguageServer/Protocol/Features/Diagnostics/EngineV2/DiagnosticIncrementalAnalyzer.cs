@@ -62,7 +62,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _stateManager = new StateManager(workspace, analyzerInfoCache);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
 
-            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, analyzerService.Listener);
+            var enabled = this.AnalyzerService.GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler);
+            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(
+                enabled, analyzerInfoCache, analyzerService.Listener);
         }
 
         internal IGlobalOptionService GlobalOptions => AnalyzerService.GlobalOptions;

@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -310,20 +311,20 @@ namespace Microsoft.CodeAnalysis
                 {
                     try
                     {
-                        // Create a chain of translation steps where we add each document one at a time to an initially
-                        // empty compilation.  This allows us to then process that chain of actions like we would do any
-                        // other.  It also means that if we're in the process of parsing documents in that chain, that
-                        // we'll see the results of how far we've gotten if someone asks for a frozen snapshot midway
-                        // through.
+                        // Create a chain of translation steps where we add a chunk of documents at a time to an
+                        // initially empty compilation.  This allows us to then process that chain of actions like we
+                        // would do any other.  It also means that if we're in the process of parsing documents in that
+                        // chain, that we'll see the results of how far we've gotten if someone asks for a frozen
+                        // snapshot midway through.
                         var initialProjectState = this.ProjectState.RemoveAllNormalDocuments();
                         var initialCompilation = this.CreateEmptyCompilation();
 
                         var translationActionsBuilder = ImmutableList.CreateBuilder<TranslationAction>();
 
                         var oldProjectState = initialProjectState;
-                        foreach (var documentState in this.ProjectState.DocumentStates.GetStatesInCompilationOrder())
+                        foreach (var chunk in this.ProjectState.DocumentStates.GetStatesInCompilationOrder().Chunk(TranslationAction.AddDocumentsAction.AddDocumentsBatchSize))
                         {
-                            var documentStates = ImmutableArray.Create(documentState);
+                            var documentStates = ImmutableCollectionsMarshal.AsImmutableArray(chunk);
                             var newProjectState = oldProjectState.AddDocuments(documentStates);
                             translationActionsBuilder.Add(new TranslationAction.AddDocumentsAction(
                                 oldProjectState, newProjectState, documentStates));
@@ -358,26 +359,6 @@ namespace Microsoft.CodeAnalysis
                     try
                     {
                         var currentState = initialState;
-
-                        // To speed things up, we look for all the added documents in the chain and we preemptively kick
-                        // off work to parse the documents for it in parallel.  This has the added benefit that if
-                        // someone asks for a frozen partial snapshot while we're in the middle of doing this, they can
-                        // use however many document states have successfully parsed their syntax trees.  For example,
-                        // if you had one extremely large file that took a long time to parse, and dozens of tiny ones,
-                        // it's more likely that the frozen tree would have many more documents in it.
-                        //
-                        // Note: we intentionally kick these off in a fire-and-forget fashion.  If we get canceled, all
-                        // the tasks will attempt to cancel.  If we complete, that's only because these tasks would
-                        // complete as well.  There's no need to track this with any sort of listener as this work just
-                        // acts to speed up getting to a compilation, but is otherwise unobservable.
-                        foreach (var action in currentState.PendingTranslationActions)
-                        {
-                            if (action is TranslationAction.AddDocumentsAction { Documents: var documents })
-                            {
-                                foreach (var document in documents)
-                                    _ = Task.Run(async () => await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken);
-                            }
-                        }
 
                         // Then, we serially process the chain while that parsing is happening concurrently.
                         while (currentState.PendingTranslationActions.Count > 0)
