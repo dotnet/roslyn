@@ -1,3 +1,6 @@
+Microsoft.CodeAnalysis.IParameterSymbol.IsParamsCollection.get -> bool
+Microsoft.CodeAnalysis.IParameterSymbol.IsParamsArray.get -> bool
+Microsoft.CodeAnalysis.Operations.ArgumentKind.ParamCollection = 4 -> Microsoft.CodeAnalysis.Operations.ArgumentKind
 Microsoft.CodeAnalysis.Diagnostics.SuppressionInfo.ProgrammaticSuppressions.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.Suppression>
 Microsoft.CodeAnalysis.Emit.InstrumentationKind.ModuleCancellation = 3 -> Microsoft.CodeAnalysis.Emit.InstrumentationKind
 Microsoft.CodeAnalysis.Emit.InstrumentationKind.StackOverflowProbing = 2 -> Microsoft.CodeAnalysis.Emit.InstrumentationKind
@@ -10,6 +13,7 @@ Microsoft.CodeAnalysis.Operations.ISpreadOperation
 Microsoft.CodeAnalysis.Operations.ISpreadOperation.ElementConversion.get -> Microsoft.CodeAnalysis.Operations.CommonConversion
 Microsoft.CodeAnalysis.Operations.ISpreadOperation.ElementType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
 Microsoft.CodeAnalysis.Operations.ISpreadOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.SpecialType.System_ReadOnlySpan_T = 47 -> Microsoft.CodeAnalysis.SpecialType
 Microsoft.CodeAnalysis.SeparatedSyntaxList
 Microsoft.CodeAnalysis.SyntaxList
 static Microsoft.CodeAnalysis.SeparatedSyntaxList.Create<TNode>(System.ReadOnlySpan<TNode!> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>

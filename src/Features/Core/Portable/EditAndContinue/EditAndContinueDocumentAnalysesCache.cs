@@ -183,18 +183,19 @@ internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveState
         }
 
         var lazyResults = AsyncLazy.Create(
-            asynchronousComputeFunction: async cancellationToken =>
+            static async (arg, cancellationToken) =>
             {
                 try
                 {
-                    var analyzer = document.Project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
-                    return await analyzer.AnalyzeDocumentAsync(baseProject, _baseActiveStatements, document, activeStatementSpans, _capabilities, cancellationToken).ConfigureAwait(false);
+                    var analyzer = arg.document.Project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
+                    return await analyzer.AnalyzeDocumentAsync(arg.baseProject, arg.self._baseActiveStatements, arg.document, arg.activeStatementSpans, arg.self._capabilities, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
                     throw ExceptionUtilities.Unreachable();
                 }
-            });
+            },
+            arg: (self: this, document, baseProject, activeStatementSpans));
 
         // Previous results for this document id are discarded as they are no longer relevant.
         // The only relevant analysis is for the latest base and document snapshots.

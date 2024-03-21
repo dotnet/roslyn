@@ -421,31 +421,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression MakeArgumentsAndCall(
-            SyntaxNode syntax,
-            BoundExpression? rewrittenReceiver,
-            MethodSymbol method,
-            ImmutableArray<BoundExpression> arguments,
-            ImmutableArray<RefKind> argumentRefKindsOpt,
-            bool expanded,
-            bool invokedAsExtensionMethod,
-            LookupResultKind resultKind,
-            TypeSymbol type,
-            ArrayBuilder<LocalSymbol>? temps,
-            BoundCall? nodeOpt = null)
-        {
-            arguments = MakeArguments(
-                arguments,
-                method,
-                expanded,
-                argsToParamsOpt: default,
-                ref argumentRefKindsOpt,
-                ref temps,
-                invokedAsExtensionMethod);
-
-            return MakeCall(nodeOpt, syntax, rewrittenReceiver, method, arguments, argumentRefKindsOpt, resultKind, type, temps.ToImmutableAndFree());
-        }
-
         private BoundExpression MakeCall(
             BoundCall? node,
             SyntaxNode syntax,
@@ -1023,13 +998,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? optimized;
 
             Debug.Assert(expanded ? rewrittenArguments.Length == parameters.Length : rewrittenArguments.Length >= parameters.Length);
-            Debug.Assert(rewrittenArguments.Count(a => a.IsParamsArray) == (expanded ? 1 : 0));
+            Debug.Assert(rewrittenArguments.Count(a => a.IsParamsArrayOrCollection) <= (expanded ? 1 : 0));
 
             if (CanSkipRewriting(rewrittenArguments, methodOrIndexer, argsToParamsOpt, invokedAsExtensionMethod, false, out var isComReceiver))
             {
                 argumentRefKindsOpt = GetEffectiveArgumentRefKinds(argumentRefKindsOpt, parameters);
-
-                Debug.Assert(!expanded || rewrittenArguments[rewrittenArguments.Length - 1].IsParamsArray);
 
                 if (expanded && TryOptimizeParamsArray(rewrittenArguments[rewrittenArguments.Length - 1], out optimized))
                 {
@@ -1113,8 +1086,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             storesToTemps.Free();
 
-            Debug.Assert(!expanded || actualArguments[actualArguments.Length - 1].IsParamsArray);
-
             if (expanded && TryOptimizeParamsArray(actualArguments[actualArguments.Length - 1], out optimized))
             {
                 actualArguments[actualArguments.Length - 1] = optimized;
@@ -1139,7 +1110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool TryOptimizeParamsArray(BoundExpression possibleParamsArray, [NotNullWhen(true)] out BoundExpression? optimized)
         {
-            if (possibleParamsArray.IsParamsArray && !_inExpressionLambda && ((BoundArrayCreation)possibleParamsArray).Bounds is [BoundLiteral { ConstantValueOpt.Value: 0 }])
+            if (possibleParamsArray.IsParamsArrayOrCollection && !_inExpressionLambda && ((BoundArrayCreation)possibleParamsArray).Bounds is [BoundLiteral { ConstantValueOpt.Value: 0 }])
             {
                 optimized = CreateArrayEmptyCallIfAvailable(possibleParamsArray.Syntax, ((ArrayTypeSymbol)possibleParamsArray.Type!).ElementType);
                 if (optimized is { })
@@ -1265,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private delegate BoundExpression ParamsArrayElementRewriter<TArg>(BoundExpression element, ref TArg arg);
         private static BoundExpression RewriteParamsArray<TArg>(BoundExpression paramsArray, ParamsArrayElementRewriter<TArg> elementRewriter, ref TArg arg)
         {
-            Debug.Assert(paramsArray.IsParamsArray);
+            Debug.Assert(paramsArray.IsParamsArrayOrCollection);
 
             if (paramsArray is BoundArrayCreation { Bounds: [BoundLiteral] bounds, InitializerOpt: BoundArrayInitialization { Initializers: var elements } initialization } creation)
             {
@@ -1322,7 +1293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(refKinds.Count == arguments.Length);
             Debug.Assert(storesToTemps.Count == 0);
             Debug.Assert(rewrittenArguments.Length == parameters.Length);
-            Debug.Assert(rewrittenArguments.Count(a => a.IsParamsArray) == (expanded ? 1 : 0));
+            Debug.Assert(rewrittenArguments.Count(a => a.IsParamsArrayOrCollection) <= (expanded ? 1 : 0));
 
             for (int a = 0; a < rewrittenArguments.Length; ++a)
             {
@@ -1333,7 +1304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(arguments[p] == null);
 
-                if (argument.IsParamsArray)
+                if (argument.IsParamsArrayOrCollection)
                 {
                     Debug.Assert(expanded);
                     Debug.Assert(p == parameters.Length - 1);
@@ -1356,7 +1327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                arg.rewriter.StoreArgumentToTempIfNecessary(arg.forceLambdaSpilling, arg.storesToTemps, element, RefKind.None, RefKind.None),
                                            ref arg);
 
-                        Debug.Assert(arguments[p].IsParamsArray);
+                        Debug.Assert(arguments[p].IsParamsArrayOrCollection);
                     }
 
                     continue;
@@ -1517,7 +1488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var argument = arguments[a];
 
-                if (argument.IsParamsArray)
+                if (argument.IsParamsArrayOrCollection)
                 {
                     (ArrayBuilder<BoundAssignmentOperator> tempStores, int tempsRemainedInUse, int firstUnclaimedStore) arg = (tempStores, tempsRemainedInUse, firstUnclaimedStore);
                     arguments[a] = RewriteParamsArray(

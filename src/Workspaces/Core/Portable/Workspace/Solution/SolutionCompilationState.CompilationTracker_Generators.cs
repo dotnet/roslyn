@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -102,9 +100,6 @@ internal partial class SolutionCompilationState
             CancellationToken cancellationToken)
         {
             var solution = compilationState.SolutionState;
-            var options = solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
-            if (options.RunSourceGeneratorsInSameProcessOnly)
-                return null;
 
             var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             if (client is null)
@@ -160,7 +155,11 @@ internal partial class SolutionCompilationState
                 compilationWithStaleGeneratedTrees != null &&
                 oldGeneratedDocuments.States.All(kvp => kvp.Value.ParseOptions.Equals(this.ProjectState.ParseOptions)))
             {
-                return (compilationWithStaleGeneratedTrees, oldGeneratedDocuments);
+                // If there are no generated documents though, then just use the compilationWithoutGeneratedFiles so we
+                // only hold onto that single compilation from this point on.
+                return oldGeneratedDocuments.Count == 0
+                    ? (compilationWithoutGeneratedFiles, oldGeneratedDocuments)
+                    : (compilationWithStaleGeneratedTrees, oldGeneratedDocuments);
             }
 
             // Either we generated a different number of files, and/or we had contents of files that changed. Ensure
@@ -338,7 +337,13 @@ internal partial class SolutionCompilationState
 
             // If we didn't null out this compilation, it means we can actually use it
             if (compilationWithStaleGeneratedTrees != null)
-                return (compilationWithStaleGeneratedTrees, oldGeneratedDocuments, generatorDriver);
+            {
+                // If there are no generated documents though, then just use the compilationWithoutGeneratedFiles so we
+                // only hold onto that single compilation from this point on.
+                return oldGeneratedDocuments.Count == 0
+                    ? (compilationWithoutGeneratedFiles, oldGeneratedDocuments, generatorDriver)
+                    : (compilationWithStaleGeneratedTrees, oldGeneratedDocuments, generatorDriver);
+            }
 
             // We produced new documents, so time to create new state for it
             var newGeneratedDocuments = new TextDocumentStates<SourceGeneratedDocumentState>(generatedDocumentsBuilder.ToImmutableAndClear());

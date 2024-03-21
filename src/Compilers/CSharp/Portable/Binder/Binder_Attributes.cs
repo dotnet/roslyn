@@ -204,7 +204,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     out var memberResolutionResult,
                     out var candidateConstructors,
                     allowProtectedConstructorsOfBaseType: true,
-                    suppressUnsupportedRequiredMembersError: false);
+                    out CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo);
+
+                ReportConstructorUseSiteDiagnostics(node.Location, diagnostics, suppressUnsupportedRequiredMembersError: false, in overloadResolutionUseSiteInfo);
+
+                if (memberResolutionResult.IsNotNull)
+                {
+                    this.CheckAndCoerceArguments<MethodSymbol>(memberResolutionResult, analyzedArguments.ConstructorArguments, diagnostics, receiver: null, invokedAsExtensionMethod: false);
+                }
+
                 attributeConstructor = memberResolutionResult.Member;
                 expanded = memberResolutionResult.Resolution == MemberResolutionKind.ApplicableInExpandedForm;
                 argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
@@ -221,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    attributeArgumentBinder.BindDefaultArgumentsAndParamsArray(
+                    attributeArgumentBinder.BindDefaultArgumentsAndParamsCollection(
                         node,
                         attributeConstructor.Parameters,
                         analyzedArguments.ConstructorArguments.Arguments,
@@ -340,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return default;
                 }
 
-                Debug.Assert(arguments.Count(a => a.IsParamsArray) == (boundAttribute.ConstructorExpanded ? 1 : 0));
+                Debug.Assert(arguments.Count(a => a.IsParamsArrayOrCollection) == (boundAttribute.ConstructorExpanded ? 1 : 0));
 
                 // make source indices if we have anything that doesn't map 1:1 from arguments to parameters:
                 // 1. implicit default arguments
@@ -372,10 +380,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructorArgumentSourceIndices.Count = lengthAfterRewriting;
                 for (int argIndex = 0; argIndex < lengthAfterRewriting; argIndex++)
                 {
+                    Debug.Assert(!arguments[argIndex].IsParamsArrayOrCollection || arguments[argIndex] is BoundArrayCreation);
+
                     int paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
                     constructorArgumentSourceIndices[paramIndex] =
                         defaultArguments[argIndex] ||
-                            (arguments[argIndex].IsParamsArray && arguments[argIndex] is BoundArrayCreation { Bounds: [BoundLiteral { ConstantValueOpt.Value: 0 }] }) ?
+                            (arguments[argIndex].IsParamsArrayOrCollection && arguments[argIndex] is BoundArrayCreation { Bounds: [BoundLiteral { ConstantValueOpt.Value: 0 }] }) ?
                         -1 : argIndex;
                 }
                 return constructorArgumentSourceIndices.ToImmutableAndFree();
@@ -901,7 +911,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var operandType = operand.Type;
 
                 if (node.Conversion.IsCollectionExpression
-                    && node.Conversion.GetCollectionExpressionTypeKind(out _) == CollectionExpressionTypeKind.Array)
+                    && node.Conversion.GetCollectionExpressionTypeKind(out _, out _, out _) == CollectionExpressionTypeKind.Array)
                 {
                     Debug.Assert(type.IsSZArray());
                     return VisitArrayCollectionExpression(type, (BoundCollectionExpression)operand, diagnostics, ref attrHasErrors, curArgumentHasErrors);

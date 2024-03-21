@@ -8,7 +8,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public sealed class TestOutputLspLogger : AbstractLspLogger, ILspService
+internal sealed class TestOutputLspLogger : AbstractLspLogger, ILspService
 {
     private readonly ITestOutputHelper _testOutputHelper;
     public TestOutputLspLogger(ITestOutputHelper testOutputHelper)
