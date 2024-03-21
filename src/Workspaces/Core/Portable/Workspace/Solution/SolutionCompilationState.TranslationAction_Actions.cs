@@ -139,7 +139,6 @@ internal partial class SolutionCompilationState
             public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {
 #if NETSTANDARD
-
                 using var _1 = ArrayBuilder<Task>.GetInstance(this.Documents.Length, out var tasks);
 
                 // We want to parse in parallel.  But we don't want to have too many parses going on at the same time.
@@ -156,16 +155,14 @@ internal partial class SolutionCompilationState
                 }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
-
 #else
-
                 await Parallel.ForEachAsync(
                     this.Documents,
                     cancellationToken,
                     static async (document, cancellationToken) =>
                         await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
-
 #endif
+
                 using var _2 = ArrayBuilder<SyntaxTree>.GetInstance(this.Documents.Length, out var trees);
 
                 foreach (var document in this.Documents)
