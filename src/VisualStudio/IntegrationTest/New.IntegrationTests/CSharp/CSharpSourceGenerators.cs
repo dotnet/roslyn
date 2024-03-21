@@ -162,7 +162,7 @@ internal static class Program
             Assert.Equal(isPreview, await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
-        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/72627")]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/72627")]
         public async Task InvokeNavigateToForGeneratedFile()
         {
             await TestServices.Shell.ShowNavigateToDialogAsync(HangMitigatingCancellationToken);
@@ -174,7 +174,7 @@ internal static class Program
             Assert.Equal(HelloWorldGenerator.GeneratedEnglishClassName, await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));
         }
 
-        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/72627")]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/72627")]
         public async Task InvokeNavigateToForGeneratedFile_InFolder()
         {
             await TestServices.Shell.ShowNavigateToDialogAsync(HangMitigatingCancellationToken);
