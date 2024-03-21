@@ -1520,63 +1520,57 @@ class C
 {
     void M()
     {
-        using const System.IAsyncDisposable obj = null;
+        using const System.IDisposable obj = null;
     }
 }
 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,9): error CS8418: 'IAsyncDisposable': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?
-                //         using const System.IAsyncDisposable obj = null;
-                Diagnostic(ErrorCode.ERR_NoConvToIDispWrongAsync, "using const System.IAsyncDisposable obj = null;").WithArguments("System.IAsyncDisposable").WithLocation(5, 9),
                 // (5,15): error CS9229: Modifiers cannot be placed on using declarations
-                //         using const System.IAsyncDisposable obj = null;
+                //         using const System.IDisposable obj = null;
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(5, 15),
-                // (5,45): warning CS0219: The variable 'obj' is assigned but its value is never used
-                //         using const System.IAsyncDisposable obj = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "obj").WithArguments("obj").WithLocation(5, 45));
+                // (5,40): warning CS0219: The variable 'obj' is assigned but its value is never used
+                //         using const System.IDisposable obj = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "obj").WithArguments("obj").WithLocation(5, 40));
 
             source = """
-using const System.IAsyncDisposable obj = null;
+using const System.IDisposable obj = null;
 """;
-            comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (1,1): error CS8418: 'IAsyncDisposable': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?
-                // using const System.IAsyncDisposable obj = null;
-                Diagnostic(ErrorCode.ERR_NoConvToIDispWrongAsync, "using const System.IAsyncDisposable obj = null;").WithArguments("System.IAsyncDisposable").WithLocation(1, 1),
                 // (1,7): error CS9229: Modifiers cannot be placed on using declarations
-                // using const System.IAsyncDisposable obj = null;
+                // using const System.IDisposable obj = null;
                 Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(1, 7),
-                // (1,37): warning CS0219: The variable 'obj' is assigned but its value is never used
-                // using const System.IAsyncDisposable obj = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "obj").WithArguments("obj").WithLocation(1, 37));
+                // (1,32): warning CS0219: The variable 'obj' is assigned but its value is never used
+                // using const System.IDisposable obj = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "obj").WithArguments("obj").WithLocation(1, 32));
 
             source = """
-using (const System.IAsyncDisposable obj) { }
+using (const System.IDisposable obj) { }
 """;
-            comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (1,8): error CS1525: Invalid expression term 'const'
-                // using (const System.IAsyncDisposable obj) { }
+                // using (const System.IDisposable obj) { }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "const").WithArguments("const").WithLocation(1, 8),
                 // (1,8): error CS1026: ) expected
-                // using (const System.IAsyncDisposable obj) { }
+                // using (const System.IDisposable obj) { }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "const").WithLocation(1, 8),
                 // (1,8): error CS1023: Embedded statement cannot be a declaration or labeled statement
-                // using (const System.IAsyncDisposable obj) { }
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const System.IAsyncDisposable obj) ").WithLocation(1, 8),
-                // (1,38): error CS0145: A const field requires a value to be provided
-                // using (const System.IAsyncDisposable obj) { }
-                Diagnostic(ErrorCode.ERR_ConstValueRequired, "obj").WithLocation(1, 38),
-                // (1,38): warning CS0168: The variable 'obj' is declared but never used
-                // using (const System.IAsyncDisposable obj) { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "obj").WithArguments("obj").WithLocation(1, 38),
-                // (1,41): error CS1003: Syntax error, ',' expected
-                // using (const System.IAsyncDisposable obj) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 41),
-                // (1,43): error CS1002: ; expected
-                // using (const System.IAsyncDisposable obj) { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 43));
+                // using (const System.IDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const System.IDisposable obj) ").WithLocation(1, 8),
+                // (1,33): error CS0145: A const field requires a value to be provided
+                // using (const System.IDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, "obj").WithLocation(1, 33),
+                // (1,33): warning CS0168: The variable 'obj' is declared but never used
+                // using (const System.IDisposable obj) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "obj").WithArguments("obj").WithLocation(1, 33),
+                // (1,36): error CS1003: Syntax error, ',' expected
+                // using (const System.IDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 36),
+                // (1,38): error CS1002: ; expected
+                // using (const System.IDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 38));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72496")]
