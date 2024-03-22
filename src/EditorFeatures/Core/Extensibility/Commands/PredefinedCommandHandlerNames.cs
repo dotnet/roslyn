@@ -132,6 +132,8 @@ internal static class PredefinedCommandHandlerNames
     /// </summary>
     public const string Rename = "Rename Command Handler";
 
+    public const string SourceGeneratorSave = "Source Generator Save Command Handler";
+
     /// <summary>
     /// Command handler name for Rename Tracking cancellation.
     /// </summary>

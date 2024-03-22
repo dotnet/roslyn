@@ -4,8 +4,11 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Commanding;
@@ -13,11 +16,13 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 internal abstract partial class VisualStudioWorkspaceImpl
 {
+    private readonly AsyncBatchingWorkQueue _updateSourceGeneratorsQueue;
     private bool _isSubscribedToSourceGeneratorImpactingEvents;
 
     public void SubscribeToSourceGeneratorImpactingEvents()
@@ -30,6 +35,8 @@ internal abstract partial class VisualStudioWorkspaceImpl
         if (ServiceProvider.GlobalProvider.GetService(typeof(IVsMonitorSelection)) == null)
             return;
 
+        _isSubscribedToSourceGeneratorImpactingEvents = true;
+
         // This pattern ensures that we are called whenever the build starts/completes even if it is already in progress.
         KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>
         {
@@ -39,7 +46,7 @@ internal abstract partial class VisualStudioWorkspaceImpl
                 {
                     // After a build occurs, transition the solution to a new source generator version.  This will
                     // ensure that any cached SG documents will be re-generated.
-                    this.UpdateSourceGeneratorVersion();
+                    this.EnqueueUpdateSourceGeneratorVersion();
                 }
             };
         });
@@ -52,17 +59,23 @@ internal abstract partial class VisualStudioWorkspaceImpl
                 {
                     // After the solution fully loads, transition the solution to a new source generator version.  This
                     // will ensure that we'll now produce correct SG docs with fully knowledge of all the user's state.
-                    this.UpdateSourceGeneratorVersion();
+                    this.EnqueueUpdateSourceGeneratorVersion();
                 }
             };
-
-            this.UpdateSourceGeneratorVersion();
         });
 
-        _isSubscribedToSourceGeneratorImpactingEvents = true;
+        // Whenever the workspace status changes, go attempt to update generators.
+        var workspaceStatusService = this.Services.GetRequiredService<IWorkspaceStatusService>();
+        workspaceStatusService.StatusChanged += (_, _) => EnqueueUpdateSourceGeneratorVersion();
+
+        // Now kick off at least the initial work to run generators.
+        this.EnqueueUpdateSourceGeneratorVersion();
     }
 
-    private void UpdateSourceGeneratorVersion()
+    private void EnqueueUpdateSourceGeneratorVersion()
+        => _updateSourceGeneratorsQueue.AddWork();
+
+    private async ValueTask ProcessUpdateSourceGeneratorRequestAsync(CancellationToken cancellationToken)
     {
         _foregroundObject.AssertIsForeground();
 
@@ -70,6 +83,12 @@ internal abstract partial class VisualStudioWorkspaceImpl
         var configuration = this.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
         if (configuration.SourceGeneratorExecution is SourceGeneratorExecutionPreference.Automatic)
             return;
+
+        // Ensure we're fully loaded before rerunning generators.
+        var workspaceStatusService = this.Services.GetRequiredService<IWorkspaceStatusService>();
+        await workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         this.SetCurrentSolution(
             oldSolution => oldSolution.WithSourceGeneratorVersion(oldSolution.SourceGeneratorVersion + 1),
@@ -80,7 +99,8 @@ internal abstract partial class VisualStudioWorkspaceImpl
 
     [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name(PredefinedCommandHandlerNames.Rename)]
+    [ContentType(ContentTypeNames.XamlContentType)]
+    [Name(PredefinedCommandHandlerNames.SourceGeneratorSave)]
     internal partial class SaveCommandHandler : IChainedCommandHandler<SaveCommandArgs>
     {
         [ImportingConstructor]
@@ -89,16 +109,21 @@ internal abstract partial class VisualStudioWorkspaceImpl
         {
         }
 
-        public string DisplayName => throw new NotImplementedException();
+        public string DisplayName => ServicesVSResources.Roslyn_save_command_handler;
 
         public CommandState GetCommandState(SaveCommandArgs args, Func<CommandState> nextCommandHandler)
-        {
-            throw new NotImplementedException();
-        }
+            => nextCommandHandler();
 
         public void ExecuteCommand(SaveCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
-            throw new NotImplementedException();
+            nextCommandHandler();
+
+            // After a save happens, enqueue a request to run generators.
+            if (args.SubjectBuffer.TryGetWorkspace(out var workspace) &&
+                workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
+            {
+                visualStudioWorkspace.EnqueueUpdateSourceGeneratorVersion();
+            }
         }
     }
 }

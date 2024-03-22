@@ -129,6 +129,13 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         ProjectSystemProjectFactory = new ProjectSystemProjectFactory(this, FileChangeWatcher, CheckForAddedFileBeingOpenMaybeAsync, RemoveProjectFromMaps);
 
+        var listenerProvider = exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+        _updateSourceGeneratorsQueue = new AsyncBatchingWorkQueue(
+            DelayTimeSpan.Idle,
+            ProcessUpdateSourceGeneratorRequestAsync,
+            listenerProvider.GetListener(FeatureAttribute.SourceGenerators),
+            _threadingContext.DisposalToken);
+
         _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider));
 
         _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() =>
@@ -137,7 +144,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
                 exportProvider.GetExportedValue<IDiagnosticAnalyzerService>(),
                 exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>(),
                 exportProvider.GetExportedValue<IGlobalOperationNotificationService>(),
-                exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
+                listenerProvider,
                 _threadingContext),
             isThreadSafe: true);
 
