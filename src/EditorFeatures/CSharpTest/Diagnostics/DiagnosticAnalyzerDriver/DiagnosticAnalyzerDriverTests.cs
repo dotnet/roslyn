@@ -32,11 +32,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
     [UseExportProvider]
     public class DiagnosticAnalyzerDriverTests
     {
-        private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures
-            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
-            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
+        private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures;
 
         [Fact]
+
         public async Task DiagnosticAnalyzerDriverAllInOne()
         {
             var source = TestResource.AllInOneCSharpCode;
