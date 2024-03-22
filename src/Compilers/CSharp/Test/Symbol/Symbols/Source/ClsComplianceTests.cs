@@ -3268,10 +3268,7 @@ public class ArrayAttribute : Attribute
 class Test { }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (11,2): warning CS3016: Arrays as attribute arguments is not CLS-compliant
-                // [Array(new int[] { 1 })]
-                Diagnostic(ErrorCode.WRN_CLS_ArrayArgumentToAttribute, "Array(new int[] { 1 })"));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3806,6 +3803,7 @@ class Test
 
         [Fact]
         [WorkItem(741718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/741718")]
+        [WorkItem(68526, "https://github.com/dotnet/roslyn/issues/68526")]
         public void WRN_CLS_ArrayArgumentToAttribute_Inaccessible()
         {
             var source = @"
@@ -3827,10 +3825,7 @@ class MyAttribute : Attribute
 }
 
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (4,2): warning CS3016: Arrays as attribute arguments is not CLS-compliant
-                // [My(new int[] { 1, 2 })]
-                Diagnostic(ErrorCode.WRN_CLS_ArrayArgumentToAttribute, "My(new int[] { 1, 2 })"));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
