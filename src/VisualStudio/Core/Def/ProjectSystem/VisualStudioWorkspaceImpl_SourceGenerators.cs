@@ -77,8 +77,6 @@ internal abstract partial class VisualStudioWorkspaceImpl
 
     private async ValueTask ProcessUpdateSourceGeneratorRequestAsync(CancellationToken cancellationToken)
     {
-        _foregroundObject.AssertIsForeground();
-
         // Only need to do this if we're not in automatic mode.
         var configuration = this.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
         if (configuration.SourceGeneratorExecution is SourceGeneratorExecutionPreference.Automatic)
