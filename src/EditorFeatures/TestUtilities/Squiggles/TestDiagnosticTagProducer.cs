@@ -54,6 +54,5 @@ internal sealed class TestDiagnosticTagProducer<TProvider, TTag>
         }
 
         public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
-        public event EventHandler DiagnosticsCleared { add { } remove { } }
     }
 }

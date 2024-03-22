@@ -122,12 +122,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSou
     public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
 
     /// <summary>
-    /// Event generated from the serialized <see cref="_taskQueue"/> whenever build-only diagnostics are cleared during a build in Visual Studio.
-    /// These diagnostics are not supported from intellisense and only get refreshed during actual build.
-    /// </summary>
-    public event EventHandler DiagnosticsCleared { add { } remove { } }
-
-    /// <summary>
     /// Indicates if a build is currently in progress inside Visual Studio.
     /// </summary>
     public bool IsInProgress => GetBuildInProgressState() != null;

@@ -27,19 +27,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public event EventHandler DiagnosticsCleared
-        {
-            add
-            {
-                // don't do anything. this update source doesn't use cleared event
-            }
-
-            remove
-            {
-                // don't do anything. this update source doesn't use cleared event
-            }
-        }
-
         internal void RaiseDiagnosticsUpdated(ImmutableArray<DiagnosticsUpdatedArgs> args)
         {
             if (args.IsEmpty)

@@ -25,7 +25,6 @@ internal abstract class AbstractHostDiagnosticUpdateSource : IDiagnosticUpdateSo
     public abstract Workspace Workspace { get; }
 
     public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
-    public event EventHandler DiagnosticsCleared { add { } remove { } }
 
     public void RaiseDiagnosticsUpdated(ImmutableArray<DiagnosticsUpdatedArgs> args)
     {
