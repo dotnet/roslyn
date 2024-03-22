@@ -398,21 +398,55 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>A symbol for the special member.</returns>
         public Symbol SpecialMember(SpecialMember sm)
         {
+            var result = SpecialMember(sm, isOptional: false);
+            Debug.Assert(result is not null);
+            return result;
+        }
+
+        public Symbol? SpecialMember(SpecialMember sm, bool isOptional = false)
+        {
             Symbol specialMember = Compilation.GetSpecialTypeMember(sm);
             if (specialMember is null)
             {
+                if (isOptional)
+                {
+                    return null;
+                }
+
                 RuntimeMembers.MemberDescriptor memberDescriptor = SpecialMembers.GetDescriptor(sm);
                 var diagnostic = new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name), Syntax.Location);
                 throw new MissingPredefinedMember(diagnostic);
             }
 
-            Binder.ReportUseSite(specialMember, Diagnostics, Syntax);
+            UseSiteInfo<AssemblySymbol> useSiteInfo = specialMember.GetUseSiteInfo();
+
+            if (isOptional)
+            {
+                if (useSiteInfo.DiagnosticInfo?.DefaultSeverity == DiagnosticSeverity.Error)
+                {
+                    return null;
+                }
+
+                // Not interested in warnings
+            }
+            else
+            {
+                Diagnostics.Add(useSiteInfo, Syntax);
+            }
+
             return specialMember;
         }
 
         public MethodSymbol SpecialMethod(SpecialMember sm)
         {
-            return (MethodSymbol)SpecialMember(sm);
+            var result = (MethodSymbol?)SpecialMember(sm, isOptional: false);
+            Debug.Assert(result is not null);
+            return result;
+        }
+
+        public MethodSymbol? SpecialMethod(SpecialMember sm, bool isOptional)
+        {
+            return (MethodSymbol?)SpecialMember(sm, isOptional);
         }
 
         public PropertySymbol SpecialProperty(SpecialMember sm)
@@ -1287,12 +1321,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression ConstructorInfo(MethodSymbol ctor)
         {
-            return new BoundMethodInfo(
+            var result = new BoundMethodInfo(
                 Syntax,
                 ctor,
                 GetMethodFromHandleMethod(ctor.ContainingType),
                 WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_ConstructorInfo))
             { WasCompilerGenerated = true };
+
+#if DEBUG
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            Debug.Assert(result.Type.IsErrorType() || result.Type!.IsDerivedFrom(result.GetMethodFromHandle!.ReturnType, TypeCompareKind.AllIgnoreOptions, ref discardedUseSiteInfo));
+#endif
+            return result;
         }
 
         public BoundExpression MethodDefIndex(MethodSymbol method)
@@ -1388,12 +1428,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method = method.GetConstructedLeastOverriddenMethod(this.CompilationState.Type, requireSameReturnType: true);
             }
 
-            return new BoundMethodInfo(
+            var result = new BoundMethodInfo(
                 Syntax,
                 method,
                 GetMethodFromHandleMethod(method.ContainingType),
                 WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_MethodInfo))
             { WasCompilerGenerated = true };
+
+#if DEBUG
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            Debug.Assert(result.Type.IsErrorType() || result.Type!.IsDerivedFrom(result.GetMethodFromHandle!.ReturnType, TypeCompareKind.AllIgnoreOptions, ref discardedUseSiteInfo));
+#endif
+            return result;
         }
 
         public BoundExpression FieldInfo(FieldSymbol field)
@@ -1486,7 +1532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (elements.Length == 0)
             {
-                MethodSymbol? arrayEmpty = WellKnownMethod(CodeAnalysis.WellKnownMember.System_Array__Empty, isOptional: true);
+                MethodSymbol? arrayEmpty = SpecialMethod(CodeAnalysis.SpecialMember.System_Array__Empty, isOptional: true);
                 if (arrayEmpty is { })
                 {
                     arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(elementType));

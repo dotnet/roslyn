@@ -700,6 +700,13 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
         => node.ConvertToSingleLine(useElasticTrivia);
 
     public SyntaxNode? GetContainingMemberDeclaration(SyntaxNode root, int position, bool useFullSpan = true)
+        => GetContainingMemberDeclaration<MemberDeclarationSyntax>(root, position, useFullSpan);
+
+    public SyntaxNode? GetContainingMethodDeclaration(SyntaxNode root, int position, bool useFullSpan = true)
+        => GetContainingMemberDeclaration<BaseMethodDeclarationSyntax>(root, position, useFullSpan);
+
+    private static SyntaxNode? GetContainingMemberDeclaration<TMemberDeclarationSyntax>(SyntaxNode root, int position, bool useFullSpan = true)
+        where TMemberDeclarationSyntax : MemberDeclarationSyntax
     {
         var end = root.FullSpan.End;
         if (end == 0)
@@ -717,7 +724,7 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
             if (useFullSpan || node.Span.Contains(position))
             {
                 var kind = node.Kind();
-                if ((kind != SyntaxKind.GlobalStatement) && (kind != SyntaxKind.IncompleteMember) && (node is MemberDeclarationSyntax))
+                if ((kind != SyntaxKind.GlobalStatement) && (kind != SyntaxKind.IncompleteMember) && (node is TMemberDeclarationSyntax))
                 {
                     return node;
                 }
@@ -1551,6 +1558,12 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
 
     public bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node)
         => node is SimpleNameSyntax;
+
+    public bool IsAnyName([NotNullWhen(true)] SyntaxNode? node)
+        => node is NameSyntax;
+
+    public bool IsAnyType([NotNullWhen(true)] SyntaxNode? node)
+        => node is TypeSyntax;
 
     public bool IsNamedMemberInitializer([NotNullWhen(true)] SyntaxNode? node)
         => node is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) { Left: IdentifierNameSyntax };

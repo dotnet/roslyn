@@ -1417,6 +1417,11 @@
         <target state="translated">L’expression conditionnelle n’est pas valide dans la version de langage {0}, car il n’existe pas de type commun entre « {1} » et « {2} ». Pour utiliser une conversion de type cible, effectuez une mise à niveau vers la version de langage {3} ou ultérieure.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoModifiersOnUsing">
+        <source>Modifiers cannot be placed on using declarations</source>
+        <target state="new">Modifiers cannot be placed on using declarations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">Impossible de déterminer le répertoire de sortie</target>

@@ -29,6 +29,7 @@ internal static class TaggerConstants
             TaggerDelay.Short => DelayTimeSpan.Short,
             TaggerDelay.Medium => DelayTimeSpan.Medium,
             TaggerDelay.OnIdle => DelayTimeSpan.Idle,
+            TaggerDelay.OnIdleWithLongDelay => DelayTimeSpan.IdleWithLongDelay,
             _ => DelayTimeSpan.NonFocus,
         };
 }

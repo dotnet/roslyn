@@ -1096,6 +1096,16 @@ tryAgain:
             Debug.Assert(_emitState.CurStack == 0);
         }
 
+        [Conditional("DEBUG")]
+        internal void AssertStackDepth(int stack)
+        {
+            Debug.Assert(_emitState.CurStack == stack);
+        }
+
+#if DEBUG
+        internal int GetStackDepth() => _emitState.CurStack;
+#endif
+
         // true if there may have been a label generated with no subsequent code
         internal bool IsJustPastLabel()
         {

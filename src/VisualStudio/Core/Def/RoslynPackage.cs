@@ -214,7 +214,6 @@ internal sealed class RoslynPackage : AbstractPackage
     {
         await TaskScheduler.Default;
 
-        await GetServiceAsync(typeof(SVsTaskStatusCenterService)).ConfigureAwait(false);
         await GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(false);
         await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(false);
         await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(false);

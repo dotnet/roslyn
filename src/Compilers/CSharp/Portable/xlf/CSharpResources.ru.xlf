@@ -1417,6 +1417,11 @@
         <target state="translated">Условное выражение недопустимо в версии языка {0}, поскольку между "{1}" и "{2}" не найден общий тип. Для использования преобразования с целевым типом обновите язык до версии {3} или более поздней.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoModifiersOnUsing">
+        <source>Modifiers cannot be placed on using declarations</source>
+        <target state="new">Modifiers cannot be placed on using declarations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">Не удалось определить выходной каталог</target>
