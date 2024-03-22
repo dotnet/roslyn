@@ -13,6 +13,12 @@ namespace Microsoft.CodeAnalysis.Collections
 {
     internal static class SegmentedArray
     {
+#if NET6_0_OR_GREATER
+        /// <seealso cref="Array.Clear(Array)"/>
+#endif
+        internal static void Clear<T>(SegmentedArray<T> array)
+            => Clear(array, 0, array.Length);
+
         /// <seealso cref="Array.Clear(Array, int, int)"/>
         internal static void Clear<T>(SegmentedArray<T> array, int index, int length)
         {

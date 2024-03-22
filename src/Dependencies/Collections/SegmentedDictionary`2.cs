@@ -11,12 +11,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.Collections.Internal;
 
 namespace Microsoft.CodeAnalysis.Collections
@@ -41,6 +40,8 @@ namespace Microsoft.CodeAnalysis.Collections
 #else
             = false;
 #endif
+
+        private static IEnumerator<KeyValuePair<TKey, TValue>>? s_emptyEnumerator;
 
         private SegmentedArray<int> _buckets;
         private SegmentedArray<Entry> _entries;
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Collections
             // back-compat with subclasses that may have overridden the enumerator behavior.
             if (enumerable.GetType() == typeof(SegmentedDictionary<TKey, TValue>))
             {
-                SegmentedDictionary<TKey, TValue> source = (SegmentedDictionary<TKey, TValue>)enumerable;
+                var source = (SegmentedDictionary<TKey, TValue>)enumerable;
 
                 if (source.Count == 0)
                 {
@@ -162,12 +163,10 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 // This is not currently a true .AddRange as it needs to be an initialized dictionary
                 // of the correct size, and also an empty dictionary with no current entities (and no argument checks).
-                Debug.Assert(source._entries is not null);
-                Debug.Assert(_entries is not null);
                 Debug.Assert(_entries.Length >= source.Count);
                 Debug.Assert(_count == 0);
 
-                Entry[] oldEntries = source._entries;
+                var oldEntries = source._entries;
                 if (source._comparer == _comparer)
                 {
                     // If comparers are the same, we can copy _entries without rehashing.
@@ -176,13 +175,13 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
 
                 // Comparers differ need to rehash all the entries via Add
-                int count = source._count;
-                for (int i = 0; i < count; i++)
+                var count = source._count;
+                for (var i = 0; i < count; i++)
                 {
                     // Only copy if an entry
-                    if (oldEntries[i].next >= -1)
+                    if (oldEntries[i]._next >= -1)
                     {
-                        Add(oldEntries[i].key, oldEntries[i].value);
+                        Add(oldEntries[i]._key, oldEntries[i]._value);
                     }
                 }
                 return;
@@ -195,14 +194,16 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 span = array;
             }
+#if NET5_0_OR_GREATER
             else if (enumerable.GetType() == typeof(List<KeyValuePair<TKey, TValue>>))
             {
                 span = CollectionsMarshal.AsSpan((List<KeyValuePair<TKey, TValue>>)enumerable);
             }
+#endif
             else
             {
                 // Fallback path for all other enumerables
-                foreach (KeyValuePair<TKey, TValue> pair in enumerable)
+                foreach (var pair in enumerable)
                 {
                     Add(pair.Key, pair.Value);
                 }
@@ -210,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             // We got a span. Add the elements to the dictionary.
-            foreach (KeyValuePair<TKey, TValue> pair in span)
+            foreach (var pair in span)
             {
                 Add(pair.Key, pair.Value);
             }
@@ -384,8 +385,13 @@ namespace Microsoft.CodeAnalysis.Collections
             => new(this, Enumerator.KeyValuePair);
 
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() =>
-            Count == 0 ? GenericEmptyEnumerator<KeyValuePair<TKey, TValue>>.Instance :
+            Count == 0 ? GetEmptyEnumerator() :
             GetEnumerator();
+
+        private static IEnumerator<KeyValuePair<TKey, TValue>> GetEmptyEnumerator()
+        {
+            return LazyInitializer.EnsureInitialized(ref s_emptyEnumerator, static () => new Enumerator(new SegmentedDictionary<TKey, TValue>(), Enumerator.KeyValuePair))!;
+        }
 
         private ref TValue FindValue(TKey key)
         {
@@ -420,12 +426,12 @@ namespace Microsoft.CodeAnalysis.Collections
                         }
 
                         entry = ref entries[i];
-                        if (entry.hashCode == hashCode && EqualityComparer<TKey>.Default.Equals(entry.key, key))
+                        if (entry._hashCode == hashCode && EqualityComparer<TKey>.Default.Equals(entry._key, key))
                         {
                             goto ReturnFound;
                         }
 
-                        i = entry.next;
+                        i = entry._next;
 
                         collisionCount++;
                     } while (collisionCount <= (uint)entries.Length);
@@ -437,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 else
                 {
                     Debug.Assert(comparer is not null);
-                    var hashCode = (uint)comparer.GetHashCode(key);
+                    var hashCode = (uint)comparer!.GetHashCode(key);
                     var i = GetBucket(hashCode);
                     var entries = _entries;
                     uint collisionCount = 0;
@@ -514,7 +520,7 @@ ReturnNotFound:
 
             var comparer = _comparer;
             Debug.Assert(comparer is not null || (SupportsComparerDevirtualization && typeof(TKey).IsValueType));
-            var hashCode = (uint)((SupportsComparerDevirtualization && typeof(TKey).IsValueType && comparer == null) ? key.GetHashCode() : comparer.GetHashCode(key));
+            var hashCode = (uint)((SupportsComparerDevirtualization && typeof(TKey).IsValueType && comparer == null) ? key.GetHashCode() : comparer!.GetHashCode(key));
 
             uint collisionCount = 0;
             ref var bucket = ref GetBucket(hashCode);
@@ -573,7 +579,7 @@ ReturnNotFound:
                         break;
                     }
 
-                    if (entries[i]._hashCode == hashCode && comparer.Equals(entries[i]._key, key))
+                    if (entries[i]._hashCode == hashCode && comparer!.Equals(entries[i]._key, key))
                     {
                         if (behavior == InsertionBehavior.OverwriteExisting)
                         {
@@ -677,9 +683,9 @@ ReturnNotFound:
                 Debug.Assert(_entries.Length > 0, "entries should be non-empty");
                 uint collisionCount = 0;
 
-                IEqualityComparer<TKey>? comparer = _comparer;
-                Debug.Assert(typeof(TKey).IsValueType || comparer is not null);
-                var hashCode = (uint)(typeof(TKey).IsValueType && comparer == null ? key.GetHashCode() : comparer!.GetHashCode(key));
+                var comparer = _comparer;
+                Debug.Assert((SupportsComparerDevirtualization && typeof(TKey).IsValueType) || comparer is not null);
+                var hashCode = (uint)(SupportsComparerDevirtualization && typeof(TKey).IsValueType && comparer == null ? key.GetHashCode() : comparer!.GetHashCode(key));
 
                 ref var bucket = ref GetBucket(hashCode);
                 var entries = _entries;
@@ -690,7 +696,7 @@ ReturnNotFound:
                     ref var entry = ref entries[i];
 
                     if (entry._hashCode == hashCode &&
-                        (typeof(TKey).IsValueType && comparer == null ? EqualityComparer<TKey>.Default.Equals(entry._key, key) : comparer!.Equals(entry._key, key)))
+                        (SupportsComparerDevirtualization && typeof(TKey).IsValueType && comparer == null ? EqualityComparer<TKey>.Default.Equals(entry._key, key) : comparer!.Equals(entry._key, key)))
                     {
                         if (last < 0)
                         {
@@ -754,9 +760,9 @@ ReturnNotFound:
                 Debug.Assert(_entries.Length > 0, "entries should be non-empty");
                 uint collisionCount = 0;
 
-                IEqualityComparer<TKey>? comparer = _comparer;
-                Debug.Assert(typeof(TKey).IsValueType || comparer is not null);
-                var hashCode = (uint)(typeof(TKey).IsValueType && comparer == null ? key.GetHashCode() : comparer!.GetHashCode(key));
+                var comparer = _comparer;
+                Debug.Assert((SupportsComparerDevirtualization && typeof(TKey).IsValueType) || comparer is not null);
+                var hashCode = (uint)(SupportsComparerDevirtualization && typeof(TKey).IsValueType && comparer == null ? key.GetHashCode() : comparer!.GetHashCode(key));
 
                 ref var bucket = ref GetBucket(hashCode);
                 var entries = _entries;
@@ -767,7 +773,7 @@ ReturnNotFound:
                     ref var entry = ref entries[i];
 
                     if (entry._hashCode == hashCode &&
-                        (typeof(TKey).IsValueType && comparer == null ? EqualityComparer<TKey>.Default.Equals(entry._key, key) : comparer!.Equals(entry._key, key)))
+                        (SupportsComparerDevirtualization && typeof(TKey).IsValueType && comparer == null ? EqualityComparer<TKey>.Default.Equals(entry._key, key) : comparer!.Equals(entry._key, key)))
                     {
                         if (last < 0)
                         {
@@ -983,20 +989,16 @@ ReturnNotFound:
             _version++;
             Initialize(newSize);
 
-            Debug.Assert(oldEntries is not null);
-
             CopyEntries(oldEntries, oldCount);
         }
 
-        private void CopyEntries(Entry[] entries, int count)
+        private void CopyEntries(SegmentedArray<Entry> entries, int count)
         {
-            Debug.Assert(_entries is not null);
-
             var newEntries = _entries;
             var newCount = 0;
             for (var i = 0; i < count; i++)
             {
-                var hashCode = entries[i].hashCode;
+                var hashCode = entries[i]._hashCode;
                 if (entries[i]._next >= -1)
                 {
                     ref var entry = ref newEntries[newCount];
@@ -1267,6 +1269,8 @@ ReturnNotFound:
         [DebuggerDisplay("Count = {Count}")]
         public sealed class KeyCollection : ICollection<TKey>, ICollection, IReadOnlyCollection<TKey>
         {
+            private static IEnumerator<TKey>? s_emptyEnumerator;
+
             private readonly SegmentedDictionary<TKey, TValue> _dictionary;
 
             public KeyCollection(SegmentedDictionary<TKey, TValue> dictionary)
@@ -1328,8 +1332,13 @@ ReturnNotFound:
             }
 
             IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator() =>
-                Count == 0 ? SZGenericArrayEnumerator<TKey>.Empty :
+                Count == 0 ? GetEmptyEnumerator() :
                 GetEnumerator();
+
+            private static IEnumerator<TKey> GetEmptyEnumerator()
+            {
+                return LazyInitializer.EnsureInitialized(ref s_emptyEnumerator, static () => new Enumerator(new SegmentedDictionary<TKey, TValue>()))!;
+            }
 
             IEnumerator IEnumerable.GetEnumerator()
                 => ((IEnumerable<TKey>)this).GetEnumerator();
@@ -1468,6 +1477,8 @@ ReturnNotFound:
         [DebuggerDisplay("Count = {Count}")]
         public sealed class ValueCollection : ICollection<TValue>, ICollection, IReadOnlyCollection<TValue>
         {
+            private static IEnumerator<TValue>? s_emptyEnumerator;
+
             private readonly SegmentedDictionary<TKey, TValue> _dictionary;
 
             public ValueCollection(SegmentedDictionary<TKey, TValue> dictionary)
@@ -1529,8 +1540,13 @@ ReturnNotFound:
                 => _dictionary.ContainsValue(item);
 
             IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator() =>
-                Count == 0 ? SZGenericArrayEnumerator<TValue>.Empty :
+                Count == 0 ? GetEmptyEnumerator() :
                 GetEnumerator();
+
+            private static IEnumerator<TValue> GetEmptyEnumerator()
+            {
+                return LazyInitializer.EnsureInitialized(ref s_emptyEnumerator, static () => new Enumerator(new SegmentedDictionary<TKey, TValue>()))!;
+            }
 
             IEnumerator IEnumerable.GetEnumerator()
                 => ((IEnumerable<TValue>)this).GetEnumerator();
