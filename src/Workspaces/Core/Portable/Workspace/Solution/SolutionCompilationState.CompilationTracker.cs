@@ -335,9 +335,10 @@ namespace Microsoft.CodeAnalysis
                         var compilationWithoutGeneratedDocuments = CreateEmptyCompilation();
 
                         // We only got here when we had no compilation state at all.  So we couldn't have gotten here
-                        // from a frozen state (as a frozen state always ensures we have a WithCompilationTrackerState).
-                        // As such, we can safely say that we should create SG docs and skeletons from this compilation
-                        // if needed.
+                        // from a frozen state (as a frozen state always ensures we have at least an InProgressState).
+                        // As such, we want to start initially in the state where we will both run generators and create
+                        // skeleton references for p2p references.  That will ensure the most correct state for our
+                        // compilation the first time we create it.
                         var allSyntaxTreesParsedState = new InProgressState(
                             CreationPolicy.Create,
                             new Lazy<Compilation>(CreateEmptyCompilation),
@@ -523,7 +524,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             // Not a submission.  Add as a metadata reference.
 
-                            if (creationPolicy.SkeletonReferenceCreationPolicy == SkeletonReferenceCreationPolicy.Create)
+                            if (creationPolicy.SkeletonReferenceCreationPolicy is SkeletonReferenceCreationPolicy.Create)
                             {
                                 // Client always wants an up to date metadata reference.  Produce one for this project reference.
                                 var metadataReference = await compilationState.GetMetadataReferenceAsync(projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
@@ -698,10 +699,14 @@ namespace Microsoft.CodeAnalysis
             {
                 var state = this.ReadState();
 
+                // We're freezing the solution for features where latency performance is parameter.  Do not run SGs or
+                // create skeleton references at this point.  Just use whatever we've already generated for each in the
+                // past.
+                var desiredCreationPolicy = CreationPolicy.DoNotCreate;
+
                 if (state is FinalCompilationTrackerState finalState)
                 {
-                    // Transition to not creating SG docs or skeleton references.
-                    var newFinalState = finalState.WithCreationPolicy(CreationPolicy.DoNotCreate);
+                    var newFinalState = finalState.WithCreationPolicy(desiredCreationPolicy);
                     return newFinalState == finalState
                         ? this
                         : new CompilationTracker(this.ProjectState, newFinalState, skeletonReferenceCacheToClone: _skeletonReferenceCache);
@@ -753,7 +758,7 @@ namespace Microsoft.CodeAnalysis
                     return new CompilationTracker(
                         frozenProjectState,
                         new InProgressState(
-                            CreationPolicy.DoNotCreate,
+                            desiredCreationPolicy,
                             lazyCompilationWithoutGeneratedDocuments,
                             CompilationTrackerGeneratorInfo.Empty,
                             lazyCompilationWithGeneratedDocuments,
@@ -779,7 +784,7 @@ namespace Microsoft.CodeAnalysis
                     return new CompilationTracker(
                         frozenProjectState,
                         new InProgressState(
-                            CreationPolicy.DoNotCreate,
+                            desiredCreationPolicy,
                             compilationWithoutGeneratedDocuments,
                             generatorInfo,
                             compilationWithGeneratedDocuments,

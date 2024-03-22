@@ -35,6 +35,9 @@ internal partial class SolutionCompilationState
             /// whether we even have references -- it's pretty likely that running a generator might produce worse results
             /// than what we originally had.</item>
             /// </list>
+            /// This also controls if we will generate skeleton references for cross-language P2P references when
+            /// creating the compilation for a particular project.  When entirely frozen, we do not want to do this due
+            /// to the enormous cost of emitting ref assemblies for cross language cases.
             /// </summary>
             public readonly CreationPolicy CreationPolicy;
 
