@@ -30,12 +30,6 @@ namespace Microsoft.CodeAnalysis
         public static explicit operator ExtendedSpecialType(int value) => new ExtendedSpecialType(value);
         public static explicit operator int(ExtendedSpecialType value) => value._value;
 
-        public static bool operator ==(ExtendedSpecialType left, SpecialType right) => left._value == (byte)right;
-        public static bool operator !=(ExtendedSpecialType left, SpecialType right) => !(left == right);
-
-        public static bool operator ==(SpecialType left, ExtendedSpecialType right) => right == left;
-        public static bool operator !=(SpecialType left, ExtendedSpecialType right) => right != left;
-
         public static bool operator ==(ExtendedSpecialType left, ExtendedSpecialType right) => left._value == right._value;
         public static bool operator !=(ExtendedSpecialType left, ExtendedSpecialType right) => !(left == right);
 

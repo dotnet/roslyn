@@ -398,7 +398,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>A symbol for the special member.</returns>
         public Symbol SpecialMember(SpecialMember sm)
         {
-            return SpecialMember(sm, isOptional: false)!;
+            var result = SpecialMember(sm, isOptional: false);
+            Debug.Assert(result is not null);
+            return result;
         }
 
         public Symbol? SpecialMember(SpecialMember sm, bool isOptional = false)
@@ -437,7 +439,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public MethodSymbol SpecialMethod(SpecialMember sm)
         {
-            return (MethodSymbol)SpecialMember(sm, isOptional: false)!;
+            var result = (MethodSymbol)SpecialMember(sm, isOptional: false);
+            Debug.Assert(result is not null);
+            return result;
         }
 
         public MethodSymbol? SpecialMethod(SpecialMember sm, bool isOptional)
