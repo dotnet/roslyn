@@ -73,7 +73,7 @@ internal abstract partial class VisualStudioWorkspaceImpl
     }
 
     private void EnqueueUpdateSourceGeneratorVersion()
-        => _updateSourceGeneratorsQueue.AddWork();
+        => _updateSourceGeneratorsQueue.AddWork(cancelExistingWork: true);
 
     private async ValueTask ProcessUpdateSourceGeneratorRequestAsync(CancellationToken cancellationToken)
     {
@@ -88,11 +88,12 @@ internal abstract partial class VisualStudioWorkspaceImpl
 
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        this.SetCurrentSolution(
+        await this.SetCurrentSolutionAsync(
             oldSolution => oldSolution.WithSourceGeneratorVersion(oldSolution.SourceGeneratorVersion + 1),
             static (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
             onBeforeUpdate: null,
-            onAfterUpdate: null);
+            onAfterUpdate: null,
+            cancellationToken).ConfigureAwait(false);
     }
 
     [Export(typeof(ICommandHandler))]
