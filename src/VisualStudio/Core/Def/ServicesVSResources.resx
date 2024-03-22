@@ -1897,16 +1897,16 @@ Additional information: {1}</value>
   <data name="AssemblyNameAndVersionDisplay" xml:space="preserve">
     <value>{0} ({1})</value>
   </data>
-  <data name="Automatic_Source_generators_will_run_after_any_change" xml:space="preserve">
-    <value>Automatic. Source generators will run after any change.</value>
+  <data name="Automatic_Run_generators_after_any_change" xml:space="preserve">
+    <value>Automatic. Run generators after any change.</value>
   </data>
-  <data name="Run_source_generators" xml:space="preserve">
-    <value>Run source generators:</value>
+  <data name="Source_generator_execution_requires_restart" xml:space="preserve">
+    <value>Source generator execution (requires restart):</value>
   </data>
   <data name="Source_Generators" xml:space="preserve">
     <value>Source Generators</value>
   </data>
-  <data name="Balanced_Source_generators_will_run_after_building_and_saving" xml:space="preserve">
-    <value>Balanced. Source generators will run after building and saving.</value>
+  <data name="Balanced_Run_generators_when_building_or_saving" xml:space="preserve">
+    <value>Balanced. Run generators when building or saving</value>
   </data>
 </root>
