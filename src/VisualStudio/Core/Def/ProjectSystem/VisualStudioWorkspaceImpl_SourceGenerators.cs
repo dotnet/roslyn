@@ -86,8 +86,6 @@ internal abstract partial class VisualStudioWorkspaceImpl
         var workspaceStatusService = this.Services.GetRequiredService<IWorkspaceStatusService>();
         await workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
         await this.SetCurrentSolutionAsync(
             oldSolution => oldSolution.WithSourceGeneratorVersion(oldSolution.SourceGeneratorVersion + 1),
             static (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
