@@ -302,7 +302,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Return analyzerService
         End Function
 
-        Private Shared Function GetExpectedDiagnostics(workspace As EditorTestWorkspace, diagnostics As XElement) As List(Of DiagnosticData)
+        Friend Shared Function GetExpectedDiagnostics(workspace As EditorTestWorkspace, diagnostics As XElement) As List(Of DiagnosticData)
             Dim result As New List(Of DiagnosticData)
             Dim mappedLine As Integer, mappedColumn As Integer, originalLine As Integer, originalColumn As Integer
             Dim Id As String, message As String, originalFile As String, mappedFile As String

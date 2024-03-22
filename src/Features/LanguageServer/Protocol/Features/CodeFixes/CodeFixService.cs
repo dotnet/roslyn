@@ -255,7 +255,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CodeActionRequestPriority? priority,
             CancellationToken cancellationToken)
         {
-            if (!(priority is null or CodeActionRequestPriority.Low) || document is not Document sourceDocument)
+            if (!(priority is null or CodeActionRequestPriority.Low))
+                return [];
+
+            if (document is not Document sourceDocument)
                 return [];
 
             var diagnostics = await document.GetCachedCopilotDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
