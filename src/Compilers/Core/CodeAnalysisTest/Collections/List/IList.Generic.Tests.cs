@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
-// https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/Common/tests/System/Collections/IList.Generic.Tests.cs
+// https://github.com/dotnet/runtime/blob/v8.0.3/src/libraries/Common/tests/System/Collections/IList.Generic.Tests.cs
 //
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
@@ -44,7 +44,7 @@ namespace System.Collections.Tests
         /// </summary>
         protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations)
         {
-            foreach (var item in base.GetModifyEnumerables(operations))
+            foreach (ModifyEnumerable item in base.GetModifyEnumerables(operations))
                 yield return item;
 
             if (!AddRemoveClear_ThrowsNotSupported && (operations & ModifyOperation.Insert) == ModifyOperation.Insert)
@@ -620,7 +620,7 @@ namespace System.Collections.Tests
                     while (enumerator.MoveNext()) ; // Go to end of enumerator
 
                     T current = default(T);
-                    if (Enumerator_Current_UndefinedOperation_Throws)
+                    if (count == 0 ? Enumerator_Empty_Current_UndefinedOperation_Throws : Enumerator_Current_UndefinedOperation_Throws)
                     {
                         Assert.Throws<InvalidOperationException>(() => enumerator.Current); // enumerator.Current should fail
                     }
@@ -636,7 +636,7 @@ namespace System.Collections.Tests
                     {
                         collection.Add(CreateT(seed++));
 
-                        if (Enumerator_Current_UndefinedOperation_Throws)
+                        if (count == 0 ? Enumerator_Empty_Current_UndefinedOperation_Throws : Enumerator_Current_UndefinedOperation_Throws)
                         {
                             Assert.Throws<InvalidOperationException>(() => enumerator.Current); // enumerator.Current should fail
                         }

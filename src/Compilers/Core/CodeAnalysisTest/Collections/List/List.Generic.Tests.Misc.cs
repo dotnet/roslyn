@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
-// https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Collections/tests/Generic/List/List.Generic.Tests.Misc.cs
+// https://github.com/dotnet/runtime/blob/v8.0.3/src/libraries/System.Collections/tests/Generic/List/List.Generic.Tests.Misc.cs
 //
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
@@ -209,10 +209,10 @@ namespace System.Collections.Tests
 
             #region GetRange
 
-            public void BasicGetRange(T[] items, int index, int count)
+            public void BasicGetRange(T[] items, int index, int count, bool useSlice)
             {
                 List<T> list = new List<T>(items);
-                List<T> range = list.GetRange(index, count);
+                List<T> range = useSlice ? list.Slice(index, count) : list.GetRange(index, count);
 
                 //ensure range is good
                 for (int i = 0; i < count; i++)
@@ -227,26 +227,44 @@ namespace System.Collections.Tests
                 }
             }
 
-            public void EnsureRangeIsReference(T[] items, T item, int index, int count)
+            public void BasicSliceSyntax(T[] items, int index, int count)
             {
                 List<T> list = new List<T>(items);
-                List<T> range = list.GetRange(index, count);
+                List<T> range = list[index..(index + count)];
+
+                //ensure range is good
+                for (int i = 0; i < count; i++)
+                {
+                    Assert.Equal(range[i], items[i + index]); //String.Format("Err_170178aqhbpa Expected item: {0} at: {1} actual: {2}", items[i + index], i, range[i])
+                }
+
+                //ensure no side effects
+                for (int i = 0; i < items.Length; i++)
+                {
+                    Assert.Equal(list[i], items[i]); //String.Format("Err_00125698ahpap Expected item: {0} at: {1} actual: {2}", items[i], i, list[i])
+                }
+            }
+
+            public void EnsureRangeIsReference(T[] items, T item, int index, int count, bool useSlice)
+            {
+                List<T> list = new List<T>(items);
+                List<T> range = useSlice ? list[index..(index + count)] : list.GetRange(index, count);
                 T tempItem = list[index];
                 range[0] = item;
                 Assert.Equal(list[index], tempItem); //String.Format("Err_707811hapba Expected item: {0} at: {1} actual: {2}", tempItem, index, list[index])
             }
 
-            public void EnsureThrowsAfterModification(T[] items, T item, int index, int count)
+            public void EnsureThrowsAfterModification(T[] items, T item, int index, int count, bool useSlice)
             {
                 List<T> list = new List<T>(items);
-                List<T> range = list.GetRange(index, count);
+                List<T> range = useSlice ? list[index..(index + count)] : list.GetRange(index, count);
                 T tempItem = list[index];
                 list[index] = item;
 
                 Assert.Equal(range[0], tempItem); //String.Format("Err_1221589ajpa Expected item: {0} at: {1} actual: {2}", tempItem, 0, range[0])
             }
 
-            public void GetRangeValidations(T[] items)
+            public void GetRangeValidations(T[] items, bool useSlice)
             {
                 //
                 //Always send items.Length is even
@@ -283,7 +301,12 @@ namespace System.Collections.Tests
 
                 for (int i = 0; i < bad.Length; i++)
                 {
-                    AssertExtensions.Throws<ArgumentException>(null, () => list.GetRange(bad[i], bad[++i])); //"ArgumentException expected."
+                    AssertExtensions.Throws<ArgumentException>(null, () =>
+                    {
+                        int index = bad[i];
+                        int count = bad[++i];
+                        return useSlice ? list.Slice(index, count) : list.GetRange(index, count);
+                    }); //"ArgumentException expected."
                 }
 
                 bad = new int[] {
@@ -305,7 +328,12 @@ namespace System.Collections.Tests
 
                 for (int i = 0; i < bad.Length; i++)
                 {
-                    Assert.Throws<ArgumentOutOfRangeException>(() => list.GetRange(bad[i], bad[++i])); //"ArgumentOutOfRangeException expected."
+                    Assert.Throws<ArgumentOutOfRangeException>(() =>
+                    {
+                        int index = bad[i];
+                        int count = bad[++i];
+                        return useSlice ? list.Slice(index, count) : list.GetRange(index, count);
+                    }); //"ArgumentOutOfRangeException expected."
                 }
             }
 
@@ -838,46 +866,69 @@ namespace System.Collections.Tests
             StringDriver.InsertRangeValidations(stringArr1, StringDriver.ConstructTestEnumerable);
         }
 
-        [Fact]
-        public static void GetRangeTests()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public static void GetRangeTests(bool useSlice)
         {
             Driver<int> IntDriver = new Driver<int>();
             int[] intArr1 = new int[100];
             for (int i = 0; i < 100; i++)
                 intArr1[i] = i;
 
-            IntDriver.BasicGetRange(intArr1, 50, 50);
-            IntDriver.BasicGetRange(intArr1, 0, 50);
-            IntDriver.BasicGetRange(intArr1, 50, 25);
-            IntDriver.BasicGetRange(intArr1, 0, 25);
-            IntDriver.BasicGetRange(intArr1, 75, 25);
-            IntDriver.BasicGetRange(intArr1, 0, 100);
-            IntDriver.BasicGetRange(intArr1, 0, 99);
-            IntDriver.BasicGetRange(intArr1, 1, 1);
-            IntDriver.BasicGetRange(intArr1, 99, 1);
-            IntDriver.EnsureRangeIsReference(intArr1, 101, 0, 10);
-            IntDriver.EnsureThrowsAfterModification(intArr1, 10, 10, 10);
+            IntDriver.BasicGetRange(intArr1, 50, 50, useSlice);
+            IntDriver.BasicGetRange(intArr1, 0, 50, useSlice);
+            IntDriver.BasicGetRange(intArr1, 50, 25, useSlice);
+            IntDriver.BasicGetRange(intArr1, 0, 25, useSlice);
+            IntDriver.BasicGetRange(intArr1, 75, 25, useSlice);
+            IntDriver.BasicGetRange(intArr1, 0, 100, useSlice);
+            IntDriver.BasicGetRange(intArr1, 0, 99, useSlice);
+            IntDriver.BasicGetRange(intArr1, 1, 1, useSlice);
+            IntDriver.BasicGetRange(intArr1, 99, 1, useSlice);
+            IntDriver.EnsureRangeIsReference(intArr1, 101, 0, 10, useSlice);
+            IntDriver.EnsureThrowsAfterModification(intArr1, 10, 10, 10, useSlice);
 
             Driver<string> StringDriver = new Driver<string>();
             string[] stringArr1 = new string[100];
             for (int i = 0; i < 100; i++)
                 stringArr1[i] = "SomeTestString" + i.ToString();
 
-            StringDriver.BasicGetRange(stringArr1, 50, 50);
-            StringDriver.BasicGetRange(stringArr1, 0, 50);
-            StringDriver.BasicGetRange(stringArr1, 50, 25);
-            StringDriver.BasicGetRange(stringArr1, 0, 25);
-            StringDriver.BasicGetRange(stringArr1, 75, 25);
-            StringDriver.BasicGetRange(stringArr1, 0, 100);
-            StringDriver.BasicGetRange(stringArr1, 0, 99);
-            StringDriver.BasicGetRange(stringArr1, 1, 1);
-            StringDriver.BasicGetRange(stringArr1, 99, 1);
-            StringDriver.EnsureRangeIsReference(stringArr1, "SometestString101", 0, 10);
-            StringDriver.EnsureThrowsAfterModification(stringArr1, "str", 10, 10);
+            StringDriver.BasicGetRange(stringArr1, 50, 50, useSlice);
+            StringDriver.BasicGetRange(stringArr1, 0, 50, useSlice);
+            StringDriver.BasicGetRange(stringArr1, 50, 25, useSlice);
+            StringDriver.BasicGetRange(stringArr1, 0, 25, useSlice);
+            StringDriver.BasicGetRange(stringArr1, 75, 25, useSlice);
+            StringDriver.BasicGetRange(stringArr1, 0, 100, useSlice);
+            StringDriver.BasicGetRange(stringArr1, 0, 99, useSlice);
+            StringDriver.BasicGetRange(stringArr1, 1, 1, useSlice);
+            StringDriver.BasicGetRange(stringArr1, 99, 1, useSlice);
+            StringDriver.EnsureRangeIsReference(stringArr1, "SometestString101", 0, 10, useSlice);
+            StringDriver.EnsureThrowsAfterModification(stringArr1, "str", 10, 10, useSlice);
         }
 
         [Fact]
-        public static void GetRangeTests_Negative()
+        public static void SlicingWorks()
+        {
+            Driver<int> IntDriver = new Driver<int>();
+            int[] intArr1 = new int[100];
+            for (int i = 0; i < 100; i++)
+                intArr1[i] = i;
+
+            IntDriver.BasicSliceSyntax(intArr1, 50, 50);
+            IntDriver.BasicSliceSyntax(intArr1, 0, 50);
+            IntDriver.BasicSliceSyntax(intArr1, 50, 25);
+            IntDriver.BasicSliceSyntax(intArr1, 0, 25);
+            IntDriver.BasicSliceSyntax(intArr1, 75, 25);
+            IntDriver.BasicSliceSyntax(intArr1, 0, 100);
+            IntDriver.BasicSliceSyntax(intArr1, 0, 99);
+            IntDriver.BasicSliceSyntax(intArr1, 1, 1);
+            IntDriver.BasicSliceSyntax(intArr1, 99, 1);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public static void GetRangeTests_Negative(bool useSlice)
         {
             Driver<int> IntDriver = new Driver<int>();
             int[] intArr1 = new int[100];
@@ -889,8 +940,8 @@ namespace System.Collections.Tests
             for (int i = 0; i < 100; i++)
                 stringArr1[i] = "SomeTestString" + i.ToString();
 
-            StringDriver.GetRangeValidations(stringArr1);
-            IntDriver.GetRangeValidations(intArr1);
+            StringDriver.GetRangeValidations(stringArr1, useSlice);
+            IntDriver.GetRangeValidations(intArr1, useSlice);
         }
 
         [Fact]
@@ -1104,6 +1155,26 @@ namespace System.Collections.Tests
             }
             intDriver.TrueForAll_VerifyExceptions(intArray);
             stringDriver.TrueForAll_VerifyExceptions(stringArray);
+        }
+
+        [Fact]
+        public static void TrueForAll_ListSizeCanBeChanged()
+        {
+            List<int> list = new List<int>() { 1, 2, 3 };
+            List<int> expectedList = new List<int> { 1, 2, 3, 2, 3, 4, 3, 4, 4 };
+
+            bool result = list.TrueForAll(i =>
+            {
+                if (i < 4)
+                {
+                    list.Add(i + 1);
+                }
+
+                return true;
+            });
+
+            Assert.True(result);
+            Assert.Equal(expectedList, list);
         }
     }
 }

@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
-// https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Collections/tests/Generic/List/List.Generic.cs
+// https://github.com/dotnet/runtime/blob/v8.0.3/src/libraries/System.Collections/tests/Generic/List/List.Generic.cs
 //
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
@@ -56,6 +56,8 @@ namespace System.Collections.Tests
         }
 
         protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations) => new List<ModifyEnumerable>();
+        
+        protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => true;
     }
 
     public class List_Generic_Tests_int_ReadOnly : List_Generic_Tests<int>
@@ -79,5 +81,7 @@ namespace System.Collections.Tests
         }
 
         protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations) => new List<ModifyEnumerable>();
+
+        protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => true;
     }
 }
