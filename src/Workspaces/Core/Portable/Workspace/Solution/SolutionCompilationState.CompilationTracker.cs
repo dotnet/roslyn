@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var state = this.ReadState();
 
-                // We're freezing the solution for features where latency performance is parameter.  Do not run SGs or
+                // We're freezing the solution for features where latency performance is paramount.  Do not run SGs or
                 // create skeleton references at this point.  Just use whatever we've already generated for each in the
                 // past.
                 var desiredCreationPolicy = CreationPolicy.DoNotCreate;
