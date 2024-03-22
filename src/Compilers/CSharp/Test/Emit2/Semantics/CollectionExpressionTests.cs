@@ -25103,6 +25103,404 @@ partial class Program
         }
 
         [Fact]
+        public void IOperation_AmbiguousAdd_01()
+        {
+            string sourceA = """
+                using System.Collections;
+                interface IA { }
+                interface IB { }
+                class MyCollection : IEnumerable
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add(IA a) => throw null;
+                    public void Add(IB b) => throw null;
+                    public void Add(object o) => throw null;
+                }
+                """;
+            string sourceB = """
+                class C : IA, IB { }
+                class Program
+                {
+                    static MyCollection Create(C x, C[] y)
+                    {
+                        return /*<bind>*/[x, ..y]/*</bind>*/;
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceB, sourceA]);
+            comp.VerifyEmitDiagnostics(
+                // (6,27): error CS0121: The call is ambiguous between the following methods or properties: 'MyCollection.Add(IA)' and 'MyCollection.Add(IB)'
+                //         return /*<bind>*/[x, ..y]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "x").WithArguments("MyCollection.Add(IA)", "MyCollection.Add(IB)").WithLocation(6, 27),
+                // (6,32): error CS0121: The call is ambiguous between the following methods or properties: 'MyCollection.Add(IA)' and 'MyCollection.Add(IB)'
+                //         return /*<bind>*/[x, ..y]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "y").WithArguments("MyCollection.Add(IA)", "MyCollection.Add(IB)").WithLocation(6, 32));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection, IsInvalid) (Syntax: '[x, ..y]')
+                  Elements(2):
+                      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'x')
+                      ISpreadOperation (ElementType: C) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..y')
+                        Operand:
+                          IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: C[], IsInvalid) (Syntax: 'y')
+                        ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (Identity)
+                """);
+
+            var tree = comp.SyntaxTrees[0];
+            var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Create");
+            VerifyFlowGraph(comp, method,
+                """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection, IsInvalid, IsImplicit) (Syntax: '[x, ..y]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionExpression)
+                          Operand:
+                            ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection, IsInvalid) (Syntax: '[x, ..y]')
+                              Elements(2):
+                                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'x')
+                                  ISpreadOperation (ElementType: C) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..y')
+                                    Operand:
+                                      IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: C[], IsInvalid) (Syntax: 'y')
+                                    ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                      (Identity)
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
+        }
+
+        [Fact]
+        public void IOperation_AmbiguousAdd_02()
+        {
+            string sourceA = """
+                using System.Collections;
+                interface IA { }
+                interface IB { }
+                class MyCollection : IEnumerable
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add(IA a) => throw null;
+                    public void Add(IB b) => throw null;
+                }
+                static class Extensions
+                {
+                    public static void Add(this MyCollection collection, object o) { }
+                }
+                """;
+            string sourceB = """
+                class C : IA, IB { }
+                class Program
+                {
+                    static MyCollection Create(C x, C[] y)
+                    {
+                        return /*<bind>*/[x, ..y]/*</bind>*/;
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceB, sourceA]);
+            comp.VerifyEmitDiagnostics(
+                // (6,27): error CS0121: The call is ambiguous between the following methods or properties: 'MyCollection.Add(IA)' and 'MyCollection.Add(IB)'
+                //         return /*<bind>*/[x, ..y]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "x").WithArguments("MyCollection.Add(IA)", "MyCollection.Add(IB)").WithLocation(6, 27),
+                // (6,32): error CS0121: The call is ambiguous between the following methods or properties: 'MyCollection.Add(IA)' and 'MyCollection.Add(IB)'
+                //         return /*<bind>*/[x, ..y]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "y").WithArguments("MyCollection.Add(IA)", "MyCollection.Add(IB)").WithLocation(6, 32));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection, IsInvalid) (Syntax: '[x, ..y]')
+                  Elements(2):
+                      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'x')
+                      ISpreadOperation (ElementType: C) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..y')
+                        Operand:
+                          IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: C[], IsInvalid) (Syntax: 'y')
+                        ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (Identity)
+                """);
+
+            var tree = comp.SyntaxTrees[0];
+            var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Create");
+            VerifyFlowGraph(comp, method,
+                """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection, IsInvalid, IsImplicit) (Syntax: '[x, ..y]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionExpression)
+                          Operand:
+                            ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection..ctor()) (OperationKind.CollectionExpression, Type: MyCollection, IsInvalid) (Syntax: '[x, ..y]')
+                              Elements(2):
+                                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'x')
+                                  ISpreadOperation (ElementType: C) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..y')
+                                    Operand:
+                                      IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: C[], IsInvalid) (Syntax: 'y')
+                                    ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                      (Identity)
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
+        }
+
+        [Fact]
+        public void IOperation_AmbiguousAdd_03()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class ExtensionsA
+                {
+                    public static void Add<T>(this MyCollection<T> collection, string s) { }
+                }
+                static class ExtensionsB
+                {
+                    public static void Add<T>(this MyCollection<T> collection, string s) { }
+                }
+                namespace N
+                {
+                    static class ExtensionsC
+                    {
+                        public static void Add<T>(this MyCollection<T> collection, T t) { }
+                    }
+                }
+                """;
+            string sourceB = """
+                using N;
+                class Program
+                {
+                    static MyCollection<object> Create(string x, string[] y)
+                    {
+                        return /*<bind>*/[x, ..y]/*</bind>*/;
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceB, sourceA]);
+            comp.VerifyEmitDiagnostics(
+                // (6,27): error CS0121: The call is ambiguous between the following methods or properties: 'ExtensionsA.Add<T>(MyCollection<T>, string)' and 'ExtensionsB.Add<T>(MyCollection<T>, string)'
+                //         return /*<bind>*/[x, ..y]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "x").WithArguments("ExtensionsA.Add<T>(MyCollection<T>, string)", "ExtensionsB.Add<T>(MyCollection<T>, string)").WithLocation(6, 27),
+                // (6,32): error CS0121: The call is ambiguous between the following methods or properties: 'ExtensionsA.Add<T>(MyCollection<T>, string)' and 'ExtensionsB.Add<T>(MyCollection<T>, string)'
+                //         return /*<bind>*/[x, ..y]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "y").WithArguments("ExtensionsA.Add<T>(MyCollection<T>, string)", "ExtensionsB.Add<T>(MyCollection<T>, string)").WithLocation(6, 32));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection<System.Object>..ctor()) (OperationKind.CollectionExpression, Type: MyCollection<System.Object>, IsInvalid) (Syntax: '[x, ..y]')
+                  Elements(2):
+                      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsInvalid) (Syntax: 'x')
+                      ISpreadOperation (ElementType: System.String) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..y')
+                        Operand:
+                          IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String[], IsInvalid) (Syntax: 'y')
+                        ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (Identity)
+                """);
+
+            var tree = comp.SyntaxTrees[0];
+            var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Create");
+            VerifyFlowGraph(comp, method,
+                """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<System.Object>, IsInvalid, IsImplicit) (Syntax: '[x, ..y]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionExpression)
+                          Operand:
+                            ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection<System.Object>..ctor()) (OperationKind.CollectionExpression, Type: MyCollection<System.Object>, IsInvalid) (Syntax: '[x, ..y]')
+                              Elements(2):
+                                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String, IsInvalid) (Syntax: 'x')
+                                  ISpreadOperation (ElementType: System.String) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..y')
+                                    Operand:
+                                      IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String[], IsInvalid) (Syntax: 'y')
+                                    ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                      (Identity)
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
+        }
+
+        [Fact]
+        public void IOperation_InvalidAdd_01()
+        {
+            string sourceA = """
+                using System.Collections;
+                public class MyCollection<T> : IEnumerable
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                public static class Extensions
+                {
+                    public static void Add<T>(this MyCollection<T> collection, string s) { }
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static MyCollection<int> Create(int x, int[] y)
+                    {
+                        return /*<bind>*/[x, ..y]/*</bind>*/;
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceB, sourceA]);
+            comp.VerifyEmitDiagnostics(
+                // (5,27): error CS1950: The best overloaded Add method 'Extensions.Add<int>(MyCollection<int>, string)' for the collection initializer has some invalid arguments
+                //         return /*<bind>*/[x, ..y]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "x").WithArguments("Extensions.Add<int>(MyCollection<int>, string)").WithLocation(5, 27),
+                // (5,27): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                //         return /*<bind>*/[x, ..y]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("2", "int", "string").WithLocation(5, 27),
+                // (5,30): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                //         return /*<bind>*/[x, ..y]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("2", "int", "string").WithLocation(5, 30),
+                // (5,32): error CS1950: The best overloaded Add method 'Extensions.Add<int>(MyCollection<int>, string)' for the collection initializer has some invalid arguments
+                //         return /*<bind>*/[x, ..y]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("Extensions.Add<int>(MyCollection<int>, string)").WithLocation(5, 32));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection<System.Int32>..ctor()) (OperationKind.CollectionExpression, Type: MyCollection<System.Int32>, IsInvalid) (Syntax: '[x, ..y]')
+                  Elements(2):
+                      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
+                      ISpreadOperation (ElementType: System.Int32) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..y')
+                        Operand:
+                          IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32[], IsInvalid) (Syntax: 'y')
+                        ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (Identity)
+                """);
+
+            var tree = comp.SyntaxTrees[0];
+            var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Create");
+            VerifyFlowGraph(comp, method,
+                """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<System.Int32>, IsInvalid, IsImplicit) (Syntax: '[x, ..y]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionExpression)
+                          Operand:
+                            ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection<System.Int32>..ctor()) (OperationKind.CollectionExpression, Type: MyCollection<System.Int32>, IsInvalid) (Syntax: '[x, ..y]')
+                              Elements(2):
+                                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
+                                  ISpreadOperation (ElementType: System.Int32) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..y')
+                                    Operand:
+                                      IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32[], IsInvalid) (Syntax: 'y')
+                                    ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                      (Identity)
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
+        }
+
+        [Fact]
+        public void IOperation_InvalidAdd_02()
+        {
+            string sourceA = """
+                using System.Collections;
+                public class MyCollection<T> : IEnumerable
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                public static class Extensions
+                {
+                    public static void Add<T>(this MyCollection<T> collection, params string[] args) { }
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static MyCollection<int> Create(int x, int[] y)
+                    {
+                        return /*<bind>*/[x, ..y]/*</bind>*/;
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceB, sourceA]);
+            comp.VerifyEmitDiagnostics(
+                // (5,27): error CS1950: The best overloaded Add method 'Extensions.Add<int>(MyCollection<int>, params string[])' for the collection initializer has some invalid arguments
+                //         return /*<bind>*/[x, ..y]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "x").WithArguments("Extensions.Add<int>(MyCollection<int>, params string[])").WithLocation(5, 27),
+                // (5,27): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                //         return /*<bind>*/[x, ..y]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("2", "int", "string").WithLocation(5, 27),
+                // (5,30): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                //         return /*<bind>*/[x, ..y]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("2", "int", "string").WithLocation(5, 30),
+                // (5,32): error CS1950: The best overloaded Add method 'Extensions.Add<int>(MyCollection<int>, params string[])' for the collection initializer has some invalid arguments
+                //         return /*<bind>*/[x, ..y]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("Extensions.Add<int>(MyCollection<int>, params string[])").WithLocation(5, 32));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection<System.Int32>..ctor()) (OperationKind.CollectionExpression, Type: MyCollection<System.Int32>, IsInvalid) (Syntax: '[x, ..y]')
+                  Elements(2):
+                      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
+                      ISpreadOperation (ElementType: System.Int32) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..y')
+                        Operand:
+                          IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32[], IsInvalid) (Syntax: 'y')
+                        ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (Identity)
+                """);
+
+            var tree = comp.SyntaxTrees[0];
+            var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Create");
+            VerifyFlowGraph(comp, method,
+                """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<System.Int32>, IsInvalid, IsImplicit) (Syntax: '[x, ..y]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionExpression)
+                          Operand:
+                            ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection<System.Int32>..ctor()) (OperationKind.CollectionExpression, Type: MyCollection<System.Int32>, IsInvalid) (Syntax: '[x, ..y]')
+                              Elements(2):
+                                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
+                                  ISpreadOperation (ElementType: System.Int32) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..y')
+                                    Operand:
+                                      IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32[], IsInvalid) (Syntax: 'y')
+                                    ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                      (Identity)
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
+        }
+
+        [Fact]
         public void Async_01()
         {
             string source = """

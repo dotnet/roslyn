@@ -1369,16 +1369,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// return the argument to the collection initializer Add method or null if the element is not a
         /// collection initializer node. Otherwise, return the element as is.
         /// </summary>
-        internal static BoundExpression? GetUnderlyingCollectionExpressionElement(BoundCollectionExpression expr, BoundExpression? element)
+        internal static BoundExpression GetUnderlyingCollectionExpressionElement(BoundCollectionExpression expr, BoundExpression element, bool throwOnErrors)
         {
             if (expr.CollectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
-                return element switch
+                switch (element)
                 {
-                    BoundCollectionElementInitializer collectionInitializer => getCollectionInitializerElement(collectionInitializer),
-                    BoundDynamicCollectionElementInitializer dynamicInitializer => dynamicInitializer.Arguments[0],
-                    _ => null,
-                };
+                    case BoundCollectionElementInitializer collectionInitializer:
+                        return getCollectionInitializerElement(collectionInitializer);
+                    case BoundDynamicCollectionElementInitializer dynamicInitializer:
+                        return dynamicInitializer.Arguments[0];
+                }
+                if (throwOnErrors)
+                {
+                    throw ExceptionUtilities.UnexpectedValue(element);
+                }
+                switch (element)
+                {
+                    case BoundCall call:
+                        return call.Arguments[call.InvokedAsExtensionMethod ? 1 : 0];
+                    default:
+                        return element;
+                }
             }
             return element;
 
