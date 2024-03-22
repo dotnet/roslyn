@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis
                     if (!isFrozen)
                     {
                         var workspacePreference = compilationState.Services.GetRequiredService<IWorkspaceConfigurationService>().Options.SourceGeneratorExecution;
-                        isFrozen = workspacePreference != SourceGeneratorExecution.Automatic;
+                        isFrozen = workspacePreference != SourceGeneratorExecutionPreference.Automatic;
                     }
 
                     var finalState = FinalCompilationTrackerState.Create(

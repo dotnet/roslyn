@@ -6,36 +6,36 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host;
 
-internal enum SourceGeneratorExecution
+internal enum SourceGeneratorExecutionPreference
 {
     Automatic,
     Balanced,
 }
 
-internal static class SourceGeneratorExecutionUtilities
+internal static class SourceGeneratorExecutionPreferenceUtilities
 {
     private const string automatic = "automatic";
     private const string balanced = "balanced";
 
     // Default to beginning_of_line if we don't know the value.
-    public static string GetEditorConfigString(SourceGeneratorExecution? value)
+    public static string GetEditorConfigString(SourceGeneratorExecutionPreference? value)
     {
         return value switch
         {
-            SourceGeneratorExecution.Automatic => automatic,
-            SourceGeneratorExecution.Balanced => balanced,
+            SourceGeneratorExecutionPreference.Automatic => automatic,
+            SourceGeneratorExecutionPreference.Balanced => balanced,
             null => "",
             _ => throw ExceptionUtilities.UnexpectedValue(value),
         };
     }
 
-    public static SourceGeneratorExecution? Parse(
+    public static SourceGeneratorExecutionPreference? Parse(
         string optionString)
     {
         return optionString switch
         {
-            automatic => SourceGeneratorExecution.Automatic,
-            balanced => SourceGeneratorExecution.Balanced,
+            automatic => SourceGeneratorExecutionPreference.Automatic,
+            balanced => SourceGeneratorExecutionPreference.Balanced,
             _ => null,
         };
     }

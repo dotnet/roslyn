@@ -16,9 +16,9 @@ internal static class WorkspaceConfigurationOptionsStorage
                 globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspace) ??
                 globalOptions.GetOption(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag),
             DisableRecoverableText: globalOptions.GetOption(DisableRecoverableText),
-            RunSourceGenerators:
-                globalOptions.GetOption(RunSourceGenerators) ??
-                (globalOptions.GetOption(RunSourceGeneratorsWhenBuildsCompleteFeatureFlag) ? RunSourceGeneratorsPreference.WhenBuildsComplete : RunSourceGeneratorsPreference.Automatically),
+            SourceGeneratorExecution:
+                globalOptions.GetOption(SourceGeneratorExecution) ??
+                (globalOptions.GetOption(SourceGeneratorExecutionBalancedFeatureFlag) ? SourceGeneratorExecution.Balanced : SourceGeneratorExecution.Automatic),
             ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates));
 
     public static readonly Option2<StorageDatabase> Database = new(
@@ -40,14 +40,14 @@ internal static class WorkspaceConfigurationOptionsStorage
     public static readonly Option2<bool> EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag = new(
         "dotnet_enable_opening_source_generated_files_in_workspace_feature_flag", WorkspaceConfigurationOptions.Default.EnableOpeningSourceGeneratedFiles);
 
-    public static readonly Option2<RunSourceGeneratorsPreference?> RunSourceGenerators = new(
-        "dotnet_run_source_generators",
+    public static readonly Option2<SourceGeneratorExecutionPreference?> SourceGeneratorExecution = new(
+        "dotnet_source_generator_execution",
         defaultValue: null,
         isEditorConfigOption: true,
-        serializer: new EditorConfigValueSerializer<RunSourceGeneratorsPreference?>(
-            s => RunSourceGeneratorsPreferenceUtilities.Parse(s),
-            RunSourceGeneratorsPreferenceUtilities.GetEditorConfigString));
+        serializer: new EditorConfigValueSerializer<SourceGeneratorExecutionPreference?>(
+            s => SourceGeneratorExecutionUtilities.Parse(s),
+            SourceGeneratorExecutionUtilities.GetEditorConfigString));
 
-    public static readonly Option2<bool> RunSourceGeneratorsWhenBuildsCompleteFeatureFlag = new(
-        "dotnet_run_source_generators_when_builds_complete_feature_flag", false);
+    public static readonly Option2<bool> SourceGeneratorExecutionBalancedFeatureFlag = new(
+        "dotnet_source_generator_execution_balanced_feature_flag", false);
 }

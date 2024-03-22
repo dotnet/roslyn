@@ -122,9 +122,9 @@
         <target state="new">{0} ({1})</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatic_Source_generators_will_run_after_any_change">
-        <source>Automatic. Source generators will run after any change.</source>
-        <target state="new">Automatic. Source generators will run after any change.</target>
+      <trans-unit id="Automatic_Run_generators_after_any_change">
+        <source>Automatic. Run generators after any change.</source>
+        <target state="new">Automatic. Run generators after any change.</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
@@ -152,9 +152,9 @@
         <target state="translated">Zurück</target>
         <note />
       </trans-unit>
-      <trans-unit id="Balanced_Source_generators_will_run_after_building_and_saving">
-        <source>Balanced. Source generators will run after building and saving.</source>
-        <target state="new">Balanced. Source generators will run after building and saving.</target>
+      <trans-unit id="Balanced_Run_generators_when_building_or_saving">
+        <source>Balanced. Run generators when building or saving</source>
+        <target state="new">Balanced. Run generators when building or saving</target>
         <note />
       </trans-unit>
       <trans-unit id="Beginning_of_line">
@@ -1242,11 +1242,6 @@
         <target state="translated">Codeanalyse für die neueste .NET-Version ausführen (Neustart erforderlich)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Run_source_generators">
-        <source>Run source generators:</source>
-        <target state="new">Run source generators:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
         <source>Running code analysis for '{0}'...</source>
         <target state="translated">Die Codeanalyse für "{0}" wird ausgeführt...</target>
@@ -1380,6 +1375,11 @@
       <trans-unit id="Source_Generators">
         <source>Source Generators</source>
         <target state="new">Source Generators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_generator_execution_requires_restart">
+        <source>Source generator execution (requires restart):</source>
+        <target state="new">Source generator execution (requires restart):</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace">
