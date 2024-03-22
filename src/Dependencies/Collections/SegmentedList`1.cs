@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
-// https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/List.cs
+// https://github.com/dotnet/runtime/blob/v8.0.3/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/List.cs
 //
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         internal SegmentedArray<T> _items;
         internal int _size;
-        private int _version;
+        internal int _version;
 
         private static readonly SegmentedArray<T> s_emptyArray = new(0);
 
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 // Following trick can reduce the range check by one
                 if ((uint)index >= (uint)_size)
                 {
-                    ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+                    ThrowHelper.ThrowArgumentOutOfRange_IndexMustBeLessException();
                 }
                 return _items[index];
             }
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 if ((uint)index >= (uint)_size)
                 {
-                    ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+                    ThrowHelper.ThrowArgumentOutOfRange_IndexMustBeLessException();
                 }
                 _items[index] = value;
                 _version++;
@@ -238,8 +238,9 @@ namespace Microsoft.CodeAnalysis.Collections
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void AddWithResize(T item)
         {
+            Debug.Assert(_size == _items.Length);
             var size = _size;
-            EnsureCapacity(size + 1);
+            Grow(size + 1);
             _size = size + 1;
             _items[size] = item;
         }
@@ -265,7 +266,38 @@ namespace Microsoft.CodeAnalysis.Collections
         // capacity or the new size, whichever is larger.
         //
         public void AddRange(IEnumerable<T> collection)
-            => InsertRange(_size, collection);
+        {
+            if (collection == null)
+            {
+                ThrowHelper.ThrowArgumentNullException(ExceptionArgument.collection);
+            }
+
+            if (collection is ICollection<T> c)
+            {
+                int count = c.Count;
+                if (count > 0)
+                {
+                    if (_items.Length - _size < count)
+                    {
+                        Grow(checked(_size + count));
+                    }
+
+                    c.CopyTo(_items, _size);
+                    _size += count;
+                    _version++;
+                }
+            }
+            else
+            {
+                using (IEnumerator<T> en = collection.GetEnumerator())
+                {
+                    while (en.MoveNext())
+                    {
+                        Add(en.Current);
+                    }
+                }
+            }
+        }
 
         public ReadOnlyCollection<T> AsReadOnly()
             => new(this);
@@ -299,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (_size - index < count)
                 ThrowHelper.ThrowArgumentException(ExceptionResource.Argument_InvalidOffLen);
 
-            return SegmentedArray.BinarySearch<T>(_items, index, count, item, comparer);
+            return SegmentedArray.BinarySearch(_items, index, count, item, comparer);
         }
 
         public int BinarySearch(T item)
@@ -343,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Collections
             // via EqualityComparer<T>.Default.Equals, we
             // only make one virtual call to EqualityComparer.IndexOf.
 
-            return _size != 0 && IndexOf(item) != -1;
+            return _size != 0 && IndexOf(item) >= 0;
         }
 
         bool IList.Contains(object? item)
@@ -392,7 +424,7 @@ namespace Microsoft.CodeAnalysis.Collections
             }
             catch (ArrayTypeMismatchException)
             {
-                ThrowHelper.ThrowArgumentException_Argument_InvalidArrayType();
+                ThrowHelper.ThrowArgumentException_Argument_IncompatibleArrayType();
             }
         }
 
@@ -417,24 +449,48 @@ namespace Microsoft.CodeAnalysis.Collections
             SegmentedArray.Copy(_items, 0, array, arrayIndex, _size);
         }
 
-        // Ensures that the capacity of this list is at least the given minimum
-        // value. If the current capacity of the list is less than min, the
-        // capacity is increased to twice the current capacity or to min,
-        // whichever is larger.
-        //
-        private void EnsureCapacity(int min)
+        /// <summary>
+        /// Ensures that the capacity of this list is at least the specified <paramref name="capacity"/>.
+        /// If the current capacity of the list is less than specified <paramref name="capacity"/>,
+        /// the capacity is increased by continuously twice current capacity until it is at least the specified <paramref name="capacity"/>.
+        /// </summary>
+        /// <param name="capacity">The minimum capacity to ensure.</param>
+        /// <returns>The new capacity of this list.</returns>
+        public int EnsureCapacity(int capacity)
         {
-            if (_items.Length < min)
+            if (capacity < 0)
             {
-                var newCapacity = _items.Length == 0 ? DefaultCapacity : _items.Length * 2;
-                // Allow the list to grow to maximum possible capacity (~2G elements) before encountering overflow.
-                // Note that this check works even when _items.Length overflowed thanks to the (uint) cast
-                if ((uint)newCapacity > MaxArrayLength)
-                    newCapacity = MaxArrayLength;
-                if (newCapacity < min)
-                    newCapacity = min;
-                Capacity = newCapacity;
+                ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.capacity, ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
             }
+            if (_items.Length < capacity)
+            {
+                Grow(capacity);
+            }
+
+            return _items.Length;
+        }
+
+        /// <summary>
+        /// Increase the capacity of this list to at least the specified <paramref name="capacity"/>.
+        /// </summary>
+        /// <param name="capacity">The minimum capacity to ensure.</param>
+        internal void Grow(int capacity)
+        {
+            Debug.Assert(_items.Length < capacity);
+
+            var newCapacity = _items.Length == 0 ? DefaultCapacity : 2 * _items.Length;
+
+            // Allow the list to grow to maximum possible capacity (~2G elements) before encountering overflow.
+            // Note that this check works even when _items.Length overflowed thanks to the (uint) cast
+            if ((uint)newCapacity > MaxLength)
+                newCapacity = MaxLength;
+
+            // If the computed capacity is still less than specified, set to the original argument.
+            // Capacities exceeding Array.MaxLength will be surfaced as OutOfMemoryException by Array.Resize.
+            if (newCapacity < capacity)
+                newCapacity = capacity;
+
+            Capacity = newCapacity;
         }
 
         public bool Exists(Predicate<T> match)
@@ -485,7 +541,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             if ((uint)startIndex > (uint)_size)
             {
-                ThrowHelper.ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_Index();
+                ThrowHelper.ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_IndexMustBeLessOrEqual();
             }
 
             if (count < 0 || startIndex > _size - count)
@@ -542,7 +598,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 // Special case for 0 length SegmentedList
                 if (startIndex != -1)
                 {
-                    ThrowHelper.ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_Index();
+                    ThrowHelper.ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_IndexMustBeLess();
                 }
             }
             else
@@ -550,7 +606,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 // Make sure we're not out of range
                 if ((uint)startIndex >= (uint)_size)
                 {
-                    ThrowHelper.ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_Index();
+                    ThrowHelper.ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_IndexMustBeLess();
                 }
             }
 
@@ -598,14 +654,13 @@ namespace Microsoft.CodeAnalysis.Collections
         // while an enumeration is in progress, the MoveNext and
         // GetObject methods of the enumerator will throw an exception.
         //
-        public Enumerator GetEnumerator()
-            => new(this);
+        public Enumerator GetEnumerator() => new(this);
 
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-            => new Enumerator(this);
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() =>
+            Count == 0 ? SZGenericArrayEnumerator<T>.Empty :
+            GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
-            => new Enumerator(this);
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<T>)this).GetEnumerator();
 
         public SegmentedList<T> GetRange(int index, int count)
         {
@@ -629,6 +684,20 @@ namespace Microsoft.CodeAnalysis.Collections
             list._size = count;
             return list;
         }
+
+        /// <summary>
+        /// Creates a shallow copy of a range of elements in the source <see cref="List{T}" />.
+        /// </summary>
+        /// <param name="start">The zero-based <see cref="List{T}" /> index at which the range starts.</param>
+        /// <param name="length">The length of the range.</param>
+        /// <returns>A shallow copy of a range of elements in the source <see cref="List{T}" />.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="start" /> is less than 0.
+        /// -or-
+        /// <paramref name="length" /> is less than 0.
+        /// </exception>
+        /// <exception cref="ArgumentException"><paramref name="start" /> and <paramref name="length" /> do not denote a valid range of elements in the <see cref="List{T}" />.</exception>
+        public List<T> Slice(int start, int length) => GetRange(start, length);
 
         // Returns the index of the first occurrence of a given value in a range of
         // this list. The list is searched forwards from beginning to end.
@@ -662,7 +731,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public int IndexOf(T item, int index)
         {
             if (index > _size)
-                ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+                ThrowHelper.ThrowArgumentOutOfRange_IndexMustBeLessOrEqualException();
             return SegmentedArray.IndexOf(_items, item, index, _size - index);
         }
 
@@ -678,7 +747,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public int IndexOf(T item, int index, int count)
         {
             if (index > _size)
-                ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+                ThrowHelper.ThrowArgumentOutOfRange_IndexMustBeLessOrEqualException();
 
             if (count < 0 || index > _size - count)
                 ThrowHelper.ThrowCountArgumentOutOfRange_ArgumentOutOfRange_Count();
@@ -709,7 +778,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.index, ExceptionResource.ArgumentOutOfRange_ListInsert);
             }
             if (_size == _items.Length)
-                EnsureCapacity(_size + 1);
+                Grow(_size + 1);
             if (index < _size)
             {
                 SegmentedArray.Copy(_items, index, _items, index + 1, _size - index);
@@ -747,7 +816,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             if ((uint)index > (uint)_size)
             {
-                ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+                ThrowHelper.ThrowArgumentOutOfRange_IndexMustBeLessOrEqualException();
             }
 
             if (collection is ICollection<T> c)
@@ -755,7 +824,10 @@ namespace Microsoft.CodeAnalysis.Collections
                 var count = c.Count;
                 if (count > 0)
                 {
-                    EnsureCapacity(_size + count);
+                    if (_items.Length - _size < count)
+                    {
+                        Grow(checked(_size + count));
+                    }
                     if (index < _size)
                     {
                         SegmentedArray.Copy(_items, index, _items, index + count, _size - index);
@@ -785,6 +857,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     }
 
                     _size += count;
+                    _version++;
                 }
             }
             else
@@ -795,7 +868,6 @@ namespace Microsoft.CodeAnalysis.Collections
                     Insert(index++, en.Current);
                 }
             }
-            _version++;
         }
 
         // Returns the index of the last occurrence of a given value in a range of
@@ -830,7 +902,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public int LastIndexOf(T item, int index)
         {
             if (index >= _size)
-                ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+                ThrowHelper.ThrowArgumentOutOfRange_IndexMustBeLessException();
             return LastIndexOf(item, index, index + 1);
         }
 
@@ -905,8 +977,8 @@ namespace Microsoft.CodeAnalysis.Collections
             return SegmentedArray.LastIndexOf(_items, item, index, count, comparer);
         }
 
-        // Removes the element at the given index. The size of the list is
-        // decreased by one.
+        // Removes the first occurrence of the given element, if found.
+        // The size of the list is decreased by one if successful.
         public bool Remove(T item)
         {
             var index = IndexOf(item);
@@ -977,7 +1049,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             if ((uint)index >= (uint)_size)
             {
-                ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+                ThrowHelper.ThrowArgumentOutOfRange_IndexMustBeLessException();
             }
             _size--;
             if (index < _size)
@@ -1093,7 +1165,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             if (count > 1)
             {
-                SegmentedArray.Sort<T>(_items, index, count, comparer);
+                SegmentedArray.Sort(_items, index, count, comparer);
             }
             _version++;
         }
@@ -1163,6 +1235,8 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public struct Enumerator : IEnumerator<T>, IEnumerator
         {
+            internal static IEnumerator<T>? s_emptyEnumerator;
+
             private readonly SegmentedList<T> _list;
             private int _index;
             private readonly int _version;
