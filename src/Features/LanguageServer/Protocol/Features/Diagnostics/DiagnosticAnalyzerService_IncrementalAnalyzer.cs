@@ -27,5 +27,5 @@ internal partial class DiagnosticAnalyzerService
     }
 
     private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)
-        => Reanalyze(e.Solution.Workspace, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable(e.NewActiveContextDocumentId), highPriority: true);
+        => RequestDiagnosticRefresh();
 }
