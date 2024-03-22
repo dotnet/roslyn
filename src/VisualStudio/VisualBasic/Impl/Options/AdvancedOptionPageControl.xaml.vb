@@ -83,10 +83,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                              ' us to only run when builds complete, then we're not in automatic mode.  So we `!` the result.
                              Return Not optionStore.GetOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag)
                          End Function)
-            BindToOption(Balanced_Run_generators_when_building_or_saving, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced,
+            BindToOption(Balanced_Run_generators_after_saving_or_building, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced,
                          Function()
                              ' If the option hasn't been set by the user, then check the feature flag.  If the feature flag has set
-                             ' us to only run when builds complete, then we're in `Balanced_Run_generators_when_building_or_saving` mode and directly return it.
+                             ' us to only run when builds complete, then we're in `Balanced_Run_generators_after_saving_or_building` mode and directly return it.
                              Return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag)
                          End Function)
             BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles,
