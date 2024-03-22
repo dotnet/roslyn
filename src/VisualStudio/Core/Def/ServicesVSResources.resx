@@ -1898,7 +1898,7 @@ Additional information: {1}</value>
     <value>{0} ({1})</value>
   </data>
   <data name="Automatic_Run_generators_after_any_change" xml:space="preserve">
-    <value>Automatic. Run generators after any change.</value>
+    <value>Automatic. Run generators after any change</value>
   </data>
   <data name="Source_generator_execution_requires_restart" xml:space="preserve">
     <value>Source generator execution (requires restart):</value>
