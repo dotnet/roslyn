@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis
                     };
 
                     var newState = new InProgressState(
-                        state.IsFrozen,
+                        state.CreationPolicy,
                         compilationWithoutGeneratedDocuments,
                         state.GeneratorInfo,
                         staleCompilationWithGeneratedDocuments,
@@ -334,12 +334,12 @@ namespace Microsoft.CodeAnalysis
 
                         var compilationWithoutGeneratedDocuments = CreateEmptyCompilation();
 
-                        // We only got here when we had no compilation state at all.  So we couldn't have gotten
-                        // here from a frozen state (as a frozen state always ensures we have a
-                        // WithCompilationTrackerState).  As such, we can safely still preserve that we're not
-                        // frozen here.
+                        // We only got here when we had no compilation state at all.  So we couldn't have gotten here
+                        // from a frozen state (as a frozen state always ensures we have a WithCompilationTrackerState).
+                        // As such, we can safely say that we should create SG docs and skeletons from this compilation
+                        // if needed.
                         var allSyntaxTreesParsedState = new InProgressState(
-                            isFrozen: false,
+                            new CreationPolicy(GeneratedDocumentCreationPolicy.Create, SkeletonReferenceCreationPolicy.Create),
                             new Lazy<Compilation>(CreateEmptyCompilation),
                             CompilationTrackerGeneratorInfo.Empty,
                             staleCompilationWithGeneratedDocuments: s_lazyNullCompilation,
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis
                             // generator docs back to the uncomputed state from that point onwards.  We'll just keep
                             // whateverZ generated docs we have.
                             currentState = new InProgressState(
-                                currentState.IsFrozen,
+                                currentState.CreationPolicy,
                                 compilationWithoutGeneratedDocuments,
                                 generatorInfo,
                                 staleCompilationWithGeneratedDocuments,
@@ -471,8 +471,7 @@ namespace Microsoft.CodeAnalysis
                     // Caller should collapse the in progress state first.
                     Contract.ThrowIfTrue(inProgressState.PendingTranslationActions.Count > 0);
 
-                    // The final state we produce will be frozen or not depending on if a frozen state was passed into it.
-                    var isFrozen = inProgressState.IsFrozen;
+                    var creationPolicy = inProgressState.CreationPolicy;
                     var generatorInfo = inProgressState.GeneratorInfo;
                     var compilationWithoutGeneratedDocuments = inProgressState.CompilationWithoutGeneratedDocuments;
                     var staleCompilationWithGeneratedDocuments = inProgressState.LazyStaleCompilationWithGeneratedDocuments.Value;
@@ -524,27 +523,40 @@ namespace Microsoft.CodeAnalysis
                         {
                             // Not a submission.  Add as a metadata reference.
 
-                            if (isFrozen)
+                            if (creationPolicy.SkeletonReferenceCreationPolicy == SkeletonReferenceCreationPolicy.Create)
                             {
-                                // In the frozen case, attempt to get a partial reference, or fallback to the last
-                                // successful reference for this project if we can find one. 
+                                // Client always wants an up to date metadata reference.  Produce one for this project reference.
+                                var metadataReference = await compilationState.GetMetadataReferenceAsync(projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
+                                AddMetadataReference(projectReference, metadataReference);
+                            }
+                            else
+                            {
+                                Contract.ThrowIfFalse(
+                                    creationPolicy.SkeletonReferenceCreationPolicy is SkeletonReferenceCreationPolicy.CreateIfAbsent or SkeletonReferenceCreationPolicy.DoNotCreate);
+
+                                // Try to reuse an existing metadata reference if we have one.
                                 var metadataReference = compilationState.GetPartialMetadataReference(projectReference, this.ProjectState);
 
                                 if (metadataReference is null)
                                 {
-                                    // if we failed to get the metadata and we were frozen, check to see if we
-                                    // previously had existing metadata and reuse it instead.
+                                    // if we failed to get the metadata check to see if we previously had existing
+                                    // metadata and reuse it instead.
                                     var inProgressCompilationNotRef = staleCompilationWithGeneratedDocuments ?? compilationWithoutGeneratedDocuments;
                                     metadataReference = inProgressCompilationNotRef.ExternalReferences.FirstOrDefault(
                                         r => GetProjectId(inProgressCompilationNotRef.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol) == projectReference.ProjectId);
                                 }
 
-                                AddMetadataReference(projectReference, metadataReference);
-                            }
-                            else
-                            {
-                                // For the non-frozen case, attempt to get the full metadata reference.
-                                var metadataReference = await compilationState.GetMetadataReferenceAsync(projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
+                                // If we had no metadata reference from a prior version at all, create one if we're
+                                // asked to.  Otherwise, do nothing. The former case is when we're in 'balanced'
+                                // execution mode, and only want to regenerate skeletons on major events (like
+                                // building/saving). The latter case is when we're entirely frozen, and we don't want to
+                                // do any expensive work at all.
+                                if (metadataReference is null &&
+                                    creationPolicy.SkeletonReferenceCreationPolicy is SkeletonReferenceCreationPolicy.CreateIfAbsent)
+                                {
+                                    metadataReference = await compilationState.GetMetadataReferenceAsync(projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
+                                }
+
                                 AddMetadataReference(projectReference, metadataReference);
                             }
                         }
