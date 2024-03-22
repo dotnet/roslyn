@@ -86,7 +86,7 @@
   
                             <RadioButton GroupName="Run_source_generators_location"
                                      x:Name="when_builds_complete"
-                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_when_builds_complete}" />
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_Balanced_Run_generators_when_building_or_saving}" />
                         </StackPanel>
                     </StackPanel>
 
