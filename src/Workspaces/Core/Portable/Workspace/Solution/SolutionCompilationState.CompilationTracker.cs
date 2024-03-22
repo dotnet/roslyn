@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis
                         var compilationWithoutGeneratedDocuments = CreateEmptyCompilation();
 
                         // We only got here when we had no compilation state at all.  So we couldn't have gotten here
-                        // from a frozen state (as a frozen state always ensures we have a WithCompilationTrackerState).
+                        // from a frozen state (as a frozen state always ensures we have at least an InProgressState).
                         // As such, we want to start initially in the state where we will both run generators and create
                         // skeleton references for p2p references.  That will ensure the most correct state for our
                         // compilation the first time we create it.
