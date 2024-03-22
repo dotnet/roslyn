@@ -834,8 +834,7 @@ oneMoreTime:
             {
                 Debug.Assert(local.Name != null);
                 Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
-                             (local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection ||
-                              local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchExpressionArm));
+                    (local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection || local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchExpressionArm));
                 if (!local.IsConst && !IsStackLocal(local))
                 {
                     _builder.AddLocalToScope(_builder.LocalSlotManager.GetLocal(local));
