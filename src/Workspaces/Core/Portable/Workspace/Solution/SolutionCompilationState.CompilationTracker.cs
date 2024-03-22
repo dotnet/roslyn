@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis
                         // As such, we can safely say that we should create SG docs and skeletons from this compilation
                         // if needed.
                         var allSyntaxTreesParsedState = new InProgressState(
-                            new CreationPolicy(GeneratedDocumentCreationPolicy.Create, SkeletonReferenceCreationPolicy.Create),
+                            CreationPolicy.Create,
                             new Lazy<Compilation>(CreateEmptyCompilation),
                             CompilationTrackerGeneratorInfo.Empty,
                             staleCompilationWithGeneratedDocuments: s_lazyNullCompilation,
@@ -700,11 +700,18 @@ namespace Microsoft.CodeAnalysis
 
                 if (state is FinalCompilationTrackerState finalState)
                 {
-                    // If we're finalized and already frozen, we can just use ourselves. Otherwise, flip the frozen bit
-                    // so that any future forks keep things frozen.
+                    // If we're finalized and already in the right state, then just keep us there, just with the new
+                    // creation policy in place.
                     return finalState.CreationPolicy == creationPolicy
                         ? this
                         : new CompilationTracker(this.ProjectState, finalState.WithCreationPolicy(creationPolicy), skeletonReferenceCacheToClone: _skeletonReferenceCache);
+                }
+
+                // If we're in the initial 'null' state, we're implicitly in the state where we would generate sg docs
+                // and create skeletons.  So no need to do anything here.
+                if (state is null && creationPolicy == CreationPolicy.Create)
+                {
+                    return this;
                 }
 
                 // Non-final state currently.  Produce an in-progress-state containing the forked change. Note: we

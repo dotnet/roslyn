@@ -1144,9 +1144,7 @@ internal sealed partial class SolutionCompilationState
         {
             // Let the tracker know that the source generator version has changed. We do this by telling it that it
             // should now create SG docs and skeleton references if they're out of date.
-            var newTracker = tracker.WithCreationPolicy(
-                new CreationPolicy(GeneratedDocumentCreationPolicy.Create, SkeletonReferenceCreationPolicy.Create),
-                cancellationToken);
+            var newTracker = tracker.WithCreationPolicy(CreationPolicy.Create, cancellationToken);
             if (newTracker == tracker)
                 continue;
 
@@ -1194,9 +1192,7 @@ internal sealed partial class SolutionCompilationState
 
             // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
             // perf hit on either of those at all for our clients.
-            var newTracker = oldTracker.WithCreationPolicy(
-                new CreationPolicy(GeneratedDocumentCreationPolicy.DoNotCreate, SkeletonReferenceCreationPolicy.DoNotCreate),
-                cancellationToken);
+            var newTracker = oldTracker.WithCreationPolicy(CreationPolicy.DoNotCreation, cancellationToken);
             if (oldTracker == newTracker)
                 continue;
 
