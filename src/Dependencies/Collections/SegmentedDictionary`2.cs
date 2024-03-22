@@ -889,7 +889,7 @@ ReturnNotFound:
                 var objects = array as object[];
                 if (objects == null)
                 {
-                    ThrowHelper.ThrowArgumentException_Argument_InvalidArrayType();
+                    ThrowHelper.ThrowArgumentException_Argument_IncompatibleArrayType();
                 }
 
                 try
@@ -906,7 +906,7 @@ ReturnNotFound:
                 }
                 catch (ArrayTypeMismatchException)
                 {
-                    ThrowHelper.ThrowArgumentException_Argument_InvalidArrayType();
+                    ThrowHelper.ThrowArgumentException_Argument_IncompatibleArrayType();
                 }
             }
         }
@@ -1359,7 +1359,7 @@ ReturnNotFound:
                     var objects = array as object[];
                     if (objects == null)
                     {
-                        ThrowHelper.ThrowArgumentException_Argument_InvalidArrayType();
+                        ThrowHelper.ThrowArgumentException_Argument_IncompatibleArrayType();
                     }
 
                     var count = _dictionary._count;
@@ -1374,7 +1374,7 @@ ReturnNotFound:
                     }
                     catch (ArrayTypeMismatchException)
                     {
-                        ThrowHelper.ThrowArgumentException_Argument_InvalidArrayType();
+                        ThrowHelper.ThrowArgumentException_Argument_IncompatibleArrayType();
                     }
                 }
             }
@@ -1559,7 +1559,7 @@ ReturnNotFound:
                     var objects = array as object[];
                     if (objects == null)
                     {
-                        ThrowHelper.ThrowArgumentException_Argument_InvalidArrayType();
+                        ThrowHelper.ThrowArgumentException_Argument_IncompatibleArrayType();
                     }
 
                     var count = _dictionary._count;
@@ -1574,7 +1574,7 @@ ReturnNotFound:
                     }
                     catch (ArrayTypeMismatchException)
                     {
-                        ThrowHelper.ThrowArgumentException_Argument_InvalidArrayType();
+                        ThrowHelper.ThrowArgumentException_Argument_IncompatibleArrayType();
                     }
                 }
             }

@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.Collections.Internal;
 
 namespace Microsoft.CodeAnalysis.Collections
@@ -32,13 +33,14 @@ namespace Microsoft.CodeAnalysis.Collections
     internal class SegmentedList<T> : IList<T>, IList, IReadOnlyList<T>
     {
         private const int DefaultCapacity = 4;
-        private const int MaxArrayLength = 0x7FEFFFFF;
+        private const int MaxLength = 0x7FFFFFC7;
 
         internal SegmentedArray<T> _items;
         internal int _size;
         internal int _version;
 
         private static readonly SegmentedArray<T> s_emptyArray = new(0);
+        private static IEnumerator<T>? s_emptyEnumerator;
 
         // Constructs a SegmentedList. The list is initially empty and has a capacity
         // of zero. Upon adding the first element to the list the capacity is
@@ -274,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             if (collection is ICollection<T> c)
             {
-                int count = c.Count;
+                var count = c.Count;
                 if (count > 0)
                 {
                     if (_items.Length - _size < count)
@@ -282,19 +284,31 @@ namespace Microsoft.CodeAnalysis.Collections
                         Grow(checked(_size + count));
                     }
 
-                    c.CopyTo(_items, _size);
+                    if (c is SegmentedList<T> list)
+                    {
+                        SegmentedArray.Copy(list._items, 0, _items, _size, list.Count);
+                    }
+                    else if (c is SegmentedArray<T> array)
+                    {
+                        SegmentedArray.Copy(array, 0, _items, _size, array.Length);
+                    }
+                    else
+                    {
+                        var targetIndex = _size;
+                        foreach (var item in c)
+                            _items[targetIndex++] = item;
+                    }
+
                     _size += count;
                     _version++;
                 }
             }
             else
             {
-                using (IEnumerator<T> en = collection.GetEnumerator())
+                using var en = collection.GetEnumerator();
+                while (en.MoveNext())
                 {
-                    while (en.MoveNext())
-                    {
-                        Add(en.Current);
-                    }
+                    Add(en.Current);
                 }
             }
         }
@@ -657,10 +671,15 @@ namespace Microsoft.CodeAnalysis.Collections
         public Enumerator GetEnumerator() => new(this);
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator() =>
-            Count == 0 ? SZGenericArrayEnumerator<T>.Empty :
+            Count == 0 ? GetEmptyEnumerator() :
             GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<T>)this).GetEnumerator();
+
+        private static IEnumerator<T> GetEmptyEnumerator()
+        {
+            return LazyInitializer.EnsureInitialized(ref s_emptyEnumerator, static () => new Enumerator(new SegmentedList<T>(0)))!;
+        }
 
         public SegmentedList<T> GetRange(int index, int count)
         {
@@ -686,18 +705,18 @@ namespace Microsoft.CodeAnalysis.Collections
         }
 
         /// <summary>
-        /// Creates a shallow copy of a range of elements in the source <see cref="List{T}" />.
+        /// Creates a shallow copy of a range of elements in the source <see cref="SegmentedList{T}" />.
         /// </summary>
-        /// <param name="start">The zero-based <see cref="List{T}" /> index at which the range starts.</param>
+        /// <param name="start">The zero-based <see cref="SegmentedList{T}" /> index at which the range starts.</param>
         /// <param name="length">The length of the range.</param>
-        /// <returns>A shallow copy of a range of elements in the source <see cref="List{T}" />.</returns>
+        /// <returns>A shallow copy of a range of elements in the source <see cref="SegmentedList{T}" />.</returns>
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="start" /> is less than 0.
         /// -or-
         /// <paramref name="length" /> is less than 0.
         /// </exception>
-        /// <exception cref="ArgumentException"><paramref name="start" /> and <paramref name="length" /> do not denote a valid range of elements in the <see cref="List{T}" />.</exception>
-        public List<T> Slice(int start, int length) => GetRange(start, length);
+        /// <exception cref="ArgumentException"><paramref name="start" /> and <paramref name="length" /> do not denote a valid range of elements in the <see cref="SegmentedList{T}" />.</exception>
+        public SegmentedList<T> Slice(int start, int length) => GetRange(start, length);
 
         // Returns the index of the first occurrence of a given value in a range of
         // this list. The list is searched forwards from beginning to end.
@@ -758,7 +777,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public int IndexOf(T item, int index, int count, IEqualityComparer<T>? comparer)
         {
             if (index > _size)
-                ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+                ThrowHelper.ThrowArgumentOutOfRange_IndexMustBeLessOrEqualException();
 
             if (count < 0 || index > _size - count)
                 ThrowHelper.ThrowCountArgumentOutOfRange_ArgumentOutOfRange_Count();
@@ -1235,8 +1254,6 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public struct Enumerator : IEnumerator<T>, IEnumerator
         {
-            internal static IEnumerator<T>? s_emptyEnumerator;
-
             private readonly SegmentedList<T> _list;
             private int _index;
             private readonly int _version;
