@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis
 
                     // We will finalize the compilation by adding full contents here.
                     var (compilationWithGeneratedDocuments, generatedDocuments, generatorDriver) = await AddExistingOrComputeNewGeneratorInfoAsync(
-                        isFrozen,
+                        creationPolicy,
                         compilationState,
                         compilationWithoutGeneratedDocuments,
                         generatorInfo,
