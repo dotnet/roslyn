@@ -1629,9 +1629,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get the symbol for the predefined type from the COR Library referenced by this compilation.
         /// </summary>
-        internal new NamedTypeSymbol GetSpecialType(SpecialType specialType)
+        internal NamedTypeSymbol GetSpecialType(ExtendedSpecialType specialType)
         {
-            if (specialType <= SpecialType.None || specialType > SpecialType.Count)
+            if ((int)specialType <= (int)SpecialType.None || (int)specialType >= (int)InternalSpecialType.NextAvailable)
             {
                 throw new ArgumentOutOfRangeException(nameof(specialType), $"Unexpected SpecialType: '{(int)specialType}'.");
             }
@@ -1647,7 +1647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = Assembly.GetSpecialType(specialType);
             }
 
-            Debug.Assert(result.SpecialType == specialType);
+            Debug.Assert(result.ExtendedSpecialType == specialType);
             return result;
         }
 

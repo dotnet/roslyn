@@ -146,8 +146,10 @@ Value2");
         {
             var comp = CreateCompilation("", targetFramework: TargetFramework.Net60);
 
-            var readOnlySpanType = comp.GetSpecialType(SpecialType.System_ReadOnlySpan_T);
+            var readOnlySpanType = comp.GetSpecialType(InternalSpecialType.System_ReadOnlySpan_T);
             Assert.False(readOnlySpanType.IsErrorType());
+            Assert.Equal(SpecialType.None, readOnlySpanType.SpecialType);
+            Assert.Equal((ExtendedSpecialType)InternalSpecialType.System_ReadOnlySpan_T, readOnlySpanType.ExtendedSpecialType);
 
             var fields = readOnlySpanType.GetMembers().OfType<FieldSymbol>();
             Assert.NotEmpty(fields);

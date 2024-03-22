@@ -2268,20 +2268,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             _builder.EmitOpCode(ILOpCode.Ldtoken)
             EmitSymbolToken(method, node.Syntax)
-            Dim getMethod As MethodSymbol
-            If Not method.ContainingType.IsGenericType AndAlso Not method.ContainingType.IsAnonymousType Then ' anonymous types are generic under the hood.
+
+            If node.GetMethodFromHandle.ParameterCount = 1 Then
                 _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=0) ' argument off, return value on
-                getMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle), MethodSymbol)
             Else
+                Debug.Assert(node.GetMethodFromHandle.ParameterCount = 2)
+
                 _builder.EmitOpCode(ILOpCode.Ldtoken)
                 EmitSymbolToken(method.ContainingType, node.Syntax)
                 _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=-1) ' 2 arguments off, return value on
-                getMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle2), MethodSymbol)
             End If
 
-            Debug.Assert(getMethod IsNot Nothing)
-            EmitSymbolToken(getMethod, node.Syntax)
-            If Not TypeSymbol.Equals(node.Type, getMethod.ReturnType, TypeCompareKind.ConsiderEverything) Then
+            EmitSymbolToken(node.GetMethodFromHandle, node.Syntax)
+            If Not TypeSymbol.Equals(node.Type, node.GetMethodFromHandle.ReturnType, TypeCompareKind.ConsiderEverything) Then
                 _builder.EmitOpCode(ILOpCode.Castclass)
                 EmitSymbolToken(node.Type, node.Syntax)
             End If
