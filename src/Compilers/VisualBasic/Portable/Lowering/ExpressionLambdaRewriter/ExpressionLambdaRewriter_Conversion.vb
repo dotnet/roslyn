@@ -399,7 +399,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CreateTypeAs(expr As BoundExpression, type As TypeSymbol) As BoundExpression
-            Return ConvertRuntimeHelperToExpressionTree("TypeAs", expr, _factory.[Typeof](type))
+            Return ConvertRuntimeHelperToExpressionTree("TypeAs", expr, _factory.[Typeof](type, _factory.WellKnownType(WellKnownType.System_Type)))
         End Function
 
         Private Function CreateTypeAsIfNeeded(operand As BoundExpression, oldType As TypeSymbol, newType As TypeSymbol) As BoundExpression
@@ -408,12 +408,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Emit a Convert node to a specific type with no helper method.
         Private Function Convert(expr As BoundExpression, type As TypeSymbol, isChecked As Boolean) As BoundExpression
-            Return ConvertRuntimeHelperToExpressionTree(If(isChecked, "ConvertChecked", "Convert"), expr, _factory.[Typeof](type))
+            Return ConvertRuntimeHelperToExpressionTree(If(isChecked, "ConvertChecked", "Convert"), expr, _factory.[Typeof](type, _factory.WellKnownType(WellKnownType.System_Type)))
         End Function
 
         ' Emit a Convert node to a specific type with a helper method.
         Private Function Convert(expr As BoundExpression, type As TypeSymbol, helper As MethodSymbol, isChecked As Boolean) As BoundExpression
-            Return ConvertRuntimeHelperToExpressionTree(If(isChecked, "ConvertChecked", "Convert"), expr, _factory.[Typeof](type), _factory.MethodInfo(helper))
+            Return ConvertRuntimeHelperToExpressionTree(
+                If(isChecked, "ConvertChecked", "Convert"),
+                expr,
+                _factory.[Typeof](type, _factory.WellKnownType(WellKnownType.System_Type)),
+                _factory.MethodInfo(helper, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
         End Function
 
         ' Emit a convert node if types are different.

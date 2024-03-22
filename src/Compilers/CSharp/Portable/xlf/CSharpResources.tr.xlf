@@ -1417,6 +1417,11 @@
         <target state="translated">'{1}' ve '{2}' arasında ortak bir tür bulunamadığından, koşullu ifade {0} dil sürümünde geçerli değil. Hedef türündeki dönüştürmeyi kullanmak için dil sürümü {3} veya daha üstüne yükseltin.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoModifiersOnUsing">
+        <source>Modifiers cannot be placed on using declarations</source>
+        <target state="new">Modifiers cannot be placed on using declarations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">Çıkış dizini belirlenemedi</target>

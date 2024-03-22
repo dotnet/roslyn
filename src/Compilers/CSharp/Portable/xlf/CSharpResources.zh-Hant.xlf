@@ -1417,6 +1417,11 @@
         <target state="translated">因為在 '{1}' 和 '{2}' 之間找不到通用類型，所以在語言版本 {0} 中條件運算式無效。若要使用以目標為類型的轉換，請升級至語言版本 {3} 或更高版本。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoModifiersOnUsing">
+        <source>Modifiers cannot be placed on using declarations</source>
+        <target state="new">Modifiers cannot be placed on using declarations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">無法判斷輸出目錄</target>
