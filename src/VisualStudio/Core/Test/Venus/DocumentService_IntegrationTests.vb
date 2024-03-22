@@ -229,7 +229,6 @@ class { }
                 ' confirm there are errors
                 Assert.True(model.GetDiagnostics().Any())
 
-                Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
                 Dim diagnosticService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
 
                 ' confirm diagnostic support is off for the document
