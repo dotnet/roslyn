@@ -77,12 +77,12 @@
                 <StackPanel>
   
                     <StackPanel Margin="0, -5, 0, 5">
-                        <Label x:Name="Run_source_generators_label" Content="{x:Static local:AdvancedOptionPageStrings.Option_Run_source_generators}"/>
+                        <Label x:Name="Run_source_generators_label" Content="{x:Static local:AdvancedOptionPageStrings.Option_Source_generator_execution_requires_restart}"/>
 
                         <StackPanel Margin="15, 0, 0, 0">
                             <RadioButton GroupName="Run_source_generators_location"
                                      x:Name="automatically_may_degrade_performance"
-                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_automatically_may_degrade_performance}" />
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_Automatic_Run_generators_after_any_change}" />
   
                             <RadioButton GroupName="Run_source_generators_location"
                                      x:Name="when_builds_complete"

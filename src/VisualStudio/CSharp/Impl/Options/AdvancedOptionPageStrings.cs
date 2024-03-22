@@ -405,11 +405,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Source_Generators
             => ServicesVSResources.Source_Generators;
 
-        public static string Option_Run_source_generators
-            => ServicesVSResources.Run_source_generators;
+        public static string Option_Source_generator_execution_requires_restart
+            => ServicesVSResources.Source_generator_execution_requires_restart;
 
-        public static string Option_automatically_may_degrade_performance
-            => ServicesVSResources.automatically_may_degrade_performance;
+        public static string Option_Automatic_Run_generators_after_any_change
+            => ServicesVSResources.Automatic_Run_generators_after_any_change;
 
         public static string Option_when_builds_complete
             => ServicesVSResources.when_builds_complete;
