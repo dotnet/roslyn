@@ -7125,7 +7125,7 @@ namespace ConsoleApplication24
   IL_0760:  ret
 }";
             compVerifier.VerifyIL("ConsoleApplication24.Program.IsWarning", codeForSwitchStatement);
-            compVerifier.VerifyIL("ConsoleApplication24.Program.IsWarning_IsExpression", codeForExpression);
+            compVerifier.VerifyIL("ConsoleApplication24.Program.IsWarning_IsExpression", codeForSwitchStatement);
             compVerifier.VerifyIL("ConsoleApplication24.Program.IsWarning_SwitchExpression", codeForExpression);
         }
 
