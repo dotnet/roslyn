@@ -1905,9 +1905,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
 
-            // Extension types must be ref structs
+            // Extension types must not be ref structs
+            // PROTOTYPE(static) consider relaxing this requirement
             var isByRefLike = module.HasIsByRefLikeAttribute(_handle);
-            if (!isByRefLike)
+            if (isByRefLike)
             {
                 return default;
             }

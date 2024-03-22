@@ -1730,8 +1730,6 @@ next:;
             }
             else if (this.IsExtension)
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsByRefLikeAttribute(this));
-
                 addPoisonAttributes(ref attributes, compilation, hasObsolete,
                     PEModule.ExtensionMarker, nameof(CompilerFeatureRequiredFeatures.ExtensionTypes), isOptionalUse: false);
             }
