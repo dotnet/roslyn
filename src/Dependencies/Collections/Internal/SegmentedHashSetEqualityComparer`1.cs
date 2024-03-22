@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
-// https://github.com/dotnet/runtime/blob/v5.0.7/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/HashSetEqualityComparer.cs
+// https://github.com/dotnet/runtime/blob/v8.0.3/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/HashSetEqualityComparer.cs
 //
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
+
+using System.Diagnostics.CodeAnalysis;
 
 namespace System.Collections.Generic
 {
@@ -67,7 +69,7 @@ namespace System.Collections.Generic
                 {
                     if (t != null)
                     {
-                        hashCode ^= t.GetHashCode(); // same hashcode as as default comparer
+                        hashCode ^= t.GetHashCode(); // same hashcode as default comparer
                     }
                 }
             }
@@ -76,7 +78,7 @@ namespace System.Collections.Generic
         }
 
         // Equals method for the comparer itself.
-        public override bool Equals(object? obj) => obj is HashSetEqualityComparer<T>;
+        public override bool Equals([NotNullWhen(true)] object? obj) => obj is HashSetEqualityComparer<T>;
 
         public override int GetHashCode() => EqualityComparer<T>.Default.GetHashCode();
     }

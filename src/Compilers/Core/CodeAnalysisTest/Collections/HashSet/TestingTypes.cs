@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
-// https://github.com/dotnet/runtime/blob/v5.0.7/src/libraries/Common/tests/System/Collections/TestingTypes.cs
+// https://github.com/dotnet/runtime/blob/v8.0.3/src/libraries/Common/tests/System/Collections/TestingTypes.cs
 //
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
@@ -387,6 +387,17 @@ namespace System.Collections.Tests
             GetHashCodeCalls++;
             return EqualityComparer<T>.Default.GetHashCode(obj);
         }
+    }
+
+    public sealed class EqualityComparerConstantHashCode<T> : IEqualityComparer<T>
+    {
+        private readonly IEqualityComparer<T> _comparer;
+
+        public EqualityComparerConstantHashCode(IEqualityComparer<T> comparer) => _comparer = comparer;
+
+        public bool Equals(T x, T y) => _comparer.Equals(x, y);
+
+        public int GetHashCode(T obj) => 42;
     }
 
     #endregion
