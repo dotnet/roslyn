@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -295,10 +296,10 @@ void goo()
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72300")]
-        [InlineData(nameof(SyntaxFacts.GetContextualKeywordKinds), SyntaxKind.YieldKeyword, SyntaxKind.FileKeyword)]
-        [InlineData(nameof(SyntaxFacts.GetPunctuationKinds), SyntaxKind.TildeToken, SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
-        [InlineData(nameof(SyntaxFacts.GetReservedKeywordKinds), SyntaxKind.BoolKeyword, SyntaxKind.ImplicitKeyword)]
-        public void TestRangeBasedGetKindsMethodsReturnExpectedResults(string methodName, SyntaxKind firstExpectedKind, SyntaxKind lastExpectedKind)
+        [InlineData(nameof(SyntaxFacts.GetContextualKeywordKinds), SyntaxKind.YieldKeyword, SyntaxKind.ElifKeyword)]
+        [InlineData(nameof(SyntaxFacts.GetPunctuationKinds), SyntaxKind.TildeToken, SyntaxKind.BoolKeyword)]
+        [InlineData(nameof(SyntaxFacts.GetReservedKeywordKinds), SyntaxKind.BoolKeyword, SyntaxKind.YieldKeyword)]
+        public void TestRangeBasedGetKindsMethodsReturnExpectedResults(string methodName, SyntaxKind lowerBoundInclusive, SyntaxKind upperBoundExclusive)
         {
             var method = typeof(SyntaxFacts).GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
 
@@ -306,29 +307,34 @@ void goo()
             Assert.Equal(0, method.GetParameters().Length);
             Assert.Equal(typeof(IEnumerable<SyntaxKind>), method.ReturnType);
 
-            foreach (var kind in (IEnumerable<SyntaxKind>)method.Invoke(null, null))
+            var returnedKindsInts = ((IEnumerable<SyntaxKind>)method.Invoke(null, null)).Select(static k => (int)k).ToHashSet();
+
+            for (int i = (int)lowerBoundInclusive; i < (int)upperBoundExclusive; i++)
             {
-                Assert.InRange(kind, firstExpectedKind, lastExpectedKind);
+                if (Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i))
+                {
+                    Assert.Contains(i, returnedKindsInts);
+                }
+                else
+                {
+                    Assert.DoesNotContain(i, returnedKindsInts);
+                }
             }
         }
 
         [Fact]
         public void TestGetPreprocessorKeywordKindsReturnsExpectedResults()
         {
-            foreach (var kind in SyntaxFacts.GetPreprocessorKeywordKinds())
+            var returnedKindsInts = SyntaxFacts.GetPreprocessorKeywordKinds().Select(static k => (int)k).ToHashSet();
+
+            Assert.Contains((int)SyntaxKind.TrueKeyword, returnedKindsInts);
+            Assert.Contains((int)SyntaxKind.FalseKeyword, returnedKindsInts);
+            Assert.Contains((int)SyntaxKind.DefaultKeyword, returnedKindsInts);
+            Assert.Contains((int)SyntaxKind.HiddenKeyword, returnedKindsInts);
+
+            for (int i = (int)SyntaxKind.ElifKeyword; i < (int)SyntaxKind.ReferenceKeyword; i++)
             {
-                // Value must either be between ElifKeyword and RestoreKeyword or 4 exceptional keywords, which don't fall into that range
-                if (kind >= SyntaxKind.ElifKeyword && kind <= SyntaxKind.RestoreKeyword)
-                {
-                    Assert.True(Enum.IsDefined(typeof(SyntaxKind), kind));
-                }
-                else
-                {
-                    Assert.True(kind is SyntaxKind.TrueKeyword
-                                     or SyntaxKind.FalseKeyword
-                                     or SyntaxKind.DefaultKeyword
-                                     or SyntaxKind.HiddenKeyword);
-                }
+                Assert.Contains(i, returnedKindsInts);
             }
         }
     }
