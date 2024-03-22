@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -469,6 +468,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                call.Method,
                                                ImmutableArray.Create(Spill(builder, call.Arguments[0]), Spill(builder, call.Arguments[1])));
                         }
+                        else if (call.Method == _F.Compilation.GetSpecialTypeMember(SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar))
+                        {
+                            Debug.Assert(call.Arguments.Length == 1);
+                            return call.Update([Spill(builder, call.Arguments[0])]);
+                        }
+
+                        goto default;
+
+                    case BoundKind.ObjectCreationExpression:
+                        var objectCreationExpression = (BoundObjectCreationExpression)expression;
+
+                        if (refKind == RefKind.None &&
+                            objectCreationExpression.InitializerExpressionOpt is null &&
+                            objectCreationExpression.Constructor.OriginalDefinition == _F.Compilation.GetSpecialTypeMember(SpecialMember.System_ReadOnlySpan_T__ctor_Reference))
+                        {
+                            Debug.Assert(objectCreationExpression.Arguments.Length == 1);
+                            var argRefKinds = objectCreationExpression.ArgumentRefKindsOpt;
+                            return objectCreationExpression.Update(objectCreationExpression.Constructor,
+                                                                   [Spill(builder, objectCreationExpression.Arguments[0], argRefKinds.IsDefault ? RefKind.None : argRefKinds[0])],
+                                                                   objectCreationExpression.ArgumentRefKindsOpt,
+                                                                   newInitializerExpression: null);
+                        }
 
                         goto default;
 
@@ -715,6 +736,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion
 
         #region Expression Visitors
+
+#if DEBUG
+        public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
+        {
+            // Ensure this node won't trigger spilling
+            var result = base.VisitLoweredIsPatternExpression(node);
+            Debug.Assert(result == node);
+            return result;
+        }
+#endif
 
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {

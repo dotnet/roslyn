@@ -1018,7 +1018,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ((methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor) ||
                             methodSymbol is SynthesizedPrimaryConstructor ||
                             instrumentation.Kinds.Contains(InstrumentationKind.TestCoverage) ||
-                            instrumentation.Kinds.Contains(InstrumentationKindExtensions.LocalStateTracing)))
+                            instrumentation.Kinds.Contains(InstrumentationKindExtensions.LocalStateTracing) ||
+                            instrumentation.Kinds.Contains(InstrumentationKind.StackOverflowProbing) ||
+                            instrumentation.Kinds.Contains(InstrumentationKind.ModuleCancellation)))
                         {
                             if (methodSymbol.IsImplicitConstructor &&
                                 (instrumentation.Kinds.Contains(InstrumentationKind.TestCoverage) || instrumentation.Kinds.Contains(InstrumentationKindExtensions.LocalStateTracing)))

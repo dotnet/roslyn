@@ -72,16 +72,6 @@
         <target state="translated">Correggi tutti '{0}' nella soluzione</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_all_0_in_containing_member_for_1">
-        <source>Fix all '{0}' in containing member for '{1}'</source>
-        <target state="translated">Correggi tutti i '{0}' nel membro contenitore per '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_containing_type_for_1">
-        <source>Fix all '{0}' in containing type for '{1}'</source>
-        <target state="translated">Correggi tutti i '{0}' nel tipo contenitore per '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Invalid_number_of_parameters_for_binary_operator">
         <source>Invalid number of parameters for binary operator.</source>
         <target state="translated">Il numero di parametri per l'operatore binario non è valido.</target>

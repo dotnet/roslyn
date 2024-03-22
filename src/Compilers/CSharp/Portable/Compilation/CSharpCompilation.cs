@@ -1629,9 +1629,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get the symbol for the predefined type from the COR Library referenced by this compilation.
         /// </summary>
-        internal new NamedTypeSymbol GetSpecialType(SpecialType specialType)
+        internal NamedTypeSymbol GetSpecialType(ExtendedSpecialType specialType)
         {
-            if (specialType <= SpecialType.None || specialType > SpecialType.Count)
+            if ((int)specialType <= (int)SpecialType.None || (int)specialType >= (int)InternalSpecialType.NextAvailable)
             {
                 throw new ArgumentOutOfRangeException(nameof(specialType), $"Unexpected SpecialType: '{(int)specialType}'.");
             }
@@ -1647,7 +1647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = Assembly.GetSpecialType(specialType);
             }
 
-            Debug.Assert(result.SpecialType == specialType);
+            Debug.Assert(result.ExtendedSpecialType == specialType);
             return result;
         }
 
@@ -2396,12 +2396,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             LazyInitializer.EnsureInitialized(ref _moduleInitializerMethods).Add(method);
         }
 
+        internal bool InterceptorsDiscoveryComplete;
+
         // NB: the 'Many' case for these dictionary values means there are duplicates. An error is reported for this after binding.
         private ConcurrentDictionary<(string FilePath, int Line, int Character), OneOrMany<(Location AttributeLocation, MethodSymbol Interceptor)>>? _interceptions;
 
         internal void AddInterception(string filePath, int line, int character, Location attributeLocation, MethodSymbol interceptor)
         {
             Debug.Assert(!_declarationDiagnosticsFrozen);
+            Debug.Assert(!InterceptorsDiscoveryComplete);
 
             var dictionary = LazyInitializer.EnsureInitialized(ref _interceptions);
             dictionary.AddOrUpdate((filePath, line, character),
@@ -2426,25 +2429,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal (Location AttributeLocation, MethodSymbol Interceptor)? TryGetInterceptor(Location? callLocation)
         {
-            if (_interceptions is null || callLocation is null)
+            if (callLocation is null || !callLocation.IsInSource)
+            {
+                return null;
+            }
+
+            ((SourceModuleSymbol)SourceModule).DiscoverInterceptorsIfNeeded();
+            if (_interceptions is null)
             {
                 return null;
             }
 
             var callLineColumn = callLocation.GetLineSpan().Span.Start;
-            Debug.Assert(callLocation.SourceTree is not null);
             var key = (callLocation.SourceTree.FilePath, callLineColumn.Line, callLineColumn.Character);
 
-            if (_interceptions.TryGetValue(key, out var interceptionsAtAGivenLocation))
+            if (_interceptions.TryGetValue(key, out var interceptionsAtAGivenLocation) && interceptionsAtAGivenLocation is [var oneInterception])
             {
-                if (interceptionsAtAGivenLocation is [var oneInterception])
-                {
-                    return oneInterception;
-                }
-
-                // Duplicate interceptors is an error in the declaration phase.
-                // This method is only expected to be called if no such errors are present.
-                throw ExceptionUtilities.Unreachable();
+                return oneInterception;
             }
 
             return null;

@@ -57,13 +57,14 @@ internal abstract class QuickInfoServiceWithProviders : QuickInfoService
         {
             var info = await extensionManager.PerformFunctionAsync(
                 provider,
-                () =>
+                cancellationToken =>
                 {
                     var context = new QuickInfoContext(document, position, options, cancellationToken);
 
                     return provider.GetQuickInfoAsync(context);
                 },
-                defaultValue: null).ConfigureAwait(false);
+                defaultValue: null,
+                cancellationToken).ConfigureAwait(false);
             if (info != null)
                 return info;
         }
@@ -80,13 +81,14 @@ internal abstract class QuickInfoServiceWithProviders : QuickInfoService
         {
             var info = await extensionManager.PerformFunctionAsync(
                 provider,
-                () =>
+                cancellationToken =>
                 {
                     var context = new CommonQuickInfoContext(_services.SolutionServices, semanticModel, position, options, cancellationToken);
 
                     return provider.GetQuickInfoAsync(context);
                 },
-                defaultValue: null).ConfigureAwait(false);
+                defaultValue: null,
+                cancellationToken).ConfigureAwait(false);
             if (info != null)
                 return info;
         }

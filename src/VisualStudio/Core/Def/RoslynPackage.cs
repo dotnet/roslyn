@@ -214,7 +214,6 @@ internal sealed class RoslynPackage : AbstractPackage
     {
         await TaskScheduler.Default;
 
-        await GetServiceAsync(typeof(SVsTaskStatusCenterService)).ConfigureAwait(false);
         await GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(false);
         await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(false);
         await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(false);
@@ -223,7 +222,6 @@ internal sealed class RoslynPackage : AbstractPackage
 
         // we need to load it as early as possible since we can have errors from
         // package from each language very early
-        await this.ComponentModel.GetService<TaskCenterSolutionAnalysisProgressReporter>().InitializeAsync().ConfigureAwait(false);
         await this.ComponentModel.GetService<VisualStudioSuppressionFixService>().InitializeAsync(this).ConfigureAwait(false);
         await this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
         await this.ComponentModel.GetService<VisualStudioDiagnosticListSuppressionStateService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
