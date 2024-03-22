@@ -694,30 +694,23 @@ namespace Microsoft.CodeAnalysis
                 return finalState.HasSuccessfullyLoaded;
             }
 
-            public ICompilationTracker WithCreationPolicy(CreationPolicy creationPolicy, CancellationToken cancellationToken)
+            public ICompilationTracker FreezeState(CancellationToken cancellationToken)
             {
                 var state = this.ReadState();
 
                 if (state is FinalCompilationTrackerState finalState)
                 {
-                    // If we're finalized and already in the right state, then just keep us there, just with the new
-                    // creation policy in place.
-                    return finalState.CreationPolicy == creationPolicy
+                    // Transition to not creating SG docs or skeleton references.
+                    var newFinalState = finalState.WithCreationPolicy(CreationPolicy.DoNotCreate);
+                    return newFinalState == finalState
                         ? this
-                        : new CompilationTracker(this.ProjectState, finalState.WithCreationPolicy(creationPolicy), skeletonReferenceCacheToClone: _skeletonReferenceCache);
-                }
-
-                // If we're in the initial 'null' state, we're implicitly in the state where we would generate sg docs
-                // and create skeletons.  So no need to do anything here.
-                if (state is null && creationPolicy == CreationPolicy.Create)
-                {
-                    return this;
+                        : new CompilationTracker(this.ProjectState, newFinalState, skeletonReferenceCacheToClone: _skeletonReferenceCache);
                 }
 
                 // Non-final state currently.  Produce an in-progress-state containing the forked change. Note: we
                 // transition to in-progress-state here (and not final-state) as we still want to leverage all the
-                // final-state-transition logic contained in FinalizeCompilationAsync (for example, properly setting
-                // up all references).
+                // final-state-transition logic contained in FinalizeCompilationAsync (for example, properly setting up
+                // all references).
                 if (state is null)
                 {
                     // We may have already parsed some of the documents in this compilation.  For example, if we're
@@ -725,7 +718,7 @@ namespace Microsoft.CodeAnalysis
                     // parsed documents over to the new project state so we can preserve as much information as
                     // possible.
 
-                    // Note: this count may be innacurate as parsing may be going on in the background.  However, it
+                    // Note: this count may be inaccurate as parsing may be going on in the background.  However, it
                     // acts as a reasonable lower bound for the number of documents we'll be adding.
                     var alreadyParsedCount = this.ProjectState.DocumentStates.States.Count(static s => s.Value.TryGetSyntaxTree(out _));
 
@@ -760,7 +753,7 @@ namespace Microsoft.CodeAnalysis
                     return new CompilationTracker(
                         frozenProjectState,
                         new InProgressState(
-                            isFrozen: true,
+                            CreationPolicy.DoNotCreate,
                             lazyCompilationWithoutGeneratedDocuments,
                             CompilationTrackerGeneratorInfo.Empty,
                             lazyCompilationWithGeneratedDocuments,
@@ -786,7 +779,7 @@ namespace Microsoft.CodeAnalysis
                     return new CompilationTracker(
                         frozenProjectState,
                         new InProgressState(
-                            isFrozen: true,
+                            CreationPolicy.DoNotCreate,
                             compilationWithoutGeneratedDocuments,
                             generatorInfo,
                             compilationWithGeneratedDocuments,
@@ -809,16 +802,17 @@ namespace Microsoft.CodeAnalysis
                 if (state is null)
                     return this;
 
-                // If we're not frozen to begin with, then there's nothing to do.  Just return ourselves. The next
-                // request to create the compilation will do so fully, including running generators.
-                if (!state.IsFrozen)
+                // If we're already in the state where we are running generators and skeletons we don't need to do
+                // anything and can just return ourselves. The next request to create the compilation will do so fully,
+                // including running generators.
+                if (state.CreationPolicy == CreationPolicy.Create)
                     return this;
 
                 InProgressState newState;
                 if (state is InProgressState inProgressState)
                 {
                     newState = new InProgressState(
-                        isFrozen: false,
+                        CreationPolicy.Create,
                         inProgressState.LazyCompilationWithoutGeneratedDocuments,
                         inProgressState.GeneratorInfo,
                         inProgressState.LazyStaleCompilationWithGeneratedDocuments,
@@ -826,9 +820,10 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (state is FinalCompilationTrackerState finalState)
                 {
-                    // Transition the final frozen state we have back to an in-progress state that will then compute generators.
+                    // Transition the final frozen state we have back to an in-progress state that will then compute
+                    // generators and skeletons.
                     newState = new InProgressState(
-                        isFrozen: false,
+                        CreationPolicy.Create,
                         finalState.CompilationWithoutGeneratedDocuments,
                         finalState.GeneratorInfo,
                         finalState.FinalCompilationWithGeneratedDocuments,

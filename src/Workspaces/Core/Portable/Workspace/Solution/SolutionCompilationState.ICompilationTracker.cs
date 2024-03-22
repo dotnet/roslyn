@@ -41,7 +41,8 @@ internal partial class SolutionCompilationState
         /// been computed, and will not do any more expensive computation (like parsing documents or running
         /// generators).
         /// </summary>
-        ICompilationTracker WithCreationPolicy(CreationPolicy creationPolicy, CancellationToken cancellationToken);
+        ICompilationTracker FreezeState(CancellationToken cancellationToken);
+        ICompilationTracker UnfreezeState();
 
         Task<VersionStamp> GetDependentVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
         Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);

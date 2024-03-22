@@ -73,14 +73,20 @@ internal partial class SolutionCompilationState
             throw new NotImplementedException();
         }
 
-        public ICompilationTracker WithCreationPolicy(CreationPolicy creationPolicy, CancellationToken cancellationToken)
+        public ICompilationTracker FreezeState(CancellationToken cancellationToken)
         {
-            var underlyingTracker = this.UnderlyingTracker.WithCreationPolicy(creationPolicy, cancellationToken);
-            if (underlyingTracker == this.UnderlyingTracker)
-                return this;
+            var underlyingTracker = this.UnderlyingTracker.FreezeState(cancellationToken);
+            return underlyingTracker == this.UnderlyingTracker
+                ? this
+                : new GeneratedFileReplacingCompilationTracker(underlyingTracker, _replacementDocumentStates);
+        }
 
-            // Ensure the underlying tracker is totally frozen, and then ensure our replaced generated doc is present.
-            return new GeneratedFileReplacingCompilationTracker(underlyingTracker, _replacementDocumentStates);
+        public ICompilationTracker UnfreezeState()
+        {
+            var underlyingTracker = this.UnderlyingTracker.UnfreezeState();
+            return underlyingTracker == this.UnderlyingTracker
+                ? this
+                : new GeneratedFileReplacingCompilationTracker(underlyingTracker, _replacementDocumentStates);
         }
 
         public async Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)

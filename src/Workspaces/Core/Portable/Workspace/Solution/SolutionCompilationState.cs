@@ -1134,7 +1134,7 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithOptions(options));
     }
 
-    public SolutionCompilationState WithSourceGeneratorVersion(int sourceGeneratorVersion, CancellationToken cancellationToken)
+    public SolutionCompilationState WithSourceGeneratorVersion(int sourceGeneratorVersion)
     {
         if (this.SolutionState.SolutionAttributes.SourceGeneratorVersion == sourceGeneratorVersion)
             return this;
@@ -1144,7 +1144,7 @@ internal sealed partial class SolutionCompilationState
         {
             // Let the tracker know that the source generator version has changed. We do this by telling it that it
             // should now create SG docs and skeleton references if they're out of date.
-            var newTracker = tracker.WithCreationPolicy(CreationPolicy.Create, cancellationToken);
+            var newTracker = tracker.UnfreezeState();
             if (newTracker == tracker)
                 continue;
 
@@ -1192,7 +1192,7 @@ internal sealed partial class SolutionCompilationState
 
             // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
             // perf hit on either of those at all for our clients.
-            var newTracker = oldTracker.WithCreationPolicy(CreationPolicy.DoNotCreation, cancellationToken);
+            var newTracker = oldTracker.FreezeState(cancellationToken);
             if (oldTracker == newTracker)
                 continue;
 
