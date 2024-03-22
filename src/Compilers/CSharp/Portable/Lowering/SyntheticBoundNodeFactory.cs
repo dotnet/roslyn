@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public MethodSymbol SpecialMethod(SpecialMember sm)
         {
-            var result = (MethodSymbol)SpecialMember(sm, isOptional: false);
+            var result = (MethodSymbol?)SpecialMember(sm, isOptional: false);
             Debug.Assert(result is not null);
             return result;
         }
