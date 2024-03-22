@@ -313,13 +313,16 @@ void goo()
             {
                 if (Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i))
                 {
-                    Assert.Contains(i, returnedKindsInts);
+                    Assert.True(returnedKindsInts.Remove(i));
                 }
                 else
                 {
                     Assert.DoesNotContain(i, returnedKindsInts);
                 }
             }
+
+            // We've already removed all expected kinds from the set. It should be empty now
+            Assert.Empty(returnedKindsInts);
         }
 
         [Fact]
@@ -327,15 +330,17 @@ void goo()
         {
             var returnedKindsInts = SyntaxFacts.GetPreprocessorKeywordKinds().Select(static k => (int)k).ToHashSet();
 
-            Assert.Contains((int)SyntaxKind.TrueKeyword, returnedKindsInts);
-            Assert.Contains((int)SyntaxKind.FalseKeyword, returnedKindsInts);
-            Assert.Contains((int)SyntaxKind.DefaultKeyword, returnedKindsInts);
-            Assert.Contains((int)SyntaxKind.HiddenKeyword, returnedKindsInts);
+            Assert.True(returnedKindsInts.Remove((int)SyntaxKind.TrueKeyword));
+            Assert.True(returnedKindsInts.Remove((int)SyntaxKind.FalseKeyword));
+            Assert.True(returnedKindsInts.Remove((int)SyntaxKind.DefaultKeyword));
 
             for (int i = (int)SyntaxKind.ElifKeyword; i < (int)SyntaxKind.ReferenceKeyword; i++)
             {
-                Assert.Contains(i, returnedKindsInts);
+                Assert.True(returnedKindsInts.Remove(i));
             }
+
+            // We've already removed all expected kinds from the set. It should be empty now
+            Assert.Empty(returnedKindsInts);
         }
     }
 }

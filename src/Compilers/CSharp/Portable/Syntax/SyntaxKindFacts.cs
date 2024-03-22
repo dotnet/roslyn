@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             yield return SyntaxKind.TrueKeyword;
             yield return SyntaxKind.FalseKeyword;
             yield return SyntaxKind.DefaultKeyword;
-            yield return SyntaxKind.HiddenKeyword;
+
             for (int i = (int)SyntaxKind.ElifKeyword; i <= (int)SyntaxKind.RestoreKeyword; i++)
             {
                 Debug.Assert(Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i));
