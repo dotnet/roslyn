@@ -8,7 +8,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-
     internal sealed partial class RemoteWorkspace
     {
         /// <summary>
