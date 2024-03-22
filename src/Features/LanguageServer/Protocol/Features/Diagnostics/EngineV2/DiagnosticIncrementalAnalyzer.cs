@@ -32,12 +32,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
         private readonly IncrementalMemberEditAnalyzer _incrementalMemberEditAnalyzer = new();
 
-#if NETSTANDARD
-        private ConditionalWeakTable<Project, CompilationWithAnalyzers?> _projectCompilationsWithAnalyzers = new();
-#else
-        private readonly ConditionalWeakTable<Project, CompilationWithAnalyzers?> _projectCompilationsWithAnalyzers = [];
-#endif
-
         internal DiagnosticAnalyzerService AnalyzerService { get; }
         internal Workspace Workspace { get; }
 
