@@ -264,13 +264,15 @@ internal partial class SolutionCompilationState
                     unrootedSymbolSet);
             }
 
-            public FinalCompilationTrackerState WithIsFrozen()
-                => new(isFrozen: true,
-                    HasSuccessfullyLoaded,
-                    FinalCompilationWithGeneratedDocuments,
-                    CompilationWithoutGeneratedDocuments,
-                    GeneratorInfo,
-                    UnrootedSymbolSet);
+            public FinalCompilationTrackerState WithCreationPolicy(CreationPolicy creationPolicy)
+                => creationPolicy == CreationPolicy
+                    ? this
+                    : new(creationPolicy,
+                        HasSuccessfullyLoaded,
+                        FinalCompilationWithGeneratedDocuments,
+                        CompilationWithoutGeneratedDocuments,
+                        GeneratorInfo,
+                        UnrootedSymbolSet);
 
             private static void RecordAssemblySymbols(ProjectId projectId, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
             {
