@@ -120,12 +120,6 @@ public sealed class SolutionInfo
         /// </summary>
         public Guid TelemetryId { get; } = telemetryId;
 
-        /// <summary>
-        /// The current version of source generator execution that we're on.  Source generator results are kept around
-        /// as long as this version stays the same (though this can be controlled by
-        /// WorkspaceConfigurationOptions.RunSourceGeneratorsExplicitly).  When this version changes, all source
-        /// generators are rerun.  This should effectively be used as a monotonically increasing value.
-        /// </summary>
         public int SourceGeneratorVersion { get; } = sourceGeneratorVersion;
 
         public SolutionAttributes With(
