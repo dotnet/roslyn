@@ -18,7 +18,8 @@ internal static class WorkspaceConfigurationOptionsStorage
             DisableRecoverableText: globalOptions.GetOption(DisableRecoverableText),
             SourceGeneratorExecution:
                 globalOptions.GetOption(SourceGeneratorExecution) ??
-                (globalOptions.GetOption(SourceGeneratorExecutionBalancedFeatureFlag) ? SourceGeneratorExecution.Balanced : SourceGeneratorExecution.Automatic),
+                (globalOptions.GetOption(SourceGeneratorExecutionBalancedFeatureFlag) ? SourceGeneratorExecutionPreference.Balanced : SourceGeneratorExecutionPreference.Automatic),
+
             ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates));
 
     public static readonly Option2<StorageDatabase> Database = new(
@@ -45,8 +46,8 @@ internal static class WorkspaceConfigurationOptionsStorage
         defaultValue: null,
         isEditorConfigOption: true,
         serializer: new EditorConfigValueSerializer<SourceGeneratorExecutionPreference?>(
-            s => SourceGeneratorExecutionUtilities.Parse(s),
-            SourceGeneratorExecutionUtilities.GetEditorConfigString));
+            s => SourceGeneratorExecutionPreferenceUtilities.Parse(s),
+            SourceGeneratorExecutionPreferenceUtilities.GetEditorConfigString));
 
     public static readonly Option2<bool> SourceGeneratorExecutionBalancedFeatureFlag = new(
         "dotnet_source_generator_execution_balanced_feature_flag", false);
