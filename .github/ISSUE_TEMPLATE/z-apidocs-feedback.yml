@@ -1,6 +1,6 @@
 name: Learn feedback control.
 description: |
-  ⛔ This template is hooked into the feedback control on roslyn API documentation on docs.microsoft.com. It automatically fills in several fields for you. Don't use for other purposes. ⛔
+  ⛔ This template is hooked into the feedback control on Roslyn API documentation on docs.microsoft.com. It automatically fills in several fields for you. Don't use for other purposes. ⛔
 body:
   - type: markdown
     attributes:
