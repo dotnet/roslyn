@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
-// https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/Dictionary.cs
+// https://github.com/dotnet/runtime/blob/v8.0.3/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/Dictionary.cs
 //
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
@@ -11,9 +11,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections.Internal;
 
 namespace Microsoft.CodeAnalysis.Collections
@@ -86,7 +89,19 @@ namespace Microsoft.CodeAnalysis.Collections
                 Initialize(capacity);
             }
 
-            if (comparer != null && comparer != EqualityComparer<TKey>.Default) // first check for null to avoid forcing default comparer instantiation unnecessarily
+            // For reference types, we always want to store a comparer instance, either
+            // the one provided, or if one wasn't provided, the default (accessing
+            // EqualityComparer<TKey>.Default with shared generics on every dictionary
+            // access can add measurable overhead).  For value types, if no comparer is
+            // provided, or if the default is provided, we'd prefer to use
+            // EqualityComparer<TKey>.Default.Equals on every use, enabling the JIT to
+            // devirtualize and possibly inline the operation.
+            if (!typeof(TKey).IsValueType)
+            {
+                _comparer = comparer ?? EqualityComparer<TKey>.Default;
+            }
+            else if (comparer is not null && // first check for null to avoid forcing default comparer instantiation unnecessarily
+                     comparer != EqualityComparer<TKey>.Default)
             {
                 _comparer = comparer;
             }
@@ -103,36 +118,14 @@ namespace Microsoft.CodeAnalysis.Collections
         }
 
         public SegmentedDictionary(IDictionary<TKey, TValue> dictionary, IEqualityComparer<TKey>? comparer)
-            : this(dictionary != null ? dictionary.Count : 0, comparer)
+            : this(dictionary?.Count ?? 0, comparer)
         {
             if (dictionary == null)
             {
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.dictionary);
             }
 
-            // It is likely that the passed-in dictionary is SegmentedDictionary<TKey,TValue>. When this is the case,
-            // avoid the enumerator allocation and overhead by looping through the entries array directly.
-            // We only do this when dictionary is SegmentedDictionary<TKey,TValue> and not a subclass, to maintain
-            // back-compat with subclasses that may have overridden the enumerator behavior.
-            if (dictionary.GetType() == typeof(SegmentedDictionary<TKey, TValue>))
-            {
-                var d = (SegmentedDictionary<TKey, TValue>)dictionary;
-                var count = d._count;
-                var entries = d._entries;
-                for (var i = 0; i < count; i++)
-                {
-                    if (entries[i]._next >= -1)
-                    {
-                        Add(entries[i]._key, entries[i]._value);
-                    }
-                }
-                return;
-            }
-
-            foreach (var pair in dictionary)
-            {
-                Add(pair.Key, pair.Value);
-            }
+            AddRange(dictionary);
         }
 
         public SegmentedDictionary(IEnumerable<KeyValuePair<TKey, TValue>> collection)
@@ -148,7 +141,76 @@ namespace Microsoft.CodeAnalysis.Collections
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.collection);
             }
 
-            foreach (var pair in collection)
+            AddRange(collection);
+        }
+
+        private void AddRange(IEnumerable<KeyValuePair<TKey, TValue>> enumerable)
+        {
+            // It is likely that the passed-in enumerable is SegmentedDictionary<TKey,TValue>. When this is the case,
+            // avoid the enumerator allocation and overhead by looping through the entries array directly.
+            // We only do this when dictionary is SegmentedDictionary<TKey,TValue> and not a subclass, to maintain
+            // back-compat with subclasses that may have overridden the enumerator behavior.
+            if (enumerable.GetType() == typeof(SegmentedDictionary<TKey, TValue>))
+            {
+                SegmentedDictionary<TKey, TValue> source = (SegmentedDictionary<TKey, TValue>)enumerable;
+
+                if (source.Count == 0)
+                {
+                    // Nothing to copy, all done
+                    return;
+                }
+
+                // This is not currently a true .AddRange as it needs to be an initialized dictionary
+                // of the correct size, and also an empty dictionary with no current entities (and no argument checks).
+                Debug.Assert(source._entries is not null);
+                Debug.Assert(_entries is not null);
+                Debug.Assert(_entries.Length >= source.Count);
+                Debug.Assert(_count == 0);
+
+                Entry[] oldEntries = source._entries;
+                if (source._comparer == _comparer)
+                {
+                    // If comparers are the same, we can copy _entries without rehashing.
+                    CopyEntries(oldEntries, source._count);
+                    return;
+                }
+
+                // Comparers differ need to rehash all the entries via Add
+                int count = source._count;
+                for (int i = 0; i < count; i++)
+                {
+                    // Only copy if an entry
+                    if (oldEntries[i].next >= -1)
+                    {
+                        Add(oldEntries[i].key, oldEntries[i].value);
+                    }
+                }
+                return;
+            }
+
+            // We similarly special-case KVP<>[] and List<KVP<>>, as they're commonly used to seed dictionaries, and
+            // we want to avoid the enumerator costs (e.g. allocation) for them as well. Extract a span if possible.
+            ReadOnlySpan<KeyValuePair<TKey, TValue>> span;
+            if (enumerable is KeyValuePair<TKey, TValue>[] array)
+            {
+                span = array;
+            }
+            else if (enumerable.GetType() == typeof(List<KeyValuePair<TKey, TValue>>))
+            {
+                span = CollectionsMarshal.AsSpan((List<KeyValuePair<TKey, TValue>>)enumerable);
+            }
+            else
+            {
+                // Fallback path for all other enumerables
+                foreach (KeyValuePair<TKey, TValue> pair in enumerable)
+                {
+                    Add(pair.Key, pair.Value);
+                }
+                return;
+            }
+
+            // We got a span. Add the elements to the dictionary.
+            foreach (KeyValuePair<TKey, TValue> pair in span)
             {
                 Add(pair.Key, pair.Value);
             }
@@ -236,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 Debug.Assert(_buckets.Length > 0, "_buckets should be non-empty");
                 Debug.Assert(_entries.Length > 0, "_entries should be non-empty");
 
-                SegmentedArray.Clear(_buckets, 0, _buckets.Length);
+                SegmentedArray.Clear(_buckets);
 
                 _count = 0;
                 _freeList = -1;
@@ -321,8 +383,9 @@ namespace Microsoft.CodeAnalysis.Collections
         public Enumerator GetEnumerator()
             => new(this, Enumerator.KeyValuePair);
 
-        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
-            => new Enumerator(this, Enumerator.KeyValuePair);
+        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() =>
+            Count == 0 ? GenericEmptyEnumerator<KeyValuePair<TKey, TValue>>.Instance :
+            GetEnumerator();
 
         private ref TValue FindValue(TKey key)
         {
@@ -336,76 +399,44 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 Debug.Assert(_entries.Length > 0, "expected entries to be non-empty");
                 var comparer = _comparer;
-                if (SupportsComparerDevirtualization && comparer == null)
+                if (SupportsComparerDevirtualization
+                    && typeof(TKey).IsValueType // comparer can only be null for value types; enable JIT to eliminate entire if block for ref types
+                    && comparer == null)
                 {
                     var hashCode = (uint)key.GetHashCode();
                     var i = GetBucket(hashCode);
                     var entries = _entries;
                     uint collisionCount = 0;
-                    if (typeof(TKey).IsValueType)
+
+                    // ValueType: Devirtualize with EqualityComparer<TKey>.Default intrinsic
+                    i--; // Value in _buckets is 1-based; subtract 1 from i. We do it here so it fuses with the following conditional.
+                    do
                     {
-                        // ValueType: Devirtualize with EqualityComparer<TValue>.Default intrinsic
-
-                        i--; // Value in _buckets is 1-based; subtract 1 from i. We do it here so it fuses with the following conditional.
-                        do
+                        // Should be a while loop https://github.com/dotnet/runtime/issues/9422
+                        // Test in if to drop range check for following array access
+                        if ((uint)i >= (uint)entries.Length)
                         {
-                            // Should be a while loop https://github.com/dotnet/runtime/issues/9422
-                            // Test in if to drop range check for following array access
-                            if ((uint)i >= (uint)entries.Length)
-                            {
-                                goto ReturnNotFound;
-                            }
+                            goto ReturnNotFound;
+                        }
 
-                            entry = ref entries[i];
-                            if (entry._hashCode == hashCode && EqualityComparer<TKey>.Default.Equals(entry._key, key))
-                            {
-                                goto ReturnFound;
-                            }
-
-                            i = entry._next;
-
-                            collisionCount++;
-                        } while (collisionCount <= (uint)entries.Length);
-
-                        // The chain of entries forms a loop; which means a concurrent update has happened.
-                        // Break out of the loop and throw, rather than looping forever.
-                        goto ConcurrentOperation;
-                    }
-                    else
-                    {
-                        // Object type: Shared Generic, EqualityComparer<TValue>.Default won't devirtualize
-                        // https://github.com/dotnet/runtime/issues/10050
-                        // So cache in a local rather than get EqualityComparer per loop iteration
-                        var defaultComparer = EqualityComparer<TKey>.Default;
-
-                        i--; // Value in _buckets is 1-based; subtract 1 from i. We do it here so it fuses with the following conditional.
-                        do
+                        entry = ref entries[i];
+                        if (entry.hashCode == hashCode && EqualityComparer<TKey>.Default.Equals(entry.key, key))
                         {
-                            // Should be a while loop https://github.com/dotnet/runtime/issues/9422
-                            // Test in if to drop range check for following array access
-                            if ((uint)i >= (uint)entries.Length)
-                            {
-                                goto ReturnNotFound;
-                            }
+                            goto ReturnFound;
+                        }
 
-                            entry = ref entries[i];
-                            if (entry._hashCode == hashCode && defaultComparer.Equals(entry._key, key))
-                            {
-                                goto ReturnFound;
-                            }
+                        i = entry.next;
 
-                            i = entry._next;
+                        collisionCount++;
+                    } while (collisionCount <= (uint)entries.Length);
 
-                            collisionCount++;
-                        } while (collisionCount <= (uint)entries.Length);
-
-                        // The chain of entries forms a loop; which means a concurrent update has happened.
-                        // Break out of the loop and throw, rather than looping forever.
-                        goto ConcurrentOperation;
-                    }
+                    // The chain of entries forms a loop; which means a concurrent update has happened.
+                    // Break out of the loop and throw, rather than looping forever.
+                    goto ConcurrentOperation;
                 }
                 else
                 {
+                    Debug.Assert(comparer is not null);
                     var hashCode = (uint)comparer.GetHashCode(key);
                     var i = GetBucket(hashCode);
                     var entries = _entries;
@@ -482,98 +513,57 @@ ReturnNotFound:
             Debug.Assert(entries.Length > 0, "expected entries to be non-empty");
 
             var comparer = _comparer;
-            var hashCode = (uint)((SupportsComparerDevirtualization && comparer == null) ? key.GetHashCode() : comparer.GetHashCode(key));
+            Debug.Assert(comparer is not null || (SupportsComparerDevirtualization && typeof(TKey).IsValueType));
+            var hashCode = (uint)((SupportsComparerDevirtualization && typeof(TKey).IsValueType && comparer == null) ? key.GetHashCode() : comparer.GetHashCode(key));
 
             uint collisionCount = 0;
             ref var bucket = ref GetBucket(hashCode);
             var i = bucket - 1; // Value in _buckets is 1-based
 
-            if (SupportsComparerDevirtualization && comparer == null)
+            if (SupportsComparerDevirtualization
+                && typeof(TKey).IsValueType // comparer can only be null for value types; enable JIT to eliminate entire if block for ref types
+                && comparer == null)
             {
-                if (typeof(TKey).IsValueType)
+                // ValueType: Devirtualize with EqualityComparer<TKey>.Default intrinsic
+                while (true)
                 {
-                    // ValueType: Devirtualize with EqualityComparer<TValue>.Default intrinsic
-                    while (true)
+                    // Should be a while loop https://github.com/dotnet/runtime/issues/9422
+                    // Test uint in if rather than loop condition to drop range check for following array access
+                    if ((uint)i >= (uint)entries.Length)
                     {
-                        // Should be a while loop https://github.com/dotnet/runtime/issues/9422
-                        // Test uint in if rather than loop condition to drop range check for following array access
-                        if ((uint)i >= (uint)entries.Length)
-                        {
-                            break;
-                        }
-
-                        if (entries[i]._hashCode == hashCode && EqualityComparer<TKey>.Default.Equals(entries[i]._key, key))
-                        {
-                            if (behavior == InsertionBehavior.OverwriteExisting)
-                            {
-                                entries[i]._value = value;
-                                return true;
-                            }
-
-                            if (behavior == InsertionBehavior.ThrowOnExisting)
-                            {
-                                ThrowHelper.ThrowAddingDuplicateWithKeyArgumentException(key);
-                            }
-
-                            return false;
-                        }
-
-                        i = entries[i]._next;
-
-                        collisionCount++;
-                        if (collisionCount > (uint)entries.Length)
-                        {
-                            // The chain of entries forms a loop; which means a concurrent update has happened.
-                            // Break out of the loop and throw, rather than looping forever.
-                            ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
-                        }
+                        break;
                     }
-                }
-                else
-                {
-                    // Object type: Shared Generic, EqualityComparer<TValue>.Default won't devirtualize
-                    // https://github.com/dotnet/runtime/issues/10050
-                    // So cache in a local rather than get EqualityComparer per loop iteration
-                    var defaultComparer = EqualityComparer<TKey>.Default;
-                    while (true)
+
+                    if (entries[i]._hashCode == hashCode && EqualityComparer<TKey>.Default.Equals(entries[i]._key, key))
                     {
-                        // Should be a while loop https://github.com/dotnet/runtime/issues/9422
-                        // Test uint in if rather than loop condition to drop range check for following array access
-                        if ((uint)i >= (uint)entries.Length)
+                        if (behavior == InsertionBehavior.OverwriteExisting)
                         {
-                            break;
+                            entries[i]._value = value;
+                            return true;
                         }
 
-                        if (entries[i]._hashCode == hashCode && defaultComparer.Equals(entries[i]._key, key))
+                        if (behavior == InsertionBehavior.ThrowOnExisting)
                         {
-                            if (behavior == InsertionBehavior.OverwriteExisting)
-                            {
-                                entries[i]._value = value;
-                                return true;
-                            }
-
-                            if (behavior == InsertionBehavior.ThrowOnExisting)
-                            {
-                                ThrowHelper.ThrowAddingDuplicateWithKeyArgumentException(key);
-                            }
-
-                            return false;
+                            ThrowHelper.ThrowAddingDuplicateWithKeyArgumentException(key);
                         }
 
-                        i = entries[i]._next;
+                        return false;
+                    }
 
-                        collisionCount++;
-                        if (collisionCount > (uint)entries.Length)
-                        {
-                            // The chain of entries forms a loop; which means a concurrent update has happened.
-                            // Break out of the loop and throw, rather than looping forever.
-                            ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
-                        }
+                    i = entries[i]._next;
+
+                    collisionCount++;
+                    if (collisionCount > (uint)entries.Length)
+                    {
+                        // The chain of entries forms a loop; which means a concurrent update has happened.
+                        // Break out of the loop and throw, rather than looping forever.
+                        ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
                     }
                 }
             }
             else
             {
+                Debug.Assert(comparer is not null);
                 while (true)
                 {
                     // Should be a while loop https://github.com/dotnet/runtime/issues/9422
@@ -636,8 +626,8 @@ ReturnNotFound:
             entry._hashCode = hashCode;
             entry._next = bucket - 1; // Value in _buckets is 1-based
             entry._key = key;
-            entry._value = value; // Value in _buckets is 1-based
-            bucket = index + 1;
+            entry._value = value;
+            bucket = index + 1; // Value in _buckets is 1-based
             _version++;
             return true;
         }
@@ -686,7 +676,11 @@ ReturnNotFound:
             {
                 Debug.Assert(_entries.Length > 0, "entries should be non-empty");
                 uint collisionCount = 0;
-                var hashCode = (uint)(_comparer?.GetHashCode(key) ?? key.GetHashCode());
+
+                IEqualityComparer<TKey>? comparer = _comparer;
+                Debug.Assert(typeof(TKey).IsValueType || comparer is not null);
+                var hashCode = (uint)(typeof(TKey).IsValueType && comparer == null ? key.GetHashCode() : comparer!.GetHashCode(key));
+
                 ref var bucket = ref GetBucket(hashCode);
                 var entries = _entries;
                 var last = -1;
@@ -695,7 +689,8 @@ ReturnNotFound:
                 {
                     ref var entry = ref entries[i];
 
-                    if (entry._hashCode == hashCode && (_comparer?.Equals(entry._key, key) ?? EqualityComparer<TKey>.Default.Equals(entry._key, key)))
+                    if (entry._hashCode == hashCode &&
+                        (typeof(TKey).IsValueType && comparer == null ? EqualityComparer<TKey>.Default.Equals(entry._key, key) : comparer!.Equals(entry._key, key)))
                     {
                         if (last < 0)
                         {
@@ -758,7 +753,11 @@ ReturnNotFound:
             {
                 Debug.Assert(_entries.Length > 0, "entries should be non-empty");
                 uint collisionCount = 0;
-                var hashCode = (uint)(_comparer?.GetHashCode(key) ?? key.GetHashCode());
+
+                IEqualityComparer<TKey>? comparer = _comparer;
+                Debug.Assert(typeof(TKey).IsValueType || comparer is not null);
+                var hashCode = (uint)(typeof(TKey).IsValueType && comparer == null ? key.GetHashCode() : comparer!.GetHashCode(key));
+
                 ref var bucket = ref GetBucket(hashCode);
                 var entries = _entries;
                 var last = -1;
@@ -767,7 +766,8 @@ ReturnNotFound:
                 {
                     ref var entry = ref entries[i];
 
-                    if (entry._hashCode == hashCode && (_comparer?.Equals(entry._key, key) ?? EqualityComparer<TKey>.Default.Equals(entry._key, key)))
+                    if (entry._hashCode == hashCode &&
+                        (typeof(TKey).IsValueType && comparer == null ? EqualityComparer<TKey>.Default.Equals(entry._key, key) : comparer!.Equals(entry._key, key)))
                     {
                         if (last < 0)
                         {
@@ -912,7 +912,7 @@ ReturnNotFound:
         }
 
         IEnumerator IEnumerable.GetEnumerator()
-            => new Enumerator(this, Enumerator.KeyValuePair);
+            => ((IEnumerable<KeyValuePair<TKey, TValue>>)this).GetEnumerator();
 
         /// <summary>
         /// Ensures that the dictionary can hold up to 'capacity' entries without any further expansion of its backing storage
@@ -982,23 +982,33 @@ ReturnNotFound:
             var oldCount = _count;
             _version++;
             Initialize(newSize);
-            var entries = _entries;
-            var count = 0;
-            for (var i = 0; i < oldCount; i++)
+
+            Debug.Assert(oldEntries is not null);
+
+            CopyEntries(oldEntries, oldCount);
+        }
+
+        private void CopyEntries(Entry[] entries, int count)
+        {
+            Debug.Assert(_entries is not null);
+
+            var newEntries = _entries;
+            var newCount = 0;
+            for (var i = 0; i < count; i++)
             {
-                var hashCode = oldEntries[i]._hashCode; // At this point, we know we have entries.
-                if (oldEntries[i]._next >= -1)
+                var hashCode = entries[i].hashCode;
+                if (entries[i]._next >= -1)
                 {
-                    ref var entry = ref entries[count];
-                    entry = oldEntries[i];
+                    ref var entry = ref newEntries[newCount];
+                    entry = entries[i];
                     ref var bucket = ref GetBucket(hashCode);
                     entry._next = bucket - 1; // Value in _buckets is 1-based
-                    bucket = count + 1;
-                    count++;
+                    bucket = newCount + 1;
+                    newCount++;
                 }
             }
 
-            _count = count;
+            _count = newCount;
             _freeCount = 0;
         }
 
@@ -1308,7 +1318,7 @@ ReturnNotFound:
             void ICollection<TKey>.Clear()
                 => ThrowHelper.ThrowNotSupportedException(ExceptionResource.NotSupported_KeyCollectionSet);
 
-            bool ICollection<TKey>.Contains(TKey item)
+            public bool Contains(TKey item)
                 => _dictionary.ContainsKey(item);
 
             bool ICollection<TKey>.Remove(TKey item)
@@ -1317,11 +1327,12 @@ ReturnNotFound:
                 return false;
             }
 
-            IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
-                => new Enumerator(_dictionary);
+            IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator() =>
+                Count == 0 ? SZGenericArrayEnumerator<TKey>.Empty :
+                GetEnumerator();
 
             IEnumerator IEnumerable.GetEnumerator()
-                => new Enumerator(_dictionary);
+                => ((IEnumerable<TKey>)this).GetEnumerator();
 
             void ICollection.CopyTo(Array array, int index)
             {
@@ -1517,11 +1528,12 @@ ReturnNotFound:
             bool ICollection<TValue>.Contains(TValue item)
                 => _dictionary.ContainsValue(item);
 
-            IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
-                => new Enumerator(_dictionary);
+            IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator() =>
+                Count == 0 ? SZGenericArrayEnumerator<TValue>.Empty :
+                GetEnumerator();
 
             IEnumerator IEnumerable.GetEnumerator()
-                => new Enumerator(_dictionary);
+                => ((IEnumerable<TValue>)this).GetEnumerator();
 
             void ICollection.CopyTo(Array array, int index)
             {
