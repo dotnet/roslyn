@@ -4,37 +4,32 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
+using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Shell.ServiceBroker;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal
 {
     /// <summary>
-    /// This is a simple wrapper to succeed at getting the broker service using System.ComponentModel.Composition inside an LSP service OnInitialized factory
+    /// This is a simple wrapper to export IOnServiceBrokerInitialized to the ServiceBrokerFactory and delegate back to 
+    /// to the LSP services once the broker service is initialized. 
     /// </summary>
-    [Export(typeof(IVisualDiagnosticsServiceBroker))]
-    internal sealed class VisualDiagnosticsServiceBroker : IVisualDiagnosticsServiceBroker
+    [Export]
+    [Export(typeof(IOnServiceBrokerInitialized))]
+    internal sealed class VisualDiagnosticsServiceBroker : IOnServiceBrokerInitialized
     {
-        private readonly Lazy<Task<IBrokeredServiceContainer>> _container;
+        public IOnServiceBrokerInitialized? NotifyServiceBrokerInitialized { get; set; }
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualDiagnosticsServiceBroker(
-        [Import(typeof(SVsBrokeredServiceContainer))]
-        Lazy<Task<IBrokeredServiceContainer>> serviceBroker)
+        public VisualDiagnosticsServiceBroker()
         {
-            _container = serviceBroker;
         }
 
-        public async Task<IServiceBroker> GetServiceBrokerAsync()
+        public void OnServiceBrokerInitialized(IServiceBroker serviceBroker)
         {
-            // Waiting on the container to be created
-            await _container.Value.ConfigureAwait(false);
-            return _container.Value.Result.GetFullAccessServiceBroker();
+            NotifyServiceBrokerInitialized?.OnServiceBrokerInitialized(serviceBroker);
         }
     }
 }

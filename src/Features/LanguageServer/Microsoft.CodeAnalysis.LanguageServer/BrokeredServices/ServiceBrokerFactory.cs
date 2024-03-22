@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Composition;
@@ -26,18 +28,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 [Export]
 internal class ServiceBrokerFactory
 {
-    private readonly TaskCompletionSource<BrokeredServiceContainer> _container;
+    private BrokeredServiceContainer? _container;
     private readonly ExportProvider _exportProvider;
     private Task _bridgeCompletionTask;
     private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+    private readonly ImmutableArray<IOnServiceBrokerInitialized> _onServiceBrokerInitialized;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ServiceBrokerFactory(ExportProvider exportProvider)
+    public ServiceBrokerFactory([ImportMany] IEnumerable<IOnServiceBrokerInitialized> onServiceBrokerInitialized,
+        ExportProvider exportProvider)
     {
         _exportProvider = exportProvider;
         _bridgeCompletionTask = Task.CompletedTask;
-        _container = new TaskCompletionSource<BrokeredServiceContainer>();
+        _onServiceBrokerInitialized = onServiceBrokerInitialized.ToImmutableArray();
     }
 
     /// <summary>
@@ -49,19 +53,12 @@ internal class ServiceBrokerFactory
     /// <summary>
     /// Returns a full-access service broker, but will return null if we haven't yet connected to the Dev Kit broker.
     /// </summary>
-    public IServiceBroker? TryGetFullAccessServiceBroker() => _container.Task.IsCompletedSuccessfully ? _container.Task.Result?.GetFullAccessServiceBroker() : null;
-
-    /// <summary>
-    /// Returns a full-access service broker container, that consuming code can await on until we connected to the Dev Kit broker
-    /// </summary>
-    [Export(typeof(SVsBrokeredServiceContainer))]
-    public Task<IBrokeredServiceContainer> BrokeredServiceContainerAsync => this.GetRequiredServiceBrokerContainerAsync();
+    public IServiceBroker? TryGetFullAccessServiceBroker() => _container?.GetFullAccessServiceBroker();
 
     public BrokeredServiceContainer GetRequiredServiceBrokerContainer()
     {
-        Contract.ThrowIfFalse(_container.Task.IsCompletedSuccessfully);
-        Contract.ThrowIfNull(_container.Task.Result);
-        return _container.Task.Result;
+        Contract.ThrowIfNull(_container);
+        return _container;
     }
 
     /// <summary>
@@ -69,10 +66,14 @@ internal class ServiceBrokerFactory
     /// </summary>
     public async Task CreateAsync()
     {
-        Contract.ThrowIfFalse(!_container.Task.IsCompleted, "We should only create one container.");
+        Contract.ThrowIfFalse(_container == null, "We should only create one container.");
 
-        var container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _cancellationTokenSource.Token);
-        _container.TrySetResult(container);
+        _container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _cancellationTokenSource.Token);
+
+        foreach (var onInitialized in _onServiceBrokerInitialized)
+        {
+            onInitialized.OnServiceBrokerInitialized(_container.GetFullAccessServiceBroker());
+        }
     }
 
     public async Task CreateAndConnectAsync(string brokeredServicePipeName)
@@ -80,7 +81,7 @@ internal class ServiceBrokerFactory
         await CreateAsync();
 
         var bridgeProvider = _exportProvider.GetExportedValue<BrokeredServiceBridgeProvider>();
-        _bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(brokeredServicePipeName, _container.Task.Result!, _cancellationTokenSource.Token);
+        _bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(brokeredServicePipeName, _container!, _cancellationTokenSource.Token);
     }
 
     public Task ShutdownAndWaitForCompletionAsync()
@@ -90,13 +91,6 @@ internal class ServiceBrokerFactory
         // Return the task we created when we created the bridge; if we never started it in the first place, we'll just return the
         // completed task set in the constructor, so the waiter no-ops.
         return _bridgeCompletionTask;
-    }
-
-    private async Task<IBrokeredServiceContainer> GetRequiredServiceBrokerContainerAsync()
-    {
-        // Caller of this method are expected to wait until the container is set by CreateAsync
-        var brokeredServiceContainer = await _container.Task.ConfigureAwait(false);
-        return brokeredServiceContainer;
     }
 }
 #pragma warning restore RS0030 // Do not used banned APIs
