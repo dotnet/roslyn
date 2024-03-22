@@ -41,13 +41,7 @@ internal partial class SolutionCompilationState
         /// been computed, and will not do any more expensive computation (like parsing documents or running
         /// generators).
         /// </summary>
-        ICompilationTracker FreezeState(CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Unfreezes this tracker.  This will produce a new tracker with all the same data as this one, but which will
-        /// then run generators the next time it is asked for a compilation.
-        /// </summary>
-        ICompilationTracker UnfreezeState();
+        ICompilationTracker WithCreationPolicy(CreationPolicy creationPolicy, CancellationToken cancellationToken);
 
         Task<VersionStamp> GetDependentVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
         Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);

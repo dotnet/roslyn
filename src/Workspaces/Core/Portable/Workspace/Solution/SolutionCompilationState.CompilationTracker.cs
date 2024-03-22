@@ -585,18 +585,23 @@ namespace Microsoft.CodeAnalysis
                     // After producing the sg documents, we must always be in the final state for the generator data.
                     var nextGeneratorInfo = new CompilationTrackerGeneratorInfo(generatedDocuments, generatorDriver);
 
-                    // If the user has the option set to only run generators to something other than 'automatic' (for
-                    // example 'after build completes') then we want to set ourselves to not run generators again now
-                    // that generators have run.  That way, any further *automatic* changes to the solution will not run
-                    // generators again.  Instead, when one of those external events happen, we'll grab the workspace's
-                    // solution, transition all states *out* of this state and then let the next 'GetCompilationAsync'
-                    // operation cause generators to run.
+                    // If the user has the option set to only run generators to something other than 'automatic' then we
+                    // want to set ourselves to not run generators again now that generators have run.  That way, any
+                    // further *automatic* changes to the solution will not run generators again.  Instead, when one of
+                    // those external events happen, we'll grab the workspace's solution, transition all states *out* of
+                    // this state and then let the next 'GetCompilationAsync' operation cause generators to run.
+                    //
+                    // Similarly, we don't want to automatically create skeletons at this point (unless they're missing
+                    // entirely).
 
-                    if (creationPolicy.GeneratedDocumentCreationPolicy == GeneratedDocumentCreationPolicy.Create)
+                    var workspacePreference = compilationState.Services.GetRequiredService<IWorkspaceConfigurationService>().Options.SourceGeneratorExecution;
+                    if (workspacePreference != SourceGeneratorExecutionPreference.Automatic)
                     {
-                        var workspacePreference = compilationState.Services.GetRequiredService<IWorkspaceConfigurationService>().Options.SourceGeneratorExecution;
-                        if (workspacePreference != SourceGeneratorExecutionPreference.Automatic)
+                        if (creationPolicy.GeneratedDocumentCreationPolicy == GeneratedDocumentCreationPolicy.Create)
                             creationPolicy = creationPolicy with { GeneratedDocumentCreationPolicy = GeneratedDocumentCreationPolicy.DoNotCreate };
+
+                        if (creationPolicy.SkeletonReferenceCreationPolicy == SkeletonReferenceCreationPolicy.Create)
+                            creationPolicy = creationPolicy with { SkeletonReferenceCreationPolicy = SkeletonReferenceCreationPolicy.CreateIfAbsent };
                     }
 
                     var finalState = FinalCompilationTrackerState.Create(
@@ -689,7 +694,7 @@ namespace Microsoft.CodeAnalysis
                 return finalState.HasSuccessfullyLoaded;
             }
 
-            public ICompilationTracker FreezeState(CancellationToken cancellationToken)
+            public ICompilationTracker WithCreationPolicy(CreationPolicy creationPolicy, CancellationToken cancellationToken)
             {
                 var state = this.ReadState();
 
@@ -697,9 +702,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     // If we're finalized and already frozen, we can just use ourselves. Otherwise, flip the frozen bit
                     // so that any future forks keep things frozen.
-                    return finalState.IsFrozen
+                    return finalState.CreationPolicy == creationPolicy
                         ? this
-                        : new CompilationTracker(this.ProjectState, finalState.WithIsFrozen(), skeletonReferenceCacheToClone: _skeletonReferenceCache);
+                        : new CompilationTracker(this.ProjectState, finalState.WithCreationPolicy(creationPolicy), skeletonReferenceCacheToClone: _skeletonReferenceCache);
                 }
 
                 // Non-final state currently.  Produce an in-progress-state containing the forked change. Note: we

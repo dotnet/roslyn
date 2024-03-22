@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -72,16 +73,14 @@ internal partial class SolutionCompilationState
             throw new NotImplementedException();
         }
 
-        public ICompilationTracker FreezeState(CancellationToken cancellationToken)
+        public ICompilationTracker WithCreationPolicy(CreationPolicy creationPolicy, CancellationToken cancellationToken)
         {
-            // Ensure the underlying tracker is totally frozen, and then ensure our replaced generated doc is present.
-            return new GeneratedFileReplacingCompilationTracker(UnderlyingTracker.FreezeState(cancellationToken), _replacementDocumentStates);
-        }
+            var underlyingTracker = this.UnderlyingTracker.WithCreationPolicy(creationPolicy, cancellationToken);
+            if (underlyingTracker == this.UnderlyingTracker)
+                return this;
 
-        public ICompilationTracker UnfreezeState()
-        {
-            // Ensure the underlying tracker is unfrozen, and then ensure our replaced generated doc is present.
-            return new GeneratedFileReplacingCompilationTracker(UnderlyingTracker.UnfreezeState(), _replacementDocumentStates);
+            // Ensure the underlying tracker is totally frozen, and then ensure our replaced generated doc is present.
+            return new GeneratedFileReplacingCompilationTracker(underlyingTracker, _replacementDocumentStates);
         }
 
         public async Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)

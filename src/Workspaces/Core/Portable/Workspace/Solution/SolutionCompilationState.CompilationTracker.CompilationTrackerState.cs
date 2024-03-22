@@ -14,47 +14,47 @@ namespace Microsoft.CodeAnalysis;
 
 internal partial class SolutionCompilationState
 {
+    private readonly record struct CreationPolicy(
+        GeneratedDocumentCreationPolicy GeneratedDocumentCreationPolicy,
+        SkeletonReferenceCreationPolicy SkeletonReferenceCreationPolicy)
+    {
+
+    }
+
+    private enum GeneratedDocumentCreationPolicy
+    {
+        /// <summary>
+        /// Source generators should be run and should produce up to date results.
+        /// </summary>
+        Create,
+
+        /// <summary>
+        /// Source generators should not run.  Whatever results were previously computed should be reused.
+        /// </summary>
+        DoNotCreate,
+    }
+
+    private enum SkeletonReferenceCreationPolicy
+    {
+        /// <summary>
+        /// Skeleton references should be created, and should be up to date with the project they are created for.
+        /// </summary>
+        Create,
+
+        /// <summary>
+        /// Skeleton references should only be created for a compilation if no existing skeleton exists for their
+        /// project from some point in the past.
+        /// </summary>
+        CreateIfAbsent,
+
+        /// <summary>
+        /// Skeleton references should not be created at all.
+        /// </summary>
+        DoNotCreate,
+    }
+
     private partial class CompilationTracker
     {
-        private readonly record struct CreationPolicy(
-            GeneratedDocumentCreationPolicy GeneratedDocumentCreationPolicy,
-            SkeletonReferenceCreationPolicy SkeletonReferenceCreationPolicy)
-        {
-
-        }
-
-        private enum GeneratedDocumentCreationPolicy
-        {
-            /// <summary>
-            /// Source generators should be run and should produce up to date results.
-            /// </summary>
-            Create,
-
-            /// <summary>
-            /// Source generators should not run.  Whatever results were previously computed should be reused.
-            /// </summary>
-            DoNotCreate,
-        }
-
-        private enum SkeletonReferenceCreationPolicy
-        {
-            /// <summary>
-            /// Skeleton references should be created, and should be up to date with the project they are created for.
-            /// </summary>
-            Create,
-
-            /// <summary>
-            /// Skeleton references should only be created for a compilation if no existing skeleton exists for their
-            /// project from some point in the past.
-            /// </summary>
-            CreateIfAbsent,
-
-            /// <summary>
-            /// Skeleton references should not be created at all.
-            /// </summary>
-            DoNotCreate,
-        }
-
         /// <summary>
         /// The base type of all <see cref="CompilationTracker"/> states. The state of a <see
         /// cref="CompilationTracker" /> starts at null, and then will progress through the other states until it

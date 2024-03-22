@@ -1134,7 +1134,7 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithOptions(options));
     }
 
-    public SolutionCompilationState WithSourceGeneratorVersion(int sourceGeneratorVersion)
+    public SolutionCompilationState WithSourceGeneratorVersion(int sourceGeneratorVersion, CancellationToken cancellationToken)
     {
         if (this.SolutionState.SolutionAttributes.SourceGeneratorVersion == sourceGeneratorVersion)
             return this;
@@ -1142,9 +1142,11 @@ internal sealed partial class SolutionCompilationState
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
         foreach (var (projectId, tracker) in _projectIdToTrackerMap)
         {
-            // Let the tracker know that the source generator version has changed. We do this by unfreezing the tracker.
-            // By moving it out of the frozen state if it is there, it will then recompute generators when next asked.
-            var newTracker = tracker.UnfreezeState();
+            // Let the tracker know that the source generator version has changed. We do this by telling it that it
+            // should now create SG docs and skeleton references if they're out of date.
+            var newTracker = tracker.WithCreationPolicy(
+                new CreationPolicy(GeneratedDocumentCreationPolicy.Create, SkeletonReferenceCreationPolicy.Create),
+                cancellationToken);
             if (newTracker == tracker)
                 continue;
 
@@ -1189,7 +1191,12 @@ internal sealed partial class SolutionCompilationState
                 continue;
 
             var oldTracker = GetCompilationTracker(projectId);
-            var newTracker = oldTracker.FreezeState(cancellationToken);
+
+            // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
+            // perf hit on either of those at all for our clients.
+            var newTracker = oldTracker.WithCreationPolicy(
+                new CreationPolicy(GeneratedDocumentCreationPolicy.DoNotCreate, SkeletonReferenceCreationPolicy.DoNotCreate),
+                cancellationToken);
             if (oldTracker == newTracker)
                 continue;
 
