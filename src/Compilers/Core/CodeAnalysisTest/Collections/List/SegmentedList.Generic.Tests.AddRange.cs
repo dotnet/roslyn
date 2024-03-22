@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
-// https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Collections/tests/Generic/List/List.Generic.Tests.AddRange.cs
+// https://github.com/dotnet/runtime/blob/v8.0.3/src/libraries/System.Collections/tests/Generic/List/List.Generic.Tests.AddRange.cs
 //
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
@@ -46,6 +46,35 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         }
 
         [Theory]
+        [MemberData(nameof(ListTestData))]
+        public void AddRange_Span(EnumerableType enumerableType, int listLength, int enumerableLength, int numberOfMatchingElements, int numberOfDuplicateElements)
+        {
+            List<T> list = GenericListFactory(listLength);
+            List<T> listBeforeAdd = list.ToList();
+            Span<T> span = CreateEnumerable(enumerableType, list, enumerableLength, numberOfMatchingElements, numberOfDuplicateElements).ToArray();
+            list.AddRange(span);
+
+            // Check that the first section of the List is unchanged
+            Assert.All(Enumerable.Range(0, listLength), index =>
+            {
+                Assert.Equal(listBeforeAdd[index], list[index]);
+            });
+
+            // Check that the added elements are correct
+            for (int i = 0; i < enumerableLength; i++)
+            {
+                Assert.Equal(span[i], list[i + listLength]);
+            };
+        }
+
+        [Fact]
+        public void AddRange_NullList_ThrowsArgumentNullException()
+        {
+            AssertExtensions.Throws<ArgumentNullException>("list", () => CollectionExtensions.AddRange<int>(null, default));
+            AssertExtensions.Throws<ArgumentNullException>("list", () => CollectionExtensions.AddRange<int>(null, new int[1]));
+        }
+
+        [Theory]
         [MemberData(nameof(ValidCollectionSizes))]
         public void AddRange_NullEnumerable_ThrowsArgumentNullException(int count)
         {
@@ -77,6 +106,29 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal(5, list.Count);
             Assert.Throws<InvalidOperationException>(() => list.AddRange(list.Where(_ => true)));
             Assert.Equal(6, list.Count);
+        }
+
+        [Fact]
+        public void AddRange_CollectionWithLargeCount_ThrowsOverflowException()
+        {
+            List<T> list = GenericListFactory(count: 1);
+            ICollection<T> collection = new CollectionWithLargeCount();
+
+            Assert.Throws<OverflowException>(() => list.AddRange(collection));
+        }
+
+        private class CollectionWithLargeCount : ICollection<T>
+        {
+            public int Count => int.MaxValue;
+
+            public bool IsReadOnly => throw new NotImplementedException();
+            public void Add(T item) => throw new NotImplementedException();
+            public void Clear() => throw new NotImplementedException();
+            public bool Contains(T item) => throw new NotImplementedException();
+            public void CopyTo(T[] array, int arrayIndex) => throw new NotImplementedException();
+            public IEnumerator<T> GetEnumerator() => throw new NotImplementedException();
+            public bool Remove(T item) => throw new NotImplementedException();
+            IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
         }
     }
 }
