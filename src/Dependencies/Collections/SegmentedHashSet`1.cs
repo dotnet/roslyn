@@ -11,10 +11,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.Collections.Internal;
 
 namespace Microsoft.CodeAnalysis.Collections
@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         private const int ShrinkThreshold = 3;
         private const int StartOfFreeList = -3;
+
+        private static IEnumerator<T>? s_emptyEnumerator;
 
         private SegmentedArray<int> _buckets;
         private SegmentedArray<Entry> _entries;
@@ -252,12 +254,12 @@ namespace Microsoft.CodeAnalysis.Collections
                 else
                 {
                     Debug.Assert(comparer is not null);
-                    var hashCode = item != null ? comparer.GetHashCode(item) : 0;
+                    var hashCode = item != null ? comparer!.GetHashCode(item) : 0;
                     var i = GetBucketRef(hashCode) - 1; // Value in _buckets is 1-based
                     while (i >= 0)
                     {
                         ref var entry = ref entries[i];
-                        if (entry._hashCode == hashCode && comparer.Equals(entry._value, item))
+                        if (entry._hashCode == hashCode && comparer!.Equals(entry._value, item))
                         {
                             return i;
                         }
@@ -362,10 +364,15 @@ namespace Microsoft.CodeAnalysis.Collections
         public Enumerator GetEnumerator() => new(this);
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator() =>
-            Count == 0 ? SZGenericArrayEnumerator<T>.Empty :
+            Count == 0 ? GetEmptyEnumerator() :
             GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<T>)this).GetEnumerator();
+
+        private static IEnumerator<T> GetEmptyEnumerator()
+        {
+            return LazyInitializer.EnsureInitialized(ref s_emptyEnumerator, static () => new Enumerator(new SegmentedHashSet<T>()))!;
+        }
 
         #endregion
 
@@ -1030,13 +1037,13 @@ namespace Microsoft.CodeAnalysis.Collections
             else
             {
                 Debug.Assert(comparer is not null);
-                hashCode = value != null ? comparer.GetHashCode(value) : 0;
+                hashCode = value != null ? comparer!.GetHashCode(value) : 0;
                 bucket = ref GetBucketRef(hashCode);
                 var i = bucket - 1; // Value in _buckets is 1-based
                 while (i >= 0)
                 {
                     ref var entry = ref entries[i];
-                    if (entry._hashCode == hashCode && comparer.Equals(entry._value, value))
+                    if (entry._hashCode == hashCode && comparer!.Equals(entry._value, value))
                     {
                         location = i;
                         return false;
