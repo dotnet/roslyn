@@ -2358,10 +2358,18 @@
          'is not Type t') will need to compensate for negated patterns. IsNegated is set if Pattern is the negated
          form of the inner pattern represented by DecisionDag. -->
   <Node Name="BoundIsPatternExpression" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
     <Field Name="IsNegated" Type="bool"/>
     <Field Name="ReachabilityDecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
+    <Field Name="WhenTrueLabel" Type="LabelSymbol" Null="disallow"/>
+    <Field Name="WhenFalseLabel" Type="LabelSymbol" Null="disallow"/>
+  </Node>
+
+  <Node Name="BoundLoweredIsPatternExpression" Base="BoundExpression" HasValidate="true">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Statements" Type="ImmutableArray&lt;BoundStatement&gt;"/>
     <Field Name="WhenTrueLabel" Type="LabelSymbol" Null="disallow"/>
     <Field Name="WhenFalseLabel" Type="LabelSymbol" Null="disallow"/>
   </Node>

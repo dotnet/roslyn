@@ -368,11 +368,11 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         /// <summary>
-        /// Returns User Strings referenced from the IL in the module.
+        /// Returns copy of User Strings referenced from the IL in the module.
         /// </summary>
-        public IEnumerable<string> GetStrings()
+        public string[] CopyStrings()
         {
-            return _stringsInILMap.GetAllItems();
+            return _stringsInILMap.CopyItems();
         }
 
         public uint GetFakeSymbolTokenForIL(Cci.IReference symbol, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
