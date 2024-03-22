@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
-// https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Private.CoreLib/src/System/Collections/HashHelpers.cs
+// https://github.com/dotnet/runtime/blob/v8.0.3/src/libraries/System.Private.CoreLib/src/System/Collections/HashHelpers.cs
 //
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
@@ -16,8 +16,8 @@ namespace System.Collections
     {
         public const uint HashCollisionThreshold = 100;
 
-        // This is the maximum prime smaller than Array.MaxArrayLength
-        public const int MaxPrimeArrayLength = 0x7FEFFFFD;
+        // This is the maximum prime smaller than Array.MaxLength.
+        public const int MaxPrimeArrayLength = 0x7FFFFFC3;
 
         public const int HashPrime = 101;
 
@@ -34,7 +34,7 @@ namespace System.Collections
         // h1(key) + i*h2(key), 0 <= i < size.  h2 and the size must be relatively prime.
         // We prefer the low computation costs of higher prime numbers over the increased
         // memory allocation of a fixed prime number i.e. when right sizing a HashSet.
-        private static readonly int[] s_primes =
+        internal static ReadOnlySpan<int> Primes => new int[]
         {
             3, 7, 11, 17, 23, 29, 37, 47, 59, 71, 89, 107, 131, 163, 197, 239, 293, 353, 431, 521, 631, 761, 919,
             1103, 1327, 1597, 1931, 2333, 2801, 3371, 4049, 4861, 5839, 7013, 8419, 10103, 12143, 14591,
@@ -63,7 +63,7 @@ namespace System.Collections
             if (min < 0)
                 throw new ArgumentException(SR.Arg_HTCapacityOverflow);
 
-            foreach (int prime in s_primes)
+            foreach (int prime in Primes)
             {
                 if (prime >= min)
                     return prime;
