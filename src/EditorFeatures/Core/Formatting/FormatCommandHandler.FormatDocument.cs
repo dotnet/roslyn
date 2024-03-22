@@ -8,38 +8,37 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Formatting;
+
+internal partial class FormatCommandHandler
 {
-    internal partial class FormatCommandHandler
+    public CommandState GetCommandState(FormatDocumentCommandArgs args)
+        => GetCommandState(args.SubjectBuffer);
+
+    public bool ExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
     {
-        public CommandState GetCommandState(FormatDocumentCommandArgs args)
-            => GetCommandState(args.SubjectBuffer);
-
-        public bool ExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
+        if (!CanExecuteCommand(args.SubjectBuffer))
         {
-            if (!CanExecuteCommand(args.SubjectBuffer))
-            {
-                return false;
-            }
-
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return false;
-            }
-
-            var formattingService = document.GetLanguageService<IFormattingInteractionService>();
-            if (formattingService == null || !formattingService.SupportsFormatDocument)
-            {
-                return false;
-            }
-
-            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
-            {
-                Format(args.TextView, args.SubjectBuffer, document, selectionOpt: null, context.OperationContext.UserCancellationToken);
-            }
-
-            return true;
+            return false;
         }
+
+        var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+        if (document == null)
+        {
+            return false;
+        }
+
+        var formattingService = document.GetLanguageService<IFormattingInteractionService>();
+        if (formattingService == null || !formattingService.SupportsFormatDocument)
+        {
+            return false;
+        }
+
+        using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
+        {
+            Format(args.TextView, args.SubjectBuffer, document, selectionOpt: null, context.OperationContext.UserCancellationToken);
+        }
+
+        return true;
     }
 }

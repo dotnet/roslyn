@@ -33,7 +33,8 @@ public abstract class AbstractLanguageServerHostTests
 
         internal static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, TestOutputLogger logger, bool includeDevKitComponents = true)
         {
-            var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(logger.Factory, includeDevKitComponents);
+            var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(
+                logger.Factory, includeDevKitComponents, out var _);
             var testLspServer = new TestLspServer(exportProvider, logger);
             var initializeResponse = await testLspServer.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = clientCapabilities }, CancellationToken.None);
             Assert.NotNull(initializeResponse?.Capabilities);

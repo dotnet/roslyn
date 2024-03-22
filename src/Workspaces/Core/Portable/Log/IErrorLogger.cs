@@ -7,10 +7,9 @@
 using System;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.ErrorLogger
+namespace Microsoft.CodeAnalysis.ErrorLogger;
+
+internal interface IErrorLoggerService : IWorkspaceService
 {
-    internal interface IErrorLoggerService : IWorkspaceService
-    {
-        void LogException(object source, Exception exception);
-    }
+    void LogException(object source, Exception exception);
 }

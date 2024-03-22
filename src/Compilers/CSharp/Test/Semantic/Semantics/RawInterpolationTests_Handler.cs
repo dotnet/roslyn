@@ -10440,7 +10440,8 @@ void M(dynamic d, [InterpolatedStringHandlerArgument(""d"")]CustomHandler c) {}
 
 public partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, dynamic d) : this() {}
+    public CustomHandler(int literalLength, int formattedCount, int d) : this() {}
+    public CustomHandler(int literalLength, int formattedCount, long d) : this() {}
 }
 ";
 
@@ -10473,7 +10474,8 @@ void M(dynamic d, [InterpolatedStringHandlerArgument(""d"")]CustomHandler c) {}
 
 public partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, dynamic d) : this() {}
+    public CustomHandler(int literalLength, int formattedCount, int d) : this() {}
+    public CustomHandler(int literalLength, int formattedCount, long d) : this() {}
 }
 ";
 
@@ -10765,6 +10767,11 @@ public struct CustomHandler
 
     public void AppendFormatted(dynamic d)
     {
+        Console.WriteLine(""---"");
+    }
+
+    public void AppendFormatted(int d)
+    {
         Console.WriteLine(""AppendFormatted"");
     }
 }
@@ -10856,6 +10863,12 @@ public struct CustomHandler
     }
 
     public bool AppendFormatted(dynamic d)
+    {
+        Console.WriteLine(""---"");
+        return true;
+    }
+
+    public bool AppendFormatted(int d)
     {
         Console.WriteLine(""AppendFormatted"");
         return true;

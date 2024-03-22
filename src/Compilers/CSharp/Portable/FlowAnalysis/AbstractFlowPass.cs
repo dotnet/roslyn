@@ -1663,6 +1663,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitThrowIfModuleCancellationRequested(BoundThrowIfModuleCancellationRequested node)
+        {
+            return null;
+        }
+
         public override BoundNode VisitSourceDocumentIndex(BoundSourceDocumentIndex node)
         {
             return null;
@@ -3041,9 +3046,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
         {
-            var initialState = this.State.Clone();
             VisitStatements(node.Statements);
-            SetState(initialState);
+            VisitLabelCore(node.WhenTrueLabel);
+            var stateWhenTrue = this.State.Clone();
+            SetUnreachable();
+            VisitLabelCore(node.WhenFalseLabel);
+            Join(ref this.State, ref stateWhenTrue);
             return null;
         }
 
@@ -3247,13 +3255,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected void VisitLabel(LabelSymbol label, BoundStatement node)
+        private void VisitLabelCore(LabelSymbol label, BoundStatement node = null)
         {
-            node.AssertIsLabeledStatementWithLabel(label);
             ResolveBranches(label, node);
             var state = LabelState(label);
             Join(ref this.State, ref state);
             _labels[label] = this.State.Clone();
+        }
+
+        protected void VisitLabel(LabelSymbol label, BoundStatement node)
+        {
+            node.AssertIsLabeledStatementWithLabel(label);
+            VisitLabelCore(label, node);
             _labelsSeen.Add(node);
         }
 

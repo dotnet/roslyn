@@ -637,12 +637,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (node.Instrumentation != null)
             {
-                DeclareLocal(node.Instrumentation.Local, stack: 0);
+                foreach (var local in node.Instrumentation.Locals)
+                    DeclareLocal(local, stack: 0);
             }
 
             // normally we would not allow stack locals
             // when evaluation stack is not empty.
-            DeclareLocals(node.Locals, 0);
+            DeclareLocals(node.Locals, stack: 0);
 
             return base.VisitBlock(node);
         }
@@ -1489,8 +1490,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
         {
             var statements = VisitSideEffects(node.Statements);
-            RecordBranch(node.WhenTrueLabel);
-            RecordBranch(node.WhenFalseLabel);
+            RecordLabel(node.WhenTrueLabel);
+            RecordLabel(node.WhenFalseLabel);
             return node.Update(statements, node.WhenTrueLabel, node.WhenFalseLabel, VisitType(node.Type));
         }
 

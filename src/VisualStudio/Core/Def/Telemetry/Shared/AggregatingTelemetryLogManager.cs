@@ -11,64 +11,63 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Telemetry
+namespace Microsoft.CodeAnalysis.Telemetry;
+
+/// <summary>
+/// Manages creation and obtaining aggregated telemetry logs. Also, notifies logs to
+/// send aggregated events every 30 minutes.
+/// </summary>
+internal sealed class AggregatingTelemetryLogManager
 {
-    /// <summary>
-    /// Manages creation and obtaining aggregated telemetry logs. Also, notifies logs to
-    /// send aggregated events every 30 minutes.
-    /// </summary>
-    internal sealed class AggregatingTelemetryLogManager
+    private static readonly TimeSpan s_batchedTelemetryCollectionPeriod = TimeSpan.FromMinutes(30);
+
+    private readonly TelemetrySession _session;
+    private readonly AsyncBatchingWorkQueue _postTelemetryQueue;
+
+    private ImmutableDictionary<FunctionId, AggregatingTelemetryLog> _aggregatingLogs = ImmutableDictionary<FunctionId, AggregatingTelemetryLog>.Empty;
+
+    public AggregatingTelemetryLogManager(TelemetrySession session, IAsynchronousOperationListener asyncListener)
     {
-        private static readonly TimeSpan s_batchedTelemetryCollectionPeriod = TimeSpan.FromMinutes(30);
+        _session = session;
 
-        private readonly TelemetrySession _session;
-        private readonly AsyncBatchingWorkQueue _postTelemetryQueue;
+        _postTelemetryQueue = new AsyncBatchingWorkQueue(
+            s_batchedTelemetryCollectionPeriod,
+            PostCollectedTelemetryAsync,
+            asyncListener,
+            CancellationToken.None);
+    }
 
-        private ImmutableDictionary<FunctionId, AggregatingTelemetryLog> _aggregatingLogs = ImmutableDictionary<FunctionId, AggregatingTelemetryLog>.Empty;
+    public ITelemetryLog? GetLog(FunctionId functionId, double[]? bucketBoundaries)
+    {
+        if (!_session.IsOptedIn)
+            return null;
 
-        public AggregatingTelemetryLogManager(TelemetrySession session, IAsynchronousOperationListener asyncListener)
+        return ImmutableInterlocked.GetOrAdd(ref _aggregatingLogs, functionId, functionId => new AggregatingTelemetryLog(_session, functionId, bucketBoundaries, this));
+    }
+
+    public void EnsureTelemetryWorkQueued()
+    {
+        // Ensure PostCollectedTelemetryAsync will get fired after the collection period.
+        _postTelemetryQueue.AddWork();
+    }
+
+    private ValueTask PostCollectedTelemetryAsync(CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+
+        Flush();
+
+        return ValueTaskFactory.CompletedTask;
+    }
+
+    public void Flush()
+    {
+        if (!_session.IsOptedIn)
+            return;
+
+        foreach (var log in _aggregatingLogs.Values)
         {
-            _session = session;
-
-            _postTelemetryQueue = new AsyncBatchingWorkQueue(
-                s_batchedTelemetryCollectionPeriod,
-                PostCollectedTelemetryAsync,
-                asyncListener,
-                CancellationToken.None);
-        }
-
-        public ITelemetryLog? GetLog(FunctionId functionId, double[]? bucketBoundaries)
-        {
-            if (!_session.IsOptedIn)
-                return null;
-
-            return ImmutableInterlocked.GetOrAdd(ref _aggregatingLogs, functionId, functionId => new AggregatingTelemetryLog(_session, functionId, bucketBoundaries, this));
-        }
-
-        public void EnsureTelemetryWorkQueued()
-        {
-            // Ensure PostCollectedTelemetryAsync will get fired after the collection period.
-            _postTelemetryQueue.AddWork();
-        }
-
-        private ValueTask PostCollectedTelemetryAsync(CancellationToken token)
-        {
-            token.ThrowIfCancellationRequested();
-
-            Flush();
-
-            return ValueTaskFactory.CompletedTask;
-        }
-
-        public void Flush()
-        {
-            if (!_session.IsOptedIn)
-                return;
-
-            foreach (var log in _aggregatingLogs.Values)
-            {
-                log.Flush();
-            }
+            log.Flush();
         }
     }
 }

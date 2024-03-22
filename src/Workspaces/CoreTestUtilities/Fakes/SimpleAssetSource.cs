@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -18,11 +19,11 @@ namespace Microsoft.CodeAnalysis.Remote.Testing;
 internal sealed class SimpleAssetSource(ISerializerService serializerService, IReadOnlyDictionary<Checksum, object> map) : IAssetSource
 {
     public ValueTask<ImmutableArray<object>> GetAssetsAsync(
-        Checksum solutionChecksum, AssetHint assetHint, ImmutableArray<Checksum> checksums, ISerializerService deserializerService, CancellationToken cancellationToken)
+        Checksum solutionChecksum, AssetHint assetHint, ReadOnlyMemory<Checksum> checksums, ISerializerService deserializerService, CancellationToken cancellationToken)
     {
         var results = new List<object>();
 
-        foreach (var checksum in checksums)
+        foreach (var checksum in checksums.Span)
         {
             Contract.ThrowIfFalse(map.TryGetValue(checksum, out var data));
 

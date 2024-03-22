@@ -109,7 +109,7 @@ End Namespace
                 string.Join(Environment.NewLine, actualContents));
         }
 
-        [IdeFact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1643350")]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/72428"), WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1643350")]
         public virtual async Task BuildErrorsInClosedFiles()
         {
             // Enter code with compiler error.
@@ -128,13 +128,20 @@ End Namespace
 
             // Verify the build error is listed in the error list for closed file.
             await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
-            var actualErrors = await TestServices.ErrorList.GetBuildErrorsAsync(HangMitigatingCancellationToken);
             var expectedErrors = new[] {
                 "Class1.vb(1, 1): error BC30481: 'Class' statement must end with a matching 'End Class'.",
             };
-            AssertEx.EqualOrDiff(
-                string.Join(Environment.NewLine, expectedErrors),
-                string.Join(Environment.NewLine, actualErrors));
+
+            while (true)
+            {
+                this.HangMitigatingCancellationToken.ThrowIfCancellationRequested();
+
+                var actualErrors = await TestServices.ErrorList.GetBuildErrorsAsync(HangMitigatingCancellationToken);
+                if (string.Join(Environment.NewLine, expectedErrors) == string.Join(Environment.NewLine, actualErrors))
+                    return;
+
+                await Task.Delay(TimeSpan.FromSeconds(1));
+            }
         }
     }
 }

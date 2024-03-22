@@ -13,41 +13,40 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Options.EditorConfig
+namespace Microsoft.CodeAnalysis.Options.EditorConfig;
+
+[Export(typeof(EditorConfigOptionsGenerator)), Shared]
+internal class EditorConfigOptionsGenerator
 {
-    [Export(typeof(EditorConfigOptionsGenerator)), Shared]
-    internal class EditorConfigOptionsGenerator
+    private readonly IEnumerable<Lazy<IEditorConfigOptionsCollection, LanguageMetadata>> _editorConfigGenerators;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public EditorConfigOptionsGenerator(
+        [ImportMany] IEnumerable<Lazy<IEditorConfigOptionsCollection, LanguageMetadata>> generators)
     {
-        private readonly IEnumerable<Lazy<IEditorConfigOptionsCollection, LanguageMetadata>> _editorConfigGenerators;
+        _editorConfigGenerators = generators;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorConfigOptionsGenerator(
-            [ImportMany] IEnumerable<Lazy<IEditorConfigOptionsCollection, LanguageMetadata>> generators)
+    public ImmutableArray<(string feature, ImmutableArray<IOption2> options)> GetDefaultOptions(string language)
+    {
+        var builder = ArrayBuilder<(string, ImmutableArray<IOption2>)>.GetInstance();
+        builder.AddRange(GetLanguageAgnosticEditorConfigOptions());
+
+        foreach (var generator in _editorConfigGenerators)
         {
-            _editorConfigGenerators = generators;
-        }
-
-        public ImmutableArray<(string feature, ImmutableArray<IOption2> options)> GetDefaultOptions(string language)
-        {
-            var builder = ArrayBuilder<(string, ImmutableArray<IOption2>)>.GetInstance();
-            builder.AddRange(GetLanguageAgnosticEditorConfigOptions());
-
-            foreach (var generator in _editorConfigGenerators)
+            if (generator.Metadata.Language == language)
             {
-                if (generator.Metadata.Language == language)
-                {
-                    builder.AddRange(generator.Value.GetOptions());
-                }
+                builder.AddRange(generator.Value.GetOptions());
             }
-
-            return builder.ToImmutableAndFree();
         }
 
-        internal static IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetLanguageAgnosticEditorConfigOptions()
-        {
-            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.Options);
-            yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.AddRange(CodeStyleOptions2.AllOptions));
-        }
+        return builder.ToImmutableAndFree();
+    }
+
+    internal static IEnumerable<(string feature, ImmutableArray<IOption2> options)> GetLanguageAgnosticEditorConfigOptions()
+    {
+        yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.Options);
+        yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.AddRange(CodeStyleOptions2.AllOptions));
     }
 }

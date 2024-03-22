@@ -4,72 +4,71 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Internal.Log
+namespace Microsoft.CodeAnalysis.Internal.Log;
+
+internal sealed class StatisticLogAggregator<TKey> : AbstractLogAggregator<TKey, StatisticLogAggregator<TKey>.StatisticCounter> where TKey : notnull
 {
-    internal sealed class StatisticLogAggregator<TKey> : AbstractLogAggregator<TKey, StatisticLogAggregator<TKey>.StatisticCounter> where TKey : notnull
+    protected override StatisticCounter CreateCounter()
+        => new();
+
+    public void AddDataPoint(TKey key, int value)
     {
-        protected override StatisticCounter CreateCounter()
-            => new();
+        var counter = GetCounter(key);
+        counter.AddDataPoint(value);
+    }
 
-        public void AddDataPoint(TKey key, int value)
+    public void AddDataPoint(TKey key, TimeSpan timeSpan)
+    {
+        AddDataPoint(key, (int)timeSpan.TotalMilliseconds);
+    }
+
+    public StatisticResult GetStatisticResult(TKey key)
+    {
+        if (TryGetCounter(key, out var counter))
         {
-            var counter = GetCounter(key);
-            counter.AddDataPoint(value);
+            return counter.GetStatisticResult();
         }
 
-        public void AddDataPoint(TKey key, TimeSpan timeSpan)
-        {
-            AddDataPoint(key, (int)timeSpan.TotalMilliseconds);
-        }
+        return default;
+    }
 
-        public StatisticResult GetStatisticResult(TKey key)
+    internal sealed class StatisticCounter
+    {
+        private readonly object _lock = new();
+        private int _count;
+        private int _maximum;
+        private int _mininum;
+
+        private int _total;
+
+        public void AddDataPoint(int value)
         {
-            if (TryGetCounter(key, out var counter))
+            lock (_lock)
             {
-                return counter.GetStatisticResult();
+                if (_count == 0 || value > _maximum)
+                {
+                    _maximum = value;
+                }
+
+                if (_count == 0 || value < _mininum)
+                {
+                    _mininum = value;
+                }
+
+                _count++;
+                _total += value;
             }
-
-            return default;
         }
 
-        internal sealed class StatisticCounter
+        public StatisticResult GetStatisticResult()
         {
-            private readonly object _lock = new();
-            private int _count;
-            private int _maximum;
-            private int _mininum;
-
-            private int _total;
-
-            public void AddDataPoint(int value)
+            if (_count == 0)
             {
-                lock (_lock)
-                {
-                    if (_count == 0 || value > _maximum)
-                    {
-                        _maximum = value;
-                    }
-
-                    if (_count == 0 || value < _mininum)
-                    {
-                        _mininum = value;
-                    }
-
-                    _count++;
-                    _total += value;
-                }
+                return default;
             }
-
-            public StatisticResult GetStatisticResult()
+            else
             {
-                if (_count == 0)
-                {
-                    return default;
-                }
-                else
-                {
-                    return new StatisticResult(_maximum, _mininum, mean: (double)_total / _count, range: _maximum - _mininum, mode: null, count: _count);
-                }
+                return new StatisticResult(_maximum, _mininum, mean: (double)_total / _count, range: _maximum - _mininum, mode: null, count: _count);
             }
         }
     }
