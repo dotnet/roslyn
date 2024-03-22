@@ -13,16 +13,6 @@ namespace Microsoft.CodeAnalysis.Copilot;
 
 internal static class Extensions
 {
-    public static async Task<ImmutableArray<DiagnosticData>> GetCachedCopilotDiagnosticsAsync(this TextDocument document, TextSpan span, CancellationToken cancellationToken)
-    {
-        var diagnostics = await document.GetCachedCopilotDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
-        if (diagnostics.IsEmpty)
-            return [];
-
-        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        return diagnostics.WhereAsArray(diagnostic => span.IntersectsWith(diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)));
-    }
-
     public static async Task<ImmutableArray<DiagnosticData>> GetCachedCopilotDiagnosticsAsync(this TextDocument document, CancellationToken cancellationToken)
     {
         if (document is not Document sourceDocument)

@@ -255,20 +255,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CodeActionRequestPriority? priority,
             CancellationToken cancellationToken)
         {
-            if (!(priority is null or CodeActionRequestPriority.Low)
-                || document is not Document sourceDocument)
-            {
+            if (!(priority is null or CodeActionRequestPriority.Low) || document is not Document sourceDocument)
                 return [];
+
+            var diagnostics = await document.GetCachedCopilotDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+            if (diagnostics.IsEmpty)
+                return [];
+
+            if (sourceDocument.SupportsSyntaxTree)
+            {
+                // Expand the fixable range for Copilot diagnostics to containing method.
+                // TODO: Share the below code with other places we compute containing method for Copilot analysis.
+                var root = await sourceDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxFacts = sourceDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+                var containingMethod = syntaxFacts.GetContainingMethodDeclaration(root, range.Start, useFullSpan: false);
+                range = containingMethod?.Span ?? range;
             }
 
-            // Expand the fixable range for Copilot diagnostics to containing method.
-            // TODO: Share the below code with other places we compute containing method for Copilot analysis.
-            var root = await sourceDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = sourceDocument.GetRequiredLanguageService<ISyntaxFactsService>();
-            var containingMethod = syntaxFacts.GetContainingMethodDeclaration(root, range.Start, useFullSpan: false);
-            range = containingMethod?.Span ?? range;
-
-            return await document.GetCachedCopilotDiagnosticsAsync(range, cancellationToken).ConfigureAwait(false);
+            var text = await sourceDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            return diagnostics.WhereAsArray(diagnostic => range.IntersectsWith(diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)));
         }
 
         private static SortedDictionary<TextSpan, List<DiagnosticData>> ConvertToMap(
