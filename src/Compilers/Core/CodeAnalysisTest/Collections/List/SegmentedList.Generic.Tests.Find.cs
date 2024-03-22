@@ -296,9 +296,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void Find_ListSizeCanBeChanged()
         {
-            List<int> expectedList = new List<int>() { 1, 2, 3, 2, 3, 4, 3, 4, 4 };
+            SegmentedList<int> expectedList = new SegmentedList<int>() { 1, 2, 3, 2, 3, 4, 3, 4, 4 };
 
-            List<int> list = new List<int>() { 1, 2, 3 };
+            SegmentedList<int> list = new SegmentedList<int>() { 1, 2, 3 };
 
             int result = list.Find(i =>
             {
@@ -1010,10 +1010,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void FindAll_ListSizeCanBeChanged()
         {
-            List<int> list = new List<int>() { 1, 2, 3 };
-            List<int> expectedList = new List<int>() { 1, 2, 3, 2, 3, 4, 3, 4, 4 };
+            SegmentedList<int> list = new SegmentedList<int>() { 1, 2, 3 };
+            SegmentedList<int> expectedList = new SegmentedList<int>() { 1, 2, 3, 2, 3, 4, 3, 4, 4 };
 
-            List<int> result = list.FindAll(i =>
+            SegmentedList<int> result = list.FindAll(i =>
             {
                 if (i < 4)
                 {

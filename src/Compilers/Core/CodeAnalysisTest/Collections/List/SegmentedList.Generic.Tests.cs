@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
     {
         #region IList<T> Helper Methods
         protected override bool Enumerator_Empty_UsesSingletonInstance => true;
-        protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => true;
+        protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => false;
         protected override bool Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException => false;
 
         protected override IList<T> GenericIListFactory()

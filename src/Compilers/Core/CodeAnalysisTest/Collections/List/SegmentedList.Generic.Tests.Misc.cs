@@ -230,8 +230,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void BasicSliceSyntax(T[] items, int index, int count)
             {
-                List<T> list = new List<T>(items);
-                List<T> range = list[index..(index + count)];
+                SegmentedList<T> list = new SegmentedList<T>(items);
+                SegmentedList<T> range = list[index..(index + count)];
 
                 //ensure range is good
                 for (int i = 0; i < count; i++)
