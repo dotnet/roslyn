@@ -148,7 +148,7 @@ stages:
   # Like template `eng/common/templates/jobs/source-build.yml`
   - job: Source_Build_Managed
     displayName: Source-Build (Managed)
-      container: 'mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream9'
+    container: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream9
     pool:
       ${{ if eq(variables['System.TeamProject'], 'public') }}:
         name: $[replace(replace(eq(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'true'), True, 'NetCore-Svc-Public' ), False, 'NetCore-Public')]
