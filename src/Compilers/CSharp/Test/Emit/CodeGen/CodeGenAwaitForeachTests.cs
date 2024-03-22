@@ -1695,12 +1695,26 @@ class C
             => throw null;
         public int Current { get => throw null; }
     }
-}";
-            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
+}" + s_IAsyncEnumerable;
+
+            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
-                // (6,32): error CS8177: Async methods cannot have by-reference locals
+                // (6,32): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         await foreach (ref var i in new C())
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "i").WithLocation(6, 32));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(6, 32));
+
+            var expectedDiagnostics = new[]
+            {
+                // (6,37): error CS1510: A ref or out value must be an assignable variable
+                //         await foreach (ref var i in new C())
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new C()").WithLocation(6, 37)
+            };
+
+            comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilationWithTasksExtensions(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);

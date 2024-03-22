@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     /// <remarks>
     /// Data flow analysis is used to calculate the locals. At yield/await we mark all variables as "unassigned".
-    /// When a read from an unassigned variables is reported we add the variable to the captured set.
+    /// When a read from an unassigned variable is reported we add the variable to the captured set.
     /// "this" parameter is captured if a reference to "this", "base" or an instance field is encountered.
     /// Variables used in finally also need to be captured if there is a yield in the corresponding try block.
     /// </remarks>
@@ -76,7 +76,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var kvp in lazyDisallowedCaptures)
                 {
                     var variable = kvp.Key;
-                    var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
+
+                    var (type, refKindPrefix) = variable switch
+                    {
+                        LocalSymbol l => (l.Type, l.RefKind.ToLocalPrefix()),
+                        ParameterSymbol p => (p.Type, p.RefKind.ToParameterPrefix()),
+                        _ => throw ExceptionUtilities.UnexpectedValue(variable),
+                    };
 
                     if (variable is SynthesizedLocal local && local.SynthesizedKind == SynthesizedLocalKind.Spill)
                     {
@@ -87,8 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         foreach (CSharpSyntaxNode syntax in kvp.Value)
                         {
-                            // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
-                            diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, type);
+                            // CS4013: Instance of type '{0}{1}' cannot be used inside an anonymous function, query expression, iterator block or async method
+                            diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, refKindPrefix, type);
                         }
                     }
                 }
@@ -195,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CaptureVariable(Symbol variable, SyntaxNode syntax)
         {
             var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
-            if (type.IsRestrictedType())
+            if (type.IsRestrictedType() || variable is LocalSymbol { RefKind: not RefKind.None, IsCompilerGenerated: false })
             {
                 (_lazyDisallowedCaptures ??= new MultiDictionary<Symbol, SyntaxNode>()).Add(variable, syntax);
             }

@@ -1127,12 +1127,8 @@ class C2
         }
     }
 }";
-            var compilation = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }).VerifyDiagnostics(
-                // (16,22): error CS4012: Parameters or locals of type 'S1' cannot be declared in async methods or async lambda expressions.
-                //         await using (S1 c = new S1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "S1").WithArguments("S1").WithLocation(16, 22)
-                );
-
+            var compilation = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Fact]

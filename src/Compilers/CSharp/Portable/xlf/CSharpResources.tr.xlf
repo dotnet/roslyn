@@ -267,14 +267,9 @@
         <target state="translated">{0} kayıt üyesi, {1} konumsal parametresi ile eşleşmesi için {2} türünde okunabilir bir örnek özelliği veya alan olmalıdır.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefLock">
-        <source>A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</source>
-        <target state="new">A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefUsing">
-        <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
-        <target state="translated">'{0}' türündeki bir using deyimi kaynağı, asenkron yöntemlerde veya asenkron lambda ifadelerinde kullanılamaz.</target>
+      <trans-unit id="ERR_BadSpecialByRefParameter">
+        <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
+        <target state="new">Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRefInUsingAlias">
@@ -2345,6 +2340,11 @@
       <trans-unit id="IDS_FeatureRefReadonlyParameters">
         <source>ref readonly parameters</source>
         <target state="translated">ref salt okunur parametreleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefUnsafeInIteratorAsync">
+        <source>Ref and unsafe in async and iterator methods</source>
+        <target state="new">Ref and unsafe in async and iterator methods</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -10599,16 +10599,6 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
         <target state="translated">Async' değiştiricisi yalnızca gövdesi olan metotlarda kullanılabilir.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefLocal">
-        <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
-        <target state="translated">Zaman uyumsuz yöntemlerde veya zaman uyumsuz lambda ifadelerinde '{0}' türündeki parametreler veya yerel öğeler bildirilemez.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</source>
-        <target state="translated">'{0}' bir başvuru yapısı olduğundan foreach deyimi, async veya iterator metotlarındaki '{0}' türü numaralandırıcılar üzerinde çalışamaz.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync">
         <source>Security attribute '{0}' cannot be applied to an Async method.</source>
         <target state="translated">'{0}' güvenlik özniteliği bir Async yöntemine uygulanamaz.</target>
@@ -11127,8 +11117,8 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpecialByRefInLambda">
-        <source>Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</source>
-        <target state="translated">'{0}' türünün örneği iç içe geçmiş bir işlevde, sorgu ifadesinde, yineleyici bloğunda veya zaman uyumsuz bir metotta kullanılamaz</target>
+        <source>Instance of type '{0}{1}' cannot be used inside a nested function, query expression, iterator block or async method</source>
+        <target state="new">Instance of type '{0}{1}' cannot be used inside a nested function, query expression, iterator block or async method</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityAttributeMissingAction">
@@ -12437,16 +12427,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       <trans-unit id="ERR_AnonDelegateCantUseLocal">
         <source>Cannot use ref local '{0}' inside an anonymous method, lambda expression, or query expression</source>
         <target state="translated">'{0}' ref yerel değeri bir anonim metotta, lambda ifadesinde veya sorgu ifadesinde kullanılamaz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by-reference locals</source>
-        <target state="translated">Yineleyiciler başvuruya göre yerel değerlere sahip olamaz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by-reference locals</source>
-        <target state="translated">Zaman uyumsuz metotlar başvuruya göre yerel değerlere sahip olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

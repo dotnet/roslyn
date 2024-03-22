@@ -1327,8 +1327,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // would be hoisted into a closure for an anonymous function, iterator or async method.
                     // We do that during the actual rewrites.
 
-                    // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
-                    Error(diagnostics, ErrorCode.ERR_SpecialByRefInLambda, node, runtimeArgumentHandleType);
+                    // CS4013: Instance of type '{0}{1}' cannot be used inside an anonymous function, query expression, iterator block or async method
+                    Error(diagnostics, ErrorCode.ERR_SpecialByRefInLambda, node, string.Empty, runtimeArgumentHandleType);
 
                     hasError = true;
                 }
@@ -1998,7 +1998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 if (localSymbol.RefKind == RefKind.None && type.IsRestrictedType(ignoreSpanLikeTypes: true))
                                 {
-                                    Error(diagnostics, ErrorCode.ERR_SpecialByRefInLambda, node, type);
+                                    Error(diagnostics, ErrorCode.ERR_SpecialByRefInLambda, node, string.Empty, type);
                                 }
                                 else
                                 {
@@ -2042,7 +2042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else if (parameter.Type.IsRestrictedType(ignoreSpanLikeTypes: true))
                                 {
-                                    Error(diagnostics, ErrorCode.ERR_SpecialByRefInLambda, node, parameter.Type);
+                                    Error(diagnostics, ErrorCode.ERR_SpecialByRefInLambda, node, string.Empty, parameter.Type);
                                 }
                                 else
                                 {
@@ -3182,21 +3182,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Reports an error when a bad special by-ref local was found.
         /// </summary>
-        internal static void CheckRestrictedTypeInAsyncMethod(Symbol containingSymbol, TypeSymbol type, BindingDiagnosticBag diagnostics, SyntaxNode syntax, ErrorCode errorCode = ErrorCode.ERR_BadSpecialByRefLocal)
+        internal static void CheckRestrictedTypeInAsyncMethod(Symbol containingSymbol, TypeSymbol type, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
-            Debug.Assert(errorCode is ErrorCode.ERR_BadSpecialByRefLocal or ErrorCode.ERR_BadSpecialByRefUsing or ErrorCode.ERR_BadSpecialByRefLock);
             if (containingSymbol.Kind == SymbolKind.Method
                 && ((MethodSymbol)containingSymbol).IsAsync
                 && type.IsRestrictedType())
             {
-                if (errorCode == ErrorCode.ERR_BadSpecialByRefLock)
-                {
-                    Error(diagnostics, errorCode, syntax);
-                }
-                else
-                {
-                    Error(diagnostics, errorCode, syntax, type);
-                }
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRefUnsafeInIteratorAsync, diagnostics);
             }
         }
 

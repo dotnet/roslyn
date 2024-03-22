@@ -1861,9 +1861,6 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (4,7): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
-            // lock (new Lock())
-            Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(4, 7),
             // (6,5): error CS1996: Cannot await in the body of a lock statement
             //     await Task.Yield();
             Diagnostic(ErrorCode.ERR_BadAwaitInLock, "await Task.Yield()").WithLocation(6, 5));
@@ -1875,19 +1872,137 @@ public class LockTests : CSharpTestBase
         var source = """
             #pragma warning disable 1998 // async method lacks 'await' operators
             using System.Threading;
+            using System.Threading.Tasks;
 
             class C
             {
-                async void M()
+                static async Task Main()
                 {
-                    lock (new Lock()) { }
+                    lock (new Lock()) { System.Console.Write("L"); }
                 }
             }
             """;
-        CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (8,15): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
-            //         lock (new Lock()) { }
-            Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(8, 15));
+        var expectedOutput = "ELD";
+        var verifier = CompileAndVerify([source, LockTypeDefinition], options: TestOptions.DebugExe,
+            expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", """
+            {
+              // Code size       94 (0x5e)
+              .maxstack  2
+              .locals init (int V_0,
+                            System.Threading.Lock.Scope V_1,
+                            System.Exception V_2)
+              IL_0000:  ldarg.0
+              IL_0001:  ldfld      "int C.<Main>d__0.<>1__state"
+              IL_0006:  stloc.0
+              .try
+              {
+                IL_0007:  nop
+                IL_0008:  newobj     "System.Threading.Lock..ctor()"
+                IL_000d:  call       "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
+                IL_0012:  stloc.1
+                .try
+                {
+                  IL_0013:  nop
+                  IL_0014:  ldstr      "L"
+                  IL_0019:  call       "void System.Console.Write(string)"
+                  IL_001e:  nop
+                  IL_001f:  nop
+                  IL_0020:  leave.s    IL_002f
+                }
+                finally
+                {
+                  IL_0022:  ldloc.0
+                  IL_0023:  ldc.i4.0
+                  IL_0024:  bge.s      IL_002e
+                  IL_0026:  ldloca.s   V_1
+                  IL_0028:  call       "void System.Threading.Lock.Scope.Dispose()"
+                  IL_002d:  nop
+                  IL_002e:  endfinally
+                }
+                IL_002f:  leave.s    IL_0049
+              }
+              catch System.Exception
+              {
+                IL_0031:  stloc.2
+                IL_0032:  ldarg.0
+                IL_0033:  ldc.i4.s   -2
+                IL_0035:  stfld      "int C.<Main>d__0.<>1__state"
+                IL_003a:  ldarg.0
+                IL_003b:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+                IL_0040:  ldloc.2
+                IL_0041:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+                IL_0046:  nop
+                IL_0047:  leave.s    IL_005d
+              }
+              IL_0049:  ldarg.0
+              IL_004a:  ldc.i4.s   -2
+              IL_004c:  stfld      "int C.<Main>d__0.<>1__state"
+              IL_0051:  ldarg.0
+              IL_0052:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+              IL_0057:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+              IL_005c:  nop
+              IL_005d:  ret
+            }
+            """);
+
+        verifier = CompileAndVerify([source, LockTypeDefinition], options: TestOptions.ReleaseExe,
+            expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", """
+            {
+              // Code size       87 (0x57)
+              .maxstack  2
+              .locals init (int V_0,
+                            System.Threading.Lock.Scope V_1,
+                            System.Exception V_2)
+              IL_0000:  ldarg.0
+              IL_0001:  ldfld      "int C.<Main>d__0.<>1__state"
+              IL_0006:  stloc.0
+              .try
+              {
+                IL_0007:  newobj     "System.Threading.Lock..ctor()"
+                IL_000c:  call       "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
+                IL_0011:  stloc.1
+                .try
+                {
+                  IL_0012:  ldstr      "L"
+                  IL_0017:  call       "void System.Console.Write(string)"
+                  IL_001c:  leave.s    IL_002a
+                }
+                finally
+                {
+                  IL_001e:  ldloc.0
+                  IL_001f:  ldc.i4.0
+                  IL_0020:  bge.s      IL_0029
+                  IL_0022:  ldloca.s   V_1
+                  IL_0024:  call       "void System.Threading.Lock.Scope.Dispose()"
+                  IL_0029:  endfinally
+                }
+                IL_002a:  leave.s    IL_0043
+              }
+              catch System.Exception
+              {
+                IL_002c:  stloc.2
+                IL_002d:  ldarg.0
+                IL_002e:  ldc.i4.s   -2
+                IL_0030:  stfld      "int C.<Main>d__0.<>1__state"
+                IL_0035:  ldarg.0
+                IL_0036:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+                IL_003b:  ldloc.2
+                IL_003c:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+                IL_0041:  leave.s    IL_0056
+              }
+              IL_0043:  ldarg.0
+              IL_0044:  ldc.i4.s   -2
+              IL_0046:  stfld      "int C.<Main>d__0.<>1__state"
+              IL_004b:  ldarg.0
+              IL_004c:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+              IL_0051:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+              IL_0056:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -1899,17 +2014,443 @@ public class LockTests : CSharpTestBase
 
             class C
             {
-                async void M()
+                static async Task Main()
                 {
                     await Task.Yield();
-                    lock (new Lock()) { }
+                    lock (new Lock()) { System.Console.Write("L"); }
                 }
             }
             """;
-        CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (9,15): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
-            //         lock (new Lock()) { }
-            Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(9, 15));
+        var expectedOutput = "ELD";
+        var verifier = CompileAndVerify([source, LockTypeDefinition], options: TestOptions.DebugExe,
+            expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", """
+            {
+              // Code size      199 (0xc7)
+              .maxstack  3
+              .locals init (int V_0,
+                            System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                            System.Runtime.CompilerServices.YieldAwaitable V_2,
+                            C.<Main>d__0 V_3,
+                            System.Threading.Lock.Scope V_4,
+                            System.Exception V_5)
+              IL_0000:  ldarg.0
+              IL_0001:  ldfld      "int C.<Main>d__0.<>1__state"
+              IL_0006:  stloc.0
+              .try
+              {
+                IL_0007:  ldloc.0
+                IL_0008:  brfalse.s  IL_000c
+                IL_000a:  br.s       IL_000e
+                IL_000c:  br.s       IL_004a
+                IL_000e:  nop
+                IL_000f:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                IL_0014:  stloc.2
+                IL_0015:  ldloca.s   V_2
+                IL_0017:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                IL_001c:  stloc.1
+                IL_001d:  ldloca.s   V_1
+                IL_001f:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                IL_0024:  brtrue.s   IL_0066
+                IL_0026:  ldarg.0
+                IL_0027:  ldc.i4.0
+                IL_0028:  dup
+                IL_0029:  stloc.0
+                IL_002a:  stfld      "int C.<Main>d__0.<>1__state"
+                IL_002f:  ldarg.0
+                IL_0030:  ldloc.1
+                IL_0031:  stfld      "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Main>d__0.<>u__1"
+                IL_0036:  ldarg.0
+                IL_0037:  stloc.3
+                IL_0038:  ldarg.0
+                IL_0039:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+                IL_003e:  ldloca.s   V_1
+                IL_0040:  ldloca.s   V_3
+                IL_0042:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<Main>d__0)"
+                IL_0047:  nop
+                IL_0048:  leave.s    IL_00c6
+                IL_004a:  ldarg.0
+                IL_004b:  ldfld      "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Main>d__0.<>u__1"
+                IL_0050:  stloc.1
+                IL_0051:  ldarg.0
+                IL_0052:  ldflda     "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Main>d__0.<>u__1"
+                IL_0057:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+                IL_005d:  ldarg.0
+                IL_005e:  ldc.i4.m1
+                IL_005f:  dup
+                IL_0060:  stloc.0
+                IL_0061:  stfld      "int C.<Main>d__0.<>1__state"
+                IL_0066:  ldloca.s   V_1
+                IL_0068:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                IL_006d:  nop
+                IL_006e:  newobj     "System.Threading.Lock..ctor()"
+                IL_0073:  call       "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
+                IL_0078:  stloc.s    V_4
+                .try
+                {
+                  IL_007a:  nop
+                  IL_007b:  ldstr      "L"
+                  IL_0080:  call       "void System.Console.Write(string)"
+                  IL_0085:  nop
+                  IL_0086:  nop
+                  IL_0087:  leave.s    IL_0096
+                }
+                finally
+                {
+                  IL_0089:  ldloc.0
+                  IL_008a:  ldc.i4.0
+                  IL_008b:  bge.s      IL_0095
+                  IL_008d:  ldloca.s   V_4
+                  IL_008f:  call       "void System.Threading.Lock.Scope.Dispose()"
+                  IL_0094:  nop
+                  IL_0095:  endfinally
+                }
+                IL_0096:  leave.s    IL_00b2
+              }
+              catch System.Exception
+              {
+                IL_0098:  stloc.s    V_5
+                IL_009a:  ldarg.0
+                IL_009b:  ldc.i4.s   -2
+                IL_009d:  stfld      "int C.<Main>d__0.<>1__state"
+                IL_00a2:  ldarg.0
+                IL_00a3:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+                IL_00a8:  ldloc.s    V_5
+                IL_00aa:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+                IL_00af:  nop
+                IL_00b0:  leave.s    IL_00c6
+              }
+              IL_00b2:  ldarg.0
+              IL_00b3:  ldc.i4.s   -2
+              IL_00b5:  stfld      "int C.<Main>d__0.<>1__state"
+              IL_00ba:  ldarg.0
+              IL_00bb:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+              IL_00c0:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+              IL_00c5:  nop
+              IL_00c6:  ret
+            }
+            """);
+
+        verifier = CompileAndVerify([source, LockTypeDefinition], options: TestOptions.ReleaseExe,
+            expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", """
+            {
+              // Code size      182 (0xb6)
+              .maxstack  3
+              .locals init (int V_0,
+                            System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                            System.Runtime.CompilerServices.YieldAwaitable V_2,
+                            System.Threading.Lock.Scope V_3,
+                            System.Exception V_4)
+              IL_0000:  ldarg.0
+              IL_0001:  ldfld      "int C.<Main>d__0.<>1__state"
+              IL_0006:  stloc.0
+              .try
+              {
+                IL_0007:  ldloc.0
+                IL_0008:  brfalse.s  IL_0041
+                IL_000a:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                IL_000f:  stloc.2
+                IL_0010:  ldloca.s   V_2
+                IL_0012:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                IL_0017:  stloc.1
+                IL_0018:  ldloca.s   V_1
+                IL_001a:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                IL_001f:  brtrue.s   IL_005d
+                IL_0021:  ldarg.0
+                IL_0022:  ldc.i4.0
+                IL_0023:  dup
+                IL_0024:  stloc.0
+                IL_0025:  stfld      "int C.<Main>d__0.<>1__state"
+                IL_002a:  ldarg.0
+                IL_002b:  ldloc.1
+                IL_002c:  stfld      "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Main>d__0.<>u__1"
+                IL_0031:  ldarg.0
+                IL_0032:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+                IL_0037:  ldloca.s   V_1
+                IL_0039:  ldarg.0
+                IL_003a:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<Main>d__0)"
+                IL_003f:  leave.s    IL_00b5
+                IL_0041:  ldarg.0
+                IL_0042:  ldfld      "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Main>d__0.<>u__1"
+                IL_0047:  stloc.1
+                IL_0048:  ldarg.0
+                IL_0049:  ldflda     "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Main>d__0.<>u__1"
+                IL_004e:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+                IL_0054:  ldarg.0
+                IL_0055:  ldc.i4.m1
+                IL_0056:  dup
+                IL_0057:  stloc.0
+                IL_0058:  stfld      "int C.<Main>d__0.<>1__state"
+                IL_005d:  ldloca.s   V_1
+                IL_005f:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                IL_0064:  newobj     "System.Threading.Lock..ctor()"
+                IL_0069:  call       "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
+                IL_006e:  stloc.3
+                .try
+                {
+                  IL_006f:  ldstr      "L"
+                  IL_0074:  call       "void System.Console.Write(string)"
+                  IL_0079:  leave.s    IL_0087
+                }
+                finally
+                {
+                  IL_007b:  ldloc.0
+                  IL_007c:  ldc.i4.0
+                  IL_007d:  bge.s      IL_0086
+                  IL_007f:  ldloca.s   V_3
+                  IL_0081:  call       "void System.Threading.Lock.Scope.Dispose()"
+                  IL_0086:  endfinally
+                }
+                IL_0087:  leave.s    IL_00a2
+              }
+              catch System.Exception
+              {
+                IL_0089:  stloc.s    V_4
+                IL_008b:  ldarg.0
+                IL_008c:  ldc.i4.s   -2
+                IL_008e:  stfld      "int C.<Main>d__0.<>1__state"
+                IL_0093:  ldarg.0
+                IL_0094:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+                IL_0099:  ldloc.s    V_4
+                IL_009b:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+                IL_00a0:  leave.s    IL_00b5
+              }
+              IL_00a2:  ldarg.0
+              IL_00a3:  ldc.i4.s   -2
+              IL_00a5:  stfld      "int C.<Main>d__0.<>1__state"
+              IL_00aa:  ldarg.0
+              IL_00ab:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+              IL_00b0:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+              IL_00b5:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void AsyncMethod_AwaitResource()
+    {
+        var source = """
+            #pragma warning disable 1998 // async method lacks 'await' operators
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                static async Task Main()
+                {
+                    lock (await GetLock()) { System.Console.Write("L"); }
+                }
+
+                static async Task<Lock> GetLock() => new Lock();
+            }
+            """;
+        var expectedOutput = "ELD";
+        var verifier = CompileAndVerify([source, LockTypeDefinition], options: TestOptions.DebugExe,
+            expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", """
+            {
+              // Code size      211 (0xd3)
+              .maxstack  3
+              .locals init (int V_0,
+                            System.Threading.Lock.Scope V_1,
+                            System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock> V_2,
+                            C.<Main>d__0 V_3,
+                            System.Exception V_4)
+              IL_0000:  ldarg.0
+              IL_0001:  ldfld      "int C.<Main>d__0.<>1__state"
+              IL_0006:  stloc.0
+              .try
+              {
+                IL_0007:  ldloc.0
+                IL_0008:  brfalse.s  IL_000c
+                IL_000a:  br.s       IL_000e
+                IL_000c:  br.s       IL_004a
+                IL_000e:  nop
+                IL_000f:  call       "System.Threading.Tasks.Task<System.Threading.Lock> C.GetLock()"
+                IL_0014:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock> System.Threading.Tasks.Task<System.Threading.Lock>.GetAwaiter()"
+                IL_0019:  stloc.2
+                IL_001a:  ldloca.s   V_2
+                IL_001c:  call       "bool System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock>.IsCompleted.get"
+                IL_0021:  brtrue.s   IL_0066
+                IL_0023:  ldarg.0
+                IL_0024:  ldc.i4.0
+                IL_0025:  dup
+                IL_0026:  stloc.0
+                IL_0027:  stfld      "int C.<Main>d__0.<>1__state"
+                IL_002c:  ldarg.0
+                IL_002d:  ldloc.2
+                IL_002e:  stfld      "System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock> C.<Main>d__0.<>u__1"
+                IL_0033:  ldarg.0
+                IL_0034:  stloc.3
+                IL_0035:  ldarg.0
+                IL_0036:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+                IL_003b:  ldloca.s   V_2
+                IL_003d:  ldloca.s   V_3
+                IL_003f:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock>, C.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock>, ref C.<Main>d__0)"
+                IL_0044:  nop
+                IL_0045:  leave      IL_00d2
+                IL_004a:  ldarg.0
+                IL_004b:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock> C.<Main>d__0.<>u__1"
+                IL_0050:  stloc.2
+                IL_0051:  ldarg.0
+                IL_0052:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock> C.<Main>d__0.<>u__1"
+                IL_0057:  initobj    "System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock>"
+                IL_005d:  ldarg.0
+                IL_005e:  ldc.i4.m1
+                IL_005f:  dup
+                IL_0060:  stloc.0
+                IL_0061:  stfld      "int C.<Main>d__0.<>1__state"
+                IL_0066:  ldarg.0
+                IL_0067:  ldloca.s   V_2
+                IL_0069:  call       "System.Threading.Lock System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock>.GetResult()"
+                IL_006e:  stfld      "System.Threading.Lock C.<Main>d__0.<>s__1"
+                IL_0073:  ldarg.0
+                IL_0074:  ldfld      "System.Threading.Lock C.<Main>d__0.<>s__1"
+                IL_0079:  callvirt   "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
+                IL_007e:  stloc.1
+                IL_007f:  ldarg.0
+                IL_0080:  ldnull
+                IL_0081:  stfld      "System.Threading.Lock C.<Main>d__0.<>s__1"
+                .try
+                {
+                  IL_0086:  nop
+                  IL_0087:  ldstr      "L"
+                  IL_008c:  call       "void System.Console.Write(string)"
+                  IL_0091:  nop
+                  IL_0092:  nop
+                  IL_0093:  leave.s    IL_00a2
+                }
+                finally
+                {
+                  IL_0095:  ldloc.0
+                  IL_0096:  ldc.i4.0
+                  IL_0097:  bge.s      IL_00a1
+                  IL_0099:  ldloca.s   V_1
+                  IL_009b:  call       "void System.Threading.Lock.Scope.Dispose()"
+                  IL_00a0:  nop
+                  IL_00a1:  endfinally
+                }
+                IL_00a2:  leave.s    IL_00be
+              }
+              catch System.Exception
+              {
+                IL_00a4:  stloc.s    V_4
+                IL_00a6:  ldarg.0
+                IL_00a7:  ldc.i4.s   -2
+                IL_00a9:  stfld      "int C.<Main>d__0.<>1__state"
+                IL_00ae:  ldarg.0
+                IL_00af:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+                IL_00b4:  ldloc.s    V_4
+                IL_00b6:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+                IL_00bb:  nop
+                IL_00bc:  leave.s    IL_00d2
+              }
+              IL_00be:  ldarg.0
+              IL_00bf:  ldc.i4.s   -2
+              IL_00c1:  stfld      "int C.<Main>d__0.<>1__state"
+              IL_00c6:  ldarg.0
+              IL_00c7:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+              IL_00cc:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+              IL_00d1:  nop
+              IL_00d2:  ret
+            }
+            """);
+
+        verifier = CompileAndVerify([source, LockTypeDefinition], options: TestOptions.ReleaseExe,
+            expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", """
+            {
+              // Code size      172 (0xac)
+              .maxstack  3
+              .locals init (int V_0,
+                            System.Threading.Lock.Scope V_1,
+                            System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock> V_2,
+                            System.Exception V_3)
+              IL_0000:  ldarg.0
+              IL_0001:  ldfld      "int C.<Main>d__0.<>1__state"
+              IL_0006:  stloc.0
+              .try
+              {
+                IL_0007:  ldloc.0
+                IL_0008:  brfalse.s  IL_003e
+                IL_000a:  call       "System.Threading.Tasks.Task<System.Threading.Lock> C.GetLock()"
+                IL_000f:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock> System.Threading.Tasks.Task<System.Threading.Lock>.GetAwaiter()"
+                IL_0014:  stloc.2
+                IL_0015:  ldloca.s   V_2
+                IL_0017:  call       "bool System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock>.IsCompleted.get"
+                IL_001c:  brtrue.s   IL_005a
+                IL_001e:  ldarg.0
+                IL_001f:  ldc.i4.0
+                IL_0020:  dup
+                IL_0021:  stloc.0
+                IL_0022:  stfld      "int C.<Main>d__0.<>1__state"
+                IL_0027:  ldarg.0
+                IL_0028:  ldloc.2
+                IL_0029:  stfld      "System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock> C.<Main>d__0.<>u__1"
+                IL_002e:  ldarg.0
+                IL_002f:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+                IL_0034:  ldloca.s   V_2
+                IL_0036:  ldarg.0
+                IL_0037:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock>, C.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock>, ref C.<Main>d__0)"
+                IL_003c:  leave.s    IL_00ab
+                IL_003e:  ldarg.0
+                IL_003f:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock> C.<Main>d__0.<>u__1"
+                IL_0044:  stloc.2
+                IL_0045:  ldarg.0
+                IL_0046:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock> C.<Main>d__0.<>u__1"
+                IL_004b:  initobj    "System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock>"
+                IL_0051:  ldarg.0
+                IL_0052:  ldc.i4.m1
+                IL_0053:  dup
+                IL_0054:  stloc.0
+                IL_0055:  stfld      "int C.<Main>d__0.<>1__state"
+                IL_005a:  ldloca.s   V_2
+                IL_005c:  call       "System.Threading.Lock System.Runtime.CompilerServices.TaskAwaiter<System.Threading.Lock>.GetResult()"
+                IL_0061:  callvirt   "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
+                IL_0066:  stloc.1
+                .try
+                {
+                  IL_0067:  ldstr      "L"
+                  IL_006c:  call       "void System.Console.Write(string)"
+                  IL_0071:  leave.s    IL_007f
+                }
+                finally
+                {
+                  IL_0073:  ldloc.0
+                  IL_0074:  ldc.i4.0
+                  IL_0075:  bge.s      IL_007e
+                  IL_0077:  ldloca.s   V_1
+                  IL_0079:  call       "void System.Threading.Lock.Scope.Dispose()"
+                  IL_007e:  endfinally
+                }
+                IL_007f:  leave.s    IL_0098
+              }
+              catch System.Exception
+              {
+                IL_0081:  stloc.3
+                IL_0082:  ldarg.0
+                IL_0083:  ldc.i4.s   -2
+                IL_0085:  stfld      "int C.<Main>d__0.<>1__state"
+                IL_008a:  ldarg.0
+                IL_008b:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+                IL_0090:  ldloc.3
+                IL_0091:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+                IL_0096:  leave.s    IL_00ab
+              }
+              IL_0098:  ldarg.0
+              IL_0099:  ldc.i4.s   -2
+              IL_009b:  stfld      "int C.<Main>d__0.<>1__state"
+              IL_00a0:  ldarg.0
+              IL_00a1:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
+              IL_00a6:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+              IL_00ab:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -1921,15 +2462,132 @@ public class LockTests : CSharpTestBase
 
             async void local()
             {
-                lock (new Lock()) { }
+                lock (new Lock()) { System.Console.Write("L"); }
             }
 
             local();
             """;
-        CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (6,11): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
-            //     lock (new Lock()) { }
-            Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(6, 11));
+        var expectedOutput = "ELD";
+        var verifier = CompileAndVerify([source, LockTypeDefinition], options: TestOptions.DebugExe,
+            expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.<<<Main>$>g__local|0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", """
+            {
+              // Code size       94 (0x5e)
+              .maxstack  2
+              .locals init (int V_0,
+                            System.Threading.Lock.Scope V_1,
+                            System.Exception V_2)
+              IL_0000:  ldarg.0
+              IL_0001:  ldfld      "int Program.<<<Main>$>g__local|0_0>d.<>1__state"
+              IL_0006:  stloc.0
+              .try
+              {
+                IL_0007:  nop
+                IL_0008:  newobj     "System.Threading.Lock..ctor()"
+                IL_000d:  call       "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
+                IL_0012:  stloc.1
+                .try
+                {
+                  IL_0013:  nop
+                  IL_0014:  ldstr      "L"
+                  IL_0019:  call       "void System.Console.Write(string)"
+                  IL_001e:  nop
+                  IL_001f:  nop
+                  IL_0020:  leave.s    IL_002f
+                }
+                finally
+                {
+                  IL_0022:  ldloc.0
+                  IL_0023:  ldc.i4.0
+                  IL_0024:  bge.s      IL_002e
+                  IL_0026:  ldloca.s   V_1
+                  IL_0028:  call       "void System.Threading.Lock.Scope.Dispose()"
+                  IL_002d:  nop
+                  IL_002e:  endfinally
+                }
+                IL_002f:  leave.s    IL_0049
+              }
+              catch System.Exception
+              {
+                IL_0031:  stloc.2
+                IL_0032:  ldarg.0
+                IL_0033:  ldc.i4.s   -2
+                IL_0035:  stfld      "int Program.<<<Main>$>g__local|0_0>d.<>1__state"
+                IL_003a:  ldarg.0
+                IL_003b:  ldflda     "System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program.<<<Main>$>g__local|0_0>d.<>t__builder"
+                IL_0040:  ldloc.2
+                IL_0041:  call       "void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)"
+                IL_0046:  nop
+                IL_0047:  leave.s    IL_005d
+              }
+              IL_0049:  ldarg.0
+              IL_004a:  ldc.i4.s   -2
+              IL_004c:  stfld      "int Program.<<<Main>$>g__local|0_0>d.<>1__state"
+              IL_0051:  ldarg.0
+              IL_0052:  ldflda     "System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program.<<<Main>$>g__local|0_0>d.<>t__builder"
+              IL_0057:  call       "void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()"
+              IL_005c:  nop
+              IL_005d:  ret
+            }
+            """);
+
+        verifier = CompileAndVerify([source, LockTypeDefinition], options: TestOptions.ReleaseExe,
+            expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.<<<Main>$>g__local|0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", """
+            {
+              // Code size       87 (0x57)
+              .maxstack  2
+              .locals init (int V_0,
+                            System.Threading.Lock.Scope V_1,
+                            System.Exception V_2)
+              IL_0000:  ldarg.0
+              IL_0001:  ldfld      "int Program.<<<Main>$>g__local|0_0>d.<>1__state"
+              IL_0006:  stloc.0
+              .try
+              {
+                IL_0007:  newobj     "System.Threading.Lock..ctor()"
+                IL_000c:  call       "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
+                IL_0011:  stloc.1
+                .try
+                {
+                  IL_0012:  ldstr      "L"
+                  IL_0017:  call       "void System.Console.Write(string)"
+                  IL_001c:  leave.s    IL_002a
+                }
+                finally
+                {
+                  IL_001e:  ldloc.0
+                  IL_001f:  ldc.i4.0
+                  IL_0020:  bge.s      IL_0029
+                  IL_0022:  ldloca.s   V_1
+                  IL_0024:  call       "void System.Threading.Lock.Scope.Dispose()"
+                  IL_0029:  endfinally
+                }
+                IL_002a:  leave.s    IL_0043
+              }
+              catch System.Exception
+              {
+                IL_002c:  stloc.2
+                IL_002d:  ldarg.0
+                IL_002e:  ldc.i4.s   -2
+                IL_0030:  stfld      "int Program.<<<Main>$>g__local|0_0>d.<>1__state"
+                IL_0035:  ldarg.0
+                IL_0036:  ldflda     "System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program.<<<Main>$>g__local|0_0>d.<>t__builder"
+                IL_003b:  ldloc.2
+                IL_003c:  call       "void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)"
+                IL_0041:  leave.s    IL_0056
+              }
+              IL_0043:  ldarg.0
+              IL_0044:  ldc.i4.s   -2
+              IL_0046:  stfld      "int Program.<<<Main>$>g__local|0_0>d.<>1__state"
+              IL_004b:  ldarg.0
+              IL_004c:  ldflda     "System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program.<<<Main>$>g__local|0_0>d.<>t__builder"
+              IL_0051:  call       "void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()"
+              IL_0056:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -1939,18 +2597,220 @@ public class LockTests : CSharpTestBase
             using System.Threading;
             using System.Threading.Tasks;
 
-            async void local()
+            async Task local()
             {
                 await Task.Yield();
-                lock (new Lock()) { }
+                lock (new Lock()) { System.Console.Write("L"); }
             }
 
-            local();
+            await local();
             """;
-        CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (7,11): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
-            //     lock (new Lock()) { }
-            Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(7, 11));
+        var expectedOutput = "ELD";
+        var verifier = CompileAndVerify([source, LockTypeDefinition], options: TestOptions.DebugExe,
+            expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.<<<Main>$>g__local|0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", """
+            {
+              // Code size      199 (0xc7)
+              .maxstack  3
+              .locals init (int V_0,
+                            System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                            System.Runtime.CompilerServices.YieldAwaitable V_2,
+                            Program.<<<Main>$>g__local|0_0>d V_3,
+                            System.Threading.Lock.Scope V_4,
+                            System.Exception V_5)
+              IL_0000:  ldarg.0
+              IL_0001:  ldfld      "int Program.<<<Main>$>g__local|0_0>d.<>1__state"
+              IL_0006:  stloc.0
+              .try
+              {
+                IL_0007:  ldloc.0
+                IL_0008:  brfalse.s  IL_000c
+                IL_000a:  br.s       IL_000e
+                IL_000c:  br.s       IL_004a
+                IL_000e:  nop
+                IL_000f:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                IL_0014:  stloc.2
+                IL_0015:  ldloca.s   V_2
+                IL_0017:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                IL_001c:  stloc.1
+                IL_001d:  ldloca.s   V_1
+                IL_001f:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                IL_0024:  brtrue.s   IL_0066
+                IL_0026:  ldarg.0
+                IL_0027:  ldc.i4.0
+                IL_0028:  dup
+                IL_0029:  stloc.0
+                IL_002a:  stfld      "int Program.<<<Main>$>g__local|0_0>d.<>1__state"
+                IL_002f:  ldarg.0
+                IL_0030:  ldloc.1
+                IL_0031:  stfld      "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<<<Main>$>g__local|0_0>d.<>u__1"
+                IL_0036:  ldarg.0
+                IL_0037:  stloc.3
+                IL_0038:  ldarg.0
+                IL_0039:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<<Main>$>g__local|0_0>d.<>t__builder"
+                IL_003e:  ldloca.s   V_1
+                IL_0040:  ldloca.s   V_3
+                IL_0042:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<<<Main>$>g__local|0_0>d>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<<<Main>$>g__local|0_0>d)"
+                IL_0047:  nop
+                IL_0048:  leave.s    IL_00c6
+                IL_004a:  ldarg.0
+                IL_004b:  ldfld      "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<<<Main>$>g__local|0_0>d.<>u__1"
+                IL_0050:  stloc.1
+                IL_0051:  ldarg.0
+                IL_0052:  ldflda     "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<<<Main>$>g__local|0_0>d.<>u__1"
+                IL_0057:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+                IL_005d:  ldarg.0
+                IL_005e:  ldc.i4.m1
+                IL_005f:  dup
+                IL_0060:  stloc.0
+                IL_0061:  stfld      "int Program.<<<Main>$>g__local|0_0>d.<>1__state"
+                IL_0066:  ldloca.s   V_1
+                IL_0068:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                IL_006d:  nop
+                IL_006e:  newobj     "System.Threading.Lock..ctor()"
+                IL_0073:  call       "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
+                IL_0078:  stloc.s    V_4
+                .try
+                {
+                  IL_007a:  nop
+                  IL_007b:  ldstr      "L"
+                  IL_0080:  call       "void System.Console.Write(string)"
+                  IL_0085:  nop
+                  IL_0086:  nop
+                  IL_0087:  leave.s    IL_0096
+                }
+                finally
+                {
+                  IL_0089:  ldloc.0
+                  IL_008a:  ldc.i4.0
+                  IL_008b:  bge.s      IL_0095
+                  IL_008d:  ldloca.s   V_4
+                  IL_008f:  call       "void System.Threading.Lock.Scope.Dispose()"
+                  IL_0094:  nop
+                  IL_0095:  endfinally
+                }
+                IL_0096:  leave.s    IL_00b2
+              }
+              catch System.Exception
+              {
+                IL_0098:  stloc.s    V_5
+                IL_009a:  ldarg.0
+                IL_009b:  ldc.i4.s   -2
+                IL_009d:  stfld      "int Program.<<<Main>$>g__local|0_0>d.<>1__state"
+                IL_00a2:  ldarg.0
+                IL_00a3:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<<Main>$>g__local|0_0>d.<>t__builder"
+                IL_00a8:  ldloc.s    V_5
+                IL_00aa:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+                IL_00af:  nop
+                IL_00b0:  leave.s    IL_00c6
+              }
+              IL_00b2:  ldarg.0
+              IL_00b3:  ldc.i4.s   -2
+              IL_00b5:  stfld      "int Program.<<<Main>$>g__local|0_0>d.<>1__state"
+              IL_00ba:  ldarg.0
+              IL_00bb:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<<Main>$>g__local|0_0>d.<>t__builder"
+              IL_00c0:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+              IL_00c5:  nop
+              IL_00c6:  ret
+            }
+            """);
+
+        verifier = CompileAndVerify([source, LockTypeDefinition], options: TestOptions.ReleaseExe,
+            expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.<<<Main>$>g__local|0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", """
+            {
+              // Code size      182 (0xb6)
+              .maxstack  3
+              .locals init (int V_0,
+                            System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                            System.Runtime.CompilerServices.YieldAwaitable V_2,
+                            System.Threading.Lock.Scope V_3,
+                            System.Exception V_4)
+              IL_0000:  ldarg.0
+              IL_0001:  ldfld      "int Program.<<<Main>$>g__local|0_0>d.<>1__state"
+              IL_0006:  stloc.0
+              .try
+              {
+                IL_0007:  ldloc.0
+                IL_0008:  brfalse.s  IL_0041
+                IL_000a:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                IL_000f:  stloc.2
+                IL_0010:  ldloca.s   V_2
+                IL_0012:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                IL_0017:  stloc.1
+                IL_0018:  ldloca.s   V_1
+                IL_001a:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                IL_001f:  brtrue.s   IL_005d
+                IL_0021:  ldarg.0
+                IL_0022:  ldc.i4.0
+                IL_0023:  dup
+                IL_0024:  stloc.0
+                IL_0025:  stfld      "int Program.<<<Main>$>g__local|0_0>d.<>1__state"
+                IL_002a:  ldarg.0
+                IL_002b:  ldloc.1
+                IL_002c:  stfld      "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<<<Main>$>g__local|0_0>d.<>u__1"
+                IL_0031:  ldarg.0
+                IL_0032:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<<Main>$>g__local|0_0>d.<>t__builder"
+                IL_0037:  ldloca.s   V_1
+                IL_0039:  ldarg.0
+                IL_003a:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<<<Main>$>g__local|0_0>d>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<<<Main>$>g__local|0_0>d)"
+                IL_003f:  leave.s    IL_00b5
+                IL_0041:  ldarg.0
+                IL_0042:  ldfld      "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<<<Main>$>g__local|0_0>d.<>u__1"
+                IL_0047:  stloc.1
+                IL_0048:  ldarg.0
+                IL_0049:  ldflda     "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<<<Main>$>g__local|0_0>d.<>u__1"
+                IL_004e:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+                IL_0054:  ldarg.0
+                IL_0055:  ldc.i4.m1
+                IL_0056:  dup
+                IL_0057:  stloc.0
+                IL_0058:  stfld      "int Program.<<<Main>$>g__local|0_0>d.<>1__state"
+                IL_005d:  ldloca.s   V_1
+                IL_005f:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                IL_0064:  newobj     "System.Threading.Lock..ctor()"
+                IL_0069:  call       "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
+                IL_006e:  stloc.3
+                .try
+                {
+                  IL_006f:  ldstr      "L"
+                  IL_0074:  call       "void System.Console.Write(string)"
+                  IL_0079:  leave.s    IL_0087
+                }
+                finally
+                {
+                  IL_007b:  ldloc.0
+                  IL_007c:  ldc.i4.0
+                  IL_007d:  bge.s      IL_0086
+                  IL_007f:  ldloca.s   V_3
+                  IL_0081:  call       "void System.Threading.Lock.Scope.Dispose()"
+                  IL_0086:  endfinally
+                }
+                IL_0087:  leave.s    IL_00a2
+              }
+              catch System.Exception
+              {
+                IL_0089:  stloc.s    V_4
+                IL_008b:  ldarg.0
+                IL_008c:  ldc.i4.s   -2
+                IL_008e:  stfld      "int Program.<<<Main>$>g__local|0_0>d.<>1__state"
+                IL_0093:  ldarg.0
+                IL_0094:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<<Main>$>g__local|0_0>d.<>t__builder"
+                IL_0099:  ldloc.s    V_4
+                IL_009b:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+                IL_00a0:  leave.s    IL_00b5
+              }
+              IL_00a2:  ldarg.0
+              IL_00a3:  ldc.i4.s   -2
+              IL_00a5:  stfld      "int Program.<<<Main>$>g__local|0_0>d.<>1__state"
+              IL_00aa:  ldarg.0
+              IL_00ab:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<<Main>$>g__local|0_0>d.<>t__builder"
+              IL_00b0:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+              IL_00b5:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -1962,13 +2822,132 @@ public class LockTests : CSharpTestBase
 
             var lam = async () =>
             {
-                lock (new Lock()) { }
+                lock (new Lock()) { System.Console.Write("L"); }
             };
+
+            await lam();
             """;
-        CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (6,11): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
-            //     lock (new Lock()) { }
-            Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(6, 11));
+        var expectedOutput = "ELD";
+        var verifier = CompileAndVerify([source, LockTypeDefinition], options: TestOptions.DebugExe,
+            expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.<>c.<<<Main>$>b__0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", """
+            {
+              // Code size       94 (0x5e)
+              .maxstack  2
+              .locals init (int V_0,
+                            System.Threading.Lock.Scope V_1,
+                            System.Exception V_2)
+              IL_0000:  ldarg.0
+              IL_0001:  ldfld      "int Program.<>c.<<<Main>$>b__0_0>d.<>1__state"
+              IL_0006:  stloc.0
+              .try
+              {
+                IL_0007:  nop
+                IL_0008:  newobj     "System.Threading.Lock..ctor()"
+                IL_000d:  call       "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
+                IL_0012:  stloc.1
+                .try
+                {
+                  IL_0013:  nop
+                  IL_0014:  ldstr      "L"
+                  IL_0019:  call       "void System.Console.Write(string)"
+                  IL_001e:  nop
+                  IL_001f:  nop
+                  IL_0020:  leave.s    IL_002f
+                }
+                finally
+                {
+                  IL_0022:  ldloc.0
+                  IL_0023:  ldc.i4.0
+                  IL_0024:  bge.s      IL_002e
+                  IL_0026:  ldloca.s   V_1
+                  IL_0028:  call       "void System.Threading.Lock.Scope.Dispose()"
+                  IL_002d:  nop
+                  IL_002e:  endfinally
+                }
+                IL_002f:  leave.s    IL_0049
+              }
+              catch System.Exception
+              {
+                IL_0031:  stloc.2
+                IL_0032:  ldarg.0
+                IL_0033:  ldc.i4.s   -2
+                IL_0035:  stfld      "int Program.<>c.<<<Main>$>b__0_0>d.<>1__state"
+                IL_003a:  ldarg.0
+                IL_003b:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<>c.<<<Main>$>b__0_0>d.<>t__builder"
+                IL_0040:  ldloc.2
+                IL_0041:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+                IL_0046:  nop
+                IL_0047:  leave.s    IL_005d
+              }
+              IL_0049:  ldarg.0
+              IL_004a:  ldc.i4.s   -2
+              IL_004c:  stfld      "int Program.<>c.<<<Main>$>b__0_0>d.<>1__state"
+              IL_0051:  ldarg.0
+              IL_0052:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<>c.<<<Main>$>b__0_0>d.<>t__builder"
+              IL_0057:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+              IL_005c:  nop
+              IL_005d:  ret
+            }
+            """);
+
+        verifier = CompileAndVerify([source, LockTypeDefinition], options: TestOptions.ReleaseExe,
+            expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.<>c.<<<Main>$>b__0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", """
+            {
+              // Code size       87 (0x57)
+              .maxstack  2
+              .locals init (int V_0,
+                            System.Threading.Lock.Scope V_1,
+                            System.Exception V_2)
+              IL_0000:  ldarg.0
+              IL_0001:  ldfld      "int Program.<>c.<<<Main>$>b__0_0>d.<>1__state"
+              IL_0006:  stloc.0
+              .try
+              {
+                IL_0007:  newobj     "System.Threading.Lock..ctor()"
+                IL_000c:  call       "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
+                IL_0011:  stloc.1
+                .try
+                {
+                  IL_0012:  ldstr      "L"
+                  IL_0017:  call       "void System.Console.Write(string)"
+                  IL_001c:  leave.s    IL_002a
+                }
+                finally
+                {
+                  IL_001e:  ldloc.0
+                  IL_001f:  ldc.i4.0
+                  IL_0020:  bge.s      IL_0029
+                  IL_0022:  ldloca.s   V_1
+                  IL_0024:  call       "void System.Threading.Lock.Scope.Dispose()"
+                  IL_0029:  endfinally
+                }
+                IL_002a:  leave.s    IL_0043
+              }
+              catch System.Exception
+              {
+                IL_002c:  stloc.2
+                IL_002d:  ldarg.0
+                IL_002e:  ldc.i4.s   -2
+                IL_0030:  stfld      "int Program.<>c.<<<Main>$>b__0_0>d.<>1__state"
+                IL_0035:  ldarg.0
+                IL_0036:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<>c.<<<Main>$>b__0_0>d.<>t__builder"
+                IL_003b:  ldloc.2
+                IL_003c:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+                IL_0041:  leave.s    IL_0056
+              }
+              IL_0043:  ldarg.0
+              IL_0044:  ldc.i4.s   -2
+              IL_0046:  stfld      "int Program.<>c.<<<Main>$>b__0_0>d.<>1__state"
+              IL_004b:  ldarg.0
+              IL_004c:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<>c.<<<Main>$>b__0_0>d.<>t__builder"
+              IL_0051:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+              IL_0056:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -1981,13 +2960,217 @@ public class LockTests : CSharpTestBase
             var lam = async () =>
             {
                 await Task.Yield();
-                lock (new Lock()) { }
+                lock (new Lock()) { System.Console.Write("L"); }
             };
+
+            await lam();
             """;
-        CreateCompilation([source, LockTypeDefinition]).VerifyDiagnostics(
-            // (7,11): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
-            //     lock (new Lock()) { }
-            Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(7, 11));
+        var expectedOutput = "ELD";
+        var verifier = CompileAndVerify([source, LockTypeDefinition], options: TestOptions.DebugExe,
+            expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.<>c.<<<Main>$>b__0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", """
+            {
+              // Code size      199 (0xc7)
+              .maxstack  3
+              .locals init (int V_0,
+                            System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                            System.Runtime.CompilerServices.YieldAwaitable V_2,
+                            Program.<>c.<<<Main>$>b__0_0>d V_3,
+                            System.Threading.Lock.Scope V_4,
+                            System.Exception V_5)
+              IL_0000:  ldarg.0
+              IL_0001:  ldfld      "int Program.<>c.<<<Main>$>b__0_0>d.<>1__state"
+              IL_0006:  stloc.0
+              .try
+              {
+                IL_0007:  ldloc.0
+                IL_0008:  brfalse.s  IL_000c
+                IL_000a:  br.s       IL_000e
+                IL_000c:  br.s       IL_004a
+                IL_000e:  nop
+                IL_000f:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                IL_0014:  stloc.2
+                IL_0015:  ldloca.s   V_2
+                IL_0017:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                IL_001c:  stloc.1
+                IL_001d:  ldloca.s   V_1
+                IL_001f:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                IL_0024:  brtrue.s   IL_0066
+                IL_0026:  ldarg.0
+                IL_0027:  ldc.i4.0
+                IL_0028:  dup
+                IL_0029:  stloc.0
+                IL_002a:  stfld      "int Program.<>c.<<<Main>$>b__0_0>d.<>1__state"
+                IL_002f:  ldarg.0
+                IL_0030:  ldloc.1
+                IL_0031:  stfld      "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<>c.<<<Main>$>b__0_0>d.<>u__1"
+                IL_0036:  ldarg.0
+                IL_0037:  stloc.3
+                IL_0038:  ldarg.0
+                IL_0039:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<>c.<<<Main>$>b__0_0>d.<>t__builder"
+                IL_003e:  ldloca.s   V_1
+                IL_0040:  ldloca.s   V_3
+                IL_0042:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<>c.<<<Main>$>b__0_0>d>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<>c.<<<Main>$>b__0_0>d)"
+                IL_0047:  nop
+                IL_0048:  leave.s    IL_00c6
+                IL_004a:  ldarg.0
+                IL_004b:  ldfld      "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<>c.<<<Main>$>b__0_0>d.<>u__1"
+                IL_0050:  stloc.1
+                IL_0051:  ldarg.0
+                IL_0052:  ldflda     "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<>c.<<<Main>$>b__0_0>d.<>u__1"
+                IL_0057:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+                IL_005d:  ldarg.0
+                IL_005e:  ldc.i4.m1
+                IL_005f:  dup
+                IL_0060:  stloc.0
+                IL_0061:  stfld      "int Program.<>c.<<<Main>$>b__0_0>d.<>1__state"
+                IL_0066:  ldloca.s   V_1
+                IL_0068:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                IL_006d:  nop
+                IL_006e:  newobj     "System.Threading.Lock..ctor()"
+                IL_0073:  call       "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
+                IL_0078:  stloc.s    V_4
+                .try
+                {
+                  IL_007a:  nop
+                  IL_007b:  ldstr      "L"
+                  IL_0080:  call       "void System.Console.Write(string)"
+                  IL_0085:  nop
+                  IL_0086:  nop
+                  IL_0087:  leave.s    IL_0096
+                }
+                finally
+                {
+                  IL_0089:  ldloc.0
+                  IL_008a:  ldc.i4.0
+                  IL_008b:  bge.s      IL_0095
+                  IL_008d:  ldloca.s   V_4
+                  IL_008f:  call       "void System.Threading.Lock.Scope.Dispose()"
+                  IL_0094:  nop
+                  IL_0095:  endfinally
+                }
+                IL_0096:  leave.s    IL_00b2
+              }
+              catch System.Exception
+              {
+                IL_0098:  stloc.s    V_5
+                IL_009a:  ldarg.0
+                IL_009b:  ldc.i4.s   -2
+                IL_009d:  stfld      "int Program.<>c.<<<Main>$>b__0_0>d.<>1__state"
+                IL_00a2:  ldarg.0
+                IL_00a3:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<>c.<<<Main>$>b__0_0>d.<>t__builder"
+                IL_00a8:  ldloc.s    V_5
+                IL_00aa:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+                IL_00af:  nop
+                IL_00b0:  leave.s    IL_00c6
+              }
+              IL_00b2:  ldarg.0
+              IL_00b3:  ldc.i4.s   -2
+              IL_00b5:  stfld      "int Program.<>c.<<<Main>$>b__0_0>d.<>1__state"
+              IL_00ba:  ldarg.0
+              IL_00bb:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<>c.<<<Main>$>b__0_0>d.<>t__builder"
+              IL_00c0:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+              IL_00c5:  nop
+              IL_00c6:  ret
+            }
+            """);
+
+        verifier = CompileAndVerify([source, LockTypeDefinition], options: TestOptions.ReleaseExe,
+            expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.<>c.<<<Main>$>b__0_0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", """
+            {
+              // Code size      182 (0xb6)
+              .maxstack  3
+              .locals init (int V_0,
+                            System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                            System.Runtime.CompilerServices.YieldAwaitable V_2,
+                            System.Threading.Lock.Scope V_3,
+                            System.Exception V_4)
+              IL_0000:  ldarg.0
+              IL_0001:  ldfld      "int Program.<>c.<<<Main>$>b__0_0>d.<>1__state"
+              IL_0006:  stloc.0
+              .try
+              {
+                IL_0007:  ldloc.0
+                IL_0008:  brfalse.s  IL_0041
+                IL_000a:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                IL_000f:  stloc.2
+                IL_0010:  ldloca.s   V_2
+                IL_0012:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                IL_0017:  stloc.1
+                IL_0018:  ldloca.s   V_1
+                IL_001a:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                IL_001f:  brtrue.s   IL_005d
+                IL_0021:  ldarg.0
+                IL_0022:  ldc.i4.0
+                IL_0023:  dup
+                IL_0024:  stloc.0
+                IL_0025:  stfld      "int Program.<>c.<<<Main>$>b__0_0>d.<>1__state"
+                IL_002a:  ldarg.0
+                IL_002b:  ldloc.1
+                IL_002c:  stfld      "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<>c.<<<Main>$>b__0_0>d.<>u__1"
+                IL_0031:  ldarg.0
+                IL_0032:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<>c.<<<Main>$>b__0_0>d.<>t__builder"
+                IL_0037:  ldloca.s   V_1
+                IL_0039:  ldarg.0
+                IL_003a:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<>c.<<<Main>$>b__0_0>d>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<>c.<<<Main>$>b__0_0>d)"
+                IL_003f:  leave.s    IL_00b5
+                IL_0041:  ldarg.0
+                IL_0042:  ldfld      "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<>c.<<<Main>$>b__0_0>d.<>u__1"
+                IL_0047:  stloc.1
+                IL_0048:  ldarg.0
+                IL_0049:  ldflda     "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<>c.<<<Main>$>b__0_0>d.<>u__1"
+                IL_004e:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+                IL_0054:  ldarg.0
+                IL_0055:  ldc.i4.m1
+                IL_0056:  dup
+                IL_0057:  stloc.0
+                IL_0058:  stfld      "int Program.<>c.<<<Main>$>b__0_0>d.<>1__state"
+                IL_005d:  ldloca.s   V_1
+                IL_005f:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                IL_0064:  newobj     "System.Threading.Lock..ctor()"
+                IL_0069:  call       "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
+                IL_006e:  stloc.3
+                .try
+                {
+                  IL_006f:  ldstr      "L"
+                  IL_0074:  call       "void System.Console.Write(string)"
+                  IL_0079:  leave.s    IL_0087
+                }
+                finally
+                {
+                  IL_007b:  ldloc.0
+                  IL_007c:  ldc.i4.0
+                  IL_007d:  bge.s      IL_0086
+                  IL_007f:  ldloca.s   V_3
+                  IL_0081:  call       "void System.Threading.Lock.Scope.Dispose()"
+                  IL_0086:  endfinally
+                }
+                IL_0087:  leave.s    IL_00a2
+              }
+              catch System.Exception
+              {
+                IL_0089:  stloc.s    V_4
+                IL_008b:  ldarg.0
+                IL_008c:  ldc.i4.s   -2
+                IL_008e:  stfld      "int Program.<>c.<<<Main>$>b__0_0>d.<>1__state"
+                IL_0093:  ldarg.0
+                IL_0094:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<>c.<<<Main>$>b__0_0>d.<>t__builder"
+                IL_0099:  ldloc.s    V_4
+                IL_009b:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+                IL_00a0:  leave.s    IL_00b5
+              }
+              IL_00a2:  ldarg.0
+              IL_00a3:  ldc.i4.s   -2
+              IL_00a5:  stfld      "int Program.<>c.<<<Main>$>b__0_0>d.<>1__state"
+              IL_00aa:  ldarg.0
+              IL_00ab:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<>c.<<<Main>$>b__0_0>d.<>t__builder"
+              IL_00b0:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+              IL_00b5:  ret
+            }
+            """);
     }
 
     [Fact]
@@ -2013,7 +3196,46 @@ public class LockTests : CSharpTestBase
         CreateCompilation([source, LockTypeDefinition]).VerifyEmitDiagnostics(
             // (9,15): error CS4013: Instance of type 'Lock.Scope' cannot be used inside a nested function, query expression, iterator block or async method
             //         lock (new Lock())
-            Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "new Lock()").WithArguments("System.Threading.Lock.Scope").WithLocation(9, 15));
+            Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "new Lock()").WithArguments("", "System.Threading.Lock.Scope").WithLocation(9, 15));
+    }
+
+    [Fact]
+    public void Yield_AroundOnly()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+
+            static class Program
+            {
+                static void Main()
+                {
+                    foreach (var x in M())
+                    {
+                        Console.Write(x);
+                    }
+                }
+
+                static IEnumerable<int> M()
+                {
+                    yield return 1;
+                    lock (new Lock())
+                    {
+                        Console.Write("L");
+                    }
+                    yield return 2;
+                }
+            }
+            """;
+        var expectedOutput = "1ELD2";
+        var verifier = CompileAndVerify([source, LockTypeDefinition], options: TestOptions.ReleaseExe,
+            verify: Verification.FailsILVerify, expectedOutput: expectedOutput);
+        verifier.VerifyDiagnostics();
+
+        verifier = CompileAndVerify([source, LockTypeDefinition], options: TestOptions.DebugExe,
+            verify: Verification.FailsILVerify, expectedOutput: expectedOutput);
+        verifier.VerifyDiagnostics();
     }
 
     [Fact]
@@ -2038,10 +3260,407 @@ public class LockTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilationWithTasksExtensions([source, LockTypeDefinition, AsyncStreamsTypes]).VerifyDiagnostics(
-            // (10,15): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
+        CreateCompilationWithTasksExtensions([source, LockTypeDefinition, AsyncStreamsTypes]).VerifyEmitDiagnostics(
+            // (10,15): error CS4013: Instance of type 'Lock.Scope' cannot be used inside a nested function, query expression, iterator block or async method
             //         lock (new Lock())
-            Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(10, 15));
+            Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "new Lock()").WithArguments("", "System.Threading.Lock.Scope").WithLocation(10, 15));
+    }
+
+    [Fact]
+    public void Yield_Async_AroundOnly()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            static class Program
+            {
+                static async Task Main()
+                {
+                    await foreach (var x in M())
+                    {
+                        Console.Write(x);
+                    }
+                }
+
+                static async IAsyncEnumerable<int> M()
+                {
+                    yield return 1;
+                    lock (new Lock())
+                    {
+                        Console.Write("L");
+                    }
+                    await Task.Yield();
+                    yield return 2;
+                }
+            }
+            """;
+        var expectedOutput = "1ELD2";
+        var comp = CreateCompilationWithTasksExtensions([source, LockTypeDefinition, AsyncStreamsTypes], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", """
+            {
+              // Code size      414 (0x19e)
+              .maxstack  3
+              .locals init (int V_0,
+                            System.Threading.Lock.Scope V_1,
+                            System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_2,
+                            System.Runtime.CompilerServices.YieldAwaitable V_3,
+                            Program.<M>d__1 V_4,
+                            System.Exception V_5)
+              IL_0000:  ldarg.0
+              IL_0001:  ldfld      "int Program.<M>d__1.<>1__state"
+              IL_0006:  stloc.0
+              .try
+              {
+                IL_0007:  ldloc.0
+                IL_0008:  ldc.i4.s   -5
+                IL_000a:  sub
+                IL_000b:  switch    (
+                    IL_002a,
+                    IL_002f,
+                    IL_0031,
+                    IL_0038,
+                    IL_0038,
+                    IL_0033)
+                IL_0028:  br.s       IL_0038
+                IL_002a:  br         IL_0125
+                IL_002f:  br.s       IL_0065
+                IL_0031:  br.s       IL_0038
+                IL_0033:  br         IL_00ee
+                IL_0038:  ldarg.0
+                IL_0039:  ldfld      "bool Program.<M>d__1.<>w__disposeMode"
+                IL_003e:  brfalse.s  IL_0045
+                IL_0040:  leave      IL_0167
+                IL_0045:  ldarg.0
+                IL_0046:  ldc.i4.m1
+                IL_0047:  dup
+                IL_0048:  stloc.0
+                IL_0049:  stfld      "int Program.<M>d__1.<>1__state"
+                IL_004e:  nop
+                IL_004f:  ldarg.0
+                IL_0050:  ldc.i4.1
+                IL_0051:  stfld      "int Program.<M>d__1.<>2__current"
+                IL_0056:  ldarg.0
+                IL_0057:  ldc.i4.s   -4
+                IL_0059:  dup
+                IL_005a:  stloc.0
+                IL_005b:  stfld      "int Program.<M>d__1.<>1__state"
+                IL_0060:  leave      IL_0190
+                IL_0065:  ldarg.0
+                IL_0066:  ldc.i4.m1
+                IL_0067:  dup
+                IL_0068:  stloc.0
+                IL_0069:  stfld      "int Program.<M>d__1.<>1__state"
+                IL_006e:  ldarg.0
+                IL_006f:  ldfld      "bool Program.<M>d__1.<>w__disposeMode"
+                IL_0074:  brfalse.s  IL_007b
+                IL_0076:  leave      IL_0167
+                IL_007b:  newobj     "System.Threading.Lock..ctor()"
+                IL_0080:  call       "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
+                IL_0085:  stloc.1
+                .try
+                {
+                  IL_0086:  nop
+                  IL_0087:  ldstr      "L"
+                  IL_008c:  call       "void System.Console.Write(string)"
+                  IL_0091:  nop
+                  IL_0092:  nop
+                  IL_0093:  leave.s    IL_00a2
+                }
+                finally
+                {
+                  IL_0095:  ldloc.0
+                  IL_0096:  ldc.i4.m1
+                  IL_0097:  bne.un.s   IL_00a1
+                  IL_0099:  ldloca.s   V_1
+                  IL_009b:  call       "void System.Threading.Lock.Scope.Dispose()"
+                  IL_00a0:  nop
+                  IL_00a1:  endfinally
+                }
+                IL_00a2:  ldarg.0
+                IL_00a3:  ldfld      "bool Program.<M>d__1.<>w__disposeMode"
+                IL_00a8:  brfalse.s  IL_00af
+                IL_00aa:  leave      IL_0167
+                IL_00af:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                IL_00b4:  stloc.3
+                IL_00b5:  ldloca.s   V_3
+                IL_00b7:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                IL_00bc:  stloc.2
+                IL_00bd:  ldloca.s   V_2
+                IL_00bf:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                IL_00c4:  brtrue.s   IL_010a
+                IL_00c6:  ldarg.0
+                IL_00c7:  ldc.i4.0
+                IL_00c8:  dup
+                IL_00c9:  stloc.0
+                IL_00ca:  stfld      "int Program.<M>d__1.<>1__state"
+                IL_00cf:  ldarg.0
+                IL_00d0:  ldloc.2
+                IL_00d1:  stfld      "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<M>d__1.<>u__1"
+                IL_00d6:  ldarg.0
+                IL_00d7:  stloc.s    V_4
+                IL_00d9:  ldarg.0
+                IL_00da:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder Program.<M>d__1.<>t__builder"
+                IL_00df:  ldloca.s   V_2
+                IL_00e1:  ldloca.s   V_4
+                IL_00e3:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<M>d__1>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<M>d__1)"
+                IL_00e8:  nop
+                IL_00e9:  leave      IL_019d
+                IL_00ee:  ldarg.0
+                IL_00ef:  ldfld      "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<M>d__1.<>u__1"
+                IL_00f4:  stloc.2
+                IL_00f5:  ldarg.0
+                IL_00f6:  ldflda     "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<M>d__1.<>u__1"
+                IL_00fb:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+                IL_0101:  ldarg.0
+                IL_0102:  ldc.i4.m1
+                IL_0103:  dup
+                IL_0104:  stloc.0
+                IL_0105:  stfld      "int Program.<M>d__1.<>1__state"
+                IL_010a:  ldloca.s   V_2
+                IL_010c:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                IL_0111:  nop
+                IL_0112:  ldarg.0
+                IL_0113:  ldc.i4.2
+                IL_0114:  stfld      "int Program.<M>d__1.<>2__current"
+                IL_0119:  ldarg.0
+                IL_011a:  ldc.i4.s   -5
+                IL_011c:  dup
+                IL_011d:  stloc.0
+                IL_011e:  stfld      "int Program.<M>d__1.<>1__state"
+                IL_0123:  leave.s    IL_0190
+                IL_0125:  ldarg.0
+                IL_0126:  ldc.i4.m1
+                IL_0127:  dup
+                IL_0128:  stloc.0
+                IL_0129:  stfld      "int Program.<M>d__1.<>1__state"
+                IL_012e:  ldarg.0
+                IL_012f:  ldfld      "bool Program.<M>d__1.<>w__disposeMode"
+                IL_0134:  brfalse.s  IL_0138
+                IL_0136:  leave.s    IL_0167
+                IL_0138:  leave.s    IL_0167
+              }
+              catch System.Exception
+              {
+                IL_013a:  stloc.s    V_5
+                IL_013c:  ldarg.0
+                IL_013d:  ldc.i4.s   -2
+                IL_013f:  stfld      "int Program.<M>d__1.<>1__state"
+                IL_0144:  ldarg.0
+                IL_0145:  ldc.i4.0
+                IL_0146:  stfld      "int Program.<M>d__1.<>2__current"
+                IL_014b:  ldarg.0
+                IL_014c:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder Program.<M>d__1.<>t__builder"
+                IL_0151:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+                IL_0156:  nop
+                IL_0157:  ldarg.0
+                IL_0158:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> Program.<M>d__1.<>v__promiseOfValueOrEnd"
+                IL_015d:  ldloc.s    V_5
+                IL_015f:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)"
+                IL_0164:  nop
+                IL_0165:  leave.s    IL_019d
+              }
+              IL_0167:  ldarg.0
+              IL_0168:  ldc.i4.s   -2
+              IL_016a:  stfld      "int Program.<M>d__1.<>1__state"
+              IL_016f:  ldarg.0
+              IL_0170:  ldc.i4.0
+              IL_0171:  stfld      "int Program.<M>d__1.<>2__current"
+              IL_0176:  ldarg.0
+              IL_0177:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder Program.<M>d__1.<>t__builder"
+              IL_017c:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+              IL_0181:  nop
+              IL_0182:  ldarg.0
+              IL_0183:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> Program.<M>d__1.<>v__promiseOfValueOrEnd"
+              IL_0188:  ldc.i4.0
+              IL_0189:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+              IL_018e:  nop
+              IL_018f:  ret
+              IL_0190:  ldarg.0
+              IL_0191:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> Program.<M>d__1.<>v__promiseOfValueOrEnd"
+              IL_0196:  ldc.i4.1
+              IL_0197:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+              IL_019c:  nop
+              IL_019d:  ret
+            }
+            """);
+
+        comp = CreateCompilationWithTasksExtensions([source, LockTypeDefinition, AsyncStreamsTypes], options: TestOptions.ReleaseExe);
+        verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", """
+            {
+              // Code size      383 (0x17f)
+              .maxstack  3
+              .locals init (int V_0,
+                            System.Threading.Lock.Scope V_1,
+                            System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_2,
+                            System.Runtime.CompilerServices.YieldAwaitable V_3,
+                            Program.<M>d__1 V_4,
+                            System.Exception V_5)
+              IL_0000:  ldarg.0
+              IL_0001:  ldfld      "int Program.<M>d__1.<>1__state"
+              IL_0006:  stloc.0
+              .try
+              {
+                IL_0007:  ldloc.0
+                IL_0008:  ldc.i4.s   -5
+                IL_000a:  sub
+                IL_000b:  switch    (
+                    IL_010e,
+                    IL_0054,
+                    IL_0028,
+                    IL_0028,
+                    IL_0028,
+                    IL_00d8)
+                IL_0028:  ldarg.0
+                IL_0029:  ldfld      "bool Program.<M>d__1.<>w__disposeMode"
+                IL_002e:  brfalse.s  IL_0035
+                IL_0030:  leave      IL_014b
+                IL_0035:  ldarg.0
+                IL_0036:  ldc.i4.m1
+                IL_0037:  dup
+                IL_0038:  stloc.0
+                IL_0039:  stfld      "int Program.<M>d__1.<>1__state"
+                IL_003e:  ldarg.0
+                IL_003f:  ldc.i4.1
+                IL_0040:  stfld      "int Program.<M>d__1.<>2__current"
+                IL_0045:  ldarg.0
+                IL_0046:  ldc.i4.s   -4
+                IL_0048:  dup
+                IL_0049:  stloc.0
+                IL_004a:  stfld      "int Program.<M>d__1.<>1__state"
+                IL_004f:  leave      IL_0172
+                IL_0054:  ldarg.0
+                IL_0055:  ldc.i4.m1
+                IL_0056:  dup
+                IL_0057:  stloc.0
+                IL_0058:  stfld      "int Program.<M>d__1.<>1__state"
+                IL_005d:  ldarg.0
+                IL_005e:  ldfld      "bool Program.<M>d__1.<>w__disposeMode"
+                IL_0063:  brfalse.s  IL_006a
+                IL_0065:  leave      IL_014b
+                IL_006a:  newobj     "System.Threading.Lock..ctor()"
+                IL_006f:  call       "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
+                IL_0074:  stloc.1
+                .try
+                {
+                  IL_0075:  ldstr      "L"
+                  IL_007a:  call       "void System.Console.Write(string)"
+                  IL_007f:  leave.s    IL_008d
+                }
+                finally
+                {
+                  IL_0081:  ldloc.0
+                  IL_0082:  ldc.i4.m1
+                  IL_0083:  bne.un.s   IL_008c
+                  IL_0085:  ldloca.s   V_1
+                  IL_0087:  call       "void System.Threading.Lock.Scope.Dispose()"
+                  IL_008c:  endfinally
+                }
+                IL_008d:  ldarg.0
+                IL_008e:  ldfld      "bool Program.<M>d__1.<>w__disposeMode"
+                IL_0093:  brfalse.s  IL_009a
+                IL_0095:  leave      IL_014b
+                IL_009a:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                IL_009f:  stloc.3
+                IL_00a0:  ldloca.s   V_3
+                IL_00a2:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                IL_00a7:  stloc.2
+                IL_00a8:  ldloca.s   V_2
+                IL_00aa:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                IL_00af:  brtrue.s   IL_00f4
+                IL_00b1:  ldarg.0
+                IL_00b2:  ldc.i4.0
+                IL_00b3:  dup
+                IL_00b4:  stloc.0
+                IL_00b5:  stfld      "int Program.<M>d__1.<>1__state"
+                IL_00ba:  ldarg.0
+                IL_00bb:  ldloc.2
+                IL_00bc:  stfld      "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<M>d__1.<>u__1"
+                IL_00c1:  ldarg.0
+                IL_00c2:  stloc.s    V_4
+                IL_00c4:  ldarg.0
+                IL_00c5:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder Program.<M>d__1.<>t__builder"
+                IL_00ca:  ldloca.s   V_2
+                IL_00cc:  ldloca.s   V_4
+                IL_00ce:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<M>d__1>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<M>d__1)"
+                IL_00d3:  leave      IL_017e
+                IL_00d8:  ldarg.0
+                IL_00d9:  ldfld      "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<M>d__1.<>u__1"
+                IL_00de:  stloc.2
+                IL_00df:  ldarg.0
+                IL_00e0:  ldflda     "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<M>d__1.<>u__1"
+                IL_00e5:  initobj    "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter"
+                IL_00eb:  ldarg.0
+                IL_00ec:  ldc.i4.m1
+                IL_00ed:  dup
+                IL_00ee:  stloc.0
+                IL_00ef:  stfld      "int Program.<M>d__1.<>1__state"
+                IL_00f4:  ldloca.s   V_2
+                IL_00f6:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                IL_00fb:  ldarg.0
+                IL_00fc:  ldc.i4.2
+                IL_00fd:  stfld      "int Program.<M>d__1.<>2__current"
+                IL_0102:  ldarg.0
+                IL_0103:  ldc.i4.s   -5
+                IL_0105:  dup
+                IL_0106:  stloc.0
+                IL_0107:  stfld      "int Program.<M>d__1.<>1__state"
+                IL_010c:  leave.s    IL_0172
+                IL_010e:  ldarg.0
+                IL_010f:  ldc.i4.m1
+                IL_0110:  dup
+                IL_0111:  stloc.0
+                IL_0112:  stfld      "int Program.<M>d__1.<>1__state"
+                IL_0117:  ldarg.0
+                IL_0118:  ldfld      "bool Program.<M>d__1.<>w__disposeMode"
+                IL_011d:  pop
+                IL_011e:  leave.s    IL_014b
+              }
+              catch System.Exception
+              {
+                IL_0120:  stloc.s    V_5
+                IL_0122:  ldarg.0
+                IL_0123:  ldc.i4.s   -2
+                IL_0125:  stfld      "int Program.<M>d__1.<>1__state"
+                IL_012a:  ldarg.0
+                IL_012b:  ldc.i4.0
+                IL_012c:  stfld      "int Program.<M>d__1.<>2__current"
+                IL_0131:  ldarg.0
+                IL_0132:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder Program.<M>d__1.<>t__builder"
+                IL_0137:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+                IL_013c:  ldarg.0
+                IL_013d:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> Program.<M>d__1.<>v__promiseOfValueOrEnd"
+                IL_0142:  ldloc.s    V_5
+                IL_0144:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)"
+                IL_0149:  leave.s    IL_017e
+              }
+              IL_014b:  ldarg.0
+              IL_014c:  ldc.i4.s   -2
+              IL_014e:  stfld      "int Program.<M>d__1.<>1__state"
+              IL_0153:  ldarg.0
+              IL_0154:  ldc.i4.0
+              IL_0155:  stfld      "int Program.<M>d__1.<>2__current"
+              IL_015a:  ldarg.0
+              IL_015b:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder Program.<M>d__1.<>t__builder"
+              IL_0160:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+              IL_0165:  ldarg.0
+              IL_0166:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> Program.<M>d__1.<>v__promiseOfValueOrEnd"
+              IL_016b:  ldc.i4.0
+              IL_016c:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+              IL_0171:  ret
+              IL_0172:  ldarg.0
+              IL_0173:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> Program.<M>d__1.<>v__promiseOfValueOrEnd"
+              IL_0178:  ldc.i4.1
+              IL_0179:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+              IL_017e:  ret
+            }
+            """);
     }
 
     [Theory, CombinatorialData]

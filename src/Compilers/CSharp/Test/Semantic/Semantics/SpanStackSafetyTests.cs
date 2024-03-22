@@ -806,11 +806,14 @@ class C1
 
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-            comp.VerifyDiagnostics(
-                // (15,9): error CS8344: foreach statement cannot operate on enumerators of type 'C1.S1' in async or iterator methods because 'C1.S1' is a ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (15,9): error CS4013: Instance of type 'C1.S1' cannot be used inside a nested function, query expression, iterator block or async method
                 //         foreach (var i in obj)
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C1.S1").WithLocation(15, 9)
-            );
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, @"foreach (var i in obj)
+        {
+            await Task.Yield();
+            System.Console.WriteLine(i);
+        }").WithArguments("", "C1.S1").WithLocation(15, 9));
         }
 
         [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
@@ -878,11 +881,7 @@ class C1
 
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-            comp.VerifyDiagnostics(
-                // (33,9): error CS8344: foreach statement cannot operate on enumerators of type 'C1.S1' in async or iterator methods because 'C1.S1' is a ref struct.
-                //         foreach (var i in new C1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C1.S1").WithLocation(33, 9)
-            );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -975,9 +974,9 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (11,48): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
+                // (11,48): error CS4012: Parameters of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
                 //     public static async Task<int> M1(Span<int> arg)
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "arg").WithArguments("System.Span<int>").WithLocation(11, 48)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "arg").WithArguments("System.Span<int>").WithLocation(11, 48)
             );
         }
 
@@ -996,48 +995,77 @@ public class Program
 
     public static async Task<int> M1()
     {
-        Span<int> local1 = default(Span<int>); // 1
-        var local2 = default(Span<int>); // 2
+        Span<int> local1 = default(Span<int>);
+        var local2 = default(Span<int>);
 
         await Task.Yield();
         return 42;
     }
+
+    public static async Task<int> M2()
+    {
+        Span<int> local1 = default(Span<int>);
+        var local2 = default(Span<int>);
+
+        await Task.Yield();
+        return local1.Length; // 1
+    }
+
+    public static async Task<int> M3()
+    {
+        Span<int> local1 = default(Span<int>);
+        var local2 = default(Span<int>);
+
+        await Task.Yield();
+        return local2.Length; // 2
+    }
+
+    public static async Task<int> M4()
+    {
+        Span<int> local1 = default(Span<int>);
+        var local2 = default(Span<int>);
+
+        await Task.Yield();
+        return local1.Length + local2.Length; // 3, 4
+    }
 }
 ";
 
+            var expectedDiagnostics = new[]
+            {
+                // (13,19): warning CS0219: The variable 'local1' is assigned but its value is never used
+                //         Span<int> local1 = default(Span<int>);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local1").WithArguments("local1").WithLocation(13, 19),
+                // (14,13): warning CS0219: The variable 'local2' is assigned but its value is never used
+                //         var local2 = default(Span<int>);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local2").WithArguments("local2").WithLocation(14, 13),
+                // (23,13): warning CS0219: The variable 'local2' is assigned but its value is never used
+                //         var local2 = default(Span<int>);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local2").WithArguments("local2").WithLocation(23, 13),
+                // (26,16): error CS4013: Instance of type 'Span<int>' cannot be used inside a nested function, query expression, iterator block or async method
+                //         return local1.Length; // 1
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "local1").WithArguments("", "System.Span<int>").WithLocation(26, 16),
+                // (31,19): warning CS0219: The variable 'local1' is assigned but its value is never used
+                //         Span<int> local1 = default(Span<int>);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local1").WithArguments("local1").WithLocation(31, 19),
+                // (35,16): error CS4013: Instance of type 'Span<int>' cannot be used inside a nested function, query expression, iterator block or async method
+                //         return local2.Length; // 2
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "local2").WithArguments("", "System.Span<int>").WithLocation(35, 16),
+                // (44,16): error CS4013: Instance of type 'Span<int>' cannot be used inside a nested function, query expression, iterator block or async method
+                //         return local1.Length + local2.Length; // 3, 4
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "local1").WithArguments("", "System.Span<int>").WithLocation(44, 16),
+                // (44,32): error CS4013: Instance of type 'Span<int>' cannot be used inside a nested function, query expression, iterator block or async method
+                //         return local1.Length + local2.Length; // 3, 4
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "local2").WithArguments("", "System.Span<int>").WithLocation(44, 32)
+            };
+
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-            comp.VerifyDiagnostics(
-                // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
-                //         Span<int> local1 = default(Span<int>); // 1
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9),
-                // (13,19): warning CS0219: The variable 'local1' is assigned but its value is never used
-                //         Span<int> local1 = default(Span<int>); // 1
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local1").WithArguments("local1").WithLocation(13, 19),
-                // (14,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
-                //         var local2 = default(Span<int>); // 2
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.Span<int>").WithLocation(14, 9),
-                // (14,13): warning CS0219: The variable 'local2' is assigned but its value is never used
-                //         var local2 = default(Span<int>); // 2
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local2").WithArguments("local2").WithLocation(14, 13)
-            );
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
 
-            comp.VerifyDiagnostics(
-                // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
-                //         Span<int> local1 = default(Span<int>); // 1
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9),
-                // (13,19): warning CS0219: The variable 'local1' is assigned but its value is never used
-                //         Span<int> local1 = default(Span<int>); // 1
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local1").WithArguments("local1").WithLocation(13, 19),
-                // (14,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
-                //         var local2 = default(Span<int>); // 2
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.Span<int>").WithLocation(14, 9),
-                // (14,13): warning CS0219: The variable 'local2' is assigned but its value is never used
-                //         var local2 = default(Span<int>); // 2
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local2").WithArguments("local2").WithLocation(14, 13)
-            );
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -1051,11 +1079,29 @@ public class Program
 {
     public static async Task<int> M1()
     {
-        M2(out var local1); // 1
-        M2(out Span<int> local2); // 2
+        M2(out var local1);
+        M2(out Span<int> local2);
 
         await Task.Yield();
         return 42;
+    }
+
+    public static async Task<int> M3()
+    {
+        M2(out var local1);
+        M2(out Span<int> local2);
+
+        await Task.Yield();
+        return local1.Length; // 1
+    }
+
+    public static async Task<int> M4()
+    {
+        M2(out var local1);
+        M2(out Span<int> local2);
+
+        await Task.Yield();
+        return local2.Length; // 2
     }
 
     static void M2(out Span<int> s) => throw null;
@@ -1064,14 +1110,13 @@ public class Program
 
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-            comp.VerifyDiagnostics(
-                // (9,16): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
-                //         M2(out var local1); // 1
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.Span<int>").WithLocation(9, 16),
-                // (10,16): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
-                //         M2(out Span<int> local2); // 2
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(10, 16)
-                );
+            comp.VerifyEmitDiagnostics(
+                // (22,16): error CS4013: Instance of type 'Span<int>' cannot be used inside a nested function, query expression, iterator block or async method
+                //         return local1.Length; // 1
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "local1").WithArguments("", "System.Span<int>").WithLocation(22, 16),
+                // (31,16): error CS4013: Instance of type 'Span<int>' cannot be used inside a nested function, query expression, iterator block or async method
+                //         return local2.Length; // 2
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "local2").WithArguments("", "System.Span<int>").WithLocation(31, 16));
         }
 
         [Fact, WorkItem(62747, "https://github.com/dotnet/roslyn/issues/62747")]
@@ -1086,13 +1131,33 @@ public class Program
 {
     public async Task M(IReadOnlyList<string> o)
     {
-        foreach (ReadOnlySpan<char> c1 in o) { } // 1
+        foreach (ReadOnlySpan<char> c1 in o) { }
 
         var enumerator = ((IEnumerable<string>)o).GetEnumerator();
         while (enumerator.MoveNext())
         {
-            ReadOnlySpan<char> c2 = (ReadOnlySpan<char>)(string)enumerator.Current; // 2
+            ReadOnlySpan<char> c2 = (ReadOnlySpan<char>)(string)enumerator.Current;
             _ = c2.Length;
+        }
+
+        await Task.Yield();
+        return;
+    }
+
+    public async Task M2(IReadOnlyList<string> o)
+    {
+        foreach (ReadOnlySpan<char> c1 in o)
+        {
+            await Task.Yield();
+            _ = c1.Length; // 1
+        }
+
+        var enumerator = ((IEnumerable<string>)o).GetEnumerator();
+        while (enumerator.MoveNext())
+        {
+            ReadOnlySpan<char> c2 = (ReadOnlySpan<char>)(string)enumerator.Current;
+            await Task.Yield();
+            _ = c2.Length; // 2
         }
 
         await Task.Yield();
@@ -1102,14 +1167,13 @@ public class Program
 ";
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-            comp.VerifyDiagnostics(
-                // (10,18): error CS4012: Parameters or locals of type 'ReadOnlySpan<char>' cannot be declared in async methods or async lambda expressions.
-                //         foreach (ReadOnlySpan<char> c1 in o) { } // 1
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "ReadOnlySpan<char>").WithArguments("System.ReadOnlySpan<char>").WithLocation(10, 18),
-                // (15,13): error CS4012: Parameters or locals of type 'ReadOnlySpan<char>' cannot be declared in async methods or async lambda expressions.
-                //             ReadOnlySpan<char> c2 = (ReadOnlySpan<char>)(string)enumerator.Current; // 2
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "ReadOnlySpan<char>").WithArguments("System.ReadOnlySpan<char>").WithLocation(15, 13)
-                );
+            comp.VerifyEmitDiagnostics(
+                // (28,17): error CS4013: Instance of type 'ReadOnlySpan<char>' cannot be used inside a nested function, query expression, iterator block or async method
+                //             _ = c1.Length; // 1
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "c1").WithArguments("", "System.ReadOnlySpan<char>").WithLocation(28, 17),
+                // (36,17): error CS4013: Instance of type 'ReadOnlySpan<char>' cannot be used inside a nested function, query expression, iterator block or async method
+                //             _ = c2.Length; // 2
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "c2").WithArguments("", "System.ReadOnlySpan<char>").WithLocation(36, 17));
         }
 
         [Fact, WorkItem(62747, "https://github.com/dotnet/roslyn/issues/62747")]
@@ -1123,11 +1187,23 @@ public class Program
 {
     public async Task M()
     {
-        (Span<int> s1, Span<int> s2) = new Program(); // 1, 2
-        var (s3, s4) = new Program(); // 3, 4
-        (var s5, var s6) = new Program(); // 5, 6
+        (Span<int> s1, Span<int> s2) = new Program();
+        var (s3, s4) = new Program();
+        (var s5, var s6) = new Program();
 
         await Task.Yield();
+        return;
+    }
+
+    public async Task M2()
+    {
+        (Span<int> s1, Span<int> s2) = new Program();
+        var (s3, s4) = new Program();
+        (var s5, var s6) = new Program();
+
+        await Task.Yield();
+
+        _ = s1.Length + s4.Length + s5.Length; // 1, 2, 3
         return;
     }
 
@@ -1135,26 +1211,16 @@ public class Program
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-            comp.VerifyDiagnostics(
-                // (9,10): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
-                //         (Span<int> s1, Span<int> s2) = new Program(); // 1, 2
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(9, 10),
-                // (9,24): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
-                //         (Span<int> s1, Span<int> s2) = new Program(); // 1, 2
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(9, 24),
-                // (10,14): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
-                //         var (s3, s4) = new Program(); // 3, 4
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "s3").WithArguments("System.Span<int>").WithLocation(10, 14),
-                // (10,18): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
-                //         var (s3, s4) = new Program(); // 3, 4
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "s4").WithArguments("System.Span<int>").WithLocation(10, 18),
-                // (11,10): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
-                //         (var s5, var s6) = new Program(); // 5, 6
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.Span<int>").WithLocation(11, 10),
-                // (11,18): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
-                //         (var s5, var s6) = new Program(); // 5, 6
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.Span<int>").WithLocation(11, 18)
-                );
+            comp.VerifyEmitDiagnostics(
+                // (25,13): error CS4013: Instance of type 'Span<int>' cannot be used inside a nested function, query expression, iterator block or async method
+                //         _ = s1.Length + s4.Length + s5.Length; // 1, 2, 3
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "s1").WithArguments("", "System.Span<int>").WithLocation(25, 13),
+                // (25,25): error CS4013: Instance of type 'Span<int>' cannot be used inside a nested function, query expression, iterator block or async method
+                //         _ = s1.Length + s4.Length + s5.Length; // 1, 2, 3
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "s4").WithArguments("", "System.Span<int>").WithLocation(25, 25),
+                // (25,37): error CS4013: Instance of type 'Span<int>' cannot be used inside a nested function, query expression, iterator block or async method
+                //         _ = s1.Length + s4.Length + s5.Length; // 1, 2, 3
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "s5").WithArguments("", "System.Span<int>").WithLocation(25, 37));
         }
 
         [Fact, WorkItem(62747, "https://github.com/dotnet/roslyn/issues/62747")]
@@ -1167,11 +1233,26 @@ public class Program
 {
     public async Task M()
     {
-        using (default(RS)) { } // 1
-        using (var s1 = default(RS)) { } // 2
-        using (RS s2 = default(RS)) { } // 3
-        using RS s3 = default(RS); // 4
-        using var s4 = default(RS); // 5
+        using (default(RS)) { }
+        using (var s1 = default(RS)) { }
+        using (RS s2 = default(RS)) { }
+        using RS s3 = default(RS); // 1
+        using var s4 = default(RS); // 2
+
+        await Task.Yield();
+        return;
+    }
+
+    public async Task M2()
+    {
+        using (default(RS)) { await Task.Yield(); } // 3
+        using (var s1 = default(RS)) { await Task.Yield(); } // 4
+        using (RS s2 = default(RS)) { await Task.Yield(); } // 5
+        {
+            using RS s3 = default(RS); // 6
+            await Task.Yield();
+            using var s4 = default(RS);
+        }
 
         await Task.Yield();
         return;
@@ -1184,23 +1265,25 @@ public ref struct RS
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-            comp.VerifyDiagnostics(
-                // (8,16): error CS9104: A using statement resource of type 'RS' cannot be used in async methods or async lambda expressions.
-                //         using (default(RS)) { } // 1
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefUsing, "default(RS)").WithArguments("RS").WithLocation(8, 16),
-                // (9,16): error CS4012: Parameters or locals of type 'RS' cannot be declared in async methods or async lambda expressions.
-                //         using (var s1 = default(RS)) { } // 2
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("RS").WithLocation(9, 16),
-                // (10,16): error CS4012: Parameters or locals of type 'RS' cannot be declared in async methods or async lambda expressions.
-                //         using (RS s2 = default(RS)) { } // 3
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "RS").WithArguments("RS").WithLocation(10, 16),
-                // (11,15): error CS4012: Parameters or locals of type 'RS' cannot be declared in async methods or async lambda expressions.
-                //         using RS s3 = default(RS); // 4
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "RS").WithArguments("RS").WithLocation(11, 15),
-                // (12,15): error CS4012: Parameters or locals of type 'RS' cannot be declared in async methods or async lambda expressions.
-                //         using var s4 = default(RS); // 5
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("RS").WithLocation(12, 15)
-                );
+            comp.VerifyEmitDiagnostics(
+                // (11,18): error CS4013: Instance of type 'RS' cannot be used inside a nested function, query expression, iterator block or async method
+                //         using RS s3 = default(RS); // 1
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "s3 = default(RS)").WithArguments("", "RS").WithLocation(11, 18),
+                // (12,19): error CS4013: Instance of type 'RS' cannot be used inside a nested function, query expression, iterator block or async method
+                //         using var s4 = default(RS); // 2
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "s4 = default(RS)").WithArguments("", "RS").WithLocation(12, 19),
+                // (20,16): error CS4013: Instance of type 'RS' cannot be used inside a nested function, query expression, iterator block or async method
+                //         using (default(RS)) { await Task.Yield(); } // 3
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "default(RS)").WithArguments("", "RS").WithLocation(20, 16),
+                // (21,20): error CS4013: Instance of type 'RS' cannot be used inside a nested function, query expression, iterator block or async method
+                //         using (var s1 = default(RS)) { await Task.Yield(); } // 4
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "s1 = default(RS)").WithArguments("", "RS").WithLocation(21, 20),
+                // (22,19): error CS4013: Instance of type 'RS' cannot be used inside a nested function, query expression, iterator block or async method
+                //         using (RS s2 = default(RS)) { await Task.Yield(); } // 5
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "s2 = default(RS)").WithArguments("", "RS").WithLocation(22, 19),
+                // (24,22): error CS4013: Instance of type 'RS' cannot be used inside a nested function, query expression, iterator block or async method
+                //             using RS s3 = default(RS); // 6
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "s3 = default(RS)").WithArguments("", "RS").WithLocation(24, 22));
         }
 
         [Fact]
@@ -1214,24 +1297,76 @@ public class Program
 {
     public async Task M()
     {
-        if (M2() is var s1) { } // 1
-        if (M2() is Span<int> s2) { } // 2
+        if (M2() is var s1) { }
+        if (M2() is Span<int> s2) { }
+        if (M2() is var s3) { await Task.Yield(); }
+        if (M2() is Span<int> s4) { await Task.Yield(); }
 
         await Task.Yield();
         return;
     }
+
+    public async Task M3()
+    {
+        if (M2() is var s1)
+        {
+            await Task.Yield();
+            _ = s1.Length; // 1
+        }
+        if (M2() is Span<int> s2)
+        {
+            await Task.Yield();
+            _ = s2.Length; // 2
+        }
+
+        await Task.Yield();
+        return;
+    }
+
     static Span<int> M2() => throw null;
 }
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-            comp.VerifyDiagnostics(
-                // (9,25): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
-                //         if (M2() is var s1) { } // 1
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "s1").WithArguments("System.Span<int>").WithLocation(9, 25),
-                // (10,21): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
-                //         if (M2() is Span<int> s2) { } // 2
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(10, 21)
-                );
+            comp.VerifyEmitDiagnostics(
+                // (23,17): error CS4013: Instance of type 'Span<int>' cannot be used inside a nested function, query expression, iterator block or async method
+                //             _ = s1.Length; // 1
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "s1").WithArguments("", "System.Span<int>").WithLocation(23, 17),
+                // (28,17): error CS4013: Instance of type 'Span<int>' cannot be used inside a nested function, query expression, iterator block or async method
+                //             _ = s2.Length; // 2
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "s2").WithArguments("", "System.Span<int>").WithLocation(28, 17));
+        }
+
+        [Fact]
+        public void AsyncLocals_Reassignment()
+        {
+            var code = """
+                using System;
+                using System.Threading.Tasks;
+                class C
+                {
+                    async Task M1()
+                    {
+                        int x = 42;
+                        Span<int> y = new(ref x);
+                        y.ToString();
+                        await Task.Yield();
+                        y.ToString(); // 1
+                    }
+                    async Task M2()
+                    {
+                        int x = 42;
+                        Span<int> y = new(ref x);
+                        y.ToString();
+                        await Task.Yield();
+                        y = new(ref x);
+                        y.ToString();
+                    }
+                }
+                """;
+            CreateCompilation(code, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
+                // (11,9): error CS4013: Instance of type 'Span<int>' cannot be used inside a nested function, query expression, iterator block or async method
+                //         y.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "y").WithArguments("", "System.Span<int>").WithLocation(11, 9));
         }
 
         [Fact]

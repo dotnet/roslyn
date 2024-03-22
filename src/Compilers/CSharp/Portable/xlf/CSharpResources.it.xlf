@@ -267,14 +267,9 @@
         <target state="translated">Il membro di record '{0}' deve essere una proprietà di istanza leggibile o campo di tipo '{1}' per corrispondere al parametro posizionale '{2}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefLock">
-        <source>A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</source>
-        <target state="new">A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefUsing">
-        <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
-        <target state="translated">Non è possibile usare una risorsa di istruzione using di tipo '{0}' in metodi asincroni o espressioni lambda asincrone.</target>
+      <trans-unit id="ERR_BadSpecialByRefParameter">
+        <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
+        <target state="new">Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRefInUsingAlias">
@@ -2345,6 +2340,11 @@
       <trans-unit id="IDS_FeatureRefReadonlyParameters">
         <source>ref readonly parameters</source>
         <target state="translated">parametri di sola lettura ref</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefUnsafeInIteratorAsync">
+        <source>Ref and unsafe in async and iterator methods</source>
+        <target state="new">Ref and unsafe in async and iterator methods</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -10599,16 +10599,6 @@ Impostare il compilatore in modo tale da distinguere i metodi, ad esempio assegn
         <target state="translated">Il modificatore 'async' può essere usato solo nei metodi con un corpo.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefLocal">
-        <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
-        <target state="translated">Non è possibile dichiarare parametri o variabili locali di tipo '{0}' in metodi asincroni o espressioni lambda asincrone.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</source>
-        <target state="translated">L'istruzione foreach non può funzionare con enumeratori di tipo '{0}' in metodi async o iterator perché '{0}' è uno struct ref.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync">
         <source>Security attribute '{0}' cannot be applied to an Async method.</source>
         <target state="translated">Non è possibile applicare l'attributo di sicurezza '{0}' a un metodo Async</target>
@@ -11127,8 +11117,8 @@ Come procedura consigliata, è consigliabile attendere sempre la chiamata.
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpecialByRefInLambda">
-        <source>Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</source>
-        <target state="translated">L'istanza di tipo '{0}' non può essere usata all'interno di una funzione annidata, un'espressione di query, un blocco iteratore o un metodo asincrono</target>
+        <source>Instance of type '{0}{1}' cannot be used inside a nested function, query expression, iterator block or async method</source>
+        <target state="new">Instance of type '{0}{1}' cannot be used inside a nested function, query expression, iterator block or async method</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityAttributeMissingAction">
@@ -12437,16 +12427,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       <trans-unit id="ERR_AnonDelegateCantUseLocal">
         <source>Cannot use ref local '{0}' inside an anonymous method, lambda expression, or query expression</source>
         <target state="translated">Non è possibile usare la variabile locale ref '{0}' in un metodo anonimo, in un'espressione lambda o in un'espressione di query</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by-reference locals</source>
-        <target state="translated">Gli iteratori non possono includere variabili locali per riferimento</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by-reference locals</source>
-        <target state="translated">I metodi Async non possono includere variabili locali per riferimento</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">

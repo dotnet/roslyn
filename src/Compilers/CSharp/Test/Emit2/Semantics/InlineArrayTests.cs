@@ -20173,11 +20173,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (6,26): error CS8177: Async methods cannot have by-reference locals
-                //         foreach (ref int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "y").WithLocation(6, 26)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -20617,11 +20613,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (6,35): error CS8177: Async methods cannot have by-reference locals
-                //         foreach (ref readonly int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "y").WithLocation(6, 35)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -21056,11 +21048,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (6,26): error CS8176: Iterators cannot have by-reference locals
-                //         foreach (ref int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "y").WithLocation(6, 26)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -21352,11 +21340,7 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (6,35): error CS8176: Iterators cannot have by-reference locals
-                //         foreach (ref readonly int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "y").WithLocation(6, 35)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]

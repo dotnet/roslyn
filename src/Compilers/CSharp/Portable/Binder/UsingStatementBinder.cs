@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(expressionOpt is not null);
                 if (expressionOpt.Type is not null)
                 {
-                    CheckRestrictedTypeInAsyncMethod(originalBinder.ContainingMemberOrLambda, expressionOpt.Type, diagnostics, expressionOpt.Syntax, errorCode: ErrorCode.ERR_BadSpecialByRefUsing);
+                    CheckRestrictedTypeInAsyncMethod(originalBinder.ContainingMemberOrLambda, expressionOpt.Type, diagnostics, expressionOpt.Syntax);
                 }
             }
             else

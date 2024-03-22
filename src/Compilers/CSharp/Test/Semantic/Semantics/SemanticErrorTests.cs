@@ -7271,13 +7271,13 @@ public class C
             comp.VerifyDiagnostics(
                 // (10,14): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
                 //     f = x=>f(__arglist);
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle"),
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("", "System.RuntimeArgumentHandle"),
                 // (11,29): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
                 //     f = delegate { return f(__arglist); };
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle"),
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("", "System.RuntimeArgumentHandle"),
                 // (12,44): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
                 //     var q = from x in new int[10] select f(__arglist);
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle")
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("", "System.RuntimeArgumentHandle")
                 );
         }
 
@@ -7306,10 +7306,10 @@ public class C
             CreateCompilationWithMscorlib45(source).VerifyEmitDiagnostics(
                 // (10,34): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
                 //       RuntimeArgumentHandle h2 = h; // Bad use of h
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h").WithArguments("System.RuntimeArgumentHandle"),
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h").WithArguments("", "System.RuntimeArgumentHandle"),
                 // (11,43): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
                 //       ArgIterator args1 = new ArgIterator(h); // Bad use of h
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h").WithArguments("System.RuntimeArgumentHandle"));
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h").WithArguments("", "System.RuntimeArgumentHandle"));
         }
 
         [Fact]
@@ -7341,10 +7341,10 @@ public class C
                 .Verify(
                 // (7,51): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
                 //   static IEnumerable<int> M(RuntimeArgumentHandle h1) // Error: hoisted to field
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h1").WithArguments("System.RuntimeArgumentHandle"),
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h1").WithArguments("", "System.RuntimeArgumentHandle"),
                 // (13,7): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
                 //     N(h2); // Error: hoisted to field
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h2").WithArguments("System.RuntimeArgumentHandle")
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h2").WithArguments("", "System.RuntimeArgumentHandle")
                 );
         }
 
