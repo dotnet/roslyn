@@ -16,6 +16,45 @@ internal partial class SolutionCompilationState
 {
     private partial class CompilationTracker
     {
+        private readonly record struct CreationPolicy(
+            GeneratedDocumentCreationPolicy GeneratedDocumentCreationPolicy,
+            SkeletonReferenceCreationPolicy SkeletonReferenceCreationPolicy)
+        {
+
+        }
+
+        private enum GeneratedDocumentCreationPolicy
+        {
+            /// <summary>
+            /// Source generators should be run and should produce up to date results.
+            /// </summary>
+            Create,
+
+            /// <summary>
+            /// Source generators should not run.  Whatever results were previously computed should be reused.
+            /// </summary>
+            DoNotCreate,
+        }
+
+        private enum SkeletonReferenceCreationPolicy
+        {
+            /// <summary>
+            /// Skeleton references should be created, and should be up to date with the project they are created for.
+            /// </summary>
+            Create,
+
+            /// <summary>
+            /// Skeleton references should only be created for a compilation if no existing skeleton exists for their
+            /// project from some point in the past.
+            /// </summary>
+            CreateIfAbsent,
+
+            /// <summary>
+            /// Skeleton references should not be created at all.
+            /// </summary>
+            DoNotCreate,
+        }
+
         /// <summary>
         /// The base type of all <see cref="CompilationTracker"/> states. The state of a <see
         /// cref="CompilationTracker" /> starts at null, and then will progress through the other states until it
@@ -36,7 +75,7 @@ internal partial class SolutionCompilationState
             /// than what we originally had.</item>
             /// </list>
             /// </summary>
-            public readonly bool IsFrozen;
+            public readonly CreationPolicy CreationPolicy;
 
             /// <summary>
             /// The best compilation that is available that source generators have not ran on. May be an
@@ -47,10 +86,10 @@ internal partial class SolutionCompilationState
             public CompilationTrackerGeneratorInfo GeneratorInfo { get; }
 
             protected CompilationTrackerState(
-                bool isFrozen,
+                CreationPolicy creationPolicy,
                 CompilationTrackerGeneratorInfo generatorInfo)
             {
-                IsFrozen = isFrozen;
+                CreationPolicy = creationPolicy;
                 GeneratorInfo = generatorInfo;
             }
         }
@@ -80,12 +119,12 @@ internal partial class SolutionCompilationState
             public override Compilation CompilationWithoutGeneratedDocuments => LazyCompilationWithoutGeneratedDocuments.Value;
 
             public InProgressState(
-                bool isFrozen,
+                CreationPolicy creationPolicy,
                 Lazy<Compilation> compilationWithoutGeneratedDocuments,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 Lazy<Compilation?> staleCompilationWithGeneratedDocuments,
                 ImmutableList<TranslationAction> pendingTranslationActions)
-                : base(isFrozen, generatorInfo)
+                : base(creationPolicy, generatorInfo)
             {
                 // Note: Intermediate projects can be empty.
                 Contract.ThrowIfTrue(pendingTranslationActions is null);
@@ -105,13 +144,13 @@ internal partial class SolutionCompilationState
             }
 
             public InProgressState(
-                bool isFrozen,
+                CreationPolicy creationPolicy,
                 Compilation compilationWithoutGeneratedDocuments,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 Compilation? staleCompilationWithGeneratedDocuments,
                 ImmutableList<TranslationAction> pendingTranslationActions)
                 : this(
-                      isFrozen,
+                      creationPolicy,
                       new Lazy<Compilation>(() => compilationWithoutGeneratedDocuments),
                       generatorInfo,
                       // Extracted as a method call to prevent captures.
@@ -164,13 +203,13 @@ internal partial class SolutionCompilationState
             public override Compilation CompilationWithoutGeneratedDocuments { get; }
 
             private FinalCompilationTrackerState(
-                bool isFrozen,
+                CreationPolicy creationPolicy,
                 bool hasSuccessfullyLoaded,
                 Compilation finalCompilationWithGeneratedDocuments,
                 Compilation compilationWithoutGeneratedDocuments,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 UnrootedSymbolSet unrootedSymbolSet)
-                : base(isFrozen, generatorInfo)
+                : base(creationPolicy, generatorInfo)
             {
                 Contract.ThrowIfNull(finalCompilationWithGeneratedDocuments);
 
@@ -202,7 +241,7 @@ internal partial class SolutionCompilationState
             /// <param name="projectId">Not held onto</param>
             /// <param name="metadataReferenceToProjectId">Not held onto</param>
             public static FinalCompilationTrackerState Create(
-                bool isFrozen,
+                CreationPolicy creationPolicy,
                 bool hasSuccessfullyLoaded,
                 Compilation finalCompilationWithGeneratedDocuments,
                 Compilation compilationWithoutGeneratedDocuments,
@@ -217,7 +256,7 @@ internal partial class SolutionCompilationState
                 RecordAssemblySymbols(projectId, finalCompilationWithGeneratedDocuments, metadataReferenceToProjectId);
 
                 return new FinalCompilationTrackerState(
-                    isFrozen,
+                    creationPolicy,
                     hasSuccessfullyLoaded,
                     finalCompilationWithGeneratedDocuments,
                     compilationWithoutGeneratedDocuments,
