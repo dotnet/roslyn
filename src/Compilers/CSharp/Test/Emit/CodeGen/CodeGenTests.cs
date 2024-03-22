@@ -4312,20 +4312,6 @@ public class D
         public void ParamCallUsesCachedArray()
         {
             var verifier = CompileAndVerify(@"
-namespace System
-{
-    public class Object { }
-    public class ValueType { }
-    public struct Int32 { }
-    public class String { }
-    public class Attribute { }
-    public struct Void { }
-    public class ParamArrayAttribute { }
-    public abstract class Array {
-        public static T[] Empty<T>() { return new T[0]; }
-    }
-}
-
 public class Program
 {
     public static void Callee1(params object[] values) { }
@@ -4365,7 +4351,7 @@ public class Program
         Callee3<T>(default(T), default(T));
     }
 }
-", verify: Verification.FailsPEVerify, options: TestOptions.ReleaseExe);
+", options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size      297 (0x129)
@@ -4470,19 +4456,7 @@ public class Program
 }
 ");
 
-            verifier = CompileAndVerify(@"
-namespace System
-{
-    public class Object { }
-    public class ValueType { }
-    public struct Int32 { }
-    public class String { }
-    public class Attribute { }
-    public struct Void { }
-    public class ParamArrayAttribute { }
-    public abstract class Array { }
-}
-
+            var comp = CreateCompilation(@"
 public class Program
 {
     public static void Callee1(params object[] values) { }
@@ -4498,7 +4472,12 @@ public class Program
         Callee3<string>();
     }
 }
-", verify: Verification.FailsPEVerify, options: TestOptions.ReleaseExe);
+", options: TestOptions.ReleaseExe);
+
+            comp.MakeMemberMissing(SpecialMember.System_Array__Empty);
+
+            verifier = CompileAndVerify(comp);
+
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size       34 (0x22)

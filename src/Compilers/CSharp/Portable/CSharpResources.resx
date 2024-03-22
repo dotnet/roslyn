@@ -7902,4 +7902,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ParamsCollectionMissingConstructor" xml:space="preserve">
     <value>Non-array params collection type must have an applicable constructor that can be called with no arguments.</value>
   </data>
+  <data name="ERR_NoModifiersOnUsing" xml:space="preserve">
+    <value>Modifiers cannot be placed on using declarations</value>
+  </data>
 </root>
