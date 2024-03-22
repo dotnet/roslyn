@@ -7,6 +7,7 @@
              xmlns:rename="clr-namespace:Microsoft.CodeAnalysis.Editor.Implementation.InlineRename"
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:imageutils="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:utils="clr-namespace:Microsoft.CodeAnalysis.Utilities"
              xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              mc:Ignorable="d"
@@ -50,7 +51,8 @@
                     x:Name="ToggleExpandButton"
                     Grid.Column="1"
                     Click="ToggleExpand"
-                    Background="Transparent">
+                    Background="Transparent"
+                    imageutils:ImageThemingUtilities.ImageBackgroundColor="{Binding Path=Background, ElementName=Outline, Converter={StaticResource BrushToColorConverter}}" >
                     <Button.Style>
                         <Style TargetType="Button">
                             <Setter Property="Template">
