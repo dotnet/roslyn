@@ -52,11 +52,6 @@
         <target state="translated">(按 Tab 插入)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">智能缩进</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Split_raw_string">
         <source>Split raw string</source>
         <target state="translated">拆分原始字符串</target>

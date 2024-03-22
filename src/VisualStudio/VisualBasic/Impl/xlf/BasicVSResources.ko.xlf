@@ -182,11 +182,6 @@
         <target state="translated">Import 지시문</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sort_imports">
-        <source>Sort imports</source>
-        <target state="translated">import 정렬</target>
-        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
-      </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in _NuGet packages</source>
         <target state="translated">NuGet 패키지의 형식에 대한 import 제안(_N)</target>

@@ -32,11 +32,6 @@
         <target state="translated">Esecuzione della selezione nella finestra interattiva.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generating_suggestions">
-        <source>Generating suggestions...</source>
-        <target state="translated">Generazione di suggerimenti in corso</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Get_AI_suggestions">
         <source>Get AI-powered rename suggestions (Ctrl+Space)</source>
         <target state="translated">Ottieni suggerimenti di ridenominazione basati sull'intelligenza artificiale (CTRL+BARRA SPAZIATRICE)</target>
@@ -45,11 +40,6 @@
       <trans-unit id="Interactive_host_process_platform">
         <source>Interactive host process platform</source>
         <target state="translated">Piattaforma interattiva per processi host</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Print_a_list_of_referenced_assemblies">
-        <source>Print a list of referenced assemblies.</source>
-        <target state="translated">Stampa un elenco di tutti gli assembly di riferimento.</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_the_execution_environment_to_the_initial_state_and_keep_history_with_the_option_to_switch_the_runtime_of_the_host_process">
@@ -75,11 +65,6 @@
       <trans-unit id="The_CurrentWindow_property_may_only_be_assigned_once">
         <source>The CurrentWindow property may only be assigned once.</source>
         <target state="translated">La proprietà CurrentWindow può essere assegnata una sola volta.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_references_command_is_not_supported_in_this_Interactive_Window_implementation">
-        <source>The references command is not supported in this Interactive Window implementation.</source>
-        <target state="translated">Il comando references non è supportato in questa implementazione di Finestra interattiva.</target>
         <note />
       </trans-unit>
     </body>
