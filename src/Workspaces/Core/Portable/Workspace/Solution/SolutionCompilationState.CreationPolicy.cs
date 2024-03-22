@@ -48,7 +48,15 @@ internal partial class SolutionCompilationState
         GeneratedDocumentCreationPolicy GeneratedDocumentCreationPolicy,
         SkeletonReferenceCreationPolicy SkeletonReferenceCreationPolicy)
     {
+        /// <summary>
+        /// Create up to date source generator docs and create up to date skeleton references when needed.
+        /// </summary>
         public static readonly CreationPolicy Create = new(GeneratedDocumentCreationPolicy.Create, SkeletonReferenceCreationPolicy.Create);
+
+        /// <summary>
+        /// Do not create up to date source generator docs and do not create up to date skeleton references for P2P
+        /// references.  For both, use whatever has been generated most recently.
+        /// </summary>
         public static readonly CreationPolicy DoNotCreate = new(GeneratedDocumentCreationPolicy.DoNotCreate, SkeletonReferenceCreationPolicy.DoNotCreate);
     }
 }
