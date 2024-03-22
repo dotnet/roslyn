@@ -459,6 +459,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     methodGroup.ResultKind);
                             break;
                     }
+
+                    if (receiver.Type.IsRefLikeType)
+                    {
+                        // Cannot perform a dynamic call on a ref struct '{0}'.
+                        Error(diagnostics, ErrorCode.ERR_CannotDynamicInvokeOnRefStruct, receiver.Syntax, receiver.Type);
+                        hasErrors = true;
+                    }
                 }
             }
             else
