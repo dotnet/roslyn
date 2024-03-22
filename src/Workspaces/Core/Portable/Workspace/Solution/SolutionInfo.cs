@@ -120,6 +120,7 @@ public sealed class SolutionInfo
         /// </summary>
         public Guid TelemetryId { get; } = telemetryId;
 
+        /// <inheritdoc cref="Solution.SourceGeneratorVersion"/>
         public int SourceGeneratorVersion { get; } = sourceGeneratorVersion;
 
         public SolutionAttributes With(
