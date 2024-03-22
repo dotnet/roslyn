@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public async ValueTask SynchronizeWithBuildAsync(
             ImmutableDictionary<ProjectId,
             ImmutableArray<DiagnosticData>> buildDiagnostics,
-            TaskQueue postBuildAndErrorListRefreshTaskQueue,
             bool onBuildCompleted,
             CancellationToken cancellationToken)
         {
