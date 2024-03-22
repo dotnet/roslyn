@@ -69,9 +69,18 @@ internal class SemanticTokensRefreshQueue :
 
     public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken _)
     {
+        if (_capabilitiesProvider.GetCapabilities(clientCapabilities).SemanticTokensOptions is not null)
+        {
+            Initialize(clientCapabilities);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public void Initialize(ClientCapabilities clientCapabilities)
+    {
         if (_semanticTokenRefreshQueue is null
-            && clientCapabilities.Workspace?.SemanticTokens?.RefreshSupport is true
-            && _capabilitiesProvider.GetCapabilities(clientCapabilities).SemanticTokensOptions is not null)
+            && clientCapabilities.Workspace?.SemanticTokens?.RefreshSupport is true)
         {
             // Only send a refresh notification to the client every 2s (if needed) in order to avoid sending too many
             // notifications at once.  This ensures we batch up workspace notifications, but also means we send soon
@@ -85,8 +94,6 @@ internal class SemanticTokensRefreshQueue :
 
             _lspWorkspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
         }
-
-        return Task.CompletedTask;
     }
 
     public async Task TryEnqueueRefreshComputationAsync(Project project, CancellationToken cancellationToken)
