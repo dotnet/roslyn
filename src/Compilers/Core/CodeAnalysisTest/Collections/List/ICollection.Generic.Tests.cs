@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
         }
 
-        [ConditionalTheory(typeof(PlatformDetection), nameof(PlatformDetection.IsPreciseGcSupported))]
+        [Theory]
         [InlineData(false)]
         [InlineData(true)]
         public void ICollection_Generic_Remove_ReferenceRemovedFromCollection(bool useRemove)
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             ICollection<T> collection = GenericICollectionFactory();
 
-            WeakReference<object> wr = PopulateAndRemove(collection, useRemove);
+            WeakReference<object> wr = populateAndRemove(collection, useRemove);
             Assert.True(SpinWait.SpinUntil(() =>
             {
                 GC.Collect();
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             GC.KeepAlive(collection);
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            WeakReference<object> PopulateAndRemove(ICollection<T> collection, bool useRemove)
+            WeakReference<object> populateAndRemove(ICollection<T> collection, bool useRemove)
             {
                 AddToCollection(collection, 1);
                 T value = collection.First();

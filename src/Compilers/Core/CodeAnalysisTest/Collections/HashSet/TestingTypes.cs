@@ -402,9 +402,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
         public EqualityComparerConstantHashCode(IEqualityComparer<T> comparer) => _comparer = comparer;
 
-        public bool Equals(T x, T y) => _comparer.Equals(x, y);
+        public bool Equals(T? x, T? y) => _comparer.Equals(x, y);
 
-        public int GetHashCode(T obj) => 42;
+        public int GetHashCode(T? obj) => 42;
     }
 
     #endregion

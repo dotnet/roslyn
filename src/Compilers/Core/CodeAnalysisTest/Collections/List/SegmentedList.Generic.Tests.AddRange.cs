@@ -9,9 +9,12 @@
 // reference implementation.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
@@ -45,12 +48,42 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             });
         }
 
+#if true
+        [Fact]
+        public void NoAddRangeExtension()
+        {
+            foreach (var type in typeof(SegmentedList<>).Assembly.DefinedTypes)
+            {
+                foreach (var method in type.DeclaredMethods)
+                {
+                    if (!method.IsStatic)
+                        continue;
+
+                    if (method.Name is not "AddRange")
+                        continue;
+
+                    if (method.GetParameters() is not [var firstParameter, var spanParameter])
+                        continue;
+
+                    // AddRange(SegmentedList<int>, ReadOnlySpan<int>)
+                    if (firstParameter.ParameterType.GetGenericTypeDefinition() != typeof(SegmentedList<>))
+                        continue;
+
+                    if (spanParameter.ParameterType.GetGenericTypeDefinition() != typeof(ReadOnlySpan<>))
+                        continue;
+
+                    // If this fails, it means the extension necessary for the following tests has now been implemented
+                    throw ExceptionUtilities.UnexpectedValue(method);
+                }
+            }
+        }
+#else
         [Theory]
         [MemberData(nameof(ListTestData))]
         public void AddRange_Span(EnumerableType enumerableType, int listLength, int enumerableLength, int numberOfMatchingElements, int numberOfDuplicateElements)
         {
-            List<T> list = GenericListFactory(listLength);
-            List<T> listBeforeAdd = list.ToList();
+            SegmentedList<T> list = GenericListFactory(listLength);
+            SegmentedList<T> listBeforeAdd = list.ToSegmentedList();
             Span<T> span = CreateEnumerable(enumerableType, list, enumerableLength, numberOfMatchingElements, numberOfDuplicateElements).ToArray();
             list.AddRange(span);
 
@@ -70,9 +103,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void AddRange_NullList_ThrowsArgumentNullException()
         {
-            AssertExtensions.Throws<ArgumentNullException>("list", () => CollectionExtensions.AddRange<int>(null, default));
-            AssertExtensions.Throws<ArgumentNullException>("list", () => CollectionExtensions.AddRange<int>(null, new int[1]));
+            Assert.Throws<ArgumentNullException>("list", () => SegmentedCollectionExtensions.AddRange<int>(null!, default));
+            Assert.Throws<ArgumentNullException>("list", () => SegmentedCollectionExtensions.AddRange<int>(null!, new int[1]));
         }
+#endif
 
         [Theory]
         [MemberData(nameof(ValidCollectionSizes))]
@@ -111,7 +145,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void AddRange_CollectionWithLargeCount_ThrowsOverflowException()
         {
-            List<T> list = GenericListFactory(count: 1);
+            SegmentedList<T> list = GenericListFactory(count: 1);
             ICollection<T> collection = new CollectionWithLargeCount();
 
             Assert.Throws<OverflowException>(() => list.AddRange(collection));

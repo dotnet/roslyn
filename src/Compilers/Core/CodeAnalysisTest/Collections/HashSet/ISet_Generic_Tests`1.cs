@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         }
 
         public static IEnumerable<object[]> SetTestData() =>
-            new[] { EnumerableType.HashSet, EnumerableType.List }.SelectMany(GetEnumerableTestData);
+            new[] { EnumerableType.SegmentedHashSet, EnumerableType.List }.SelectMany(GetEnumerableTestData);
 
         [Theory]
         [MemberData(nameof(EnumerableTestData))]

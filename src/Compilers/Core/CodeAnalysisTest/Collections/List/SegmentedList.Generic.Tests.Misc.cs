@@ -230,8 +230,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void BasicSliceSyntax(T[] items, int index, int count)
             {
-                List<T> list = new List<T>(items);
-                List<T> range = list[index..(index + count)];
+                SegmentedList<T> list = new SegmentedList<T>(items);
+                SegmentedList<T> range = list[index..(index + count)];
 
                 //ensure range is good
                 for (int i = 0; i < count; i++)
@@ -1160,8 +1160,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public static void TrueForAll_ListSizeCanBeChanged()
         {
-            List<int> list = new List<int>() { 1, 2, 3 };
-            List<int> expectedList = new List<int> { 1, 2, 3, 2, 3, 4, 3, 4, 4 };
+            SegmentedList<int> list = new SegmentedList<int>() { 1, 2, 3 };
+            SegmentedList<int> expectedList = new SegmentedList<int> { 1, 2, 3, 2, 3, 4, 3, 4, 4 };
 
             bool result = list.TrueForAll(i =>
             {
