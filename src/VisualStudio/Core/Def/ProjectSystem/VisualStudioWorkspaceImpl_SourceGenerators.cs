@@ -2,10 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
@@ -69,5 +76,29 @@ internal abstract partial class VisualStudioWorkspaceImpl
             static (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
             onBeforeUpdate: null,
             onAfterUpdate: null);
+    }
+
+    [Export(typeof(ICommandHandler))]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [Name(PredefinedCommandHandlerNames.Rename)]
+    internal partial class SaveCommandHandler : IChainedCommandHandler<SaveCommandArgs>
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public SaveCommandHandler()
+        {
+        }
+
+        public string DisplayName => throw new NotImplementedException();
+
+        public CommandState GetCommandState(SaveCommandArgs args, Func<CommandState> nextCommandHandler)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ExecuteCommand(SaveCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
