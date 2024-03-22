@@ -415,6 +415,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private int _recursionDepth;
 
+#if DEBUG
+        private int _expectedStackDepth = 0;
+#endif
+
         private StackOptimizerPass1(Dictionary<LocalSymbol, LocalDefUseInfo> locals,
             ArrayBuilder<ValueTuple<BoundExpression, ExprContext>> evalStack,
             bool debugFriendly)
@@ -565,8 +569,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public BoundNode VisitStatement(BoundNode node)
         {
-            Debug.Assert(node == null || EvalStackIsEmpty());
+#if DEBUG
+            Debug.Assert(node == null || StackDepth() == _expectedStackDepth);
+#endif
             return VisitSideEffect(node);
+        }
+
+        public ImmutableArray<BoundStatement> VisitSideEffects(ImmutableArray<BoundStatement> statements)
+        {
+#if DEBUG
+            int prevStack = _expectedStackDepth;
+            int origStack = StackDepth();
+            _expectedStackDepth = origStack;
+#endif
+            var result = this.VisitList(statements);
+#if DEBUG
+            Debug.Assert(_expectedStackDepth == origStack);
+            _expectedStackDepth = prevStack;
+#endif
+            return result;
         }
 
         public BoundNode VisitSideEffect(BoundNode node)
@@ -1417,8 +1438,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
         {
-            Debug.Assert(EvalStackIsEmpty());
-
             // switch dispatch needs a byval local or a parameter as a key.
             // if this is already a fitting local, let's keep it that way
             BoundExpression boundExpression = node.Expression;
@@ -1446,6 +1465,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             return node.Update(boundExpression, node.Cases, node.DefaultLabel, node.LengthBasedStringSwitchDataOpt);
+        }
+
+        public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
+        {
+            var statements = VisitSideEffects(node.Statements);
+            RecordLabel(node.WhenTrueLabel);
+            RecordLabel(node.WhenFalseLabel);
+            return node.Update(statements, node.WhenTrueLabel, node.WhenFalseLabel, VisitType(node.Type));
         }
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
