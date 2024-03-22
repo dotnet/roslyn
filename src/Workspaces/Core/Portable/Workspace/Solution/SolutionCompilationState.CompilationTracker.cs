@@ -674,10 +674,15 @@ namespace Microsoft.CodeAnalysis
             {
                 var state = this.ReadState();
 
+                // We're freezing the solution for features where latency performance is parameter.  Do not run SGs or
+                // create skeleton references at this point.  Just use whatever we've already generated for each in the
+                // past.
+                var desiredCreationPolicy = CreationPolicy.DoNotCreate;
+
                 if (state is FinalCompilationTrackerState finalState)
                 {
                     // Attempt to transition our state to one where we do not run generators or create skeleton references.
-                    var newFinalState = finalState.WithCreationPolicy(CreationPolicy.DoNotCreate);
+                    var newFinalState = finalState.WithCreationPolicy(desiredCreationPolicy);
                     return newFinalState == finalState
                         ? this
                         : new CompilationTracker(this.ProjectState, newFinalState, skeletonReferenceCacheToClone: _skeletonReferenceCache);
@@ -729,7 +734,7 @@ namespace Microsoft.CodeAnalysis
                     return new CompilationTracker(
                         frozenProjectState,
                         new InProgressState(
-                            CreationPolicy.DoNotCreate,
+                            desiredCreationPolicy,
                             lazyCompilationWithoutGeneratedDocuments,
                             CompilationTrackerGeneratorInfo.Empty,
                             lazyCompilationWithGeneratedDocuments,
@@ -755,7 +760,7 @@ namespace Microsoft.CodeAnalysis
                     return new CompilationTracker(
                         frozenProjectState,
                         new InProgressState(
-                            CreationPolicy.DoNotCreate,
+                            desiredCreationPolicy,
                             compilationWithoutGeneratedDocuments,
                             generatorInfo,
                             compilationWithGeneratedDocuments,
