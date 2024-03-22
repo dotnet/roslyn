@@ -79,17 +79,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             });
 
             // Source Generators
-            BindToOption(automatically_may_degrade_performance, WorkspaceConfigurationOptionsStorage.RunSourceGenerators, RunSourceGeneratorsPreference.Automatically, () =>
+            BindToOption(Automatic_Run_generators_after_any_change, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic, () =>
             {
                 // If the option hasn't been set by the user, then check the feature flag.  If the feature flag has set
                 // us to only run when builds complete, then we're not in automatic mode.  So we `!` the result.
-                return !optionStore.GetOption(WorkspaceConfigurationOptionsStorage.RunSourceGeneratorsWhenBuildsCompleteFeatureFlag);
+                return !optionStore.GetOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag);
             });
-            BindToOption(when_builds_complete, WorkspaceConfigurationOptionsStorage.RunSourceGenerators, RunSourceGeneratorsPreference.WhenBuildsComplete, () =>
+            BindToOption(Balanced_Run_generators_when_building_or_saving, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced , () =>
             {
                 // If the option hasn't been set by the user, then check the feature flag.  If the feature flag has set
-                // us to only run when builds complete, then we're in `when_builds_complete` mode and directly return it.
-                return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.RunSourceGeneratorsWhenBuildsCompleteFeatureFlag);
+                // us to only run when builds complete, then we're in `Balanced_Run_generators_when_building_or_saving` mode and directly return it.
+                return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag);
             });
             BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, () =>
             {
