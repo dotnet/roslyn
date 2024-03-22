@@ -1417,6 +1417,11 @@
         <target state="translated">Wyrażenie warunkowe nie jest prawidłowe w wersji językowej {0} ponieważ nie znaleziono typu wspólnego między "{1}" i "{2}". Aby użyć konwersji z typem docelowym, uaktualnij do wersji językowej {3} lub nowszej.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoModifiersOnUsing">
+        <source>Modifiers cannot be placed on using declarations</source>
+        <target state="new">Modifiers cannot be placed on using declarations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">Nie można było określić katalogu wyjściowego</target>

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly TypeDefinitionHandle _handle;
         private readonly string _name;
         private readonly TypeAttributes _flags;
-        private readonly SpecialType _corTypeId;
+        private readonly ExtendedSpecialType _corTypeId;
 
         /// <summary>
         /// A set of all the names of the members in this type.
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override SpecialType SpecialType
+        public override ExtendedSpecialType ExtendedSpecialType
         {
             get
             {
@@ -2136,7 +2136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         if ((object)missingType != null && missingType.Arity == 0)
                         {
                             string emittedName = MetadataHelpers.BuildQualifiedName(missingType.NamespaceName, missingType.MetadataName);
-                            switch (SpecialTypes.GetTypeFromMetadataName(emittedName))
+                            switch ((SpecialType)SpecialTypes.GetTypeFromMetadataName(emittedName))
                             {
                                 case SpecialType.System_Enum:
                                 case SpecialType.System_MulticastDelegate:

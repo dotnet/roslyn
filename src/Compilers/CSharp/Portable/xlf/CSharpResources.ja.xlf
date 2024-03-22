@@ -1417,6 +1417,11 @@
         <target state="translated">'{1}' と '{2}' の間に共通の型が見つからないため、言語バージョン {0} で条件式が無効です。ターゲットにより型指定された変換を使用するには、言語バージョン {3} 以上にアップグレードしてください。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoModifiersOnUsing">
+        <source>Modifiers cannot be placed on using declarations</source>
+        <target state="new">Modifiers cannot be placed on using declarations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">出力ディレクトリを特定できませんでした</target>

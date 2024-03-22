@@ -32,11 +32,6 @@
         <target state="translated">Tüm projelerin (yeniden) yüklemesi {0} içinde tamamlandı</target>
         <note>The placeholder is a time duration like 00:15</note>
       </trans-unit>
-      <trans-unit id="Debugger_attached">
-        <source>Debugger attached</source>
-        <target state="translated">Hata ayıklayıcı eklendi</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Debugging_tests">
         <source>Debugging tests...</source>
         <target state="translated">Test hataları ayıklanıyor...</target>
@@ -62,9 +57,9 @@
         <target state="translated">Başarısız:    {0}, Başarılı:    {1}, Atlandı:    {2}, Toplam:    {3}, Süre: {4}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_read_runsettings_file_at_0:1">
+      <trans-unit id="Failed_to_read_runsettings_file_at_0_1">
         <source>Failed to read .runsettings file at {0}:{1}</source>
-        <target state="translated">Şu konumdaki .runsettings dosyası okunamadı: {0}:{1}</target>
+        <target state="new">Failed to read .runsettings file at {0}:{1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_run_restore_on_0">

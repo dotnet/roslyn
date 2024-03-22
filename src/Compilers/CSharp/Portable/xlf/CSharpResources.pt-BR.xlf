@@ -1417,6 +1417,11 @@
         <target state="translated">A expressão condicional não é válida na versão de linguagem {0} porque não foi encontrado um tipo comum entre '{1}' e '{2}'. Para usar uma conversão com tipo de destino, atualize para a versão de linguagem {3} ou posterior.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoModifiersOnUsing">
+        <source>Modifiers cannot be placed on using declarations</source>
+        <target state="new">Modifiers cannot be placed on using declarations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">Não foi possível determinar o diretório de saída</target>

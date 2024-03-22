@@ -52,11 +52,6 @@
         <target state="translated">(Tab キーを押して挿入)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">スマート インデント</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Split_raw_string">
         <source>Split raw string</source>
         <target state="translated">生文字列の分割</target>
