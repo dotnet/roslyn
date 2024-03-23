@@ -799,7 +799,7 @@ namespace Microsoft.CodeAnalysis
 
                 // If we've computed no state yet, we can't be frozen, so there's nothing to unfreeze. Just return
                 // ourselves.  The next request to create the compilation will do so fully, including running
-                // generators.
+                // generators and generating skeletons.
                 if (state is null)
                     return this;
 
