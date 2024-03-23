@@ -3692,6 +3692,13 @@ outerDefault:
 
             Debug.Assert(!hasAnyRefOmittedArgument || (options & Options.AllowRefOmittedArguments) != 0);
 
+            // If we were producing complete results and had missing arguments, we pushed on in order to call IsApplicable for
+            // type inference and lambda binding. In that case we still need to return the argument mismatch failure here.
+            if (completeResults && !argumentAnalysis.IsValid)
+            {
+                return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ArgumentParameterMismatch(argumentAnalysis), hasTypeArgumentInferredFromFunctionType: false);
+            }
+
             // The member passed to the following call is returned in the result (possibly a constructed version of it).
             // The applicability is checked based on effective parameters passed in.
             var applicableResult = IsApplicable(
@@ -3703,14 +3710,6 @@ outerDefault:
                 inferWithDynamic: (options & Options.InferWithDynamic) != 0,
                 completeResults: completeResults,
                 useSiteInfo: ref useSiteInfo);
-
-            // If we were producing complete results and had missing arguments, we pushed on in order to call IsApplicable for
-            // type inference and lambda binding. In that case we still need to return the argument mismatch failure here.
-            if (completeResults && !argumentAnalysis.IsValid)
-            {
-                return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ArgumentParameterMismatch(argumentAnalysis), hasTypeArgumentInferredFromFunctionType: false);
-            }
-
             return applicableResult;
         }
 
