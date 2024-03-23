@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Microsoft.CodeAnalysis.PrivateAnalyzers</RootNamespace>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsShipping>false</IsShipping>
+    <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Make sure to reference the same version of Microsoft.CodeAnalysis.Analyzers as the rest of the build -->
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(SourceGeneratorMicrosoftCodeAnalysisVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="$(SourceGeneratorMicrosoftCodeAnalysisVersion)" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PrivateAnalyzers.CodeFixes" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.PrivateAnalyzers.csproj" Private="true" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
+  </PropertyGroup>
+
+  <Target Name="GetDependencyTargetPaths">
+    <ItemGroup>
+      <TargetPathWithTargetPlatformMoniker Include="$(OutputPath)Microsoft.CodeAnalysis.PrivateAnalyzers.dll" IncludeRuntimeDependency="false" />
+    </ItemGroup>
+  </Target>
+</Project>

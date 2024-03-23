@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <ImportPrivateAnalyzers>false</ImportPrivateAnalyzers>
+
+    <!--
+    Disable RS0034 (Exported parts should have a public constructor marked with 'ImportingConstructorAttribute').
+    This analyzer doesn't apply to packages which exclusively provide code fixes located through the NuGet mechanism
+    (which is also used for project references). The code fix infrastructure locates and instantiates these parts
+    outside of any MEF container.
+    -->
+    <NoWarn>$(NoWarn);RS0034</NoWarn>
+  </PropertyGroup>
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+</Project>
