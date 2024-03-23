@@ -535,23 +535,19 @@ namespace Microsoft.CodeAnalysis
                                 Contract.ThrowIfFalse(
                                     creationPolicy.SkeletonReferenceCreationPolicy is SkeletonReferenceCreationPolicy.CreateIfAbsent or SkeletonReferenceCreationPolicy.DoNotCreate);
 
-                                // Try to reuse an existing metadata reference if we have one.
+                                // If not asked to explicit create an up to date skeleton, attempt to get a partial
+                                // reference, or fallback to the last successful reference for this project if we can
+                                // find one. 
                                 var metadataReference = compilationState.GetPartialMetadataReference(projectReference, this.ProjectState);
-
                                 if (metadataReference is null)
                                 {
-                                    // if we failed to get the metadata check to see if we previously had existing
-                                    // metadata and reuse it instead.
                                     var inProgressCompilationNotRef = staleCompilationWithGeneratedDocuments ?? compilationWithoutGeneratedDocuments;
                                     metadataReference = inProgressCompilationNotRef.ExternalReferences.FirstOrDefault(
                                         r => GetProjectId(inProgressCompilationNotRef.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol) == projectReference.ProjectId);
                                 }
 
-                                // If we had no metadata reference from a prior version at all, create one if we're
-                                // asked to.  Otherwise, do nothing. The former case is when we're in 'balanced'
-                                // execution mode, and only want to regenerate skeletons on major events (like
-                                // building/saving). The latter case is when we're entirely frozen, and we don't want to
-                                // do any expensive work at all.
+                                // If we still failed, but our policy is to create when absent, then do the work to
+                                // create a real skeleton here.
                                 if (metadataReference is null &&
                                     creationPolicy.SkeletonReferenceCreationPolicy is SkeletonReferenceCreationPolicy.CreateIfAbsent)
                                 {
