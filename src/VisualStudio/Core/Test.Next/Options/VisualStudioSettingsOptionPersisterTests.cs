@@ -229,11 +229,9 @@ public class VisualStudioSettingsOptionPersisterTests
         Type optionType)
     {
         var (optionValue, storageValue) = GetSomeOptionValue(optionType);
-        var storageType = GetStorageType(optionType);
-
         var mockManager = new MockSettingsManager()
         {
-            GetValueImpl = (_, type) => (type == storageType ? specializedTypeResult : GetValueResult.Success, storageValue)
+            GetValueImpl = (_, type) => (specializedTypeResult, storageValue)
         };
 
         var result = VisualStudioSettingsOptionPersister.TryReadOptionValue(mockManager, "key", optionType, optionValue);
