@@ -413,22 +413,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _telemetry.UpdateAnalyzerActionsTelemetry(analyzer, telemetryInfo, isTelemetryCollectionAllowed);
             }
         }
-
-        private static void GetLogFunctionIdAndTitle(AnalysisKind kind, out FunctionId functionId, out string title)
-        {
-            switch (kind)
-            {
-                case AnalysisKind.Syntax:
-                    functionId = FunctionId.Diagnostics_SyntaxDiagnostic;
-                    title = "syntax";
-                    break;
-                case AnalysisKind.Semantic:
-                    functionId = FunctionId.Diagnostics_SemanticDiagnostic;
-                    title = "semantic";
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
-            }
-        }
     }
 }

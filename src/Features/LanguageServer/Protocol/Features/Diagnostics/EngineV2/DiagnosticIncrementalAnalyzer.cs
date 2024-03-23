@@ -183,9 +183,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         internal IEnumerable<DiagnosticAnalyzer> GetAnalyzersTestOnly(Project project)
             => _stateManager.GetOrCreateStateSets(project).Select(s => s.Analyzer);
 
-        private static string GetDocumentLogMessage(string title, TextDocument document, DiagnosticAnalyzer analyzer)
-            => $"{title}: ({document.Id}, {document.Project.Id}), ({analyzer})";
-
         private static string GetProjectLogMessage(Project project, ImmutableArray<StateSet> stateSets)
             => $"project: ({project.Id}), ({string.Join(Environment.NewLine, stateSets.Select(s => s.Analyzer.ToString()))})";
 
