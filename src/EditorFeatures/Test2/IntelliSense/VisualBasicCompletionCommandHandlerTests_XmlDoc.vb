@@ -688,6 +688,8 @@ End Class
                     state.SendTab()
                 End If
 
+                Await state.AssertNoCompletionSession()
+
                 ' ''' <see langword="keyword"/>$$
                 Await state.AssertLineTextAroundCaret("    ''' <see langword=""" + keyword + """/>", "")
             End Using
