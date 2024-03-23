@@ -50,7 +50,7 @@ internal sealed class RemoteDebuggingSessionProxy(Workspace workspace, IDisposab
         }
 
         // clear all reported rude edits:
-        diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: documentsToReanalyze, highPriority: false);
+        diagnosticService.RequestDiagnosticRefresh();
 
         // clear emit/apply diagnostics reported previously:
         diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: false);
@@ -78,7 +78,7 @@ internal sealed class RemoteDebuggingSessionProxy(Workspace workspace, IDisposab
             compileTimeSolution, documentsToReanalyze, designTimeSolution: _workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
 
         // clear all reported rude edits:
-        diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: designTimeDocumentsToReanalyze, highPriority: false);
+        diagnosticService.RequestDiagnosticRefresh();
 
         // clear emit/apply diagnostics reported previously:
         diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: true);
@@ -149,7 +149,7 @@ internal sealed class RemoteDebuggingSessionProxy(Workspace workspace, IDisposab
         diagnosticUpdateSource.ClearDiagnostics(isSessionEnding: false);
 
         // clear all reported rude edits:
-        diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: rudeEdits.Select(d => d.DocumentId), highPriority: false);
+        diagnosticService.RequestDiagnosticRefresh();
 
         // report emit/apply diagnostics:
         diagnosticUpdateSource.ReportDiagnostics(_workspace, solution, diagnosticData, rudeEdits);
@@ -188,7 +188,7 @@ internal sealed class RemoteDebuggingSessionProxy(Workspace workspace, IDisposab
         }
 
         // clear all reported rude edits:
-        diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: documentsToReanalyze, highPriority: false);
+        diagnosticService.RequestDiagnosticRefresh();
     }
 
     public async ValueTask DiscardSolutionUpdateAsync(CancellationToken cancellationToken)
