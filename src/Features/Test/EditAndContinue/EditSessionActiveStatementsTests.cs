@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Active Statements
 
-            var statements = baseActiveStatementsMap.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
+            var statements = baseActiveStatementsMap.InstructionMap.Values.OrderBy(v => v.Id).ToArray();
             AssertEx.Equal(new[]
             {
                 $"0: {document1.FilePath}: (9,14)-(9,35) flags=[LeafFrame, MethodUpToDate] mvid=11111111-1111-1111-1111-111111111111 0x06000001 v1 IL_0001",
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Active Statements
 
-            var baseActiveStatements = baseActiveStatementMap.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
+            var baseActiveStatements = baseActiveStatementMap.InstructionMap.Values.OrderBy(v => v.Id).ToArray();
 
             AssertEx.Equal(new[]
             {
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Active Statements
 
-            var baseActiveStatements = baseActiveStatementMap.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
+            var baseActiveStatements = baseActiveStatementMap.InstructionMap.Values.OrderBy(v => v.Id).ToArray();
 
             // Note that the spans of AS:2 and AS:3 correspond to the base snapshot (V2).
             AssertEx.Equal(new[]
