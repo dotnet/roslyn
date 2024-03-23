@@ -229,7 +229,7 @@ internal partial class SolutionCompilationState
             }
 
             public FinalCompilationTrackerState WithCreationPolicy(CreationPolicy creationPolicy)
-                => creationPolicy == CreationPolicy
+                => creationPolicy == this.CreationPolicy
                     ? this
                     : new(creationPolicy,
                         FinalCompilationWithGeneratedDocuments,
