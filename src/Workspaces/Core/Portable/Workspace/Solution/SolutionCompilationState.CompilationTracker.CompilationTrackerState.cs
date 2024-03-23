@@ -168,9 +168,9 @@ internal partial class SolutionCompilationState
 
             private FinalCompilationTrackerState(
                 CreationPolicy creationPolicy,
-                bool hasSuccessfullyLoaded,
                 Compilation finalCompilationWithGeneratedDocuments,
                 Compilation compilationWithoutGeneratedDocuments,
+                bool hasSuccessfullyLoaded,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 UnrootedSymbolSet unrootedSymbolSet)
                 : base(creationPolicy, generatorInfo)
@@ -206,9 +206,9 @@ internal partial class SolutionCompilationState
             /// <param name="metadataReferenceToProjectId">Not held onto</param>
             public static FinalCompilationTrackerState Create(
                 CreationPolicy creationPolicy,
-                bool hasSuccessfullyLoaded,
                 Compilation finalCompilationWithGeneratedDocuments,
                 Compilation compilationWithoutGeneratedDocuments,
+                bool hasSuccessfullyLoaded,
                 CompilationTrackerGeneratorInfo generatorInfo,
                 ProjectId projectId,
                 Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
@@ -221,9 +221,9 @@ internal partial class SolutionCompilationState
 
                 return new FinalCompilationTrackerState(
                     creationPolicy,
-                    hasSuccessfullyLoaded,
                     finalCompilationWithGeneratedDocuments,
                     compilationWithoutGeneratedDocuments,
+                    hasSuccessfullyLoaded,
                     generatorInfo,
                     unrootedSymbolSet);
             }
@@ -232,9 +232,9 @@ internal partial class SolutionCompilationState
                 => creationPolicy == CreationPolicy
                     ? this
                     : new(creationPolicy,
-                        HasSuccessfullyLoaded,
                         FinalCompilationWithGeneratedDocuments,
                         CompilationWithoutGeneratedDocuments,
+                        HasSuccessfullyLoaded,
                         GeneratorInfo,
                         UnrootedSymbolSet);
 
