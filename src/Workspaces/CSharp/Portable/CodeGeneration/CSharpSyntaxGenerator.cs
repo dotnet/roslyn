@@ -1201,15 +1201,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         };
 
     internal override SyntaxNode? GetPrimaryConstructorParameterList(SyntaxNode declaration)
-    {
-        if (declaration is TypeDeclarationSyntax)
-        {
-            var paramList = declaration.GetParameterList();
-            if (paramList is not null)
-                return paramList;
-        }
-        return null;
-    }
+        => declaration is TypeDeclarationSyntax { ParameterList: { } parameterList } ? parameterList : null;
 
     internal override ImmutableArray<SyntaxNode> GetTypeInheritance(SyntaxNode declaration)
         => declaration is BaseTypeDeclarationSyntax baseType && baseType.BaseList != null
