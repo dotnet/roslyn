@@ -1202,7 +1202,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
 
     internal override ImmutableArray<SyntaxNode> GetPrimaryConstructor(SyntaxNode declaration)
     {
-        if (declaration is ClassDeclarationSyntax || declaration is StructDeclarationSyntax)
+        if (declaration is TypeDeclarationSyntax)
         {
             var paramList = declaration.GetParameterList();
             if (paramList is not null)
