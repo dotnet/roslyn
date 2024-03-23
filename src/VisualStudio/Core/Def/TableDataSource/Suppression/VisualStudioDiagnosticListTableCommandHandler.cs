@@ -214,14 +214,9 @@ internal partial class VisualStudioDiagnosticListTableCommandHandler
                 scope.GetCodeAnalysisProgress(),
                 context.UserCancellationToken).ConfigureAwait(false);
 
+            // Kick off diagnostic re-analysis for affected document so that the configured diagnostic gets refreshed.
             if (selectedDiagnostic.DocumentId != null)
-            {
-                // Kick off diagnostic re-analysis for affected document so that the configured diagnostic gets refreshed.
-                _ = Task.Run(() =>
-                {
-                    _diagnosticService.Reanalyze(_workspace, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable(selectedDiagnostic.DocumentId), highPriority: true);
-                });
-            }
+                _diagnosticService.RequestDiagnosticRefresh();
         }
         catch (OperationCanceledException)
         {
