@@ -27,14 +27,14 @@ internal partial class SolutionCompilationState
     private partial class CompilationTracker : ICompilationTracker
     {
         private async Task<(Compilation compilationWithGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments, GeneratorDriver? generatorDriver)> AddExistingOrComputeNewGeneratorInfoAsync(
-            bool isFrozen,
+            CreationPolicy creationPolicy,
             SolutionCompilationState compilationState,
             Compilation compilationWithoutGeneratedFiles,
             CompilationTrackerGeneratorInfo generatorInfo,
             Compilation? compilationWithStaleGeneratedTrees,
             CancellationToken cancellationToken)
         {
-            if (isFrozen)
+            if (creationPolicy.GeneratedDocumentCreationPolicy is GeneratedDocumentCreationPolicy.DoNotCreate)
             {
                 // We're frozen.  So we do not want to go through the expensive cost of running generators.  Instead, we
                 // just whatever prior generated docs we have.
