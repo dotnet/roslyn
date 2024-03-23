@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -116,7 +117,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(
         diagnosticsRefresher.RequestWorkspaceRefresh();
     }
 
-    public async Task<ImmutableArray<Diagnostic>> GetCachedDocumentDiagnosticsAsync(Document document, ImmutableArray<string> promptTitles, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<Diagnostic>> GetCachedDocumentDiagnosticsAsync(Document document, TextSpan? span, ImmutableArray<string> promptTitles, CancellationToken cancellationToken)
     {
         if (await ShouldSkipAnalysisAsync(document, cancellationToken).ConfigureAwait(false))
             return [];
@@ -144,7 +145,33 @@ internal abstract class AbstractCopilotCodeAnalysisService(
             }
         }
 
-        return diagnostics.ToImmutable();
+        if (!span.HasValue)
+            return diagnostics.ToImmutable();
+
+        using var _2 = ArrayBuilder<Diagnostic>.GetInstance(out var filteredDiagnostics);
+        if (document.SupportsSyntaxTree)
+        {
+            // The location of Copilot diagnostics is on the method identifier, we'd like to expand the range to include them
+            // if any part of the method intersects with the given span.
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            foreach (var diagnostic in diagnostics)
+            {
+                var containingMethod = syntaxFacts.GetContainingMethodDeclaration(root, diagnostic.Location.SourceSpan.Start, useFullSpan: false);
+                if (containingMethod?.Span.IntersectsWith(span.Value) is true)
+                    filteredDiagnostics.Add(diagnostic);
+            }
+        }
+        else
+        {
+            foreach (var diagnostic in diagnostics)
+            {
+                if (diagnostic.Location.SourceSpan.IntersectsWith(span.Value))
+                    filteredDiagnostics.Add(diagnostic);
+            }
+        }
+
+        return filteredDiagnostics.ToImmutable();
     }
 
     public async Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken)
