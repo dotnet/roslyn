@@ -548,8 +548,7 @@ namespace Microsoft.CodeAnalysis
 
                                 // If we still failed, but our policy is to create when absent, then do the work to
                                 // create a real skeleton here.
-                                if (metadataReference is null &&
-                                    creationPolicy.SkeletonReferenceCreationPolicy is SkeletonReferenceCreationPolicy.CreateIfAbsent)
+                                if (metadataReference is null && creationPolicy.SkeletonReferenceCreationPolicy is SkeletonReferenceCreationPolicy.CreateIfAbsent)
                                 {
                                     metadataReference = await compilationState.GetMetadataReferenceAsync(projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
                                 }
