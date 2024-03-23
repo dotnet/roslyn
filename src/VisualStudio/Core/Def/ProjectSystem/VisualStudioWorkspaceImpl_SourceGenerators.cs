@@ -87,7 +87,7 @@ internal abstract partial class VisualStudioWorkspaceImpl
         await workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 
         await this.SetCurrentSolutionAsync(
-            oldSolution => oldSolution.WithSourceGeneratorVersion(oldSolution.SourceGeneratorVersion + 1),
+            oldSolution => oldSolution.WithSourceGeneratorVersion(oldSolution.SourceGeneratorVersion + 1, cancellationToken),
             static (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
             onBeforeUpdate: null,
             onAfterUpdate: null,

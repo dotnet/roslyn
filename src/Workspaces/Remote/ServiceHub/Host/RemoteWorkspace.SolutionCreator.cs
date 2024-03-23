@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         // If the source-generator-version changed, update the remote solution so that all source
                         // generators re-run the next time someone asks for compilations.
                         if (solution.SolutionState.SolutionAttributes.SourceGeneratorVersion != newSolutionInfo.SourceGeneratorVersion)
-                            solution = solution.WithSourceGeneratorVersion(newSolutionInfo.SourceGeneratorVersion);
+                            solution = solution.WithSourceGeneratorVersion(newSolutionInfo.SourceGeneratorVersion, cancellationToken);
                     }
 
                     if (oldSolutionChecksums.Projects.Checksum != newSolutionChecksums.Projects.Checksum)

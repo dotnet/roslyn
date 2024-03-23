@@ -72,17 +72,9 @@ internal partial class SolutionCompilationState
             throw new NotImplementedException();
         }
 
-        public ICompilationTracker FreezeState(CancellationToken cancellationToken)
+        public ICompilationTracker WithCreationPolicy(bool create, CancellationToken cancellationToken)
         {
-            var underlyingTracker = this.UnderlyingTracker.FreezeState(cancellationToken);
-            return underlyingTracker == this.UnderlyingTracker
-                ? this
-                : new GeneratedFileReplacingCompilationTracker(underlyingTracker, _replacementDocumentStates);
-        }
-
-        public ICompilationTracker UnfreezeState()
-        {
-            var underlyingTracker = this.UnderlyingTracker.UnfreezeState();
+            var underlyingTracker = this.UnderlyingTracker.WithCreationPolicy(create, cancellationToken);
             return underlyingTracker == this.UnderlyingTracker
                 ? this
                 : new GeneratedFileReplacingCompilationTracker(underlyingTracker, _replacementDocumentStates);

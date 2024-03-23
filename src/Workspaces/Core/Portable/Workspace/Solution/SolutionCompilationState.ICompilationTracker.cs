@@ -37,16 +37,11 @@ internal partial class SolutionCompilationState
         Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Freezes this tracker.  A frozen tracker will capture whatever data it can at this point that has already
-        /// been computed, and will not do any more expensive computation like parsing documents, running generators, or
-        /// producing skeletons.
+        /// Updates the creation policy for this tracker.  A value of <see langword="true"/> will set this to <see
+        /// cref="CreationPolicy.Create"/> and <see langword="false"/> will set it to <see
+        /// cref="CreationPolicy.DoNotCreate"/>.
         /// </summary>
-        ICompilationTracker FreezeState(CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Unfreezes the tracker.  This will create source generated documents and skeleton references again if needed.
-        /// </summary>
-        ICompilationTracker UnfreezeState();
+        ICompilationTracker WithCreationPolicy(bool create, CancellationToken cancellationToken);
 
         Task<VersionStamp> GetDependentVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
         Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);

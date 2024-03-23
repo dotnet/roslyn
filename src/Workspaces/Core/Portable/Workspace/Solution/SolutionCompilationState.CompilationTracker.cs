@@ -691,7 +691,63 @@ namespace Microsoft.CodeAnalysis
                 return finalState.HasSuccessfullyLoaded;
             }
 
-            public ICompilationTracker FreezeState(CancellationToken cancellationToken)
+            public ICompilationTracker WithCreationPolicy(bool create, CancellationToken cancellationToken)
+            {
+                return create
+                    ? WithCreateCreationPolicy()
+                    : WithDoNotCreateCreationPolicy(cancellationToken);
+            }
+
+            public ICompilationTracker WithCreateCreationPolicy()
+            {
+                var state = this.ReadState();
+
+                var desiredCreationPolicy = CreationPolicy.Create;
+
+                // If we've computed no state yet there's nothing to do.  This state will automatically transition 
+                // to an InProgressState with a creation policy of 'Create' anyways.
+                if (state is null)
+                    return this;
+
+                // If we're already in the state where we are running generators and skeletons we don't need to do
+                // anything and can just return ourselves. The next request to create the compilation will do so fully,
+                // including running generators.
+                if (state.CreationPolicy == desiredCreationPolicy)
+                    return this;
+
+                InProgressState newState;
+                if (state is InProgressState inProgressState)
+                {
+                    newState = new InProgressState(
+                        desiredCreationPolicy,
+                        inProgressState.LazyCompilationWithoutGeneratedDocuments,
+                        inProgressState.GeneratorInfo,
+                        inProgressState.LazyStaleCompilationWithGeneratedDocuments,
+                        inProgressState.PendingTranslationActions);
+                }
+                else if (state is FinalCompilationTrackerState finalState)
+                {
+                    // Transition the final frozen state we have back to an in-progress state that will then compute
+                    // generators and skeletons.
+                    newState = new InProgressState(
+                        desiredCreationPolicy,
+                        finalState.CompilationWithoutGeneratedDocuments,
+                        finalState.GeneratorInfo,
+                        finalState.FinalCompilationWithGeneratedDocuments,
+                        pendingTranslationActions: []);
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(state.GetType());
+                }
+
+                return new CompilationTracker(
+                    this.ProjectState,
+                    newState,
+                    skeletonReferenceCacheToClone: _skeletonReferenceCache);
+            }
+
+            public ICompilationTracker WithDoNotCreateCreationPolicy(CancellationToken cancellationToken)
             {
                 var state = this.ReadState();
 
@@ -791,54 +847,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     throw ExceptionUtilities.UnexpectedValue(state.GetType());
                 }
-            }
-
-            public ICompilationTracker UnfreezeState()
-            {
-                var state = this.ReadState();
-
-                // If we've computed no state yet, we can't be frozen, so there's nothing to unfreeze. Just return
-                // ourselves.  The next request to create the compilation will do so fully, including running
-                // generators and generating skeletons.
-                if (state is null)
-                    return this;
-
-                // If we're already in the state where we are running generators and skeletons we don't need to do
-                // anything and can just return ourselves. The next request to create the compilation will do so fully,
-                // including running generators.
-                if (state.CreationPolicy == CreationPolicy.Create)
-                    return this;
-
-                InProgressState newState;
-                if (state is InProgressState inProgressState)
-                {
-                    newState = new InProgressState(
-                        CreationPolicy.Create,
-                        inProgressState.LazyCompilationWithoutGeneratedDocuments,
-                        inProgressState.GeneratorInfo,
-                        inProgressState.LazyStaleCompilationWithGeneratedDocuments,
-                        inProgressState.PendingTranslationActions);
-                }
-                else if (state is FinalCompilationTrackerState finalState)
-                {
-                    // Transition the final frozen state we have back to an in-progress state that will then compute
-                    // generators and skeletons.
-                    newState = new InProgressState(
-                        CreationPolicy.Create,
-                        finalState.CompilationWithoutGeneratedDocuments,
-                        finalState.GeneratorInfo,
-                        finalState.FinalCompilationWithGeneratedDocuments,
-                        pendingTranslationActions: []);
-                }
-                else
-                {
-                    throw ExceptionUtilities.UnexpectedValue(state.GetType());
-                }
-
-                return new CompilationTracker(
-                    this.ProjectState,
-                    newState,
-                    skeletonReferenceCacheToClone: _skeletonReferenceCache);
             }
 
             public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
