@@ -22,6 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 internal abstract partial class VisualStudioWorkspaceImpl
 {
+    /// <summary>
+    /// Used for batching up a lot of events and only combining them into a single request to update generators.
+    /// </summary>
     private readonly AsyncBatchingWorkQueue _updateSourceGeneratorsQueue;
     private bool _isSubscribedToSourceGeneratorImpactingEvents;
 
