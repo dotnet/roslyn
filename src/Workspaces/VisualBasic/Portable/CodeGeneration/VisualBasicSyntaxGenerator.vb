@@ -1675,6 +1675,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return attr.WithTarget(Nothing)
         End Function
 
+        Friend Overrides Function GetPrimaryCtor(declaration As SyntaxNode) As ImmutableArray(Of SyntaxNode)
+            Return ImmutableArray(Of SyntaxNode).Empty
+        End Function
+
         Friend Overrides Function GetTypeInheritance(declaration As SyntaxNode) As ImmutableArray(Of SyntaxNode)
             Dim typeDecl = TryCast(declaration, TypeBlockSyntax)
             If typeDecl Is Nothing Then
