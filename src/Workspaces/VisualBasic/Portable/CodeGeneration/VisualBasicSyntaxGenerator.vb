@@ -1675,8 +1675,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return attr.WithTarget(Nothing)
         End Function
 
-        Friend Overrides Function GetPrimaryConstructorParameterList(declaration As SyntaxNode) As ImmutableArray(Of SyntaxNode)
-            Return ImmutableArray(Of SyntaxNode).Empty
+        Friend Overrides Function GetPrimaryConstructorParameterList(declaration As SyntaxNode) As SyntaxNode
+            Return Nothing
         End Function
 
         Friend Overrides Function GetTypeInheritance(declaration As SyntaxNode) As ImmutableArray(Of SyntaxNode)

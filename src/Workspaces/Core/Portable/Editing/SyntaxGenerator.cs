@@ -1072,9 +1072,12 @@ public abstract class SyntaxGenerator : ILanguageService
     internal abstract SyntaxNode RemoveAllComments(SyntaxNode node);
 
     internal SyntaxNode RemovePrimaryConstructor(SyntaxNode declaration)
-        => RemoveNodes(declaration, GetPrimaryConstructorParameterList(declaration));
+    {
+        var node = GetPrimaryConstructorParameterList(declaration);
+        return RemoveNodes(declaration, node is not null ? [node] : []);
+    }
 
-    internal abstract ImmutableArray<SyntaxNode> GetPrimaryConstructorParameterList(SyntaxNode declaration);
+    internal abstract SyntaxNode? GetPrimaryConstructorParameterList(SyntaxNode declaration);
 
     internal SyntaxNode RemoveLeadingAndTrailingComments(SyntaxNode node)
     {
