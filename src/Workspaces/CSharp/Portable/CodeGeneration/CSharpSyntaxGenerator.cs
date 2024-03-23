@@ -1200,7 +1200,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
             _ => declaration,
         };
 
-    internal override ImmutableArray<SyntaxNode> GetPrimaryConstructor(SyntaxNode declaration)
+    internal override ImmutableArray<SyntaxNode> GetPrimaryConstructorParameterList(SyntaxNode declaration)
     {
         if (declaration is TypeDeclarationSyntax)
         {
