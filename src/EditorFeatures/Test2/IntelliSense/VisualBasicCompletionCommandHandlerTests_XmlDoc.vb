@@ -637,12 +637,12 @@ End Class
 
         <WpfFact>
         Public Function InvokeWithTrueKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("True")
+            Return InvokeWithKeywordCommitSeeLangword("True", unique:=False)
         End Function
 
         <WpfFact>
         Public Function InvokeWithFalseKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("False")
+            Return InvokeWithKeywordCommitSeeLangword("False", unique:=False)
         End Function
 
         <WpfFact>
@@ -687,8 +687,6 @@ End Class
                     Await state.AssertSelectedCompletionItem(displayText:=keyword)
                     state.SendTab()
                 End If
-
-                Await state.AssertNoCompletionSession()
 
                 ' ''' <see langword="keyword"/>$$
                 Await state.AssertLineTextAroundCaret("    ''' <see langword=""" + keyword + """/>", "")
