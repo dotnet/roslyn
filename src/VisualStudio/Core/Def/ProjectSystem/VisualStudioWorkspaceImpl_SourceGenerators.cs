@@ -98,14 +98,10 @@ internal abstract partial class VisualStudioWorkspaceImpl
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [Name(PredefinedCommandHandlerNames.SourceGeneratorSave)]
-    internal partial class SaveCommandHandler : IChainedCommandHandler<SaveCommandArgs>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal partial class SaveCommandHandler() : IChainedCommandHandler<SaveCommandArgs>
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SaveCommandHandler()
-        {
-        }
-
         public string DisplayName => ServicesVSResources.Roslyn_save_command_handler;
 
         public CommandState GetCommandState(SaveCommandArgs args, Func<CommandState> nextCommandHandler)
