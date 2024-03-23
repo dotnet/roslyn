@@ -339,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.CompletedTask
             End Function
 
-            Public Function GetCachedDocumentDiagnosticsAsync(document As Document, promptTitles As ImmutableArray(Of String), cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of Diagnostic)) Implements ICopilotCodeAnalysisService.GetCachedDocumentDiagnosticsAsync
+            Public Function GetCachedDocumentDiagnosticsAsync(document As Document, span As TextSpan?, promptTitles As ImmutableArray(Of String), cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of Diagnostic)) Implements ICopilotCodeAnalysisService.GetCachedDocumentDiagnosticsAsync
                 Return Task.FromResult(Diagnostics)
             End Function
 
