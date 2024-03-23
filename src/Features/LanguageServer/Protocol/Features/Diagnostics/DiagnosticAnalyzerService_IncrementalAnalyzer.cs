@@ -5,8 +5,6 @@
 using System;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -23,9 +21,9 @@ internal partial class DiagnosticAnalyzerService
         // subscribe to active context changed event for new workspace
         workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
 
-        return new DiagnosticIncrementalAnalyzer(this, CorrelationIdFactory.GetNextId(), workspace, AnalyzerInfoCache);
+        return new DiagnosticIncrementalAnalyzer(this, workspace, AnalyzerInfoCache);
     }
 
     private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)
-        => Reanalyze(e.Solution.Workspace, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable(e.NewActiveContextDocumentId), highPriority: true);
+        => RequestDiagnosticRefresh();
 }
