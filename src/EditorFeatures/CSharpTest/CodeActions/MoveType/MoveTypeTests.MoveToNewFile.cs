@@ -536,7 +536,7 @@ class Class1 { }
         }
 
         [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/72632")]
-        public async Task MoveNestedTypeToNewFile_Simple_DottedName_WithPrimaryCtor()
+        public async Task MoveNestedTypeToNewFile_Simple_DottedName_WithPrimaryConstructor()
         {
             var code =
 @"internal class Outer()

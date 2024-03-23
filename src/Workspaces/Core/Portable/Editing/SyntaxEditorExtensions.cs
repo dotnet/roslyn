@@ -76,6 +76,6 @@ public static class SyntaxEditorExtensions
     public static void AddBaseType(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode baseType)
         => editor.ReplaceNode(declaration, (d, g) => g.AddBaseType(d, baseType));
 
-    internal static void RemovePrimaryCtor(this SyntaxEditor editor, SyntaxNode declaration)
-        => editor.ReplaceNode(declaration, (d, g) => g.RemovePrimaryCtor(d));
+    internal static void RemovePrimaryConstructor(this SyntaxEditor editor, SyntaxNode declaration)
+        => editor.ReplaceNode(declaration, (d, g) => g.RemovePrimaryConstructor(d));
 }

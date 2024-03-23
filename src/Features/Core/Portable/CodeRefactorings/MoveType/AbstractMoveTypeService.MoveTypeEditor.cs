@@ -125,7 +125,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             // attributes from the containing partial types.  We don't want to create
             // duplicate attributes on things.
             AddPartialModifiersToTypeChain(
-                documentEditor, removeAttributesAndComments: true, removeTypeInheritance: true, removePrimaryCtor: true);
+                documentEditor, removeAttributesAndComments: true, removeTypeInheritance: true, removePrimaryConstructor: true);
 
             // remove things that are not being moved, from the forked document.
             var membersToRemove = GetMembersToRemove(root);
@@ -193,7 +193,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             // However, keep all the attributes on these types as theses are the 
             // original attributes and we don't want to mess with them. 
             AddPartialModifiersToTypeChain(documentEditor,
-                removeAttributesAndComments: false, removeTypeInheritance: false, removePrimaryCtor: false);
+                removeAttributesAndComments: false, removeTypeInheritance: false, removePrimaryConstructor: false);
             documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
             var updatedDocument = documentEditor.GetChangedDocument();
@@ -259,7 +259,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             DocumentEditor documentEditor,
             bool removeAttributesAndComments,
             bool removeTypeInheritance,
-            bool removePrimaryCtor)
+            bool removePrimaryConstructor)
         {
             var semanticFacts = State.SemanticDocument.Document.GetRequiredLanguageService<ISemanticFactsService>();
             var typeChain = State.TypeNode.Ancestors().OfType<TTypeDeclarationSyntax>();
@@ -285,9 +285,9 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
                     documentEditor.RemoveAllTypeInheritance(node);
                 }
 
-                if (removePrimaryCtor)
+                if (removePrimaryConstructor)
                 {
-                    documentEditor.RemovePrimaryCtor(node);
+                    documentEditor.RemovePrimaryConstructor(node);
                 }
             }
 
