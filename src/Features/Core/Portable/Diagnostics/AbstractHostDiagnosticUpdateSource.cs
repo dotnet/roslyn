@@ -32,43 +32,6 @@ internal abstract class AbstractHostDiagnosticUpdateSource
             DiagnosticsUpdated?.Invoke(this, args);
     }
 
-    public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, ProjectId? projectId)
-    {
-        // check whether we are reporting project specific diagnostic or workspace wide diagnostic
-        var solution = Workspace.CurrentSolution;
-        var project = projectId != null ? solution.GetProject(projectId) : null;
-
-        // check whether project the diagnostic belong to still exist
-        if (projectId != null && project == null)
-        {
-            // project the diagnostic belong to already removed from the solution.
-            // ignore the diagnostic
-            return;
-        }
-
-        ReportAnalyzerDiagnostic(analyzer, DiagnosticData.Create(solution, diagnostic, project), project);
-    }
-
-    public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, DiagnosticData diagnosticData, Project? project)
-    {
-        var raiseDiagnosticsUpdated = true;
-
-        var dxs = ImmutableInterlocked.AddOrUpdate(ref _analyzerHostDiagnosticsMap,
-            analyzer,
-            [diagnosticData],
-            (a, existing) =>
-            {
-                var newDiags = existing.Add(diagnosticData);
-                raiseDiagnosticsUpdated = newDiags.Count > existing.Count;
-                return newDiags;
-            });
-
-        if (raiseDiagnosticsUpdated)
-        {
-            RaiseDiagnosticsUpdated([MakeCreatedArgs(analyzer, dxs, project)]);
-        }
-    }
-
     public void ClearAnalyzerReferenceDiagnostics(AnalyzerFileReference analyzerReference, string language, ProjectId projectId)
     {
         // Perf: if we don't have any diagnostics at all, just return right away; this avoids loading the analyzers
