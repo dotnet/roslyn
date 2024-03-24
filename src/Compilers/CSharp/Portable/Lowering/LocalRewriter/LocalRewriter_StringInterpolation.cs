@@ -305,75 +305,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression? result;
 
+            // We must not optimize if we are in an expression tree because the result can be observed.
+            // e.g.
+            //     System.Linq.Expressions.Expression<Func<string, string>> expression = s => $"string: {s}";
+            //     Console.WriteLine(expression.ToString());
+            //
+            // This must output:
+            //     s => Format("string: {0}", s)
+            // Therefore, we must convert string interpolations to string.Format naively there.
+            bool canHideOptimization = !_inExpressionLambda;
+
             if (node.InterpolationData is InterpolatedStringHandlerData data)
             {
-                return LowerPartsToString(data, node.Parts, node.Syntax, node.Type);
+                return LowerPartsToString(data, node.Parts, node.Syntax, node.Type, canHideOptimization);
             }
             else if (CanLowerToStringConcatenation(node))
             {
-                // All fill-ins, if any, are strings, and none of them have alignment or format specifiers.
-                // We can lower to a more efficient string concatenation
-                // The normal pattern for lowering is to lower subtrees before the enclosing tree. However in this case
-                // we want to lower the entire concatenation so we get the optimizations done by that lowering (e.g. constant folding).
-
-                int length = node.Parts.Length;
-                if (length == 0)
+                (result, var requiresVisitAndConversion) = LowerPartsToConcatString(node.Parts, node.Type);
+                if (!requiresVisitAndConversion)
                 {
-                    // $"" -> ""
-                    return _factory.StringLiteral("");
-                }
-
-                result = null;
-                for (int i = 0; i < length; i++)
-                {
-                    var part = node.Parts[i];
-                    if (part is BoundStringInsert fillin)
-                    {
-                        // this is one of the filled-in expressions
-                        if (fillin.Value is { ConstantValueOpt: { IsChar: true, CharValue: var charLiteralValue } })
-                        {
-                            // Converts char to string because $"{'c'}" should be "c", not 'c'
-                            part = _factory.StringLiteral(charLiteralValue.ToString());
-                        }
-                        else
-                        {
-                            part = fillin.Value;
-                        }
-                    }
-                    else
-                    {
-                        // this is one of the literal parts
-                        Debug.Assert(part is BoundLiteral && part.ConstantValueOpt?.StringValue is not null);
-                        part = _factory.StringLiteral(part.ConstantValueOpt.StringValue);
-                    }
-
-                    result = result == null ?
-                        part :
-                        _factory.Binary(BinaryOperatorKind.StringConcatenation, node.Type, result, part);
-                }
-
-                // We need to ensure that the result of the interpolated string is not null. If the single part has a non-null constant value
-                // or is itself an interpolated string (which by proxy cannot be null), then there's nothing else that needs to be done. Otherwise,
-                // we need to test for null and ensure "" if it is.
-                if (length == 1 && result is not ({ Kind: BoundKind.InterpolatedString } or { ConstantValueOpt.IsString: true }))
-                {
-                    Debug.Assert(result is not null);
-                    Debug.Assert(result.Type is not null);
-                    Debug.Assert(result.Type.SpecialType == SpecialType.System_String || result.Type.IsErrorType());
-                    var placeholder = new BoundValuePlaceholder(result.Syntax, result.Type);
-                    result = new BoundNullCoalescingOperator(result.Syntax, result, _factory.StringLiteral(""), leftPlaceholder: placeholder, leftConversion: placeholder, BoundNullCoalescingOperatorResultKind.LeftType, @checked: false, result.Type) { WasCompilerGenerated = true };
+                    return result;
                 }
             }
             else
             {
-                // Generally, we can merge string or char literals into the format string.
-                //
-                //     $"{nameof(argument)}'s value is: {argument}"
-                //
-                // However, in expression trees, we mustn't apply such optimizations because we can't disguise the result as unoptimized one.
-
-                bool canHideOptimization = !_inExpressionLambda;
-
                 //
                 // We lower an interpolated string into an invocation of String.Format.  For example, we translate the expression
                 //
@@ -383,6 +338,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //
                 //     String.Format("Jenny don\'t change your number {0}", new object[] { 8675309 })
                 //
+
+                // Generally, we can merge string or char literals into the format string.
+                //
+                //     $"{nameof(argument)}'s literal is: {argument}"
+                //
+                // into
+                //
+                //     String.Format("argument's literal is: {0}", new object[] { argument })
 
                 MakeInterpolatedStringFormat(node, out BoundExpression format, out ArrayBuilder<BoundExpression> expressions, canHideOptimization);
 
@@ -406,10 +369,82 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private BoundExpression LowerPartsToString(InterpolatedStringHandlerData data, ImmutableArray<BoundExpression> parts, SyntaxNode syntax, TypeSymbol type)
+        private (BoundExpression Result, bool RequiresVisitAndConversion) LowerPartsToConcatString(ImmutableArray<BoundExpression> parts, TypeSymbol type)
         {
+            BoundExpression? result = null;
+            // All fill-ins, if any, are strings, and none of them have alignment or format specifiers.
+            // We can lower to a more efficient string concatenation
+            // The normal pattern for lowering is to lower subtrees before the enclosing tree. However in this case
+            // we want to lower the entire concatenation so we get the optimizations done by that lowering (e.g. constant folding).
+
+            int length = parts.Length;
+            if (length == 0)
+            {
+                // $"" -> ""
+                return (_factory.StringLiteral(""), false);
+            }
+
+            result = null;
+            for (int i = 0; i < length; i++)
+            {
+                var part = parts[i];
+                if (part is BoundStringInsert fillin)
+                {
+                    // this is one of the filled-in expressions
+                    if (fillin.Value is { ConstantValueOpt: { IsChar: true, CharValue: var charLiteralValue } })
+                    {
+                        // Converts char to string because $"{'c'}" should be "c", not 'c'
+                        part = _factory.StringLiteral(charLiteralValue.ToString());
+                    }
+                    else
+                    {
+                        part = fillin.Value;
+                    }
+                }
+                else
+                {
+                    // this is one of the literal parts
+                    Debug.Assert(part is BoundLiteral && part.ConstantValueOpt?.StringValue is not null);
+                    part = _factory.StringLiteral(part.ConstantValueOpt.StringValue);
+                }
+
+                result = result == null ?
+                    part :
+                    _factory.Binary(BinaryOperatorKind.StringConcatenation, type, result, part);
+            }
+
+            // We need to ensure that the result of the interpolated string is not null. If the single part has a non-null constant value
+            // or is itself an interpolated string (which by proxy cannot be null), then there's nothing else that needs to be done. Otherwise,
+            // we need to test for null and ensure "" if it is.
+            if (length == 1 && result is not ({ Kind: BoundKind.InterpolatedString } or { ConstantValueOpt.IsString: true }))
+            {
+                Debug.Assert(result is not null);
+                Debug.Assert(result.Type is not null);
+                Debug.Assert(result.Type.SpecialType == SpecialType.System_String || result.Type.IsErrorType());
+                var placeholder = new BoundValuePlaceholder(result.Syntax, result.Type);
+                result = new BoundNullCoalescingOperator(result.Syntax, result, _factory.StringLiteral(""), leftPlaceholder: placeholder, leftConversion: placeholder, BoundNullCoalescingOperatorResultKind.LeftType, @checked: false, result.Type) { WasCompilerGenerated = true };
+            }
+
+            Debug.Assert(result is not null);
+            return (result!, true);
+        }
+
+        private BoundExpression LowerPartsToString(InterpolatedStringHandlerData data, ImmutableArray<BoundExpression> parts, SyntaxNode syntax, TypeSymbol type, bool canHideOptimization = false)
+        {
+            var optimizedParts = canHideOptimization ? OptimizeAppendFormattedCalls(parts) : parts;
+            if (canHideOptimization && TryConvertPartsFromHandlerToConcat(optimizedParts) is { } partsForConcat)
+            {
+                var (concatResult, requiresVisitAndConversion) = LowerPartsToConcatString(partsForConcat, type);
+                if (requiresVisitAndConversion && !concatResult.HasAnyErrors)
+                {
+                    concatResult = VisitExpression(concatResult); // lower the arguments AND handle expanded form, argument conversions, etc.
+                    concatResult = MakeImplicitConversionForInterpolatedString(concatResult, type);
+                }
+                return concatResult;
+            }
+            // Optimize calls if possible.
             // If we can lower to the builder pattern, do so.
-            InterpolationHandlerResult result = RewriteToInterpolatedStringHandlerPattern(data, parts, syntax);
+            InterpolationHandlerResult result = RewriteToInterpolatedStringHandlerPattern(data, optimizedParts, syntax);
 
             // resultTemp = builderTemp.ToStringAndClear();
             var toStringAndClear = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear, _diagnostics, syntax: syntax);
@@ -440,6 +475,143 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(arguments.All(arg => arg is not BoundConversion { Conversion: { IsInterpolatedStringHandler: true }, ExplicitCastInCode: false }));
             }
+        }
+
+        private ImmutableArray<BoundExpression>? TryConvertPartsFromHandlerToConcat(ImmutableArray<BoundExpression> optimizedParts)
+        {
+
+            if (optimizedParts.Length >= 5)
+            {
+                // Prefers handler calls to concat (string[]) for 5 operands or more.
+                return null;
+            }
+            if (!optimizedParts.All(p => p is BoundCall { Method.Name: BoundInterpolatedString.AppendLiteralMethod } or BoundCall { Method.Name: BoundInterpolatedString.AppendFormattedMethod, Arguments: [{ Type.SpecialType: SpecialType.System_String }] }))
+            {
+                return null;
+
+            }
+            var builder = ArrayBuilder<BoundExpression>.GetInstance();
+            foreach (var part in optimizedParts)
+            {
+                var partCall = (BoundCall)part;
+                Debug.Assert(partCall.Method.Name != BoundInterpolatedString.AppendLiteralMethod
+                    || partCall.Arguments[0] is BoundLiteral);
+                builder.Add(
+                    partCall.Method.Name == BoundInterpolatedString.AppendLiteralMethod
+                    ? partCall.Arguments[0]
+                    : new BoundStringInsert(partCall.Syntax, partCall.Arguments[0], null, null, false)
+                );
+            }
+            return builder.ToImmutableAndFree();
+        }
+        private ImmutableArray<BoundExpression> OptimizeAppendFormattedCalls(ImmutableArray<BoundExpression> parts)
+        {
+            var result = ArrayBuilder<BoundExpression>.GetInstance();
+            var currentStringConst = PooledStringBuilder.GetInstance();
+            (BoundCall? AppendLiteralCall, BoundLiteral? StringLiteral) reusable = default;
+            BoundExpression? lastAppendReceiver = null;
+
+            BoundExpression createAppendLiteralCallFromBoundLiteral(BoundLiteral literal, BoundExpression receiver) =>
+                _factory.InstanceCall(receiver, BoundInterpolatedString.AppendLiteralMethod, literal);
+            BoundExpression createAppendLiteralCallFromString(string literal, BoundExpression receiver) =>
+                createAppendLiteralCallFromBoundLiteral(_factory.StringLiteral(literal), receiver);
+            void mergeReusableIntoBuilder()
+            {
+                if (reusable.StringLiteral.ConstantValueOpt != null)
+                {
+                    currentStringConst.Builder.Append(reusable.StringLiteral.ConstantValueOpt.StringValue);
+                }
+                reusable = default;
+            }
+            void mergeReusableIntoResult(BoundCall? call = null)
+            {
+                switch (reusable)
+                {
+                    case (not null, _):
+                        result.Add(reusable.AppendLiteralCall);
+                        break;
+                    case (_, not null):
+                        Debug.Assert(call?.ReceiverOpt is not null || lastAppendReceiver is not null);
+                        result.Add(createAppendLiteralCallFromBoundLiteral(reusable.StringLiteral, call?.ReceiverOpt ?? lastAppendReceiver!));
+                        break;
+                    default:
+                        if (currentStringConst.Length > 0)
+                        {
+                            Debug.Assert(call?.ReceiverOpt is not null || lastAppendReceiver is not null);
+                            result.Add(createAppendLiteralCallFromString(currentStringConst.ToStringAndFree(), call?.ReceiverOpt ?? lastAppendReceiver!));
+                        }
+                        return;
+                }
+                reusable = default;
+            }
+
+            foreach (var part in parts)
+            {
+                if (part is not BoundCall { Method.Name: not null, } call)
+                {
+                    result.Add(part);
+                    continue;
+                }
+
+                switch (call.Method.Name)
+                {
+                    case BoundInterpolatedString.AppendFormattedMethod:
+                        {
+                            // never be BoundLiteral (can be BoundLocal), so see ConstantValueOpt instead
+                            if (call.Arguments is [{ ConstantValueOpt: { IsString: true } or { IsChar: true } } literal])
+                            {
+                                if (reusable.StringLiteral is not null)
+                                {
+                                    mergeReusableIntoBuilder();
+                                }
+                                if (literal.ConstantValueOpt.IsString)
+                                    currentStringConst.Builder.Append(literal.ConstantValueOpt.StringValue ?? "");
+                                else
+                                    currentStringConst.Builder.Append(literal.ConstantValueOpt.CharValue);
+                                lastAppendReceiver = call.ReceiverOpt;
+                            }
+                            else
+                            {
+                                mergeReusableIntoResult(call);
+                                result.Add(part);
+                            }
+                        }
+                        break;
+                    case BoundInterpolatedString.AppendLiteralMethod:
+                        {
+                            if (call.Arguments is [BoundLiteral { ConstantValueOpt: { IsString: true, StringValue: not null } } literal])
+                            {
+
+                                if (reusable.StringLiteral is null)
+                                {
+                                    if (currentStringConst.Length == 0)
+                                        reusable = (call, literal);
+                                    else
+                                        currentStringConst.Builder.Append(literal.ConstantValueOpt.StringValue);
+                                }
+                                else
+                                {
+                                    // previous is embedded string literal
+                                    mergeReusableIntoBuilder();
+                                    currentStringConst.Builder.Append(literal.ConstantValueOpt.StringValue);
+                                }
+                                lastAppendReceiver = call.ReceiverOpt;
+                            }
+                            else
+                            {
+                                // e.g. using custom DefaultStringHandler
+                                goto default;
+                            }
+                        }
+                        break;
+                    default:
+                        mergeReusableIntoResult(call);
+                        result.Add(part);
+                        break;
+                }
+            }
+            mergeReusableIntoResult();
+            return result.ToImmutableAndFree();
         }
 
         private readonly struct InterpolationHandlerResult
