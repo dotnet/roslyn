@@ -34,7 +34,7 @@ internal sealed class DiagnosticsUpdatedArgs : UpdatedEventArgs
 
     public static DiagnosticsUpdatedArgs DiagnosticsCreated(
         object id,
-        Solution? solution,
+        Solution solution,
         ProjectId? projectId,
         DocumentId? documentId,
         ImmutableArray<DiagnosticData> diagnostics)
