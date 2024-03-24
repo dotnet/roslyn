@@ -798,7 +798,7 @@ public abstract class SyntaxGenerator : ILanguageService
                         type.Name,
                         type.TypeParameters.Select(TypeParameter),
                         accessibility: type.DeclaredAccessibility,
-                        modifiers: DeclarationModifiers.From(type),
+                        modifiers: DeclarationModifiers.None,
                         interfaceTypes: type.Interfaces.Select(TypeExpression),
                         members: type.GetMembers().Where(CanBeDeclared).Select(Declaration)),
                     TypeKind.Enum => EnumDeclaration(

@@ -1446,7 +1446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.InterfaceBlock(
                 interfaceStatement:=SyntaxFactory.InterfaceStatement(
                     attributeLists:=Nothing,
-                    modifiers:=GetModifierList(accessibility, DeclarationModifiers.None, declaration:=Nothing, DeclarationKind.Interface),
+                    modifiers:=GetModifierList(accessibility, modifiers, declaration:=Nothing, DeclarationKind.Interface),
                     identifier:=name.ToIdentifierToken(),
                     typeParameterList:=GetTypeParameters(typeParameters)),
                 [inherits]:=If(itypes IsNot Nothing, SyntaxFactory.SingletonList(SyntaxFactory.InheritsStatement(SyntaxFactory.SeparatedList(itypes))), Nothing),
