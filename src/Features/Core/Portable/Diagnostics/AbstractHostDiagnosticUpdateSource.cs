@@ -92,12 +92,6 @@ internal abstract class AbstractHostDiagnosticUpdateSource
         }
     }
 
-    private DiagnosticsUpdatedArgs MakeCreatedArgs(DiagnosticAnalyzer analyzer, ImmutableHashSet<DiagnosticData> items, Project? project)
-    {
-        return DiagnosticsUpdatedArgs.DiagnosticsCreated(
-            CreateId(analyzer, project), project?.Solution, project?.Id, documentId: null, diagnostics: items.ToImmutableArray());
-    }
-
     private DiagnosticsUpdatedArgs MakeRemovedArgs(DiagnosticAnalyzer analyzer, Project? project)
     {
         return DiagnosticsUpdatedArgs.DiagnosticsRemoved(
