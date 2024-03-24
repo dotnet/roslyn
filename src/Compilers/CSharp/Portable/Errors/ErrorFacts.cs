@@ -2430,6 +2430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ParamsCollectionExpressionTree:
                 case ErrorCode.ERR_ParamsCollectionExtensionAddMethod:
                 case ErrorCode.ERR_ParamsCollectionMissingConstructor:
+                case ErrorCode.ERR_NoModifiersOnUsing:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

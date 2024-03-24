@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// compiler server process was successful, it does not state whether the server successfully
         /// started or not (it could crash on startup).
         /// </summary>
-        private static bool TryCreateServer(string clientDirectory, string pipeName, ICompilerServerLogger logger)
+        internal static bool TryCreateServer(string clientDirectory, string pipeName, ICompilerServerLogger logger)
         {
             var serverInfo = GetServerProcessInfo(clientDirectory, pipeName);
 
