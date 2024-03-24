@@ -75,28 +75,26 @@ internal abstract class AbstractHostDiagnosticUpdateSource
                 ImmutableInterlocked.TryUpdate(ref _analyzerHostDiagnosticsMap, analyzer, newDiags, existing))
             {
                 var project = Workspace.CurrentSolution.GetProject(projectId);
-                builder.Add(MakeRemovedArgs(analyzer, project));
+                builder.Add(MakeRemovedArgs(project));
             }
         }
         else if (ImmutableInterlocked.TryRemove(ref _analyzerHostDiagnosticsMap, analyzer, out existing))
         {
             var project = Workspace.CurrentSolution.GetProject(projectId);
-            builder.Add(MakeRemovedArgs(analyzer, project));
+            builder.Add(MakeRemovedArgs(project));
 
             if (existing.Any(d => d.ProjectId == null))
             {
-                builder.Add(MakeRemovedArgs(analyzer, project: null));
+                builder.Add(MakeRemovedArgs(project: null));
             }
         }
     }
 
-    private DiagnosticsUpdatedArgs MakeRemovedArgs(DiagnosticAnalyzer analyzer, Project? project)
+    private static DiagnosticsUpdatedArgs MakeRemovedArgs(Project? project)
     {
         return DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-            CreateId(analyzer, project), project?.Solution, project?.Id, documentId: null);
+            project?.Solution, project?.Id, documentId: null);
     }
-
-    private HostArgsId CreateId(DiagnosticAnalyzer analyzer, Project? project) => new(this, analyzer, project?.Id);
 
     internal TestAccessor GetTestAccessor()
         => new(this);

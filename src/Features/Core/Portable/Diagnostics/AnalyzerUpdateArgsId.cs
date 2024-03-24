@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Common;
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 /// <summary>
-/// Base type of a type that is used as <see cref="UpdatedEventArgs.Id"/> for live diagnostic
+/// Base type of a type that is used as Id for live diagnostic
 /// </summary>
 internal class AnalyzerUpdateArgsId : BuildToolId.Base<DiagnosticAnalyzer>, ISupportLiveUpdate
 {

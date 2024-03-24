@@ -400,18 +400,18 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     {
         if (item is ProjectId projectId)
         {
-            return CreateDiagnosticsCreatedArgs(projectId, solution, projectId, documentId: null, buildErrors);
+            return CreateDiagnosticsCreatedArgs(solution, projectId, documentId: null, buildErrors);
         }
 
         RoslynDebug.Assert(item is DocumentId);
         var documentId = (DocumentId)(object)item;
-        return CreateDiagnosticsCreatedArgs(documentId, solution, documentId.ProjectId, documentId, buildErrors);
+        return CreateDiagnosticsCreatedArgs(solution, documentId.ProjectId, documentId, buildErrors);
     }
 
     private static void AddArgsToClearBuildOnlyProjectErrors(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, Solution solution, ProjectId? projectId)
     {
         // Remove all project errors
-        builder.Add(CreateDiagnosticsRemovedArgs(projectId, solution, projectId, documentId: null));
+        builder.Add(CreateDiagnosticsRemovedArgs(solution, projectId, documentId: null));
 
         var project = solution.GetProject(projectId);
         if (project == null)
@@ -427,7 +427,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     }
 
     private static void AddArgsToClearBuildOnlyDocumentErrors(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, Solution solution, ProjectId? projectId, DocumentId? documentId)
-        => builder.Add(CreateDiagnosticsRemovedArgs(documentId, solution, projectId, documentId));
+        => builder.Add(CreateDiagnosticsRemovedArgs(solution, projectId, documentId));
 
     public void AddNewErrors(ProjectId projectId, DiagnosticData diagnostic)
     {
@@ -554,14 +554,14 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         }
     }
 
-    private static DiagnosticsUpdatedArgs CreateDiagnosticsCreatedArgs(object? id, Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableArray<DiagnosticData> items)
+    private static DiagnosticsUpdatedArgs CreateDiagnosticsCreatedArgs(Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableArray<DiagnosticData> items)
     {
-        return DiagnosticsUpdatedArgs.DiagnosticsCreated(CreateArgumentKey(id), solution, projectId, documentId, items);
+        return DiagnosticsUpdatedArgs.DiagnosticsCreated(solution, projectId, documentId, items);
     }
 
-    private static DiagnosticsUpdatedArgs CreateDiagnosticsRemovedArgs(object? id, Solution solution, ProjectId? projectId, DocumentId? documentId)
+    private static DiagnosticsUpdatedArgs CreateDiagnosticsRemovedArgs(Solution solution, ProjectId? projectId, DocumentId? documentId)
     {
-        return DiagnosticsUpdatedArgs.DiagnosticsRemoved(CreateArgumentKey(id), solution, projectId, documentId);
+        return DiagnosticsUpdatedArgs.DiagnosticsRemoved(solution, projectId, documentId);
     }
 
     private void ProcessAndRaiseDiagnosticsUpdated(ImmutableArray<DiagnosticsUpdatedArgs> argsCollection)
@@ -587,8 +587,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 
         DiagnosticsUpdated?.Invoke(this, argsCollection);
     }
-
-    private static ArgumentKey CreateArgumentKey(object? id) => new(id);
 
     private void RaiseBuildProgressChanged(BuildProgress progress)
         => BuildProgressChanged?.Invoke(this, progress);

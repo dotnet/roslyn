@@ -496,9 +496,6 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                         continue;
                     }
 
-                    var liveId = (LiveDiagnosticUpdateArgsId)e.Id;
-                    Assert.False(liveId.Analyzer is ProjectDiagnosticAnalyzer);
-
                     called = true;
                 }
             };
@@ -602,9 +599,6 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     {
                         continue;
                     }
-
-                    var liveId = (LiveDiagnosticUpdateArgsId)e.Id;
-                    Assert.True(liveId.Analyzer is NamedTypeAnalyzer);
 
                     called = true;
                 }
@@ -1125,17 +1119,17 @@ class A
                     if (diagnostics.Length == 0)
                         continue;
 
-                    var liveId = (LiveDiagnosticUpdateArgsId)e.Id;
-                    if (liveId.Analyzer is GeneratorDiagnosticsPlaceholderAnalyzer)
-                        gotDiagnostics = true;
+                    gotDiagnostics = true;
                 }
             };
 
             var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
             await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+            var diagnostics = await incrementalAnalyzer.GetDiagnosticsAsync(project.Solution, project.Id, documentId: null, includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
 
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
+            Assert.NotEmpty(diagnostics);
             Assert.True(gotDiagnostics);
         }
 

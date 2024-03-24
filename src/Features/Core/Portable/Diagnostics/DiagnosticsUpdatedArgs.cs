@@ -16,13 +16,12 @@ internal sealed class DiagnosticsUpdatedArgs : UpdatedEventArgs
     public readonly ImmutableArray<DiagnosticData> Diagnostics;
 
     private DiagnosticsUpdatedArgs(
-        object id,
         Solution? solution,
         ProjectId? projectId,
         DocumentId? documentId,
         ImmutableArray<DiagnosticData> diagnostics,
         DiagnosticsUpdatedKind kind)
-        : base(id, projectId, documentId)
+        : base(projectId, documentId)
     {
         Debug.Assert(diagnostics.All(d => d.ProjectId == projectId && d.DocumentId == documentId));
         Debug.Assert(kind != DiagnosticsUpdatedKind.DiagnosticsRemoved || diagnostics.IsEmpty);
@@ -33,21 +32,19 @@ internal sealed class DiagnosticsUpdatedArgs : UpdatedEventArgs
     }
 
     public static DiagnosticsUpdatedArgs DiagnosticsCreated(
-        object id,
         Solution solution,
         ProjectId? projectId,
         DocumentId? documentId,
         ImmutableArray<DiagnosticData> diagnostics)
     {
-        return new DiagnosticsUpdatedArgs(id, solution, projectId, documentId, diagnostics, DiagnosticsUpdatedKind.DiagnosticsCreated);
+        return new DiagnosticsUpdatedArgs(solution, projectId, documentId, diagnostics, DiagnosticsUpdatedKind.DiagnosticsCreated);
     }
 
     public static DiagnosticsUpdatedArgs DiagnosticsRemoved(
-        object id,
         Solution? solution,
         ProjectId? projectId,
         DocumentId? documentId)
     {
-        return new DiagnosticsUpdatedArgs(id, solution, projectId, documentId, [], DiagnosticsUpdatedKind.DiagnosticsRemoved);
+        return new DiagnosticsUpdatedArgs(solution, projectId, documentId, [], DiagnosticsUpdatedKind.DiagnosticsRemoved);
     }
 }
