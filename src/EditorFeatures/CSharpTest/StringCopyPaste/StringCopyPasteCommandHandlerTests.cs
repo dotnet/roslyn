@@ -56,16 +56,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                 => new(GetWorkspaceXml(copyFileMarkup, pasteFileMarkup), mockCopyPasteService);
 
             public static XElement GetWorkspaceXml(string? copyFileMarkup, string pasteFileMarkup)
-                => XElement.Parse(($@"
-<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document Markup=""SpansOnly"">{pasteFileMarkup}</Document>
-    </Project>
-    {(copyFileMarkup == null ? "" : $@"
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document Markup=""SpansOnly"">{copyFileMarkup}</Document>
-    </Project>")}
-</Workspace>"));
+                => XElement.Parse($"""
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document Markup="SpansOnly">{pasteFileMarkup}</Document>
+                        </Project>
+                        {(copyFileMarkup == null ? "" : $"""
+                        <Project Language="C#" CommonReferences="true">
+                            <Document Markup="SpansOnly">{copyFileMarkup}</Document>
+                        </Project>
+                        """)}
+                    </Workspace>
+                    """);
 
             internal void AssertCodeIs(string expectedCode)
             {
