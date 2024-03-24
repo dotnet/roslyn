@@ -14,8 +14,4 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// </summary>
 internal interface IDiagnosticUpdateSource
 {
-    /// <summary>
-    /// Raise this when new diagnostics are found
-    /// </summary>
-    event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>> DiagnosticsUpdated;
 }
