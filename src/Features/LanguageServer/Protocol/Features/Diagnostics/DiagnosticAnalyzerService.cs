@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map = new();
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
+        private readonly IDiagnosticsRefresher _diagnosticsRefresher;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerInfoCache = globalCache.AnalyzerInfoCache;
             Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
             GlobalOptions = globalOptions;
-
+            _diagnosticsRefresher = diagnosticsRefresher;
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
 
             _eventQueue = new TaskQueue(Listener, TaskScheduler.Default);
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (IsGlobalOptionAffectingDiagnostics(e.Option))
                 {
-                    diagnosticsRefresher.RequestWorkspaceRefresh();
+                    RequestDiagnosticRefresh();
                 }
             });
         }
@@ -72,9 +73,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption ||
                option == SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption;
 
-        public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
-        {
-        }
+        public void RequestDiagnosticRefresh()
+            => _diagnosticsRefresher?.RequestWorkspaceRefresh();
 
         public Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(
             TextDocument document,

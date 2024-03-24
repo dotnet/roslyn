@@ -196,6 +196,7 @@
       <!-- Non-null type is required for this node kind -->
       <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
       <Field Name="Method" Type="MethodSymbol"/>
+      <Field Name="GetMethodFromHandle" Type="MethodSymbol"/>
     </Node>
 
     <!-- Note: BoundTypeExpressions are NOT required in the bound tree for semantic 

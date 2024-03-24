@@ -13,7 +13,6 @@ Microsoft.CodeAnalysis.Operations.ISpreadOperation
 Microsoft.CodeAnalysis.Operations.ISpreadOperation.ElementConversion.get -> Microsoft.CodeAnalysis.Operations.CommonConversion
 Microsoft.CodeAnalysis.Operations.ISpreadOperation.ElementType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
 Microsoft.CodeAnalysis.Operations.ISpreadOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation!
-Microsoft.CodeAnalysis.SpecialType.System_ReadOnlySpan_T = 47 -> Microsoft.CodeAnalysis.SpecialType
 Microsoft.CodeAnalysis.SeparatedSyntaxList
 Microsoft.CodeAnalysis.SyntaxList
 static Microsoft.CodeAnalysis.SeparatedSyntaxList.Create<TNode>(System.ReadOnlySpan<TNode!> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>

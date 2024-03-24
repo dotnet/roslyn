@@ -60,9 +60,6 @@ internal sealed class SolutionChecksumUpdater
             listener,
             shutdownToken);
 
-        // Use an equality comparer here as we will commonly get lots of change notifications that will all be
-        // associated with the same cancellation token controlling that batch of work.  No need to enqueue the same
-        // token a huge number of times when we only need the single value of it when doing the work.
         _synchronizeWorkspaceQueue = new AsyncBatchingWorkQueue(
             DelayTimeSpan.NearImmediate,
             SynchronizePrimaryWorkspaceAsync,
@@ -142,17 +139,15 @@ internal sealed class SolutionChecksumUpdater
 
     private async ValueTask SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
     {
-        var solution = _workspace.CurrentSolution;
         var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
         if (client == null)
             return;
 
         using (Logger.LogBlock(FunctionId.SolutionChecksumUpdater_SynchronizePrimaryWorkspace, cancellationToken))
         {
-            var workspaceVersion = solution.WorkspaceVersion;
             await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
-                solution,
-                (service, solution, cancellationToken) => service.SynchronizePrimaryWorkspaceAsync(solution, workspaceVersion, cancellationToken),
+                _workspace.CurrentSolution,
+                (service, solution, cancellationToken) => service.SynchronizePrimaryWorkspaceAsync(solution, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
     }

@@ -27,18 +27,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     /// </summary>
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        private readonly int _correlationId;
         private readonly DiagnosticAnalyzerTelemetry _telemetry = new();
         private readonly StateManager _stateManager;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
-        private readonly IDocumentTrackingService _documentTrackingService;
         private readonly IncrementalMemberEditAnalyzer _incrementalMemberEditAnalyzer = new();
-
-#if NETSTANDARD
-        private ConditionalWeakTable<Project, CompilationWithAnalyzers?> _projectCompilationsWithAnalyzers = new();
-#else
-        private readonly ConditionalWeakTable<Project, CompilationWithAnalyzers?> _projectCompilationsWithAnalyzers = [];
-#endif
 
         internal DiagnosticAnalyzerService AnalyzerService { get; }
         internal Workspace Workspace { get; }
@@ -46,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public DiagnosticIncrementalAnalyzer(
             DiagnosticAnalyzerService analyzerService,
-            int correlationId,
             Workspace workspace,
             DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
@@ -54,10 +45,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             AnalyzerService = analyzerService;
             Workspace = workspace;
-
-            _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
-
-            _correlationId = correlationId;
 
             _stateManager = new StateManager(workspace, analyzerInfoCache);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
@@ -196,22 +183,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         internal IEnumerable<DiagnosticAnalyzer> GetAnalyzersTestOnly(Project project)
             => _stateManager.GetOrCreateStateSets(project).Select(s => s.Analyzer);
 
-        private static string GetDocumentLogMessage(string title, TextDocument document, DiagnosticAnalyzer analyzer)
-            => $"{title}: ({document.Id}, {document.Project.Id}), ({analyzer})";
-
         private static string GetProjectLogMessage(Project project, ImmutableArray<StateSet> stateSets)
             => $"project: ({project.Id}), ({string.Join(Environment.NewLine, stateSets.Select(s => s.Analyzer.ToString()))})";
 
-        private static string GetResetLogMessage(TextDocument document)
-            => $"document close/reset: ({document.FilePath ?? document.Name})";
-
         private static string GetOpenLogMessage(TextDocument document)
             => $"document open: ({document.FilePath ?? document.Name})";
-
-        private static string GetRemoveLogMessage(DocumentId id)
-            => $"document remove: {id.ToString()}";
-
-        private static string GetRemoveLogMessage(ProjectId id)
-            => $"project remove: {id.ToString()}";
     }
 }

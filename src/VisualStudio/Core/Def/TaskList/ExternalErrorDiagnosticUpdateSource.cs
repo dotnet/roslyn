@@ -51,16 +51,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSou
     /// </summary>
     private readonly TaskQueue _taskQueue;
 
-    /// <summary>
-    /// Task queue to serialize all the post-build and post error list refresh tasks.
-    /// Error list refresh requires build/live diagnostics de-duping to complete, which happens during
-    /// <see cref="SyncBuildErrorsAndReportOnBuildCompletedAsync(DiagnosticAnalyzerService, InProgressState)"/>.
-    /// Computationally expensive tasks such as writing build errors into persistent storage,
-    /// invoking background analysis on open files/solution after build completes, etc.
-    /// are added to this task queue to help ensure faster error list refresh.
-    /// </summary>
-    private readonly TaskQueue _postBuildAndErrorListRefreshTaskQueue;
-
     // Gate for concurrent access and fields guarded with this gate.
     private readonly object _gate = new();
     private InProgressState? _stateDoNotAccessDirectly;
@@ -95,7 +85,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSou
     {
         // use queue to serialize work. no lock needed
         _taskQueue = new TaskQueue(listener, TaskScheduler.Default);
-        _postBuildAndErrorListRefreshTaskQueue = new TaskQueue(listener, TaskScheduler.Default);
         _disposalToken = disposalToken;
 
         _workspace = workspace;
@@ -349,30 +338,23 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSou
         // Enqueue build/live sync in the queue.
         _taskQueue.ScheduleTask("OnSolutionBuild", async () =>
         {
-            try
+            // nothing to do
+            if (inProgressState == null)
             {
-                // nothing to do
-                if (inProgressState == null)
-                {
-                    return;
-                }
-
-                // Mark the status as updated to refresh error list before we invoke 'SyncBuildErrorsAndReportAsync', which can take some time to complete.
-                OnBuildProgressChanged(inProgressState, BuildProgress.Updated);
-
-                // We are about to update live analyzer data using one from build.
-                // pause live analyzer
-                using var operation = _notificationService.Start("BuildDone");
-                if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
-                    await SyncBuildErrorsAndReportOnBuildCompletedAsync(diagnosticService, inProgressState).ConfigureAwait(false);
-
-                // Mark build as complete.
-                OnBuildProgressChanged(inProgressState, BuildProgress.Done);
+                return;
             }
-            finally
-            {
-                await _postBuildAndErrorListRefreshTaskQueue.LastScheduledTask.ConfigureAwait(false);
-            }
+
+            // Mark the status as updated to refresh error list before we invoke 'SyncBuildErrorsAndReportAsync', which can take some time to complete.
+            OnBuildProgressChanged(inProgressState, BuildProgress.Updated);
+
+            // We are about to update live analyzer data using one from build.
+            // pause live analyzer
+            using var operation = _notificationService.Start("BuildDone");
+            if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
+                await SyncBuildErrorsAndReportOnBuildCompletedAsync(diagnosticService, inProgressState).ConfigureAwait(false);
+
+            // Mark build as complete.
+            OnBuildProgressChanged(inProgressState, BuildProgress.Done);
         }, GetApplicableCancellationToken(inProgressState));
     }
 
@@ -411,7 +393,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSou
         ProcessAndRaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
 
         // Report pending live errors
-        return diagnosticService.SynchronizeWithBuildAsync(_workspace, pendingLiveErrorsToSync, _postBuildAndErrorListRefreshTaskQueue, onBuildCompleted: true, cancellationToken);
+        return diagnosticService.SynchronizeWithBuildAsync(_workspace, pendingLiveErrorsToSync, onBuildCompleted: true, cancellationToken);
     }
 
     private DiagnosticsUpdatedArgs CreateArgsToReportBuildErrors<T>(T item, Solution solution, ImmutableArray<DiagnosticData> buildErrors)
@@ -527,7 +509,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSou
         {
             // make those errors live errors
             var map = ProjectErrorMap.Empty.Add(projectId, diagnostics);
-            return diagnosticAnalyzerService.SynchronizeWithBuildAsync(_workspace, map, _postBuildAndErrorListRefreshTaskQueue, onBuildCompleted: false, cancellationToken);
+            return diagnosticAnalyzerService.SynchronizeWithBuildAsync(_workspace, map, onBuildCompleted: false, cancellationToken);
         }
 
         return default;

@@ -2300,6 +2300,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ParamsCollectionExtensionAddMethod = 9227,
         ERR_ParamsCollectionMissingConstructor = 9228,
 
+        ERR_NoModifiersOnUsing = 9229,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:
