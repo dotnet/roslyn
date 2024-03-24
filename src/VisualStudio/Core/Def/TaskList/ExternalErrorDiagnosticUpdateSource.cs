@@ -36,7 +36,7 @@ using ProjectErrorMap = ImmutableDictionary<ProjectId, ImmutableArray<Diagnostic
 /// It raises events about diagnostic updates, which eventually trigger the "Build + Intellisense" and "Build only" error list diagnostic
 /// sources to update the reported diagnostics.
 /// </summary>
-internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource, IDisposable
+internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 {
     private readonly Workspace _workspace;
     private readonly IDiagnosticAnalyzerService _diagnosticService;

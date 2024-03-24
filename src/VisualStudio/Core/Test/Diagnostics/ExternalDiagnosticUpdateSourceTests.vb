@@ -630,7 +630,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Function
 
         Private Class TestDiagnosticAnalyzerService
-            Implements IDiagnosticAnalyzerService, IDiagnosticUpdateSource
+            Implements IDiagnosticAnalyzerService
 
             Private ReadOnly _analyzerInfoCache As DiagnosticAnalyzerInfoCache
 

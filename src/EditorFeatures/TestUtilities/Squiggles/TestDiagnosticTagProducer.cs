@@ -46,7 +46,7 @@ internal sealed class TestDiagnosticTagProducer<TProvider, TTag>
             language: document.Project.Language);
     }
 
-    private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource
+    private class TestDiagnosticUpdateSource
     {
         public void RaiseDiagnosticsUpdated(ImmutableArray<DiagnosticsUpdatedArgs> args)
         {
