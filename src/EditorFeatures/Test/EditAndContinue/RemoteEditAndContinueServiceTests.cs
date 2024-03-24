@@ -39,8 +39,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 (!string.IsNullOrWhiteSpace(d.DataLocation.UnmappedFileSpan.Path) ? $" {d.DataLocation.UnmappedFileSpan.Path}({d.DataLocation.UnmappedFileSpan.StartLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.StartLinePosition.Character}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Character}):" : "") +
                 $" {d.Message}";
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData, Obsolete]
         public async Task Proxy(TestHost testHost)
         {
             var localComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost)

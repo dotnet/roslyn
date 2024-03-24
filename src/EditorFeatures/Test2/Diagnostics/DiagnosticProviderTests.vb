@@ -37,11 +37,9 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         Private Const s_mappedFileAttributeName As String = "MappedFile"
 
         Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures _
-            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
             .AddParts(
                 GetType(NoCompilationContentTypeLanguageService),
-                GetType(NoCompilationContentTypeDefinitions),
-                GetType(MockDiagnosticUpdateSourceRegistrationService))
+                GetType(NoCompilationContentTypeDefinitions))
 
         <Fact>
         Public Sub TestNoErrors()
@@ -296,7 +294,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim analyzerReference = New TestAnalyzerReferenceByLanguage(compilerAnalyzersMap)
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-            Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
             Dim analyzerService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
 
             Return analyzerService

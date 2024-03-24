@@ -66,13 +66,11 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSou
     public ExternalErrorDiagnosticUpdateSource(
         VisualStudioWorkspace workspace,
         IDiagnosticAnalyzerService diagnosticService,
-        IDiagnosticUpdateSourceRegistrationService registrationService,
         IGlobalOperationNotificationService notificationService,
         IAsynchronousOperationListenerProvider listenerProvider,
         IThreadingContext threadingContext)
         : this(workspace, diagnosticService, notificationService, listenerProvider.GetListener(FeatureAttribute.ErrorList), threadingContext.DisposalToken)
     {
-        registrationService.Register(this);
     }
 
     /// <summary>
