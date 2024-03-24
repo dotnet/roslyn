@@ -62,7 +62,7 @@ internal sealed class EditAndContinueDiagnosticUpdateSource
     /// <summary>
     /// Reports given set of project or solution level diagnostics. 
     /// </summary>
-    public void ReportDiagnostics(Workspace workspace, Solution solution, ImmutableArray<DiagnosticData> diagnostics, ImmutableArray<(DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits)
+    public void ReportDiagnostics(Solution solution, ImmutableArray<DiagnosticData> diagnostics, ImmutableArray<(DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits)
     {
         RoslynDebug.Assert(solution != null);
 
@@ -97,7 +97,6 @@ internal sealed class EditAndContinueDiagnosticUpdateSource
 
                 argsBuilder.Add(DiagnosticsUpdatedArgs.DiagnosticsCreated(
                     diagnosticGroupId,
-                    workspace,
                     solution,
                     documentId.ProjectId,
                     documentId: documentId,
@@ -113,7 +112,6 @@ internal sealed class EditAndContinueDiagnosticUpdateSource
 
                 argsBuilder.Add(DiagnosticsUpdatedArgs.DiagnosticsCreated(
                     diagnosticGroupId,
-                    workspace,
                     solution,
                     projectId,
                     documentId: null,
@@ -127,7 +125,6 @@ internal sealed class EditAndContinueDiagnosticUpdateSource
 
             argsBuilder.Add(DiagnosticsUpdatedArgs.DiagnosticsCreated(
                 diagnosticGroupId,
-                workspace,
                 solution,
                 projectId: null,
                 documentId: null,

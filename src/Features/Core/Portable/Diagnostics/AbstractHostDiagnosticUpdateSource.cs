@@ -132,13 +132,13 @@ internal abstract class AbstractHostDiagnosticUpdateSource
     private DiagnosticsUpdatedArgs MakeCreatedArgs(DiagnosticAnalyzer analyzer, ImmutableHashSet<DiagnosticData> items, Project? project)
     {
         return DiagnosticsUpdatedArgs.DiagnosticsCreated(
-            CreateId(analyzer, project), Workspace, project?.Solution, project?.Id, documentId: null, diagnostics: items.ToImmutableArray());
+            CreateId(analyzer, project), project?.Solution, project?.Id, documentId: null, diagnostics: items.ToImmutableArray());
     }
 
     private DiagnosticsUpdatedArgs MakeRemovedArgs(DiagnosticAnalyzer analyzer, Project? project)
     {
         return DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-            CreateId(analyzer, project), Workspace, project?.Solution, project?.Id, documentId: null);
+            CreateId(analyzer, project), project?.Solution, project?.Id, documentId: null);
     }
 
     private HostArgsId CreateId(DiagnosticAnalyzer analyzer, Project? project) => new(this, analyzer, project?.Id);
