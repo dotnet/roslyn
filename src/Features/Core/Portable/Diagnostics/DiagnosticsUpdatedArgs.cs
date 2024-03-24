@@ -9,10 +9,20 @@ using Microsoft.CodeAnalysis.Common;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal sealed class DiagnosticsUpdatedArgs : UpdatedEventArgs
+internal sealed class DiagnosticsUpdatedArgs
 {
     public readonly DiagnosticsUpdatedKind Kind;
     public readonly Solution? Solution;
+
+    /// <summary>
+    /// <see cref="ProjectId"/> this update is associated with, or <see langword="null"/>.
+    /// </summary>
+    public readonly ProjectId? ProjectId;
+
+    /// <summary>
+    /// <see cref="DocumentId"/> this update is associated with, or <see langword="null"/>.
+    /// </summary>
+    public readonly DocumentId? DocumentId;
     public readonly ImmutableArray<DiagnosticData> Diagnostics;
 
     private DiagnosticsUpdatedArgs(
@@ -21,12 +31,13 @@ internal sealed class DiagnosticsUpdatedArgs : UpdatedEventArgs
         DocumentId? documentId,
         ImmutableArray<DiagnosticData> diagnostics,
         DiagnosticsUpdatedKind kind)
-        : base(projectId, documentId)
     {
         Debug.Assert(diagnostics.All(d => d.ProjectId == projectId && d.DocumentId == documentId));
         Debug.Assert(kind != DiagnosticsUpdatedKind.DiagnosticsRemoved || diagnostics.IsEmpty);
 
         Solution = solution;
+        ProjectId = projectId;
+        DocumentId = documentId;
         Kind = kind;
         Diagnostics = diagnostics;
     }
