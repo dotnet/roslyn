@@ -36,7 +36,7 @@ using ProjectErrorMap = ImmutableDictionary<ProjectId, ImmutableArray<Diagnostic
 /// It raises events about diagnostic updates, which eventually trigger the "Build + Intellisense" and "Build only" error list diagnostic
 /// sources to update the reported diagnostics.
 /// </summary>
-internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource, IDisposable
+internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 {
     private readonly Workspace _workspace;
     private readonly IDiagnosticAnalyzerService _diagnosticService;
@@ -109,12 +109,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSou
     /// These diagnostics are not supported from intellisense and only get refreshed during actual build.
     /// </summary>
     public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
-
-    /// <summary>
-    /// Event generated from the serialized <see cref="_taskQueue"/> whenever build-only diagnostics are cleared during a build in Visual Studio.
-    /// These diagnostics are not supported from intellisense and only get refreshed during actual build.
-    /// </summary>
-    public event EventHandler DiagnosticsCleared { add { } remove { } }
 
     /// <summary>
     /// Indicates if a build is currently in progress inside Visual Studio.

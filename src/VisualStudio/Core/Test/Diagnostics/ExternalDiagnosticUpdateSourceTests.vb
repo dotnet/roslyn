@@ -630,7 +630,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Function
 
         Private Class TestDiagnosticAnalyzerService
-            Implements IDiagnosticAnalyzerService, IDiagnosticUpdateSource
+            Implements IDiagnosticAnalyzerService
 
             Private ReadOnly _analyzerInfoCache As DiagnosticAnalyzerInfoCache
 
@@ -646,9 +646,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Return _analyzerInfoCache
                 End Get
             End Property
-
-            Public Event DiagnosticsUpdated As EventHandler(Of ImmutableArray(Of DiagnosticsUpdatedArgs)) Implements IDiagnosticUpdateSource.DiagnosticsUpdated
-            Public Event DiagnosticsCleared As EventHandler Implements IDiagnosticUpdateSource.DiagnosticsCleared
 
             Public Sub RequestDiagnosticRefresh() Implements IDiagnosticAnalyzerService.RequestDiagnosticRefresh
             End Sub
