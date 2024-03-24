@@ -975,25 +975,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
             => map.GetOrAdd(key, _ => new Dictionary<DiagnosticData, int>(DiagnosticDataComparer.Instance));
     }
 
-    private sealed class ArgumentKey : BuildToolId.Base<object>
-    {
-        public ArgumentKey(object? key) : base(key)
-        {
-        }
-
-        public override string BuildTool
-        {
-            get { return PredefinedBuildTools.Build; }
-        }
-
-        public override bool Equals(object? obj)
-            => obj is ArgumentKey &&
-               base.Equals(obj);
-
-        public override int GetHashCode()
-            => base.GetHashCode();
-    }
-
     private sealed class DiagnosticDataComparer : IEqualityComparer<DiagnosticData>
     {
         public static readonly DiagnosticDataComparer Instance = new();

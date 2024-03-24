@@ -116,23 +116,4 @@ internal abstract class AbstractHostDiagnosticUpdateSource
             return diagnostics;
         }
     }
-
-    private sealed class HostArgsId(AbstractHostDiagnosticUpdateSource source, DiagnosticAnalyzer analyzer, ProjectId? projectId) : AnalyzerUpdateArgsId(analyzer)
-    {
-        private readonly AbstractHostDiagnosticUpdateSource _source = source;
-        private readonly ProjectId? _projectId = projectId;
-
-        public override bool Equals(object? obj)
-        {
-            if (obj is not HostArgsId other)
-            {
-                return false;
-            }
-
-            return _source == other._source && _projectId == other._projectId && base.Equals(obj);
-        }
-
-        public override int GetHashCode()
-            => Hash.Combine(_source.GetHashCode(), Hash.Combine(_projectId == null ? 1 : _projectId.GetHashCode(), base.GetHashCode()));
-    }
 }
