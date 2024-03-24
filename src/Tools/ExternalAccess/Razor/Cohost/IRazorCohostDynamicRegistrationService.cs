@@ -9,5 +9,5 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
 internal interface IRazorCohostDynamicRegistrationService
 {
-    Task RegisterAsync(string serializedClientCapabilities, IRazorCohostClientLanguageServerManager razorCohostClientLanguageServerManager, CancellationToken cancellationToken);
+    Task RegisterAsync(string serializedClientCapabilities, RazorCohostRequestContext requestContext, CancellationToken cancellationToken);
 }
