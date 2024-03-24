@@ -48,7 +48,8 @@ internal sealed class RazorDynamicRegistrationServiceFactory([Import(AllowDefaul
             var serializedClientCapabilities = JsonConvert.SerializeObject(clientCapabilities);
             var razorCohostClientLanguageServerManager = new RazorCohostClientLanguageServerManager(_clientLanguageServerManager);
 
-            return _dynamicRegistrationService.RegisterAsync(serializedClientCapabilities, razorCohostClientLanguageServerManager, cancellationToken);
+            var requestContext = new RazorCohostRequestContext(context);
+            return _dynamicRegistrationService.RegisterAsync(serializedClientCapabilities, requestContext, cancellationToken);
         }
     }
 }
