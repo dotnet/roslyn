@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -116,7 +117,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(
         diagnosticsRefresher.RequestWorkspaceRefresh();
     }
 
-    public async Task<ImmutableArray<Diagnostic>> GetCachedDocumentDiagnosticsAsync(Document document, ImmutableArray<string> promptTitles, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<Diagnostic>> GetCachedDocumentDiagnosticsAsync(Document document, TextSpan? span, ImmutableArray<string> promptTitles, CancellationToken cancellationToken)
     {
         if (await ShouldSkipAnalysisAsync(document, cancellationToken).ConfigureAwait(false))
             return [];
@@ -144,7 +145,15 @@ internal abstract class AbstractCopilotCodeAnalysisService(
             }
         }
 
+        if (span.HasValue)
+            return await GetDiagnosticsIntersectWithSpanAsync(document, diagnostics, span.Value, cancellationToken).ConfigureAwait(false);
+
         return diagnostics.ToImmutable();
+    }
+
+    protected virtual Task<ImmutableArray<Diagnostic>> GetDiagnosticsIntersectWithSpanAsync(Document document, IReadOnlyList<Diagnostic> diagnostics, TextSpan span, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(diagnostics.WhereAsArray((diagnostic, _) => diagnostic.Location.SourceSpan.IntersectsWith(span), state: (object)null));
     }
 
     public async Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken)

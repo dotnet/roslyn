@@ -16,8 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-[Export(typeof(EditAndContinueDiagnosticUpdateSource))]
-[Shared]
+[Export(typeof(EditAndContinueDiagnosticUpdateSource)), Shared]
 internal sealed class EditAndContinueDiagnosticUpdateSource : IDiagnosticUpdateSource
 {
     private int _diagnosticsVersion;
@@ -32,12 +31,7 @@ internal sealed class EditAndContinueDiagnosticUpdateSource : IDiagnosticUpdateS
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public EditAndContinueDiagnosticUpdateSource(IDiagnosticUpdateSourceRegistrationService registrationService)
-        => registrationService.Register(this);
-
-    // for testing
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-    internal EditAndContinueDiagnosticUpdateSource()
+    public EditAndContinueDiagnosticUpdateSource()
     {
     }
 

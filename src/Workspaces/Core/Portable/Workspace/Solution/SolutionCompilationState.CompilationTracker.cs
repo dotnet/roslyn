@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis
                     };
 
                     var newState = new InProgressState(
-                        state.IsFrozen,
+                        state.CreationPolicy,
                         compilationWithoutGeneratedDocuments,
                         state.GeneratorInfo,
                         staleCompilationWithGeneratedDocuments,
@@ -334,12 +334,13 @@ namespace Microsoft.CodeAnalysis
 
                         var compilationWithoutGeneratedDocuments = CreateEmptyCompilation();
 
-                        // We only got here when we had no compilation state at all.  So we couldn't have gotten
-                        // here from a frozen state (as a frozen state always ensures we have a
-                        // WithCompilationTrackerState).  As such, we can safely still preserve that we're not
-                        // frozen here.
+                        // We only got here when we had no compilation state at all.  So we couldn't have gotten here
+                        // from a frozen state (as a frozen state always ensures we have at least an InProgressState).
+                        // As such, we want to start initially in the state where we will both run generators and create
+                        // skeleton references for p2p references.  That will ensure the most correct state for our
+                        // compilation the first time we create it.
                         var allSyntaxTreesParsedState = new InProgressState(
-                            isFrozen: false,
+                            CreationPolicy.Create,
                             new Lazy<Compilation>(CreateEmptyCompilation),
                             CompilationTrackerGeneratorInfo.Empty,
                             staleCompilationWithGeneratedDocuments: s_lazyNullCompilation,
@@ -380,7 +381,7 @@ namespace Microsoft.CodeAnalysis
                             // generator docs back to the uncomputed state from that point onwards.  We'll just keep
                             // whateverZ generated docs we have.
                             currentState = new InProgressState(
-                                currentState.IsFrozen,
+                                currentState.CreationPolicy,
                                 compilationWithoutGeneratedDocuments,
                                 generatorInfo,
                                 staleCompilationWithGeneratedDocuments,
@@ -472,7 +473,7 @@ namespace Microsoft.CodeAnalysis
                     Contract.ThrowIfTrue(inProgressState.PendingTranslationActions.Count > 0);
 
                     // The final state we produce will be frozen or not depending on if a frozen state was passed into it.
-                    var isFrozen = inProgressState.IsFrozen;
+                    var creationPolicy = inProgressState.CreationPolicy;
                     var generatorInfo = inProgressState.GeneratorInfo;
                     var compilationWithoutGeneratedDocuments = inProgressState.CompilationWithoutGeneratedDocuments;
                     var staleCompilationWithGeneratedDocuments = inProgressState.LazyStaleCompilationWithGeneratedDocuments.Value;
@@ -524,27 +525,33 @@ namespace Microsoft.CodeAnalysis
                         {
                             // Not a submission.  Add as a metadata reference.
 
-                            if (isFrozen)
+                            if (creationPolicy.SkeletonReferenceCreationPolicy is SkeletonReferenceCreationPolicy.Create)
                             {
-                                // In the frozen case, attempt to get a partial reference, or fallback to the last
-                                // successful reference for this project if we can find one. 
-                                var metadataReference = compilationState.GetPartialMetadataReference(projectReference, this.ProjectState);
+                                var metadataReference = await compilationState.GetMetadataReferenceAsync(projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
+                                AddMetadataReference(projectReference, metadataReference);
+                            }
+                            else
+                            {
+                                Contract.ThrowIfFalse(creationPolicy.SkeletonReferenceCreationPolicy is SkeletonReferenceCreationPolicy.CreateIfAbsent or SkeletonReferenceCreationPolicy.DoNotCreate);
 
+                                // If not asked to explicit create an up to date skeleton, attempt to get a partial
+                                // reference, or fallback to the last successful reference for this project if we can
+                                // find one. 
+                                var metadataReference = compilationState.GetPartialMetadataReference(projectReference, this.ProjectState);
                                 if (metadataReference is null)
                                 {
-                                    // if we failed to get the metadata and we were frozen, check to see if we
-                                    // previously had existing metadata and reuse it instead.
                                     var inProgressCompilationNotRef = staleCompilationWithGeneratedDocuments ?? compilationWithoutGeneratedDocuments;
                                     metadataReference = inProgressCompilationNotRef.ExternalReferences.FirstOrDefault(
                                         r => GetProjectId(inProgressCompilationNotRef.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol) == projectReference.ProjectId);
                                 }
 
-                                AddMetadataReference(projectReference, metadataReference);
-                            }
-                            else
-                            {
-                                // For the non-frozen case, attempt to get the full metadata reference.
-                                var metadataReference = await compilationState.GetMetadataReferenceAsync(projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
+                                // If we still failed, but our policy is to create when absent, then do the work to
+                                // create a real skeleton here.
+                                if (metadataReference is null && creationPolicy.SkeletonReferenceCreationPolicy is SkeletonReferenceCreationPolicy.CreateIfAbsent)
+                                {
+                                    metadataReference = await compilationState.GetMetadataReferenceAsync(projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
+                                }
+
                                 AddMetadataReference(projectReference, metadataReference);
                             }
                         }
@@ -563,7 +570,7 @@ namespace Microsoft.CodeAnalysis
 
                     // We will finalize the compilation by adding full contents here.
                     var (compilationWithGeneratedDocuments, generatedDocuments, generatorDriver) = await AddExistingOrComputeNewGeneratorInfoAsync(
-                        isFrozen,
+                        creationPolicy,
                         compilationState,
                         compilationWithoutGeneratedDocuments,
                         generatorInfo,
@@ -574,7 +581,7 @@ namespace Microsoft.CodeAnalysis
                     var nextGeneratorInfo = new CompilationTrackerGeneratorInfo(generatedDocuments, generatorDriver);
 
                     var finalState = FinalCompilationTrackerState.Create(
-                        isFrozen,
+                        creationPolicy,
                         compilationWithGeneratedDocuments,
                         compilationWithoutGeneratedDocuments,
                         hasSuccessfullyLoaded,
@@ -667,13 +674,18 @@ namespace Microsoft.CodeAnalysis
             {
                 var state = this.ReadState();
 
+                // We're freezing the solution for features where latency performance is parameter.  Do not run SGs or
+                // create skeleton references at this point.  Just use whatever we've already generated for each in the
+                // past.
+                var desiredCreationPolicy = CreationPolicy.DoNotCreate;
+
                 if (state is FinalCompilationTrackerState finalState)
                 {
-                    // If we're finalized and already frozen, we can just use ourselves. Otherwise, flip the frozen bit
-                    // so that any future forks keep things frozen.
-                    return finalState.IsFrozen
+                    // Attempt to transition our state to one where we do not run generators or create skeleton references.
+                    var newFinalState = finalState.WithCreationPolicy(desiredCreationPolicy);
+                    return newFinalState == finalState
                         ? this
-                        : new CompilationTracker(this.ProjectState, finalState.WithIsFrozen(), skeletonReferenceCacheToClone: _skeletonReferenceCache);
+                        : new CompilationTracker(this.ProjectState, newFinalState, skeletonReferenceCacheToClone: _skeletonReferenceCache);
                 }
 
                 // Non-final state currently.  Produce an in-progress-state containing the forked change. Note: we
@@ -722,7 +734,7 @@ namespace Microsoft.CodeAnalysis
                     return new CompilationTracker(
                         frozenProjectState,
                         new InProgressState(
-                            isFrozen: true,
+                            desiredCreationPolicy,
                             lazyCompilationWithoutGeneratedDocuments,
                             CompilationTrackerGeneratorInfo.Empty,
                             lazyCompilationWithGeneratedDocuments,
@@ -748,7 +760,7 @@ namespace Microsoft.CodeAnalysis
                     return new CompilationTracker(
                         frozenProjectState,
                         new InProgressState(
-                            isFrozen: true,
+                            desiredCreationPolicy,
                             compilationWithoutGeneratedDocuments,
                             generatorInfo,
                             compilationWithGeneratedDocuments,

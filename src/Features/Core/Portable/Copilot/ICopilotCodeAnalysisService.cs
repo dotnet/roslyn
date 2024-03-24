@@ -61,7 +61,7 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// <remarks>
     /// A prompt's title serves as the ID of the prompt, which can be used to selectively trigger analysis and retrive cached results.
     /// </remarks>
-    Task<ImmutableArray<Diagnostic>> GetCachedDocumentDiagnosticsAsync(Document document, ImmutableArray<string> promptTitles, CancellationToken cancellationToken);
+    Task<ImmutableArray<Diagnostic>> GetCachedDocumentDiagnosticsAsync(Document document, TextSpan? span, ImmutableArray<string> promptTitles, CancellationToken cancellationToken);
 
     /// <summary>
     /// Method to start a Copilot refinement session on top of the changes between the given

@@ -34,7 +34,7 @@ internal sealed class DocumentDiagnosticSource(DiagnosticKind diagnosticKind, Te
         // Add cached Copilot diagnostics when computing analyzer semantic diagnostics.
         if (DiagnosticKind == DiagnosticKind.AnalyzerSemantic)
         {
-            var copilotDiagnostics = await Document.GetCachedCopilotDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+            var copilotDiagnostics = await Document.GetCachedCopilotDiagnosticsAsync(span: null, cancellationToken).ConfigureAwait(false);
             allSpanDiagnostics = allSpanDiagnostics.AddRange(copilotDiagnostics);
         }
 

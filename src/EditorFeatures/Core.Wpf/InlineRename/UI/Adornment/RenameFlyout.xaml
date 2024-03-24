@@ -7,6 +7,7 @@
              xmlns:rename="clr-namespace:Microsoft.CodeAnalysis.Editor.Implementation.InlineRename"
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:platformimaging="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:utils="clr-namespace:Microsoft.CodeAnalysis.Utilities"
              xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              mc:Ignorable="d"
@@ -32,7 +33,8 @@
         Background="{DynamicResource {x:Static vsui:EnvironmentColors.ToolWindowBackgroundBrushKey}}"
         BorderBrush="{DynamicResource {x:Static vsui:EnvironmentColors.ToolWindowBorderBrushKey}}"
         BorderThickness="1"
-        x:Name="Outline">
+        x:Name="Outline"
+        platformimaging:ImageThemingUtilities.ImageBackgroundColor="{Binding Path=Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}">
         <StackPanel x:Name="MainPanel" Orientation="Vertical" Margin="5" >
             <Grid x:Name="IdentifierAndExpandButtonGrid" Margin="0 0 0 5">
                 <Grid.ColumnDefinitions>
