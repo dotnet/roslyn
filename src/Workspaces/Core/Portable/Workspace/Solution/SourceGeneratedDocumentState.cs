@@ -38,12 +38,15 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
     public Checksum GetOriginalSourceTextContentHash()
         => _lazyContentHash.Value;
 
+    public readonly DateTime GeneratedDateTime;
+
     public static SourceGeneratedDocumentState Create(
         SourceGeneratedDocumentIdentity documentIdentity,
         SourceText generatedSourceText,
         ParseOptions parseOptions,
         LanguageServices languageServices,
-        Checksum? originalSourceTextChecksum)
+        Checksum? originalSourceTextChecksum,
+        DateTime generatedDateTime)
     {
         // If the caller explicitly provided us with the checksum for the source text, then we always defer to that.
         // This happens on the host side, when we are given the data computed by the OOP side.
@@ -51,7 +54,7 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         // If the caller didn't provide us with the checksum, then we'll compute it on demand.  This happens on the OOP
         // side when we're actually producing the SG doc in the first place.
         var lazyTextChecksum = new Lazy<Checksum>(() => originalSourceTextChecksum ?? ComputeContentHash(generatedSourceText));
-        return Create(documentIdentity, generatedSourceText, parseOptions, languageServices, lazyTextChecksum);
+        return Create(documentIdentity, generatedSourceText, parseOptions, languageServices, lazyTextChecksum, generatedDateTime);
     }
 
     private static SourceGeneratedDocumentState Create(
@@ -59,7 +62,8 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         SourceText generatedSourceText,
         ParseOptions parseOptions,
         LanguageServices languageServices,
-        Lazy<Checksum> lazyTextChecksum)
+        Lazy<Checksum> lazyTextChecksum,
+        DateTime generatedDateTime)
     {
         var loadTextOptions = new LoadTextOptions(generatedSourceText.ChecksumAlgorithm);
         var textAndVersion = TextAndVersion.Create(generatedSourceText, VersionStamp.Create());
@@ -88,7 +92,8 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
             generatedSourceText,
             loadTextOptions,
             treeSource,
-            lazyTextChecksum);
+            lazyTextChecksum,
+            generatedDateTime);
     }
 
     private SourceGeneratedDocumentState(
@@ -101,13 +106,15 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         SourceText text,
         LoadTextOptions loadTextOptions,
         AsyncLazy<TreeAndVersion> treeSource,
-        Lazy<Checksum> lazyContentHash)
+        Lazy<Checksum> lazyContentHash,
+        DateTime generatedDateTime)
         : base(languageServices, documentServiceProvider, attributes, options, textSource, loadTextOptions, treeSource)
     {
         Identity = documentIdentity;
 
         SourceText = text;
         _lazyContentHash = lazyContentHash;
+        GeneratedDateTime = generatedDateTime;
     }
 
     private static Checksum ComputeContentHash(SourceText text)
@@ -135,7 +142,8 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
             ParseOptions,
             LanguageServices,
             // Just pass along the checksum for the new source text since we've already computed it.
-            newSourceTextChecksum);
+            newSourceTextChecksum,
+            GeneratedDateTime);
     }
 
     public SourceGeneratedDocumentState WithParseOptions(ParseOptions parseOptions)
@@ -150,7 +158,24 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
             parseOptions,
             LanguageServices,
             // We're just changing the parse options.  So the checksum will remain as is.
-            _lazyContentHash);
+            _lazyContentHash,
+            GeneratedDateTime);
+    }
+
+    public SourceGeneratedDocumentState WithGeneratedDateTime(DateTime generatedDateTime)
+    {
+        // See if we can reuse this instance directly
+        if (this.GeneratedDateTime == generatedDateTime)
+            return this;
+
+        return Create(
+            Identity,
+            SourceText,
+            ParseOptions,
+            LanguageServices,
+            // We're just changing the date time only.  So the checksum will remain as is.
+            _lazyContentHash,
+            generatedDateTime);
     }
 
     /// <summary>
