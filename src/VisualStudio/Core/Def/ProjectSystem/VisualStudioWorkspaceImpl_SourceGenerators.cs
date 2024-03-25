@@ -129,14 +129,14 @@ internal abstract partial class VisualStudioWorkspaceImpl
             var dependencyGraph = solution.GetProjectDependencyGraph();
             using var _ = CodeAnalysis.PooledObjects.PooledDictionary<ProjectId, int>.GetInstance(out var result);
 
-            foreach (var savedProjectId in projectIdSet)
+            foreach (var projectId in projectIdSet)
             {
-                var savedProject = solution.GetProject(savedProjectId);
-                if (savedProject != null && !result.ContainsKey(savedProjectId))
+                var savedProject = solution.GetProject(projectId);
+                if (savedProject != null && !result.ContainsKey(projectId))
                 {
-                    result[savedProjectId] = savedProject.SourceGeneratorVersion + 1;
+                    result[projectId] = savedProject.SourceGeneratorVersion + 1;
 
-                    foreach (var transitiveProjectId in dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(savedProjectId))
+                    foreach (var transitiveProjectId in dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId))
                         result[transitiveProjectId] = solution.GetRequiredProject(transitiveProjectId).SourceGeneratorVersion + 1;
                 }
             }
