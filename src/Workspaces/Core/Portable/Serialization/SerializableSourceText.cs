@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Host.TemporaryStorageService;
 
 namespace Microsoft.CodeAnalysis.Serialization;
 
@@ -29,7 +30,7 @@ internal sealed class SerializableSourceText
     /// <remarks>
     /// Exactly one of <see cref="_storage"/> or <see cref="_text"/> will be non-<see langword="null"/>.
     /// </remarks>
-    private readonly ITemporaryTextStorageWithName? _storage;
+    private readonly TemporaryTextStorage? _storage;
 
     /// <summary>
     /// The <see cref="SourceText"/> in the current process.
@@ -51,7 +52,7 @@ internal sealed class SerializableSourceText
     /// </summary>
     private readonly WeakReference<SourceText?> _computedText = new(target: null);
 
-    public SerializableSourceText(ITemporaryTextStorageWithName storage, ImmutableArray<byte> contentHash)
+    public SerializableSourceText(TemporaryTextStorage storage, ImmutableArray<byte> contentHash)
         : this(storage, text: null, contentHash)
     {
     }
@@ -61,7 +62,7 @@ internal sealed class SerializableSourceText
     {
     }
 
-    private SerializableSourceText(ITemporaryTextStorageWithName? storage, SourceText? text, ImmutableArray<byte> contentHash)
+    private SerializableSourceText(TemporaryTextStorage? storage, SourceText? text, ImmutableArray<byte> contentHash)
     {
         Debug.Assert(storage is null != text is null);
 
@@ -110,7 +111,7 @@ internal sealed class SerializableSourceText
     public static ValueTask<SerializableSourceText> FromTextDocumentStateAsync(
         TextDocumentState state, CancellationToken cancellationToken)
     {
-        if (state.Storage is ITemporaryTextStorageWithName storage)
+        if (state.Storage is TemporaryTextStorage storage)
         {
             return new ValueTask<SerializableSourceText>(new SerializableSourceText(storage, storage.ContentHash));
         }

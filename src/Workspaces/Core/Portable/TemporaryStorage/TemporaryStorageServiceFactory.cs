@@ -169,7 +169,7 @@ internal partial class TemporaryStorageService : ITemporaryStorageServiceInterna
     public static string CreateUniqueName(long size)
         => "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
 
-    public sealed class TemporaryTextStorage : ITemporaryTextStorageWithName
+    public sealed class TemporaryTextStorage : ITemporaryTextStorageInternal, ITemporaryStorageWithName
     {
         private readonly TemporaryStorageService _service;
         private SourceHashAlgorithm _checksumAlgorithm;
@@ -201,8 +201,23 @@ internal partial class TemporaryStorageService : ITemporaryStorageServiceInterna
         public string? Name => _memoryMappedInfo?.Name;
         public long Offset => _memoryMappedInfo!.Offset;
         public long Size => _memoryMappedInfo!.Size;
+
+        /// <summary>
+        /// Gets the value for the <see cref="SourceText.ChecksumAlgorithm"/> property for the <see cref="SourceText"/>
+        /// represented by this temporary storage.
+        /// </summary>
         public SourceHashAlgorithm ChecksumAlgorithm => _checksumAlgorithm;
+
+        /// <summary>
+        /// Gets the value for the <see cref="SourceText.Encoding"/> property for the <see cref="SourceText"/>
+        /// represented by this temporary storage.
+        /// </summary>
         public Encoding? Encoding => _encoding;
+
+        /// <summary>
+        /// Gets the checksum for the <see cref="SourceText"/> represented by this temporary storage. This is equivalent
+        /// to calling <see cref="SourceText.GetContentHash"/>.
+        /// </summary>
         public ImmutableArray<byte> ContentHash => _contentHash;
 
         public void Dispose()
