@@ -90,11 +90,7 @@ public sealed class SolutionInfo
     /// type that contains information regarding this solution itself but
     /// no tree information such as project info
     /// </summary>
-    internal sealed class SolutionAttributes(
-        SolutionId id,
-        VersionStamp version,
-        string? filePath,
-        Guid telemetryId)
+    internal sealed class SolutionAttributes(SolutionId id, VersionStamp version, string? filePath, Guid telemetryId)
     {
         private SingleInitNullable<Checksum> _lazyChecksum;
 
@@ -150,11 +146,14 @@ public sealed class SolutionInfo
         }
 
         public static SolutionAttributes ReadFrom(ObjectReader reader)
-            => new(
-                SolutionId.ReadFrom(reader),
-                VersionStamp.Create(),
-                reader.ReadString(),
-                reader.ReadGuid());
+        {
+            var solutionId = SolutionId.ReadFrom(reader);
+            // var version = VersionStamp.ReadFrom(reader);
+            var filePath = reader.ReadString();
+            var telemetryId = reader.ReadGuid();
+
+            return new SolutionAttributes(solutionId, VersionStamp.Create(), filePath, telemetryId);
+        }
 
         public Checksum Checksum
             => _lazyChecksum.Initialize(static @this => Checksum.Create(@this, static (@this, writer) => @this.WriteTo(writer)), this);
