@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using SQLitePCL;
 
 namespace Microsoft.CodeAnalysis.Host;
 
@@ -105,8 +106,9 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
     public ITemporaryTextStorageInternal CreateTemporaryTextStorage()
         => new TemporaryTextStorage(this);
 
-    public ITemporaryTextStorageInternal AttachTemporaryTextStorage(string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding)
-        => new TemporaryTextStorage(this, storageName, offset, size, checksumAlgorithm, encoding);
+    public ITemporaryTextStorageInternal AttachTemporaryTextStorage(
+        string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, ImmutableArray<byte> contentHash)
+        => new TemporaryTextStorage(this, storageName, offset, size, checksumAlgorithm, encoding, contentHash);
 
     ITemporaryStreamStorageInternal ITemporaryStorageServiceInternal.CreateTemporaryStreamStorage()
         => CreateTemporaryStreamStorage();
@@ -172,17 +174,25 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
         private readonly TemporaryStorageService _service;
         private SourceHashAlgorithm _checksumAlgorithm;
         private Encoding? _encoding;
-        private ImmutableArray<byte> _checksum;
+        private ImmutableArray<byte> _contentHash;
         private MemoryMappedInfo? _memoryMappedInfo;
 
         public TemporaryTextStorage(TemporaryStorageService service)
             => _service = service;
 
-        public TemporaryTextStorage(TemporaryStorageService service, string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding)
+        public TemporaryTextStorage(
+            TemporaryStorageService service,
+            string storageName,
+            long offset,
+            long size,
+            SourceHashAlgorithm checksumAlgorithm,
+            Encoding? encoding,
+            ImmutableArray<byte> contentHash)
         {
             _service = service;
             _checksumAlgorithm = checksumAlgorithm;
             _encoding = encoding;
+            _contentHash = contentHash;
             _memoryMappedInfo = new MemoryMappedInfo(storageName, offset, size);
         }
 
@@ -193,16 +203,7 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
         public long Size => _memoryMappedInfo!.Size;
         public SourceHashAlgorithm ChecksumAlgorithm => _checksumAlgorithm;
         public Encoding? Encoding => _encoding;
-
-        public ImmutableArray<byte> GetContentHash(CancellationToken cancellationToken)
-        {
-            if (_checksum.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedInitialize(ref _checksum, ReadText(cancellationToken).GetContentHash());
-            }
-
-            return _checksum;
-        }
+        public ImmutableArray<byte> ContentHash => _contentHash;
 
         public void Dispose()
         {
@@ -213,6 +214,7 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
 
             _memoryMappedInfo = null;
             _encoding = null;
+            _contentHash = default;
         }
 
         public SourceText ReadText(CancellationToken cancellationToken)
@@ -264,6 +266,7 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
             {
                 _checksumAlgorithm = text.ChecksumAlgorithm;
                 _encoding = text.Encoding;
+                _contentHash = text.GetContentHash();
 
                 // the method we use to get text out of SourceText uses Unicode (2bytes per char). 
                 var size = Encoding.Unicode.GetMaxByteCount(text.Length);

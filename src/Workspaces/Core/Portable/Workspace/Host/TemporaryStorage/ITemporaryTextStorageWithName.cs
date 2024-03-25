@@ -30,5 +30,5 @@ internal interface ITemporaryTextStorageWithName : ITemporaryTextStorageInternal
     /// Gets the checksum for the <see cref="SourceText"/> represented by this temporary storage. This is equivalent
     /// to calling <see cref="SourceText.GetContentHash"/>.
     /// </summary>
-    ImmutableArray<byte> GetContentHash(CancellationToken cancellationToken);
+    ImmutableArray<byte> ContentHash { get; }
 }
