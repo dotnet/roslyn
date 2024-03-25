@@ -31,7 +31,7 @@ internal static class TextExtensions
                 // For source generated documents, we won't count them as linked across multiple projects; this is because
                 // the generated documents in each target may have different source so other features might be surprised if we
                 // return the same documents but with different text. So in this case, we'll just return a single document.
-                return [solution.WithFrozenSourceGeneratedDocument(identityAndDateTime.identity, identityAndDateTime.generatedDateTime, text)];
+                return [solution.WithFrozenSourceGeneratedDocument(identityAndDateTime.identity, identityAndDateTime.generationDateTime, text)];
             }
 
             var relatedIds = solution.GetRelatedDocumentIds(documentId);
@@ -66,7 +66,7 @@ internal static class TextExtensions
                 return null;
 
             if (workspace.TryGetOpenSourceGeneratedDocumentIdentity(id, out var identityAndDateTime))
-                return solution.WithFrozenSourceGeneratedDocument(identityAndDateTime.identity, identityAndDateTime.generatedDateTime, text);
+                return solution.WithFrozenSourceGeneratedDocument(identityAndDateTime.identity, identityAndDateTime.generationDateTime, text);
 
             if (solution.ContainsDocument(id))
             {
