@@ -64,7 +64,18 @@ internal partial class SolutionCompilationState
     [NonCopyable]
     private struct SkeletonReferenceCache
     {
-        private static readonly EmitOptions s_metadataOnlyEmitOptions = new(metadataOnly: true);
+        /// <summary>
+        /// We don't want to include private members for several reasons.  First, it provides more opportunity to fail
+        /// to generate the skeleton reference.  Second, it adds much more perf cost having to bind and emit all those
+        /// members. Finally, those members serve no purpose as within the IDE we don't even load privates from metadata
+        /// in our compilations.  So this information doesn't even end up supporting any scenarios.  Note: Due to not
+        /// loading privates, it means that if a cross language call references something private, you'll get an error,
+        /// but go-to-def won't work.  That not ideal, but not the end of the world.  And the cost needed to support
+        /// that working is simply too high (both on emit and on load) to be worthwhile.
+        /// </summary>
+        private static readonly EmitOptions s_metadataOnlyEmitOptions = new(
+            metadataOnly: true,
+            includePrivateMembers: false);
 
         /// <summary>
         /// Lock around <see cref="_version"/> and <see cref="_skeletonReferenceSet"/> to ensure they are updated/read

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -147,58 +148,85 @@ internal static partial class SyntaxGeneratorExtensions
         syntaxFacts.GetPartsOfBinaryExpression(expressionNode, out var leftOperand, out var operatorToken, out var rightOperand);
 
         var operation = semanticModel.GetOperation(expressionNode, cancellationToken);
-        if (operation is not IBinaryOperation binaryOperation)
+        if (operation is IBinaryOperation binaryOperation)
         {
-            if (syntaxFacts.IsIsTypeExpression(expressionNode))
-            {
-                // `is object`  ->   `is null`
-                if (syntaxFacts.IsPredefinedType(rightOperand, PredefinedType.Object) &&
-                    generatorInternal.SupportsPatterns(semanticModel.SyntaxTree.Options))
-                {
-                    return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.ConstantPattern(generator.NullLiteralExpression()));
-                }
+            if (!s_negatedBinaryMap.TryGetValue(binaryOperation.OperatorKind, out var negatedKind))
+                return generator.LogicalNotExpression(expressionNode);
 
-                // `is y`   ->    `is not y`
-                if (syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
-                    return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.NotPattern(generatorInternal.TypePattern(rightOperand)));
+            // Lifted relational operators return false if either operand is null.
+            // Inverting the operator fails to invert the behavior when an operand is null.
+            if (binaryOperation.IsLifted
+                && binaryOperation.OperatorKind is BinaryOperatorKind.LessThan or
+                                                   BinaryOperatorKind.LessThanOrEqual or
+                                                   BinaryOperatorKind.GreaterThan or
+                                                   BinaryOperatorKind.GreaterThanOrEqual)
+            {
+                return generator.LogicalNotExpression(expressionNode);
             }
 
-            // Apply the logical not operator if it is not a binary operation.
-            return generator.LogicalNotExpression(expressionNode);
+            if (binaryOperation.OperatorKind is BinaryOperatorKind.Or or
+                                                BinaryOperatorKind.And or
+                                                BinaryOperatorKind.ConditionalAnd or
+                                                BinaryOperatorKind.ConditionalOr)
+            {
+                leftOperand = generator.Negate(generatorInternal, leftOperand, semanticModel, cancellationToken);
+                rightOperand = generator.Negate(generatorInternal, rightOperand, semanticModel, cancellationToken);
+            }
+
+            var newBinaryExpressionSyntax = negatedKind is BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals
+                ? generatorInternal.NegateEquality(generator, expressionNode, leftOperand, negatedKind, rightOperand)
+                : NegateRelational(generator, binaryOperation, leftOperand, negatedKind, rightOperand);
+            newBinaryExpressionSyntax = newBinaryExpressionSyntax.WithTriviaFrom(expressionNode);
+
+            var newToken = syntaxFacts.GetOperatorTokenOfBinaryExpression(newBinaryExpressionSyntax);
+            return newBinaryExpressionSyntax.ReplaceToken(
+                newToken,
+                newToken.WithTriviaFrom(operatorToken));
         }
-
-        if (!s_negatedBinaryMap.TryGetValue(binaryOperation.OperatorKind, out var negatedKind))
-            return generator.LogicalNotExpression(expressionNode);
-
-        // Lifted relational operators return false if either operand is null.
-        // Inverting the operator fails to invert the behavior when an operand is null.
-        if (binaryOperation.IsLifted
-            && binaryOperation.OperatorKind is BinaryOperatorKind.LessThan or
-                                               BinaryOperatorKind.LessThanOrEqual or
-                                               BinaryOperatorKind.GreaterThan or
-                                               BinaryOperatorKind.GreaterThanOrEqual)
+        else if (operation is IIsTypeOperation { TypeOperand.SpecialType: SpecialType.System_Object } && generatorInternal.SupportsPatterns(semanticModel.SyntaxTree.Options))
         {
+            // `is object`  ->   `is null`
+            return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.ConstantPattern(generator.NullLiteralExpression().WithTriviaFrom(rightOperand)));
+        }
+        else if (syntaxFacts.IsIsTypeExpression(expressionNode) && syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
+        {
+            // `is y`   ->    `is not y`
+            SyntaxNode innerPattern;
+            if (operation is IIsTypeOperation isTypeOperation)
+            {
+                if (syntaxFacts.IsAnyName(rightOperand))
+                {
+                    // For named types, we need to convert to a constant expression (where the named type becomes a member
+                    // access expression).  For other types (predefined, arrays, etc) we can keep this as a type pattern.
+                    // For example: `x is int` can just become `x is not int` where that's a type pattern.  But `x is Y`
+                    // will need to become `x is not Y` where that's a constant pattern instead.
+                    var typeExpression = generatorInternal.Type(isTypeOperation.TypeOperand, typeContext: false);
+                    innerPattern = syntaxFacts.IsAnyType(typeExpression) && !syntaxFacts.IsAnyName(typeExpression)
+                        ? generatorInternal.TypePattern(typeExpression)
+                        : generatorInternal.ConstantPattern(typeExpression);
+                }
+                else
+                {
+                    // original form was already not a name (like a predefined type, or array type, etc.).  Can just
+                    // use as is as a type pattern.
+                    innerPattern = generatorInternal.TypePattern(rightOperand);
+                }
+            }
+            else
+            {
+                innerPattern = generatorInternal.ConstantPattern(rightOperand);
+            }
+
+            return generatorInternal.IsPatternExpression(
+                leftOperand,
+                operatorToken,
+                generatorInternal.NotPattern(innerPattern.WithTriviaFrom(rightOperand)));
+        }
+        else
+        {
+            // Apply the logical not operator if it is not a binary operation and also doesn't support patterns.
             return generator.LogicalNotExpression(expressionNode);
         }
-
-        if (binaryOperation.OperatorKind is BinaryOperatorKind.Or or
-                                            BinaryOperatorKind.And or
-                                            BinaryOperatorKind.ConditionalAnd or
-                                            BinaryOperatorKind.ConditionalOr)
-        {
-            leftOperand = generator.Negate(generatorInternal, leftOperand, semanticModel, cancellationToken);
-            rightOperand = generator.Negate(generatorInternal, rightOperand, semanticModel, cancellationToken);
-        }
-
-        var newBinaryExpressionSyntax = negatedKind is BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals
-            ? generatorInternal.NegateEquality(generator, expressionNode, leftOperand, negatedKind, rightOperand)
-            : NegateRelational(generator, binaryOperation, leftOperand, negatedKind, rightOperand);
-        newBinaryExpressionSyntax = newBinaryExpressionSyntax.WithTriviaFrom(expressionNode);
-
-        var newToken = syntaxFacts.GetOperatorTokenOfBinaryExpression(newBinaryExpressionSyntax);
-        return newBinaryExpressionSyntax.ReplaceToken(
-            newToken,
-            newToken.WithTriviaFrom(operatorToken));
     }
 
     private static SyntaxNode GetNegationOfBinaryPattern(

@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
         }
 
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null, bool highPriority = false)
-        {
-            _delegatee.Reanalyze(workspace, projectIds, documentIds, highPriority);
-        }
+            => _delegatee.RequestDiagnosticRefresh();
     }
 }

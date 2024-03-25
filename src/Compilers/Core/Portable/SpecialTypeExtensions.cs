@@ -87,7 +87,6 @@ namespace Microsoft.CodeAnalysis
                 case SpecialType.System_RuntimeFieldHandle:
                 case SpecialType.System_RuntimeMethodHandle:
                 case SpecialType.System_RuntimeTypeHandle:
-                case SpecialType.System_ReadOnlySpan_T:
                     return true;
                 default:
                     return false;

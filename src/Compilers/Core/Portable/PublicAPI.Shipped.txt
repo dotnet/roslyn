@@ -2542,7 +2542,7 @@ Microsoft.CodeAnalysis.SourceProductionContext.SourceProductionContext() -> void
 Microsoft.CodeAnalysis.SourceReferenceResolver
 Microsoft.CodeAnalysis.SourceReferenceResolver.SourceReferenceResolver() -> void
 Microsoft.CodeAnalysis.SpecialType
-Microsoft.CodeAnalysis.SpecialType.Count = 47 -> Microsoft.CodeAnalysis.SpecialType
+Microsoft.CodeAnalysis.SpecialType.Count = 46 -> Microsoft.CodeAnalysis.SpecialType
 Microsoft.CodeAnalysis.SpecialType.None = 0 -> Microsoft.CodeAnalysis.SpecialType
 Microsoft.CodeAnalysis.SpecialType.System_ArgIterator = 37 -> Microsoft.CodeAnalysis.SpecialType
 Microsoft.CodeAnalysis.SpecialType.System_Array = 23 -> Microsoft.CodeAnalysis.SpecialType
