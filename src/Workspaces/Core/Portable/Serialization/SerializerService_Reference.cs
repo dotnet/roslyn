@@ -472,7 +472,7 @@ internal partial class SerializerService
         }
         else
         {
-            var service2 = (ITemporaryStorageService2)_storageService;
+            var service2 = (TemporaryStorageService)_storageService;
 
             var name = reader.ReadRequiredString();
             var offset = reader.ReadInt64();

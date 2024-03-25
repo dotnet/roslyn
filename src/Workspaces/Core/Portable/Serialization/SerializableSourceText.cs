@@ -170,21 +170,14 @@ internal sealed class SerializableSourceText
 
         if (kind == SerializationKinds.MemoryMapFile)
         {
-            var storage2 = (ITemporaryStorageService2)storageService;
+            var storage2 = (TemporaryStorageService)storageService;
 
             var name = reader.ReadRequiredString();
             var offset = reader.ReadInt64();
             var size = reader.ReadInt64();
 
             var storage = storage2.AttachTemporaryTextStorage(name, offset, size, checksumAlgorithm, encoding, contentHash);
-            if (storage is ITemporaryTextStorageWithName storageWithName)
-            {
-                return new SerializableSourceText(storageWithName, contentHash);
-            }
-            else
-            {
-                return new SerializableSourceText(storage.ReadText(cancellationToken), contentHash);
-            }
+            return new SerializableSourceText(storage, contentHash);
         }
         else
         {

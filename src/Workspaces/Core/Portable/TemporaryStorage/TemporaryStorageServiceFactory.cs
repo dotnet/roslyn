@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Host;
 #if NETCOREAPP
 [SupportedOSPlatform("windows")]
 #endif
-internal partial class TemporaryStorageService : ITemporaryStorageService2
+internal partial class TemporaryStorageService : ITemporaryStorageServiceInternal
 {
     /// <summary>
     /// The maximum size in bytes of a single storage unit in a memory mapped file which is shared with other
@@ -106,9 +106,9 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
     public ITemporaryTextStorageInternal CreateTemporaryTextStorage()
         => new TemporaryTextStorage(this);
 
-    public ITemporaryTextStorageInternal AttachTemporaryTextStorage(
+    public TemporaryTextStorage AttachTemporaryTextStorage(
         string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, ImmutableArray<byte> contentHash)
-        => new TemporaryTextStorage(this, storageName, offset, size, checksumAlgorithm, encoding, contentHash);
+        => new(this, storageName, offset, size, checksumAlgorithm, encoding, contentHash);
 
     ITemporaryStreamStorageInternal ITemporaryStorageServiceInternal.CreateTemporaryStreamStorage()
         => CreateTemporaryStreamStorage();
@@ -116,8 +116,8 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
     internal TemporaryStreamStorage CreateTemporaryStreamStorage()
         => new(this);
 
-    public ITemporaryStreamStorageInternal AttachTemporaryStreamStorage(string storageName, long offset, long size)
-        => new TemporaryStreamStorage(this, storageName, offset, size);
+    public TemporaryStreamStorage AttachTemporaryStreamStorage(string storageName, long offset, long size)
+        => new(this, storageName, offset, size);
 
     /// <summary>
     /// Allocate shared storage of a specified size.
@@ -169,7 +169,7 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
     public static string CreateUniqueName(long size)
         => "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
 
-    private sealed class TemporaryTextStorage : ITemporaryTextStorageInternal, ITemporaryTextStorageWithName
+    public sealed class TemporaryTextStorage : ITemporaryTextStorageWithName
     {
         private readonly TemporaryStorageService _service;
         private SourceHashAlgorithm _checksumAlgorithm;
