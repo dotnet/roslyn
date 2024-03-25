@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var sourceGeneratedDocumentIdentity = sourceGeneratedDocument.Identity;
 
             var frozenSolution = project.Solution.WithFrozenSourceGeneratedDocument(
-                sourceGeneratedDocumentIdentity, DateTime.Now, SourceText.From("// Hello, World"));
+                sourceGeneratedDocumentIdentity, sourceGeneratedDocument.GenerationDateTime, SourceText.From("// Hello, World"));
             Assert.Same(project.Solution, frozenSolution.Project.Solution);
         }
     }
