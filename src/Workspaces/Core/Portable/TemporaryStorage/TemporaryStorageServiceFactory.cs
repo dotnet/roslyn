@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Host;
 #if NETCOREAPP
 [SupportedOSPlatform("windows")]
 #endif
-internal partial class TemporaryStorageService : ITemporaryStorageServiceInternal
+internal sealed partial class TemporaryStorageService : ITemporaryStorageServiceInternal
 {
     /// <summary>
     /// The maximum size in bytes of a single storage unit in a memory mapped file which is shared with other
@@ -319,7 +319,7 @@ internal partial class TemporaryStorageService : ITemporaryStorageServiceInterna
         }
     }
 
-    internal class TemporaryStreamStorage : ITemporaryStreamStorageInternal, ITemporaryStorageWithName
+    internal sealed class TemporaryStreamStorage : ITemporaryStreamStorageInternal, ITemporaryStorageWithName
     {
         private readonly TemporaryStorageService _service;
         private MemoryMappedInfo? _memoryMappedInfo;
