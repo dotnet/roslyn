@@ -9466,6 +9466,7 @@ public static class Extension
               IL_003a:  ret
             }
             """);
+    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
     public void MixedCountPatterns()
