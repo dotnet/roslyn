@@ -15,33 +15,18 @@ parameters:
 - name: testArguments
   type: string
   default: ''
-- name: poolName
-  type: string
-  default: ''
-- name: queueName
-  type: string
-  default: 'windows.vs2022.amd64.open'
+- name: poolParameters
+  type: object
 
 jobs:
 - job: ${{ parameters.jobName }}
-  pool:
-    name: ${{ parameters.poolName }}
-    demands: ImageOverride -equals ${{ parameters.queueName }}
+  pool: ${{ parameters.poolParameters }}
   timeoutInMinutes: 120
   variables:
     DOTNET_ROLL_FORWARD: LatestMajor
     DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
   steps:
     - checkout: none
-
-    # A .NET 7 runtime is needed since our unit tests target net7.0
-    - task: UseDotNet@2
-      displayName: 'Install .NET 7 Runtime'
-      inputs:
-        packageType: runtime
-        version: 7.0.0-rc.1.22426.10
-        includePreviewVersions: true
-        installationPath: '$(Build.SourcesDirectory)/.dotnet'
 
     - task: DownloadPipelineArtifact@2
       displayName: Download Test Payload

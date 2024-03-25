@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 private readonly Workspace _workspace;
                 private readonly CodeAction _originalCodeAction;
-                private readonly SolutionChangeSummary _changeSummary;
+                private readonly Func<CancellationToken, Task<SolutionPreviewResult?>> _getPreviewResultAsync;
 
-                public PreviewChangesCodeAction(Workspace workspace, CodeAction originalCodeAction, SolutionChangeSummary changeSummary)
+                public PreviewChangesCodeAction(Workspace workspace, CodeAction originalCodeAction, Func<CancellationToken, Task<SolutionPreviewResult?>> getPreviewResultAsync)
                 {
                     _workspace = workspace;
                     _originalCodeAction = originalCodeAction;
-                    _changeSummary = changeSummary;
+                    _getPreviewResultAsync = getPreviewResultAsync;
                 }
 
                 public override string Title => EditorFeaturesResources.Preview_changes2;
@@ -41,14 +41,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         return ImmutableArray<CodeActionOperation>.Empty;
                     }
 
+                    var previewResult = await _getPreviewResultAsync(cancellationToken).ConfigureAwait(true);
+                    if (previewResult?.ChangeSummary is not { } changeSummary)
+                    {
+                        return ImmutableArray<CodeActionOperation>.Empty;
+                    }
+
                     var changedSolution = previewDialogService.PreviewChanges(
                         EditorFeaturesResources.Preview_Changes,
                         "vs.codefix.previewchanges",
                         _originalCodeAction.Title,
                         EditorFeaturesResources.Changes,
                         CodeAnalysis.Glyph.OpenFolder,
-                        _changeSummary.NewSolution,
-                        _changeSummary.OldSolution,
+                        changeSummary.NewSolution,
+                        changeSummary.OldSolution,
                         showCheckBoxes: false);
 
                     if (changedSolution == null)

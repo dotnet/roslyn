@@ -10,11 +10,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using StreamJsonRpc;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
 {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
         public bool RequiresLSPSolution => true;
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.InlayHint request)
-            => GetInlayHintResolveData(request).TextDocument;
+            => GetTextDocument(request.Data) ?? throw new ArgumentException();
 
         public async Task<LSP.InlayHint> HandleRequestAsync(LSP.InlayHint request, RequestContext context, CancellationToken cancellationToken)
         {
@@ -56,6 +56,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
 
             request.ToolTip = ProtocolConversions.GetDocumentationMarkupContent(taggedText, document, true);
             return request;
+        }
+
+        private static LSP.TextDocumentIdentifier? GetTextDocument(object? requestData)
+        {
+            Contract.ThrowIfNull(requestData);
+            var resolveData = ((JToken)requestData).ToObject<DocumentResolveData>();
+            return resolveData?.TextDocument;
         }
 
         private (InlayHintCache.InlayHintCacheEntry CacheEntry, InlineHint InlineHintToResolve) GetCacheEntry(InlayHintResolveData resolveData)

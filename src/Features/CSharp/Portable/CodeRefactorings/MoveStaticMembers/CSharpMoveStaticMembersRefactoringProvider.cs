@@ -10,18 +10,17 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MoveStaticMembers;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveStaticMembers
-{
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MoveStaticMembers), Shared]
-    internal class CSharpMoveStaticMembersRefactoringProvider : AbstractMoveStaticMembersRefactoringProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpMoveStaticMembersRefactoringProvider() : base()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveStaticMembers;
 
-        protected override Task<ImmutableArray<SyntaxNode>> GetSelectedNodesAsync(CodeRefactoringContext context)
-            => NodeSelectionHelpers.GetSelectedDeclarationsOrVariablesAsync(context);
+[ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MoveStaticMembers), Shared]
+internal class CSharpMoveStaticMembersRefactoringProvider : AbstractMoveStaticMembersRefactoringProvider
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpMoveStaticMembersRefactoringProvider() : base()
+    {
     }
+
+    protected override Task<ImmutableArray<SyntaxNode>> GetSelectedNodesAsync(CodeRefactoringContext context)
+        => NodeSelectionHelpers.GetSelectedDeclarationsOrVariablesAsync(context);
 }

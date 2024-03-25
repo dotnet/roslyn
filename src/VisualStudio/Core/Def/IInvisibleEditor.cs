@@ -7,10 +7,9 @@
 using System;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices
+namespace Microsoft.VisualStudio.LanguageServices;
+
+internal interface IInvisibleEditor : IDisposable
 {
-    internal interface IInvisibleEditor : IDisposable
-    {
-        ITextBuffer TextBuffer { get; }
-    }
+    ITextBuffer TextBuffer { get; }
 }

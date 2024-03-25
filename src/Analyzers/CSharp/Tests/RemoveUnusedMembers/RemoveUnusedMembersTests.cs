@@ -53,10 +53,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
         [InlineData("private protected")]
         public async Task NonPrivateField(string accessibility)
         {
-            var code = $@"class MyClass
-{{
-    {accessibility} int _goo;
-}}";
+            var code = $$"""
+                class MyClass
+                {
+                    {{accessibility}} int _goo;
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
@@ -69,10 +71,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
         [InlineData("private protected")]
         public async Task NonPrivateFieldWithConstantInitializer(string accessibility)
         {
-            var code = $@"class MyClass
-{{
-    {accessibility} int _goo = 0;
-}}";
+            var code = $$"""
+                class MyClass
+                {
+                    {{accessibility}} int _goo = 0;
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
@@ -85,11 +89,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
         [InlineData("private protected")]
         public async Task NonPrivateFieldWithNonConstantInitializer(string accessibility)
         {
-            var code = $@"class MyClass
-{{
-    {accessibility} int _goo = _goo2;
-    private static readonly int _goo2 = 0;
-}}";
+            var code = $$"""
+                class MyClass
+                {
+                    {{accessibility}} int _goo = _goo2;
+                    private static readonly int _goo2 = 0;
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
@@ -102,10 +108,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
         [InlineData("private protected")]
         public async Task NonPrivateMethod(string accessibility)
         {
-            var code = $@"class MyClass
-{{
-    {accessibility} void M() {{ }}
-}}";
+            var code = $$"""
+                class MyClass
+                {
+                    {{accessibility}} void M() { }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
@@ -118,10 +126,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
         [InlineData("private protected")]
         public async Task NonPrivateProperty(string accessibility)
         {
-            var code = $@"class MyClass
-{{
-    {accessibility} int P {{ get; }}
-}}";
+            var code = $$"""
+                class MyClass
+                {
+                    {{accessibility}} int P { get; }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
@@ -134,11 +144,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
         [InlineData("private protected")]
         public async Task NonPrivateIndexer(string accessibility)
         {
-            var code = $@"class MyClass
-{{
-    {accessibility}
-    int this[int arg] {{ get {{ return 0; }} set {{ }} }}
-}}";
+            var code = $$"""
+                class MyClass
+                {
+                    {{accessibility}}
+                    int this[int arg] { get { return 0; } set { } }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
@@ -151,12 +163,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
         [InlineData("private protected")]
         public async Task NonPrivateEvent(string accessibility)
         {
-            var code = $@"using System;
+            var code = $$"""
+                using System;
 
-class MyClass
-{{
-    {accessibility} event EventHandler RaiseCustomEvent;
-}}";
+                class MyClass
+                {
+                    {{accessibility}} event EventHandler RaiseCustomEvent;
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
@@ -1137,6 +1151,30 @@ class MyClass
         }
 
         [Fact]
+        public async Task InstanceConstructorIsUsed_RecordCopyConstructor()
+        {
+            var code = """
+                       var a = new A();
+                       
+                       sealed record A()
+                       {
+                           private A(A other) => throw new System.NotImplementedException();
+                       }
+                       """;
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    OutputKind = OutputKind.ConsoleApplication
+                },
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task PropertyIsRead()
         {
             var code = """
@@ -1735,7 +1773,7 @@ class MyClass
                 }
                 """;
 
-            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
+            await VerifyCS.VerifyAnalyzerAsync(code, []);
         }
 
         [Fact]
@@ -1795,7 +1833,7 @@ class MyClass
                 }
                 """;
 
-            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
+            await VerifyCS.VerifyAnalyzerAsync(code, []);
         }
 
         [Fact]
@@ -1911,7 +1949,7 @@ class MyClass
                 }
                 """;
 
-            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
+            await VerifyCS.VerifyAnalyzerAsync(code, []);
         }
 
         [Fact]
@@ -1971,7 +2009,7 @@ class MyClass
                 }
                 """;
 
-            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
+            await VerifyCS.VerifyAnalyzerAsync(code, []);
         }
 
         [Fact]
@@ -2149,14 +2187,18 @@ class MyClass
             [CombinatorialValues("[|_bar|]", "[|_bar|] = 2")] string secondField,
             [CombinatorialValues(0, 1)] int diagnosticIndex)
         {
-            var source = $@"class MyClass
-{{
-    private int {firstField}, {secondField};
-}}";
-            var fixedSource = $@"class MyClass
-{{
-    private int {(diagnosticIndex == 0 ? secondField : firstField)};
-}}";
+            var source = $$"""
+                class MyClass
+                {
+                    private int {{firstField}}, {{secondField}};
+                }
+                """;
+            var fixedSource = $$"""
+                class MyClass
+                {
+                    private int {{(diagnosticIndex == 0 ? secondField : firstField)}};
+                }
+                """;
             var batchFixedSource = """
                 class MyClass
                 {
@@ -2765,13 +2807,15 @@ class MyClass
         [InlineData(@"[System.Runtime.InteropServices.ComUnregisterFunctionAttribute]")]
         public async Task MethodsWithSpecialAttributes(string attribute)
         {
-            var code = $@"class C
-{{
-    {attribute}
-    private void M()
-    {{
-    }}
-}}";
+            var code = $$"""
+                class C
+                {
+                    {{attribute}}
+                    private void M()
+                    {
+                    }
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
@@ -3140,23 +3184,25 @@ class MyClass
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62856")]
         public async Task DontWarnForAwaiterMethods()
         {
-            const string code = @"using System;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
+            const string code = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
 
-class C : ICriticalNotifyCompletion
-{
-    public async Task M()
-    {
-        await this;
-    }
+                class C : ICriticalNotifyCompletion
+                {
+                    public async Task M()
+                    {
+                        await this;
+                    }
 
-    private C GetAwaiter() => this;
-    private bool IsCompleted => false;
-    private void GetResult() { }
-    public void OnCompleted(Action continuation) => Task.Run(continuation);
-    public void UnsafeOnCompleted(Action continuation) => Task.Run(continuation);
-}";
+                    private C GetAwaiter() => this;
+                    private bool IsCompleted => false;
+                    private void GetResult() { }
+                    public void OnCompleted(Action continuation) => Task.Run(continuation);
+                    public void UnsafeOnCompleted(Action continuation) => Task.Run(continuation);
+                }
+                """;
 
             await VerifyCS.VerifyAnalyzerAsync(code);
         }
@@ -3164,27 +3210,31 @@ class C : ICriticalNotifyCompletion
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62856")]
         public async Task WarnForAwaiterMethodsNotImplementingInterface()
         {
-            const string code = @"using System;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
+            const string code = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
 
-class C
-{
-    private C [|GetAwaiter|]() => this;
-    private bool [|IsCompleted|] => false;
-    private void [|GetResult|]() { }
-    public void OnCompleted(Action continuation) => Task.Run(continuation);
-    public void UnsafeOnCompleted(Action continuation) => Task.Run(continuation);
-}";
-            const string fixedCode = @"using System;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
+                class C
+                {
+                    private C [|GetAwaiter|]() => this;
+                    private bool [|IsCompleted|] => false;
+                    private void [|GetResult|]() { }
+                    public void OnCompleted(Action continuation) => Task.Run(continuation);
+                    public void UnsafeOnCompleted(Action continuation) => Task.Run(continuation);
+                }
+                """;
+            const string fixedCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
 
-class C
-{
-    public void OnCompleted(Action continuation) => Task.Run(continuation);
-    public void UnsafeOnCompleted(Action continuation) => Task.Run(continuation);
-}";
+                class C
+                {
+                    public void OnCompleted(Action continuation) => Task.Run(continuation);
+                    public void UnsafeOnCompleted(Action continuation) => Task.Run(continuation);
+                }
+                """;
 
             await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
         }

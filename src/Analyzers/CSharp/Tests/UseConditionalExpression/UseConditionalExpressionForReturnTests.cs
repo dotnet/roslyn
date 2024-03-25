@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpression
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
-    public partial class UseConditionalExpressionForReturnTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class UseConditionalExpressionForReturnTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         private static readonly ParseOptions CSharp8 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
         private static readonly ParseOptions CSharp9 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
@@ -472,6 +472,288 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
                         [||]if (true)
                         {
                             throw new System.Exception();
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70750")]
+        public async Task TestMissingWithChecked()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    int M()
+                    {
+                        int x = 0;
+                        int y = 0;
+                        [||]if (x < 0)
+                        {
+                            throw new System.Exception();
+                        }
+                        checked
+                        {
+                            return x - y;
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70748")]
+        public async Task TestMissingWithCheckedInIf()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    int M()
+                    {
+                        int x = 0;
+                        int y = 0;
+                        [||]if (checked(x == y))
+                        {
+                            return 0;
+                        }
+                        else
+                        {
+                            return 1;
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    int M()
+                    {
+                        int x = 0;
+                        int y = 0;
+                        return checked(x == y) ? 0 : 1;
+                    }
+                }
+                """, parseOptions: CSharp8);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70748")]
+        public async Task TestMissingWithUncheckedInIf()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    int M()
+                    {
+                        int x = 0;
+                        int y = 0;
+                        [||]if (unchecked(x == y))
+                        {
+                            return 0;
+                        }
+                        else
+                        {
+                            return 1;
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    int M()
+                    {
+                        int x = 0;
+                        int y = 0;
+                        return unchecked(x == y) ? 0 : 1;
+                    }
+                }
+                """, parseOptions: CSharp8);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70748")]
+        public async Task TestMissingWithCheckedInTrueStatement()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    int M()
+                    {
+                        int x = 0;
+                        int y = 0;
+                        [||]if (x == y)
+                        {
+                            return checked(x - y);
+                        }
+                        else
+                        {
+                            return 1;
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    int M()
+                    {
+                        int x = 0;
+                        int y = 0;
+                        return x == y ? checked(x - y) : 1;
+                    }
+                }
+                """, parseOptions: CSharp8);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70748")]
+        public async Task TestMissingWithUncheckedInTrueStatement()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    int M()
+                    {
+                        int x = 0;
+                        int y = 0;
+                        [||]if (x == y)
+                        {
+                            return unchecked(x - y);
+                        }
+                        else
+                        {
+                            return 1;
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    int M()
+                    {
+                        int x = 0;
+                        int y = 0;
+                        return x == y ? unchecked(x - y) : 1;
+                    }
+                }
+                """, parseOptions: CSharp8);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70748")]
+        public async Task TestMissingWithCheckedInFalseStatement()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    int M()
+                    {
+                        int x = 0;
+                        int y = 0;
+                        [||]if (x == y)
+                        {
+                            return 1;
+                        }
+                        else
+                        {
+                            return checked(x - y);
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    int M()
+                    {
+                        int x = 0;
+                        int y = 0;
+                        return x == y ? 1 : checked(x - y);
+                    }
+                }
+                """, parseOptions: CSharp8);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70748")]
+        public async Task TestMissingWithUncheckedInFalseStatement()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    int M()
+                    {
+                        int x = 0;
+                        int y = 0;
+                        [||]if (x == y)
+                        {
+                            return 1;
+                        }
+                        else
+                        {
+                            return unchecked(x - y);
+                        }
+                    }
+                }
+                """,
+                """
+                class C
+                {
+                    int M()
+                    {
+                        int x = 0;
+                        int y = 0;
+                        return x == y ? 1 : unchecked(x - y);
+                    }
+                }
+                """, parseOptions: CSharp8);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70750")]
+        public async Task TestMissingWithUnchecked()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    int M()
+                    {
+                        int x = 0;
+                        int y = 0;
+                        [||]if (x < 0)
+                        {
+                            throw new System.Exception();
+                        }
+                        unchecked
+                        {
+                            return x - y;
+                        }
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70750")]
+        public async Task TestMissingWithUnsafe()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                class C
+                {
+                    int M()
+                    {
+                        int x = 0;
+                        int y = 0;
+                        [||]if (x < 0)
+                        {
+                            throw new System.Exception();
+                        }
+                        unsafe
+                        {
+                            return x - y;
                         }
                     }
                 }

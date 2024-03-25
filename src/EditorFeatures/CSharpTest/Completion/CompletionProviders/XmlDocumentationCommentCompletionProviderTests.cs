@@ -760,6 +760,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 """, "cref", "langword", "href");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72259")]
+        public async Task SeeAttributeNames2()
+        {
+            var text = """
+                class C
+                {
+                    /// <summary>
+                    /// <see l$$=""/>
+                    /// </summary>
+                    static void Goo()
+                    {
+                    }
+                }
+                """;
+            var expected = """
+                class C
+                {
+                    /// <summary>
+                    /// <see langword=""/>
+                    /// </summary>
+                    static void Goo()
+                    {
+                    }
+                }
+                """;
+
+            await VerifyProviderCommitAsync(text, "langword", expected, null);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37504")]
         public async Task SeeAlsoAttributeNames()
         {
@@ -1093,8 +1122,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/69293")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69293")]
         public async Task DelegateParamRef()
         {
             await VerifyItemsExistAsync("""

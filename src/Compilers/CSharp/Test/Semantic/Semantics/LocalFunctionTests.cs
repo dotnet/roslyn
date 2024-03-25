@@ -2550,9 +2550,9 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (8,21): error CS0225: The params parameter must be a single dimensional array
+    // (8,21): error CS0225: The params parameter must have a valid collection type
     //         void Params(params int x)
-    Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(8, 21)
+    Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(8, 21)
     );
         }
 
@@ -2705,15 +2705,15 @@ class C
     }
 }";
             VerifyDiagnostics(src,
-                // (10,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                // (10,17): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
                 //         L1(val, val);
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(val, val)").WithArguments("ys", "L1").WithLocation(10, 9),
-                // (11,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "val").WithArguments("ys", "L1").WithLocation(10, 17),
+                // (11,16): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
                 //         L1(ys: val, x: val);
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(ys: val, x: val)").WithArguments("ys", "L1").WithLocation(11, 9),
-                // (12,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "val").WithArguments("ys", "L1").WithLocation(11, 16),
+                // (12,16): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
                 //         L1(ys: val);
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(ys: val)").WithArguments("ys", "L1").WithLocation(12, 9));
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "val").WithArguments("ys", "L1").WithLocation(12, 16));
         }
 
         [Fact]
@@ -2762,6 +2762,71 @@ class C
                 // (10,9): error CS1501: No overload for method 'Local' takes 2 arguments
                 //         Local(val, val);
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Local").WithArguments("Local", "2").WithLocation(10, 9));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicArgWithRefKind_01()
+        {
+            var src = @"
+class C
+{
+    static void Main()
+    {
+        dynamic i = 1;
+        
+        local1(i);
+        local1(ref i);
+
+        local2(i);
+        local3(i);
+        
+        void local1(ref int x){ x++; }
+        void local2(ref object x){ }
+        void local3(ref dynamic x){ x++; }
+    }
+}";
+            VerifyDiagnostics(src,
+                // (8,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         local1(i);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("1", "ref").WithLocation(8, 16),
+                // (9,20): error CS1503: Argument 1: cannot convert from 'ref dynamic' to 'ref int'
+                //         local1(ref i);
+                Diagnostic(ErrorCode.ERR_BadArgType, "i").WithArguments("1", "ref dynamic", "ref int").WithLocation(9, 20),
+                // (11,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         local2(i);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("1", "ref").WithLocation(11, 16),
+                // (12,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         local3(i);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("1", "ref").WithLocation(12, 16)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicArgWithRefKind_02()
+        {
+            var src = @"
+class C
+{
+    static void Main()
+    {
+        dynamic i = 1;
+        
+        local2(ref i);
+        System.Console.Write(i);
+        local3(ref i);
+        System.Console.Write(i);
+        
+        void local2(ref object x){ ref dynamic y = ref x; y++; }
+        void local3(ref dynamic x){ x++; }
+    }
+}";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "23").VerifyDiagnostics();
         }
 
         [WorkItem(3923, "https://github.com/dotnet/roslyn/issues/3923")]
@@ -10277,6 +10342,27 @@ public class C
                 //         Console.WriteLine(a);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(11, 27)
                 );
+        }
+
+        [Fact]
+        public void TestLocalFunctionDeclaration()
+        {
+            var compilation = CreateCompilation("""
+                                                class Test
+                                                {
+                                                  void M()
+                                                  {
+                                                      int LocalFunc(string s) {}
+                                                  }
+                                                }
+                                                """);
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+            var localFunction = root.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            IMethodSymbol methodSymbol = semanticModel.GetDeclaredSymbol(localFunction);
+
+            Assert.Equal("System.Int32 LocalFunc(System.String s)", methodSymbol.ToTestDisplayString());
         }
     }
 }

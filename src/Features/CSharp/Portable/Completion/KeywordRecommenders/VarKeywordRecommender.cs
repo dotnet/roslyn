@@ -7,32 +7,31 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+
+internal class VarKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
 {
-    internal class VarKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
+    public VarKeywordRecommender()
     {
-        public VarKeywordRecommender()
+    }
+
+    private static bool IsValidContext(CSharpSyntaxContext context)
+    {
+        if (context.IsStatementContext ||
+            context.IsGlobalStatementContext ||
+            context.IsPossibleTupleContext ||
+            context.IsAtStartOfPattern)
         {
+            return true;
         }
 
-        private static bool IsValidContext(CSharpSyntaxContext context)
-        {
-            if (context.IsStatementContext ||
-                context.IsGlobalStatementContext ||
-                context.IsPossibleTupleContext ||
-                context.IsAtStartOfPattern)
-            {
-                return true;
-            }
+        return context.IsLocalVariableDeclarationContext;
+    }
 
-            return context.IsLocalVariableDeclarationContext;
-        }
-
-        public ImmutableArray<RecommendedKeyword> RecommendKeywords(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            return IsValidContext(context)
-                ? ImmutableArray.Create(new RecommendedKeyword("var"))
-                : ImmutableArray<RecommendedKeyword>.Empty;
-        }
+    public ImmutableArray<RecommendedKeyword> RecommendKeywords(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        return IsValidContext(context)
+            ? [new RecommendedKeyword("var")]
+            : [];
     }
 }

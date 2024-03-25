@@ -368,11 +368,11 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         /// <summary>
-        /// Returns User Strings referenced from the IL in the module.
+        /// Returns copy of User Strings referenced from the IL in the module.
         /// </summary>
-        public IEnumerable<string> GetStrings()
+        public string[] CopyStrings()
         {
-            return _stringsInILMap.GetAllItems();
+            return _stringsInILMap.CopyItems();
         }
 
         public uint GetFakeSymbolTokenForIL(Cci.IReference symbol, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
@@ -747,6 +747,9 @@ namespace Microsoft.CodeAnalysis.Emit
             return details.GetModuleVersionId(mvidType);
         }
 
+        internal Cci.IFieldReference GetModuleCancellationToken(Cci.ITypeReference cancellationTokenType, TSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
+            => GetPrivateImplClass(syntaxOpt, diagnostics).GetModuleCancellationToken(cancellationTokenType);
+
         internal Cci.IFieldReference GetInstrumentationPayloadRoot(int analysisKind, Cci.ITypeReference payloadType, TSyntaxNode syntaxOpt, DiagnosticBag diagnostics)
         {
             PrivateImplementationDetails details = GetPrivateImplClass(syntaxOpt, diagnostics);
@@ -1003,6 +1006,13 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // map a field to the block (that makes it addressable via a token)
             return privateImpl.CreateArrayCachingField(data, arrayType, emitContext);
+        }
+
+        public Cci.IFieldReference GetArrayCachingFieldForConstants(ImmutableArray<ConstantValue> constants, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
+            var emitContext = new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true);
+            return privateImpl.CreateArrayCachingField(constants, arrayType, emitContext);
         }
 
         public abstract Cci.IMethodReference GetInitArrayHelper();

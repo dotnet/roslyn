@@ -841,9 +841,9 @@ class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
             comp.VerifyDiagnostics(
-                // (7,9): error CS8108: Cannot pass argument with dynamic type to params parameter 'y' of local function 'local'.
+                // (7,21): error CS8108: Cannot pass argument with dynamic type to params parameter 'y' of local function 'local'.
                 //         local(x: 1, d); 
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "local(x: 1, d)").WithArguments("y", "local").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "d").WithArguments("y", "local").WithLocation(7, 21),
                 // (7,21): error CS8323: Named argument specifications must appear after all fixed arguments have been specified in a dynamic invocation.
                 //         local(x: 1, d); 
                 Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation, "d").WithLocation(7, 21)
@@ -851,7 +851,7 @@ class C
         }
 
         [Fact]
-        public void TestDynamicWhenNotInvocation()
+        public void TestDynamicWhenNotInvocation_01()
         {
             var source = @"
 class C
@@ -871,7 +871,43 @@ class C
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (15,9): error CS0200: Property or indexer 'C.this[int, int]' cannot be assigned to -- it is read only
+                //         c[a: 1, d] = d;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "c[a: 1, d]").WithArguments("C.this[int, int]").WithLocation(15, 9)
+                );
+        }
+
+        [Fact]
+        public void TestDynamicWhenNotInvocation_02()
+        {
+            var source = @"
+class C
+{
+    int this[int a, int b]
+    {
+        get
+        {
+            System.Console.Write($""{a} {b}."");
+            return 0;
+        }
+    }
+    int this[int a, long b]
+    {
+        get
+        {
+            return 0;
+        }
+    }
+    void M(C c)
+    {
+        dynamic d = new object();
+        c[a: 1, d] = d;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                );
         }
 
         [Fact]

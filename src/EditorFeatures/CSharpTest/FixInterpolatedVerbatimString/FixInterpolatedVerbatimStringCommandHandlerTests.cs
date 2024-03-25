@@ -25,16 +25,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
     [Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
     public class FixInterpolatedVerbatimStringCommandHandlerTests
     {
-        private static TestWorkspace CreateTestWorkspace(string inputMarkup)
+        private static EditorTestWorkspace CreateTestWorkspace(string inputMarkup)
         {
-            var workspace = TestWorkspace.CreateCSharp(inputMarkup);
+            var workspace = EditorTestWorkspace.CreateCSharp(inputMarkup);
             var document = workspace.Documents.Single();
             var view = document.GetTextView();
             view.SetSelection(document.SelectedSpans.Single().ToSnapshotSpan(view.TextBuffer.CurrentSnapshot));
             return workspace;
         }
 
-        private static (string quoteCharSnapshotText, int quoteCharCaretPosition) TypeQuoteChar(TestWorkspace workspace)
+        private static (string quoteCharSnapshotText, int quoteCharCaretPosition) TypeQuoteChar(EditorTestWorkspace workspace)
         {
             var view = workspace.Documents.Single().GetTextView();
             var commandHandler = workspace.ExportProvider.GetCommandHandler<FixInterpolatedVerbatimStringCommandHandler>(nameof(FixInterpolatedVerbatimStringCommandHandler));

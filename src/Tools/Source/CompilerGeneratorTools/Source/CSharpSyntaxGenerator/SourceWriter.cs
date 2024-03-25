@@ -45,38 +45,30 @@ namespace CSharpSyntaxGenerator
         {
             WriteFileHeader();
 
-            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax");
-            OpenBlock();
-            WriteLine();
+            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;");
             this.WriteGreenTypes();
             this.WriteGreenVisitors();
             this.WriteGreenRewriter();
             this.WriteContextualGreenFactories();
             this.WriteStaticGreenFactories();
-            CloseBlock();
         }
 
         private void WriteSyntax()
         {
             WriteFileHeader();
-            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax");
-            OpenBlock();
-            WriteLine();
+            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax;");
             this.WriteRedTypes();
-            CloseBlock();
         }
 
         private void WriteMain()
         {
             WriteFileHeader();
-            WriteLine("namespace Microsoft.CodeAnalysis.CSharp");
-            OpenBlock();
+            WriteLine("namespace Microsoft.CodeAnalysis.CSharp;");
             WriteLine("using System.Diagnostics.CodeAnalysis;");
             WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
             this.WriteRedVisitors();
             this.WriteRedRewriter();
             this.WriteRedFactories();
-            CloseBlock();
         }
 
         private void WriteGreenTypes()
@@ -105,7 +97,7 @@ namespace CSharpSyntaxGenerator
                 OpenBlock();
                 if (node.Name == "DirectiveTriviaSyntax")
                 {
-                    WriteLine("this.flags |= NodeFlags.ContainsDirectives;");
+                    WriteLine("SetFlags(NodeFlags.ContainsDirectives);");
                 }
                 CloseBlock();
                 WriteLine();
@@ -115,7 +107,7 @@ namespace CSharpSyntaxGenerator
                 OpenBlock();
                 if (node.Name == "DirectiveTriviaSyntax")
                 {
-                    WriteLine("this.flags |= NodeFlags.ContainsDirectives;");
+                    WriteLine("SetFlags(NodeFlags.ContainsDirectives);");
                 }
                 CloseBlock();
 
@@ -181,7 +173,7 @@ namespace CSharpSyntaxGenerator
                 WriteLine(", DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)");
                 WriteLine("  : base(kind, diagnostics, annotations)");
                 OpenBlock();
-                WriteCtorBody(valueFields, nodeFields);
+                WriteCtorBody(nd, valueFields, nodeFields);
                 CloseBlock();
 
                 // write constructor with async
@@ -194,7 +186,7 @@ namespace CSharpSyntaxGenerator
                 WriteLine("  : base(kind)");
                 OpenBlock();
                 WriteLine("this.SetFactoryContext(context);");
-                WriteCtorBody(valueFields, nodeFields);
+                WriteCtorBody(nd, valueFields, nodeFields);
                 CloseBlock();
 
                 // write constructor without diagnostics and annotations
@@ -206,7 +198,7 @@ namespace CSharpSyntaxGenerator
                 WriteLine(")");
                 WriteLine("  : base(kind)");
                 OpenBlock();
-                WriteCtorBody(valueFields, nodeFields);
+                WriteCtorBody(nd, valueFields, nodeFields);
                 CloseBlock();
                 WriteLine();
 
@@ -297,8 +289,13 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private void WriteCtorBody(List<Field> valueFields, List<Field> nodeFields)
+        private void WriteCtorBody(Node node, List<Field> valueFields, List<Field> nodeFields)
         {
+            if (node.Name == "AttributeSyntax")
+            {
+                WriteLine("SetFlags(NodeFlags.ContainsAttributes);");
+            }
+
             // constructor body
             WriteLine($"this.SlotCount = {nodeFields.Count};");
 
@@ -589,6 +586,7 @@ namespace CSharpSyntaxGenerator
             if (nd.Name != "SkippedTokensTriviaSyntax" &&
                 nd.Name != "DocumentationCommentTriviaSyntax" &&
                 nd.Name != "IncompleteMemberSyntax" &&
+                nd.Name != "AttributeSyntax" &&
                 valueFields.Count + nodeFields.Count <= 3)
             {
                 //int hash;

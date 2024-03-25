@@ -3,25 +3,26 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Internal.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.ProjectSystem;
+using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
+    using OrderAttribute = Microsoft.VisualStudio.Utilities.OrderAttribute;
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
     [Export(typeof(IAttachedCollectionSourceProvider))]
     [Name(nameof(CpsDiagnosticItemSourceProvider))]
     [Order]
-    [AppliesToProject("(CSharp | VB) & CPS")]
+    [AppliesToProject($"({ProjectCapabilities.CSharp} | {ProjectCapabilities.VB}) & {ProjectCapabilities.Cps}")]
     internal sealed class CpsDiagnosticItemSourceProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
     {
         private readonly IAnalyzersCommandHandler _commandHandler;
@@ -42,11 +43,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _workspace = workspace;
         }
 
-        protected override IAttachedCollectionSource? CreateCollectionSource(IVsHierarchyItem item, string relationshipName)
+        protected override IAttachedCollectionSource? CreateCollectionSource(IVsHierarchyItem? item, string relationshipName)
         {
-            if (item != null &&
-                item.HierarchyIdentity != null &&
-                item.HierarchyIdentity.NestedHierarchy != null &&
+            if (item?.HierarchyIdentity?.NestedHierarchy != null &&
+                !item.IsDisposed &&
                 relationshipName == KnownRelationships.Contains)
             {
                 if (NestedHierarchyHasProjectTreeCapability(item, "AnalyzerDependency"))
@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         /// <summary>
         /// Starting at the given item, walks up the tree to find the item representing the project root.
-        /// If the item is located under a target-framwork specific node, the corresponding 
+        /// If the item is located under a target-framework specific node, the corresponding 
         /// TargetFrameworkMoniker will be found as well.
         /// </summary>
         private static IVsHierarchyItem? FindProjectRootItem(IVsHierarchyItem item, out string? targetFrameworkMoniker)
@@ -95,53 +95,67 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         }
 
         /// <summary>
-        /// Given an item determines if it represents a particular target frmework.
+        /// Given an item determines if it represents a particular target framework.
         /// If so, it returns the corresponding TargetFrameworkMoniker.
         /// </summary>
         private static string? GetTargetFrameworkMoniker(IVsHierarchyItem item)
         {
-            var hierarchy = item.HierarchyIdentity.NestedHierarchy;
-            var itemId = item.HierarchyIdentity.NestedItemID;
-
-            var projectTreeCapabilities = GetProjectTreeCapabilities(hierarchy, itemId);
-
-            var isTargetNode = false;
-            string? potentialTFM = null;
-            foreach (var capability in projectTreeCapabilities)
+            if (TryGetFlags(item, out var flags) &&
+                flags.Contains("TargetNode"))
             {
-                if (capability.Equals("TargetNode"))
-                {
-                    isTargetNode = true;
-                }
-                else if (capability.StartsWith("$TFM:"))
-                {
-                    potentialTFM = capability["$TFM:".Length..];
-                }
+                const string prefix = "$TFM:";
+                var flag = flags.FirstOrDefault(f => f.StartsWith(prefix));
+
+                return flag?.Substring(prefix.Length);
             }
 
-            return isTargetNode ? potentialTFM : null;
+            return null;
         }
 
         private static bool NestedHierarchyHasProjectTreeCapability(IVsHierarchyItem item, string capability)
         {
-            var hierarchy = item.HierarchyIdentity.NestedHierarchy;
-            var itemId = item.HierarchyIdentity.NestedItemID;
+            if (TryGetFlags(item, out var flags))
+                return flags.Contains(capability);
 
-            var projectTreeCapabilities = GetProjectTreeCapabilities(hierarchy, itemId);
-            return projectTreeCapabilities.Any(static (c, capability) => c.Equals(capability), capability);
+            return false;
         }
 
-        private static ImmutableArray<string> GetProjectTreeCapabilities(IVsHierarchy hierarchy, uint itemId)
+        public static bool TryGetFlags(IVsHierarchyItem item, out ProjectTreeFlags flags)
         {
-            if (hierarchy.GetProperty(itemId, (int)__VSHPROPID7.VSHPROPID_ProjectTreeCapabilities, out var capabilitiesObj) == VSConstants.S_OK)
+            if (item.HierarchyIdentity.IsRoot)
             {
-                var capabilitiesString = (string)capabilitiesObj;
-                return ImmutableArray.Create(capabilitiesString.Split(' '));
+                if (item.HierarchyIdentity.NestedHierarchy is IVsBrowseObjectContext { UnconfiguredProject.Services.ProjectTreeService.CurrentTree.Tree: { } tree })
+                {
+                    flags = tree.Flags;
+                    return true;
+                }
             }
             else
             {
-                return ImmutableArray<string>.Empty;
+                var itemId = item.HierarchyIdentity.ItemID;
+
+                // Browse objects are created lazily, and we want to avoid creating them when possible.
+                // This method is typically invoked for every hierarchy item in the tree, via Solution Explorer APIs.
+                // Rather than create a browse object for every node, we find the project root node and use that.
+                // In this way, we only ever create one browse object per project.
+                var root = item;
+                while (!root.HierarchyIdentity.IsRoot)
+                {
+                    root = root.Parent;
+                }
+
+                if (root.HierarchyIdentity.NestedHierarchy is IVsBrowseObjectContext { UnconfiguredProject.Services.ProjectTreeService.CurrentTree.Tree: { } tree })
+                {
+                    if (tree?.TryFind((IntPtr)itemId, out var subtree) == true)
+                    {
+                        flags = subtree.Flags;
+                        return true;
+                    }
+                }
             }
+
+            flags = default;
+            return false;
         }
 
         private IHierarchyItemToProjectIdMap? TryGetProjectMap()

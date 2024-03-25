@@ -1537,7 +1537,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName,
                      ERRID.WRN_AnalyzerReferencesNewerCompiler,
                      ERRID.WRN_DuplicateAnalyzerReference,
-                     ERRID.ERR_InvalidExperimentalDiagID
+                     ERRID.ERR_InvalidExperimentalDiagID,
+                     ERRID.ERR_LockTypeUnsupported,
+                     ERRID.WRN_ConvertingLock
                     Return False
                 Case Else
                     ' NOTE: All error codes must be explicitly handled in the below select case statement

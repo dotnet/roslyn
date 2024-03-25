@@ -5,27 +5,22 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteFindUsagesService : BrokeredServiceBase, IRemoteFindUsagesService
+    internal sealed class RemoteFindUsagesService(in BrokeredServiceBase.ServiceConstructionArguments arguments, RemoteCallback<IRemoteFindUsagesService.ICallback> callback)
+        : BrokeredServiceBase(arguments), IRemoteFindUsagesService
     {
         internal sealed class Factory : FactoryBase<IRemoteFindUsagesService, IRemoteFindUsagesService.ICallback>
         {
             protected override IRemoteFindUsagesService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteFindUsagesService.ICallback> callback)
                 => new RemoteFindUsagesService(arguments, callback);
-        }
-
-        private readonly RemoteCallback<IRemoteFindUsagesService.ICallback> _callback;
-
-        public RemoteFindUsagesService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteFindUsagesService.ICallback> callback)
-            : base(arguments)
-        {
-            _callback = callback;
         }
 
         public ValueTask FindReferencesAsync(
@@ -45,9 +40,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (symbol == null)
                     return;
 
-                var context = new RemoteFindUsageContext(_callback, callbackId);
+                var context = new RemoteFindUsageContext(callback, callbackId);
+                var classificationOptions = GetClientOptionsProvider<ClassificationOptions, IRemoteFindUsagesService.ICallback>(callback, callbackId);
+
                 await AbstractFindUsagesService.FindReferencesAsync(
-                    context, symbol, project, options, cancellationToken).ConfigureAwait(false);
+                    context, symbol, project, options, classificationOptions, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -66,9 +63,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (symbol == null)
                     return;
 
-                var context = new RemoteFindUsageContext(_callback, callbackId);
+                var context = new RemoteFindUsageContext(callback, callbackId);
+                var classificationOptions = GetClientOptionsProvider<ClassificationOptions, IRemoteFindUsagesService.ICallback>(callback, callbackId);
+
                 await AbstractFindUsagesService.FindImplementationsAsync(
-                    context, symbol, project, cancellationToken).ConfigureAwait(false);
+                    context, symbol, project, classificationOptions, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -76,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             private readonly RemoteCallback<IRemoteFindUsagesService.ICallback> _callback;
             private readonly RemoteServiceCallbackId _callbackId;
-            private readonly Dictionary<DefinitionItem, int> _definitionItemToId = new();
+            private readonly Dictionary<DefinitionItem, int> _definitionItemToId = [];
 
             public RemoteFindUsageContext(RemoteCallback<IRemoteFindUsagesService.ICallback> callback, RemoteServiceCallbackId callbackId)
             {
@@ -98,13 +97,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public IStreamingProgressTracker ProgressTracker => this;
 
-            public ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.GetOptionsAsync(_callbackId, language, cancellationToken), cancellationToken);
-
-            public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
+            public ValueTask ReportNoResultsAsync(string message, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportMessageAsync(_callbackId, message, cancellationToken), cancellationToken);
 
-            public ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
+            public ValueTask ReportMessageAsync(string message, NotificationSeverity severity, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportInformationalMessageAsync(_callbackId, message, cancellationToken), cancellationToken);
 
             public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)

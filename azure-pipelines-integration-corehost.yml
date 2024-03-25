@@ -48,6 +48,12 @@ pr:
       - CONTRIBUTING.md
       - README.md
 
+variables:
+- name: Codeql.Enabled
+  value: false
+- name: Codeql.SkipTaskAutoInjection
+  value: true
+
 parameters:
 - name: poolName
   displayName: Pool Name
@@ -59,7 +65,7 @@ parameters:
 - name: queueName
   displayName: Queue Name
   type: string
-  default: windows.vs2022preview.amd64.open
+  default: windows.vs2022preview.scout.amd64.open
   values:
   - windows.vs2022.amd64.open
   - windows.vs2022.scout.amd64.open
@@ -70,34 +76,28 @@ parameters:
   type: number
   default: 150
 
-jobs:
-- job: VS_Integration_CoreHost_Debug
-  pool:
-    name: ${{ parameters.poolName }}
-    demands: ImageOverride -equals ${{ parameters.queueName }}
-  timeoutInMinutes: ${{ parameters.timeout }}
-  variables:
-    - name: XUNIT_LOGS
-      value: $(Build.SourcesDirectory)\artifacts\log\Debug
-  steps:
-    - template: eng/pipelines/test-integration-job.yml
-      parameters:
-        configuration: Debug
-        oop64bit: true
+stages:
+- template: eng/pipelines/test-integration-helix.yml
+  parameters:
+    poolName: ${{ parameters.poolName }}
+    queueName: ${{ parameters.queueName }}
+    timeout: ${{ parameters.timeout }}
+    configuration: Debug
+    testRuns:
+      - oop64bit: true
         oopCoreClr: true
+        lspEditor: false
+        runName: VS_Integration_CoreHost_Debug
 
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-  - job: VS_Integration_CoreHost_Release
-    pool:
-      name: ${{ parameters.poolName }}
-      demands: ImageOverride -equals ${{ parameters.queueName }}
-    timeoutInMinutes: ${{ parameters.timeout }}
-    variables:
-      - name: XUNIT_LOGS
-        value: $(Build.SourcesDirectory)\artifacts\log\Debug
-    steps:
-      - template: eng/pipelines/test-integration-job.yml
-        parameters:
-          configuration: Release
-          oop64bit: true
+  - template: eng/pipelines/test-integration-helix.yml
+    parameters:
+      poolName: ${{ parameters.poolName }}
+      queueName: ${{ parameters.queueName }}
+      timeout: ${{ parameters.timeout }}
+      configuration: Release
+      testRuns:
+        - oop64bit: true
           oopCoreClr: true
+          lspEditor: false
+          runName: VS_Integration_CoreHost_Release

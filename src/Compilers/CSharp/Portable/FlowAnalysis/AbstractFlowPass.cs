@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result.Append(name).Append(": ").Append(this.Dump(_labels[key]));
                 first = false;
             }
-            result.Append("}");
+            result.Append('}');
             return result.ToString();
         }
 #endif
@@ -1607,7 +1607,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void SplitIfBooleanConstant(BoundExpression node)
         {
-            if (node.ConstantValueOpt is { IsBoolean: true, BooleanValue: bool booleanValue })
+            if (node.ConstantValueOpt is { IsBoolean: true, BooleanValue: bool booleanValue }
+                && node.Type.SpecialType == SpecialType.System_Boolean)
             {
                 var unreachable = UnreachableState();
                 Split();
@@ -1658,6 +1659,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitInstrumentationPayloadRoot(BoundInstrumentationPayloadRoot node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitThrowIfModuleCancellationRequested(BoundThrowIfModuleCancellationRequested node)
         {
             return null;
         }
@@ -3038,6 +3044,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
+        {
+            VisitStatements(node.Statements);
+            VisitLabelCore(node.WhenTrueLabel);
+            var stateWhenTrue = this.State.Clone();
+            SetUnreachable();
+            VisitLabelCore(node.WhenFalseLabel);
+            Join(ref this.State, ref stateWhenTrue);
+            return null;
+        }
+
         public override BoundNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node)
         {
             var savedState = this.State.Clone();
@@ -3238,13 +3255,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected void VisitLabel(LabelSymbol label, BoundStatement node)
+        private void VisitLabelCore(LabelSymbol label, BoundStatement node = null)
         {
-            node.AssertIsLabeledStatementWithLabel(label);
             ResolveBranches(label, node);
             var state = LabelState(label);
             Join(ref this.State, ref state);
             _labels[label] = this.State.Clone();
+        }
+
+        protected void VisitLabel(LabelSymbol label, BoundStatement node)
+        {
+            node.AssertIsLabeledStatementWithLabel(label);
+            VisitLabelCore(label, node);
             _labelsSeen.Add(node);
         }
 

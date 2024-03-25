@@ -9,29 +9,28 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
+namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+
+internal static class TypeParameterGenerator
 {
-    internal static class TypeParameterGenerator
+    public static TypeParameterListSyntax? GenerateTypeParameterList(
+        ImmutableArray<ITypeParameterSymbol> typeParameters, CSharpCodeGenerationContextInfo info)
     {
-        public static TypeParameterListSyntax? GenerateTypeParameterList(
-            ImmutableArray<ITypeParameterSymbol> typeParameters, CSharpCodeGenerationContextInfo info)
-        {
-            return typeParameters.Length == 0
-                ? null
-                : SyntaxFactory.TypeParameterList(
-                    SyntaxFactory.SeparatedList(typeParameters.Select(t => GenerateTypeParameter(t, info))));
-        }
+        return typeParameters.Length == 0
+            ? null
+            : SyntaxFactory.TypeParameterList(
+                [.. typeParameters.Select(t => GenerateTypeParameter(t, info))]);
+    }
 
-        private static TypeParameterSyntax GenerateTypeParameter(ITypeParameterSymbol symbol, CSharpCodeGenerationContextInfo info)
-        {
-            var varianceKeyword =
-                symbol.Variance == VarianceKind.In ? SyntaxFactory.Token(SyntaxKind.InKeyword) :
-                symbol.Variance == VarianceKind.Out ? SyntaxFactory.Token(SyntaxKind.OutKeyword) : default;
+    private static TypeParameterSyntax GenerateTypeParameter(ITypeParameterSymbol symbol, CSharpCodeGenerationContextInfo info)
+    {
+        var varianceKeyword =
+            symbol.Variance == VarianceKind.In ? SyntaxFactory.Token(SyntaxKind.InKeyword) :
+            symbol.Variance == VarianceKind.Out ? SyntaxFactory.Token(SyntaxKind.OutKeyword) : default;
 
-            return SyntaxFactory.TypeParameter(
-                AttributeGenerator.GenerateAttributeLists(symbol.GetAttributes(), info),
-                varianceKeyword,
-                symbol.Name.ToIdentifierToken());
-        }
+        return SyntaxFactory.TypeParameter(
+            AttributeGenerator.GenerateAttributeLists(symbol.GetAttributes(), info),
+            varianceKeyword,
+            symbol.Name.ToIdentifierToken());
     }
 }

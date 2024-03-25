@@ -15,17 +15,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-        {
-            if (id is not LiveDiagnosticUpdateArgsId argsId)
-            {
-                return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
-            }
-
-            var (documentId, projectId) = (argsId.ProjectOrDocumentId is DocumentId docId) ? (docId, docId.ProjectId) : (null, (ProjectId)argsId.ProjectOrDocumentId);
-            return new IdeCachedDiagnosticGetter(this, solution, projectId, documentId, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics).GetSpecificDiagnosticsAsync(argsId.Analyzer, argsId.Kind, cancellationToken);
-        }
-
         public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
             => new IdeCachedDiagnosticGetter(this, solution, projectId, documentId, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics).GetDiagnosticsAsync(cancellationToken);
 
@@ -76,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             protected virtual bool ShouldIncludeDiagnostic(DiagnosticData diagnostic) => true;
 
             protected ImmutableArray<DiagnosticData> GetDiagnosticData()
-                => (_lazyDataBuilder != null) ? _lazyDataBuilder.ToImmutableArray() : ImmutableArray<DiagnosticData>.Empty;
+                => (_lazyDataBuilder != null) ? _lazyDataBuilder.ToImmutableArray() : [];
 
             protected abstract Task AppendDiagnosticsAsync(Project project, IEnumerable<DocumentId> documentIds, bool includeProjectNonLocalResult, CancellationToken cancellationToken);
 
@@ -177,13 +166,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (project == null)
                 {
                     // when we return cached result, make sure we at least return something that exist in current solution
-                    return ImmutableArray<DiagnosticData>.Empty;
+                    return [];
                 }
 
                 var stateSet = StateManager.GetOrCreateStateSet(project, analyzer);
                 if (stateSet == null)
                 {
-                    return ImmutableArray<DiagnosticData>.Empty;
+                    return [];
                 }
 
                 var diagnostics = await GetDiagnosticsAsync(stateSet, project, DocumentId, analysisKind, cancellationToken).ConfigureAwait(false);
@@ -210,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (!stateSet.TryGetProjectState(project.Id, out var state))
                 {
                     // never analyzed this project yet.
-                    return ImmutableArray<DiagnosticData>.Empty;
+                    return [];
                 }
 
                 if (documentId != null)
@@ -222,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     if (document == null)
                     {
-                        return ImmutableArray<DiagnosticData>.Empty;
+                        return [];
                     }
 
                     var result = await state.GetAnalysisDataAsync(document, avoidLoadingData: false, cancellationToken).ConfigureAwait(false);

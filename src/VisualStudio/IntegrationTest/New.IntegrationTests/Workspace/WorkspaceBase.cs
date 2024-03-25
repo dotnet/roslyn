@@ -66,7 +66,8 @@ End Class", HangMitigatingCancellationToken);
 
         public virtual async Task MetadataReference()
         {
-            await TestServices.SolutionExplorer.AddDllReferenceAsync("TestProj", typeof(System.Windows.Point).Assembly.Location, HangMitigatingCancellationToken);
+            var reference = "WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35";
+            await TestServices.SolutionExplorer.AddMetadataReferenceAsync(reference, "TestProj", HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
 
             await TestServices.Editor.SetTextAsync("class C { System.Windows.Point p; }", HangMitigatingCancellationToken);
@@ -79,7 +80,7 @@ End Class", HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentTokenTypeAsync("identifier", HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/72018")]
         public async Task ProjectReference()
         {
             await InitializeWithDefaultSolution();

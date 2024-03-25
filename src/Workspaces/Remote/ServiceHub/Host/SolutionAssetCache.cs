@@ -111,6 +111,9 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        public bool ContainsAsset(Checksum checksum)
+            => _assets.ContainsKey(checksum);
+
         public void UpdateLastActivityTime()
             => _lastActivityTime = DateTime.UtcNow;
 
@@ -217,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (_remoteWorkspace is null)
                 return;
 
-            var checksums = await _remoteWorkspace.CurrentSolution.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            var checksums = await _remoteWorkspace.CurrentSolution.CompilationState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
             checksums.AddAllTo(pinnedChecksums);
         }
 

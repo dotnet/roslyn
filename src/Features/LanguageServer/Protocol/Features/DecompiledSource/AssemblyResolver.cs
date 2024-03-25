@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DecompiledSource
 {
     internal class AssemblyResolver : IAssemblyResolver
     {
-        private static readonly Dictionary<MetadataReference, (string fileName, ImmutableArray<byte> image)> _inMemoryImagesForTesting = new();
+        private static readonly Dictionary<MetadataReference, (string fileName, ImmutableArray<byte> image)> _inMemoryImagesForTesting = [];
 
         private readonly Compilation _parentCompilation;
-        private readonly Dictionary<string, List<IAssemblySymbol>> _cache = new();
+        private readonly Dictionary<string, List<IAssemblySymbol>> _cache = [];
         private readonly StringBuilder _logger;
 
         public AssemblyResolver(Compilation parentCompilation, StringBuilder logger)
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DecompiledSource
                 {
                     if (!_cache.TryGetValue(reference.Identity.Name, out var list))
                     {
-                        list = new List<IAssemblySymbol>();
+                        list = [];
                         _cache.Add(reference.Identity.Name, list);
                     }
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DecompiledSource
             IAssemblySymbol highestVersion = null;
             IAssemblySymbol exactMatch = null;
 
-            var publicKeyTokenOfName = name.PublicKeyToken ?? Array.Empty<byte>();
+            var publicKeyTokenOfName = name.PublicKeyToken ?? [];
 
             foreach (var assembly in assemblies)
             {

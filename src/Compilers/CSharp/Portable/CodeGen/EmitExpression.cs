@@ -238,6 +238,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitModuleVersionIdStringLoad();
                     break;
 
+                case BoundKind.ThrowIfModuleCancellationRequested:
+                    Debug.Assert(!used);
+                    EmitThrowIfModuleCancellationRequested(expression.Syntax);
+                    break;
+
+                case BoundKind.ModuleCancellationTokenExpression:
+                    Debug.Assert(used);
+                    EmitModuleCancellationTokenLoad(expression.Syntax);
+                    break;
+
                 case BoundKind.InstrumentationPayloadRoot:
                     Debug.Assert(used);
                     EmitInstrumentationPayloadRootLoad((BoundInstrumentationPayloadRoot)expression);
@@ -315,6 +325,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitRefValueOperator((BoundRefValueOperator)expression, used);
                     break;
 
+                case BoundKind.LoweredIsPatternExpression:
+                    EmitLoweredIsPatternExpression((BoundLoweredIsPatternExpression)expression, used);
+                    break;
+
                 case BoundKind.LoweredConditionalAccess:
                     EmitLoweredConditionalAccessExpression((BoundLoweredConditionalAccess)expression, used);
                     break;
@@ -350,6 +364,42 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // node should have been lowered:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
             }
+        }
+
+        private void EmitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node, bool used, bool sense = true)
+        {
+            EmitSideEffects(node.Statements);
+
+            if (!used)
+            {
+                _builder.MarkLabel(node.WhenTrueLabel);
+                _builder.MarkLabel(node.WhenFalseLabel);
+            }
+            else
+            {
+                var doneLabel = new object();
+                _builder.MarkLabel(node.WhenTrueLabel);
+                _builder.EmitBoolConstant(sense);
+                _builder.EmitBranch(ILOpCode.Br, doneLabel);
+                _builder.AdjustStack(-1);
+                _builder.MarkLabel(node.WhenFalseLabel);
+                _builder.EmitBoolConstant(!sense);
+                _builder.MarkLabel(doneLabel);
+            }
+        }
+
+        private void EmitSideEffects(ImmutableArray<BoundStatement> statements)
+        {
+#if DEBUG
+            int prevStack = _expectedStackDepth;
+            int origStack = _builder.GetStackDepth();
+            _expectedStackDepth = origStack;
+#endif
+            EmitStatements(statements);
+#if DEBUG
+            Debug.Assert(_expectedStackDepth == origStack);
+            _expectedStackDepth = prevStack;
+#endif
         }
 
         private void EmitThrowExpression(BoundThrowExpression node, bool used)
@@ -830,7 +880,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitSequenceExpression(BoundSequence sequence, bool used)
+        private void EmitSequenceExpression(BoundSequence sequence, bool used, bool sense = true)
         {
             DefineLocals(sequence);
             EmitSideEffects(sequence);
@@ -844,7 +894,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(sequence.Value.Kind != BoundKind.TypeExpression || !used);
             if (sequence.Value.Kind != BoundKind.TypeExpression)
             {
-                EmitExpression(sequence.Value, used);
+                if (used && sequence.Type.SpecialType == SpecialType.System_Boolean)
+                {
+                    EmitCondExpr(sequence.Value, sense: sense);
+                }
+                else
+                {
+                    Debug.Assert(sense);
+                    EmitExpression(sequence.Value, used: used);
+                }
             }
 
             // sequence is used as a value, can release all locals
@@ -2284,9 +2342,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             var containingType = method.ContainingType;
-            // overrides in structs that are special types can be called directly.
-            // we can assume that special types will not be removing overrides
-            return containingType.SpecialType != SpecialType.None;
+            // Overrides in structs of some special types can be called directly.
+            // We can assume that these special types will not be removing overrides.
+            // This pattern can probably be applied to all special types,
+            // but that would introduce a silent change every time a new special type is added,
+            // so we constrain the check to a fixed range of types
+            return containingType.SpecialType.CanOptimizeBehavior();
         }
 
         /// <summary>
@@ -2367,24 +2428,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitConvertedStackAllocExpression(BoundConvertedStackAllocExpression expression, bool used)
         {
-            EmitExpression(expression.Count, used);
-
-            // the only sideeffect of a localloc is a nondeterministic and generally fatal StackOverflow.
-            // we can ignore that if the actual result is unused
+            var initializer = expression.InitializerOpt;
             if (used)
             {
-                _sawStackalloc = true;
-                _builder.EmitOpCode(ILOpCode.Localloc);
+                EmitStackAlloc(expression.Type, initializer, expression.Count);
             }
-
-            var initializer = expression.InitializerOpt;
-            if (initializer != null)
+            else
             {
-                if (used)
-                {
-                    EmitStackAllocInitializers(expression.Type, initializer);
-                }
-                else
+                // the only sideeffect of a localloc is a nondeterministic and generally fatal StackOverflow.
+                // we can ignore that if the actual result is unused
+                EmitExpression(expression.Count, used: false);
+
+                if (initializer != null)
                 {
                     // If not used, just emit initializer elements to preserve possible sideeffects
                     foreach (var init in initializer.Initializers)
@@ -2417,7 +2472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 // ReadOnlySpan may just refer to the blob, if possible.
-                if (TryEmitReadonlySpanAsBlobWrapper(expression, used, inPlaceTarget: null, out _))
+                if (TryEmitOptimizedReadonlySpan(expression, used, inPlaceTarget: null, out _))
                 {
                     return;
                 }
@@ -2436,7 +2491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private bool TryEmitReadonlySpanAsBlobWrapper(BoundObjectCreationExpression expression, bool used, BoundExpression inPlaceTarget, out bool avoidInPlace)
+        private bool TryEmitOptimizedReadonlySpan(BoundObjectCreationExpression expression, bool used, BoundExpression inPlaceTarget, out bool avoidInPlace)
         {
             int argumentsLength = expression.Arguments.Length;
             avoidInPlace = false;
@@ -2444,7 +2499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                      expression.Constructor.OriginalDefinition == (object)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)) ||
                     (argumentsLength == 3 &&
                      expression.Constructor.OriginalDefinition == (object)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length))) &&
-                   TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)expression.Type, expression.Arguments[0], used, inPlaceTarget, out avoidInPlace,
+                   TryEmitOptimizedReadonlySpanCreation((NamedTypeSymbol)expression.Type, expression.Arguments[0], used, inPlaceTarget, out avoidInPlace,
                            start: argumentsLength == 3 ? expression.Arguments[1] : null,
                            length: argumentsLength == 3 ? expression.Arguments[2] : null);
         }
@@ -2666,7 +2721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(TargetIsNotOnHeap(target), "in-place construction target should not be on heap");
 
             // ReadOnlySpan may just refer to the blob, if possible.
-            if (TryEmitReadonlySpanAsBlobWrapper(objCreation, used, target, out bool avoidInPlace))
+            if (TryEmitOptimizedReadonlySpan(objCreation, used, target, out bool avoidInPlace))
             {
                 return true;
             }
@@ -2760,6 +2815,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             !assignmentOperator.IsRef)
                         {
                             EmitFieldLoadNoIndirection(left, used: true);
+                            lhsUsesStack = true;
                         }
                         else if (!left.FieldSymbol.IsStatic)
                         {
@@ -3576,7 +3632,43 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitModuleVersionIdToken(BoundModuleVersionId node)
         {
-            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(
+                _module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag),
+                node.Syntax,
+                _diagnostics.DiagnosticBag);
+        }
+
+        private void EmitThrowIfModuleCancellationRequested(SyntaxNode syntax)
+        {
+            var cancellationTokenType = _module.CommonCompilation.CommonGetWellKnownType(WellKnownType.System_Threading_CancellationToken);
+
+            _builder.EmitOpCode(ILOpCode.Ldsflda);
+            _builder.EmitToken(
+                _module.GetModuleCancellationToken(_module.Translate(cancellationTokenType, syntax, _diagnostics.DiagnosticBag), syntax, _diagnostics.DiagnosticBag),
+                syntax,
+                _diagnostics.DiagnosticBag);
+
+            var throwMethod = (MethodSymbol)_module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_CancellationToken__ThrowIfCancellationRequested);
+
+            // BoundThrowIfModuleCancellationRequested should not be created if the method doesn't exist.
+            Debug.Assert(throwMethod != null);
+
+            _builder.EmitOpCode(ILOpCode.Call, -1);
+            _builder.EmitToken(
+                _module.Translate(throwMethod, syntax, _diagnostics.DiagnosticBag),
+                syntax,
+                _diagnostics.DiagnosticBag);
+        }
+
+        private void EmitModuleCancellationTokenLoad(SyntaxNode syntax)
+        {
+            var cancellationTokenType = _module.CommonCompilation.CommonGetWellKnownType(WellKnownType.System_Threading_CancellationToken);
+
+            _builder.EmitOpCode(ILOpCode.Ldsfld);
+            _builder.EmitToken(
+                _module.GetModuleCancellationToken(_module.Translate(cancellationTokenType, syntax, _diagnostics.DiagnosticBag), syntax, _diagnostics.DiagnosticBag),
+                syntax,
+                _diagnostics.DiagnosticBag);
         }
 
         private void EmitModuleVersionIdStringLoad()

@@ -57,11 +57,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' target.ReturnType is ignored and must be Void, only parameter types are taken into consideration.
         ''' </summary>
-        Public Function InferReturnType(target As TargetSignature) As KeyValuePair(Of TypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol))
+        Public Function InferReturnType(target As TargetSignature) As KeyValuePair(Of TypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))
             Debug.Assert(target IsNot Nothing AndAlso target.ReturnType.IsVoidType())
 
             If Me.ReturnType IsNot Nothing Then
-                Dim result = New KeyValuePair(Of TypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol))(If(Me.IsFunctionLambda AndAlso Me.ReturnType.IsVoidType(),
+                Dim result = New KeyValuePair(Of TypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))(If(Me.IsFunctionLambda AndAlso Me.ReturnType.IsVoidType(),
                                                                                LambdaSymbol.ReturnTypeVoidReplacement,
                                                                          Me.ReturnType),
                                                                       Nothing)
@@ -92,29 +92,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return _Binder.BindUnboundLambda(Me, target)
         End Function
 
-        Private Function DoInferFunctionLambdaReturnType(target As TargetSignature) As KeyValuePair(Of TypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol))
+        Private Function DoInferFunctionLambdaReturnType(target As TargetSignature) As KeyValuePair(Of TypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))
             Return _Binder.InferFunctionLambdaReturnType(Me, target)
         End Function
 
-        Public ReadOnly Property InferredAnonymousDelegate As KeyValuePair(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol))
+        Public ReadOnly Property InferredAnonymousDelegate As KeyValuePair(Of NamedTypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))
             Get
-                Dim info As Tuple(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol)) = _BindingCache.AnonymousDelegate
+                Dim info As Tuple(Of NamedTypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol)) = _BindingCache.AnonymousDelegate
                 If info Is Nothing Then
-                    Dim delegateInfo As KeyValuePair(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol)) = _Binder.InferAnonymousDelegateForLambda(Me)
+                    Dim delegateInfo As KeyValuePair(Of NamedTypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol)) = _Binder.InferAnonymousDelegateForLambda(Me)
 
                     Interlocked.CompareExchange(_BindingCache.AnonymousDelegate,
-                                                New Tuple(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol))(delegateInfo.Key, delegateInfo.Value),
+                                                New Tuple(Of NamedTypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))(delegateInfo.Key, delegateInfo.Value),
                                                 Nothing)
 
                     info = _BindingCache.AnonymousDelegate
                 End If
 
-                Return New KeyValuePair(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol))(info.Item1, info.Item2)
+                Return New KeyValuePair(Of NamedTypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))(info.Item1, info.Item2)
             End Get
         End Property
 
         Public Function IsInferredDelegateForThisLambda(delegateType As NamedTypeSymbol) As Boolean
-            Dim info As Tuple(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol)) = _BindingCache.AnonymousDelegate
+            Dim info As Tuple(Of NamedTypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol)) = _BindingCache.AnonymousDelegate
             If info Is Nothing Then
                 Return False
             End If
@@ -216,8 +216,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Class UnboundLambdaBindingCache
             Public ReadOnly WithDependencies As Boolean
-            Public AnonymousDelegate As Tuple(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol))
-            Public ReadOnly InferredReturnType As New ConcurrentDictionary(Of TargetSignature, KeyValuePair(Of TypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol)))()
+            Public AnonymousDelegate As Tuple(Of NamedTypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))
+            Public ReadOnly InferredReturnType As New ConcurrentDictionary(Of TargetSignature, KeyValuePair(Of TypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol)))()
             Public ReadOnly BoundLambdas As New ConcurrentDictionary(Of TargetSignature, BoundLambda)()
             Public ErrorRecoverySignature As TargetSignature
 

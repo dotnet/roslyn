@@ -19,7 +19,7 @@ using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpe
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFullProperty
 {
-    public partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest
+    public partial class ConvertAutoPropertyToFullPropertyTests
     {
         private OptionsCollection PreferExpressionBodiedAccessorsWhenPossible
             => new OptionsCollection(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement } };

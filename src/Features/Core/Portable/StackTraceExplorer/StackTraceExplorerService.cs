@@ -15,98 +15,97 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.StackTraceExplorer
+namespace Microsoft.CodeAnalysis.StackTraceExplorer;
+
+[ExportWorkspaceService(typeof(IStackTraceExplorerService)), Shared]
+internal class StackTraceExplorerService : IStackTraceExplorerService
 {
-    [ExportWorkspaceService(typeof(IStackTraceExplorerService)), Shared]
-    internal class StackTraceExplorerService : IStackTraceExplorerService
+    [ImportingConstructor]
+    [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public StackTraceExplorerService()
     {
-        [ImportingConstructor]
-        [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public StackTraceExplorerService()
-        {
-        }
+    }
 
-        public (Document? document, int line) GetDocumentAndLine(Solution solution, ParsedFrame frame)
+    public (Document? document, int line) GetDocumentAndLine(Solution solution, ParsedFrame frame)
+    {
+        if (frame is ParsedStackFrame parsedFrame)
         {
-            if (frame is ParsedStackFrame parsedFrame)
+            var matches = GetFileMatches(solution, parsedFrame.Root, out var line);
+            if (matches.IsEmpty)
             {
-                var matches = GetFileMatches(solution, parsedFrame.Root, out var line);
-                if (matches.IsEmpty)
-                {
-                    return default;
-                }
-
-                return (matches[0], line);
+                return default;
             }
 
-            return default;
+            return (matches[0], line);
         }
 
-        public async Task<DefinitionItem?> TryFindDefinitionAsync(Solution solution, ParsedFrame frame, StackFrameSymbolPart symbolPart, CancellationToken cancellationToken)
+        return default;
+    }
+
+    public async Task<DefinitionItem?> TryFindDefinitionAsync(Solution solution, ParsedFrame frame, StackFrameSymbolPart symbolPart, CancellationToken cancellationToken)
+    {
+        if (frame is not ParsedStackFrame parsedFrame)
         {
-            if (frame is not ParsedStackFrame parsedFrame)
+            return null;
+        }
+
+        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+        if (client is not null)
+        {
+            var result = await client.TryInvokeAsync<IRemoteStackTraceExplorerService, SerializableDefinitionItem?>(
+                solution,
+                (service, solutionInfo, cancellationToken) => service.TryFindDefinitionAsync(solutionInfo, parsedFrame.ToString(), symbolPart, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+
+            if (!result.HasValue)
             {
                 return null;
             }
 
-            var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
-            if (client is not null)
+            var serializedDefinition = result.Value;
+            if (!serializedDefinition.HasValue)
             {
-                var result = await client.TryInvokeAsync<IRemoteStackTraceExplorerService, SerializableDefinitionItem?>(
-                    solution,
-                    (service, solutionInfo, cancellationToken) => service.TryFindDefinitionAsync(solutionInfo, parsedFrame.ToString(), symbolPart, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-
-                if (!result.HasValue)
-                {
-                    return null;
-                }
-
-                var serializedDefinition = result.Value;
-                if (!serializedDefinition.HasValue)
-                {
-                    return null;
-                }
-
-                return await serializedDefinition.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                return null;
             }
 
-            return await StackTraceExplorerUtilities.GetDefinitionAsync(solution, parsedFrame.Root, symbolPart, cancellationToken).ConfigureAwait(false);
+            return await serializedDefinition.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
         }
 
-        private static ImmutableArray<Document> GetFileMatches(Solution solution, StackFrameCompilationUnit root, out int lineNumber)
+        return await StackTraceExplorerUtilities.GetDefinitionAsync(solution, parsedFrame.Root, symbolPart, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static ImmutableArray<Document> GetFileMatches(Solution solution, StackFrameCompilationUnit root, out int lineNumber)
+    {
+        lineNumber = 0;
+        if (root.FileInformationExpression is null)
         {
-            lineNumber = 0;
-            if (root.FileInformationExpression is null)
+            return [];
+        }
+
+        var fileName = root.FileInformationExpression.Path.ToString();
+        var lineString = root.FileInformationExpression.Line.ToString();
+        RoslynDebug.AssertNotNull(lineString);
+        lineNumber = int.Parse(lineString);
+
+        var documentName = Path.GetFileName(fileName);
+        var potentialMatches = new HashSet<Document>();
+
+        foreach (var project in solution.Projects)
+        {
+            foreach (var document in project.Documents)
             {
-                return ImmutableArray<Document>.Empty;
-            }
-
-            var fileName = root.FileInformationExpression.Path.ToString();
-            var lineString = root.FileInformationExpression.Line.ToString();
-            RoslynDebug.AssertNotNull(lineString);
-            lineNumber = int.Parse(lineString);
-
-            var documentName = Path.GetFileName(fileName);
-            var potentialMatches = new HashSet<Document>();
-
-            foreach (var project in solution.Projects)
-            {
-                foreach (var document in project.Documents)
+                if (document.FilePath == fileName)
                 {
-                    if (document.FilePath == fileName)
-                    {
-                        return ImmutableArray.Create(document);
-                    }
+                    return [document];
+                }
 
-                    else if (document.Name == documentName)
-                    {
-                        potentialMatches.Add(document);
-                    }
+                else if (document.Name == documentName)
+                {
+                    potentialMatches.Add(document);
                 }
             }
-
-            return potentialMatches.ToImmutableArray();
         }
+
+        return potentialMatches.ToImmutableArray();
     }
 }

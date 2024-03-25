@@ -9,15 +9,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.MapCode;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeMapping;
 
@@ -94,23 +93,23 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
         await using var testLspServer = await CreateTestLspServerAsync(code, mutatingLspWorkspace, CreateClientCapabilities(supportDocumentChanges));
         var ranges = testLspServer.GetLocations("range").ToArray();
         var documentUri = ranges.Single().Uri;
-        var mapCodeParams = new LSP.MapCodeParams
-            (
-                Mappings:
+        var mapCodeParams = new LSP.VSInternalMapCodeParams()
+        {
+            Mappings =
                 [
-                    new MapCodeMapping
-                    (
-                        TextDocument: CreateTextDocumentIdentifier(documentUri),
-                        Contents: [codeBlock],
-                        FocusLocations: [ranges]
-                    )
+                    new VSInternalMapCodeMapping()
+                    {
+                        TextDocument = CreateTextDocumentIdentifier(documentUri),
+                        Contents = [codeBlock],
+                        FocusLocations = [ranges]
+                    }
                 ],
-                Updates: null
-            );
+            Updates = null
+        };
 
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
-        var results = await testLspServer.ExecuteRequestAsync<LSP.MapCodeParams, LSP.WorkspaceEdit>(MapCodeHandler.WorkspaceMapCodeName, mapCodeParams, CancellationToken.None);
+        var results = await testLspServer.ExecuteRequestAsync<LSP.VSInternalMapCodeParams, LSP.WorkspaceEdit>(VSInternalMethods.WorkspaceMapCodeName, mapCodeParams, CancellationToken.None);
         AssertEx.NotNull(results);
 
         TextEdit[] edits;

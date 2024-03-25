@@ -925,22 +925,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundMethodInfo
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol, hasErrors As Boolean)
+        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, getMethodFromHandle As MethodSymbol, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.MethodInfo, syntax, type, hasErrors)
 
             Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(getMethodFromHandle IsNot Nothing, "Field 'getMethodFromHandle' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Method = method
+            Me._GetMethodFromHandle = getMethodFromHandle
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol)
+        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, getMethodFromHandle As MethodSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.MethodInfo, syntax, type)
 
             Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(getMethodFromHandle IsNot Nothing, "Field 'getMethodFromHandle' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Method = method
+            Me._GetMethodFromHandle = getMethodFromHandle
         End Sub
 
 
@@ -951,14 +955,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly _GetMethodFromHandle As MethodSymbol
+        Public ReadOnly Property GetMethodFromHandle As MethodSymbol
+            Get
+                Return _GetMethodFromHandle
+            End Get
+        End Property
+
         <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitMethodInfo(Me)
         End Function
 
-        Public Function Update(method As MethodSymbol, type As TypeSymbol) As BoundMethodInfo
-            If method IsNot Me.Method OrElse type IsNot Me.Type Then
-                Dim result = New BoundMethodInfo(Me.Syntax, method, type, Me.HasErrors)
+        Public Function Update(method As MethodSymbol, getMethodFromHandle As MethodSymbol, type As TypeSymbol) As BoundMethodInfo
+            If method IsNot Me.Method OrElse getMethodFromHandle IsNot Me.GetMethodFromHandle OrElse type IsNot Me.Type Then
+                Dim result = New BoundMethodInfo(Me.Syntax, method, getMethodFromHandle, type, Me.HasErrors)
                 result.CopyAttributes(Me)
                 Return result
             End If
@@ -6853,7 +6864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundLambda
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Lambda, syntax, Nothing, hasErrors OrElse body.NonNullAndHasErrors())
 
             Debug.Assert(lambdaSymbol IsNot Nothing, "Field 'lambdaSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6887,8 +6898,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly _Diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
-        Public ReadOnly Property Diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
+        Private ReadOnly _Diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
+        Public ReadOnly Property Diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
             Get
                 Return _Diagnostics
             End Get
@@ -6920,7 +6931,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return visitor.VisitLambda(Me)
         End Function
 
-        Public Function Update(lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind) As BoundLambda
+        Public Function Update(lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind) As BoundLambda
             If lambdaSymbol IsNot Me.LambdaSymbol OrElse body IsNot Me.Body OrElse diagnostics <> Me.Diagnostics OrElse lambdaBinderOpt IsNot Me.LambdaBinderOpt OrElse delegateRelaxation <> Me.DelegateRelaxation OrElse methodConversionKind <> Me.MethodConversionKind Then
                 Dim result = New BoundLambda(Me.Syntax, lambdaSymbol, body, diagnostics, lambdaBinderOpt, delegateRelaxation, methodConversionKind, Me.HasErrors)
                 result.CopyAttributes(Me)
@@ -12124,7 +12135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitMethodInfo(node As BoundMethodInfo) As BoundNode
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(node.Method, type)
+            Return node.Update(node.Method, node.GetMethodFromHandle, type)
         End Function
 
         Public Overrides Function VisitTypeExpression(node As BoundTypeExpression) As BoundNode
@@ -13244,6 +13255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitMethodInfo(node As BoundMethodInfo, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("methodInfo", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("method", node.Method, Nothing),
+                New TreeDumperNode("getMethodFromHandle", node.GetMethodFromHandle, Nothing),
                 New TreeDumperNode("type", node.Type, Nothing)
             })
         End Function

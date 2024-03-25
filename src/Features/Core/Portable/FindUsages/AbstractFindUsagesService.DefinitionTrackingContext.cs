@@ -6,61 +6,60 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindUsages
+namespace Microsoft.CodeAnalysis.FindUsages;
+
+internal abstract partial class AbstractFindUsagesService
 {
-    internal abstract partial class AbstractFindUsagesService
+    /// <summary>
+    /// Forwards <see cref="IFindUsagesContext"/> notifications to an underlying <see cref="IFindUsagesContext"/>
+    /// while also keeping track of the <see cref="DefinitionItem"/> definitions reported.
+    /// 
+    /// These can then be used by <see cref="GetThirdPartyDefinitionsAsync"/> to report the
+    /// definitions found to third parties in case they want to add any additional definitions
+    /// to the results we present.
+    /// </summary>
+    private sealed class DefinitionTrackingContext(IFindUsagesContext underlyingContext) : IFindUsagesContext
     {
-        /// <summary>
-        /// Forwards <see cref="IFindUsagesContext"/> notifications to an underlying <see cref="IFindUsagesContext"/>
-        /// while also keeping track of the <see cref="DefinitionItem"/> definitions reported.
-        /// 
-        /// These can then be used by <see cref="GetThirdPartyDefinitionsAsync"/> to report the
-        /// definitions found to third parties in case they want to add any additional definitions
-        /// to the results we present.
-        /// </summary>
-        private sealed class DefinitionTrackingContext(IFindUsagesContext underlyingContext) : IFindUsagesContext
+        private readonly IFindUsagesContext _underlyingContext = underlyingContext;
+        private readonly object _gate = new();
+        private readonly List<DefinitionItem> _definitions = [];
+
+        public IStreamingProgressTracker ProgressTracker
+            => _underlyingContext.ProgressTracker;
+
+        public ValueTask ReportNoResultsAsync(string message, CancellationToken cancellationToken)
+            => _underlyingContext.ReportNoResultsAsync(message, cancellationToken);
+
+        public ValueTask ReportMessageAsync(string message, NotificationSeverity severity, CancellationToken cancellationToken)
+            => _underlyingContext.ReportMessageAsync(message, severity, cancellationToken);
+
+        public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
+            => _underlyingContext.SetSearchTitleAsync(title, cancellationToken);
+
+        public ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
+            => _underlyingContext.OnReferenceFoundAsync(reference, cancellationToken);
+
+        public ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
         {
-            private readonly IFindUsagesContext _underlyingContext = underlyingContext;
-            private readonly object _gate = new();
-            private readonly List<DefinitionItem> _definitions = new();
-
-            public ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
-                => _underlyingContext.GetOptionsAsync(language, cancellationToken);
-
-            public IStreamingProgressTracker ProgressTracker
-                => _underlyingContext.ProgressTracker;
-
-            public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
-                => _underlyingContext.ReportMessageAsync(message, cancellationToken);
-
-            public ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
-                => _underlyingContext.ReportInformationalMessageAsync(message, cancellationToken);
-
-            public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
-                => _underlyingContext.SetSearchTitleAsync(title, cancellationToken);
-
-            public ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
-                => _underlyingContext.OnReferenceFoundAsync(reference, cancellationToken);
-
-            public ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
+            lock (_gate)
             {
-                lock (_gate)
-                {
-                    _definitions.Add(definition);
-                }
-
-                return _underlyingContext.OnDefinitionFoundAsync(definition, cancellationToken);
+                _definitions.Add(definition);
             }
 
-            public ImmutableArray<DefinitionItem> GetDefinitions()
+            return _underlyingContext.OnDefinitionFoundAsync(definition, cancellationToken);
+        }
+
+        public ImmutableArray<DefinitionItem> GetDefinitions()
+        {
+            lock (_gate)
             {
-                lock (_gate)
-                {
-                    return _definitions.ToImmutableArray();
-                }
+                return _definitions.ToImmutableArray();
             }
         }
     }

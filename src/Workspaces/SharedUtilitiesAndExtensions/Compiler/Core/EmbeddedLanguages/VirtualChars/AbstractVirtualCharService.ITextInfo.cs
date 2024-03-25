@@ -4,30 +4,29 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+
+internal abstract partial class AbstractVirtualCharService
 {
-    internal abstract partial class AbstractVirtualCharService
+    /// <summary>
+    /// Abstraction to allow generic algorithms to run over a string or <see cref="SourceText"/> without any
+    /// overhead.
+    /// </summary>
+    private interface ITextInfo<T>
     {
-        /// <summary>
-        /// Abstraction to allow generic algorithms to run over a string or <see cref="SourceText"/> without any
-        /// overhead.
-        /// </summary>
-        private interface ITextInfo<T>
-        {
-            char Get(T text, int index);
-            int Length(T text);
-        }
+        char Get(T text, int index);
+        int Length(T text);
+    }
 
-        private struct SourceTextTextInfo : ITextInfo<SourceText>
-        {
-            public readonly char Get(SourceText text, int index) => text[index];
-            public readonly int Length(SourceText text) => text.Length;
-        }
+    private struct SourceTextTextInfo : ITextInfo<SourceText>
+    {
+        public readonly char Get(SourceText text, int index) => text[index];
+        public readonly int Length(SourceText text) => text.Length;
+    }
 
-        private struct StringTextInfo : ITextInfo<string>
-        {
-            public readonly char Get(string text, int index) => text[index];
-            public readonly int Length(string text) => text.Length;
-        }
+    private struct StringTextInfo : ITextInfo<string>
+    {
+        public readonly char Get(string text, int index) => text[index];
+        public readonly int Length(string text) => text.Length;
     }
 }

@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sb.Append(_formalParameterTypes[i]);
             }
 
-            sb.Append("\n");
+            sb.Append('\n');
 
             sb.AppendFormat("Argument types ({0})\n", string.Join(", ", from a in _arguments select a.Type));
 
@@ -377,16 +377,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (_dependencies[i, j])
                         {
                             case Dependency.NotDependent:
-                                sb.Append("N");
+                                sb.Append('N');
                                 break;
                             case Dependency.Direct:
-                                sb.Append("D");
+                                sb.Append('D');
                                 break;
                             case Dependency.Indirect:
-                                sb.Append("I");
+                                sb.Append('I');
                                 break;
                             case Dependency.Unknown:
-                                sb.Append("U");
+                                sb.Append('U');
                                 break;
                         }
                     }
@@ -1485,10 +1485,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversions.GetDelegateOrFunctionPointerArguments(source.Syntax, analyzedArguments, delegateParameters, binder.Compilation);
 
             var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteInfo: ref useSiteInfo,
-                isMethodGroupConversion: true, returnRefKind: delegateRefKind,
+                options: OverloadResolution.Options.IsMethodGroupConversion |
+                         (isFunctionPointerResolution ? OverloadResolution.Options.IsFunctionPointerResolution : OverloadResolution.Options.None),
+                returnRefKind: delegateRefKind,
                 // Since we are trying to infer the return type, it is not an input to resolving the method group
                 returnType: null,
-                isFunctionPointerResolution: isFunctionPointerResolution, callingConventionInfo: in callingConventionInfo);
+                callingConventionInfo: in callingConventionInfo);
 
             TypeWithAnnotations type = default;
 

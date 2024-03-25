@@ -4,7 +4,6 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Host
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindReferences
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -26,7 +25,7 @@ class C
         {|Reference:yyy|}++;
     }
 }"
-            Using workspace = TestWorkspace.CreateCSharp(source)
+            Using workspace = EditorTestWorkspace.CreateCSharp(source)
                 Dim testDocument = workspace.Documents.Single()
 
                 Dim view = testDocument.GetTextView()
@@ -74,11 +73,7 @@ class C
             Public Sub ClearAll() Implements IStreamingFindUsagesPresenter.ClearAll
             End Sub
 
-            Public Function StartSearch(title As String, supportsReferences As Boolean) As (FindUsagesContext, CancellationToken) Implements IStreamingFindUsagesPresenter.StartSearch
-                Return (_context, CancellationToken.None)
-            End Function
-
-            Public Function StartSearchWithCustomColumns(title As String, supportsReferences As Boolean, includeContainingTypeAndMemberColumns As Boolean, includeKindColumn As Boolean) As (FindUsagesContext, CancellationToken) Implements IStreamingFindUsagesPresenter.StartSearchWithCustomColumns
+            Public Function StartSearch(title As String, options As StreamingFindUsagesPresenterOptions) As (FindUsagesContext, CancellationToken) Implements IStreamingFindUsagesPresenter.StartSearch
                 Return (_context, CancellationToken.None)
             End Function
         End Class

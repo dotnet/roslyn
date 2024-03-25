@@ -5,28 +5,27 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
+namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
+
+internal interface ISnippetProvider
 {
-    internal interface ISnippetProvider
-    {
-        /// <summary>
-        /// What we use to identify each SnippetProvider on the completion list
-        /// </summary>
-        string Identifier { get; }
+    /// <summary>
+    /// What we use to identify each SnippetProvider on the completion list
+    /// </summary>
+    string Identifier { get; }
 
-        /// <summary>
-        /// What is being displayed for the inline-description of the snippet as well as the title on the tool-tip.
-        /// </summary>
-        string Description { get; }
+    /// <summary>
+    /// What is being displayed for the inline-description of the snippet as well as the title on the tool-tip.
+    /// </summary>
+    string Description { get; }
 
-        /// <summary>
-        /// Determines if a snippet can exist at a particular location.
-        /// </summary>
-        Task<SnippetData?> GetSnippetDataAsync(Document document, int position, CancellationToken cancellationToken);
+    /// <summary>
+    /// Determines if a snippet can exist at a particular location.
+    /// </summary>
+    ValueTask<SnippetData?> GetSnippetDataAsync(SnippetContext context, CancellationToken cancellationToken);
 
-        /// <summary>
-        /// Gets the Snippet from the corresponding snippet provider.
-        /// </summary>
-        Task<SnippetChange> GetSnippetAsync(Document document, int position, CancellationToken cancellationToken);
-    }
+    /// <summary>
+    /// Gets the Snippet from the corresponding snippet provider.
+    /// </summary>
+    Task<SnippetChange> GetSnippetAsync(Document document, int position, CancellationToken cancellationToken);
 }

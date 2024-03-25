@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public async ValueTask SynchronizeWithBuildAsync(
             ImmutableDictionary<ProjectId,
             ImmutableArray<DiagnosticData>> buildDiagnostics,
-            TaskQueue postBuildAndErrorListRefreshTaskQueue,
             bool onBuildCompleted,
             CancellationToken cancellationToken)
         {
@@ -74,30 +73,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // Refresh live diagnostics after solution build completes.
                 if (onBuildCompleted)
-                {
-                    // Enqueue re-analysis of active document with high-priority right away.
-                    if (_documentTrackingService.GetActiveDocument(solution) is { } activeDocument)
-                    {
-                        AnalyzerService.Reanalyze(Workspace, projectIds: null, documentIds: ImmutableArray.Create(activeDocument.Id), highPriority: true);
-                    }
-
-                    // Enqueue remaining re-analysis with normal priority on a separate task queue
-                    // that will execute at the end of all the post build and error list refresh tasks.
-                    _ = postBuildAndErrorListRefreshTaskQueue.ScheduleTask(nameof(SynchronizeWithBuildAsync), () =>
-                    {
-                        // Enqueue re-analysis of open documents.
-                        AnalyzerService.Reanalyze(Workspace, projectIds: null, documentIds: Workspace.GetOpenDocumentIds(), highPriority: false);
-
-                        // Enqueue re-analysis of projects, if required.
-                        foreach (var projectsByLanguage in solution.Projects.GroupBy(p => p.Language))
-                        {
-                            if (GlobalOptions.IsFullSolutionAnalysisEnabled(projectsByLanguage.Key))
-                            {
-                                AnalyzerService.Reanalyze(Workspace, projectsByLanguage.Select(p => p.Id), documentIds: null, highPriority: false);
-                            }
-                        }
-                    }, cancellationToken);
-                }
+                    AnalyzerService.RequestDiagnosticRefresh();
             }
         }
 
@@ -139,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             if (lookup == null)
             {
-                return ImmutableArray<DiagnosticData>.Empty;
+                return [];
             }
 
             ImmutableArray<DiagnosticData>.Builder? builder = null;
@@ -162,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 builder.AddRange(items.Select(d => CreateLiveDiagnostic(descriptor, d)));
             }
 
-            return builder == null ? ImmutableArray<DiagnosticData>.Empty : builder.ToImmutable();
+            return builder == null ? [] : builder.ToImmutable();
         }
 
         private static DiagnosticData CreateLiveDiagnostic(DiagnosticDescriptor descriptor, DiagnosticData diagnostic)

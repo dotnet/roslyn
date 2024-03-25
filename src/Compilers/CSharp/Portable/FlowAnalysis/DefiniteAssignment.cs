@@ -17,7 +17,6 @@
 #define REFERENCE_STATE
 #endif
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -362,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)methodThisParameter != null)
             {
                 EnterParameter(methodThisParameter);
-                if (methodThisParameter.Type.SpecialType != SpecialType.None)
+                if (methodThisParameter.Type.SpecialType.CanOptimizeBehavior())
                 {
                     int slot = GetOrCreateSlot(methodThisParameter);
                     SetSlotState(slot, true);
@@ -2075,13 +2074,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
-
-        public override BoundNode VisitBlock(BoundBlock node)
+#nullable enable
+        public override BoundNode? VisitBlock(BoundBlock node)
         {
-            if (node.Instrumentation != null)
+            var instrumentation = node.Instrumentation;
+            if (instrumentation != null)
             {
-                DeclareVariable(node.Instrumentation.Local);
-                Visit(node.Instrumentation.Prologue);
+                DeclareVariables(instrumentation.Locals);
+
+                if (instrumentation.Prologue != null)
+                {
+                    Visit(instrumentation.Prologue);
+                }
             }
 
             DeclareVariables(node.Locals);
@@ -2100,14 +2104,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportUnusedVariables(node.Locals);
             ReportUnusedVariables(node.LocalFunctions);
 
-            if (node.Instrumentation != null)
+            if (instrumentation?.Epilogue != null)
             {
-                Visit(node.Instrumentation.Epilogue);
+                Visit(instrumentation.Epilogue);
             }
 
             return null;
         }
-
+#nullable disable
         private void VisitStatementsWithLocalFunctions(BoundBlock block)
         {
             if (!TrackingRegions && !block.LocalFunctions.IsDefaultOrEmpty)
@@ -2236,6 +2240,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void DeclareVariables(ImmutableArray<LocalSymbol> locals)
+        {
+            foreach (var symbol in locals)
+            {
+                DeclareVariable(symbol);
+            }
+        }
+
+        private void DeclareVariables(OneOrMany<LocalSymbol> locals)
         {
             foreach (var symbol in locals)
             {
@@ -2774,7 +2786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = new StringBuilder();
             builder.Append("[assigned ");
             AppendBitNames(state.Assigned, builder);
-            builder.Append("]");
+            builder.Append(']');
             return builder.ToString();
         }
 
@@ -2795,7 +2807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (id.ContainingSlot > 0)
             {
                 AppendBitName(id.ContainingSlot, builder);
-                builder.Append(".");
+                builder.Append('.');
             }
 
             builder.Append(

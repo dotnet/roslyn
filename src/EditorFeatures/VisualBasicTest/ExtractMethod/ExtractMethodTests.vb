@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Dim textSpan As TextSpan
             MarkupTestFile.GetSpan(codeWithMarker.NormalizedValue, codeWithoutMarker, textSpan)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(codeWithoutMarker)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(codeWithoutMarker)
                 Dim treeAfterExtractMethod = Await ExtractMethodAsync(workspace, workspace.Documents.First(), textSpan, succeeded:=False, dontPutOutOrRefOnStruct:=dontPutOutOrRefOnStruct)
             End Using
         End Function
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Dim textSpan As TextSpan
             MarkupTestFile.GetSpan(codeWithMarker.NormalizedValue, codeWithoutMarker, textSpan)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(codeWithoutMarker)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(codeWithoutMarker)
                 Assert.NotNull(Await Record.ExceptionAsync(Async Function()
                                                                Dim tree = Await ExtractMethodAsync(workspace, workspace.Documents.First(), textSpan)
                                                            End Function))
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
 
             Dim metadataReferences = If(metadataReference Is Nothing, Array.Empty(Of String)(), New String() {metadataReference})
 
-            Using workspace = TestWorkspace.CreateVisualBasic(New String() {codeWithMarker}, metadataReferences:=metadataReferences, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(New String() {codeWithMarker}, metadataReferences:=metadataReferences, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
                 Dim document = workspace.Documents.First()
                 Dim subjectBuffer = document.GetTextBuffer()
@@ -89,8 +89,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
         End Function
 
         Private Shared Async Function ExtractMethodAsync(
-                workspace As TestWorkspace,
-                testDocument As TestHostDocument,
+                workspace As EditorTestWorkspace,
+                testDocument As EditorTestHostDocument,
                 textSpan As TextSpan,
                 Optional succeeded As Boolean = True,
                 Optional dontPutOutOrRefOnStruct As Boolean = True) As Tasks.Task(Of SyntaxNode)

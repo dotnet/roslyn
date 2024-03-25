@@ -18,12 +18,12 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion;
 
@@ -152,7 +152,7 @@ class A
             ? new() { NewText = "System.Threading.Tasks.Task", Range = new() { Start = new(0, 20), End = new(0, 24) } }
             : new() { NewText = "using System.Threading.Tasks;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
 
-        AssertJsonEquals([expectedAdditionalEdit], resolvedItem.AdditionalTextEdits);
+        AssertJsonEquals(new[] { expectedAdditionalEdit }, resolvedItem.AdditionalTextEdits);
 
         Assert.Null(resolvedItem.LabelDetails.Detail);
         Assert.Null(resolvedItem.FilterText);
@@ -234,7 +234,7 @@ namespace NS1
         Assert.Equal(CompletionItemKind.Method, resolvedItem.Kind);
 
         var expectedAdditionalEdit = new TextEdit() { NewText = "using NS2;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
-        AssertJsonEquals([expectedAdditionalEdit], resolvedItem.AdditionalTextEdits);
+        AssertJsonEquals(new[] { expectedAdditionalEdit }, resolvedItem.AdditionalTextEdits);
 
         Assert.Null(resolvedItem.LabelDetails.Detail);
         Assert.Null(resolvedItem.FilterText);
@@ -294,7 +294,7 @@ class A { }";
 
         Assert.Equal(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
         Assert.Equal(nameof(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand), resolvedItem.Command.Title);
-        Assert.Equal(completionParams.TextDocument.Uri, ProtocolConversions.CreateAbsoluteUri((string)resolvedItem.Command.Arguments[0]));
+        AssertJsonEquals(completionParams.TextDocument, resolvedItem.Command.Arguments[0]);
         AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
         Assert.Equal(false, resolvedItem.Command.Arguments[2]);
         Assert.Equal((long)14, resolvedItem.Command.Arguments[3]);
@@ -341,7 +341,7 @@ public class A
         }
         else
         {
-            Assert.True(results.ItemDefaults.CommitCharacters.Length == 0);
+            Assert.Empty(results.ItemDefaults.CommitCharacters);
             Assert.True(!someTextItem.Preselect && someTextItem.CommitCharacters == null);
         }
 
@@ -640,7 +640,7 @@ namespace Program
         Assert.Equal(CompletionItemKind.Class, resolvedItem1.Kind);
 
         var expectedAdditionalEdit1 = new TextEdit() { NewText = "using Namespace1;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
-        AssertJsonEquals([expectedAdditionalEdit1], resolvedItem1.AdditionalTextEdits);
+        AssertJsonEquals(new[] { expectedAdditionalEdit1 }, resolvedItem1.AdditionalTextEdits);
 
         var resolvedItem2 = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, itemFromNS2, CancellationToken.None).ConfigureAwait(false);
         Assert.Equal("Namespace2", resolvedItem2.LabelDetails.Description);
@@ -648,7 +648,7 @@ namespace Program
         Assert.Equal(CompletionItemKind.Class, resolvedItem2.Kind);
 
         var expectedAdditionalEdit2 = new TextEdit() { NewText = "using Namespace2;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
-        AssertJsonEquals([expectedAdditionalEdit2], resolvedItem2.AdditionalTextEdits);
+        AssertJsonEquals(new[] { expectedAdditionalEdit2 }, resolvedItem2.AdditionalTextEdits);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/5732")]
@@ -855,7 +855,7 @@ public class C
                 Assert.Equal(nameof(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand), resolvedItem.Command.Title);
                 Assert.Equal(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
 
-                Assert.Equal(completionParams.TextDocument.Uri, ProtocolConversions.CreateAbsoluteUri((string)resolvedItem.Command.Arguments[0]));
+                AssertJsonEquals(completionParams.TextDocument, resolvedItem.Command.Arguments[0]);
 
                 var expectedEdit = new TextEdit { Range = new LSP.Range { Start = new(0, 5), End = new(0, 5) }, NewText = "ComplexItem" };
                 AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
@@ -912,7 +912,7 @@ public class C
         Assert.Equal(nameof(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand), resolvedItem.Command.Title);
         Assert.Equal(DefaultLspCompletionResultCreationService.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
 
-        Assert.Equal(completionParams.TextDocument.Uri, ProtocolConversions.CreateAbsoluteUri((string)resolvedItem.Command.Arguments[0]));
+        AssertJsonEquals(completionParams.TextDocument, resolvedItem.Command.Arguments[0]);
 
         var expectedEdit = new TextEdit { Range = new LSP.Range { Start = new(7, 4), End = new(7, 13) }, NewText = "public override global::System.Boolean AbstractMethod(global::System.Int32 x)\r\n    {\r\n        throw new System.NotImplementedException();\r\n    }" };
         AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);

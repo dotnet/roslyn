@@ -99,9 +99,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _requestedProjectOptions = requestedProjectOptions;
                 _discoveredProjectOptions = discoveredProjectOptions;
                 _preferMetadataForReferencesOfDiscoveredProjects = preferMetadataForReferencesOfDiscoveredProjects;
-                _projectIdToFileInfoMap = new Dictionary<ProjectId, ProjectFileInfo>();
+                _projectIdToFileInfoMap = [];
                 _pathToDiscoveredProjectInfosMap = new Dictionary<string, ImmutableArray<ProjectInfo>>(PathUtilities.Comparer);
-                _projectIdToProjectReferencesMap = new Dictionary<ProjectId, List<ProjectReference>>();
+                _projectIdToProjectReferencesMap = [];
             }
 
             private async Task<TResult> DoOperationAndReportProgressAsync<TResult>(ProjectLoadOperation operation, string? projectPath, string? targetFramework, Func<Task<TResult>> doFunc)
@@ -173,10 +173,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, reportingOptions.OnLoaderFailure, out var languageName))
                 {
-                    return ImmutableArray<ProjectFileInfo>.Empty; // Failure should already be reported.
+                    return []; // Failure should already be reported.
                 }
 
-                var (buildHost, buildHostPreferredKind) = await _buildHostProcessManager.GetBuildHostAsync(projectPath, cancellationToken).ConfigureAwait(false);
+                var preferredBuildHostKind = BuildHostProcessManager.GetKindForProject(projectPath);
+                var (buildHost, actualBuildHostKind) = await _buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken).ConfigureAwait(false);
                 var projectFile = await DoOperationAndReportProgressAsync(
                     ProjectLoadOperation.Evaluate,
                     projectPath,
@@ -190,8 +191,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     _diagnosticReporter.Report(diagnosticItems);
 
-                    return ImmutableArray.Create(
-                        ProjectFileInfo.CreateEmpty(languageName, projectPath));
+                    return [ProjectFileInfo.CreateEmpty(languageName, projectPath)];
                 }
 
                 var projectFileInfos = await DoOperationAndReportProgressAsync(
@@ -349,10 +349,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     var metadataService = GetWorkspaceService<IMetadataService>();
                     var compilationOptions = commandLineArgs.CompilationOptions
                         .WithXmlReferenceResolver(new XmlFileResolver(projectDirectory))
-                        .WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, projectDirectory))
+                        .WithSourceReferenceResolver(new SourceFileResolver([], projectDirectory))
                         // TODO: https://github.com/dotnet/roslyn/issues/4967
-                        .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(ImmutableArray<string>.Empty, projectDirectory)))
-                        .WithStrongNameProvider(new DesktopStrongNameProvider(commandLineArgs.KeyFileSearchPaths))
+                        .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver([], projectDirectory)))
+                        .WithStrongNameProvider(new DesktopStrongNameProvider(commandLineArgs.KeyFileSearchPaths, Path.GetTempPath()))
                         .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
                     var documents = CreateDocumentInfos(projectFileInfo.Documents, projectId, commandLineArgs.Encoding);
@@ -465,14 +465,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     folders = pathNames.Length > 1
                         ? pathNames.Take(pathNames.Length - 1).ToImmutableArray()
-                        : ImmutableArray<string>.Empty;
+                        : [];
 
                     name = pathNames[^1];
                 }
                 else
                 {
                     name = logicalPath;
-                    folders = ImmutableArray<string>.Empty;
+                    folders = [];
                 }
             }
 

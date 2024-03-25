@@ -12,11 +12,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 {
@@ -639,7 +639,7 @@ class A
             await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             var completionList = cache.GetCachedEntry(0).CompletionList;
             Assert.NotNull(completionList);
-            Assert.True(testAccessor.GetCacheContents().Count == 1);
+            Assert.Single(testAccessor.GetCacheContents());
 
             // 2 items in cache
             await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);

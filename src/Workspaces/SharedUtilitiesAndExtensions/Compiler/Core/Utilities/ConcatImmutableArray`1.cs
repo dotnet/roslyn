@@ -9,53 +9,52 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+internal readonly struct ConcatImmutableArray<T>(ImmutableArray<T> first, ImmutableArray<T> second) : IEnumerable<T>
 {
-    internal readonly struct ConcatImmutableArray<T>(ImmutableArray<T> first, ImmutableArray<T> second) : IEnumerable<T>
+    public int Length => first.Length + second.Length;
+
+    public bool Any(Func<T, bool> predicate)
+        => first.Any(predicate) || second.Any(predicate);
+
+    public Enumerator GetEnumerator()
+        => new(first, second);
+
+    public ImmutableArray<T> ToImmutableArray()
+        => first.NullToEmpty().AddRange(second.NullToEmpty());
+
+    IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        => GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
+
+    public struct Enumerator(ImmutableArray<T> first, ImmutableArray<T> second) : IEnumerator<T>
     {
-        public int Length => first.Length + second.Length;
+        private ImmutableArray<T>.Enumerator _current = first.NullToEmpty().GetEnumerator();
+        private ImmutableArray<T> _next = second.NullToEmpty();
 
-        public bool Any(Func<T, bool> predicate)
-            => first.Any(predicate) || second.Any(predicate);
+        public T Current => _current.Current;
+        object? IEnumerator.Current => Current;
 
-        public Enumerator GetEnumerator()
-            => new(first, second);
-
-        public ImmutableArray<T> ToImmutableArray()
-            => first.NullToEmpty().AddRange(second.NullToEmpty());
-
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-            => GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
-
-        public struct Enumerator(ImmutableArray<T> first, ImmutableArray<T> second) : IEnumerator<T>
+        public bool MoveNext()
         {
-            private ImmutableArray<T>.Enumerator _current = first.NullToEmpty().GetEnumerator();
-            private ImmutableArray<T> _next = second.NullToEmpty();
-
-            public T Current => _current.Current;
-            object? IEnumerator.Current => Current;
-
-            public bool MoveNext()
+            if (_current.MoveNext())
             {
-                if (_current.MoveNext())
-                {
-                    return true;
-                }
-
-                _current = _next.GetEnumerator();
-                _next = ImmutableArray<T>.Empty;
-                return _current.MoveNext();
+                return true;
             }
 
-            readonly void IDisposable.Dispose()
-            {
-            }
-
-            void IEnumerator.Reset()
-                => throw new NotSupportedException();
+            _current = _next.GetEnumerator();
+            _next = [];
+            return _current.MoveNext();
         }
+
+        readonly void IDisposable.Dispose()
+        {
+        }
+
+        void IEnumerator.Reset()
+            => throw new NotSupportedException();
     }
 }

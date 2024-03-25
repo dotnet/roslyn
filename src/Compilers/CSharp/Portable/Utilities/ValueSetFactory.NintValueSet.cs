@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private sealed class NintValueSet : IValueSet<int>, IValueSet
         {
-            public static readonly NintValueSet AllValues = new NintValueSet(hasSmall: true, values: NumericValueSet<int, IntTC>.AllValues, hasLarge: true);
+            public static readonly NintValueSet AllValues = new NintValueSet(hasSmall: true, values: NumericValueSet<int>.AllValues(IntTC.DefaultInstance), hasLarge: true);
 
-            public static readonly NintValueSet NoValues = new NintValueSet(hasSmall: false, values: NumericValueSet<int, IntTC>.NoValues, hasLarge: false);
+            public static readonly NintValueSet NoValues = new NintValueSet(hasSmall: false, values: NumericValueSet<int>.NoValues(IntTC.DefaultInstance), hasLarge: false);
 
             private readonly IValueSet<int> _values;
 
@@ -134,10 +134,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_hasSmall)
                     builder.Append("Small");
                 if (_hasSmall && !_values.IsEmpty)
-                    builder.Append(",");
+                    builder.Append(',');
                 builder.Append(_values.ToString());
                 if (_hasLarge && builder.Length > 0)
-                    builder.Append(",");
+                    builder.Append(',');
                 if (_hasLarge)
                     builder.Append("Large");
                 return psb.ToStringAndFree();

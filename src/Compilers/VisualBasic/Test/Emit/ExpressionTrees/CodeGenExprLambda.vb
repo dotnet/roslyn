@@ -2015,6 +2015,31 @@ End Module
             CompileAndVerify(source, references:={Net40.SystemCore}).VerifyDiagnostics()
         End Sub
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72456")>
+        Public Sub UndeclaredClassInLambdaFunction()
+            Dim source =
+<compilation>
+    <file name="expr.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Module Program
+    Public Function CreateExpression() As Expression(Of Func(Of Object))
+        Return Function() (New UndeclaredClass() With {.Name = "testName"})
+    End Function
+End Module
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, {LinqAssemblyRef})
+            AssertTheseDiagnostics(compilation.GetDiagnostics(),
+<expected>
+BC30002: Type 'UndeclaredClass' is not defined.
+        Return Function() (New UndeclaredClass() With {.Name = "testName"})
+                               ~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
         <Fact>
         <WorkItem(577271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577271")>
         Public Sub Bug577271()
@@ -3664,7 +3689,6 @@ Lambda(
 
         <Fact>
         Public Sub ExprTree_LegacyTests02_v40()
-            ' ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 1223 }
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
 Imports System
@@ -3705,12 +3729,11 @@ Module Form1
     End Sub
 End Module
 ]]></file>
-            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v40_Result, verify:=Verification.FailsILVerify)
+            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v40_Result)
         End Sub
 
         <Fact>
         Public Sub ExprTree_LegacyTests02_v45()
-            ' ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 1167 }
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
 Imports System
@@ -3748,7 +3771,7 @@ Module Form1
     End Sub
 End Module
 ]]></file>
-            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v45_Result, latestReferences:=True, verify:=Verification.FailsILVerify)
+            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v45_Result, latestReferences:=True)
         End Sub
 
         <Fact>
@@ -8214,9 +8237,15 @@ End Class
 </compilation>)
             AssertTheseEmitDiagnostics(compilation,
 <errors>
+    BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+    Shared F As Expression(Of D) = Function() New A(Nothing)
+                                              ~~~~~~~~~~~~~~
 BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
     Shared G As Expression(Of D) = Function() M()
                                               ~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+    Shared F As Expression(Of D) = Function() New A(Nothing)
+                                              ~~~~~~~~~~~~~~
 BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
     Shared G As Expression(Of D) = Function() M()
                                               ~~~

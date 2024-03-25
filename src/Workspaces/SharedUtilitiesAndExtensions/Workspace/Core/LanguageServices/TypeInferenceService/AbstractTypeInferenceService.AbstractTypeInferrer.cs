@@ -11,121 +11,122 @@ using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageService.TypeInferenceService
+namespace Microsoft.CodeAnalysis.LanguageService.TypeInferenceService;
+
+internal partial class AbstractTypeInferenceService : ITypeInferenceService
 {
-    internal partial class AbstractTypeInferenceService : ITypeInferenceService
+    protected abstract class AbstractTypeInferrer
     {
-        protected abstract class AbstractTypeInferrer
+        protected readonly CancellationToken CancellationToken;
+        protected readonly SemanticModel SemanticModel;
+        protected readonly Func<TypeInferenceInfo, bool> IsUsableTypeFunc;
+
+        private readonly HashSet<SyntaxNode> _seenExpressionInferType = [];
+        private readonly HashSet<SyntaxNode> _seenExpressionGetType = [];
+
+        private static readonly Func<TypeInferenceInfo, bool> s_isNotNull = t => t.InferredType != null;
+
+        protected AbstractTypeInferrer(SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            protected readonly CancellationToken CancellationToken;
-            protected readonly SemanticModel SemanticModel;
-            protected readonly Func<TypeInferenceInfo, bool> IsUsableTypeFunc;
+            this.SemanticModel = semanticModel;
+            this.CancellationToken = cancellationToken;
+            this.IsUsableTypeFunc = t => t.InferredType != null && !IsUnusableType(t.InferredType);
+        }
 
-            private readonly HashSet<SyntaxNode> _seenExpressionInferType = new();
-            private readonly HashSet<SyntaxNode> _seenExpressionGetType = new();
+        protected abstract IEnumerable<TypeInferenceInfo> InferTypesWorker_DoNotCallDirectly(int position);
+        protected abstract IEnumerable<TypeInferenceInfo> InferTypesWorker_DoNotCallDirectly(SyntaxNode expression);
+        protected abstract IEnumerable<TypeInferenceInfo> GetTypes_DoNotCallDirectly(SyntaxNode expression, bool objectAsDefault);
+        protected abstract bool IsUnusableType(ITypeSymbol arg);
 
-            private static readonly Func<TypeInferenceInfo, bool> s_isNotNull = t => t.InferredType != null;
+        protected Compilation Compilation => SemanticModel.Compilation;
 
-            protected AbstractTypeInferrer(SemanticModel semanticModel, CancellationToken cancellationToken)
+        public ImmutableArray<TypeInferenceInfo> InferTypes(int position)
+        {
+            var types = InferTypesWorker_DoNotCallDirectly(position);
+            return Filter(types);
+        }
+
+        public ImmutableArray<TypeInferenceInfo> InferTypes(SyntaxNode expression, bool filterUnusable = true)
+        {
+            if (expression != null)
             {
-                this.SemanticModel = semanticModel;
-                this.CancellationToken = cancellationToken;
-                this.IsUsableTypeFunc = t => t.InferredType != null && !IsUnusableType(t.InferredType);
-            }
-
-            protected abstract IEnumerable<TypeInferenceInfo> InferTypesWorker_DoNotCallDirectly(int position);
-            protected abstract IEnumerable<TypeInferenceInfo> InferTypesWorker_DoNotCallDirectly(SyntaxNode expression);
-            protected abstract IEnumerable<TypeInferenceInfo> GetTypes_DoNotCallDirectly(SyntaxNode expression, bool objectAsDefault);
-            protected abstract bool IsUnusableType(ITypeSymbol arg);
-
-            protected Compilation Compilation => SemanticModel.Compilation;
-
-            public ImmutableArray<TypeInferenceInfo> InferTypes(int position)
-            {
-                var types = InferTypesWorker_DoNotCallDirectly(position);
-                return Filter(types);
-            }
-
-            public ImmutableArray<TypeInferenceInfo> InferTypes(SyntaxNode expression, bool filterUnusable = true)
-            {
-                if (expression != null)
+                if (_seenExpressionInferType.Add(expression))
                 {
-                    if (_seenExpressionInferType.Add(expression))
-                    {
-                        var types = InferTypesWorker_DoNotCallDirectly(expression);
-                        return Filter(types, filterUnusable);
-                    }
+                    var types = InferTypesWorker_DoNotCallDirectly(expression);
+                    return Filter(types, filterUnusable);
                 }
-
-                return ImmutableArray<TypeInferenceInfo>.Empty;
             }
 
-            protected IEnumerable<TypeInferenceInfo> GetTypes(SyntaxNode expression, bool objectAsDefault = false)
+            return [];
+        }
+
+        protected IEnumerable<TypeInferenceInfo> GetTypes(SyntaxNode expression, bool objectAsDefault = false)
+        {
+            if (expression != null)
             {
-                if (expression != null)
+                if (_seenExpressionGetType.Add(expression))
                 {
-                    if (_seenExpressionGetType.Add(expression))
-                    {
-                        return GetTypes_DoNotCallDirectly(expression, objectAsDefault);
-                    }
+                    return GetTypes_DoNotCallDirectly(expression, objectAsDefault);
                 }
-
-                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
-            private ImmutableArray<TypeInferenceInfo> Filter(IEnumerable<TypeInferenceInfo> types, bool filterUnusable = true)
+            return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+        }
+
+        private ImmutableArray<TypeInferenceInfo> Filter(IEnumerable<TypeInferenceInfo> types, bool filterUnusable = true)
+        {
+            return types.Where(filterUnusable ? IsUsableTypeFunc : s_isNotNull)
+                        .Distinct()
+                        .ToImmutableArray();
+        }
+
+        protected IEnumerable<TypeInferenceInfo> CreateResult(SpecialType type, NullableAnnotation nullableAnnotation = NullableAnnotation.None)
+            => CreateResult(Compilation.GetSpecialType(type).WithNullableAnnotation(nullableAnnotation));
+
+        protected static IEnumerable<TypeInferenceInfo> CreateResult(ITypeSymbol type)
+            => type == null
+                ? SpecializedCollections.EmptyCollection<TypeInferenceInfo>()
+                : SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(type));
+
+        protected static IEnumerable<ITypeSymbol> ExpandParamsParameter(IParameterSymbol parameterSymbol)
+        {
+            var result = new List<ITypeSymbol>
             {
-                return types.Where(filterUnusable ? IsUsableTypeFunc : s_isNotNull)
-                            .Distinct()
-                            .ToImmutableArray();
-            }
+                parameterSymbol.Type
+            };
 
-            protected IEnumerable<TypeInferenceInfo> CreateResult(SpecialType type, NullableAnnotation nullableAnnotation = NullableAnnotation.None)
-                => CreateResult(Compilation.GetSpecialType(type).WithNullableAnnotation(nullableAnnotation));
-
-            protected static IEnumerable<TypeInferenceInfo> CreateResult(ITypeSymbol type)
-                => type == null
-                    ? SpecializedCollections.EmptyCollection<TypeInferenceInfo>()
-                    : SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(type));
-
-            protected static IEnumerable<ITypeSymbol> ExpandParamsParameter(IParameterSymbol parameterSymbol)
+            if (parameterSymbol.IsParams)
             {
-                var result = new List<ITypeSymbol>();
-                result.Add(parameterSymbol.Type);
-
-                if (parameterSymbol.IsParams)
+                if (parameterSymbol.Type is IArrayTypeSymbol arrayTypeSymbol)
                 {
-                    if (parameterSymbol.Type is IArrayTypeSymbol arrayTypeSymbol)
-                    {
-                        result.Add(arrayTypeSymbol.ElementType);
-                    }
+                    result.Add(arrayTypeSymbol.ElementType);
                 }
-
-                return result;
             }
 
-            protected static IEnumerable<TypeInferenceInfo> GetCollectionElementType(INamedTypeSymbol type)
+            return result;
+        }
+
+        protected static IEnumerable<TypeInferenceInfo> GetCollectionElementType(INamedTypeSymbol type)
+        {
+            if (type != null)
             {
-                if (type != null)
+                var parameters = type.TypeArguments;
+
+                var elementType = parameters.ElementAtOrDefault(0);
+                if (elementType != null)
                 {
-                    var parameters = type.TypeArguments;
-
-                    var elementType = parameters.ElementAtOrDefault(0);
-                    if (elementType != null)
-                    {
-                        return SpecializedCollections.SingletonCollection(new TypeInferenceInfo(elementType));
-                    }
+                    return SpecializedCollections.SingletonCollection(new TypeInferenceInfo(elementType));
                 }
-
-                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
-            protected static bool IsEnumHasFlag(ISymbol symbol)
-            {
-                return symbol.Kind == SymbolKind.Method &&
-                       symbol.Name == nameof(Enum.HasFlag) &&
-                       symbol.ContainingType?.SpecialType == SpecialType.System_Enum;
-            }
+            return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+        }
+
+        protected static bool IsEnumHasFlag(ISymbol symbol)
+        {
+            return symbol.Kind == SymbolKind.Method &&
+                   symbol.Name == nameof(Enum.HasFlag) &&
+                   symbol.ContainingType?.SpecialType == SpecialType.System_Enum;
         }
     }
 }

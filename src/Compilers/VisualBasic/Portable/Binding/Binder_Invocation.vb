@@ -1833,7 +1833,7 @@ ProduceBoundNode:
             queryMode As Boolean,
             callerInfoOpt As SyntaxNode
         )
-            Dim diagnosticPerSymbol = ArrayBuilder(Of KeyValuePair(Of Symbol, ImmutableBindingDiagnostic(Of AssemblySymbol))).GetInstance(candidates.Count)
+            Dim diagnosticPerSymbol = ArrayBuilder(Of KeyValuePair(Of Symbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))).GetInstance(candidates.Count)
 
             If arguments.IsDefault Then
                 arguments = ImmutableArray(Of BoundExpression).Empty
@@ -1932,7 +1932,7 @@ ProduceBoundNode:
         End Sub
 
         Private Shared Function ReportCommonErrorsFromLambdas(
-            diagnosticPerSymbol As ArrayBuilder(Of KeyValuePair(Of Symbol, ImmutableBindingDiagnostic(Of AssemblySymbol))),
+            diagnosticPerSymbol As ArrayBuilder(Of KeyValuePair(Of Symbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))),
             arguments As ImmutableArray(Of BoundExpression),
             diagnostics As BindingDiagnosticBag
         ) As Boolean

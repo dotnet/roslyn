@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Logging
             _writer = writer;
         }
 
-        public IDisposable BeginScope<TState>(TState state)
+        public IDisposable BeginScope<TState>(TState state) where TState : notnull
         {
             throw new NotImplementedException();
         }

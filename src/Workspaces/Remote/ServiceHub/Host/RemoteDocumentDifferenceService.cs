@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class RemoteDocumentDifferenceService : IDocumentDifferenceService
     {
-        [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.CSharp, layer: WorkspaceKind.Host), Shared]
+        [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.CSharp, layer: ServiceLayer.Host), Shared]
         internal sealed class CSharpDocumentDifferenceService : RemoteDocumentDifferenceService
         {
             [ImportingConstructor]
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.VisualBasic, layer: WorkspaceKind.Host), Shared]
+        [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.VisualBasic, layer: ServiceLayer.Host), Shared]
         internal sealed class VisualBasicDocumentDifferenceService : AbstractDocumentDifferenceService
         {
             [ImportingConstructor]
@@ -43,35 +43,9 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<DocumentDifferenceResult?> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        public Task<SyntaxNode?> GetChangedMemberAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
-            // in remote workspace, we don't trust any version based on VersionStamp. we only trust content based information such as
-            // checksum or tree comparison and etc.
-
-            // first check checksum
-            var oldTextChecksum = (await oldDocument.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false)).Text;
-            var newTextChecksum = (await newDocument.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false)).Text;
-            if (oldTextChecksum == newTextChecksum)
-            {
-                // null means nothing has changed.
-                return null;
-            }
-
-            var oldRoot = await oldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            // the service is only registered for C# and VB documents, which must have syntax trees:
-            Contract.ThrowIfNull(oldRoot);
-            Contract.ThrowIfNull(newRoot);
-
-            if (oldRoot.IsEquivalentTo(newRoot, topLevel: true))
-            {
-                // only method body changed
-                return new DocumentDifferenceResult(InvocationReasons.SyntaxChanged);
-            }
-
-            // semantic has changed as well.
-            return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
+            return SpecializedTasks.Null<SyntaxNode>();
         }
     }
 }

@@ -960,7 +960,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim displayName As String = TryCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
 
             If displayName Is Nothing Then
-                diagnostics.Add(ERRID.ERR_FriendAssemblyNameInvalid, If(nodeOpt IsNot Nothing, nodeOpt.GetLocation(), NoLocation.Singleton), displayName)
+                diagnostics.Add(ERRID.ERR_FriendAssemblyNameInvalid, If(nodeOpt IsNot Nothing, nodeOpt.GetLocation(), NoLocation.Singleton), "")
                 Return False
             End If
 
@@ -1191,7 +1191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Get assembly level declaration errors.
         ''' </summary>
         Private Function GetAssemblyLevelDeclarationErrors(
-            haveExtensionMethodsInSource As Boolean) As ImmutableBindingDiagnostic(Of AssemblySymbol)
+            haveExtensionMethodsInSource As Boolean) As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
 
             If _lazyAssemblyLevelDeclarationErrors.IsDefault OrElse _lazyAssemblyLevelDeclarationDependencies.IsDefault Then
 
@@ -1269,7 +1269,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ReportDiagnosticsForSynthesizedAttributes(DeclaringCompilation, diagnostics)
                 ReportDiagnosticsForAddedModules(diagnostics)
 
-                Dim immutableBindingDiagnostic As ImmutableBindingDiagnostic(Of AssemblySymbol) = diagnostics.ToReadOnlyAndFree()
+                Dim immutableBindingDiagnostic As ReadOnlyBindingDiagnostic(Of AssemblySymbol) = diagnostics.ToReadOnlyAndFree()
                 ImmutableInterlocked.InterlockedInitialize(_lazyAssemblyLevelDeclarationDependencies, immutableBindingDiagnostic.Dependencies)
                 ImmutableInterlocked.InterlockedInitialize(_lazyAssemblyLevelDeclarationErrors, immutableBindingDiagnostic.Diagnostics)
             End If
@@ -1277,7 +1277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Not _lazyAssemblyLevelDeclarationErrors.IsDefault)
             Debug.Assert(Not _lazyAssemblyLevelDeclarationDependencies.IsDefault)
 
-            Return New ImmutableBindingDiagnostic(Of AssemblySymbol)(_lazyAssemblyLevelDeclarationErrors, _lazyAssemblyLevelDeclarationDependencies)
+            Return New ReadOnlyBindingDiagnostic(Of AssemblySymbol)(_lazyAssemblyLevelDeclarationErrors, _lazyAssemblyLevelDeclarationDependencies)
         End Function
 
         Private Sub DetectAttributeAndOptionConflicts(diagnostics As BindingDiagnosticBag)

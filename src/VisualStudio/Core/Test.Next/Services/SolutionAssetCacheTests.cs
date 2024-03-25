@@ -68,7 +68,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var workspace = new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());
             var solution = workspace.CurrentSolution;
-            var checksums = await solution.State.GetStateChecksumsAsync(CancellationToken.None);
+            var checksums = await solution.CompilationState.GetStateChecksumsAsync(CancellationToken.None);
 
             // Ensure the lazy has computed its value.
             var storage = new SolutionAssetCache(

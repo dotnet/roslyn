@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal sealed class CompileTimeSolutionProvider : ICompileTimeSolutionProvider
     {
-        [ExportWorkspaceServiceFactory(typeof(ICompileTimeSolutionProvider), WorkspaceKind.Host), Shared]
+        [ExportWorkspaceServiceFactory(typeof(ICompileTimeSolutionProvider), [WorkspaceKind.Host]), Shared]
         private sealed class Factory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]
@@ -42,10 +42,12 @@ namespace Microsoft.CodeAnalysis.Host
 
         private const string RazorEncConfigFileName = "RazorSourceGenerator.razorencconfig";
         private const string RazorSourceGeneratorTypeName = "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator";
-        private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames = ImmutableArray.Create(
+        private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames =
+        [
             "Microsoft.NET.Sdk.Razor.SourceGenerators",
             "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators",
-            "Microsoft.CodeAnalysis.Razor.Compiler");
+            "Microsoft.CodeAnalysis.Razor.Compiler",
+        ];
         private static readonly ImmutableArray<string> s_razorSourceGeneratorFileNamePrefixes = s_razorSourceGeneratorAssemblyNames
             .SelectAsArray(static assemblyName => Path.Combine(assemblyName, RazorSourceGeneratorTypeName));
 
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// Cached compile-time solution corresponding to an existing design-time solution.
         /// </summary>
 #if NETCOREAPP
-        private readonly ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSolution = new();
+        private readonly ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSolution = [];
 #else
         private ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSolution = new();
 #endif
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Host
                 var staleSolution = _lastCompileTimeSolution;
                 var compileTimeSolution = designTimeSolution;
 
-                foreach (var (_, projectState) in compileTimeSolution.State.ProjectStates)
+                foreach (var (_, projectState) in compileTimeSolution.SolutionState.ProjectStates)
                 {
                     using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var configIdsToRemove);
                     using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var documentIdsToRemove);

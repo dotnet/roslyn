@@ -13,36 +13,35 @@ using Microsoft.CodeAnalysis.Highlighting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters
+namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
+
+[ExportHighlighter(LanguageNames.CSharp), Shared]
+internal class TryStatementHighlighter : AbstractKeywordHighlighter<TryStatementSyntax>
 {
-    [ExportHighlighter(LanguageNames.CSharp), Shared]
-    internal class TryStatementHighlighter : AbstractKeywordHighlighter<TryStatementSyntax>
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public TryStatementHighlighter()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TryStatementHighlighter()
+    }
+
+    protected override void AddHighlights(
+        TryStatementSyntax tryStatement, List<TextSpan> highlights, CancellationToken cancellationToken)
+    {
+        highlights.Add(tryStatement.TryKeyword.Span);
+
+        foreach (var catchDeclaration in tryStatement.Catches)
         {
+            highlights.Add(catchDeclaration.CatchKeyword.Span);
+
+            if (catchDeclaration.Filter != null)
+            {
+                highlights.Add(catchDeclaration.Filter.WhenKeyword.Span);
+            }
         }
 
-        protected override void AddHighlights(
-            TryStatementSyntax tryStatement, List<TextSpan> highlights, CancellationToken cancellationToken)
+        if (tryStatement.Finally != null)
         {
-            highlights.Add(tryStatement.TryKeyword.Span);
-
-            foreach (var catchDeclaration in tryStatement.Catches)
-            {
-                highlights.Add(catchDeclaration.CatchKeyword.Span);
-
-                if (catchDeclaration.Filter != null)
-                {
-                    highlights.Add(catchDeclaration.Filter.WhenKeyword.Span);
-                }
-            }
-
-            if (tryStatement.Finally != null)
-            {
-                highlights.Add(tryStatement.Finally.FinallyKeyword.Span);
-            }
+            highlights.Add(tryStatement.Finally.FinallyKeyword.Span);
         }
     }
 }

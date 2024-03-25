@@ -8,7 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
@@ -38,7 +38,7 @@ internal sealed class PublicWorkspacePullDiagnosticsHandler(
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource)
         => ConvertTags(diagnosticData, isLiveSource, potentialDuplicate: false);
 
-    protected override WorkspaceDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
+    protected override WorkspaceDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, Roslyn.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
         => new(new WorkspaceDiagnosticReport
         {
             Items =
@@ -62,7 +62,7 @@ internal sealed class PublicWorkspacePullDiagnosticsHandler(
                 new WorkspaceFullDocumentDiagnosticReport
                 {
                     Uri = identifier.Uri,
-                    Items = Array.Empty<VisualStudio.LanguageServer.Protocol.Diagnostic>(),
+                    Items = [],
                     // The documents provided by workspace reports are never open, so we return null.
                     Version = null,
                     ResultId = null,
@@ -70,20 +70,13 @@ internal sealed class PublicWorkspacePullDiagnosticsHandler(
             ]
         });
 
-    protected override WorkspaceDiagnosticPartialReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
-        => new(new WorkspaceDiagnosticReport
-        {
-            Items =
-            [
-                new WorkspaceUnchangedDocumentDiagnosticReport
-                {
-                    Uri = identifier.Uri,
-                    // The documents provided by workspace reports are never open, so we return null.
-                    Version = null,
-                    ResultId = resultId,
-                }
-            ]
-        });
+    protected override bool TryCreateUnchangedReport(TextDocumentIdentifier identifier, string resultId, out WorkspaceDiagnosticPartialReport report)
+    {
+        // Skip reporting 'unchanged' document reports for workspace pull diagnostics.  There are often a ton of
+        // these and we can save a lot of memory not serializing/deserializing all of this.
+        report = default;
+        return false;
+    }
 
     protected override WorkspaceDiagnosticReport? CreateReturn(BufferedProgress<WorkspaceDiagnosticPartialReport> progress)
     {
@@ -92,7 +85,7 @@ internal sealed class PublicWorkspacePullDiagnosticsHandler(
         {
             Items = progressValues != null
             ? progressValues.SelectMany(report => report.Match(r => r.Items, partial => partial.Items)).ToArray()
-            : Array.Empty<SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>>(),
+            : [],
         };
     }
 

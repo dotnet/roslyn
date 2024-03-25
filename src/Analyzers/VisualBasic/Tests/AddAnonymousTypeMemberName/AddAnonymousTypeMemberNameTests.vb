@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.AddAnonymousTypeMemberName
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddAnonymousTypeMemberName
     <Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)>
     Public Class AddAnonymousTypeMemberNameTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(Workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicAddAnonymousTypeMemberNameCodeFixProvider())
