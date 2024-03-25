@@ -37263,6 +37263,60 @@ partial class Program
         }
 
         [Fact]
+        public void AddMethod_UseSiteErrors_ParamCollection()
+        {
+            string assemblyA = GetUniqueName();
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                public class MyCollectionA<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list = new();
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public void Add(T t) { _list.Add(t); }
+                }
+                """;
+            var comp = CreateCompilation(sourceA, assemblyName: assemblyA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB = """
+                using System.Collections;
+                using System.Collections.Generic;
+                public class MyCollectionB<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list = new();
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public void Add<U>(U x, params MyCollectionA<T> y) where U : T { _list.Add(x); _list.AddRange(y); }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: [refA]);
+            var refB = comp.EmitToImageReference();
+
+            string sourceC = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollectionB<object> z = [x, ..y];
+                        z.Report();
+                    }
+                }
+                """;
+
+            CompileAndVerify([sourceC, s_collectionExtensions], references: [refA, refB], expectedOutput: "[1, 2, 3], ");
+
+            comp = CreateCompilation([sourceC, s_collectionExtensions], references: [refB]);
+            comp.VerifyEmitDiagnostics(
+                // (7,35): error CS9230: Collection expression type 'MyCollectionB<object>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         MyCollectionB<object> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y]").WithArguments("MyCollectionB<object>").WithLocation(7, 35));
+        }
+
+        [Fact]
         public void SynthesizedReadOnlyList_SingleElement()
         {
             // Compare members of synthesized types to a similar type from source.
