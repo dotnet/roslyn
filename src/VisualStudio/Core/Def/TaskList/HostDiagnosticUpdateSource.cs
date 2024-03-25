@@ -108,31 +108,20 @@ internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateS
         AddArgsToClearAnalyzerDiagnostics(ref argsBuilder.AsRef(), projectId);
     }
 
-    internal void ClearAndAddDiagnosticsArgsForProject(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId, object key)
+    internal void ClearAndAddDiagnosticsArgsForProject(ProjectId projectId, object key)
     {
         Contract.ThrowIfNull(projectId);
         Contract.ThrowIfNull(key);
 
-        var raiseEvent = false;
         lock (_gate)
         {
             if (_diagnosticMap.TryGetValue(projectId, out var projectDiagnosticKeys))
-            {
-                raiseEvent = projectDiagnosticKeys.Remove(key);
-            }
-        }
-
-        if (raiseEvent)
-        {
-            AddDiagnosticsRemovedArgsForProject(ref builder, projectId);
+                projectDiagnosticKeys.Remove(key);
         }
     }
 
     void IProjectSystemDiagnosticSource.ClearDiagnosticsForProject(ProjectId projectId, object key)
-    {
-        using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
-        ClearAndAddDiagnosticsArgsForProject(ref argsBuilder.AsRef(), projectId, key);
-    }
+        => ClearAndAddDiagnosticsArgsForProject(projectId, key);
 
     public DiagnosticData CreateAnalyzerLoadFailureDiagnostic(AnalyzerLoadFailureEventArgs e, string fullPath, ProjectId projectId, string language)
     {
