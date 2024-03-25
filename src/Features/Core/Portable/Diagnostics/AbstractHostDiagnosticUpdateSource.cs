@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// which may not be related to any given project/document in the solution.
 /// For example, these include diagnostics generated for exceptions from third party analyzers.
 /// </summary>
-internal abstract class AbstractHostDiagnosticUpdateSource : IDiagnosticUpdateSource
+internal abstract class AbstractHostDiagnosticUpdateSource
 {
     private ImmutableDictionary<DiagnosticAnalyzer, ImmutableHashSet<DiagnosticData>> _analyzerHostDiagnosticsMap =
         ImmutableDictionary<DiagnosticAnalyzer, ImmutableHashSet<DiagnosticData>>.Empty;
@@ -25,7 +25,6 @@ internal abstract class AbstractHostDiagnosticUpdateSource : IDiagnosticUpdateSo
     public abstract Workspace Workspace { get; }
 
     public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
-    public event EventHandler DiagnosticsCleared { add { } remove { } }
 
     public void RaiseDiagnosticsUpdated(ImmutableArray<DiagnosticsUpdatedArgs> args)
     {

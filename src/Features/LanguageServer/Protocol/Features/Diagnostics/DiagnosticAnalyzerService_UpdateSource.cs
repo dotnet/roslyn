@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal partial class DiagnosticAnalyzerService : IDiagnosticUpdateSource
+    internal partial class DiagnosticAnalyzerService
     {
         public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>> DiagnosticsUpdated
         {
@@ -24,19 +24,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             remove
             {
                 _eventMap.RemoveEventHandler(DiagnosticsUpdatedEventName, value);
-            }
-        }
-
-        public event EventHandler DiagnosticsCleared
-        {
-            add
-            {
-                // don't do anything. this update source doesn't use cleared event
-            }
-
-            remove
-            {
-                // don't do anything. this update source doesn't use cleared event
             }
         }
 

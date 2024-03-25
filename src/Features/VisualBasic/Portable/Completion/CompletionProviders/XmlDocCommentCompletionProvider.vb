@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities.DocumentationCommentXmlNames
@@ -25,6 +24,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
             MyBase.New(s_defaultRules)
+        End Sub
+
+        Private Shared ReadOnly s_keywordNames As ImmutableArray(Of String)
+
+        Shared Sub New()
+            Dim keywordsBuilder As New List(Of String)
+
+            For Each keywordKind In SyntaxFacts.GetKeywordKinds()
+                keywordsBuilder.Add(SyntaxFacts.GetText(keywordKind))
+            Next
+
+            s_keywordNames = keywordsBuilder.ToImmutableArray()
         End Sub
 
         Friend Overrides ReadOnly Property Language As String
@@ -270,16 +281,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
         End Sub
 
-        Protected Overrides Iterator Function GetKeywordNames() As IEnumerable(Of String)
-            Yield SyntaxFacts.GetText(SyntaxKind.NothingKeyword)
-            Yield SyntaxFacts.GetText(SyntaxKind.SharedKeyword)
-            Yield SyntaxFacts.GetText(SyntaxKind.OverridableKeyword)
-            Yield SyntaxFacts.GetText(SyntaxKind.TrueKeyword)
-            Yield SyntaxFacts.GetText(SyntaxKind.FalseKeyword)
-            Yield SyntaxFacts.GetText(SyntaxKind.MustInheritKeyword)
-            Yield SyntaxFacts.GetText(SyntaxKind.NotOverridableKeyword)
-            Yield SyntaxFacts.GetText(SyntaxKind.AsyncKeyword)
-            Yield SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)
+        Protected Overrides Function GetKeywordNames() As ImmutableArray(Of String)
+            Return s_keywordNames
         End Function
 
         Protected Overrides Function GetExistingTopLevelElementNames(parentTrivia As DocumentationCommentTriviaSyntax) As IEnumerable(Of String)
