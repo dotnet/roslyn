@@ -75,11 +75,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
 
             // HACK: Workaround the fact that Razor doesn't use our protocol types yet
-            // This is the reflection equivalent of the ITextDocumentParams check above
+            // This is the reflection equivalent of the ITextDocumentParams check above, to allow this method to work with:
+            //   * Microsoft.VisualStudio.LanguageServer.Protocol.TextDocumentIdentifier
+            //   * Microsoft.VisualStudio.LanguageServer.Protocol.OptionalVersionedTextDocumentIdentifier
+            //   * Microsoft.VisualStudio.LanguageServer.Protocol.VersionedTextDocumentIdentifier
             var textDoc = request?.GetType().GetProperty(nameof(ITextDocumentParams.TextDocument))?.GetValue(request);
-            if (textDoc?.GetType().GetProperty(nameof(TextDocumentIdentifier.Uri))?.GetValue(textDoc) is Uri uri)
+            if (textDoc is not null)
             {
-                return uri;
+                var textDocType = textDoc.GetType();
+                // We want to make sure this workaround is only for TextDocumentIdentifier types from the VS protocol DLL. Without this
+                // we could get false positives from things like TextDocumentItem etc.
+                if (textDocType.Namespace == "Microsoft.VisualStudio.LanguageServer.Protocol" &&
+                    textDocType.Name.EndsWith("TextDocumentIdentifier") &&
+                    textDocType.GetProperty(nameof(TextDocumentIdentifier.Uri))?.GetValue(textDoc) is Uri uri)
+                {
+                    return uri;
+                }
             }
 
             return null;
