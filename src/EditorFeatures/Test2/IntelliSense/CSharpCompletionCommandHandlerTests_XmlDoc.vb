@@ -712,7 +712,7 @@ class c
 
         <WpfTheory, CombinatorialData>
         Public Function InvokeWithTrueKeywordCommitSeeLangword(showCompletionInArgumentLists As Boolean) As Task
-            Return InvokeWithKeywordCommitSeeLangword("true", showCompletionInArgumentLists)
+            Return InvokeWithKeywordCommitSeeLangword("true", showCompletionInArgumentLists, unique:=False)
         End Function
 
         <WpfTheory, CombinatorialData>
@@ -740,7 +740,7 @@ class c
             Return InvokeWithKeywordCommitSeeLangword("await", showCompletionInArgumentLists)
         End Function
 
-        Private Shared Async Function InvokeWithKeywordCommitSeeLangword(keyword As String, showCompletionInArgumentLists As Boolean) As Task
+        Private Shared Async Function InvokeWithKeywordCommitSeeLangword(keyword As String, showCompletionInArgumentLists As Boolean, Optional unique As Boolean = True) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 class c
@@ -756,7 +756,13 @@ class c
                 ' or did not insert text at all).
                 state.SendTypeChars(keyword.Substring(0, keyword.Length - 1))
                 state.SendInvokeCompletionList()
-                Await state.SendCommitUniqueCompletionListItemAsync()
+                If unique Then
+                    Await state.SendCommitUniqueCompletionListItemAsync()
+                Else
+                    Await state.AssertSelectedCompletionItem(displayText:=keyword)
+                    state.SendTab()
+                End If
+
                 Await state.AssertNoCompletionSession()
 
                 ' /// <see langword="keyword"/>$$

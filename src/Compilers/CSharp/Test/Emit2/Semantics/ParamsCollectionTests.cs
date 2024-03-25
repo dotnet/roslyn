@@ -5724,6 +5724,52 @@ class Program
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72696")]
+        public void BetterOverload_04_Ambiguity()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection<T> : IEnumerable<T>
+{
+    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+
+static class ExtensionsA
+{
+    public static void Add<T>(this MyCollection<T> collection, params string[] args) { }
+}
+
+static class ExtensionsB
+{
+    public static void Add<T>(this MyCollection<T> collection, params string[] args) { }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new MyCollection<object>();
+        x.Add("");
+
+        var y = new MyCollection<object> { "" };
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (25,11): error CS0121: The call is ambiguous between the following methods or properties: 'ExtensionsA.Add<T>(MyCollection<T>, params string[])' and 'ExtensionsB.Add<T>(MyCollection<T>, params string[])'
+                //         x.Add("");
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Add").WithArguments("ExtensionsA.Add<T>(MyCollection<T>, params string[])", "ExtensionsB.Add<T>(MyCollection<T>, params string[])").WithLocation(25, 11),
+                // (27,44): error CS0121: The call is ambiguous between the following methods or properties: 'ExtensionsA.Add<T>(MyCollection<T>, params string[])' and 'ExtensionsB.Add<T>(MyCollection<T>, params string[])'
+                //         var y = new MyCollection<object> { "" };
+                Diagnostic(ErrorCode.ERR_AmbigCall, @"""""").WithArguments("ExtensionsA.Add<T>(MyCollection<T>, params string[])", "ExtensionsB.Add<T>(MyCollection<T>, params string[])").WithLocation(27, 44)
+                );
+        }
+
+        [Fact]
         public void GenericInference()
         {
             var src = """

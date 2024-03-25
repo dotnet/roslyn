@@ -12,8 +12,13 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>Microsoft.CommonLanguageServerProtocol.Framework</AssemblyName>
 
-    <!-- Do not ship this as a nuget package - it is only needed for VS insertion. -->
-    <IsPackable>false</IsPackable>
+    <!-- Generate a nuget package for this to ensure symbols are uploaded. -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CommonLanguageServerProtocol.Framework.Binary</PackageId>
+    <PackageDescription>
+      A legacy binary implementation of Microsoft.CommonLanguageServerProtocol.Framework.
+    </PackageDescription>
+
     <!-- Set visibility based on if this is a binary or just sources - https://github.com/dotnet/roslyn/issues/72251 -->
     <DefineConstants>BINARY_COMPAT</DefineConstants>
   </PropertyGroup>
