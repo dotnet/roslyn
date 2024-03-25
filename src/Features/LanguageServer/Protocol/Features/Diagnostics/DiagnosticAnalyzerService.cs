@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticAnalyzerService(
-            IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListenerProvider listenerProvider,
             DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
             IGlobalOptionService globalOptions,
@@ -57,8 +56,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
 
             _eventQueue = new TaskQueue(Listener, TaskScheduler.Default);
-
-            registrationService.Register(this);
 
             globalOptions.AddOptionChangedHandler(this, (_, e) =>
             {

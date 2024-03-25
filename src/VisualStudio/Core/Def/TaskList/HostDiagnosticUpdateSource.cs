@@ -29,11 +29,9 @@ internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateS
 
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public HostDiagnosticUpdateSource(Lazy<VisualStudioWorkspace> workspace, IDiagnosticUpdateSourceRegistrationService registrationService)
+    public HostDiagnosticUpdateSource(Lazy<VisualStudioWorkspace> workspace)
     {
         _workspace = workspace;
-
-        registrationService.Register(this);
     }
 
     public override Workspace Workspace

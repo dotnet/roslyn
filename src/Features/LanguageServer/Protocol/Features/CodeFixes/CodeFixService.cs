@@ -23,7 +23,6 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -255,20 +254,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CodeActionRequestPriority? priority,
             CancellationToken cancellationToken)
         {
-            if (!(priority is null or CodeActionRequestPriority.Low)
-                || document is not Document sourceDocument)
-            {
-                return [];
-            }
+            if (priority is null or CodeActionRequestPriority.Low)
+                return await document.GetCachedCopilotDiagnosticsAsync(range, cancellationToken).ConfigureAwait(false);
 
-            // Expand the fixable range for Copilot diagnostics to containing method.
-            // TODO: Share the below code with other places we compute containing method for Copilot analysis.
-            var root = await sourceDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = sourceDocument.GetRequiredLanguageService<ISyntaxFactsService>();
-            var containingMethod = syntaxFacts.GetContainingMethodDeclaration(root, range.Start, useFullSpan: false);
-            range = containingMethod?.Span ?? range;
-
-            return await document.GetCachedCopilotDiagnosticsAsync(range, cancellationToken).ConfigureAwait(false);
+            return [];
         }
 
         private static SortedDictionary<TextSpan, List<DiagnosticData>> ConvertToMap(

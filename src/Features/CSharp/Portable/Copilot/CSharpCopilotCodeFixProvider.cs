@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -71,20 +70,17 @@ internal sealed partial class CSharpCopilotCodeFixProvider() : CodeFixProvider
 
         var hasMultiplePrompts = promptTitles.Length > 1;
 
-        // Find the containing method, if any, and also update the fix span to the entire method.
-        // TODO: count location in doc-comment as part of the method.
+        // Find the containing method for each diagnostic, and register a fix if any part of the method interect with context span.
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var containingMethod = CSharpSyntaxFacts.Instance.GetContainingMethodDeclaration(root, context.Span.Start, useFullSpan: false);
-        if (containingMethod is not BaseMethodDeclarationSyntax)
-            return;
-
         foreach (var diagnostic in context.Diagnostics)
         {
-            Debug.Assert(containingMethod.FullSpan.IntersectsWith(diagnostic.Location.SourceSpan));
-
-            var fix = TryGetFix(document, containingMethod, diagnostic, hasMultiplePrompts);
-            if (fix != null)
-                context.RegisterCodeFix(fix, diagnostic);
+            var containingMethod = CSharpSyntaxFacts.Instance.GetContainingMethodDeclaration(root, diagnostic.Location.SourceSpan.Start, useFullSpan: false);
+            if (containingMethod?.Span.IntersectsWith(context.Span) is true)
+            {
+                var fix = TryGetFix(document, containingMethod, diagnostic, hasMultiplePrompts);
+                if (fix != null)
+                    context.RegisterCodeFix(fix, diagnostic);
+            }
         }
     }
 
@@ -105,8 +101,8 @@ internal sealed partial class CSharpCopilotCodeFixProvider() : CodeFixProvider
         // Parse the proposed Copilot fix into a method declaration.
         // Guard against failure cases where the proposed fixed code does not parse into a method declaration.
         // TODO: consider do this early when we create the diagnostic and add a flag in the property bag to speedup lightbulb computation
-        var fixMethodDeclaration = SyntaxFactory.ParseMemberDeclaration(fix, options: method.SyntaxTree.Options);
-        if (fixMethodDeclaration is null || !fixMethodDeclaration.IsKind(SyntaxKind.MethodDeclaration) || fixMethodDeclaration.GetDiagnostics().Count() > 3)
+        var memberDeclaration = SyntaxFactory.ParseMemberDeclaration(fix, options: method.SyntaxTree.Options);
+        if (memberDeclaration is null || memberDeclaration is not BaseMethodDeclarationSyntax baseMethodDeclaration || baseMethodDeclaration.GetDiagnostics().Count() > 3)
             return null;
 
         var title = hasMultiplePrompts
@@ -125,9 +121,9 @@ internal sealed partial class CSharpCopilotCodeFixProvider() : CodeFixProvider
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
             // TODO: Replace all the whitespace trivia with elastic trivia, and any other trivia related improvements
-            var newMethod = fixMethodDeclaration
-                .WithLeadingTrivia(fixMethodDeclaration.HasLeadingTrivia ? fixMethodDeclaration.GetLeadingTrivia() : method.GetLeadingTrivia())
-                .WithTrailingTrivia(fixMethodDeclaration.HasTrailingTrivia ? fixMethodDeclaration.GetTrailingTrivia() : method.GetTrailingTrivia())
+            var newMethod = memberDeclaration
+                .WithLeadingTrivia(memberDeclaration.HasLeadingTrivia ? memberDeclaration.GetLeadingTrivia() : method.GetLeadingTrivia())
+                .WithTrailingTrivia(memberDeclaration.HasTrailingTrivia ? memberDeclaration.GetTrailingTrivia() : method.GetTrailingTrivia())
                 .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation);
 
             editor.ReplaceNode(method, newMethod);
