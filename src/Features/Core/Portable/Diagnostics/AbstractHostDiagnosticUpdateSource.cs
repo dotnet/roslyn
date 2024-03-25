@@ -29,28 +29,23 @@ internal abstract class AbstractHostDiagnosticUpdateSource
         if (_analyzerHostDiagnosticsMap.Count == 0)
             return;
 
-        using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
         var analyzers = analyzerReference.GetAnalyzers(language);
-        AddArgsToClearAnalyzerDiagnostics(ref argsBuilder.AsRef(), analyzers, projectId);
+        AddArgsToClearAnalyzerDiagnostics(analyzers, projectId);
     }
 
-    public void AddArgsToClearAnalyzerDiagnostics(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ImmutableArray<DiagnosticAnalyzer> analyzers, ProjectId projectId)
+    public void AddArgsToClearAnalyzerDiagnostics(ImmutableArray<DiagnosticAnalyzer> analyzers, ProjectId projectId)
     {
         foreach (var analyzer in analyzers)
-        {
-            AddArgsToClearAnalyzerDiagnostics(ref builder, analyzer, projectId);
-        }
+            AddArgsToClearAnalyzerDiagnostics(analyzer, projectId);
     }
 
-    public void AddArgsToClearAnalyzerDiagnostics(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId)
+    public void AddArgsToClearAnalyzerDiagnostics(ProjectId projectId)
     {
         foreach (var (analyzer, _) in _analyzerHostDiagnosticsMap)
-        {
-            AddArgsToClearAnalyzerDiagnostics(ref builder, analyzer, projectId);
-        }
+            AddArgsToClearAnalyzerDiagnostics(analyzer, projectId);
     }
 
-    private void AddArgsToClearAnalyzerDiagnostics(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, DiagnosticAnalyzer analyzer, ProjectId projectId)
+    private void AddArgsToClearAnalyzerDiagnostics(DiagnosticAnalyzer analyzer, ProjectId projectId)
     {
         if (!_analyzerHostDiagnosticsMap.TryGetValue(analyzer, out var existing))
         {
@@ -66,25 +61,12 @@ internal abstract class AbstractHostDiagnosticUpdateSource
                 ImmutableInterlocked.TryUpdate(ref _analyzerHostDiagnosticsMap, analyzer, newDiags, existing))
             {
                 var project = Workspace.CurrentSolution.GetProject(projectId);
-                builder.Add(MakeRemovedArgs(project));
             }
         }
-        else if (ImmutableInterlocked.TryRemove(ref _analyzerHostDiagnosticsMap, analyzer, out existing))
+        else
         {
-            var project = Workspace.CurrentSolution.GetProject(projectId);
-            builder.Add(MakeRemovedArgs(project));
-
-            if (existing.Any(d => d.ProjectId == null))
-            {
-                builder.Add(MakeRemovedArgs(project: null));
-            }
+            ImmutableInterlocked.TryRemove(ref _analyzerHostDiagnosticsMap, analyzer, out _);
         }
-    }
-
-    private static DiagnosticsUpdatedArgs MakeRemovedArgs(Project? project)
-    {
-        return DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-            project?.Solution, project?.Id, documentId: null);
     }
 
     internal TestAccessor GetTestAccessor()
