@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
 
             // Parse the request into the Request data structure.
-            using var reader = new BinaryReader(inStream, Encoding.Unicode);
+            using var reader = new BinaryReader(inStream, Encoding.Unicode, leaveOpen: true);
             var requestId = reader.ReadString();
             var language = (RequestLanguage)reader.ReadUInt32();
             var compilerHash = reader.ReadString();
