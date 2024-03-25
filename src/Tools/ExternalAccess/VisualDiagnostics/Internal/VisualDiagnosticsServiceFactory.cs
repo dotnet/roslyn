@@ -9,11 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts;
-using Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.ServiceHub.Framework;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -24,41 +22,36 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics;
 /// LSP Service responsible for loading IVisualDiagnosticsLanguageService workspace service and delegate the broker service to the workspace service,
 /// and handling MAUI XAML/C#/CSS/Razor Hot Reload support
 /// </summary>
+[Export(typeof(IOnServiceBrokerInitialized))]
 [ExportCSharpVisualBasicLspServiceFactory(typeof(OnInitializedService)), Shared]
-internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+[method: ImportingConstructor]
+internal sealed class VisualDiagnosticsServiceFactory(
+    LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : ILspServiceFactory, IOnServiceBrokerInitialized
 {
-    private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
-    private readonly VisualDiagnosticsServiceBroker _brokeredDebuggerServices;
-
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    [ImportingConstructor]
-    public VisualDiagnosticsServiceFactory(
-        LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-        VisualDiagnosticsServiceBroker brokeredDebuggerServices)
-    {
-        _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-        _brokeredDebuggerServices = brokeredDebuggerServices;
-    }
+    private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
+    private readonly Lazy<OnInitializedService> _OnInitializedService = new Lazy<OnInitializedService>(() => new OnInitializedService(lspWorkspaceRegistrationService));
 
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        return new OnInitializedService(_lspWorkspaceRegistrationService, _brokeredDebuggerServices);
+        return _OnInitializedService.Value;
+    }
+
+    public void OnServiceBrokerInitialized(IServiceBroker serviceBroker)
+    {
+        _OnInitializedService.Value?.OnServiceBrokerInitialized(serviceBroker);
     }
 
     private class OnInitializedService : ILspService, IOnInitialized, IOnServiceBrokerInitialized, IDisposable
     {
         private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
-        private readonly VisualDiagnosticsServiceBroker _brokeredDebuggerServices;
         private IVisualDiagnosticsLanguageService? _visualDiagnosticsLanguageService;
         private CancellationToken _cancellationToken;
         private static readonly TaskCompletionSource<bool> _taskCompletionSource = new TaskCompletionSource<bool>();
 
-        public OnInitializedService(LspWorkspaceRegistrationService lspWorkspaceRegistrationService, VisualDiagnosticsServiceBroker brokeredDebuggerServices)
+        public OnInitializedService(LspWorkspaceRegistrationService lspWorkspaceRegistrationService)
         {
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-            _brokeredDebuggerServices = brokeredDebuggerServices;
-
-            _brokeredDebuggerServices.NotifyServiceBrokerInitialized = this;
         }
 
         public void Dispose()
@@ -75,27 +68,21 @@ internal sealed class VisualDiagnosticsServiceFactory : ILspServiceFactory
 
         public void OnServiceBrokerInitialized(IServiceBroker serviceBroker)
         {
-            Task.Run(async () => await OnInitializeVisualDiagnosticsLanguageServiceAsync(serviceBroker).ConfigureAwait(false));
+            _taskCompletionSource.Task.ContinueWith((initialized) => OnInitializeVisualDiagnosticsLanguageServiceAsync(serviceBroker), TaskScheduler.Default);
         }
 
         private async Task OnInitializeVisualDiagnosticsLanguageServiceAsync(IServiceBroker serviceBroker)
         {
-            // Make sure we're initialized. 
-            bool initialized = await _taskCompletionSource.Task.ConfigureAwait(false);
-
-            if (initialized && serviceBroker != null)
+            // initialize VisualDiagnosticsLanguageService
+            Workspace workspace = this._lspWorkspaceRegistrationService.GetAllRegistrations().Where(w => w.Kind == WorkspaceKind.Host).FirstOrDefault();
+            if (workspace != null)
             {
-                // initialize VisualDiagnosticsLanguageService
-                Workspace workspace = this._lspWorkspaceRegistrationService.GetAllRegistrations().Where(w => w.Kind == WorkspaceKind.Host).FirstOrDefault();
-                if (workspace != null)
-                {
-                    IVisualDiagnosticsLanguageService? visualDiagnosticsLanguageService = workspace.Services.GetService<IVisualDiagnosticsLanguageService>();
+                IVisualDiagnosticsLanguageService? visualDiagnosticsLanguageService = workspace.Services.GetService<IVisualDiagnosticsLanguageService>();
 
-                    if (visualDiagnosticsLanguageService != null)
-                    {
-                        await visualDiagnosticsLanguageService.InitializeAsync(serviceBroker, _cancellationToken).ConfigureAwait(false);
-                        _visualDiagnosticsLanguageService = visualDiagnosticsLanguageService;
-                    }
+                if (visualDiagnosticsLanguageService != null)
+                {
+                    await visualDiagnosticsLanguageService.InitializeAsync(serviceBroker, _cancellationToken).ConfigureAwait(false);
+                    _visualDiagnosticsLanguageService = visualDiagnosticsLanguageService;
                 }
             }
         }
