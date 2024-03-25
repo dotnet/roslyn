@@ -42,16 +42,6 @@ internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateS
         }
     }
 
-    private static void AddDiagnosticsRemovedArgsForProject(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId)
-    {
-        var args = DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-            solution: null,
-            projectId: projectId,
-            documentId: null);
-
-        builder.Add(args);
-    }
-
     public void UpdateAndAddDiagnosticsArgsForProject(ProjectId projectId, object key)
     {
         Contract.ThrowIfNull(projectId);
@@ -70,25 +60,15 @@ internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateS
     {
         Contract.ThrowIfNull(projectId);
 
-        HashSet<object> projectDiagnosticKeys;
         lock (_gate)
         {
-            if (_diagnosticMap.TryGetValue(projectId, out projectDiagnosticKeys))
+            if (_diagnosticMap.TryGetValue(projectId, out _))
             {
                 _diagnosticMap.Remove(projectId);
             }
         }
 
-        using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
-        if (projectDiagnosticKeys != null)
-        {
-            foreach (var _ in projectDiagnosticKeys)
-            {
-                AddDiagnosticsRemovedArgsForProject(ref argsBuilder.AsRef(), projectId);
-            }
-        }
-
-        AddArgsToClearAnalyzerDiagnostics(ref argsBuilder.AsRef(), projectId);
+        AddArgsToClearAnalyzerDiagnostics(projectId);
     }
 
     internal void ClearAndAddDiagnosticsArgsForProject(ProjectId projectId, object key)
