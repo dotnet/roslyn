@@ -16,30 +16,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 
-// exporting both Abstract and HostDiagnosticUpdateSource is just to make testing easier.
-// use HostDiagnosticUpdateSource when abstract one is not needed for testing purpose
-[Export(typeof(AbstractHostDiagnosticUpdateSource))]
-[Export(typeof(HostDiagnosticUpdateSource))]
-[method: ImportingConstructor]
-[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed class HostDiagnosticUpdateSource(Lazy<VisualStudioWorkspace> workspace) : AbstractHostDiagnosticUpdateSource, IProjectSystemDiagnosticSource
+internal sealed class HostDiagnosticUpdateSource : IProjectSystemDiagnosticSource
 {
-    private readonly Lazy<VisualStudioWorkspace> _workspace = workspace;
+    public static readonly HostDiagnosticUpdateSource Instance = new();
 
-    public override Workspace Workspace => _workspace.Value;
-
-    void IProjectSystemDiagnosticSource.UpdateDiagnosticsForProject(ProjectId projectId, object key, IEnumerable<DiagnosticData> items)
-    {
-    }
-
-    void IProjectSystemDiagnosticSource.ClearAllDiagnosticsForProject(ProjectId projectId)
-    {
-        Contract.ThrowIfNull(projectId);
-
-        AddArgsToClearAnalyzerDiagnostics(projectId);
-    }
-
-    void IProjectSystemDiagnosticSource.ClearDiagnosticsForProject(ProjectId projectId, object key)
+    private HostDiagnosticUpdateSource()
     {
     }
 
