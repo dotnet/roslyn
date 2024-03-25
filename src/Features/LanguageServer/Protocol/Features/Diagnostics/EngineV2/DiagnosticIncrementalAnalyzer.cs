@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // PERF: don't fire events for ones that we dont have any diagnostics on
                     if (documentSet.Count > 0)
                     {
-                        AddProjectDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), stateSet, projectId, documentSet, handleActiveFile: true);
+                        AddProjectDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), projectId, documentSet);
                         documentSet.Clear();
                     }
                 }

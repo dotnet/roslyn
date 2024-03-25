@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         RoslynDebug.Assert(oldAnalysisResult.DocumentIds != null);
 
                         // remove old diagnostics
-                        AddProjectDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), stateSet, oldAnalysisResult.ProjectId, oldAnalysisResult.DocumentIds, handleActiveFile: false);
+                        AddProjectDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), oldAnalysisResult.ProjectId, oldAnalysisResult.DocumentIds);
                         continue;
                     }
 
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     // first remove ones no longer needed.
                     var documentsToRemove = oldAnalysisResult.DocumentIds.Except(newAnalysisResult.DocumentIds);
-                    AddProjectDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), stateSet, oldAnalysisResult.ProjectId, documentsToRemove, handleActiveFile: false);
+                    AddProjectDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), oldAnalysisResult.ProjectId, documentsToRemove);
 
                     // next update or create new ones
                     argsBuilder.AddRange(await CreateProjectDiagnosticsCreatedArgsAsync(project, stateSet, oldAnalysisResult, newAnalysisResult, CancellationToken.None).ConfigureAwait(false));
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return argsBuilder.ToImmutableAndClear();
         }
 
-        private void AddProjectDiagnosticsRemovedArgs(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, StateSet stateSet, ProjectId projectId, IEnumerable<DocumentId> documentIds, bool handleActiveFile)
+        private void AddProjectDiagnosticsRemovedArgs(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId, IEnumerable<DocumentId> documentIds)
         {
             foreach (var documentId in documentIds)
                 AddDiagnosticsRemovedArgs(ref builder, documentId, solution: null);
