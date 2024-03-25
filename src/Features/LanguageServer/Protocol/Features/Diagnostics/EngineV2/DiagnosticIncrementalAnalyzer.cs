@@ -111,7 +111,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             builder.Add(DiagnosticsUpdatedArgs.DiagnosticsCreated(
                 CreateId(analyzer, project.Id, AnalysisKind.NonLocal),
-                project.Solution.Workspace,
                 project.Solution,
                 project.Id,
                 documentId: null,
@@ -126,7 +125,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             builder.Add(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
                 CreateId(analyzer, projectId, AnalysisKind.NonLocal),
-                Workspace,
                 solution,
                 projectId,
                 documentId: null));
@@ -140,7 +138,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             builder.Add(DiagnosticsUpdatedArgs.DiagnosticsCreated(
                 CreateId(analyzer, document.Id, kind),
-                document.Project.Solution.Workspace,
                 document.Project.Solution,
                 document.Project.Id,
                 document.Id,
@@ -155,7 +152,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             builder.Add(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
                 CreateId(analyzer, documentId, kind),
-                Workspace,
                 solution,
                 documentId.ProjectId,
                 documentId));
