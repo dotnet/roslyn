@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -232,12 +233,12 @@ namespace Microsoft.CodeAnalysis.Text
             return new LineInfo(this, ParseLineStarts());
         }
 
-        private int[] ParseLineStarts()
+        private SegmentedList<int> ParseLineStarts()
         {
             var position = 0;
             var index = 0;
             var lastCr = -1;
-            var arrayBuilder = ArrayBuilder<int>.GetInstance();
+            var list = new SegmentedList<int>();
 
             // The following loop goes through every character in the text. It is highly
             // performance critical, and thus inlines knowledge about common line breaks
@@ -275,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Text
                         case '\u2028':
                         case '\u2029':
 line_break:
-                            arrayBuilder.Add(position);
+                            list.Add(position);
                             position = index;
                             break;
                     }
@@ -283,8 +284,8 @@ line_break:
             }
 
             // Create a start for the final line.  
-            arrayBuilder.Add(position);
-            return arrayBuilder.ToArrayAndFree();
+            list.Add(position);
+            return list;
         }
     }
 }
