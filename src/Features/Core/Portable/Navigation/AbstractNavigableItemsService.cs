@@ -39,6 +39,7 @@ internal abstract class AbstractNavigableItemsService : INavigableItemsService
             var (symbol, project, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(document, position, cancellationToken).ConfigureAwait(false);
 
             var solution = project.Solution;
+
             symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false) ?? symbol;
             symbol = await GoToDefinitionFeatureHelpers.TryGetPreferredSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
 
