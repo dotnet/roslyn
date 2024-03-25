@@ -349,7 +349,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                     windowFrameMessageToShow = string.Format(
                         ServicesVSResources.This_file_was_generated_by_0_at_1_and_cannot_be_edited,
                         GeneratorDisplayName,
-                        generatedDocument.GenerationDateTime);
+                        generatedDocument.GenerationDateTime.ToLocalTime());
                     windowFrameImageMonikerToShow = default;
                     generatedSource = await generatedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 }
