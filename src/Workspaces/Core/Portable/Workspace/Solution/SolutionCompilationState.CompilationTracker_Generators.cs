@@ -189,7 +189,7 @@ internal partial class SolutionCompilationState
                 if (documentIdToIndex.TryGetValue(documentId, out var addOrUpdateIndex))
                 {
                     // a document whose content we fetched from the remote side.
-                    var (generatedSource, generatedDateTime) = generatedSources[addOrUpdateIndex];
+                    var (generatedSource, generationDateTime) = generatedSources[addOrUpdateIndex];
                     var sourceText = SourceText.From(
                         generatedSource, contentIdentity.EncodingName is null ? null : Encoding.GetEncoding(contentIdentity.EncodingName), contentIdentity.ChecksumAlgorithm);
 
@@ -202,7 +202,7 @@ internal partial class SolutionCompilationState
                         // this as it may not be possible to reconstruct the same checksum the server produced due to
                         // the lossy nature of source texts.  See comment on GetOriginalSourceTextChecksum for more detail.
                         contentIdentity.OriginalSourceTextContentHash,
-                        generatedDateTime);
+                        generationDateTime);
                     Contract.ThrowIfTrue(generatedDocument.GetOriginalSourceTextContentHash() != contentIdentity.OriginalSourceTextContentHash, "Checksums must match!");
                     generatedDocumentsBuilder.Add(generatedDocument);
                 }
@@ -283,6 +283,7 @@ internal partial class SolutionCompilationState
             }
 
             using var generatedDocumentsBuilder = TemporaryArray<SourceGeneratedDocumentState>.Empty;
+            var generationDateTime = DateTime.Now;
             foreach (var generatorResult in runResult.Results)
             {
                 if (IsGeneratorRunResultToIgnore(generatorResult))
@@ -309,7 +310,7 @@ internal partial class SolutionCompilationState
                         if (newDocument != existing)
                         {
                             compilationWithStaleGeneratedTrees = null;
-                            newDocument = newDocument.WithGeneratedDateTime(DateTime.Now);
+                            newDocument = newDocument.WithGenerationDateTime(generationDateTime);
                         }
 
                         generatedDocumentsBuilder.Add(newDocument);
@@ -333,7 +334,7 @@ internal partial class SolutionCompilationState
                                 ProjectState.LanguageServices,
                                 // Compute the checksum on demand from the given source text.
                                 originalSourceTextChecksum: null,
-                                generatedDateTime: DateTime.Now));
+                                generationDateTime));
 
                         // The count of trees was the same, but something didn't match up. Since we're here, at least one tree
                         // was added, and an equal number must have been removed. Rather than trying to incrementally update

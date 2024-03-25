@@ -39,7 +39,7 @@ public abstract partial class Workspace
 
     private readonly Dictionary<DocumentId, TextTracker> _textTrackers = [];
     private readonly Dictionary<DocumentId, SourceTextContainer> _documentToAssociatedBufferMap = [];
-    private readonly Dictionary<DocumentId, (SourceGeneratedDocumentIdentity identity, DateTime generatedDateTime)> _openSourceGeneratedDocumentIdentities = [];
+    private readonly Dictionary<DocumentId, (SourceGeneratedDocumentIdentity identity, DateTime generationDateTime)> _openSourceGeneratedDocumentIdentities = [];
 
     /// <summary>
     /// True if this workspace supports manually opening and closing documents.
@@ -287,7 +287,7 @@ public abstract partial class Workspace
         return _bufferToAssociatedDocumentsMap.Where(kvp => kvp.Value.Contains(documentId)).Select(kvp => kvp.Key).FirstOrDefault();
     }
 
-    internal bool TryGetOpenSourceGeneratedDocumentIdentity(DocumentId id, out (SourceGeneratedDocumentIdentity identity, DateTime generatedDateTime) documentIdentity)
+    internal bool TryGetOpenSourceGeneratedDocumentIdentity(DocumentId id, out (SourceGeneratedDocumentIdentity identity, DateTime generationDateTime) documentIdentity)
     {
         using (_serializationLock.DisposableWait())
             return _openSourceGeneratedDocumentIdentities.TryGetValue(id, out documentIdentity);
@@ -454,7 +454,7 @@ public abstract partial class Workspace
             AddToOpenDocumentMap(documentId);
 
             _documentToAssociatedBufferMap.Add(documentId, textContainer);
-            _openSourceGeneratedDocumentIdentities.Add(documentId, (document.Identity, document.GeneratedDateTime));
+            _openSourceGeneratedDocumentIdentities.Add(documentId, (document.Identity, document.GenerationDateTime));
 
             UpdateCurrentContextMapping_NoLock(textContainer, documentId, isCurrentContext: true);
 

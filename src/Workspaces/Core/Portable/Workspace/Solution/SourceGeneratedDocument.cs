@@ -24,7 +24,7 @@ public sealed class SourceGeneratedDocument : Document
     // TODO: make this public. Tracked by https://github.com/dotnet/roslyn/issues/50546
     internal SourceGeneratedDocumentIdentity Identity => State.Identity;
 
-    internal DateTime GeneratedDateTime => State.GeneratedDateTime;
+    internal DateTime GenerationDateTime => State.GenerationDateTime;
 
     internal override Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
     {

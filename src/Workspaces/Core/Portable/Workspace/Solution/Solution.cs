@@ -1587,9 +1587,9 @@ public partial class Solution
     /// generated file open, we need to make sure everything lines up.
     /// </summary>
     internal Document WithFrozenSourceGeneratedDocument(
-        SourceGeneratedDocumentIdentity documentIdentity, DateTime generatedDateTime, SourceText text)
+        SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)
     {
-        var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, generatedDateTime, text)]);
+        var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, generationDateTime, text)]);
         var newSolution = newCompilationState != _compilationState
             ? new Solution(newCompilationState)
             : this;
@@ -1602,7 +1602,7 @@ public partial class Solution
     }
 
     internal Solution WithFrozenSourceGeneratedDocuments(
-        ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generatedDateTime, SourceText text)> documents)
+        ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)> documents)
     {
         var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments(documents);
         return newCompilationState != _compilationState
