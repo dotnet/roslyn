@@ -46,13 +46,6 @@ internal readonly partial record struct Checksum
         return From(destination);
     }
 
-    public static unsafe Checksum Create(int value)
-    {
-        Span<byte> destination = stackalloc byte[XXHash128SizeBytes];
-        XxHash128.Hash(MemoryMarshal.AsBytes(new ReadOnlySpan<int>(&value, length: 1)), destination);
-        return From(destination);
-    }
-
     public static Checksum Create(Stream stream)
     {
         using var pooledHash = s_incrementalHashPool.GetPooledObject();
