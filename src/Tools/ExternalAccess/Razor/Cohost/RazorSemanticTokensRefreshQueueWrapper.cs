@@ -9,11 +9,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
+using Newtonsoft.Json;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
-[ExportRazorLspServiceFactory(typeof(RazorSemanticTokensRefreshQueueWrapper)), Shared]
+[ExportCohostLspServiceFactory(typeof(IRazorSemanticTokensRefreshQueue)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class RazorSemanticTokensRefreshQueueWrapperFactory() : ILspServiceFactory
@@ -25,10 +26,13 @@ internal class RazorSemanticTokensRefreshQueueWrapperFactory() : ILspServiceFact
         return new RazorSemanticTokensRefreshQueueWrapper(semanticTokensRefreshQueue);
     }
 
-    internal class RazorSemanticTokensRefreshQueueWrapper(SemanticTokensRefreshQueue semanticTokensRefreshQueue) : ILspService, IDisposable
+    internal class RazorSemanticTokensRefreshQueueWrapper(SemanticTokensRefreshQueue semanticTokensRefreshQueue) : IRazorSemanticTokensRefreshQueue, IDisposable
     {
-        public void Initialize(ClientCapabilities clientCapabilities)
-            => semanticTokensRefreshQueue.Initialize(clientCapabilities);
+        public void Initialize(string clientCapabilitiesString)
+        {
+            var clientCapabilities = JsonConvert.DeserializeObject<VSInternalClientCapabilities>(clientCapabilitiesString) ?? new();
+            semanticTokensRefreshQueue.Initialize(clientCapabilities);
+        }
 
         public Task TryEnqueueRefreshComputationAsync(Project project, CancellationToken cancellationToken)
             => semanticTokensRefreshQueue.TryEnqueueRefreshComputationAsync(project, cancellationToken);
