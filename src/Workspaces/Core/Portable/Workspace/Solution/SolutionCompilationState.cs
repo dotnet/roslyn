@@ -1155,7 +1155,7 @@ internal sealed partial class SolutionCompilationState
             changed = true;
             newIdToProjectStateMapBuilder[projectId] = projectState.WithSourceGeneratorVersion(sourceGeneratorVersion);
 
-            // If we do already have a compilation tracker for thiws project, then let the tracker know that the source
+            // If we do already have a compilation tracker for this project, then let the tracker know that the source
             // generator version has changed. We do this by telling it that it should now create SG docs and skeleton
             // references if they're out of date.
             if (_projectIdToTrackerMap.TryGetValue(projectId, out var existingTracker))
