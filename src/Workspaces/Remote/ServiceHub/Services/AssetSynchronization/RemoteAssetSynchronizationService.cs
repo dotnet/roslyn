@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var newSerializableText = new SerializableSourceText(newText, newText.GetContentHash());
                     var newChecksum = serializer.CreateChecksum(newSerializableText, cancellationToken);
 
-                    WorkspaceManager.SolutionAssetCache.GetOrAdd(newChecksum, newText);
+                    WorkspaceManager.SolutionAssetCache.GetOrAdd(newChecksum, newSerializableText);
                 }
 
                 return;
