@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -16,6 +17,8 @@ using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Host.TemporaryStorageService;
 
 namespace Microsoft.CodeAnalysis.Serialization;
+
+#pragma warning disable CA1416 // Validate platform compatibility
 
 /// <summary>
 /// Represents a <see cref="SourceText"/> which can be serialized for sending to another process. The text is not
