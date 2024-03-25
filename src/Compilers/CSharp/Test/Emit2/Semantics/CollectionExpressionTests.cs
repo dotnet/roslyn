@@ -27208,7 +27208,7 @@ partial class Program
         [Fact]
         public void GenericIEnumerable_DifferentConversionToAdd()
         {
-            // For purpose of conversion, we rely the existence of an Add method.
+            // For purpose of conversion, we rely on the existence of an Add method.
             // But for purpose of construction, we rely on conversion from numeric literal to sbyte (from Add(sbyte))
             string source = """
                 using System.Collections;
@@ -27236,7 +27236,7 @@ partial class Program
         [Fact]
         public void GenericIEnumerable_NoConversionToAdd()
         {
-            // For purpose of conversion, we rely the existence of an Add method.
+            // For purpose of conversion, we rely on the existence of an Add method.
             // But for purpose of construction, there is no conversion from uint to sbyte (from Add(sbyte))
             string source = """
                 using System.Collections;
@@ -34718,7 +34718,7 @@ partial class Program
         }
 
         [Fact]
-        public void AddMethod_Accessibility()
+        public void AddMethod_Accessibility_01()
         {
             string sourceA = """
                 using System.Collections;
@@ -34772,7 +34772,7 @@ partial class Program
         }
 
         [Fact]
-        public void AddMethod_Extension_Accessibility()
+        public void AddMethod_Accessibility_02()
         {
             string sourceA = """
                 using System.Collections;
@@ -34808,6 +34808,52 @@ partial class Program
             var refA = comp.ToMetadataReference();
 
             comp = CreateCompilation([sourceB, s_collectionExtensions], references: [refA]);
+            comp.VerifyEmitDiagnostics(
+                // (7,34): error CS9230: Collection expression type 'MyCollection<object>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         MyCollection<object> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y]").WithArguments("MyCollection<object>").WithLocation(7, 34));
+        }
+
+        [Fact]
+        public void AddMethod_Accessibility_03()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollectionBase<T> : IEnumerable
+                {
+                    private readonly List<T> _list = new();
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    protected void Add(T t) { _list.Add(t); }
+                }
+                class MyCollection<T> : MyCollectionBase<T>
+                {
+                    internal void __AddInternal(T t) { Add(t); }
+                }
+                """;
+            string sourceB = """
+                static class Extensions
+                {
+                    public static void Add<T>(this MyCollection<T> c, T t) { c.__AddInternal(t); }
+                }
+                """;
+            string sourceC = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<object> z = [x, ..y];
+                        z.Report();
+                    }
+                }
+                """;
+
+            CompileAndVerify([sourceA, sourceB, sourceC, s_collectionExtensions], expectedOutput: "[1, 2, 3], ");
+
+            var comp = CreateCompilation([sourceA, sourceC, s_collectionExtensions]);
             comp.VerifyEmitDiagnostics(
                 // (7,34): error CS9230: Collection expression type 'MyCollection<object>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         MyCollection<object> z = [x, ..y];
@@ -35309,17 +35355,20 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y, null]").WithArguments("MyCollection<int?>").WithLocation(15, 32));
         }
 
-        [Fact]
-        public void AddMethod_02()
+        [Theory]
+        [InlineData("")]
+        [InlineData("in")]
+        [InlineData("ref readonly")]
+        public void AddMethod_02A(string refKind)
         {
-            string source = """
+            string source = $$"""
                 using System.Collections;
                 using System.Collections.Generic;
                 class MyCollection<T> : IEnumerable
                 {
                     private readonly List<T> _list = new();
                     IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
-                    public void Add(T t, int x = 1, int y = 2) { _list.Add(t); }
+                    public void Add(T t, {{refKind}} int x = 1, {{refKind}} int y = 2) { _list.Add(t); }
                 }
                 class Program
                 {
@@ -35336,16 +35385,93 @@ partial class Program
         }
 
         [Fact]
-        public void AddMethod_03()
+        public void AddMethod_02B()
         {
             string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                abstract class MyCollectionBase<T>
+                {
+                    public abstract void Add(T t, int x = 1);
+                }
+                class MyCollection<T> : MyCollectionBase<T>, IEnumerable
+                {
+                    private readonly List<T> _list = new();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public override void Add(T t, int x) { _list.Add(t); }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<int?> z = [x, ..y];
+                        MyCollection<int?> w = new() { x };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (19,33): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'MyCollection<int?>.Add(int?, int)'
+                //         MyCollection<int?> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "x").WithArguments("x", "MyCollection<int?>.Add(int?, int)").WithLocation(19, 33),
+                // (19,38): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'MyCollection<int?>.Add(int?, int)'
+                //         MyCollection<int?> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "y").WithArguments("x", "MyCollection<int?>.Add(int?, int)").WithLocation(19, 38),
+                // (20,40): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'MyCollection<int?>.Add(int?, int)'
+                //         MyCollection<int?> w = new() { x };
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "x").WithArguments("x", "MyCollection<int?>.Add(int?, int)").WithLocation(20, 40));
+        }
+
+        [Fact]
+        public void AddMethod_02C()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                abstract class MyCollectionBase<T>
+                {
+                    public abstract void Add(T t, int x);
+                }
+                class MyCollection<T> : MyCollectionBase<T>, IEnumerable
+                {
+                    private readonly List<T> _list = new();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public override void Add(T t, int x = 1) { _list.Add(t); }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<int?> z = [x, ..y];
+                        MyCollection<int?> w = new() { x };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (19,32): error CS9230: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         MyCollection<int?> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y]").WithArguments("MyCollection<int?>").WithLocation(19, 32));
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("in")]
+        [InlineData("ref readonly")]
+        public void AddMethod_03A(string refKind)
+        {
+            string source = $$"""
                 using System.Collections;
                 using System.Collections.Generic;
                 class MyCollection<T> : IEnumerable
                 {
                     private readonly List<T> _list = new();
                     IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
-                    public void Add(T t, int x, int y = 2) { _list.Add(t); }
+                    public void Add(T t, {{refKind}} int x, {{refKind}} int y = 2) { _list.Add(t); }
                 }
                 class Program
                 {
@@ -35358,23 +35484,89 @@ partial class Program
                 }
                 """;
             var comp = CreateCompilation(source);
+            if (refKind == "ref readonly")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (7,67): warning CS9200: A default value is specified for 'ref readonly' parameter 'y', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+                    //     public void Add(T t, ref readonly int x, ref readonly int y = 2) { _list.Add(t); }
+                    Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "2").WithArguments("y").WithLocation(7, 67),
+                    // (15,32): error CS9230: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
+                    //         MyCollection<int?> z = [x, ..y, null];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y, null]").WithArguments("MyCollection<int?>").WithLocation(15, 32));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (15,32): error CS9230: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
+                    //         MyCollection<int?> z = [x, ..y, null];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y, null]").WithArguments("MyCollection<int?>").WithLocation(15, 32));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AddMethod_03B(bool useOut)
+        {
+            // public struct MyCollection<T> : IEnumerable
+            // {
+            //     IEnumerator IEnumerable.GetEnumerator() => null;
+            //     public void Add(T t, ref int index = 0) => throw null;
+            // }
+            string sourceA = $$"""
+                .class public sealed MyCollection`1<T>
+                  extends [mscorlib]System.ValueType
+                  implements [mscorlib]System.Collections.IEnumerable
+                {
+                  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+                  .method private instance class [mscorlib]System.Collections.IEnumerator GetEnumerator()
+                  {
+                    .override [mscorlib]System.Collections.IEnumerable::GetEnumerator
+                    ldnull
+                    ret
+                  }
+                  .method public instance void Add(!T t, {{(useOut ? "[out]" : "")}} [opt] int32& index)
+                  {
+                    .param [2] = int32(0x00000000)
+                    ldnull
+                    ret
+                  }
+                }
+                """;
+            var refA = CompileIL(sourceA);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<int> z = [x, ..y];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(sourceB, references: [refA]);
             comp.VerifyEmitDiagnostics(
-                // (15,32): error CS9230: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<int?> z = [x, ..y, null];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y, null]").WithArguments("MyCollection<int?>").WithLocation(15, 32));
+                // (7,31): error CS9230: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         MyCollection<int> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(7, 31));
         }
 
         [Fact]
-        public void AddMethod_04()
+        public void AddMethod_04A()
         {
             string sourceA = """
                 using System.Collections;
                 using System.Collections.Generic;
-                class MyCollection<T> : IEnumerable
+                abstract class MyCollectionBase<T>
+                {
+                    public abstract void Add(params T[] args);
+                }
+                class MyCollection<T> : MyCollectionBase<T>, IEnumerable
                 {
                     private readonly List<T> _list = new();
                     IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
-                    public void Add(params T[] args)
+                    public override void Add(T[] args)
                     {
                         if (args is null) return;
                         _list.AddRange(args);
@@ -35412,16 +35604,69 @@ partial class Program
         }
 
         [Fact]
-        public void AddMethod_05()
+        public void AddMethod_04B()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                abstract class MyCollectionBase<T>
+                {
+                    public abstract void Add(T[] args);
+                }
+                class MyCollection<T> : MyCollectionBase<T>, IEnumerable
+                {
+                    private readonly List<T> _list = new();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public override void Add(params T[] args)
+                    {
+                        if (args is null) return;
+                        _list.AddRange(args);
+                    }
+                }
+                """;
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<int?> z = [x, ..y];
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB]);
+            comp.VerifyEmitDiagnostics(
+                // (7,33): error CS1950: The best overloaded Add method 'MyCollection<int?>.Add(int?[])' for the collection initializer has some invalid arguments
+                //         MyCollection<int?> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "x").WithArguments("MyCollection<int?>.Add(int?[])").WithLocation(7, 33),
+                // (7,33): error CS1503: Argument 1: cannot convert from 'int' to 'int?[]'
+                //         MyCollection<int?> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "int", "int?[]").WithLocation(7, 33),
+                // (7,36): error CS1503: Argument 1: cannot convert from 'int' to 'int?[]'
+                //         MyCollection<int?> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("1", "int", "int?[]").WithLocation(7, 36),
+                // (7,38): error CS1950: The best overloaded Add method 'MyCollection<int?>.Add(int?[])' for the collection initializer has some invalid arguments
+                //         MyCollection<int?> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("MyCollection<int?>.Add(int?[])").WithLocation(7, 38));
+        }
+
+        [Fact]
+        public void AddMethod_05A()
         {
             string source = """
                 using System.Collections;
                 using System.Collections.Generic;
-                class MyCollection<T> : IEnumerable
+                abstract class MyCollectionBase<T>
+                {
+                    public abstract void Add(T x, params T[] y);
+                }
+                class MyCollection<T> : MyCollectionBase<T>, IEnumerable
                 {
                     private readonly List<T> _list = new();
                     IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
-                    public void Add(T x, params T[] y) { _list.Add(x); _list.AddRange(y); }
+                    public override void Add(T x, T[] y) { _list.Add(x); _list.AddRange(y); }
                 }
                 class Program
                 {
@@ -35438,7 +35683,117 @@ partial class Program
         }
 
         [Fact]
-        public void AddMethod_06()
+        public void AddMethod_05B()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                abstract class MyCollectionBase<T>
+                {
+                    public abstract void Add(T x, T[] y);
+                }
+                class MyCollection<T> : MyCollectionBase<T>, IEnumerable
+                {
+                    private readonly List<T> _list = new();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public override void Add(T x, params T[] y) { _list.Add(x); _list.AddRange(y); }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<int?> z = [x, ..y, null];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (19,32): error CS9230: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         MyCollection<int?> z = [x, ..y, null];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y, null]").WithArguments("MyCollection<int?>").WithLocation(19, 32));
+        }
+
+        [Fact]
+        public void AddMethod_06A()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                abstract class MyCollectionBase<T>
+                {
+                    public abstract void Add(T x, T y = default, params T[] z);
+                }
+                class MyCollection<T> : MyCollectionBase<T>, IEnumerable
+                {
+                    private readonly List<T> _list = new();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public override void Add(T x, T y, T[] z) { _list.Add(x); _list.Add(y); _list.AddRange(z); }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<int?> z = [x, ..y];
+                        MyCollection<int?> w = new() { x };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (19,33): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'MyCollection<int?>.Add(int?, int?, params int?[])'
+                //         MyCollection<int?> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "x").WithArguments("y", "MyCollection<int?>.Add(int?, int?, params int?[])").WithLocation(19, 33),
+                // (19,38): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'MyCollection<int?>.Add(int?, int?, params int?[])'
+                //         MyCollection<int?> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "y").WithArguments("y", "MyCollection<int?>.Add(int?, int?, params int?[])").WithLocation(19, 38),
+                // (20,40): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'MyCollection<int?>.Add(int?, int?, params int?[])'
+                //         MyCollection<int?> w = new() { x };
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "x").WithArguments("y", "MyCollection<int?>.Add(int?, int?, params int?[])").WithLocation(20, 40));
+        }
+
+        [Fact]
+        public void AddMethod_06B()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                abstract class MyCollectionBase<T>
+                {
+                    public abstract void Add(T x, T y, T[] z);
+                }
+                class MyCollection<T> : MyCollectionBase<T>, IEnumerable
+                {
+                    private readonly List<T> _list = new();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public override void Add(T x, T y = default, params T[] z) { _list.Add(x); _list.Add(y); _list.AddRange(z); }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<int?> z = [x, ..y];
+                        MyCollection<int?> w = new() { x };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (19,32): error CS9230: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         MyCollection<int?> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y]").WithArguments("MyCollection<int?>").WithLocation(19, 32),
+                // (20,40): error CS7036: There is no argument given that corresponds to the required parameter 'z' of 'MyCollection<int?>.Add(int?, int?, int?[])'
+                //         MyCollection<int?> w = new() { x };
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "x").WithArguments("z", "MyCollection<int?>.Add(int?, int?, int?[])").WithLocation(20, 40));
+        }
+
+        [Fact]
+        public void AddMethod_07()
         {
             string sourceA = """
                 using System.Collections;
@@ -35493,7 +35848,7 @@ partial class Program
         }
 
         [Fact]
-        public void AddMethod_07()
+        public void AddMethod_08()
         {
             string sourceA = """
                 using System.Collections;
@@ -35553,6 +35908,177 @@ partial class Program
         }
 
         [Fact]
+        public void AddMethod_09()
+        {
+            // public struct MyCollection<T> : IEnumerable
+            // {
+            //     IEnumerator IEnumerable.GetEnumerator() => null;
+            //     public void Add(T x, params T y) => throw null;
+            // }
+            string sourceA = $$"""
+                .class public sealed MyCollection`1<T>
+                  extends [mscorlib]System.ValueType
+                  implements [mscorlib]System.Collections.IEnumerable
+                {
+                  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+                  .method private instance class [mscorlib]System.Collections.IEnumerator GetEnumerator()
+                  {
+                    .override [mscorlib]System.Collections.IEnumerable::GetEnumerator
+                    ldnull
+                    ret
+                  }
+                  .method public instance void Add(!T x, !T y)
+                  {
+                    .param [2]
+                    .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00 ) 
+                    ldnull
+                    ret
+                  }
+                }
+                """;
+            var refA = CompileIL(sourceA);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<int> z = [x, ..y];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(sourceB, references: [refA]);
+            comp.VerifyEmitDiagnostics(
+                // (7,31): error CS9230: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         MyCollection<int> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(7, 31));
+        }
+
+        [Fact]
+        public void AddMethod_ParamCollectionAttribute_01()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable
+                {
+                    private readonly List<T> _list = new();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public void Add(T x, params List<T> y)
+                    {
+                        _list.Add(x);
+                        foreach (var i in y)
+                            _list.Add(i);
+                    }
+                }
+                """;
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<int> z = [x, ..y];
+                        z.Report();
+                    }
+                }
+                """;
+            CompileAndVerify([sourceB1, sourceA, s_collectionExtensions], expectedOutput: "[1, 2, 3], ");
+        }
+
+        [Fact]
+        public void AddMethod_ParamCollectionAttribute_02()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list = new();
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public void Add<U>(U x, params MyCollection<T> y) where U : T
+                    {
+                        _list.Add(x);
+                        foreach (var i in y)
+                            _list.Add(i);
+                    }
+                }
+                """;
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<int> z = [x, ..y];
+                        z.Report();
+                    }
+                }
+                """;
+            CompileAndVerify([sourceB1, sourceA, s_collectionExtensions], expectedOutput: "[1, 2, 3], ");
+        }
+
+        [Fact]
+        public void AddMethod_ParamCollectionAttribute_03()
+        {
+            // public struct MyCollection<T> : IEnumerable
+            // {
+            //     IEnumerator IEnumerable.GetEnumerator() => null;
+            //     public void Add(object x, [ParamCollection] object y) => throw null;
+            // }
+            string sourceA = $$"""
+                .class public System.Runtime.CompilerServices.ParamCollectionAttribute extends [mscorlib]System.Attribute
+                {
+                  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+                }
+                .class public sealed MyCollection`1<T>
+                  extends [mscorlib]System.ValueType
+                  implements [mscorlib]System.Collections.IEnumerable
+                {
+                  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+                  .method private instance class [mscorlib]System.Collections.IEnumerator GetEnumerator()
+                  {
+                    .override [mscorlib]System.Collections.IEnumerable::GetEnumerator
+                    ldnull
+                    ret
+                  }
+                  .method public instance void Add(object x, object y)
+                  {
+                    .param [2]
+                    .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = ( 01 00 00 00 ) 
+                    ldnull
+                    ret
+                  }
+                }
+                """;
+            var refA = CompileIL(sourceA);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<int> z = [x, ..y];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(sourceB, references: [refA]);
+            comp.VerifyEmitDiagnostics(
+                // (7,31): error CS9230: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         MyCollection<int> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(7, 31));
+        }
+
+        [Fact]
         public void AddMethod_Extension_01()
         {
             string source = """
@@ -35585,10 +36111,13 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y, null]").WithArguments("MyCollection<int?>").WithLocation(19, 32));
         }
 
-        [Fact]
-        public void AddMethod_Extension_02()
+        [Theory]
+        [InlineData("")]
+        [InlineData("in")]
+        [InlineData("ref readonly")]
+        public void AddMethod_Extension_02(string refKind)
         {
-            string source = """
+            string source = $$"""
                 using System.Collections;
                 using System.Collections.Generic;
                 class MyCollection<T> : IEnumerable
@@ -35599,7 +36128,7 @@ partial class Program
                 }
                 static class Extensions
                 {
-                    public static void Add<T>(this MyCollection<T> collection, T t, int x = 1, int y = 2) { collection.__AddInternal(t); }
+                    public static void Add<T>(this MyCollection<T> collection, T t, {{refKind}} int x = 1, {{refKind}} int y = 2) { collection.__AddInternal(t); }
                 }
                 class Program
                 {
@@ -35615,10 +36144,13 @@ partial class Program
             CompileAndVerify([source, s_collectionExtensions], expectedOutput: "[1, 2, 3, null], ");
         }
 
-        [Fact]
-        public void AddMethod_Extension_03()
+        [Theory]
+        [InlineData("")]
+        [InlineData("in")]
+        [InlineData("ref readonly")]
+        public void AddMethod_Extension_03(string refKind)
         {
-            string source = """
+            string source = $$"""
                 using System.Collections;
                 using System.Collections.Generic;
                 class MyCollection<T> : IEnumerable
@@ -35629,7 +36161,7 @@ partial class Program
                 }
                 static class Extensions
                 {
-                    public static void Add<T>(this MyCollection<T> collection, T t, int x, int y = 2) { collection.__AddInternal(t); }
+                    public static void Add<T>(this MyCollection<T> collection, T t, {{refKind}} int x, {{refKind}} int y = 2) { collection.__AddInternal(t); }
                 }
                 class Program
                 {
@@ -35642,10 +36174,23 @@ partial class Program
                 }
                 """;
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (19,32): error CS9230: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<int?> z = [x, ..y, null];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y, null]").WithArguments("MyCollection<int?>").WithLocation(19, 32));
+            if (refKind == "ref readonly")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (11,110): warning CS9200: A default value is specified for 'ref readonly' parameter 'y', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+                    //     public static void Add<T>(this MyCollection<T> collection, T t, ref readonly int x, ref readonly int y = 2) { collection.__AddInternal(t); }
+                    Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "2").WithArguments("y").WithLocation(11, 110),
+                    // (19,32): error CS9230: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
+                    //         MyCollection<int?> z = [x, ..y, null];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y, null]").WithArguments("MyCollection<int?>").WithLocation(19, 32));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (19,32): error CS9230: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
+                    //         MyCollection<int?> z = [x, ..y, null];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y, null]").WithArguments("MyCollection<int?>").WithLocation(19, 32));
+            }
         }
 
         [Fact]
@@ -35738,6 +36283,42 @@ partial class Program
         [Fact]
         public void AddMethod_Extension_06()
         {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable
+                {
+                    private readonly List<T> _list = new();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    internal void __AddInternal(T t) { _list.Add(t); }
+                }
+                static class Extensions
+                {
+                    public static void Add<T>(this MyCollection<T> collection, T x, T y = default, params T[] z)
+                    {
+                        collection.__AddInternal(x);
+                        collection.__AddInternal(y);
+                        foreach (var a in z)
+                            collection.__AddInternal(a);
+                    }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<int?> z = [x, ..y];
+                        z.Report();
+                    }
+                }
+                """;
+            CompileAndVerify([source, s_collectionExtensions], expectedOutput: "[1, null, 2, null, 3, null], ");
+        }
+
+        [Fact]
+        public void AddMethod_Extension_07()
+        {
             string sourceA = """
                 using System.Collections;
                 using System.Collections.Generic;
@@ -35798,7 +36379,7 @@ partial class Program
         [InlineData("in")]
         [InlineData("ref")]
         [InlineData("ref readonly")]
-        public void AddMethod_Extension_07(string refKind)
+        public void AddMethod_Extension_08(string refKind)
         {
             string source = $$"""
                 using System.Collections;
@@ -35827,6 +36408,66 @@ partial class Program
                 """;
             string expectedOutput = (refKind == "ref") ? "[1, 2, 3], " : "[], ";
             CompileAndVerify([source, s_collectionExtensions], expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void AddMethod_Extension_09()
+        {
+            // public struct MyCollection<T> : IEnumerable
+            // {
+            //     IEnumerator IEnumerable.GetEnumerator() => null;
+            // }
+            // public static class Extensions
+            // {
+            //    public static void Add<T>(this out MyCollection<T> collection, T t) => throw null;
+            // }
+            string sourceA = """
+                .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+                .assembly '<<GeneratedFileName>>'
+                {
+                  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+                }
+                .class public sealed MyCollection`1<T>
+                  extends [mscorlib]System.ValueType
+                  implements [mscorlib]System.Collections.IEnumerable
+                {
+                  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+                  .method private instance class [mscorlib]System.Collections.IEnumerator GetEnumerator()
+                  {
+                    .override [mscorlib]System.Collections.IEnumerable::GetEnumerator
+                    ldnull
+                    ret
+                  }
+                }
+                .class public abstract sealed Extensions
+                {
+                  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+                  .method public hidebysig static void Add<T>([out] valuetype MyCollection`1<!!T>& collection, !!T t) cil managed
+                  {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+                    ldnull
+                    throw
+                  }
+                }
+                """;
+            var refA = CompileIL(sourceA, prependDefaultHeader: false);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<int> z = [x, ..y];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(sourceB, references: [refA]);
+            comp.VerifyEmitDiagnostics(
+                // (7,31): error CS9230: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         MyCollection<int> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(7, 31));
         }
 
         [Fact]

@@ -7915,6 +7915,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool withDependencies,
             in CallingConventionInfo callingConvention = default)
         {
+            //
+            // !!! ATTENTION !!!
+            //
+            // This function should be kept in sync with local function
+            // HasCollectionExpressionAddMethod.hasApplicableAddExtensionMethod.
+            //
+
             Debug.Assert((options & ~(OverloadResolution.Options.IsMethodGroupConversion |
                                       OverloadResolution.Options.IsFunctionPointerResolution |
                                       OverloadResolution.Options.InferWithDynamic |

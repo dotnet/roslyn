@@ -1290,32 +1290,56 @@ namespace Microsoft.CodeAnalysis.CSharp
             const string methodName = "Add";
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
-            var lookupResult = LookupResult.GetInstance();
-            LookupInstanceMember(lookupResult, targetType, leftIsBaseReference: false, rightName: methodName, rightArity: 0, invoked: true, ref useSiteInfo);
-            bool anyApplicable = lookupResult.IsMultiViable &&
-                lookupResult.Symbols.Any(s => s is MethodSymbol m && isApplicableAddMethod(m, expectingExtensionMethod: false));
-            lookupResult.Free();
-            if (anyApplicable)
+            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
+            var memberAccess = BindInstanceMemberAccess(
+                syntax,
+                right: syntax,
+                boundLeft: implicitReceiver,
+                rightName: methodName,
+                rightArity: 0,
+                typeArgumentsSyntax: default,
+                typeArgumentsWithAnnotations: default,
+                invoked: true,
+                indexed: false,
+                BindingDiagnosticBag.Discarded);
+            if (memberAccess is not BoundMethodGroup methodGroup)
+            {
+                return false;
+            }
+
+            Debug.Assert(methodGroup.SearchExtensionMethods);
+
+            if (methodGroup.ResultKind == LookupResultKind.Viable &&
+                methodGroup.Methods.Any(m => isApplicableAddMethod(m.GetConstructedLeastOverriddenMethod(accessingTypeOpt: null, requireSameReturnType: false), expectingExtensionMethod: false)))
             {
                 return true;
             }
 
-            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-            foreach (var scope in new ExtensionMethodScopes(this))
+            if (methodGroup.SearchExtensionMethods &&
+                hasApplicableAddExtensionMethod(syntax, implicitReceiver))
             {
-                var methodGroup = MethodGroup.GetInstance();
-                PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, syntax, implicitReceiver, rightName: methodName, typeArgumentsWithAnnotations: default, BindingDiagnosticBag.Discarded);
-                anyApplicable = methodGroup.Methods.Any(m => isApplicableAddMethod(m, expectingExtensionMethod: true));
-                methodGroup.Free();
-                if (anyApplicable)
-                {
-                    return true;
-                }
+                return true;
             }
 
             return false;
 
-            static bool isApplicableAddMethod(MethodSymbol method, bool expectingExtensionMethod)
+            bool hasApplicableAddExtensionMethod(SyntaxNode syntax, BoundObjectOrCollectionValuePlaceholder implicitReceiver)
+            {
+                foreach (var scope in new ExtensionMethodScopes(this))
+                {
+                    var methodGroup = MethodGroup.GetInstance();
+                    PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, syntax, implicitReceiver, rightName: methodName, typeArgumentsWithAnnotations: default, BindingDiagnosticBag.Discarded);
+                    bool anyApplicable = methodGroup.Methods.Any(m => isApplicableAddMethod(m, expectingExtensionMethod: true));
+                    methodGroup.Free();
+                    if (anyApplicable)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            bool isApplicableAddMethod(MethodSymbol method, bool expectingExtensionMethod)
             {
                 if (method.IsStatic != expectingExtensionMethod)
                 {
@@ -1331,10 +1355,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Any trailing parameters must be optional or params.
-                for (int i = requiredLength; i < parameters.Length; i++)
+                int optionalLength = parameters.Length - (OverloadResolution.IsValidParams(this, method) ? 1 : 0);
+                for (int i = requiredLength; i < optionalLength; i++)
                 {
-                    if (parameters[i] is { IsOptional: false, IsParams: false })
+                    if (parameters[i] is not ({ IsOptional: true, RefKind: RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter }))
                     {
+                        return false;
+                    }
+                }
+
+                // Extension method 'this' parameter must be by value, ref, in, or ref readonly.
+                if (expectingExtensionMethod)
+                {
+                    if (parameters[0].RefKind is not (RefKind.None or RefKind.Ref or RefKind.In or RefKind.RefReadOnlyParameter))
+                    {
+                        Debug.Assert(false); // We should have treated this method as unsupported. Add a corresponding test.
                         return false;
                     }
                 }
@@ -1345,14 +1380,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                // If the method is generic, can the type arguments be inferred from the one or two arguments?
+                // If the method is generic, fail if there are type arguments that are not referenced
+                // in the required parameters types. That is, fail if we know the type arguments cannot
+                // be inferred from the arguments.
                 var typeParameters = method.TypeParameters;
                 if (typeParameters.Length > 0)
                 {
-                    var usedParameterTypes = parameters.Slice(0, requiredLength).SelectAsArray(p => p.Type);
+                    var requiredParameters = parameters.AsSpan(0, requiredLength);
                     foreach (var typeParameter in typeParameters)
                     {
-                        if (!usedParameterTypes.Any((parameterType, typeParameter) => parameterType.ContainsTypeParameter(typeParameter), typeParameter))
+                        if (requiredParameters.All(typeParameter, (parameter, typeParameter) => !parameter.Type.ContainsTypeParameter(typeParameter)))
                         {
                             // The type parameter does not appear in any of the parameter types.
                             return false;
