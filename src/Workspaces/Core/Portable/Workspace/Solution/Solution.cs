@@ -1616,6 +1616,14 @@ public partial class Solution
             : this;
     }
 
+    internal Solution WithSourceGeneratorVersion(ProjectId projectId, int sourceGeneratorVersion)
+    {
+        CheckContainsProject(projectId);
+
+        var newCompilationState = _compilationState.WithSourceGeneratorVersion(projectId, sourceGeneratorVersion);
+        return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
+    }
+
     /// <summary>
     /// Undoes the operation of <see cref="WithFrozenSourceGeneratedDocument"/>; any frozen source generated document is allowed
     /// to have it's real output again.

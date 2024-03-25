@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -1134,17 +1135,18 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithOptions(options));
     }
 
-    public SolutionCompilationState WithUpdatedSourceGeneratorVersion(ImmutableHashSet<ProjectId> projectIds, CancellationToken cancellationToken)
+    public SolutionCompilationState WithSourceGeneratorVersions(
+        FrozenDictionary<ProjectId, int> projectIdToSourceGeneratorVersion, CancellationToken cancellationToken)
     {
         var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
 
-        foreach (var projectId in projectIds)
+        foreach (var (projectId, sourceGeneratorVersion) in projectIdToSourceGeneratorVersion)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var projectState = newIdToProjectStateMapBuilder[projectId];
-            var newProjectState = projectState.WithSourceGeneratorVersion(projectState.Attributes.SourceGeneratorVersion + 1);
+            var newProjectState = projectState.WithSourceGeneratorVersion(sourceGeneratorVersion);
             Contract.ThrowIfTrue(projectState == newProjectState);
             newIdToProjectStateMapBuilder[projectId] = newProjectState;
 
@@ -1167,6 +1169,16 @@ internal sealed partial class SolutionCompilationState
         return this.Branch(
             newSolutionState,
             newIdToTrackerMapBuilder.ToImmutable());
+    }
+
+    public SolutionCompilationState WithSourceGeneratorVersion(
+        ProjectId projectId, int sourceGeneratorVersion, CancellationToken cancellationToken)
+    {
+        return WithSourceGeneratorVersions(
+            new Dictionary<ProjectId, int>
+            {
+                {  projectId, sourceGeneratorVersion }
+            }.ToFrozenDictionary(), cancellationToken);
     }
 
     public SolutionCompilationState WithFrozenPartialCompilations(CancellationToken cancellationToken)
