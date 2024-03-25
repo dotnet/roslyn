@@ -194,11 +194,11 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
         public SourceHashAlgorithm ChecksumAlgorithm => _checksumAlgorithm;
         public Encoding? Encoding => _encoding;
 
-        public ImmutableArray<byte> GetContentHash()
+        public ImmutableArray<byte> GetContentHash(CancellationToken cancellationToken)
         {
             if (_checksum.IsDefault)
             {
-                ImmutableInterlocked.InterlockedInitialize(ref _checksum, ReadText(CancellationToken.None).GetContentHash());
+                ImmutableInterlocked.InterlockedInitialize(ref _checksum, ReadText(cancellationToken).GetContentHash());
             }
 
             return _checksum;

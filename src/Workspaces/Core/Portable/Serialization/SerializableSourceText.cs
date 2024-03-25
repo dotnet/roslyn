@@ -70,10 +70,8 @@ internal sealed class SerializableSourceText
     private SourceText? TryGetText()
         => _text ?? _computedText.GetTarget();
 
-    public ImmutableArray<byte> GetContentHash()
-    {
-        return TryGetText()?.GetContentHash() ?? _storage!.GetContentHash();
-    }
+    public ImmutableArray<byte> GetContentHash(CancellationToken cancellationToken)
+        => TryGetText()?.GetContentHash() ?? _storage!.GetContentHash(cancellationToken);
 
     public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
     {

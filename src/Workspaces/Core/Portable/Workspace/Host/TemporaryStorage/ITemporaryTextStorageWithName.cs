@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Host;
@@ -29,5 +30,5 @@ internal interface ITemporaryTextStorageWithName : ITemporaryTextStorageInternal
     /// Gets the checksum for the <see cref="SourceText"/> represented by this temporary storage. This is equivalent
     /// to calling <see cref="SourceText.GetContentHash"/>.
     /// </summary>
-    ImmutableArray<byte> GetContentHash();
+    ImmutableArray<byte> GetContentHash(CancellationToken cancellationToken);
 }
