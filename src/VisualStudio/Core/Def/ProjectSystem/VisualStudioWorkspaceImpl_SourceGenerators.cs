@@ -29,7 +29,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 internal abstract partial class VisualStudioWorkspaceImpl
 {
     /// <summary>
-    /// Used for batching up a lot of events and only combining them into a single request to update generators.
+    /// Used for batching up a lot of events and only combining them into a single request to update generators.  The
+    /// <see cref="ProjectId"/> represents the projects that have changed, and which need their source-generators
+    /// re-run.  <see langword="null"/> in the list indicates the entire solution has changed and all generators need to
+    /// be rerun.
     /// </summary>
     private readonly AsyncBatchingWorkQueue<ProjectId?> _updateSourceGeneratorsQueue;
     private bool _isSubscribedToSourceGeneratorImpactingEvents;
