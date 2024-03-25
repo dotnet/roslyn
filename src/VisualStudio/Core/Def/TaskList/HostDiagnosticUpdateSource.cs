@@ -42,17 +42,6 @@ internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateS
         }
     }
 
-    private static void AddDiagnosticsCreatedArgsForProject(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId, IEnumerable<DiagnosticData> items)
-    {
-        var args = DiagnosticsUpdatedArgs.DiagnosticsCreated(
-            solution: null,
-            projectId: projectId,
-            documentId: null,
-            diagnostics: items.AsImmutableOrEmpty());
-
-        builder.Add(args);
-    }
-
     private static void AddDiagnosticsRemovedArgsForProject(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId)
     {
         var args = DiagnosticsUpdatedArgs.DiagnosticsRemoved(
@@ -63,25 +52,19 @@ internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateS
         builder.Add(args);
     }
 
-    public void UpdateAndAddDiagnosticsArgsForProject(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId, object key, IEnumerable<DiagnosticData> items)
+    public void UpdateAndAddDiagnosticsArgsForProject(ProjectId projectId, object key)
     {
         Contract.ThrowIfNull(projectId);
         Contract.ThrowIfNull(key);
-        Contract.ThrowIfNull(items);
 
         lock (_gate)
         {
             _diagnosticMap.GetOrAdd(projectId, id => new HashSet<object>()).Add(key);
         }
-
-        AddDiagnosticsCreatedArgsForProject(ref builder, projectId, items);
     }
 
     void IProjectSystemDiagnosticSource.UpdateDiagnosticsForProject(ProjectId projectId, object key, IEnumerable<DiagnosticData> items)
-    {
-        using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
-        UpdateAndAddDiagnosticsArgsForProject(ref argsBuilder.AsRef(), projectId, key, items);
-    }
+        => UpdateAndAddDiagnosticsArgsForProject(projectId, key);
 
     void IProjectSystemDiagnosticSource.ClearAllDiagnosticsForProject(ProjectId projectId)
     {
