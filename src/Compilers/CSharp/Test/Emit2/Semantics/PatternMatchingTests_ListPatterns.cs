@@ -8938,7 +8938,7 @@ public static class Extension
             }
             """;
 
-        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
+        var comp = CreateCompilationWithIndexAndRangeAndSpan([source, TestSources.GetSubArray]);
         comp.VerifyEmitDiagnostics();
 
         CompileAndVerify(comp).VerifyIL("C.M", """
@@ -9006,7 +9006,7 @@ public static class Extension
             }
             """;
 
-        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
+        var comp = CreateCompilationWithIndexAndRangeAndSpan([source, TestSources.GetSubArray]);
         comp.VerifyEmitDiagnostics();
 
         CompileAndVerify(comp).VerifyIL("C.M", """
@@ -9159,7 +9159,7 @@ public static class Extension
             }
             """;
 
-        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
+        var comp = CreateCompilationWithIndexAndRangeAndSpan([source, TestSources.GetSubArray]);
         comp.VerifyEmitDiagnostics();
 
         CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyIL("C.M", """
@@ -9230,7 +9230,7 @@ public static class Extension
             }
             """;
 
-        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
+        var comp = CreateCompilationWithIndexAndRangeAndSpan([source, TestSources.GetSubArray]);
         comp.VerifyEmitDiagnostics();
 
         CompileAndVerify(comp).VerifyIL("C.M", """
@@ -9292,7 +9292,7 @@ public static class Extension
             }
             """;
 
-        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
+        var comp = CreateCompilationWithIndexAndRangeAndSpan([source, TestSources.GetSubArray]);
         comp.VerifyEmitDiagnostics();
 
         CompileAndVerify(comp).VerifyIL("C.M", """
@@ -9426,7 +9426,7 @@ public static class Extension
             }
             """;
 
-        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
+        var comp = CreateCompilationWithIndexAndRangeAndSpan([source, TestSources.GetSubArray]);
         comp.VerifyEmitDiagnostics();
 
         CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyIL("C.M", """
@@ -9488,7 +9488,7 @@ public static class Extension
             }
             """;
 
-        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
+        var comp = CreateCompilationWithIndexAndRangeAndSpan([source, TestSources.GetSubArray]);
         comp.VerifyEmitDiagnostics();
 
         CompileAndVerify(comp).VerifyIL("C.M", """
@@ -9545,7 +9545,7 @@ public static class Extension
             }
             """;
 
-        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
+        var comp = CreateCompilationWithIndexAndRangeAndSpan([source, TestSources.GetSubArray]);
         comp.VerifyEmitDiagnostics();
 
         CompileAndVerify(comp).VerifyIL("C.M", """
@@ -9672,7 +9672,7 @@ public static class Extension
             }
             """;
 
-        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
+        var comp = CreateCompilationWithIndexAndRangeAndSpan([source, TestSources.GetSubArray]);
         comp.VerifyEmitDiagnostics();
 
         CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyIL("C.M", """
