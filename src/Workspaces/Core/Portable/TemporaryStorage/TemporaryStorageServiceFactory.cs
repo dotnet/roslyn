@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using SQLitePCL;
 
 namespace Microsoft.CodeAnalysis.Host;
 
