@@ -48,15 +48,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(node, position) OrElse
                node.Kind = SyntaxKind.CompilationUnit Then
 
-                Dim visitor = s_binderFactoryVisitorPool.Allocate()
-                visitor.Initialize(Me, position)
+                Dim visitor = GetBinderFactoryVisitor(position)
                 Dim result = visitor.Visit(node)
-                s_binderFactoryVisitorPool.Free(visitor)
+                ClearBinderFactoryVisitor(visitor)
                 Return result
             End If
 
             Return Nothing
         End Function
+
+        Private Function GetBinderFactoryVisitor(position As Integer) As BinderFactoryVisitor
+            Dim visitor = s_binderFactoryVisitorPool.Allocate()
+            visitor.Initialize(Me, position)
+
+            Return visitor
+        End Function
+
+        Private Sub ClearBinderFactoryVisitor(visitor As BinderFactoryVisitor)
+            visitor.Clear()
+            s_binderFactoryVisitorPool.Free(visitor)
+        End Sub
 
         ' Get binder for interior of a namespace block
         Public Function GetNamespaceBinder(node As NamespaceBlockSyntax) As Binder

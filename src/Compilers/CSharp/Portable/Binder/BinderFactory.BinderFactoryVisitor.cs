@@ -34,6 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _memberOpt = memberOpt;
             }
 
+            internal void Clear()
+            {
+                _factory = null;
+                _position = 0;
+                _memberDeclarationOpt = null;
+                _memberOpt = null;
+            }
+
             private CSharpCompilation compilation
             {
                 get

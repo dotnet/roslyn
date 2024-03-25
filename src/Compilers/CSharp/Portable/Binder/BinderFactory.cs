@@ -128,12 +128,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 container.AssertMemberExposure(memberOpt);
             }
 #endif
-            BinderFactoryVisitor visitor = s_binderFactoryVisitorPool.Allocate();
-            visitor.Initialize(factory: this, position, memberDeclarationOpt, memberOpt);
+            BinderFactoryVisitor visitor = GetBinderFactoryVisitor(position, memberDeclarationOpt, memberOpt);
             Binder result = visitor.Visit(node);
-            s_binderFactoryVisitorPool.Free(visitor);
+            ClearBinderFactoryVisitor(visitor);
 
             return result;
+        }
+
+        private BinderFactoryVisitor GetBinderFactoryVisitor(int position, CSharpSyntaxNode memberDeclarationOpt, Symbol memberOpt)
+        {
+            BinderFactoryVisitor visitor = s_binderFactoryVisitorPool.Allocate();
+            visitor.Initialize(factory: this, position, memberDeclarationOpt, memberOpt);
+
+            return visitor;
+        }
+
+        private void ClearBinderFactoryVisitor(BinderFactoryVisitor visitor)
+        {
+            visitor.Clear();
+            s_binderFactoryVisitorPool.Free(visitor);
         }
 
         internal InMethodBinder GetPrimaryConstructorInMethodBinder(SynthesizedPrimaryConstructor constructor)
@@ -158,10 +171,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal Binder GetInTypeBodyBinder(TypeDeclarationSyntax typeDecl)
         {
-            BinderFactoryVisitor visitor = s_binderFactoryVisitorPool.Allocate();
-            visitor.Initialize(factory: this, position: typeDecl.SpanStart, memberDeclarationOpt: null, memberOpt: null);
+            BinderFactoryVisitor visitor = GetBinderFactoryVisitor(position: typeDecl.SpanStart, memberDeclarationOpt: null, memberOpt: null);
             Binder resultBinder = visitor.VisitTypeDeclarationCore(typeDecl, NodeUsage.NamedTypeBodyOrTypeParameters);
-            s_binderFactoryVisitorPool.Free(visitor);
+            ClearBinderFactoryVisitor(visitor);
 
             return resultBinder;
         }
@@ -173,20 +185,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NamespaceDeclaration:
                 case SyntaxKind.FileScopedNamespaceDeclaration:
                     {
-                        BinderFactoryVisitor visitor = s_binderFactoryVisitorPool.Allocate();
-                        visitor.Initialize(factory: this, 0, null, null);
+                        BinderFactoryVisitor visitor = GetBinderFactoryVisitor(0, null, null);
                         Binder result = visitor.VisitNamespaceDeclaration((BaseNamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, inUsing: false);
-                        s_binderFactoryVisitorPool.Free(visitor);
+                        ClearBinderFactoryVisitor(visitor);
                         return result;
                     }
 
                 case SyntaxKind.CompilationUnit:
                     // imports are bound by the Script class binder:
                     {
-                        BinderFactoryVisitor visitor = s_binderFactoryVisitorPool.Allocate();
-                        visitor.Initialize(factory: this, 0, null, null);
+                        BinderFactoryVisitor visitor = GetBinderFactoryVisitor(0, null, null);
                         Binder result = visitor.VisitCompilationUnit((CompilationUnitSyntax)unit, inUsing: false, inScript: InScript);
-                        s_binderFactoryVisitorPool.Free(visitor);
+                        ClearBinderFactoryVisitor(visitor);
                         return result;
                     }
 

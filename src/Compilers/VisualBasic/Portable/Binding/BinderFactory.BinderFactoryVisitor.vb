@@ -19,6 +19,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me._position = position
             End Sub
 
+            Public Sub Clear()
+                _factory = Nothing
+                _position = 0
+            End Sub
+
             Public Overrides Function VisitXmlCrefAttribute(node As XmlCrefAttributeSyntax) As Binder
                 Dim trivia As StructuredTriviaSyntax = node.EnclosingStructuredTrivia
 
