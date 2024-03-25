@@ -17,13 +17,12 @@ internal sealed class DiagnosticsUpdatedArgs : UpdatedEventArgs
 
     private DiagnosticsUpdatedArgs(
         object id,
-        Workspace workspace,
         Solution? solution,
         ProjectId? projectId,
         DocumentId? documentId,
         ImmutableArray<DiagnosticData> diagnostics,
         DiagnosticsUpdatedKind kind)
-        : base(id, workspace, projectId, documentId)
+        : base(id, projectId, documentId)
     {
         Debug.Assert(diagnostics.All(d => d.ProjectId == projectId && d.DocumentId == documentId));
         Debug.Assert(kind != DiagnosticsUpdatedKind.DiagnosticsRemoved || diagnostics.IsEmpty);
@@ -35,22 +34,20 @@ internal sealed class DiagnosticsUpdatedArgs : UpdatedEventArgs
 
     public static DiagnosticsUpdatedArgs DiagnosticsCreated(
         object id,
-        Workspace workspace,
-        Solution? solution,
+        Solution solution,
         ProjectId? projectId,
         DocumentId? documentId,
         ImmutableArray<DiagnosticData> diagnostics)
     {
-        return new DiagnosticsUpdatedArgs(id, workspace, solution, projectId, documentId, diagnostics, DiagnosticsUpdatedKind.DiagnosticsCreated);
+        return new DiagnosticsUpdatedArgs(id, solution, projectId, documentId, diagnostics, DiagnosticsUpdatedKind.DiagnosticsCreated);
     }
 
     public static DiagnosticsUpdatedArgs DiagnosticsRemoved(
         object id,
-        Workspace workspace,
         Solution? solution,
         ProjectId? projectId,
         DocumentId? documentId)
     {
-        return new DiagnosticsUpdatedArgs(id, workspace, solution, projectId, documentId, [], DiagnosticsUpdatedKind.DiagnosticsRemoved);
+        return new DiagnosticsUpdatedArgs(id, solution, projectId, documentId, [], DiagnosticsUpdatedKind.DiagnosticsRemoved);
     }
 }

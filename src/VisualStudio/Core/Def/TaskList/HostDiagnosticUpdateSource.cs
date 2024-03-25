@@ -46,7 +46,6 @@ internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateS
     {
         var args = DiagnosticsUpdatedArgs.DiagnosticsCreated(
             CreateId(projectId, key),
-            Workspace,
             solution: null,
             projectId: projectId,
             documentId: null,
@@ -59,7 +58,6 @@ internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateS
     {
         var args = DiagnosticsUpdatedArgs.DiagnosticsRemoved(
             CreateId(projectId, key),
-            Workspace,
             solution: null,
             projectId: projectId,
             documentId: null);
