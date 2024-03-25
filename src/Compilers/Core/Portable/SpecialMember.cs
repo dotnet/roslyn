@@ -191,6 +191,8 @@ namespace Microsoft.CodeAnalysis
         System_Array__Empty,
         System_Array__SetValue,
 
+        System_Type__GetTypeFromHandle,
+
         Count
     }
 }

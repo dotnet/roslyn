@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis
         // Value 0 represents an unknown type
         Unknown = SpecialType.None,
 
-        First = SpecialType.Count + 1,
-
         /// <summary>
         /// Indicates that the type is <see cref="System.ReadOnlySpan{T}"/> from the COR library.
         /// </summary>
@@ -27,7 +25,8 @@ namespace Microsoft.CodeAnalysis
         /// The <see cref="WellKnownType.System_ReadOnlySpan_T"/> should be used for that purpose instead
         /// This entry mostly exists so that compiler can tell this type apart when resolving other members of the COR library
         /// </remarks>
-        System_ReadOnlySpan_T = First,
+        System_ReadOnlySpan_T = SpecialType.Count + 1,
+        First = System_ReadOnlySpan_T,
 
         System_IFormatProvider,
 

@@ -844,7 +844,20 @@ nextm:
         End Function
 
         Public Function [Typeof](typeSym As TypeSymbol, systemTypeSymbol As TypeSymbol) As BoundExpression
-            Dim boundNode = New BoundGetType(_syntax, Type(typeSym), systemTypeSymbol)
+            Debug.Assert(systemTypeSymbol.ExtendedSpecialType = InternalSpecialType.System_Type OrElse
+                         systemTypeSymbol.Equals(Compilation.GetWellKnownType(CodeAnalysis.WellKnownType.System_Type), TypeCompareKind.AllIgnoreOptionsForVB))
+
+            Dim getTypeFromHandle As MethodSymbol
+
+            If systemTypeSymbol.ExtendedSpecialType = InternalSpecialType.System_Type Then
+                getTypeFromHandle = DirectCast(SpecialMember(CodeAnalysis.SpecialMember.System_Type__GetTypeFromHandle), MethodSymbol)
+            Else
+                getTypeFromHandle = WellKnownMember(Of MethodSymbol)(CodeAnalysis.WellKnownMember.System_Type__GetTypeFromHandle)
+            End If
+
+            Debug.Assert(getTypeFromHandle Is Nothing OrElse
+                         TypeSymbol.Equals(systemTypeSymbol, getTypeFromHandle.ReturnType, TypeCompareKind.AllIgnoreOptionsForVB))
+            Dim boundNode = New BoundGetType(_syntax, Type(typeSym), getTypeFromHandle, systemTypeSymbol, hasErrors:=getTypeFromHandle Is Nothing)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function
@@ -874,7 +887,7 @@ nextm:
         End Function
 
         Public Function MethodInfo(method As MethodSymbol, systemReflectionMethodInfo As TypeSymbol) As BoundExpression
-            Debug.Assert(systemReflectionMethodInfo.Equals(Compilation.GetSpecialType(InternalSpecialType.System_Reflection_MethodInfo), TypeCompareKind.AllIgnoreOptionsForVB) OrElse
+            Debug.Assert(systemReflectionMethodInfo.ExtendedSpecialType = InternalSpecialType.System_Reflection_MethodInfo OrElse
                          systemReflectionMethodInfo.Equals(Compilation.GetWellKnownType(CodeAnalysis.WellKnownType.System_Reflection_MethodInfo), TypeCompareKind.AllIgnoreOptionsForVB) OrElse
                          systemReflectionMethodInfo.Equals(Compilation.GetWellKnownType(CodeAnalysis.WellKnownType.System_Reflection_ConstructorInfo), TypeCompareKind.AllIgnoreOptionsForVB))
 
