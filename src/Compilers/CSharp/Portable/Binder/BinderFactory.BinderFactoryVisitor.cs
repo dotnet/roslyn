@@ -22,17 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             private int _position;
             private CSharpSyntaxNode _memberDeclarationOpt;
             private Symbol _memberOpt;
-            private readonly BinderFactory _factory;
+            private BinderFactory _factory;
 
-            internal BinderFactoryVisitor(BinderFactory factory)
-            {
-                _factory = factory;
-            }
-
-            internal void Initialize(int position, CSharpSyntaxNode memberDeclarationOpt, Symbol memberOpt)
+            internal void Initialize(BinderFactory factory, int position, CSharpSyntaxNode memberDeclarationOpt, Symbol memberOpt)
             {
                 Debug.Assert((memberDeclarationOpt == null) == (memberOpt == null));
 
+                _factory = factory;
                 _position = position;
                 _memberDeclarationOpt = memberDeclarationOpt;
                 _memberOpt = memberOpt;

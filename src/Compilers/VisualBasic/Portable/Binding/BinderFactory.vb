@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' a NodeUsage to sub-distinguish binders associated with nodes. Each kind of syntax node must have its
         ' associated usage value(s), because the usage is used when creating the binder (if not found in the cache).
         Private ReadOnly _cache As ConcurrentDictionary(Of ValueTuple(Of VisualBasicSyntaxNode, Byte), Binder)
-        Private ReadOnly _binderFactoryVisitorPool As ObjectPool(Of BinderFactoryVisitor)
+        Private Shared ReadOnly s_binderFactoryVisitorPool As ObjectPool(Of BinderFactoryVisitor) = New ObjectPool(Of BinderFactoryVisitor)(Function() New BinderFactoryVisitor())
 
         Private ReadOnly Property InScript As Boolean
             Get
@@ -42,18 +42,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._sourceModule = sourceModule
             Me._tree = tree
             Me._cache = New ConcurrentDictionary(Of ValueTuple(Of VisualBasicSyntaxNode, Byte), Binder)
-
-            Me._binderFactoryVisitorPool = New ObjectPool(Of BinderFactoryVisitor)(Function() New BinderFactoryVisitor(Me))
         End Sub
 
         Private Function MakeBinder(node As SyntaxNode, position As Integer) As Binder
             If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(node, position) OrElse
                node.Kind = SyntaxKind.CompilationUnit Then
 
-                Dim visitor = _binderFactoryVisitorPool.Allocate()
-                visitor.Position = position
+                Dim visitor = s_binderFactoryVisitorPool.Allocate()
+                visitor.Initialize(Me, position)
                 Dim result = visitor.Visit(node)
-                _binderFactoryVisitorPool.Free(visitor)
+                s_binderFactoryVisitorPool.Free(visitor)
                 Return result
             End If
 

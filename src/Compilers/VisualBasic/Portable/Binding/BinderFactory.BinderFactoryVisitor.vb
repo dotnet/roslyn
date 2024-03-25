@@ -12,17 +12,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Inherits VisualBasicSyntaxVisitor(Of Binder)
 
             Private _position As Integer
-            Private ReadOnly _factory As BinderFactory
+            Private _factory As BinderFactory
 
-            Public Sub New(factory As BinderFactory)
+            Public Sub Initialize(factory As BinderFactory, position As Integer)
                 Me._factory = factory
+                Me._position = position
             End Sub
-
-            Friend WriteOnly Property Position As Integer
-                Set(value As Integer)
-                    Me._position = value
-                End Set
-            End Property
 
             Public Overrides Function VisitXmlCrefAttribute(node As XmlCrefAttributeSyntax) As Binder
                 Dim trivia As StructuredTriviaSyntax = node.EnclosingStructuredTrivia

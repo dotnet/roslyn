@@ -55,15 +55,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         // In a typing scenario, GetBinder is regularly called with a non-zero position.
         // This results in a lot of allocations of BinderFactoryVisitors. Pooling them
         // reduces this churn to almost nothing.
-        private readonly ObjectPool<BinderFactoryVisitor> _binderFactoryVisitorPool;
+        private static readonly ObjectPool<BinderFactoryVisitor> s_binderFactoryVisitorPool
+            = new ObjectPool<BinderFactoryVisitor>(() => new BinderFactoryVisitor(), 64);
 
         internal BinderFactory(CSharpCompilation compilation, SyntaxTree syntaxTree, bool ignoreAccessibility)
         {
             _compilation = compilation;
             _syntaxTree = syntaxTree;
             _ignoreAccessibility = ignoreAccessibility;
-
-            _binderFactoryVisitorPool = new ObjectPool<BinderFactoryVisitor>(() => new BinderFactoryVisitor(this), 64);
 
             // 50 is more or less a guess, but it seems to work fine for scenarios that I tried.
             // we need something big enough to keep binders for most classes and some methods 
@@ -129,10 +128,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 container.AssertMemberExposure(memberOpt);
             }
 #endif
-            BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
-            visitor.Initialize(position, memberDeclarationOpt, memberOpt);
+            BinderFactoryVisitor visitor = s_binderFactoryVisitorPool.Allocate();
+            visitor.Initialize(factory: this, position, memberDeclarationOpt, memberOpt);
             Binder result = visitor.Visit(node);
-            _binderFactoryVisitorPool.Free(visitor);
+            s_binderFactoryVisitorPool.Free(visitor);
 
             return result;
         }
@@ -159,10 +158,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal Binder GetInTypeBodyBinder(TypeDeclarationSyntax typeDecl)
         {
-            BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
-            visitor.Initialize(position: typeDecl.SpanStart, memberDeclarationOpt: null, memberOpt: null);
+            BinderFactoryVisitor visitor = s_binderFactoryVisitorPool.Allocate();
+            visitor.Initialize(factory: this, position: typeDecl.SpanStart, memberDeclarationOpt: null, memberOpt: null);
             Binder resultBinder = visitor.VisitTypeDeclarationCore(typeDecl, NodeUsage.NamedTypeBodyOrTypeParameters);
-            _binderFactoryVisitorPool.Free(visitor);
+            s_binderFactoryVisitorPool.Free(visitor);
 
             return resultBinder;
         }
@@ -174,20 +173,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NamespaceDeclaration:
                 case SyntaxKind.FileScopedNamespaceDeclaration:
                     {
-                        BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
-                        visitor.Initialize(0, null, null);
+                        BinderFactoryVisitor visitor = s_binderFactoryVisitorPool.Allocate();
+                        visitor.Initialize(factory: this, 0, null, null);
                         Binder result = visitor.VisitNamespaceDeclaration((BaseNamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, inUsing: false);
-                        _binderFactoryVisitorPool.Free(visitor);
+                        s_binderFactoryVisitorPool.Free(visitor);
                         return result;
                     }
 
                 case SyntaxKind.CompilationUnit:
                     // imports are bound by the Script class binder:
                     {
-                        BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
-                        visitor.Initialize(0, null, null);
+                        BinderFactoryVisitor visitor = s_binderFactoryVisitorPool.Allocate();
+                        visitor.Initialize(factory: this, 0, null, null);
                         Binder result = visitor.VisitCompilationUnit((CompilationUnitSyntax)unit, inUsing: false, inScript: InScript);
-                        _binderFactoryVisitorPool.Free(visitor);
+                        s_binderFactoryVisitorPool.Free(visitor);
                         return result;
                     }
 
