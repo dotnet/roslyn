@@ -86,9 +86,6 @@ internal partial class SerializerService : ISerializerService
                 case WellKnownSynchronizationKind.SerializableSourceText:
                     return Checksum.Create(((SerializableSourceText)value).ContentHash);
 
-                case WellKnownSynchronizationKind.SourceText:
-                    return Checksum.Create(((SourceText)value).GetContentHash());
-
                 default:
                     // object that is not part of solution is not supported since we don't know what inputs are required to
                     // serialize it
@@ -148,11 +145,6 @@ internal partial class SerializerService : ISerializerService
                     SerializeSourceText((SerializableSourceText)value, writer, context, cancellationToken);
                     return;
 
-                case WellKnownSynchronizationKind.SourceText:
-                    var sourceText = (SourceText)value;
-                    SerializeSourceText(new SerializableSourceText(sourceText, sourceText.GetContentHash()), writer, context, cancellationToken);
-                    return;
-
                 case WellKnownSynchronizationKind.SolutionCompilationState:
                     ((SolutionCompilationStateChecksums)value).Serialize(writer);
                     return;
@@ -204,7 +196,6 @@ internal partial class SerializerService : ISerializerService
                 WellKnownSynchronizationKind.MetadataReference => DeserializeMetadataReference(reader, cancellationToken),
                 WellKnownSynchronizationKind.AnalyzerReference => DeserializeAnalyzerReference(reader, cancellationToken),
                 WellKnownSynchronizationKind.SerializableSourceText => SerializableSourceText.Deserialize(reader, _storageService, _textService, cancellationToken),
-                WellKnownSynchronizationKind.SourceText => DeserializeSourceText(reader, cancellationToken),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
         }
