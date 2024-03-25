@@ -319,18 +319,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private void AddProjectDiagnosticsRemovedArgs(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, StateSet stateSet, ProjectId projectId, IEnumerable<DocumentId> documentIds, bool handleActiveFile)
         {
             foreach (var documentId in documentIds)
-            {
                 AddDiagnosticsRemovedArgs(ref builder, documentId, solution: null);
-
-                // we don't raise events for active file. it will be taken care of by active file analysis
-                if (!handleActiveFile && stateSet.IsActiveFile(documentId))
-                {
-                    continue;
-                }
-
-                AddDiagnosticsRemovedArgs(ref builder, documentId, solution: null);
-                AddDiagnosticsRemovedArgs(ref builder, documentId, solution: null);
-            }
 
             AddDiagnosticsRemovedArgs(ref builder, projectId, solution: null);
         }
