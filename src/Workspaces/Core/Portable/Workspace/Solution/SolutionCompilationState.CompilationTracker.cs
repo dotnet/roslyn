@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -44,7 +45,10 @@ namespace Microsoft.CodeAnalysis
             // guarantees only one thread is building at a time
             private SemaphoreSlim? _buildLock;
 
-            public SkeletonReferenceCache SkeletonReferenceCache { get; }
+            /// <summary>
+            /// Intentionally not readonly.  This is a mutable struct.
+            /// </summary>
+            private SkeletonReferenceCache _skeletonReferenceCache;
 
             /// <summary>
             /// Set via a feature flag to enable strict validation of the compilations that are produced, in that they match the original states. This validation is expensive, so we don't want it
@@ -55,13 +59,14 @@ namespace Microsoft.CodeAnalysis
             private CompilationTracker(
                 ProjectState project,
                 CompilationTrackerState? state,
-                SkeletonReferenceCache cachedSkeletonReferences)
+                in SkeletonReferenceCache skeletonReferenceCacheToClone)
             {
                 Contract.ThrowIfNull(project);
 
                 this.ProjectState = project;
                 _stateDoNotAccessDirectly = state;
-                this.SkeletonReferenceCache = cachedSkeletonReferences;
+
+                _skeletonReferenceCache = skeletonReferenceCacheToClone.Clone();
 
                 _validateStates = project.LanguageServices.SolutionServices.GetRequiredService<IWorkspaceConfigurationService>().Options.ValidateCompilationTrackerStates;
 
@@ -73,7 +78,7 @@ namespace Microsoft.CodeAnalysis
             /// and will have no extra information beyond the project itself.
             /// </summary>
             public CompilationTracker(ProjectState project)
-                : this(project, state: null, cachedSkeletonReferences: new())
+                : this(project, state: null, skeletonReferenceCacheToClone: new())
             {
             }
 
@@ -131,7 +136,7 @@ namespace Microsoft.CodeAnalysis
                 return new CompilationTracker(
                     newProjectState,
                     forkedTrackerState,
-                    this.SkeletonReferenceCache.Clone());
+                    skeletonReferenceCacheToClone: _skeletonReferenceCache);
 
                 CompilationTrackerState? ForkTrackerState()
                 {
@@ -306,20 +311,20 @@ namespace Microsoft.CodeAnalysis
                 {
                     try
                     {
-                        // Create a chain of translation steps where we add each document one at a time to an initially
-                        // empty compilation.  This allows us to then process that chain of actions like we would do any
-                        // other.  It also means that if we're in the process of parsing documents in that chain, that
-                        // we'll see the results of how far we've gotten if someone asks for a frozen snapshot midway
-                        // through.
+                        // Create a chain of translation steps where we add a chunk of documents at a time to an
+                        // initially empty compilation.  This allows us to then process that chain of actions like we
+                        // would do any other.  It also means that if we're in the process of parsing documents in that
+                        // chain, that we'll see the results of how far we've gotten if someone asks for a frozen
+                        // snapshot midway through.
                         var initialProjectState = this.ProjectState.RemoveAllNormalDocuments();
                         var initialCompilation = this.CreateEmptyCompilation();
 
                         var translationActionsBuilder = ImmutableList.CreateBuilder<TranslationAction>();
 
                         var oldProjectState = initialProjectState;
-                        foreach (var documentState in this.ProjectState.DocumentStates.GetStatesInCompilationOrder())
+                        foreach (var chunk in this.ProjectState.DocumentStates.GetStatesInCompilationOrder().Chunk(TranslationAction.AddDocumentsAction.AddDocumentsBatchSize))
                         {
-                            var documentStates = ImmutableArray.Create(documentState);
+                            var documentStates = ImmutableCollectionsMarshal.AsImmutableArray(chunk);
                             var newProjectState = oldProjectState.AddDocuments(documentStates);
                             translationActionsBuilder.Add(new TranslationAction.AddDocumentsAction(
                                 oldProjectState, newProjectState, documentStates));
@@ -354,26 +359,6 @@ namespace Microsoft.CodeAnalysis
                     try
                     {
                         var currentState = initialState;
-
-                        // To speed things up, we look for all the added documents in the chain and we preemptively kick
-                        // off work to parse the documents for it in parallel.  This has the added benefit that if
-                        // someone asks for a frozen partial snapshot while we're in the middle of doing this, they can
-                        // use however many document states have successfully parsed their syntax trees.  For example,
-                        // if you had one extremely large file that took a long time to parse, and dozens of tiny ones,
-                        // it's more likely that the frozen tree would have many more documents in it.
-                        //
-                        // Note: we intentionally kick these off in a fire-and-forget fashion.  If we get canceled, all
-                        // the tasks will attempt to cancel.  If we complete, that's only because these tasks would
-                        // complete as well.  There's no need to track this with any sort of listener as this work just
-                        // acts to speed up getting to a compilation, but is otherwise unobservable.
-                        foreach (var action in currentState.PendingTranslationActions)
-                        {
-                            if (action is TranslationAction.AddDocumentsAction { Documents: var documents })
-                            {
-                                foreach (var document in documents)
-                                    _ = Task.Run(async () => await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken);
-                            }
-                        }
 
                         // Then, we serially process the chain while that parsing is happening concurrently.
                         while (currentState.PendingTranslationActions.Count > 0)
@@ -656,7 +641,7 @@ namespace Microsoft.CodeAnalysis
                     // generate on demand.  So just try to see if we can grab the last generated skeleton for that
                     // project.
                     var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
-                    return this.SkeletonReferenceCache.TryGetAlreadyBuiltMetadataReference(properties);
+                    return _skeletonReferenceCache.TryGetAlreadyBuiltMetadataReference(properties);
                 }
 
                 return null;
@@ -682,14 +667,13 @@ namespace Microsoft.CodeAnalysis
             {
                 var state = this.ReadState();
 
-                var clonedCache = this.SkeletonReferenceCache.Clone();
                 if (state is FinalCompilationTrackerState finalState)
                 {
                     // If we're finalized and already frozen, we can just use ourselves. Otherwise, flip the frozen bit
                     // so that any future forks keep things frozen.
                     return finalState.IsFrozen
                         ? this
-                        : new CompilationTracker(this.ProjectState, finalState.WithIsFrozen(), clonedCache);
+                        : new CompilationTracker(this.ProjectState, finalState.WithIsFrozen(), skeletonReferenceCacheToClone: _skeletonReferenceCache);
                 }
 
                 // Non-final state currently.  Produce an in-progress-state containing the forked change. Note: we
@@ -743,7 +727,7 @@ namespace Microsoft.CodeAnalysis
                             CompilationTrackerGeneratorInfo.Empty,
                             lazyCompilationWithGeneratedDocuments,
                             pendingTranslationActions: []),
-                        clonedCache);
+                        skeletonReferenceCacheToClone: _skeletonReferenceCache);
                 }
                 else if (state is InProgressState inProgressState)
                 {
@@ -769,7 +753,7 @@ namespace Microsoft.CodeAnalysis
                             generatorInfo,
                             compilationWithGeneratedDocuments,
                             pendingTranslationActions: []),
-                        clonedCache);
+                        skeletonReferenceCacheToClone: _skeletonReferenceCache);
                 }
                 else
                 {
@@ -821,6 +805,19 @@ namespace Microsoft.CodeAnalysis
                 return builder.ToImmutableAndClear();
             }
 
+            public async ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
+            {
+                if (!this.ProjectState.SourceGenerators.Any())
+                {
+                    return null;
+                }
+
+                var finalState = await GetOrBuildFinalStateAsync(
+                    compilationState, cancellationToken).ConfigureAwait(false);
+
+                return finalState.GeneratorInfo.Driver?.GetRunResult();
+            }
+
             public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId)
             {
                 var state = ReadState();
@@ -857,6 +854,12 @@ namespace Microsoft.CodeAnalysis
                             "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators" or
                             "Microsoft.CodeAnalysis.Razor.Compiler";
             }
+
+            public SkeletonReferenceCache GetClonedSkeletonReferenceCache()
+                => _skeletonReferenceCache.Clone();
+
+            public Task<MetadataReference?> GetOrBuildSkeletonReferenceAsync(SolutionCompilationState compilationState, MetadataReferenceProperties properties, CancellationToken cancellationToken)
+                => _skeletonReferenceCache.GetOrBuildReferenceAsync(this, compilationState, properties, cancellationToken);
 
             // END HACK HACK HACK HACK, or the setup of it at least; once this hack is removed the calls to IsGeneratorRunResultToIgnore
             // need to be cleaned up.
@@ -965,11 +968,13 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_lazyDependentVersion == null)
                 {
-                    // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    var compilationStateCapture = compilationState;
-                    Interlocked.CompareExchange(ref _lazyDependentVersion, AsyncLazy.Create(
-                        c => ComputeDependentVersionAsync(compilationStateCapture, c)), null);
+                    Interlocked.CompareExchange(
+                        ref _lazyDependentVersion,
+                        AsyncLazy.Create(static (arg, c) =>
+                            arg.self.ComputeDependentVersionAsync(arg.compilationState, c),
+                            arg: (self: this, compilationState)),
+                        null);
                 }
 
                 return _lazyDependentVersion.GetValueAsync(cancellationToken);
@@ -1002,11 +1007,13 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_lazyDependentSemanticVersion == null)
                 {
-                    // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    var compilationStateCapture = compilationState;
-                    Interlocked.CompareExchange(ref _lazyDependentSemanticVersion, AsyncLazy.Create(
-                        c => ComputeDependentSemanticVersionAsync(compilationStateCapture, c)), null);
+                    Interlocked.CompareExchange(
+                        ref _lazyDependentSemanticVersion,
+                        AsyncLazy.Create(static (arg, c) =>
+                            arg.self.ComputeDependentSemanticVersionAsync(arg.compilationState, c),
+                            arg: (self: this, compilationState))
+                        , null);
                 }
 
                 return _lazyDependentSemanticVersion.GetValueAsync(cancellationToken);
@@ -1038,9 +1045,13 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_lazyDependentChecksum == null)
                 {
-                    var tmp = compilationState.SolutionState; // temp. local to avoid a closure allocation for the fast path
                     // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(ref _lazyDependentChecksum, AsyncLazy.Create(c => ComputeDependentChecksumAsync(tmp, c)), null);
+                    Interlocked.CompareExchange(
+                        ref _lazyDependentChecksum,
+                        AsyncLazy.Create(static (arg, c) =>
+                            arg.self.ComputeDependentChecksumAsync(arg.SolutionState, c),
+                            arg: (self: this, compilationState.SolutionState)),
+                        null);
                 }
 
                 return _lazyDependentChecksum.GetValueAsync(cancellationToken);

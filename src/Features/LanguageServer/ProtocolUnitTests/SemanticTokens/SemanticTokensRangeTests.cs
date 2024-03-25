@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -118,13 +120,14 @@ var z = 1;
                 markup, mutatingLspWorkspace, GetCapabilities(isVS));
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
-            var ranges = new LSP.Range[2] {
-                new LSP.Range { Start = new Position(12, 0), End = new Position(13, 0) },
-                new LSP.Range { Start = new Position(29, 0), End = new Position(30, 0) }
-            };
+            ImmutableArray<LinePositionSpan> spans = [
+                new LinePositionSpan(new LinePosition(12, 0), new LinePosition(13, 0)),
+                new LinePositionSpan(new LinePosition(29, 0), new LinePosition(30, 0)),
+            ];
+
             var options = ClassificationOptions.Default;
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                testLspServer.ClientCapabilities, document, ranges, options, CancellationToken.None);
+                document, spans, isVS, options, CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens();
             var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
@@ -175,10 +178,10 @@ static class C { }
                 markup, mutatingLspWorkspace, GetCapabilities(isVS));
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
-            var ranges = new[] { new LSP.Range { Start = new Position(1, 0), End = new Position(2, 0) } };
+            ImmutableArray<LinePositionSpan> spans = [new LinePositionSpan(new LinePosition(1, 0), new LinePosition(2, 0))];
             var options = ClassificationOptions.Default;
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                testLspServer.ClientCapabilities, document, ranges, options, CancellationToken.None);
+                document, spans, isVS, options, CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens();
             var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
@@ -225,10 +228,10 @@ three */ }
                 markup, mutatingLspWorkspace, GetCapabilities(isVS));
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
-            var ranges = new[] { new LSP.Range { Start = new Position(0, 0), End = new Position(4, 0) } };
+            ImmutableArray<LinePositionSpan> spans = [new LinePositionSpan(new LinePosition(0, 0), new LinePosition(4, 0))];
             var options = ClassificationOptions.Default;
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                testLspServer.ClientCapabilities, document, ranges, options, CancellationToken.None);
+                document, spans, isVS, options, CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens();
             var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
@@ -284,10 +287,10 @@ three"";
                 markup, mutatingLspWorkspace, GetCapabilities(isVS));
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
-            var ranges = new[] { new LSP.Range { Start = new Position(0, 0), End = new Position(9, 0) } };
+            ImmutableArray<LinePositionSpan> spans = [new LinePositionSpan(new LinePosition(0, 0), new LinePosition(9, 0))];
             var options = ClassificationOptions.Default;
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                testLspServer.ClientCapabilities, document, ranges, options, CancellationToken.None);
+                document, spans, isVS, options, CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens();
             var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
@@ -365,10 +368,10 @@ class C
                 markup, mutatingLspWorkspace, GetCapabilities(isVS));
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
-            var ranges = new[] { new LSP.Range { Start = new Position(0, 0), End = new Position(9, 0) } };
+            ImmutableArray<LinePositionSpan> spans = [new LinePositionSpan(new LinePosition(0, 0), new LinePosition(9, 0))];
             var options = ClassificationOptions.Default;
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                testLspServer.ClientCapabilities, document, ranges, options, CancellationToken.None);
+                document, spans, isVS, options, CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens();
             var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
@@ -476,7 +479,7 @@ class C
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var options = ClassificationOptions.Default;
             var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                testLspServer.ClientCapabilities, document, ranges: null, options: options, cancellationToken: CancellationToken.None);
+                document, spans: [], isVS, options: options, cancellationToken: CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens();
 

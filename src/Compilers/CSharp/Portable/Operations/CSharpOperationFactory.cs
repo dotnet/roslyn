@@ -304,8 +304,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
-                case BoundKind.UnconvertedCollectionExpression:
-
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
@@ -2881,8 +2879,6 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 return ImmutableArray<IArgumentOperation>.Empty;
             }
-
-            Debug.Assert(!patternDisposeInfo.Expanded || patternDisposeInfo.Method.GetParameters().Last().OriginalDefinition.Type.IsSZArray());
 
             var args = DeriveArguments(
                             patternDisposeInfo.Method,

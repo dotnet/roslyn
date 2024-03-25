@@ -1320,7 +1320,38 @@ class C3
         }
 
         [Fact]
-        public void UsingDeclarationAsyncMissingValueTask()
+        public void UsingDeclarationAsyncMissingValueTask_01()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+class C1 : IAsyncDisposable
+{
+    ValueTask IAsyncDisposable.DisposeAsync() 
+    { 
+        return new ValueTask(Task.CompletedTask);
+    }
+}
+
+class C2
+{
+    static async Task Main()
+    {
+        await using C1 c1 = new C1();
+    }
+}";
+
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+            comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_ValueTask);
+            comp.VerifyDiagnostics(
+                // (16,9): error CS0518: Predefined type 'System.Threading.Tasks.ValueTask' is not defined or imported
+                //         await using C1 c1 = new C1();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.Threading.Tasks.ValueTask").WithLocation(16, 9)
+                );
+        }
+
+        [Fact]
+        public void UsingDeclarationAsyncMissingValueTask_02()
         {
             var source = @"
 using System;
@@ -1343,11 +1374,7 @@ class C2
 
             var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_ValueTask);
-            comp.VerifyDiagnostics(
-                // (16,9): error CS0518: Predefined type 'System.Threading.Tasks.ValueTask' is not defined or imported
-                //         await using C1 c1 = new C1();
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.Threading.Tasks.ValueTask").WithLocation(16, 9)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1402,6 +1429,482 @@ class C2
             var compilation = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput: "Dispose async 0");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72496")]
+        public void ModifiersInUsingLocalDeclarations_Const()
+        {
+            var source = """
+class C
+{
+    void M()
+    {
+        using const var obj = new object();
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                //         using const var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using const var obj = new object();").WithArguments("object").WithLocation(5, 9),
+                // (5,15): error CS9229: Modifiers cannot be placed on using declarations
+                //         using const var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(5, 15));
+
+            source = """
+using const var obj = new object();
+""";
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // using const var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using const var obj = new object();").WithArguments("object").WithLocation(1, 1),
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
+                // using const var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(1, 7));
+
+            source = """
+using (const var obj2 = new object()) { }
+""";
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,8): error CS1525: Invalid expression term 'const'
+                // using (const var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "const").WithArguments("const").WithLocation(1, 8),
+                // (1,8): error CS1026: ) expected
+                // using (const var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "const").WithLocation(1, 8),
+                // (1,8): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                // using (const var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const var obj2 = new object()) ").WithLocation(1, 8),
+                // (1,14): error CS0822: Implicitly-typed variables cannot be constant
+                // using (const var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "var obj2 = new object()").WithLocation(1, 14),
+                // (1,37): error CS1003: Syntax error, ',' expected
+                // using (const var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 37),
+                // (1,39): error CS1002: ; expected
+                // using (const var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 39));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72496")]
+        public void ModifiersInUsingLocalDeclarations_Const_Async()
+        {
+            var source = """
+await using const var obj = new object();
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,1): warning CS0028: '<top-level-statements-entry-point>' has the wrong signature to be an entry point
+                // await using const var obj = new object();
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "await using const var obj = new object();").WithArguments("<top-level-statements-entry-point>").WithLocation(1, 1),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+                // (1,1): error CS8410: 'object': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+                // await using const var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using const var obj = new object();").WithArguments("object").WithLocation(1, 1),
+                // (1,13): error CS9229: Modifiers cannot be placed on using declarations
+                // await using const var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(1, 13));
+
+            source = """
+await using (const var obj = new object()) { }
+""";
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,1): warning CS0028: '<top-level-statements-entry-point>' has the wrong signature to be an entry point
+                // await using (const var obj = new object()) { }
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "await using (const var obj = new object()) { }").WithArguments("<top-level-statements-entry-point>").WithLocation(1, 1),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+                // (1,14): error CS1525: Invalid expression term 'const'
+                // await using (const var obj = new object()) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "const").WithArguments("const").WithLocation(1, 14),
+                // (1,14): error CS1026: ) expected
+                // await using (const var obj = new object()) { }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "const").WithLocation(1, 14),
+                // (1,14): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                // await using (const var obj = new object()) { }
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const var obj = new object()) ").WithLocation(1, 14),
+                // (1,20): error CS0822: Implicitly-typed variables cannot be constant
+                // await using (const var obj = new object()) { }
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "var obj = new object()").WithLocation(1, 20),
+                // (1,42): error CS1003: Syntax error, ',' expected
+                // await using (const var obj = new object()) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 42),
+                // (1,44): error CS1002: ; expected
+                // await using (const var obj = new object()) { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 44));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72496")]
+        public void ModifiersInUsingLocalDeclarations_Const_ExplicitType()
+        {
+            var source = """
+class C
+{
+    void M()
+    {
+        using const System.IDisposable obj = null;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,15): error CS9229: Modifiers cannot be placed on using declarations
+                //         using const System.IDisposable obj = null;
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(5, 15),
+                // (5,40): warning CS0219: The variable 'obj' is assigned but its value is never used
+                //         using const System.IDisposable obj = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "obj").WithArguments("obj").WithLocation(5, 40));
+
+            source = """
+using const System.IDisposable obj = null;
+""";
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
+                // using const System.IDisposable obj = null;
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(1, 7),
+                // (1,32): warning CS0219: The variable 'obj' is assigned but its value is never used
+                // using const System.IDisposable obj = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "obj").WithArguments("obj").WithLocation(1, 32));
+
+            source = """
+using (const System.IDisposable obj) { }
+""";
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,8): error CS1525: Invalid expression term 'const'
+                // using (const System.IDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "const").WithArguments("const").WithLocation(1, 8),
+                // (1,8): error CS1026: ) expected
+                // using (const System.IDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "const").WithLocation(1, 8),
+                // (1,8): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                // using (const System.IDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const System.IDisposable obj) ").WithLocation(1, 8),
+                // (1,33): error CS0145: A const field requires a value to be provided
+                // using (const System.IDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, "obj").WithLocation(1, 33),
+                // (1,33): warning CS0168: The variable 'obj' is declared but never used
+                // using (const System.IDisposable obj) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "obj").WithArguments("obj").WithLocation(1, 33),
+                // (1,36): error CS1003: Syntax error, ',' expected
+                // using (const System.IDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 36),
+                // (1,38): error CS1002: ; expected
+                // using (const System.IDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 38));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72496")]
+        public void ModifiersInUsingLocalDeclarations_Const_Async_ExplicitType()
+        {
+            var source = """
+await using const System.IAsyncDisposable obj = null;
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (1,1): warning CS0028: '<top-level-statements-entry-point>' has the wrong signature to be an entry point
+                // await using const System.IAsyncDisposable obj = null;
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "await using const System.IAsyncDisposable obj = null;").WithArguments("<top-level-statements-entry-point>").WithLocation(1, 1),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+                // (1,13): error CS9229: Modifiers cannot be placed on using declarations
+                // await using const System.IAsyncDisposable obj = null;
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(1, 13),
+                // (1,43): warning CS0219: The variable 'obj' is assigned but its value is never used
+                // await using const System.IAsyncDisposable obj = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "obj").WithArguments("obj").WithLocation(1, 43));
+
+            source = """
+await using (const System.IAsyncDisposable obj) { }
+""";
+            comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (1,1): warning CS0028: '<top-level-statements-entry-point>' has the wrong signature to be an entry point
+                // await using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "await using (const System.IAsyncDisposable obj) { }").WithArguments("<top-level-statements-entry-point>").WithLocation(1, 1),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+                // (1,14): error CS1525: Invalid expression term 'const'
+                // await using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "const").WithArguments("const").WithLocation(1, 14),
+                // (1,14): error CS1026: ) expected
+                // await using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "const").WithLocation(1, 14),
+                // (1,14): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                // await using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const System.IAsyncDisposable obj) ").WithLocation(1, 14),
+                // (1,44): error CS0145: A const field requires a value to be provided
+                // await using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, "obj").WithLocation(1, 44),
+                // (1,44): warning CS0168: The variable 'obj' is declared but never used
+                // await using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "obj").WithArguments("obj").WithLocation(1, 44),
+                // (1,47): error CS1003: Syntax error, ',' expected
+                // await using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 47),
+                // (1,49): error CS1002: ; expected
+                // await using (const System.IAsyncDisposable obj) { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 49));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72496")]
+        public void ModifiersInUsingLocalDeclarations_Readonly()
+        {
+            var source = """
+class C
+{
+    void M()
+    {
+        using readonly var obj = new object();
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                //         using readonly var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using readonly var obj = new object();").WithArguments("object").WithLocation(5, 9),
+                // (5,15): error CS9229: Modifiers cannot be placed on using declarations
+                //         using readonly var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(5, 15));
+
+            source = """
+using readonly var obj = new object();
+""";
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // using readonly var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using readonly var obj = new object();").WithArguments("object").WithLocation(1, 1),
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
+                // using readonly var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(1, 7));
+
+            source = """
+using (readonly var obj2 = new object()) { }
+""";
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,8): error CS1525: Invalid expression term 'readonly'
+                // using (readonly var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(1, 8),
+                // (1,8): error CS1026: ) expected
+                // using (readonly var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(1, 8),
+                // (1,8): error CS0106: The modifier 'readonly' is not valid for this item
+                // using (readonly var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 8),
+                // (1,8): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                // using (readonly var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "readonly var obj2 = new object()) ").WithLocation(1, 8),
+                // (1,40): error CS1003: Syntax error, ',' expected
+                // using (readonly var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 40),
+                // (1,42): error CS1002: ; expected
+                // using (readonly var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 42));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72496")]
+        public void ModifiersInUsingLocalDeclarations_Static()
+        {
+            var source = """
+class C
+{
+    void M()
+    {
+        using static var obj = new object();
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                //         using static var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using static var obj = new object();").WithArguments("object").WithLocation(5, 9),
+                // (5,15): error CS9229: Modifiers cannot be placed on using declarations
+                //         using static var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "static").WithLocation(5, 15));
+
+            source = """
+using static var obj = new object();
+""";
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // using static var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using static var obj = new object();").WithArguments("object").WithLocation(1, 1),
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
+                // using static var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "static").WithLocation(1, 7));
+
+            source = """
+using (static var obj2 = new object()) { }
+""";
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,8): error CS1525: Invalid expression term 'static'
+                // using (static var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "static").WithArguments("static").WithLocation(1, 8),
+                // (1,8): error CS1026: ) expected
+                // using (static var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "static").WithLocation(1, 8),
+                // (1,8): error CS0106: The modifier 'static' is not valid for this item
+                // using (static var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(1, 8),
+                // (1,8): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                // using (static var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "static var obj2 = new object()) ").WithLocation(1, 8),
+                // (1,38): error CS1003: Syntax error, ',' expected
+                // using (static var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 38),
+                // (1,40): error CS1002: ; expected
+                // using (static var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 40));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72496")]
+        public void ModifiersInUsingLocalDeclarations_Volatile()
+        {
+            var source = """
+class C
+{
+    void M()
+    {
+        using volatile var obj = new object();
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                //         using volatile var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using volatile var obj = new object();").WithArguments("object").WithLocation(5, 9),
+                // (5,15): error CS9229: Modifiers cannot be placed on using declarations
+                //         using volatile var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "volatile").WithLocation(5, 15));
+
+            source = """
+using volatile var obj = new object();
+""";
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // using volatile var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using volatile var obj = new object();").WithArguments("object").WithLocation(1, 1),
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
+                // using volatile var obj = new object();
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "volatile").WithLocation(1, 7));
+
+            source = """
+using (volatile var obj2 = new object()) { }
+""";
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,8): error CS1525: Invalid expression term 'volatile'
+                // using (volatile var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "volatile").WithArguments("volatile").WithLocation(1, 8),
+                // (1,8): error CS1026: ) expected
+                // using (volatile var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "volatile").WithLocation(1, 8),
+                // (1,8): error CS0106: The modifier 'volatile' is not valid for this item
+                // using (volatile var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "volatile").WithArguments("volatile").WithLocation(1, 8),
+                // (1,8): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                // using (volatile var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "volatile var obj2 = new object()) ").WithLocation(1, 8),
+                // (1,40): error CS1003: Syntax error, ',' expected
+                // using (volatile var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 40),
+                // (1,42): error CS1002: ; expected
+                // using (volatile var obj2 = new object()) { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 42));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72496")]
+        public void ModifiersInUsingLocalDeclarations_Scoped()
+        {
+            var source = """
+class C
+{
+    void M()
+    {
+        using scoped var obj = new S();
+    }
+}
+ref struct S { public void Dispose() { } }
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            source = """
+using scoped var obj = new S();
+ref struct S { public void Dispose() { } }
+""";
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            source = """
+using (scoped var obj = new S()) { }
+ref struct S { public void Dispose() { } }
+""";
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72496")]
+        public void ModifiersInUsingLocalDeclarations_Ref()
+        {
+            var source = """
+class C
+{
+    void M()
+    {
+        var x = new object();
+        using ref object y = ref x;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                //         using ref object y = ref x;
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using ref object y = ref x;").WithArguments("object").WithLocation(6, 9),
+                // (6,15): error CS1073: Unexpected token 'ref'
+                //         using ref object y = ref x;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 15));
+
+            source = """
+var x = new object();
+using ref object y = ref x;
+""";
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // using ref object y = ref x;
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using ref object y = ref x;").WithArguments("object").WithLocation(2, 1),
+                // (2,7): error CS1073: Unexpected token 'ref'
+                // using ref object y = ref x;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(2, 7));
+
+            source = """
+var x = new object();
+using (ref object y = ref x) { }
+""";
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,8): error CS1073: Unexpected token 'ref'
+                // using (ref object y = ref x) { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(2, 8),
+                // (2,8): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // using (ref object y = ref x) { }
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "ref object y = ref x").WithArguments("object").WithLocation(2, 8));
         }
     }
 }

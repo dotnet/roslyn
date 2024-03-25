@@ -96,9 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 MemberDescriptor descriptor = WellKnownMembers.GetDescriptor(member);
-                NamedTypeSymbol type = descriptor.DeclaringTypeId <= (int)SpecialType.Count
-                                            ? this.GetSpecialType((SpecialType)descriptor.DeclaringTypeId)
-                                            : this.GetWellKnownType((WellKnownType)descriptor.DeclaringTypeId);
+                NamedTypeSymbol type = descriptor.IsSpecialTypeMember
+                                            ? this.GetSpecialType(descriptor.DeclaringSpecialType)
+                                            : this.GetWellKnownType(descriptor.DeclaringWellKnownType);
                 Symbol? result = null;
 
                 if (!type.IsErrorType())
@@ -535,6 +535,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.RequiresLocationAttribute, diagnostics, location, modifyCompilation);
         }
 
+        internal void EnsureParamCollectionAttributeExistsAndModifyCompilation(BindingDiagnosticBag? diagnostics, Location location)
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.ParamCollectionAttribute, diagnostics, location, modifyCompilation: true);
+        }
+
         internal void EnsureIsByRefLikeAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsByRefLikeAttribute, diagnostics, location, modifyCompilation);
@@ -644,6 +649,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         locationOpt,
                         WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor);
+
+                case EmbeddableAttributes.ParamCollectionAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attribute);
@@ -1211,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override bool MatchTypeToTypeId(TypeSymbol type, int typeId)
             {
-                if ((int)type.OriginalDefinition.SpecialType == typeId)
+                if ((int)type.OriginalDefinition.ExtendedSpecialType == typeId)
                 {
                     if (type.IsDefinition)
                     {

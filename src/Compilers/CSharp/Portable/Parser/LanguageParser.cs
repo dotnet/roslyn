@@ -1040,6 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxKind.CloseParenToken,
                 static @this => @this.IsPossibleAttributeArgument(),
                 static @this => @this.ParseAttributeArgument(),
+                immediatelyAbort,
                 skipBadAttributeArgumentTokens,
                 allowTrailingSeparator: false,
                 requireOneElement: false,
@@ -1057,6 +1058,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     static p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttributeArgument(),
                     static (p, closeKind) => p.CurrentToken.Kind == closeKind,
                     expectedKind, closeKind);
+            }
+
+            static bool immediatelyAbort(AttributeArgumentSyntax argument)
+            {
+                // We can be very thrown off by incomplete strings in an attribute argument (especially as the lexer
+                // will restart on the next line with the contents of the string then being interpreted as more
+                // arguments).  Bail out in this case to prevent going off the rails.
+                if (argument.expression is LiteralExpressionSyntax { Kind: SyntaxKind.StringLiteralExpression, Token: var literalToken } &&
+                    literalToken.GetDiagnostics().Contains(d => d.Code == (int)ErrorCode.ERR_NewlineInConst))
+                {
+                    return true;
+                }
+
+                if (argument.expression is InterpolatedStringExpressionSyntax { StringStartToken.Kind: SyntaxKind.InterpolatedStringStartToken, StringEndToken.IsMissing: true })
+                    return true;
+
+                return false;
             }
         }
 
@@ -9557,7 +9575,7 @@ done:;
             }
 
             var mods = _pool.Allocate();
-            this.ParseDeclarationModifiers(mods);
+            this.ParseDeclarationModifiers(mods, isUsingDeclaration: usingKeyword is not null);
 
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             try
@@ -9605,13 +9623,17 @@ done:;
                     type = _syntaxFactory.ScopedType(scopedKeyword, type);
                 }
 
-                for (int i = 0; i < mods.Count; i++)
+                // We've already reported all modifiers for local_using_declaration as errors
+                if (usingKeyword is null)
                 {
-                    var mod = (SyntaxToken)mods[i];
-
-                    if (IsAdditionalLocalFunctionModifier(mod.ContextualKind))
+                    for (int i = 0; i < mods.Count; i++)
                     {
-                        mods[i] = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
+                        var mod = (SyntaxToken)mods[i];
+
+                        if (IsAdditionalLocalFunctionModifier(mod.ContextualKind))
+                        {
+                            mods[i] = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
+                        }
                     }
                 }
 
@@ -9806,7 +9828,7 @@ done:;
             }
         }
 
-        private void ParseDeclarationModifiers(SyntaxListBuilder list)
+        private void ParseDeclarationModifiers(SyntaxListBuilder list, bool isUsingDeclaration)
         {
             SyntaxKind k;
             while (IsDeclarationModifier(k = this.CurrentToken.ContextualKind) || IsAdditionalLocalFunctionModifier(k))
@@ -9827,7 +9849,11 @@ done:;
                     mod = this.EatToken();
                 }
 
-                if (k is SyntaxKind.ReadOnlyKeyword or SyntaxKind.VolatileKeyword)
+                if (isUsingDeclaration)
+                {
+                    mod = this.AddError(mod, ErrorCode.ERR_NoModifiersOnUsing);
+                }
+                else if (k is SyntaxKind.ReadOnlyKeyword or SyntaxKind.VolatileKeyword)
                 {
                     mod = this.AddError(mod, ErrorCode.ERR_BadMemberFlag, mod.Text);
                 }
@@ -13321,6 +13347,8 @@ done:;
         private delegate PostSkipAction SkipBadTokens<TNode>(
             LanguageParser parser, ref SyntaxToken openToken, SeparatedSyntaxListBuilder<TNode> builder, SyntaxKind expectedKind, SyntaxKind closeTokenKind) where TNode : GreenNode;
 
+#nullable enable
+
         /// <summary>
         /// Parses a comma separated list of nodes.
         /// </summary>
@@ -13358,6 +13386,29 @@ done:;
             bool requireOneElement,
             bool allowSemicolonAsSeparator) where TNode : GreenNode
         {
+            return ParseCommaSeparatedSyntaxList(
+                ref openToken,
+                closeTokenKind,
+                isPossibleElement,
+                parseElement,
+                immediatelyAbort: null,
+                skipBadTokens,
+                allowTrailingSeparator,
+                requireOneElement,
+                allowSemicolonAsSeparator);
+        }
+
+        private SeparatedSyntaxList<TNode> ParseCommaSeparatedSyntaxList<TNode>(
+            ref SyntaxToken openToken,
+            SyntaxKind closeTokenKind,
+            Func<LanguageParser, bool> isPossibleElement,
+            Func<LanguageParser, TNode> parseElement,
+            Func<TNode, bool>? immediatelyAbort,
+            SkipBadTokens<TNode> skipBadTokens,
+            bool allowTrailingSeparator,
+            bool requireOneElement,
+            bool allowSemicolonAsSeparator) where TNode : GreenNode
+        {
             // If we ever want this function to parse out separated lists with a different separator, we can
             // parameterize this method on this value.
             var separatorTokenKind = SyntaxKind.CommaToken;
@@ -13369,7 +13420,8 @@ tryAgain:
                 if (requireOneElement || shouldParseSeparatorOrElement())
                 {
                     // first argument
-                    nodes.Add(parseElement(this));
+                    var node = parseElement(this);
+                    nodes.Add(node);
 
                     // now that we've gotten one element, we don't require any more.
                     requireOneElement = false;
@@ -13377,7 +13429,8 @@ tryAgain:
                     // Ensure that if parsing separators/elements doesn't move us forward, that we always bail out from
                     // parsing this list.
                     int lastTokenPosition = -1;
-                    while (IsMakingProgress(ref lastTokenPosition))
+
+                    while (immediatelyAbort?.Invoke(node) != true && IsMakingProgress(ref lastTokenPosition))
                     {
                         if (this.CurrentToken.Kind == closeTokenKind)
                             break;
@@ -13402,7 +13455,8 @@ tryAgain:
                                 }
                             }
 
-                            nodes.Add(parseElement(this));
+                            node = parseElement(this);
+                            nodes.Add(node);
                             continue;
                         }
 
@@ -13440,6 +13494,8 @@ tryAgain:
                 return false;
             }
         }
+
+#nullable disable
 
         private DisposableResetPoint GetDisposableResetPoint(bool resetOnDispose)
             => new DisposableResetPoint(this, resetOnDispose, GetResetPoint());

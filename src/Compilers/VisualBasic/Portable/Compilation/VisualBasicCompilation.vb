@@ -1953,9 +1953,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Get symbol for predefined type from Cor Library referenced by this compilation.
         ''' </summary>
-        Friend Shadows Function GetSpecialType(typeId As SpecialType) As NamedTypeSymbol
+        Friend Shadows Function GetSpecialType(typeId As ExtendedSpecialType) As NamedTypeSymbol
             Dim result = Assembly.GetSpecialType(typeId)
-            Debug.Assert(result.SpecialType = typeId)
+            Debug.Assert(result.ExtendedSpecialType = typeId)
             Return result
         End Function
 

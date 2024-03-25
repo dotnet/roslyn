@@ -20,6 +20,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
             For i As Integer = 1 To SpecialType.Count
                 Dim t = noMsCorLibRef.GetSpecialType(CType(i, SpecialType))
                 Assert.Equal(CType(i, SpecialType), t.SpecialType)
+                Assert.Equal(CType(i, ExtendedSpecialType), t.ExtendedSpecialType)
+                Assert.Equal(TypeKind.Error, t.TypeKind)
+                Assert.NotNull(t.ContainingAssembly)
+                Assert.Equal("<Missing Core Assembly>", t.ContainingAssembly.Identity.Name)
+            Next
+
+            For i As Integer = InternalSpecialType.First To InternalSpecialType.NextAvailable - 1
+                Dim t = noMsCorLibRef.GetSpecialType(CType(i, InternalSpecialType))
+                Assert.Equal(SpecialType.None, t.SpecialType)
+                Assert.Equal(CType(i, ExtendedSpecialType), t.ExtendedSpecialType)
                 Assert.Equal(TypeKind.Error, t.TypeKind)
                 Assert.NotNull(t.ContainingAssembly)
                 Assert.Equal("<Missing Core Assembly>", t.ContainingAssembly.Identity.Name)
@@ -43,6 +53,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
             For i As Integer = 1 To SpecialType.Count
                 Dim t = msCorLibRef.GetSpecialType(CType(i, SpecialType))
                 Assert.Equal(CType(i, SpecialType), t.SpecialType)
+                Assert.Equal(CType(i, ExtendedSpecialType), t.ExtendedSpecialType)
+                Assert.Same(msCorLibRef, t.ContainingAssembly)
+                If knownMissingTypes.Contains(i) Then
+                    ' not present on dotnet core 3.1
+                    Assert.Equal(TypeKind.Error, t.TypeKind)
+                Else
+                    Assert.NotEqual(TypeKind.Error, t.TypeKind)
+                End If
+            Next
+
+            For i As Integer = InternalSpecialType.First To InternalSpecialType.NextAvailable - 1
+                Dim t = msCorLibRef.GetSpecialType(CType(i, InternalSpecialType))
+                Assert.Equal(SpecialType.None, t.SpecialType)
+                Assert.Equal(CType(i, ExtendedSpecialType), t.ExtendedSpecialType)
                 Assert.Same(msCorLibRef, t.ContainingAssembly)
                 If knownMissingTypes.Contains(i) Then
                     ' not present on dotnet core 3.1
@@ -93,14 +117,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
                 Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
                 Dim t = msCorLibRef.GetSpecialType(CType(i, SpecialType))
                 Assert.Equal(CType(i, SpecialType), t.SpecialType)
+                Assert.Equal(CType(i, ExtendedSpecialType), t.ExtendedSpecialType)
 
                 If (t.SpecialType = SpecialType.System_Object) Then
                     Assert.NotEqual(TypeKind.Error, t.TypeKind)
                 Else
                     Assert.Equal(TypeKind.Error, t.TypeKind)
-                    Assert.Same(msCorLibRef, t.ContainingAssembly)
                 End If
 
+                Assert.Same(msCorLibRef, t.ContainingAssembly)
+            Next
+
+            For i As Integer = InternalSpecialType.First To InternalSpecialType.NextAvailable - 1
+                Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
+                Dim t = msCorLibRef.GetSpecialType(CType(i, InternalSpecialType))
+                Assert.Equal(SpecialType.None, t.SpecialType)
+                Assert.Equal(CType(i, ExtendedSpecialType), t.ExtendedSpecialType)
+
+                Assert.Equal(TypeKind.Error, t.TypeKind)
                 Assert.Same(msCorLibRef, t.ContainingAssembly)
             Next
 
@@ -128,10 +162,21 @@ ENd NAmespace
                     Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
                     Dim t = c1.Assembly.GetSpecialType(CType(i, SpecialType))
                     Assert.Equal(CType(i, SpecialType), t.SpecialType)
+                    Assert.Equal(CType(i, ExtendedSpecialType), t.ExtendedSpecialType)
 
                     Assert.Equal(TypeKind.Error, t.TypeKind)
                     Assert.Same(msCorLibRef, t.ContainingAssembly)
                 End If
+            Next
+
+            For i As Integer = InternalSpecialType.First To InternalSpecialType.NextAvailable - 1
+                Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
+                Dim t = c1.Assembly.GetSpecialType(CType(i, InternalSpecialType))
+                Assert.Equal(SpecialType.None, t.SpecialType)
+                Assert.Equal(CType(i, ExtendedSpecialType), t.ExtendedSpecialType)
+
+                Assert.Equal(TypeKind.Error, t.TypeKind)
+                Assert.Same(msCorLibRef, t.ContainingAssembly)
             Next
 
             Dim system_object = msCorLibRef.Modules(0).GlobalNamespace.GetMembers("System").
@@ -144,9 +189,11 @@ ENd NAmespace
             Assert.Same(system_object, c1.Assembly.GetSpecialType(SpecialType.System_Object))
 
             Assert.Throws(Of ArgumentOutOfRangeException)(Function() c1.GetSpecialType(SpecialType.None))
-            Assert.Throws(Of ArgumentOutOfRangeException)(Function() c1.GetSpecialType(CType(SpecialType.Count + 1, SpecialType)))
+            Assert.Throws(Of ArgumentOutOfRangeException)(Function() DirectCast(c1, Compilation).GetSpecialType(SpecialType.None))
+            Assert.Throws(Of ArgumentOutOfRangeException)(Function() c1.GetSpecialType(InternalSpecialType.NextAvailable))
+            Assert.Throws(Of ArgumentOutOfRangeException)(Function() DirectCast(c1, Compilation).GetSpecialType(CType(SpecialType.Count + 1, SpecialType)))
             Assert.Throws(Of ArgumentOutOfRangeException)(Function() msCorLibRef.GetSpecialType(SpecialType.None))
-            Assert.Throws(Of ArgumentOutOfRangeException)(Function() msCorLibRef.GetSpecialType(CType(SpecialType.Count + 1, SpecialType)))
+            Assert.Throws(Of ArgumentOutOfRangeException)(Function() msCorLibRef.GetSpecialType(InternalSpecialType.NextAvailable))
         End Sub
 
         <Fact()>

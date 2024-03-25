@@ -44,7 +44,7 @@ public static class CommandLineProject
 
         var analyzerLoader = languageServices.SolutionServices.GetRequiredService<IAnalyzerService>().GetLoader();
         var xmlFileResolver = new XmlFileResolver(commandLineArguments.BaseDirectory);
-        var strongNameProvider = new DesktopStrongNameProvider(commandLineArguments.KeyFileSearchPaths);
+        var strongNameProvider = new DesktopStrongNameProvider(commandLineArguments.KeyFileSearchPaths, Path.GetTempPath());
 
         // Resolve all metadata references.
         //
