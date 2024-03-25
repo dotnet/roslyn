@@ -1144,7 +1144,7 @@ internal sealed partial class SolutionCompilationState
             cancellationToken.ThrowIfCancellationRequested();
 
             var projectState = newIdToProjectStateMapBuilder[projectId];
-            var newProjectState = projectState.WithSourceGeneratorVersion(projectState.SourceGeneratorVersion + 1);
+            var newProjectState = projectState.WithSourceGeneratorVersion(projectState.Attributes.SourceGeneratorVersion + 1);
             Contract.ThrowIfTrue(projectState == newProjectState);
             newIdToProjectStateMapBuilder[projectId] = newProjectState;
 

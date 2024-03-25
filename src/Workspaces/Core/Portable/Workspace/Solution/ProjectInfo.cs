@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -385,9 +386,10 @@ public sealed class ProjectInfo
         => With(analyzerReferences: PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
 
     internal ProjectInfo WithTelemetryId(Guid telemetryId)
-    {
-        return With(attributes: Attributes.With(telemetryId: telemetryId));
-    }
+        => With(attributes: Attributes.With(telemetryId: telemetryId));
+
+    internal ProjectInfo WithSourceGeneratorVersion(int sourceGeneratorVersion)
+        => With(attributes: Attributes.With(sourceGeneratorVersion: sourceGeneratorVersion));
 
     internal string GetDebuggerDisplay()
         => nameof(ProjectInfo) + " " + Name + (!string.IsNullOrWhiteSpace(FilePath) ? " " + FilePath : "");
@@ -411,7 +413,8 @@ public sealed class ProjectInfo
         Guid telemetryId = default,
         bool isSubmission = false,
         bool hasAllInformation = true,
-        bool runAnalyzers = true)
+        bool runAnalyzers = true,
+        int sourceGeneratorVersion = 0)
     {
         /// <summary>
         /// Matches names like: Microsoft.CodeAnalysis.Features (netcoreapp3.1)
@@ -511,6 +514,14 @@ public sealed class ProjectInfo
                 return match.Success ? (match.Groups["name"].Value, match.Groups["flavor"].Value) : default;
             }, this);
 
+        /// <summary>
+        /// The current version of source generator execution that we're on.  Source generator results are kept around as
+        /// long as this version stays the same (though this can be controlled by <see
+        /// cref="WorkspaceConfigurationOptions.SourceGeneratorExecution"/>).  When this version changes, all source
+        /// generators are rerun.  This should effectively be used as a monotonically increasing value.
+        /// </summary>
+        public int SourceGeneratorVersion { get; } = sourceGeneratorVersion;
+
         public ProjectAttributes With(
             VersionStamp? version = null,
             string? name = null,
@@ -525,7 +536,8 @@ public sealed class ProjectInfo
             Optional<bool> isSubmission = default,
             Optional<bool> hasAllInformation = default,
             Optional<bool> runAnalyzers = default,
-            Optional<Guid> telemetryId = default)
+            Optional<Guid> telemetryId = default,
+            Optional<int> sourceGeneratorVersion = default)
         {
             var newVersion = version ?? Version;
             var newName = name ?? Name;
@@ -541,6 +553,7 @@ public sealed class ProjectInfo
             var newHasAllInformation = hasAllInformation.HasValue ? hasAllInformation.Value : HasAllInformation;
             var newRunAnalyzers = runAnalyzers.HasValue ? runAnalyzers.Value : RunAnalyzers;
             var newTelemetryId = telemetryId.HasValue ? telemetryId.Value : TelemetryId;
+            var newSourceGeneratorVersion = sourceGeneratorVersion.HasValue ? sourceGeneratorVersion.Value : SourceGeneratorVersion;
 
             if (newVersion == Version &&
                 newName == Name &&
@@ -555,7 +568,8 @@ public sealed class ProjectInfo
                 newIsSubmission == IsSubmission &&
                 newHasAllInformation == HasAllInformation &&
                 newRunAnalyzers == RunAnalyzers &&
-                newTelemetryId == TelemetryId)
+                newTelemetryId == TelemetryId &&
+                newSourceGeneratorVersion == SourceGeneratorVersion)
             {
                 return this;
             }
@@ -575,7 +589,8 @@ public sealed class ProjectInfo
                 newTelemetryId,
                 newIsSubmission,
                 newHasAllInformation,
-                newRunAnalyzers);
+                newRunAnalyzers,
+                newSourceGeneratorVersion);
         }
 
         public void WriteTo(ObjectWriter writer)
@@ -598,6 +613,7 @@ public sealed class ProjectInfo
             writer.WriteBoolean(HasAllInformation);
             writer.WriteBoolean(RunAnalyzers);
             writer.WriteGuid(TelemetryId);
+            writer.WriteInt32(SourceGeneratorVersion);
 
             // TODO: once CompilationOptions, ParseOptions, ProjectReference, MetadataReference, AnalyzerReference supports
             //       serialization, we should include those here as well.
@@ -621,6 +637,7 @@ public sealed class ProjectInfo
             var hasAllInformation = reader.ReadBoolean();
             var runAnalyzers = reader.ReadBoolean();
             var telemetryId = reader.ReadGuid();
+            var sourceGeneratorVersion = reader.ReadInt32();
 
             return new ProjectAttributes(
                 projectId,
@@ -637,7 +654,8 @@ public sealed class ProjectInfo
                 telemetryId,
                 isSubmission: isSubmission,
                 hasAllInformation: hasAllInformation,
-                runAnalyzers: runAnalyzers);
+                runAnalyzers: runAnalyzers,
+                sourceGeneratorVersion: sourceGeneratorVersion);
         }
 
         public Checksum Checksum
