@@ -9,7 +9,7 @@ using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 namespace Microsoft.CodeAnalysis.CSharp;
 
 /// <summary>
-/// A token parser that can be used parse tokens continuously from a source. This parser parses continuously; every call to
+/// A token parser that can be used to parse tokens continuously from a source. This parser parses continuously; every call to
 /// <see cref="ParseNextToken"/> will return the next token in the source text, starting from position 0. <see cref="SkipForwardTo(int)"/>
 /// can be used to skip forward in the file to a specific position, and <see cref="ResetTo(Result)"/> can be used to reset the parser
 /// to a previously-lexed position.
@@ -68,7 +68,7 @@ public sealed class SyntaxTokenParser : IDisposable
     }
 
     /// <summary>
-    /// Resets the token parser to an earlier position in the input. The parser is reset the start of the token that was previously
+    /// Resets the token parser to an earlier position in the input. The parser is reset to the start of the token that was previously
     /// parsed, before any leading trivia, with the directive state that existed at the start of the token.
     /// </summary>
     public void ResetTo(Result result)
