@@ -65,6 +65,14 @@ internal partial class ProjectState
     /// </summary>
     private ImmutableDictionary<ISourceGenerator, AnalyzerReference>? _lazySourceGenerators;
 
+    /// <summary>
+    /// The current version of source generator execution that we're on.  Source generator results are kept around as
+    /// long as this version stays the same (though this can be controlled by <see
+    /// cref="WorkspaceConfigurationOptions.SourceGeneratorExecution"/>).  When this version changes, all source
+    /// generators are rerun.  This should effectively be used as a monotonically increasing value.
+    /// </summary>
+    public readonly int SourceGeneratorVersion;
+
     private ProjectState(
         ProjectInfo projectInfo,
         LanguageServices languageServices,
@@ -73,7 +81,8 @@ internal partial class ProjectState
         TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates,
         AsyncLazy<VersionStamp> lazyLatestDocumentVersion,
         AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion,
-        AsyncLazy<AnalyzerConfigOptionsCache> lazyAnalyzerConfigSet)
+        AsyncLazy<AnalyzerConfigOptionsCache> lazyAnalyzerConfigSet,
+        int sourceGeneratorVersion)
     {
         LanguageServices = languageServices;
         DocumentStates = documentStates;
@@ -82,6 +91,7 @@ internal partial class ProjectState
         _lazyLatestDocumentVersion = lazyLatestDocumentVersion;
         _lazyLatestDocumentTopLevelChangeVersion = lazyLatestDocumentTopLevelChangeVersion;
         _lazyAnalyzerConfigOptions = lazyAnalyzerConfigSet;
+        SourceGeneratorVersion = sourceGeneratorVersion;
 
         // ownership of information on document has moved to project state. clear out documentInfo the state is
         // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
@@ -590,7 +600,8 @@ internal partial class ProjectState
         TextDocumentStates<AnalyzerConfigDocumentState>? analyzerConfigDocumentStates = null,
         AsyncLazy<VersionStamp>? latestDocumentVersion = null,
         AsyncLazy<VersionStamp>? latestDocumentTopLevelChangeVersion = null,
-        AsyncLazy<AnalyzerConfigOptionsCache>? analyzerConfigSet = null)
+        AsyncLazy<AnalyzerConfigOptionsCache>? analyzerConfigSet = null,
+        int? sourceGeneratorVersion = null)
     {
         return new ProjectState(
             projectInfo ?? _projectInfo,
@@ -600,7 +611,8 @@ internal partial class ProjectState
             analyzerConfigDocumentStates ?? AnalyzerConfigDocumentStates,
             latestDocumentVersion ?? _lazyLatestDocumentVersion,
             latestDocumentTopLevelChangeVersion ?? _lazyLatestDocumentTopLevelChangeVersion,
-            analyzerConfigSet ?? _lazyAnalyzerConfigOptions);
+            analyzerConfigSet ?? _lazyAnalyzerConfigOptions,
+            sourceGeneratorVersion ?? this.SourceGeneratorVersion);
     }
 
     internal ProjectInfo.ProjectAttributes Attributes
@@ -685,6 +697,14 @@ internal partial class ProjectState
         return With(
             projectInfo: ProjectInfo.WithParseOptions(options).WithVersion(Version.GetNewerVersion()),
             documentStates: DocumentStates.UpdateStates(static (state, args) => state.UpdateParseOptions(args.options, args.onlyPreprocessorDirectiveChange), (options, onlyPreprocessorDirectiveChange)));
+    }
+
+    public ProjectState WithSourceGeneratorVersion(int sourceGeneratorVersion)
+    {
+        if (this.SourceGeneratorVersion == sourceGeneratorVersion)
+            return this;
+
+        return With(sourceGeneratorVersion: sourceGeneratorVersion);
     }
 
     public static bool IsSameLanguage(ProjectState project1, ProjectState project2)

@@ -74,7 +74,8 @@ internal partial class ProjectState
                     analyzerReferenceChecksums,
                     documentChecksums: await documentChecksumsTask.ConfigureAwait(false),
                     await additionalDocumentChecksumsTask.ConfigureAwait(false),
-                    await analyzerConfigDocumentChecksumsTask.ConfigureAwait(false));
+                    await analyzerConfigDocumentChecksumsTask.ConfigureAwait(false),
+                    this.SourceGeneratorVersion);
             }
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))

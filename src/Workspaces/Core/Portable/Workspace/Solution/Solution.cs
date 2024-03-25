@@ -1608,14 +1608,6 @@ public partial class Solution
             : this;
     }
 
-    internal Solution WithSourceGeneratorVersion(int sourceGeneratorVersion, CancellationToken cancellationToken)
-    {
-        var newCompilationState = _compilationState.WithSourceGeneratorVersion(sourceGeneratorVersion, cancellationToken);
-        return newCompilationState != _compilationState
-            ? new Solution(newCompilationState)
-            : this;
-    }
-
     internal Solution WithUpdatedSourceGeneratorVersion(ImmutableHashSet<ProjectId> projectIds, CancellationToken cancellationToken)
     {
         var newCompilationState = _compilationState.WithUpdatedSourceGeneratorVersion(projectIds, cancellationToken);

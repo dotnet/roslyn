@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.IO.Hashing;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -42,6 +43,13 @@ internal readonly partial record struct Checksum
     {
         Span<byte> destination = stackalloc byte[XXHash128SizeBytes];
         XxHash128.Hash(MemoryMarshal.AsBytes(value.AsSpan()), destination);
+        return From(destination);
+    }
+
+    public static unsafe Checksum Create(int value)
+    {
+        Span<byte> destination = stackalloc byte[XXHash128SizeBytes];
+        XxHash128.Hash(MemoryMarshal.AsBytes(new ReadOnlySpan<int>(&value, length: 1)), destination);
         return From(destination);
     }
 

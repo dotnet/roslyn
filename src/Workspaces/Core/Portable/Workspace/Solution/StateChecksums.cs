@@ -298,7 +298,8 @@ internal sealed class ProjectStateChecksums(
     ChecksumCollection analyzerReferenceChecksums,
     ChecksumsAndIds<DocumentId> documentChecksums,
     ChecksumsAndIds<DocumentId> additionalDocumentChecksums,
-    ChecksumsAndIds<DocumentId> analyzerConfigDocumentChecksums) : IEquatable<ProjectStateChecksums>
+    ChecksumsAndIds<DocumentId> analyzerConfigDocumentChecksums,
+    int sourceGeneratorVersion) : IEquatable<ProjectStateChecksums>
 {
     public Checksum Checksum { get; } = Checksum.Create(stackalloc[]
     {
@@ -311,6 +312,7 @@ internal sealed class ProjectStateChecksums(
         analyzerReferenceChecksums.Checksum,
         additionalDocumentChecksums.Checksum,
         analyzerConfigDocumentChecksums.Checksum,
+        Checksum.Create(sourceGeneratorVersion),
     });
 
     public ProjectId ProjectId => projectId;
@@ -326,6 +328,8 @@ internal sealed class ProjectStateChecksums(
     public ChecksumsAndIds<DocumentId> Documents => documentChecksums;
     public ChecksumsAndIds<DocumentId> AdditionalDocuments => additionalDocumentChecksums;
     public ChecksumsAndIds<DocumentId> AnalyzerConfigDocuments => analyzerConfigDocumentChecksums;
+
+    public int SourceGeneratorVersion => sourceGeneratorVersion;
 
     public override bool Equals(object? obj)
         => Equals(obj as ProjectStateChecksums);
@@ -365,6 +369,7 @@ internal sealed class ProjectStateChecksums(
         this.Documents.WriteTo(writer);
         this.AdditionalDocuments.WriteTo(writer);
         this.AnalyzerConfigDocuments.WriteTo(writer);
+        writer.WriteInt32(this.SourceGeneratorVersion);
     }
 
     public static ProjectStateChecksums Deserialize(ObjectReader reader)
@@ -380,7 +385,8 @@ internal sealed class ProjectStateChecksums(
             analyzerReferenceChecksums: ChecksumCollection.ReadFrom(reader),
             documentChecksums: ChecksumsAndIds<DocumentId>.ReadFrom(reader),
             additionalDocumentChecksums: ChecksumsAndIds<DocumentId>.ReadFrom(reader),
-            analyzerConfigDocumentChecksums: ChecksumsAndIds<DocumentId>.ReadFrom(reader));
+            analyzerConfigDocumentChecksums: ChecksumsAndIds<DocumentId>.ReadFrom(reader),
+            sourceGeneratorVersion: reader.ReadInt32());
         Contract.ThrowIfFalse(result.Checksum == checksum);
         return result;
     }
