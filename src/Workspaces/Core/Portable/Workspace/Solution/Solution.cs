@@ -112,14 +112,6 @@ public partial class Solution
     public VersionStamp Version => this.SolutionState.Version;
 
     /// <summary>
-    /// The current version of source generator execution that we're on.  Source generator results are kept around as
-    /// long as this version stays the same (though this can be controlled by <see
-    /// cref="WorkspaceConfigurationOptions.SourceGeneratorExecution"/>).  When this version changes, all source
-    /// generators are rerun.  This should effectively be used as a monotonically increasing value.
-    /// </summary>
-    internal int SourceGeneratorVersion => this.SolutionState.SolutionAttributes.SourceGeneratorVersion;
-
-    /// <summary>
     /// A list of all the ids for all the projects contained by the solution.
     /// </summary>
     public IReadOnlyList<ProjectId> ProjectIds => this.SolutionState.ProjectIds;
@@ -1619,6 +1611,14 @@ public partial class Solution
     internal Solution WithSourceGeneratorVersion(int sourceGeneratorVersion, CancellationToken cancellationToken)
     {
         var newCompilationState = _compilationState.WithSourceGeneratorVersion(sourceGeneratorVersion, cancellationToken);
+        return newCompilationState != _compilationState
+            ? new Solution(newCompilationState)
+            : this;
+    }
+
+    internal Solution WithUpdatedSourceGeneratorVersion(ImmutableHashSet<ProjectId> projectIds, CancellationToken cancellationToken)
+    {
+        var newCompilationState = _compilationState.WithUpdatedSourceGeneratorVersion(projectIds, cancellationToken);
         return newCompilationState != _compilationState
             ? new Solution(newCompilationState)
             : this;

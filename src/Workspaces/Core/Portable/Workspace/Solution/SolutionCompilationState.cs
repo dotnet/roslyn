@@ -1134,28 +1134,36 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithOptions(options));
     }
 
-    public SolutionCompilationState WithSourceGeneratorVersion(
-        int sourceGeneratorVersion, CancellationToken cancellationToken)
+    public SolutionCompilationState WithUpdatedSourceGeneratorVersion(ImmutableHashSet<ProjectId> projectIds, CancellationToken cancellationToken)
     {
-        if (this.SolutionState.SolutionAttributes.SourceGeneratorVersion == sourceGeneratorVersion)
-            return this;
-
+        var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
-        foreach (var (projectId, tracker) in _projectIdToTrackerMap)
+
+        foreach (var projectId in projectIds)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Let the tracker know that the source generator version has changed. We do this by telling it that it
-            // should now create SG docs and skeleton references if they're out of date.
-            var newTracker = tracker.WithCreationPolicy(create: true, cancellationToken);
-            if (newTracker == tracker)
-                continue;
+            var projectState = newIdToProjectStateMapBuilder[projectId];
+            var newProjectState = projectState.WithSourceGeneratorVersion(projectState.SourceGeneratorVersion + 1);
+            Contract.ThrowIfTrue(projectState == newProjectState);
+            newIdToProjectStateMapBuilder[projectId] = newProjectState;
 
-            newIdToTrackerMapBuilder[projectId] = newTracker;
+            // If we do already have a compilation tracker for thiws project, then let the tracker know that the source
+            // generator version has changed. We do this by telling it that it should now create SG docs and skeleton
+            // references if they're out of date.
+            if (_projectIdToTrackerMap.TryGetValue(projectId, out var existingTracker))
+            {
+                var newTracker = existingTracker.WithCreationPolicy(create: true, cancellationToken);
+                if (newTracker != existingTracker)
+                    newIdToTrackerMapBuilder[projectId] = newTracker;
+            }
         }
 
+        // Fork the solution state to have the updated project states.  Note: this doesn't change the dependency graph,
+        // or filename map, so we don't need to recompute either of those.
         var newSolutionState = this.SolutionState.Branch(
-            this.SolutionState.SolutionAttributes.With(sourceGeneratorVersion: sourceGeneratorVersion));
+            idToProjectStateMap: newIdToProjectStateMapBuilder.ToImmutable());
+
         return this.Branch(
             newSolutionState,
             newIdToTrackerMapBuilder.ToImmutable());

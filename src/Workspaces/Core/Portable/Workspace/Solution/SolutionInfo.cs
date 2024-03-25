@@ -78,8 +78,7 @@ public sealed class SolutionInfo
                 id ?? throw new ArgumentNullException(nameof(id)),
                 version,
                 filePath,
-                telemetryId: default,
-                sourceGeneratorVersion: 0),
+                telemetryId: default),
             PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projects, nameof(projects)),
             PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
     }
@@ -95,8 +94,7 @@ public sealed class SolutionInfo
         SolutionId id,
         VersionStamp version,
         string? filePath,
-        Guid telemetryId,
-        int sourceGeneratorVersion)
+        Guid telemetryId)
     {
         private SingleInitNullable<Checksum> _lazyChecksum;
 
@@ -120,29 +118,23 @@ public sealed class SolutionInfo
         /// </summary>
         public Guid TelemetryId { get; } = telemetryId;
 
-        /// <inheritdoc cref="Solution.SourceGeneratorVersion"/>
-        public int SourceGeneratorVersion { get; } = sourceGeneratorVersion;
-
         public SolutionAttributes With(
             VersionStamp? version = null,
             Optional<string?> filePath = default,
-            Optional<Guid> telemetryId = default,
-            Optional<int> sourceGeneratorVersion = default)
+            Optional<Guid> telemetryId = default)
         {
             var newVersion = version ?? Version;
             var newFilePath = filePath.HasValue ? filePath.Value : FilePath;
             var newTelemetryId = telemetryId.HasValue ? telemetryId.Value : TelemetryId;
-            var newSourceGeneratorVersion = sourceGeneratorVersion.HasValue ? sourceGeneratorVersion.Value : SourceGeneratorVersion;
 
             if (newVersion == Version &&
                 newFilePath == FilePath &&
-                newTelemetryId == TelemetryId &&
-                newSourceGeneratorVersion == SourceGeneratorVersion)
+                newTelemetryId == TelemetryId)
             {
                 return this;
             }
 
-            return new SolutionAttributes(Id, newVersion, newFilePath, newTelemetryId, newSourceGeneratorVersion);
+            return new SolutionAttributes(Id, newVersion, newFilePath, newTelemetryId);
         }
 
         public void WriteTo(ObjectWriter writer)
@@ -155,16 +147,14 @@ public sealed class SolutionInfo
 
             writer.WriteString(FilePath);
             writer.WriteGuid(TelemetryId);
-            writer.WriteInt32(SourceGeneratorVersion);
         }
 
         public static SolutionAttributes ReadFrom(ObjectReader reader)
-            => new SolutionAttributes(
+            => new(
                 SolutionId.ReadFrom(reader),
                 VersionStamp.Create(),
                 reader.ReadString(),
-                reader.ReadGuid(),
-                reader.ReadInt32());
+                reader.ReadGuid());
 
         public Checksum Checksum
             => _lazyChecksum.Initialize(static @this => Checksum.Create(@this, static (@this, writer) => @this.WriteTo(writer)), this);
