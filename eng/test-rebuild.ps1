@@ -65,6 +65,10 @@ try {
   " --exclude net472\Zip\tools\vsixexpinstaller\System.ValueTuple.dll" +
   " --exclude net472\Zip\tools\vsixexpinstaller\VSIXExpInstaller.exe" +
 
+  # Semantic Search reference assemblies can't be reconstructed from source.
+  # The assemblies are not marked with ReferenceAssemblyAttribute attribute.
+  " --exclude net8.0\GeneratedRefAssemblies\Microsoft.CodeAnalysis.dll" +
+
   " --debugPath `"$ArtifactsDir/BuildValidator`"" +
   " --sourcePath `"$RepoRoot/`"" +
   " --referencesPath `"$ArtifactsDir/bin`"" +
