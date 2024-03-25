@@ -202,6 +202,14 @@ public partial class Project
     public IEnumerable<AnalyzerConfigDocument> AnalyzerConfigDocuments => AnalyzerConfigDocumentIds.Select(GetAnalyzerConfigDocument)!;
 
     /// <summary>
+    /// The current version of source generator execution that we're on.  Source generator results are kept around as
+    /// long as this version stays the same (though this can be controlled by <see
+    /// cref="WorkspaceConfigurationOptions.SourceGeneratorExecution"/>).  When this version changes, all source
+    /// generators are rerun.  This should effectively be used as a monotonically increasing value.
+    /// </summary>
+    internal int SourceGeneratorVersion => this.State.Attributes.SourceGeneratorVersion;
+
+    /// <summary>
     /// True if the project contains a document with the specified ID.
     /// </summary>
     public bool ContainsDocument(DocumentId documentId)

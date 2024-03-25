@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Shell;
@@ -98,9 +100,8 @@ internal abstract partial class VisualStudioWorkspaceImpl
         await this.SetCurrentSolutionAsync(
             oldSolution =>
             {
-                var affectedProjects = GetAffectedProjectIds(oldSolution, projectIdSet);
-
-                return oldSolution.WithUpdatedSourceGeneratorVersion(affectedProjects, cancellationToken);
+                var updates = GetUpdatedSourceGeneratorVersions(oldSolution, projectIdSet);
+                return oldSolution.WithSourceGeneratorVersions(updates, cancellationToken);
             },
             static (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
             onBeforeUpdate: null,
@@ -109,24 +110,35 @@ internal abstract partial class VisualStudioWorkspaceImpl
 
         return;
 
-        static ImmutableHashSet<ProjectId> GetAffectedProjectIds(Solution solution, ImmutableHashSet<ProjectId>? projectIdSet)
+        static FrozenDictionary<ProjectId, int> GetUpdatedSourceGeneratorVersions(Solution solution, ImmutableHashSet<ProjectId>? projectIdSet)
         {
+            // If the entire solution needs to be regenerated, then take every project and increase its source generator version.
             if (projectIdSet is null)
-                return solution.ProjectIds.ToImmutableHashSet();
+            {
+                return solution.ProjectIds.ToFrozenDictionary(
+                    p => solution.GetRequiredProject(p).Id,
+                    p => solution.GetRequiredProject(p).SourceGeneratorVersion + 1);
+            }
 
+            // Otherwise, for all the projects involved in the save, update its source generator version.  Also do this
+            // for all projects that transitively depend on that project, so that their generators will run as well when
+            // next asked.
             var dependencyGraph = solution.GetProjectDependencyGraph();
-            var result = ImmutableHashSet.CreateBuilder<ProjectId>();
+            using var _ = CodeAnalysis.PooledObjects.PooledDictionary<ProjectId, int>.GetInstance(out var result);
 
             foreach (var savedProjectId in projectIdSet)
             {
-                if (solution.ContainsProject(savedProjectId) && result.Add(savedProjectId))
+                var savedProject = solution.GetProject(savedProjectId);
+                if (savedProject != null && !result.ContainsKey(savedProjectId))
                 {
+                    result[savedProjectId] = savedProject.SourceGeneratorVersion + 1;
+
                     foreach (var transitiveProjectId in dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(savedProjectId))
-                        result.Add(transitiveProjectId);
+                        result[transitiveProjectId] = solution.GetRequiredProject(transitiveProjectId).SourceGeneratorVersion + 1;
                 }
             }
 
-            return result.ToImmutable();
+            return result.ToFrozenDictionary();
         }
     }
 

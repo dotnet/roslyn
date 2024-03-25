@@ -1140,15 +1140,20 @@ internal sealed partial class SolutionCompilationState
     {
         var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
+        var changed = false;
 
         foreach (var (projectId, sourceGeneratorVersion) in projectIdToSourceGeneratorVersion)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var projectState = newIdToProjectStateMapBuilder[projectId];
-            var newProjectState = projectState.WithSourceGeneratorVersion(sourceGeneratorVersion);
-            Contract.ThrowIfTrue(projectState == newProjectState);
-            newIdToProjectStateMapBuilder[projectId] = newProjectState;
+
+            // Nothing to do if already at this version.
+            if (projectState.Attributes.SourceGeneratorVersion == sourceGeneratorVersion)
+                continue;
+
+            changed = true;
+            newIdToProjectStateMapBuilder[projectId] = projectState.WithSourceGeneratorVersion(sourceGeneratorVersion);
 
             // If we do already have a compilation tracker for thiws project, then let the tracker know that the source
             // generator version has changed. We do this by telling it that it should now create SG docs and skeleton
@@ -1160,6 +1165,9 @@ internal sealed partial class SolutionCompilationState
                     newIdToTrackerMapBuilder[projectId] = newTracker;
             }
         }
+
+        if (!changed)
+            return this;
 
         // Fork the solution state to have the updated project states.  Note: this doesn't change the dependency graph,
         // or filename map, so we don't need to recompute either of those.

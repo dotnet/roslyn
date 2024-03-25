@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -425,7 +426,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 if (project.State.ProjectInfo.Attributes.SourceGeneratorVersion != newProjectAttributes.SourceGeneratorVersion)
                 {
-                    project = project.Solution.WithSourceGeneratorVersion(projectId, newProjectAttributes.SourceGeneratorVersion).GetRequiredProject(projectId);
+                    project = project.Solution.WithSourceGeneratorVersions(
+                        FrozenDictionary.ToFrozenDictionary([new KeyValuePair<ProjectId, int>(projectId, newProjectAttributes.SourceGeneratorVersion)]), cancellationToken).GetRequiredProject(projectId);
                 }
 
                 return project;

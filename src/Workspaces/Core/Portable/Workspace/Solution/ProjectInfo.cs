@@ -514,12 +514,7 @@ public sealed class ProjectInfo
                 return match.Success ? (match.Groups["name"].Value, match.Groups["flavor"].Value) : default;
             }, this);
 
-        /// <summary>
-        /// The current version of source generator execution that we're on.  Source generator results are kept around as
-        /// long as this version stays the same (though this can be controlled by <see
-        /// cref="WorkspaceConfigurationOptions.SourceGeneratorExecution"/>).  When this version changes, all source
-        /// generators are rerun.  This should effectively be used as a monotonically increasing value.
-        /// </summary>
+        /// <inheritdoc cref="Project.SourceGeneratorVersion"/>
         public int SourceGeneratorVersion { get; } = sourceGeneratorVersion;
 
         public ProjectAttributes With(
