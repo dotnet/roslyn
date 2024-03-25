@@ -2332,13 +2332,16 @@ outerDefault:
                     TypeSymbol t1 = m1LeastOverriddenParameters[^1].Type;
                     TypeSymbol t2 = m2LeastOverriddenParameters[^1].Type;
 
-                    if (IsBetterParamsCollectionType(t1, t2, ref useSiteInfo))
+                    if (!Conversions.HasIdentityConversion(t1, t2))
                     {
-                        return BetterResult.Left;
-                    }
-                    if (IsBetterParamsCollectionType(t2, t1, ref useSiteInfo))
-                    {
-                        return BetterResult.Right;
+                        if (IsBetterParamsCollectionType(t1, t2, ref useSiteInfo))
+                        {
+                            return BetterResult.Left;
+                        }
+                        if (IsBetterParamsCollectionType(t2, t1, ref useSiteInfo))
+                        {
+                            return BetterResult.Right;
+                        }
                     }
                 }
             }
@@ -2778,6 +2781,7 @@ outerDefault:
             TypeSymbol t2, CollectionExpressionTypeKind kind2, TypeSymbol elementType2,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(!Conversions.HasIdentityConversion(t1, t2));
 
             // - T1 is System.ReadOnlySpan<E1>, and T2 is System.Span<E2>, and an implicit conversion exists from E1 to E2
             if (kind1 is CollectionExpressionTypeKind.ReadOnlySpan &&
