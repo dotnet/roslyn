@@ -3,14 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -25,7 +29,7 @@ internal abstract partial class VisualStudioWorkspaceImpl
     /// <summary>
     /// Used for batching up a lot of events and only combining them into a single request to update generators.
     /// </summary>
-    private readonly AsyncBatchingWorkQueue _updateSourceGeneratorsQueue;
+    private readonly AsyncBatchingWorkQueue<ProjectId?> _updateSourceGeneratorsQueue;
     private bool _isSubscribedToSourceGeneratorImpactingEvents;
 
     public void SubscribeToSourceGeneratorImpactingEvents()
@@ -49,7 +53,7 @@ internal abstract partial class VisualStudioWorkspaceImpl
                 {
                     // After a build occurs, transition the solution to a new source generator version.  This will
                     // ensure that any cached SG documents will be re-generated.
-                    this.EnqueueUpdateSourceGeneratorVersion();
+                    this.EnqueueUpdateSourceGeneratorVersion(projectId: null);
                 }
             };
         });
@@ -62,23 +66,24 @@ internal abstract partial class VisualStudioWorkspaceImpl
                 {
                     // After the solution fully loads, transition the solution to a new source generator version.  This
                     // will ensure that we'll now produce correct SG docs with fully knowledge of all the user's state.
-                    this.EnqueueUpdateSourceGeneratorVersion();
+                    this.EnqueueUpdateSourceGeneratorVersion(projectId: null);
                 }
             };
         });
 
         // Whenever the workspace status changes, go attempt to update generators.
         var workspaceStatusService = this.Services.GetRequiredService<IWorkspaceStatusService>();
-        workspaceStatusService.StatusChanged += (_, _) => EnqueueUpdateSourceGeneratorVersion();
+        workspaceStatusService.StatusChanged += (_, _) => EnqueueUpdateSourceGeneratorVersion(projectId: null);
 
         // Now kick off at least the initial work to run generators.
-        this.EnqueueUpdateSourceGeneratorVersion();
+        this.EnqueueUpdateSourceGeneratorVersion(projectId: null);
     }
 
-    private void EnqueueUpdateSourceGeneratorVersion()
-        => _updateSourceGeneratorsQueue.AddWork(cancelExistingWork: true);
+    private void EnqueueUpdateSourceGeneratorVersion(ProjectId? projectId)
+        => _updateSourceGeneratorsQueue.AddWork(projectId);
 
-    private async ValueTask ProcessUpdateSourceGeneratorRequestAsync(CancellationToken cancellationToken)
+    private async ValueTask ProcessUpdateSourceGeneratorRequestAsync(
+        ImmutableSegmentedList<ProjectId?> projectIds, CancellationToken cancellationToken)
     {
         // Only need to do this if we're not in automatic mode.
         var configuration = this.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
@@ -89,12 +94,40 @@ internal abstract partial class VisualStudioWorkspaceImpl
         var workspaceStatusService = this.Services.GetRequiredService<IWorkspaceStatusService>();
         await workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 
+        var projectIdSet = projectIds.Contains(null) ? null : (ImmutableHashSet<ProjectId>)projectIds.ToImmutableHashSet()!;
         await this.SetCurrentSolutionAsync(
-            oldSolution => oldSolution.WithSourceGeneratorVersion(oldSolution.SourceGeneratorVersion + 1, cancellationToken),
+            oldSolution =>
+            {
+                var affectedProjects = GetAffectedProjectIds(oldSolution, projectIdSet);
+
+                return oldSolution.WithUpdatedSourceGeneratorVersion(affectedProjects, cancellationToken);
+            },
             static (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
             onBeforeUpdate: null,
             onAfterUpdate: null,
             cancellationToken).ConfigureAwait(false);
+
+        return;
+
+        static ImmutableHashSet<ProjectId> GetAffectedProjectIds(Solution solution, ImmutableHashSet<ProjectId>? projectIdSet)
+        {
+            if (projectIdSet is null)
+                return solution.ProjectIds.ToImmutableHashSet();
+
+            var dependencyGraph = solution.GetProjectDependencyGraph();
+            var result = ImmutableHashSet.CreateBuilder<ProjectId>();
+
+            foreach (var savedProjectId in projectIdSet)
+            {
+                if (solution.ContainsProject(savedProjectId) && result.Add(savedProjectId))
+                {
+                    foreach (var transitiveProjectId in dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(savedProjectId))
+                        result.Add(transitiveProjectId);
+                }
+            }
+
+            return result.ToImmutable();
+        }
     }
 
     [Export(typeof(ICommandHandler))]
@@ -114,11 +147,14 @@ internal abstract partial class VisualStudioWorkspaceImpl
         {
             nextCommandHandler();
 
-            // After a save happens, enqueue a request to run generators.
-            if (args.SubjectBuffer.TryGetWorkspace(out var workspace) &&
-                workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
+            // After a save happens, enqueue a request to run generators on the projects impacted by the save.
+            foreach (var group in args.SubjectBuffer.GetRelatedDocuments().GroupBy(d => d.Project.Solution.Workspace))
             {
-                visualStudioWorkspace.EnqueueUpdateSourceGeneratorVersion();
+                if (group.Key is VisualStudioWorkspaceImpl visualStudioWorkspace)
+                {
+                    foreach (var projectGroup in group.GroupBy(d => d.Project))
+                        visualStudioWorkspace.EnqueueUpdateSourceGeneratorVersion(projectGroup.Key.Id);
+                }
             }
         }
     }
