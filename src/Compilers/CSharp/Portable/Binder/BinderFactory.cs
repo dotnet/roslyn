@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // This results in a lot of allocations of BinderFactoryVisitors. Pooling them
         // reduces this churn to almost nothing.
         private static readonly ObjectPool<BinderFactoryVisitor> s_binderFactoryVisitorPool
-            = new ObjectPool<BinderFactoryVisitor>(() => new BinderFactoryVisitor(), 64);
+            = new ObjectPool<BinderFactoryVisitor>(static () => new BinderFactoryVisitor(), 64);
 
         internal BinderFactory(CSharpCompilation compilation, SyntaxTree syntaxTree, bool ignoreAccessibility)
         {
