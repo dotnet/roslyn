@@ -197,7 +197,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         }
 
         // TODO: cleanup https://github.com/dotnet/roslyn/issues/43037
-        // Offet, Size not accessed if Name is null
+        // Offset, Size not accessed if Name is null
         public string? Name => _memoryMappedInfo?.Name;
         public long Offset => _memoryMappedInfo!.Offset;
         public long Size => _memoryMappedInfo!.Size;
