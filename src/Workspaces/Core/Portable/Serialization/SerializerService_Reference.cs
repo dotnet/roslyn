@@ -478,7 +478,9 @@ internal partial class SerializerService
             var offset = reader.ReadInt64();
             var size = reader.ReadInt64();
 
+#pragma warning disable CA1416 // Validate platform compatibility
             var storage = service2.AttachTemporaryStreamStorage(name, offset, size);
+#pragma warning restore CA1416 // Validate platform compatibility
             var length = size;
 
             return (storage, length);
