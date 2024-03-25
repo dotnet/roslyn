@@ -6718,7 +6718,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (ParameterSymbol? parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool isExpandedParamsArgument) =
                             GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded, ref paramsIterationType);
 
-                        if (parameter is null)
+                        if (// This is known to happen for certain error scenarios, because
+                            // the parameter matching logic above is not as flexible as the one we use in `Binder.BuildArgumentsForErrorRecovery`
+                            // so we may end up with a pending conversion completion for an argument apparently without a corresponding parameter.
+                            parameter is null ||
+                            // In error recovery with named arguments, target-typing cannot work as we can get a different parameter type
+                            // from our GetCorrespondingParameter logic than Binder.BuildArgumentsForErrorRecovery does.
+                            node is BoundCall { HasErrors: true, ArgumentNamesOpt.IsDefaultOrEmpty: false, ArgsToParamsOpt.IsDefault: true })
                         {
                             if (IsTargetTypedExpression(argumentNoConversion) && _targetTypedAnalysisCompletionOpt?.TryGetValue(argumentNoConversion, out var completion) is true)
                             {
@@ -6728,10 +6734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 completion(TypeWithAnnotations.Create(argument.Type));
                                 TargetTypedAnalysisCompletion.Remove(argumentNoConversion);
 
-                                // This is known to happen for certain error scenarios, because
-                                // the parameter matching logic above is not as flexible as the one we use in `Binder.BuildArgumentsForErrorRecovery`
-                                // so we may end up with a pending conversion completion for an argument apparently without a corresponding parameter.
-                                Debug.Assert(method is ErrorMethodSymbol);
+                                Debug.Assert(parameter is not null || method is ErrorMethodSymbol);
                             }
                             continue;
                         }
