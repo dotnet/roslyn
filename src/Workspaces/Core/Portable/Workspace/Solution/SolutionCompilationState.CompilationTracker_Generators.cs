@@ -283,6 +283,8 @@ internal partial class SolutionCompilationState
             }
 
             using var generatedDocumentsBuilder = TemporaryArray<SourceGeneratedDocumentState>.Empty;
+
+            // Capture the date now.  We want all the generated files to use this date consistently.
             var generationDateTime = DateTime.Now;
             foreach (var generatorResult in runResult.Results)
             {
