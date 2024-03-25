@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
@@ -1608,20 +1609,12 @@ public partial class Solution
             : this;
     }
 
-    internal Solution WithUpdatedSourceGeneratorVersion(ImmutableHashSet<ProjectId> projectIds, CancellationToken cancellationToken)
+    internal Solution WithSourceGeneratorVersions(FrozenDictionary<ProjectId, int> projectIdToSourceGeneratorVersion, CancellationToken cancellationToken)
     {
-        var newCompilationState = _compilationState.WithUpdatedSourceGeneratorVersion(projectIds, cancellationToken);
+        var newCompilationState = _compilationState.WithSourceGeneratorVersions(projectIdToSourceGeneratorVersion, cancellationToken);
         return newCompilationState != _compilationState
             ? new Solution(newCompilationState)
             : this;
-    }
-
-    internal Solution WithSourceGeneratorVersion(ProjectId projectId, int sourceGeneratorVersion)
-    {
-        CheckContainsProject(projectId);
-
-        var newCompilationState = _compilationState.WithSourceGeneratorVersion(projectId, sourceGeneratorVersion);
-        return newCompilationState == _compilationState ? this : new Solution(newCompilationState);
     }
 
     /// <summary>

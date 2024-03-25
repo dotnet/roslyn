@@ -1171,16 +1171,6 @@ internal sealed partial class SolutionCompilationState
             newIdToTrackerMapBuilder.ToImmutable());
     }
 
-    public SolutionCompilationState WithSourceGeneratorVersion(
-        ProjectId projectId, int sourceGeneratorVersion, CancellationToken cancellationToken)
-    {
-        return WithSourceGeneratorVersions(
-            new Dictionary<ProjectId, int>
-            {
-                {  projectId, sourceGeneratorVersion }
-            }.ToFrozenDictionary(), cancellationToken);
-    }
-
     public SolutionCompilationState WithFrozenPartialCompilations(CancellationToken cancellationToken)
         => _cachedFrozenSnapshot.GetValue(cancellationToken);
 
