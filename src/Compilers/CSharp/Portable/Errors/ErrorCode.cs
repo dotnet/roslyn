@@ -2300,6 +2300,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ParamsCollectionExtensionAddMethod = 9227,
         ERR_ParamsCollectionMissingConstructor = 9228,
 
+        ERR_NoModifiersOnUsing = 9229,
+
         ERR_RuntimeDoesNotSupportByRefLikeGenerics = 9500, // PROTOTYPE(RefStructInterfaces): Pack numbers
         ERR_RefStructConstraintAlreadySpecified = 9501,
         ERR_AllowsClauseMustBeLast = 9502,

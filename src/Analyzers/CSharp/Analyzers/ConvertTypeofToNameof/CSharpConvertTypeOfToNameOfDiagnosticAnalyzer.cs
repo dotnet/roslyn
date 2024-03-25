@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed class CSharpConvertTypeOfToNameOfDiagnosticAnalyzer : AbstractConvertTypeOfToNameOfDiagnosticAnalyzer
 {
-    private static readonly string s_title = CSharpAnalyzersResources.typeof_can_be_converted__to_nameof;
+    private static readonly string s_title = CSharpAnalyzersResources.typeof_can_be_converted_to_nameof;
 
     public CSharpConvertTypeOfToNameOfDiagnosticAnalyzer() : base(s_title)
     {

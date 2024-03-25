@@ -15,7 +15,7 @@ internal readonly partial struct ImmutableSegmentedDictionary<TKey, TValue>
         {
             /// <inheritdoc cref="SegmentedCollectionsMarshal.GetValueRefOrNullRef{TKey, TValue}(ImmutableSegmentedDictionary{TKey, TValue}.Builder, TKey)"/>
             public static ref TValue FindValue(Builder dictionary, TKey key)
-                => ref SegmentedCollectionsMarshal.GetValueRefOrNullRef(dictionary.GetOrCreateMutableDictionary(), key);
+                => ref SegmentedCollectionsMarshal.GetValueRefOrNullRef(dictionary._builder.GetOrCreateMutableDictionary(), key);
         }
     }
 }

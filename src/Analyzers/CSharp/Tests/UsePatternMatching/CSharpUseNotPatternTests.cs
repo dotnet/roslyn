@@ -50,6 +50,37 @@ public partial class CSharpUseNotPatternTests
         }.RunAsync();
     }
 
+    [Fact]
+    public async Task BinaryIsExpression2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M(object x)
+                    {
+                        if (!(x [|is|] string /*trailing*/))
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(object x)
+                    {
+                        if (x is not string /*trailing*/)
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50690")]
     public async Task ConstantPattern()
     {
@@ -174,6 +205,86 @@ public partial class CSharpUseNotPatternTests
         }.RunAsync();
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72370")]
+    public async Task UseNotPattern2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                       public class Program
+                       {
+                           public class C
+                           {
+                           }
+                           public static void Main()
+                           {
+                               C C = new();
+                               object O = C;
+                               
+                               if (!(O [|is|] C))
+                               {
+                               }
+                           }
+                       }
+                       """,
+            FixedCode = """
+                        public class Program
+                        {
+                            public class C
+                            {
+                            }
+                            public static void Main()
+                            {
+                                C C = new();
+                                object O = C;
+                                
+                                if (O is not Program.C)
+                                {
+                                }
+                            }
+                        }
+                        """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72370")]
+    public async Task UseNotPattern3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                       public class Program
+                       {
+                           public class C
+                           {
+                           }
+                           public static void Main(object O)
+                           {
+                               if (!(O [|is|] C))
+                               {
+                               }
+                           }
+                       }
+                       """,
+            FixedCode = """
+                        public class Program
+                        {
+                            public class C
+                            {
+                            }
+                            public static void Main(object O)
+                            {
+                                if (O is not C)
+                                {
+                                }
+                            }
+                        }
+                        """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
+
     [Fact]
     public async Task UnavailableInCSharp8()
     {
@@ -211,6 +322,72 @@ public partial class CSharpUseNotPatternTests
                 }
                 """,
             FixedCode = """
+                class C
+                {
+                    void M(object x)
+                    {
+                        if (x is null)
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50690")]
+    public async Task BinaryIsObject2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M(object x)
+                    {
+                        if (!(x [|is|] object /*trailing*/))
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(object x)
+                    {
+                        if (x is null /*trailing*/)
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task BinaryIsObject3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(object x)
+                    {
+                        if (!(x [|is|] Object))
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
                 class C
                 {
                     void M(object x)

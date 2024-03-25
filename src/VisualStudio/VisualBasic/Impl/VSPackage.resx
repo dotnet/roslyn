@@ -208,10 +208,4 @@ Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</v
     <value>Visual Basic Tools</value>
     <comment>Help &gt; About</comment>
   </data>
-  <data name="Visual_Basic_Script" xml:space="preserve">
-    <value>Visual Basic Script</value>
-  </data>
-  <data name="An_empty_Visual_Basic_script_file" xml:space="preserve">
-    <value>An empty Visual Basic script file.</value>
-  </data>
 </root>

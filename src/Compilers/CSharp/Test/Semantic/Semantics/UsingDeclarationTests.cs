@@ -954,12 +954,12 @@ class C
 }
 ";
             CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
-                // (7,15): error CS0106: The modifier 'public' is not valid for this item
+                // (7,15): error CS9229: Modifiers cannot be placed on using declarations
                 //         using public readonly var x = (IDisposable)null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(7, 15),
-                // (7,22): error CS0106: The modifier 'readonly' is not valid for this item
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "public").WithLocation(7, 15),
+                // (7,22): error CS9229: Modifiers cannot be placed on using declarations
                 //         using public readonly var x = (IDisposable)null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(7, 22)
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(7, 22)
                 );
         }
     }

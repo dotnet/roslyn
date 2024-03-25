@@ -357,12 +357,6 @@ Show items from unimported namespaces (experimental);</value>
     <value>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</value>
     <comment>Help &gt; About</comment>
   </data>
-  <data name="Visual_CSharp_Script" xml:space="preserve">
-    <value>Visual C# Script</value>
-  </data>
-  <data name="An_empty_CSharp_script_file" xml:space="preserve">
-    <value>An empty C# script file.</value>
-  </data>
   <data name="Always_add_new_line_on_enter" xml:space="preserve">
     <value>Always add new line on enter</value>
   </data>

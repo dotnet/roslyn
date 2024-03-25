@@ -32,11 +32,6 @@
         <target state="translated">(Re)carga completa de todos los proyectos en {0}</target>
         <note>The placeholder is a time duration like 00:15</note>
       </trans-unit>
-      <trans-unit id="Debugger_attached">
-        <source>Debugger attached</source>
-        <target state="translated">Depurador asociado</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Debugging_tests">
         <source>Debugging tests...</source>
         <target state="translated">Depurando pruebas...</target>
@@ -62,9 +57,9 @@
         <target state="translated">Error:    {0}, Correcto:    {1}, Omitido:    {2}, Total:    {3}, Duración: {4}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_read_runsettings_file_at_0:1">
+      <trans-unit id="Failed_to_read_runsettings_file_at_0_1">
         <source>Failed to read .runsettings file at {0}:{1}</source>
-        <target state="translated">No se pudo leer el archivo .runsettings en {0}:{1}</target>
+        <target state="new">Failed to read .runsettings file at {0}:{1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_run_restore_on_0">
