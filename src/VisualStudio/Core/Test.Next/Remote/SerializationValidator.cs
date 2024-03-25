@@ -98,11 +98,12 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             stream.Position = 0;
             using var reader = ObjectReader.TryGetReader(stream);
+            Contract.ThrowIfNull(reader);
 
             // deserialize bits to object
-            var result = Serializer.Deserialize<T>(data.Kind, reader, CancellationToken.None);
+            var result = Serializer.Deserialize(data.Kind, reader, CancellationToken.None);
             Contract.ThrowIfNull<object?>(result);
-            return result;
+            return (T)result;
         }
 
         public async Task<Solution> GetSolutionAsync(SolutionAssetStorage.Scope scope)
@@ -248,8 +249,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         internal void SolutionCompilationStateEqual(SolutionCompilationStateChecksums solutionObject1, SolutionCompilationStateChecksums solutionObject2)
         {
             Assert.Equal(solutionObject1.Checksum, solutionObject2.Checksum);
-            Assert.Equal(solutionObject1.FrozenSourceGeneratedDocumentIdentity, solutionObject2.FrozenSourceGeneratedDocumentIdentity);
-            Assert.Equal(solutionObject1.FrozenSourceGeneratedDocumentText, solutionObject2.FrozenSourceGeneratedDocumentText);
+            Assert.Equal(solutionObject1.FrozenSourceGeneratedDocumentIdentities.HasValue, solutionObject2.FrozenSourceGeneratedDocumentIdentities.HasValue);
+            if (solutionObject1.FrozenSourceGeneratedDocumentIdentities.HasValue)
+                AssertChecksumCollectionEqual(solutionObject1.FrozenSourceGeneratedDocumentIdentities.Value, solutionObject2.FrozenSourceGeneratedDocumentIdentities!.Value);
+
+            Assert.Equal(solutionObject1.FrozenSourceGeneratedDocuments.HasValue, solutionObject2.FrozenSourceGeneratedDocuments.HasValue);
+            if (solutionObject1.FrozenSourceGeneratedDocuments.HasValue)
+                AssertChecksumCollectionEqual(solutionObject1.FrozenSourceGeneratedDocuments.Value, solutionObject2.FrozenSourceGeneratedDocuments!.Value);
         }
 
         internal void SolutionStateEqual(SolutionStateChecksums solutionObject1, SolutionStateChecksums solutionObject2)

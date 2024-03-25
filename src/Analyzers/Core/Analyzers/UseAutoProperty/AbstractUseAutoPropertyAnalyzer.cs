@@ -37,9 +37,9 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
     /// ConcurrentStack as that's the only concurrent collection that supports 'Clear' in netstandard2.
     /// </summary>
     private static readonly ObjectPool<ConcurrentStack<AnalysisResult>> s_analysisResultPool = new(() => new());
-    private static readonly ObjectPool<ConcurrentSet<IFieldSymbol>> s_fieldSetPool = new(() => new());
-    private static readonly ObjectPool<ConcurrentSet<SyntaxNode>> s_nodeSetPool = new(() => new());
-    private static readonly ObjectPool<ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>>> s_fieldWriteLocationPool = new(() => new());
+    private static readonly ObjectPool<ConcurrentSet<IFieldSymbol>> s_fieldSetPool = new(() => []);
+    private static readonly ObjectPool<ConcurrentSet<SyntaxNode>> s_nodeSetPool = new(() => []);
+    private static readonly ObjectPool<ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>>> s_fieldWriteLocationPool = new(() => []);
 
     private static readonly Func<IFieldSymbol, ConcurrentSet<SyntaxNode>> s_createFieldWriteNodeSet = _ => s_nodeSetPool.Allocate();
 
@@ -402,6 +402,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             Descriptor,
             fieldNode.GetLocation(),
             result.Notification,
+            context.Options,
             additionalLocations: additionalLocations,
             properties: null);
 

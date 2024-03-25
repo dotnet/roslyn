@@ -7593,7 +7593,7 @@ public class RubyTime
             }
             else
             {
-                signature = compilation.builtInOperators.GetSignature(result);
+                signature = compilation.BuiltInOperators.GetSignature(result);
 
                 if ((object)underlying != (object)type)
                 {
@@ -8232,14 +8232,14 @@ class Module1
                 else if ((op == BinaryOperatorKind.Addition || op == BinaryOperatorKind.Subtraction) &&
                     leftType.IsEnumType() && (rightType.IsIntegralType() || rightType.IsCharType()) &&
                     (result = OverloadResolution.BinopEasyOut.OpKind(op, leftType.EnumUnderlyingTypeOrSelf(), rightType)) != BinaryOperatorKind.Error &&
-                    TypeSymbol.Equals((signature = compilation.builtInOperators.GetSignature(result)).RightType, leftType.EnumUnderlyingTypeOrSelf(), TypeCompareKind.ConsiderEverything2))
+                    TypeSymbol.Equals((signature = compilation.BuiltInOperators.GetSignature(result)).RightType, leftType.EnumUnderlyingTypeOrSelf(), TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(signature.Kind | BinaryOperatorKind.EnumAndUnderlying, leftType, signature.RightType, leftType);
                 }
                 else if ((op == BinaryOperatorKind.Addition || op == BinaryOperatorKind.Subtraction) &&
                     rightType.IsEnumType() && (leftType.IsIntegralType() || leftType.IsCharType()) &&
                     (result = OverloadResolution.BinopEasyOut.OpKind(op, leftType, rightType.EnumUnderlyingTypeOrSelf())) != BinaryOperatorKind.Error &&
-                    TypeSymbol.Equals((signature = compilation.builtInOperators.GetSignature(result)).LeftType, rightType.EnumUnderlyingTypeOrSelf(), TypeCompareKind.ConsiderEverything2))
+                    TypeSymbol.Equals((signature = compilation.BuiltInOperators.GetSignature(result)).LeftType, rightType.EnumUnderlyingTypeOrSelf(), TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(signature.Kind | BinaryOperatorKind.EnumAndUnderlying, signature.LeftType, rightType, rightType);
                 }
@@ -8355,7 +8355,7 @@ class Module1
             }
             else
             {
-                signature = compilation.builtInOperators.GetSignature(result);
+                signature = compilation.BuiltInOperators.GetSignature(result);
             }
 
             Assert.NotNull(symbol1);

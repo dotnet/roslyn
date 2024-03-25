@@ -3,7 +3,8 @@
 # the generator source files. 
 [CmdletBinding(PositionalBinding=$false)]
 param ([string]$configuration = "Debug", 
-       [switch]$test = $false)
+       [switch]$test = $false,
+       [switch]$ci = $false)
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
@@ -11,7 +12,7 @@ $ErrorActionPreference="Stop"
 function Run-Tool($projectFilePath, $toolArgs, $targetFramework) {
   $toolName = Split-Path -leaf $projectFilePath
   Write-Host "Running $toolName $toolArgs"
-  Exec-Console $dotnet "run --project $projectFilePath --framework $targetFramework $toolArgs"
+  Exec-DotNet "run --project $projectFilePath --framework $targetFramework $toolArgs"
 }
 
 function Run-LanguageCore($language, $languageSuffix, $languageDir, $syntaxProject, $errorFactsProject, $generatedDir, $generatedTestDir) {
@@ -115,6 +116,7 @@ function Get-ToolPath($projectRelativePath) {
 try {
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   Push-Location $RepoRoot
+  $prepareMachine = $ci
 
   $dotnet = Ensure-DotnetSdk
   $boundTreeGenProject = Get-ToolPath 'BoundTreeGenerator\CompilersBoundTreeGenerator.csproj'
@@ -136,11 +138,11 @@ try {
   Run-IOperation $coreDir $operationsProject
   Run-GetText
 
-  exit 0
+  ExitWithExitCode 0
 }
 catch {
   Write-Host $_
-  exit 1
+  ExitWithExitCode 1
 }
 finally {
   Pop-Location

@@ -19,10 +19,6 @@
       "The assembly '...' is not inside the 'lib' folder and hence it won't be added as a reference when the package is installed into a project."
     -->
     <NoWarn>$(NoWarn);NU5100</NoWarn>
-
-    <!-- Work around missing project dependencies. VS features not needed at this time:
-         https://github.com/dotnet/source-build/issues/3981. -->
-    <ExcludeFromVerticalBuild>true</ExcludeFromVerticalBuild>
   </PropertyGroup>
 
   <ItemGroup>

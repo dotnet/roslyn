@@ -6,33 +6,32 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ErrorReporting
+namespace Microsoft.CodeAnalysis.ErrorReporting;
+
+internal readonly struct InfoBarUI
 {
-    internal readonly struct InfoBarUI
+    public readonly string? Title;
+    public readonly UIKind Kind;
+    public readonly Action Action;
+    public readonly bool CloseAfterAction;
+
+    public InfoBarUI(string title, UIKind kind, Action action, bool closeAfterAction = true)
     {
-        public readonly string? Title;
-        public readonly UIKind Kind;
-        public readonly Action Action;
-        public readonly bool CloseAfterAction;
+        Contract.ThrowIfNull(title);
 
-        public InfoBarUI(string title, UIKind kind, Action action, bool closeAfterAction = true)
-        {
-            Contract.ThrowIfNull(title);
+        Title = title;
+        Kind = kind;
+        Action = action;
+        CloseAfterAction = closeAfterAction;
+    }
 
-            Title = title;
-            Kind = kind;
-            Action = action;
-            CloseAfterAction = closeAfterAction;
-        }
+    [MemberNotNullWhen(false, nameof(Title))]
+    public bool IsDefault => Title == null;
 
-        [MemberNotNullWhen(false, nameof(Title))]
-        public bool IsDefault => Title == null;
-
-        internal enum UIKind
-        {
-            Button,
-            HyperLink,
-            Close
-        }
+    internal enum UIKind
+    {
+        Button,
+        HyperLink,
+        Close
     }
 }

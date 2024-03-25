@@ -9,23 +9,22 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
+
+[Export(typeof(IVSTypeScriptStreamingFindUsagesPresenterAccessor)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VSTypeScriptStreamingFindUsagesPresenterAccessor(IStreamingFindUsagesPresenter underlyingObject) : IVSTypeScriptStreamingFindUsagesPresenterAccessor
 {
-    [Export(typeof(IVSTypeScriptStreamingFindUsagesPresenterAccessor)), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class VSTypeScriptStreamingFindUsagesPresenterAccessor(IStreamingFindUsagesPresenter underlyingObject) : IVSTypeScriptStreamingFindUsagesPresenterAccessor
+    private readonly IStreamingFindUsagesPresenter _underlyingObject = underlyingObject;
+
+    public (IVSTypeScriptFindUsagesContext context, CancellationToken cancellationToken) StartSearch(
+        string title, bool supportsReferences)
     {
-        private readonly IStreamingFindUsagesPresenter _underlyingObject = underlyingObject;
-
-        public (IVSTypeScriptFindUsagesContext context, CancellationToken cancellationToken) StartSearch(
-            string title, bool supportsReferences)
-        {
-            var (context, cancellationToken) = _underlyingObject.StartSearch(title, supportsReferences);
-            return (new VSTypeScriptFindUsagesContext(context), cancellationToken);
-        }
-
-        public void ClearAll()
-            => _underlyingObject.ClearAll();
+        var (context, cancellationToken) = _underlyingObject.StartSearch(title, new StreamingFindUsagesPresenterOptions() { SupportsReferences = supportsReferences });
+        return (new VSTypeScriptFindUsagesContext(context), cancellationToken);
     }
+
+    public void ClearAll()
+        => _underlyingObject.ClearAll();
 }

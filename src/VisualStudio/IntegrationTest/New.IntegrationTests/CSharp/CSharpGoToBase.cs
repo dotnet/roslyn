@@ -40,7 +40,7 @@ class C
             await TestServices.Editor.GoToBaseAsync(HangMitigatingCancellationToken);
             Assert.Equal("Object [decompiled] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
 
-            await TestServices.EditorVerifier.TextContainsAsync(@"public virtual string ToString$$()", assertCaretPosition: true);
+            await TestServices.EditorVerifier.TextContainsAsync(@"public virtual string $$ToString()", assertCaretPosition: true);
         }
     }
 }

@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private const string CommonReferencesNetCoreAppName = "CommonReferencesNetCoreApp";
         private const string CommonReferencesNet6Name = "CommonReferencesNet6";
         private const string CommonReferencesNet7Name = "CommonReferencesNet7";
+        private const string CommonReferencesNet8Name = "CommonReferencesNet8";
         private const string CommonReferencesNetStandard20Name = "CommonReferencesNetStandard20";
         private const string CommonReferencesMinCorlibName = "CommonReferencesMinCorlib";
         private const string ReferencesOnDiskAttributeName = "ReferencesOnDisk";
@@ -841,7 +842,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ((bool?)net45).HasValue &&
                 ((bool?)net45).Value)
             {
-                references = new List<MetadataReference> { TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef_v4_0_30319_17929, TestBase.SystemCoreRef_v4_0_30319_17929, TestBase.SystemRuntimeSerializationRef_v4_0_30319_17929 };
+                references = [TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef_v4_0_30319_17929, TestBase.SystemCoreRef_v4_0_30319_17929, TestBase.SystemRuntimeSerializationRef_v4_0_30319_17929];
                 if (GetLanguage(element) == LanguageNames.VisualBasic)
                 {
                     references.Add(TestBase.MsvbRef);
@@ -855,7 +856,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ((bool?)commonReferencesAttribute).HasValue &&
                 ((bool?)commonReferencesAttribute).Value)
             {
-                references = new List<MetadataReference> { TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef };
+                references = [TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef];
                 if (GetLanguage(element) == LanguageNames.VisualBasic)
                 {
                     references.Add(TestBase.MsvbRef_v4_0_30319_17929);
@@ -869,7 +870,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ((bool?)commonReferencesWithoutValueTupleAttribute).HasValue &&
                 ((bool?)commonReferencesWithoutValueTupleAttribute).Value)
             {
-                references = new List<MetadataReference> { TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46 };
+                references = [TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46];
             }
 
             var winRT = element.Attribute(CommonReferencesWinRTAttributeName);
@@ -928,12 +929,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 references = TargetFrameworkUtil.GetReferences(TargetFramework.Net70).ToList();
             }
 
+            var net8 = element.Attribute(CommonReferencesNet8Name);
+            if (net8 != null &&
+                ((bool?)net8).HasValue &&
+                ((bool?)net8).Value)
+            {
+                references = TargetFrameworkUtil.GetReferences(TargetFramework.Net80).ToList();
+            }
+
             var mincorlib = element.Attribute(CommonReferencesMinCorlibName);
             if (mincorlib != null &&
                 ((bool?)mincorlib).HasValue &&
                 ((bool?)mincorlib).Value)
             {
-                references = new List<MetadataReference> { TestBase.MinCorlibRef };
+                references = [TestBase.MinCorlibRef];
             }
 
             return references;

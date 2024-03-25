@@ -51,6 +51,8 @@
       "Microsoft.CodeAnalysis.LanguageServer.alpine-x64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.linux-arm64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.linux-x64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.linux-musl-x64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.linux-musl-arm64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.neutral": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.osx-arm64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.osx-x64": "vs-impl",
@@ -198,9 +200,10 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "main",
+      "vsBranch": "rel/d17.10",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.10 P1]"
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.10 P2]"
     },
     "main": {
       "nugetKind": [
@@ -209,20 +212,10 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[d17.10 P2]"
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.10 P3]"
     },
-    "dev/jorobich/fix-pr-val": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[Validation]"
-    },
-    "dev/jjonescz/razor-ea": {
+    "features/vscode_net8": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
@@ -241,6 +234,16 @@
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": true,
       "insertionTitlePrefix": "[Telemetry Validation]"
+    },
+    "demo/razor-lexer": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "insertionTitlePrefix": "[Do not merge, please close me]",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": false
     }
   }
 }

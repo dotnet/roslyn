@@ -283,5 +283,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                 }
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72024")]
+        public async Task TestPropertyEvent()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System;
+                
+                interface IGoo { event Action E; }
+                
+                class C : IGoo
+                {
+                    public event Action IGoo.[||]E { add { } remove { } };
+                }
+                """,
+                """
+                using System;
+
+                interface IGoo { event Action E; }
+
+                class C : IGoo
+                {
+                    public event Action E { add { } remove { } };
+                }
+                """, index: SingleMember);
+        }
     }
 }

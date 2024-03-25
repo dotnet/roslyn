@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
                 using var objectReader = ObjectReader.TryGetReader(stream);
 
-                var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                var newText = (SourceText)serializer.Deserialize(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
                 Assert.Equal(sourceText.ToString(), newText.ToString());
             }
 
@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
                 using var objectReader = ObjectReader.TryGetReader(stream);
 
-                var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                var newText = (SourceText)serializer.Deserialize(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
                 Assert.Equal(sourceText.ToString(), newText.ToString());
             }
         }
@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
                 stream.Position = 0;
                 using var objectReader = ObjectReader.TryGetReader(stream);
-                var recoveredOptions = serializer.Deserialize<CompilationOptions>(originalOptions.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                var recoveredOptions = (CompilationOptions)serializer.Deserialize(originalOptions.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
 
                 var original = serializer.CreateChecksum(originalOptions, CancellationToken.None);
                 var recovered = serializer.CreateChecksum(recoveredOptions, CancellationToken.None);
@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             stream.Position = 0;
             using var reader = ObjectReader.TryGetReader(stream);
-            var recovered = serializer.Deserialize<object>(asset.Kind, reader, CancellationToken.None);
+            var recovered = serializer.Deserialize(asset.Kind, reader, CancellationToken.None);
             var assetFromStorage = new SolutionAsset(serializer.CreateChecksum(recovered, CancellationToken.None), recovered);
 
             Assert.Equal(asset.Checksum, assetFromStorage.Checksum);
@@ -709,7 +709,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
         {
-            protected override string PreparePathToLoad(string fullPath, ImmutableHashSet<string> cultureNames)
+            protected override string PreparePathToLoad(string fullPath)
+                => throw new FileNotFoundException(fullPath);
+
+            protected override string PrepareSatelliteAssemblyToLoad(string fullPath, string cultureName)
                 => throw new FileNotFoundException(fullPath);
         }
 

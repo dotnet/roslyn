@@ -6,35 +6,34 @@ using System;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+
+internal abstract class AbstractTaggerEventSource : ITaggerEventSource
 {
-    internal abstract class AbstractTaggerEventSource : ITaggerEventSource
+    private bool _paused;
+
+    protected AbstractTaggerEventSource()
     {
-        private bool _paused;
+    }
 
-        protected AbstractTaggerEventSource()
-        {
-        }
+    public abstract void Connect();
+    public abstract void Disconnect();
 
-        public abstract void Connect();
-        public abstract void Disconnect();
+    public event EventHandler<TaggerEventArgs>? Changed;
 
-        public event EventHandler<TaggerEventArgs>? Changed;
+    protected void RaiseChanged()
+    {
+        if (!_paused)
+            this.Changed?.Invoke(this, TaggerEventArgs.Empty);
+    }
 
-        protected void RaiseChanged()
-        {
-            if (!_paused)
-                this.Changed?.Invoke(this, TaggerEventArgs.Empty);
-        }
+    public void Pause()
+    {
+        _paused = true;
+    }
 
-        public void Pause()
-        {
-            _paused = true;
-        }
-
-        public void Resume()
-        {
-            _paused = false;
-        }
+    public void Resume()
+    {
+        _paused = false;
     }
 }

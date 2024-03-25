@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable RSEXPERIMENTAL001 // internal usage of experimental API
+
 using System;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
@@ -31,8 +33,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _providerCache = new ConditionalWeakTable<Compilation, PerCompilationProvider>();
         }
 
-        public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, bool ignoreAccessibility = false)
-            => _providerCache.GetValue(compilation, s_createProviderCallback).GetSemanticModel(tree, ignoreAccessibility);
+        public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, SemanticModelOptions options = default)
+            => _providerCache.GetValue(compilation, s_createProviderCallback).GetSemanticModel(tree, options);
 
         internal void ClearCache(SyntaxTree tree, Compilation compilation)
         {
@@ -60,15 +62,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 _compilation = compilation;
                 _semanticModelsMap = new ConcurrentDictionary<SyntaxTree, SemanticModel>();
-                _createSemanticModel = tree => compilation.CreateSemanticModel(tree, ignoreAccessibility: false);
+                _createSemanticModel = tree => compilation.CreateSemanticModel(tree, options: default);
             }
 
-            public SemanticModel GetSemanticModel(SyntaxTree tree, bool ignoreAccessibility)
+            public SemanticModel GetSemanticModel(SyntaxTree tree, SemanticModelOptions options)
             {
                 // We only care about caching semantic models for internal callers, which use the default 'ignoreAccessibility = false'.
-                return !ignoreAccessibility
+                return options == SemanticModelOptions.None
                     ? _semanticModelsMap.GetOrAdd(tree, _createSemanticModel)
-                    : _compilation.CreateSemanticModel(tree, ignoreAccessibility: true);
+                    : _compilation.CreateSemanticModel(tree, options);
             }
 
             public void ClearCachedSemanticModel(SyntaxTree tree)

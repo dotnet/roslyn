@@ -1728,9 +1728,9 @@ class C(int X) : Base(this.X)
             var src = @"
 class Base
 {
-    public Base(int X)
-    {
-    }
+    public Base(int X) {}
+
+    public Base(long X) {}
 
     public Base() {}
 }
@@ -6063,6 +6063,40 @@ public " + keyword + @" C(int I1);
 ", constructor.GetDocumentationCommentXml());
 
             Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1931501")]
+        public void XmlDoc_InsideType(
+            [CombinatorialValues("class ", "struct")] string keyword,
+            [CombinatorialValues("x", "p")] string identifier,
+            [CombinatorialValues("param", "paramref")] string tag)
+        {
+            var source = $$"""
+                {{keyword}} C(int p)
+                {
+                    /// <{{tag}} name="{{identifier}}"></{{tag}}>
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            comp.VerifyDiagnostics(
+                // (1,14): warning CS9113: Parameter 'p' is unread.
+                // struct C(int p)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p").WithArguments("p").WithLocation(1, 14),
+                // (3,5): warning CS1587: XML comment is not placed on a valid language element
+                //     /// <param name="x"></param>
+                Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(3, 5));
+
+            var tree = comp.SyntaxTrees.Single();
+            var doc = tree.GetRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>().Single();
+            var x = doc.DescendantNodes().OfType<IdentifierNameSyntax>().Single();
+            Assert.Equal(identifier, x.Identifier.ValueText);
+
+            var model = comp.GetSemanticModel(tree);
+            var symbolInfo = model.GetSymbolInfo(x);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.True(symbolInfo.IsEmpty);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
         }
 
         [Theory]
@@ -22034,6 +22068,59 @@ public struct S2(string x)
                 //         new Test<S1>();
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "S1").WithArguments("Test<T>", "T", "S1").WithLocation(6, 18)
                 );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72626")]
+        public void CompoundAssignment_CapturedParameterAsReceiverOfTargetField()
+        {
+            var source =
+@"
+using System;
+using System.Threading.Tasks;
+
+internal partial class EditorDocumentManagerListener
+{
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal sealed class TestAccessor(EditorDocumentManagerListener instance)
+    {
+        public Task ProjectChangedTask => instance._projectChangedTask;
+
+        public event EventHandler OnChangedOnDisk
+        {
+            add => instance._onChangedOnDisk += value;
+            remove => instance._onChangedOnDisk -= value;
+        }
+
+        public event EventHandler OnChangedInEditor
+        {
+            add => instance._onChangedInEditor += value;
+            remove => instance._onChangedInEditor -= value;
+        }
+
+        public event EventHandler OnOpened
+        {
+            add => instance._onOpened += value;
+            remove => instance._onOpened -= value;
+        }
+
+        public event EventHandler OnClosed
+        {
+            add => instance._onClosed += value;
+            remove => instance._onClosed -= value;
+        }
+    }
+
+    private Task _projectChangedTask = Task.CompletedTask;
+    private EventHandler _onChangedOnDisk;
+    private EventHandler _onChangedInEditor;
+    private EventHandler _onOpened;
+    private EventHandler _onClosed;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

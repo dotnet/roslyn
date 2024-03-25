@@ -339,6 +339,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void SetResult(BoundExpression? expression, VisitResult visitResult, bool updateAnalyzedNullability, bool? isLvalue)
         {
+            // As a general rule, the state should only be conditional for expressions of type bool,
+            // although there are a few exceptions.
+            Debug.Assert(TypeAllowsConditionalState(visitResult.RValueType.Type)
+                || !IsConditionalState
+                || expression is BoundTypeExpression);
+
             _visitResult = visitResult;
             if (updateAnalyzedNullability)
             {
@@ -3023,26 +3029,80 @@ namespace Microsoft.CodeAnalysis.CSharp
             // local function, and then a pass where we visit the local functions. If there's no
             // recursion or calls between the local functions, the starting state of the local
             // function should be stable and we don't need a second pass.
-            if (!TrackingRegions && !block.LocalFunctions.IsDefaultOrEmpty)
+            if (!block.LocalFunctions.IsDefaultOrEmpty)
             {
+                Debug.Assert(!TrackingRegions);
+
                 // First visit everything else
+                var localFuncs = ArrayBuilder<BoundLocalFunctionStatement?>.GetInstance();
                 foreach (var stmt in block.Statements)
                 {
-                    if (stmt.Kind != BoundKind.LocalFunctionStatement)
+                    if (stmt is BoundLocalFunctionStatement localFunc)
+                    {
+                        localFuncs.Add(localFunc);
+                    }
+                    else
                     {
                         VisitStatement(stmt);
                     }
                 }
 
-                // Now visit the local function bodies
-                foreach (var stmt in block.Statements)
+                // Visited local functions will be set to null.
+                // We keep count of unvisited (non-null) local functions.
+                var unvisitedLocalFuncs = localFuncs.Count;
+
+                // Now visit the local function bodies.
+                // We first visit those we have seen called (hence we know their starting state),
+                // repeating this while visiting new bodies (which might contain more call sites).
+                // This avoids unnecessary passes and incorrect starting states of reachable bodies
+                // (which could be captured in loop head state for example).
+                for (bool newBodiesVisited = true; newBodiesVisited;)
                 {
-                    if (stmt is BoundLocalFunctionStatement localFunc)
+                    newBodiesVisited = false;
+
+                    for (int i = 0; unvisitedLocalFuncs != 0 && i < localFuncs.Count; i++)
                     {
-                        TakeIncrementalSnapshot(localFunc);
-                        VisitLocalFunctionStatement(localFunc);
+                        // We visit the body only if the function's usages state has been created
+                        // which happens when we visit the function's call site or its body.
+                        // In the first pass of the nullable walker, existence of usages here means that a call site has been visited.
+                        // In subsequent nullable walker passes, the starting state is preserved from previous passes.
+                        // In any case, existence of usages means that we have a good starting state.
+                        if (localFuncs[i] is { } localFunc && HasLocalFuncUsagesCreated(localFunc.Symbol))
+                        {
+                            localFuncs[i] = null;
+                            unvisitedLocalFuncs--;
+
+                            // The body of this local function might contain calls to other local functions,
+                            // hence we will rerun the outer loop to visit bodies of newly-called functions if any.
+                            newBodiesVisited = true;
+
+                            TakeIncrementalSnapshot(localFunc);
+                            VisitLocalFunctionStatement(localFunc);
+                        }
+                    }
+
+                    // If we haven't visited new bodies in this iteration, visit an unreachable function if any.
+                    // This might make other functions reachable, so we will continue with the outer loop.
+                    if (!newBodiesVisited && unvisitedLocalFuncs != 0)
+                    {
+                        for (int i = 0; i < localFuncs.Count; i++)
+                        {
+                            if (localFuncs[i] is { } localFunc)
+                            {
+                                localFuncs[i] = null;
+                                unvisitedLocalFuncs--;
+                                newBodiesVisited = true;
+                                TakeIncrementalSnapshot(localFunc);
+                                VisitLocalFunctionStatement(localFunc);
+                                break;
+                            }
+                        }
+
+                        Debug.Assert(newBodiesVisited);
                     }
                 }
+
+                localFuncs.Free();
             }
             else
             {
@@ -3056,25 +3116,54 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             var localFunc = node.Symbol;
+
+            // Usages state is created when we visit the function's call site or its body.
+            // In the first pass of the nullable walker, existence of usages here means that a call site has been visited.
+            // In subsequent nullable walker passes, the starting state is preserved from previous passes.
+            // In any case, existence of usages means that we have a good starting state.
+            var hasGoodStartingState = HasLocalFuncUsagesCreated(localFunc);
+
             var localFunctionState = GetOrCreateLocalFuncUsages(localFunc);
 
-            // The starting state (`state`) is the top state ("maybe null").
+            // The state for the function's body analysis starts as the top state ("maybe null").
             var state = TopState();
 
-            // Captured variables are joined with the state
-            // at all the local function use sites (`localFunctionState.StartingState`)
-            // which starts as the bottom state ("not null").
-            var startingState = localFunctionState.StartingState;
-            startingState.ForEach(
-                (slot, variables) =>
-                {
-                    var symbol = variables[variables.RootSlot(slot)].Symbol;
-                    if (Symbol.IsCaptured(symbol, localFunc))
+            if (!hasGoodStartingState)
+            {
+                // For unreachable local functions, top-level captured variables are set to "not null",
+                // ignoring nested slots to avoid depending on slot allocation order
+                // (e.g., whether we have seen a class field or not already).
+                state.Normalize(this, _variables);
+                state.ForEach(
+                    (slot, variables) =>
                     {
-                        SetState(ref state, slot, GetState(ref startingState, slot));
-                    }
-                },
-                _variables);
+                        if (Symbol.IsCaptured(variables[slot].Symbol, localFunc))
+                        {
+                            SetState(ref state, slot, NullableFlowState.NotNull);
+                        }
+                    },
+                    _variables);
+
+                // In subsequent passes, we will use the starting state,
+                // so make sure it's set correctly for unreachable functions from now on.
+                localFunctionState.StartingState = state.Clone();
+            }
+            else
+            {
+                // Captured variables are joined with the state
+                // from visited call sites of the local function.
+                var startingState = localFunctionState.StartingState;
+                startingState.ForEach(
+                    (slot, variables) =>
+                    {
+                        var symbol = variables[variables.RootSlot(slot)].Symbol;
+                        if (Symbol.IsCaptured(symbol, localFunc))
+                        {
+                            SetState(ref state, slot, GetState(ref startingState, slot));
+                        }
+                    },
+                    _variables);
+            }
 
             localFunctionState.Visited = true;
 
@@ -3462,6 +3551,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode VisitLValue(BoundNode node)
         {
             return Visit(node, expressionIsRead: false);
+        }
+
+        private static bool TypeAllowsConditionalState(TypeSymbol? type)
+        {
+            return type is not null
+                && (type.SpecialType == SpecialType.System_Boolean || type.IsDynamic() || type.IsErrorType());
+        }
+
+        private void UnsplitIfNeeded(TypeSymbol? type)
+        {
+            if (!TypeAllowsConditionalState(type))
+            {
+                Unsplit();
+            }
         }
 
         private BoundNode Visit(BoundNode? node, bool expressionIsRead)
@@ -4219,7 +4322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (type.SpecialType != SpecialType.None)
+            if (type.SpecialType.CanOptimizeBehavior())
             {
                 return true;
             }
@@ -4407,36 +4510,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? elementType.SetUnknownNullabilityForReferenceTypes()
                     : TypeWithAnnotations.Create(bestType);
 
-                if (bestType is object)
+                // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
+                for (int i = 0; i < n; i++)
                 {
-                    // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
-                    for (int i = 0; i < n; i++)
-                    {
-                        var expressionNoConversion = expressionsNoConversions[i];
-                        var expression = GetConversionIfApplicable(expressions[i], expressionNoConversion);
-                        expressionTypes[i] = VisitConversion(expression, expressionNoConversion, conversions[i], inferredType, expressionTypes[i], checkConversion: true,
-                            fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
-                    }
-
-                    // Set top-level nullability on inferred element type
-                    var elementState = BestTypeInferrer.GetNullableState(expressionTypes);
-                    inferredType = TypeWithState.Create(inferredType.Type, elementState).ToTypeWithAnnotations(compilation);
-
-                    for (int i = 0; i < n; i++)
-                    {
-                        // Report top-level warnings
-                        _ = VisitConversion(conversionOpt: null, conversionOperand: expressionsNoConversions[i], Conversion.Identity, targetTypeWithNullability: inferredType, operandType: expressionTypes[i],
-                            checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false);
-                    }
+                    var expressionNoConversion = expressionsNoConversions[i];
+                    var expression = GetConversionIfApplicable(expressions[i], expressionNoConversion);
+                    expressionTypes[i] = VisitConversion(expression, expressionNoConversion, conversions[i], inferredType, expressionTypes[i], checkConversion: true,
+                        fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
+                    Unsplit();
                 }
-                else
+
+                // Set top-level nullability on inferred element type
+                var elementState = BestTypeInferrer.GetNullableState(expressionTypes);
+                inferredType = TypeWithState.Create(inferredType.Type, elementState).ToTypeWithAnnotations(compilation);
+
+                for (int i = 0; i < n; i++)
                 {
-                    // We need to ensure that we're tracking the inferred type with nullability of any conversions that
-                    // were stripped off.
-                    for (int i = 0; i < n; i++)
-                    {
-                        TrackAnalyzedNullabilityThroughConversionGroup(inferredType.ToTypeWithState(), expressions[i] as BoundConversion, expressionsNoConversions[i]);
-                    }
+                    // Report top-level warnings
+                    _ = VisitConversion(conversionOpt: null, conversionOperand: expressionsNoConversions[i], Conversion.Identity, targetTypeWithNullability: inferredType, operandType: expressionTypes[i],
+                        checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false);
                 }
 
                 expressionsNoConversions.Free();
@@ -5742,6 +5834,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             resultType ??= node.Type?.SetUnknownNullabilityForReferenceTypes();
 
+            UnsplitIfNeeded(resultType);
+
             TypeWithAnnotations resultTypeWithAnnotations;
 
             if (resultType is null)
@@ -5982,7 +6076,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(node.InvokedAsExtensionMethod);
                         var refKind = GetRefKind(node.ArgumentRefKindsOpt, 0);
-                        var annotations = GetCorrespondingParameter(0, node.Method.Parameters, node.ArgsToParamsOpt, node.Expanded).Annotations;
+                        TypeWithAnnotations paramsIterationType = default;
+                        var annotations = GetCorrespondingParameter(0, node.Method.Parameters, node.ArgsToParamsOpt, node.Expanded, ref paramsIterationType).Annotations;
                         extensionReceiverResult = VisitArgumentEvaluateEpilogue(receiver, refKind, annotations);
                         receiverType = default;
                     }
@@ -6352,7 +6447,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Annotations are ignored when binding an attribute to avoid cycles. (Members used
             // in attributes are error scenarios, so missing warnings should not be important.)
-            return IsAnalyzingAttribute ? FlowAnalysisAnnotations.None : parameter.FlowAnalysisAnnotations;
+            if (IsAnalyzingAttribute)
+                return FlowAnalysisAnnotations.None;
+
+            var annotations = parameter.FlowAnalysisAnnotations;
+
+            // Conditional annotations are ignored on parameters of non-boolean members.
+            if (parameter.ContainingSymbol.GetTypeOrReturnType().Type.SpecialType != SpecialType.System_Boolean)
+            {
+                // NotNull = NotNullWhenTrue + NotNullWhenFalse
+                bool hasNotNullWhenTrue = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNullWhenTrue;
+                bool hasNotNullWhenFalse = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNullWhenFalse;
+                if (hasNotNullWhenTrue ^ hasNotNullWhenFalse)
+                {
+                    annotations &= ~FlowAnalysisAnnotations.NotNull;
+                }
+
+                // MaybeNull = MaybeNullWhenTrue + MaybeNullWhenFalse
+                bool hasMaybeNullWhenTrue = (annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNullWhenTrue;
+                bool hasMaybeNullWhenFalse = (annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNullWhenFalse;
+                if (hasMaybeNullWhenTrue ^ hasMaybeNullWhenFalse)
+                {
+                    annotations &= ~FlowAnalysisAnnotations.MaybeNull;
+                }
+
+            }
+
+            return annotations;
         }
 
         /// <summary>
@@ -6517,11 +6638,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expanded)
             {
-                expandParamsArray(ref arguments, ref refKindsOpt, parametersOpt, ref argsToParamsOpt, ref defaultArguments);
+                expandParamsCollection(ref arguments, ref refKindsOpt, parametersOpt, ref argsToParamsOpt, ref defaultArguments);
             }
             else
             {
-                Debug.Assert(!arguments.Any(a => a.IsParamsArray));
+                Debug.Assert(!arguments.Any(a => a.IsParamsArrayOrCollection));
             }
 
             (ImmutableArray<BoundExpression> argumentsNoConversions, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
@@ -6587,6 +6708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!parametersOpt.IsDefault)
                 {
                     // Visit conversions, inbound assignments including pre-conditions
+                    TypeWithAnnotations paramsIterationType = default;
                     ImmutableHashSet<string>? returnNotNullIfParameterNotNull = IsAnalyzingAttribute ? null : method?.ReturnNotNullIfParameterNotNull;
                     for (int i = 0; i < results.Length; i++)
                     {
@@ -6594,7 +6716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var argument = i < arguments.Length ? arguments[i] : argumentNoConversion;
 
                         (ParameterSymbol? parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool isExpandedParamsArgument) =
-                            GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded);
+                            GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded, ref paramsIterationType);
 
                         if (parameter is null)
                         {
@@ -6657,13 +6779,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // For CompareExchange method we need more context to determine the state of outbound assignment
                     CompareExchangeInfo compareExchangeInfo = IsCompareExchangeMethod(method) ? new CompareExchangeInfo(arguments, results, argsToParamsOpt) : default;
+                    TypeWithAnnotations paramsIterationType = default;
 
                     // Visit outbound assignments and post-conditions
                     // Note: the state may get split in this step
                     for (int i = 0; i < arguments.Length; i++)
                     {
                         (ParameterSymbol? parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, _) =
-                            GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded);
+                            GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded, ref paramsIterationType);
                         if (parameter is null)
                         {
                             continue;
@@ -6725,21 +6848,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                        };
             }
 
-            static void expandParamsArray(ref ImmutableArray<BoundExpression> arguments, ref ImmutableArray<RefKind> refKindsOpt, ImmutableArray<ParameterSymbol> parametersOpt, ref ImmutableArray<int> argsToParamsOpt, ref BitVector defaultArguments)
+            static void expandParamsCollection(ref ImmutableArray<BoundExpression> arguments, ref ImmutableArray<RefKind> refKindsOpt, ImmutableArray<ParameterSymbol> parametersOpt, ref ImmutableArray<int> argsToParamsOpt, ref BitVector defaultArguments)
             {
                 // It looks like in some error scenarios we can get here without params array created.
                 // At the moment, there is only one test that gets here like that - Microsoft.CodeAnalysis.CSharp.UnitTests.AttributeTests.TestBadParamsCtor.
                 // And we get here for the erroneous attribute application, constructor is inaccessible. 
                 // Perhaps that shouldn't cancel the default values / params array processing?
-                Debug.Assert(arguments.Count(a => a.IsParamsArray) <= 1);
+                Debug.Assert(arguments.Count(a => a.IsParamsArrayOrCollection) <= 1);
 
                 for (int a = 0; a < arguments.Length; ++a)
                 {
                     BoundExpression argument = arguments[a];
-                    if (argument.IsParamsArray)
+                    if (argument.IsParamsArrayOrCollection)
                     {
                         Debug.Assert(parametersOpt.IsDefault || arguments.Length == parametersOpt.Length);
-                        ImmutableArray<BoundExpression> elements = ((BoundArrayCreation)argument).InitializerOpt!.Initializers;
+                        ImmutableArray<BoundExpression> elements;
+
+                        if (argument is BoundArrayCreation array)
+                        {
+                            elements = array.InitializerOpt!.Initializers;
+                        }
+                        else
+                        {
+                            elements = ((BoundCollectionExpression)((BoundConversion)argument).Operand).UnconvertedCollectionExpression.Elements.CastArray<BoundExpression>();
+                        }
 
                         if (elements.Length == 0)
                         {
@@ -6925,9 +7057,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!parametersOpt.IsDefault)
             {
-                parameterAnnotationsOpt = arguments.SelectAsArray(
-                    static (argument, i, arg) => arg.self.GetCorrespondingParameter(i, arg.parametersOpt, arg.argsToParamsOpt, arg.expanded).Annotations,
-                    (self: this, parametersOpt, argsToParamsOpt, expanded));
+                if (expanded)
+                {
+                    TypeWithAnnotations paramsIterationType = default;
+                    parameterAnnotationsOpt = arguments.SelectAsArray(
+                        (argument, i, arg) => arg.self.GetCorrespondingParameter(i, arg.parametersOpt, arg.argsToParamsOpt, expanded: true, ref paramsIterationType).Annotations,
+                        (self: this, parametersOpt, argsToParamsOpt));
+                }
+                else
+                {
+                    parameterAnnotationsOpt = arguments.SelectAsArray(
+                        static (argument, i, arg) =>
+                        {
+                            TypeWithAnnotations paramsIterationType = default;
+                            return arg.self.GetCorrespondingParameter(i, arg.parametersOpt, arg.argsToParamsOpt, expanded: false, ref paramsIterationType).Annotations;
+                        },
+                        (self: this, parametersOpt, argsToParamsOpt));
+                }
             }
 
             return parameterAnnotationsOpt;
@@ -7439,7 +7585,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argumentOrdinal,
             ImmutableArray<ParameterSymbol> parametersOpt,
             ImmutableArray<int> argsToParamsOpt,
-            bool expanded)
+            bool expanded,
+            ref TypeWithAnnotations paramsIterationType)
         {
             if (parametersOpt.IsDefault)
             {
@@ -7454,10 +7601,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var type = parameter.TypeWithAnnotations;
-            if (expanded && parameter.Ordinal == parametersOpt.Length - 1 && type.IsSZArray())
+            if (expanded && parameter.Ordinal == parametersOpt.Length - 1)
             {
-                type = ((ArrayTypeSymbol)type.Type).ElementTypeWithAnnotations;
-                return (parameter, type, FlowAnalysisAnnotations.None, isExpandedParamsArgument: true);
+                if (!paramsIterationType.HasType)
+                {
+                    OverloadResolution.TryInferParamsCollectionIterationType(_binder, type.Type, out paramsIterationType);
+                    Debug.Assert(paramsIterationType.HasType);
+                }
+
+                return (parameter, paramsIterationType, FlowAnalysisAnnotations.None, isExpandedParamsArgument: true);
             }
 
             return (parameter, type, GetParameterAnnotations(parameter), isExpandedParamsArgument: false);
@@ -7921,21 +8073,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             (BoundExpression operand, Conversion conversion) = RemoveConversion(node, includeExplicitConversions: true);
             SnapshotWalkerThroughConversionGroup(node, operand);
-            TypeWithState operandType = VisitRvalueWithState(operand);
+            if (TypeAllowsConditionalState(targetType.Type) && TypeAllowsConditionalState(operand.Type))
+            {
+                Visit(operand); // don't Unsplit
+            }
+            else
+            {
+                VisitRvalue(operand);
+            }
+
             SetResultType(node,
                 VisitConversion(
                     node,
                     operand,
                     conversion,
                     targetType,
-                    operandType,
+                    ResultType,
                     checkConversion: true,
                     fromExplicitCast: fromExplicitCast,
                     useLegacyWarnings: fromExplicitCast,
                     AssignmentKind.Assignment,
                     reportTopLevelWarnings: fromExplicitCast,
                     reportRemainingWarnings: true,
-                    trackMembers: true));
+                    trackMembers: !IsConditionalState));
 
             return null;
         }
@@ -12243,8 +12403,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// produce diagnostics and determine types.
             /// </summary>
             public LocalState StartingState;
+
             public LocalFunctionState(LocalState unreachableState)
-                : base(unreachableState.Clone(), unreachableState.Clone())
+                // Note: these states are not used in nullable analysis.
+                : base(stateFromBottom: unreachableState.Clone(), stateFromTop: unreachableState.Clone())
             {
                 StartingState = unreachableState;
             }
@@ -12254,7 +12416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var variables = (symbol.ContainingSymbol is MethodSymbol containingMethod ? _variables.GetVariablesForMethodScope(containingMethod) : null) ??
                 _variables.GetRootScope();
-            return new LocalFunctionState(LocalState.ReachableStateWithNotNulls(variables));
+            return new LocalFunctionState(LocalState.UnreachableState(variables));
         }
 
         private sealed class NullabilityInfoTypeComparer : IEqualityComparer<(NullabilityInfo info, TypeSymbol? type)>

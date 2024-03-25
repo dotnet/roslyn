@@ -1,5 +1,33 @@
 # This document lists known breaking changes in Roslyn after .NET 7 all the way to .NET 8.
 
+## Ref modifiers of dynamic arguments should be compatible with ref modifiers of corresponding parameters
+
+***Introduced in Visual Studio 2022 version 17.10***
+
+Ref modifiers of dynamic arguments should be compatible with ref modifiers of corresponding parameters
+at compile time. This can cause an overload resolution involving dynamic arguments to fail at compile time
+instead of runtime.
+
+Previously, a mismatch was allowed at compile time, delaying the overload resolution failure to
+runtime.
+
+For example, the following code used to compile without an error, but was failing with
+exception: "Microsoft.CSharp.RuntimeBinder.RuntimeBinderException: The best overloaded method match for 'C.f(ref object)' has some invalid arguments" 
+It is going to produce a compilation error now.
+```csharp
+public class C
+{
+    public void f(ref dynamic a) 
+    {
+    }
+    
+    public void M(dynamic d)
+    {
+        f(d); // error CS1620: Argument 1 must be passed with the 'ref' keyword
+    }
+}
+```
+
 ## Collection expression target type must have constructor and `Add` method
 
 ***Introduced in Visual Studio 2022 version 17.10***
@@ -73,3 +101,26 @@ static class C
     public static string M(I2 o, in int x) => "2";
 }
 ```
+
+## Prefer pattern-based over interface-based disposal in async `using`
+
+***Introduced in Visual Studio 2022 version 17.10p3***
+
+An async `using` prefers to bind using a pattern-based `DisposeAsync()` method rather than the interface-based `IAsyncDisposable.DisposeAsync()`.
+
+For instance, the public `DisposeAsync()` method will be picked, rather than the private interface implementation:
+```csharp
+await using (var x = new C()) { }
+
+public class C : System.IAsyncDisposable
+{
+    ValueTask IAsyncDisposable.DisposeAsync() => throw null; // no longer picked
+
+    public async ValueTask DisposeAsync()
+    {
+        Console.WriteLine("PICKED");
+        await Task.Yield();
+    }
+}
+```
+

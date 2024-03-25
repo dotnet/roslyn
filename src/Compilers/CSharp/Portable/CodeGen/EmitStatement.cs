@@ -24,6 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
     internal partial class CodeGenerator
     {
+#if DEBUG
+        private int _expectedStackDepth = 0;
+#endif
+
         private void EmitStatement(BoundStatement statement)
         {
             switch (statement.Kind)
@@ -108,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 #if DEBUG
             if (_stackLocals == null || _stackLocals.Count == 0)
             {
-                _builder.AssertStackEmpty();
+                _builder.AssertStackDepth(_expectedStackDepth);
             }
 #endif
 
@@ -572,6 +576,28 @@ oneMoreTime:
                     }
                     return;
 
+                case BoundKind.LoweredIsPatternExpression:
+                    {
+                        var loweredIs = (BoundLoweredIsPatternExpression)condition;
+                        dest ??= new object();
+
+                        EmitSideEffects(loweredIs.Statements);
+
+                        if (sense)
+                        {
+                            _builder.MarkLabel(loweredIs.WhenTrueLabel);
+                            _builder.EmitBranch(ILOpCode.Br, dest);
+                            _builder.MarkLabel(loweredIs.WhenFalseLabel);
+                        }
+                        else
+                        {
+                            _builder.MarkLabel(loweredIs.WhenFalseLabel);
+                            _builder.EmitBranch(ILOpCode.Br, dest);
+                            _builder.MarkLabel(loweredIs.WhenTrueLabel);
+                        }
+                    }
+                    return;
+
                 case BoundKind.UnaryOperator:
                     var unOp = (BoundUnaryOperator)condition;
                     if (unOp.OperatorKind == UnaryOperatorKind.BoolLogicalNegation)
@@ -677,38 +703,63 @@ oneMoreTime:
 
         private void EmitInstrumentedBlock(BoundBlockInstrumentation instrumentation, BoundBlock block)
         {
-            _builder.OpenLocalScope();
-            DefineLocal(instrumentation.Local, block.Syntax);
-
-            if (_emitPdbSequencePoints)
+            if (!instrumentation.Locals.IsEmpty)
             {
-                EmitHiddenSequencePoint();
+                _builder.OpenLocalScope();
+
+                foreach (var local in instrumentation.Locals)
+                {
+                    DefineLocal(local, block.Syntax);
+                }
             }
 
-            EmitStatement(instrumentation.Prologue);
+            if (instrumentation.Prologue != null)
+            {
+                if (_emitPdbSequencePoints)
+                {
+                    EmitHiddenSequencePoint();
+                }
+
+                EmitStatement(instrumentation.Prologue);
+            }
 
             _builder.AssertStackEmpty();
 
-            _builder.OpenLocalScope(ScopeType.TryCatchFinally);
-
-            _builder.OpenLocalScope(ScopeType.Try);
-            EmitUninstrumentedBlock(block);
-            _builder.CloseLocalScope(); // try
-
-            _builder.OpenLocalScope(ScopeType.Finally);
-
-            if (_emitPdbSequencePoints)
+            if (instrumentation.Epilogue != null)
             {
-                EmitHiddenSequencePoint();
+                _builder.OpenLocalScope(ScopeType.TryCatchFinally);
+
+                _builder.OpenLocalScope(ScopeType.Try);
+
+                EmitUninstrumentedBlock(block);
+                _builder.CloseLocalScope(); // try
+
+                _builder.OpenLocalScope(ScopeType.Finally);
+
+                if (_emitPdbSequencePoints)
+                {
+                    EmitHiddenSequencePoint();
+                }
+
+                EmitStatement(instrumentation.Epilogue);
+                _builder.CloseLocalScope(); // finally
+
+                _builder.CloseLocalScope(); // try-finally
+            }
+            else
+            {
+                EmitUninstrumentedBlock(block);
             }
 
-            EmitStatement(instrumentation.Epilogue);
-            _builder.CloseLocalScope(); // finally
+            if (!instrumentation.Locals.IsEmpty)
+            {
+                foreach (var local in instrumentation.Locals)
+                {
+                    FreeLocal(local);
+                }
 
-            _builder.CloseLocalScope(); // try-finally
-
-            FreeLocal(instrumentation.Local);
-            _builder.CloseLocalScope();
+                _builder.CloseLocalScope();
+            }
         }
 
         private void EmitUninstrumentedBlock(BoundBlock block)

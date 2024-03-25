@@ -10,7 +10,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Example;
 
-public class ExampleLanguageServer : AbstractLanguageServer<ExampleRequestContext>
+internal class ExampleLanguageServer : AbstractLanguageServer<ExampleRequestContext>
 {
     private readonly Action<IServiceCollection>? _addExtraHandlers;
 
@@ -27,8 +27,8 @@ public class ExampleLanguageServer : AbstractLanguageServer<ExampleRequestContex
 
         var _ = AddHandlers(serviceCollection)
             .AddSingleton<ILspLogger>(_logger)
-            .AddSingleton<IRequestContextFactory<ExampleRequestContext>, ExampleRequestContextFactory>()
-            .AddSingleton<IHandlerProvider>(s => GetHandlerProvider())
+            .AddSingleton<AbstractRequestContextFactory<ExampleRequestContext>, ExampleRequestContextFactory>()
+            .AddSingleton<AbstractHandlerProvider>(s => HandlerProvider)
             .AddSingleton<IInitializeManager<InitializeParams, InitializeResult>, CapabilitiesManager>()
             .AddSingleton(this);
 

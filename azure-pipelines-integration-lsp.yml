@@ -34,6 +34,12 @@ pr:
     - release/dev17.2
     - release/dev17.3
 
+variables:
+- name: Codeql.Enabled
+  value: false
+- name: Codeql.SkipTaskAutoInjection
+  value: true
+
 parameters:
 - name: poolName
   displayName: Pool Name

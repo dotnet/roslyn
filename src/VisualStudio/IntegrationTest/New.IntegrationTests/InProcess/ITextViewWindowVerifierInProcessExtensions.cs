@@ -168,7 +168,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
 
         private sealed class CodeActionLogger : ILogger
         {
-            public List<string> Messages { get; } = new();
+            public List<string> Messages { get; } = [];
 
             public bool IsEnabled(FunctionId functionId)
             {

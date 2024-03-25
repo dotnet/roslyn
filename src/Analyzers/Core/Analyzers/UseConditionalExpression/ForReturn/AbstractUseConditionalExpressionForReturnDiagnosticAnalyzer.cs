@@ -6,40 +6,48 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace Microsoft.CodeAnalysis.UseConditionalExpression
+namespace Microsoft.CodeAnalysis.UseConditionalExpression;
+
+internal abstract class AbstractUseConditionalExpressionForReturnDiagnosticAnalyzer<
+    TIfStatementSyntax>
+    : AbstractUseConditionalExpressionDiagnosticAnalyzer<TIfStatementSyntax>
+    where TIfStatementSyntax : SyntaxNode
 {
-    internal abstract class AbstractUseConditionalExpressionForReturnDiagnosticAnalyzer<
-        TIfStatementSyntax>
-        : AbstractUseConditionalExpressionDiagnosticAnalyzer<TIfStatementSyntax>
-        where TIfStatementSyntax : SyntaxNode
+    protected AbstractUseConditionalExpressionForReturnDiagnosticAnalyzer(
+        LocalizableResourceString message)
+        : base(IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId,
+               EnforceOnBuildValues.UseConditionalExpressionForReturn,
+               message,
+               CodeStyleOptions2.PreferConditionalExpressionOverReturn)
     {
-        protected AbstractUseConditionalExpressionForReturnDiagnosticAnalyzer(
-            LocalizableResourceString message)
-            : base(IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId,
-                   EnforceOnBuildValues.UseConditionalExpressionForReturn,
-                   message,
-                   CodeStyleOptions2.PreferConditionalExpressionOverReturn)
-        {
-        }
-
-        protected sealed override CodeStyleOption2<bool> GetStylePreference(OperationAnalysisContext context)
-            => context.GetAnalyzerOptions().PreferConditionalExpressionOverReturn;
-
-        protected override (bool matched, bool canSimplify) TryMatchPattern(IConditionalOperation ifOperation, ISymbol containingSymbol)
-        {
-            if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(
-                    GetSyntaxFacts(), ifOperation, containingSymbol, out var isRef, out var trueStatement, out var falseStatement, out var trueReturn, out var falseReturn))
-            {
-                return default;
-            }
-
-            var canSimplify = UseConditionalExpressionHelpers.CanSimplify(
-                trueReturn?.ReturnedValue ?? trueStatement,
-                falseReturn?.ReturnedValue ?? falseStatement,
-                isRef,
-                out _);
-
-            return (matched: true, canSimplify);
-        }
     }
+
+    protected sealed override CodeStyleOption2<bool> GetStylePreference(OperationAnalysisContext context)
+        => context.GetAnalyzerOptions().PreferConditionalExpressionOverReturn;
+
+    protected sealed override (bool matched, bool canSimplify) TryMatchPattern(IConditionalOperation ifOperation, ISymbol containingSymbol)
+    {
+        if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(
+                GetSyntaxFacts(), ifOperation, containingSymbol, out var isRef, out var trueStatement, out var falseStatement, out var trueReturn, out var falseReturn))
+        {
+            return default;
+        }
+
+        if (!IsStatementSupported(trueStatement) ||
+            !IsStatementSupported(falseStatement))
+        {
+            return default;
+        }
+
+        var canSimplify = UseConditionalExpressionHelpers.CanSimplify(
+            trueReturn?.ReturnedValue ?? trueStatement,
+            falseReturn?.ReturnedValue ?? falseStatement,
+            isRef,
+            out _);
+
+        return (matched: true, canSimplify);
+    }
+
+    protected virtual bool IsStatementSupported(IOperation statement)
+        => true;
 }

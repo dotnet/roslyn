@@ -15,6 +15,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 
 namespace BuildBoss
 {
@@ -72,6 +73,7 @@ namespace BuildBoss
             try
             {
                 var allGood = true;
+                allGood &= CheckPublishData(textWriter);
                 allGood &= CheckPackages(textWriter);
                 allGood &= CheckExternalApis(textWriter);
                 return allGood;
@@ -81,6 +83,44 @@ namespace BuildBoss
                 textWriter.WriteLine($"Error verifying: {ex.Message}");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Verify PublishData.json contains feeds for all packages that will be published.
+        /// </summary>
+        private bool CheckPublishData(TextWriter textWriter)
+        {
+            var allGood = true;
+
+            // Load PublishData.json
+            var publishDataPath = Path.Combine(RepositoryDirectory, "eng", "config", "PublishData.json");
+            var publishDataRoot = JObject.Parse(File.ReadAllText(publishDataPath));
+            var publishDataPackages = publishDataRoot["packages"]["default"] as JObject;
+
+            // Check all shipping packages have an entry in PublishData.json
+            var regex = new Regex(@"^(.*?)\.\d.*\.nupkg$");
+            var packagesDirectory = Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping");
+            foreach (var packageFullPath in Directory.EnumerateFiles(packagesDirectory, "*.nupkg"))
+            {
+                var packageFileName = Path.GetFileName(packageFullPath);
+                var match = regex.Match(packageFileName);
+                if (!match.Success)
+                {
+                    allGood = false;
+                    textWriter.WriteLine($"Unexpected package file name '{packageFileName}'");
+                }
+                else
+                {
+                    var packageId = match.Groups[1].Value;
+                    if (!publishDataPackages.ContainsKey(packageId))
+                    {
+                        allGood = false;
+                        textWriter.WriteLine($"Package doesn't have corresponding PublishData.json entry: {packageId} ({packageFileName})");
+                    }
+                }
+            }
+
+            return allGood;
         }
 
         /// <summary>
@@ -360,7 +400,7 @@ namespace BuildBoss
                 }
 
                 // As a simplification we only validate the assembly names that begin with Microsoft.CodeAnalysis. This is a good 
-                // hueristic for finding assemblies that we build. Can be expanded in the future if we find more assemblies that
+                // heuristic for finding assemblies that we build. Can be expanded in the future if we find more assemblies that
                 // are worth validating here.
                 var neededDllNames = neededDllNameSet
                     .Where(x => x.StartsWith("Microsoft.CodeAnalysis"))

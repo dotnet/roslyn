@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -33,7 +34,7 @@ internal partial class SolutionState
     /// Mapping from project-id to the checksums needed to synchronize it (and the projects it depends on) over 
     /// to an OOP host.  Lock this specific field before reading/writing to it.
     /// </summary>
-    private readonly Dictionary<ProjectId, AsyncLazy<SolutionStateChecksums>> _lazyProjectChecksums = new();
+    private readonly Dictionary<ProjectId, AsyncLazy<SolutionStateChecksums>> _lazyProjectChecksums = [];
 
     public static IReadOnlyList<ProjectId> GetOrCreateSortedProjectIds(IReadOnlyList<ProjectId> unorderedList)
         => s_projectIdToSortedProjectsMap.GetValue(unorderedList, projectIds => projectIds.OrderBy(id => id.Id).ToImmutableArray());
@@ -78,29 +79,91 @@ internal partial class SolutionState
         {
             if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums))
             {
-                checksums = Compute(projectId);
+                checksums = AsyncLazy.Create(
+                    static (arg, cancellationToken) => arg.self.ComputeChecksumsAsync(arg.projectId, cancellationToken),
+                    arg: (self: this, projectId));
                 _lazyProjectChecksums.Add(projectId, checksums);
             }
         }
 
         var collection = await checksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
         return collection;
+    }
 
-        // Extracted as a local function to prevent delegate allocations when not needed.
-        AsyncLazy<SolutionStateChecksums> Compute(ProjectId projectId)
+    /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
+    public async Task<Checksum> GetChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
+    {
+        var checksums = await GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
+        return checksums.Checksum;
+    }
+
+    /// <param name="projectConeId">Cone of projects to compute a checksum for.  Pass in <see langword="null"/> to get a
+    /// checksum for the entire solution</param>
+    private async Task<SolutionStateChecksums> ComputeChecksumsAsync(
+        ProjectId? projectConeId,
+        CancellationToken cancellationToken)
+    {
+        using var projectCone = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+        AddProjectCone(projectConeId);
+
+        try
         {
-            var projectsToInclude = new HashSet<ProjectId>();
-            AddReferencedProjects(projectsToInclude, projectId);
+            using (Logger.LogBlock(FunctionId.SolutionState_ComputeChecksumsAsync, this.FilePath, cancellationToken))
+            {
+                // get states by id order to have deterministic checksum.  Limit expensive computation to the
+                // requested set of projects if applicable.
+                var orderedProjectIds = GetOrCreateSortedProjectIds(this.ProjectIds);
 
-            return AsyncLazy.Create(c => ComputeChecksumsAsync(projectsToInclude, c));
+                using var _ = ArrayBuilder<Task<ProjectStateChecksums>>.GetInstance(out var projectChecksumTasks);
+
+                foreach (var orderedProjectId in orderedProjectIds)
+                {
+                    var projectState = this.ProjectStates[orderedProjectId];
+                    if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
+                        continue;
+
+                    if (projectConeId != null && !projectCone.Object.Contains(orderedProjectId))
+                        continue;
+
+                    projectChecksumTasks.Add(projectState.GetStateChecksumsAsync(cancellationToken));
+                }
+
+                var allResults = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
+
+                var projectChecksums = allResults.SelectAsArray(r => r.Checksum);
+                var projectIds = allResults.SelectAsArray(r => r.ProjectId);
+
+                var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(
+                    this.AnalyzerReferences, this.Services.GetRequiredService<ISerializerService>(), cancellationToken);
+
+                var stateChecksums = new SolutionStateChecksums(
+                    projectConeId,
+                    this.SolutionAttributes.Checksum,
+                    new(new ChecksumCollection(projectChecksums), projectIds),
+                    analyzerReferenceChecksums);
+
+#if DEBUG
+                var projectConeTemp = projectConeId is null ? null : new ProjectCone(projectConeId, projectCone.Object.ToFrozenSet());
+                RoslynDebug.Assert(Equals(projectConeTemp, stateChecksums.ProjectCone));
+#endif
+
+                return stateChecksums;
+            }
+        }
+        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+        {
+            throw ExceptionUtilities.Unreachable();
         }
 
-        void AddReferencedProjects(HashSet<ProjectId> result, ProjectId projectId)
+        void AddProjectCone(ProjectId? projectConeId)
         {
-            if (!result.Add(projectId))
+            if (projectConeId is null)
                 return;
 
-            var projectState = this.GetProjectState(projectId);
+            if (!projectCone.Object.Add(projectConeId))
+                return;
+
+            var projectState = this.GetProjectState(projectConeId);
             if (projectState == null)
                 return;
 
@@ -113,79 +176,8 @@ internal partial class SolutionState
                 // filters out this case already (in Project.ProjectReferences). However, becausde we're at the
                 // ProjectState level it cannot do that filtering unless examined through us (the SolutionState).
                 if (this.ProjectStates.ContainsKey(refProject.ProjectId))
-                    AddReferencedProjects(result, refProject.ProjectId);
+                    AddProjectCone(refProject.ProjectId);
             }
-        }
-    }
-
-    /// <summary>Gets the checksum for only the requested project (and any project it depends on)</summary>
-    public async Task<Checksum> GetChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
-    {
-        var checksums = await GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
-        return checksums.Checksum;
-    }
-
-    /// <param name="projectsToInclude">Cone of projects to compute a checksum for.  Pass in <see langword="null"/>
-    /// to get a checksum for the entire solution</param>
-    private async Task<SolutionStateChecksums> ComputeChecksumsAsync(
-        HashSet<ProjectId>? projectsToInclude,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            using (Logger.LogBlock(FunctionId.SolutionState_ComputeChecksumsAsync, this.FilePath, cancellationToken))
-            {
-                // get states by id order to have deterministic checksum.  Limit expensive computation to the
-                // requested set of projects if applicable.
-                var orderedProjectIds = GetOrCreateSortedProjectIds(this.ProjectIds);
-                var projectChecksumTasks = orderedProjectIds
-                    .Select(id => (state: this.ProjectStates[id], mustCompute: projectsToInclude == null || projectsToInclude.Contains(id)))
-                    .Where(t => RemoteSupportedLanguages.IsSupported(t.state.Language))
-                    .Select(async t =>
-                    {
-                        // if it's a project that's specifically in the sync'ed cone, include this checksum so that
-                        // this project definitely syncs over.
-                        if (t.mustCompute)
-                            return await t.state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-
-                        // If it's a project that is not in the cone, still try to get the latest checksum for it if
-                        // we have it.  That way we don't send over a checksum *without* that project, causing the
-                        // OOP side to throw that project away (along with all the compilation info stored with it).
-                        if (t.state.TryGetStateChecksums(out var stateChecksums))
-                            return stateChecksums;
-
-                        // We have never computed the checksum for this project.  Don't send anything for it.
-                        return null;
-                    })
-                    .ToArray();
-
-                var serializer = this.Services.GetRequiredService<ISerializerService>();
-                var attributesChecksum = this.SolutionAttributes.Checksum;
-
-                var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(
-                    this.AnalyzerReferences, serializer, cancellationToken);
-
-                var allResults = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
-                using var _1 = ArrayBuilder<ProjectId>.GetInstance(allResults.Length, out var projectIds);
-                using var _2 = ArrayBuilder<Checksum>.GetInstance(allResults.Length, out var projectChecksums);
-                foreach (var projectStateChecksums in allResults)
-                {
-                    if (projectStateChecksums != null)
-                    {
-                        projectIds.Add(projectStateChecksums.ProjectId);
-                        projectChecksums.Add(projectStateChecksums.Checksum);
-                    }
-                }
-
-                return new SolutionStateChecksums(
-                    attributesChecksum,
-                    new(new ChecksumCollection(projectChecksums.ToImmutableAndClear()), projectIds.ToImmutableAndClear()),
-                    analyzerReferenceChecksums);
-            }
-        }
-        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-        {
-            throw ExceptionUtilities.Unreachable();
         }
     }
 }

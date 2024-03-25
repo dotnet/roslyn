@@ -8,7 +8,7 @@ param(
   [switch]$ci = $false,
   [switch]$prepareMachine = $false,
   [switch]$useGlobalNuGetCache = $true,
-  [switch]$noBuild = $false,
+  [switch]$bootstrap = $false,
   [switch]$help)
 
 Set-StrictMode -version 2.0
@@ -19,7 +19,7 @@ function Print-Usage() {
   Write-Host "  -configuration            Build configuration ('Debug' or 'Release')"
   Write-Host "  -ci                       Set when running on CI server"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
-  Write-Host "  -noBuild                  If set, skips running a bootstrap build before running the rebuild"
+  Write-Host "  -bootstrap                Do a bootstrap build before running the build validatior"
   Write-Host "  -help                     Print help and exit"
 }
 
@@ -32,9 +32,10 @@ try {
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   Push-Location $RepoRoot
 
-  if (-not $noBuild) {
+  if ($bootstrap) {
     Write-Host "Building Roslyn"
-    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog }
+    & eng/build.ps1 -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog
+    Test-LastExitCode
   }
 
   Subst-TempDir
@@ -68,14 +69,15 @@ try {
   " --sourcePath `"$RepoRoot/`"" +
   " --referencesPath `"$ArtifactsDir/bin`"" +
   " --referencesPath `"$dotnetInstallDir/packs`"")
-  Exec-Console "$ArtifactsDir/bin/BuildValidator/$configuration/net472/BuildValidator.exe" $rebuildArgs
+  Exec-Command "$ArtifactsDir/bin/BuildValidator/$configuration/net472/BuildValidator.exe" $rebuildArgs
 
   exit 0
 }
-catch [exception] {
+catch {
   Write-Host $_
   Write-Host $_.Exception
-  exit 1
+  Write-Host $_.ScriptStackTrace
+  ExitWithExitCode 1
 }
 finally {
   Unsubst-TempDir

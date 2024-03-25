@@ -8,15 +8,16 @@
 
     Requirements: 
       - NetVSShared must include both NetVS and NetVSCode
-      - NetRoslynSourceBuild must include NetRoslynToolset
+      - NetRoslynSourceBuild must include NetRoslyn
       - NetRoslynAll must include all .NET Core TFMS in any property below
   -->
   <PropertyGroup>
     <NetRoslyn>net8.0</NetRoslyn>
     <NetRoslynAll>net7.0;net8.0</NetRoslynAll>
     <NetVS>net8.0</NetVS>
-    <NetVSCode>net7.0</NetVSCode>
+    <NetVSCode>net8.0</NetVSCode>
     <NetVSShared>net7.0;net8.0</NetVSShared>
+    <NetRoslynBuildHostNetCoreVersion>net6.0</NetRoslynBuildHostNetCoreVersion>
   </PropertyGroup>
 
   <!-- 
@@ -35,9 +36,10 @@
     -->
     <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' != 'Product'">
       <PropertyGroup>
-        <NetRoslynToolset>$(NetPrevious)</NetRoslynToolset>
+        <NetRoslyn>$(NetPrevious)</NetRoslyn>
         <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
         <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
+        <NetRoslynBuildHostNetCoreVersion>$(NetPrevious)</NetRoslynBuildHostNetCoreVersion>
       </PropertyGroup>
     </When>
 
@@ -46,9 +48,10 @@
     -->
     <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' == 'Product'">
       <PropertyGroup>
-        <NetRoslynToolset>$(NetCurrent)</NetRoslynToolset>
+        <NetRoslyn>$(NetCurrent)</NetRoslyn>
         <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
         <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
+        <NetRoslynBuildHostNetCoreVersion>$(NetCurrent)</NetRoslynBuildHostNetCoreVersion>
       </PropertyGroup>
     </When>
 
@@ -59,7 +62,7 @@
     -->
     <Otherwise>
       <PropertyGroup>
-        <NetRoslynToolset>net8.0</NetRoslynToolset>
+        <NetRoslyn>net8.0</NetRoslyn>
         <NetRoslynSourceBuild>net7.0;net8.0</NetRoslynSourceBuild>
       </PropertyGroup>
     </Otherwise>

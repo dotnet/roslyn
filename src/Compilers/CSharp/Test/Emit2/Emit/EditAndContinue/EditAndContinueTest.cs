@@ -23,9 +23,11 @@ internal sealed class EditAndContinueTest(
 {
     private readonly CSharpCompilationOptions _compilationOptions = (options ?? TestOptions.DebugDll).WithConcurrentBuild(false);
     private readonly CSharpParseOptions _parseOptions = parseOptions ?? TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+    private readonly TargetFramework _targetFramework = targetFramework;
+    private readonly IEnumerable<MetadataReference>? _references = references;
 
     protected override Compilation CreateCompilation(SyntaxTree tree)
-        => CSharpTestBase.CreateCompilation(tree, references, options: _compilationOptions, targetFramework: targetFramework);
+        => CSharpTestBase.CreateCompilation(tree, _references, options: _compilationOptions, targetFramework: _targetFramework);
 
     protected override SourceWithMarkedNodes CreateSourceWithMarkedNodes(string source)
         => EditAndContinueTestBase.MarkedSource(source, options: _parseOptions);
