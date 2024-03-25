@@ -8,7 +8,16 @@ namespace Microsoft.CodeAnalysis.Host;
 
 internal enum SourceGeneratorExecutionPreference
 {
+    /// <summary>
+    /// Source generators should re-run after any change to a project.
+    /// </summary>
     Automatic,
+
+    /// <summary>
+    /// Source generators should re-run only when certain changes happen.  The set of things is host dependent, but
+    /// generally should be things like "builds" or "file saves".  Larger events (not just text changes) which indicate
+    /// that it's a more reasonable time to run generators.
+    /// </summary>
     Balanced,
 }
 
