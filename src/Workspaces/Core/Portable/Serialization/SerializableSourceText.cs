@@ -38,6 +38,11 @@ internal sealed class SerializableSourceText
     /// <inheritdoc cref="Storage"/>
     /// </remarks>
     private readonly SourceText? _text;
+
+    /// <summary>
+    /// The hash that would be produced by calling <inheritdoc cref="SourceText.GetContentHash"/> on <see
+    /// cref="_text"/>.  Can be passed in when already known to avoid unnecessary computation costs.
+    /// </summary>
     public readonly ImmutableArray<byte> ContentHash;
 
     /// <summary>
