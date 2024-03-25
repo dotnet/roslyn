@@ -55,9 +55,9 @@ variables:
 
   - name: UbuntuQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: Build.Ubuntu.1804.Amd64.Open
+      value: Build.Ubuntu.2004.Amd64.Open
     ${{ else }}:
-      value: Build.Ubuntu.1804.Amd64
+      value: Build.Ubuntu.2004.Amd64
 
   - name: WindowsQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -79,9 +79,9 @@ variables:
 
   - name: HelixUbuntuQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: Ubuntu.1804.Amd64.Open
+      value: Ubuntu.2004.Amd64.Open
     ${{ else }}:
-      value: Ubuntu.1804.Amd64
+      value: Ubuntu.2004.Amd64
 
   - name: HelixMacOsQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -148,15 +148,15 @@ stages:
   # Like template `eng/common/templates/jobs/source-build.yml`
   - job: Source_Build_Managed
     displayName: Source-Build (Managed)
-    container: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8
+    container: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream9
     pool:
       ${{ if eq(variables['System.TeamProject'], 'public') }}:
         name: $[replace(replace(eq(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'true'), True, 'NetCore-Svc-Public' ), False, 'NetCore-Public')]
-        demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
+        demands: ImageOverride -equals Build.Ubuntu.2204.Amd64.Open
 
       ${{ if eq(variables['System.TeamProject'], 'internal') }}:
         name: $[replace(replace(eq(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'true'), True, 'NetCore1ESPool-Svc-Internal'), False, 'NetCore1ESPool-Internal')]
-        demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
+        demands: ImageOverride -equals Build.Ubuntu.2204.Amd64
     workspace:
       clean: all
     steps:
@@ -164,7 +164,7 @@ stages:
       parameters:
         platform:
           name: 'Managed'
-          container: 'mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8'
+          container: 'mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream9'
 
 - stage: Windows_Debug_Desktop
   dependsOn: Windows_Debug_Build
