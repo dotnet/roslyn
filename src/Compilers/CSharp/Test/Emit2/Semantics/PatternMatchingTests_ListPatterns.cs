@@ -9210,6 +9210,127 @@ public static class Extension
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    public void SlicePattern_DeclarationPatternOfSameTypeInBetween_CustomTypeWithSideEffects()
+    {
+        var source = """
+            using System;
+
+            class C
+            {
+                public int Count
+                {
+                    get
+                    {
+                        Console.WriteLine("Count");
+                        return 2;
+                    }
+                }
+
+                public int this[int i]
+                {
+                    get
+                    {
+                        Console.WriteLine($"Indexer: {i}");
+                        return i == 0 ? 1 : 2;
+                    }
+                }
+
+                public int Slice(int i, int j)
+                {
+                    Console.WriteLine("Slice");
+                    return 1;
+                }
+            }
+
+            class Program
+            {
+                private static int Test1(C c)
+                {
+                    if (c is [1, ..var sliceVal, 2])
+                    {
+                        return sliceVal;
+                    }
+
+                    return 0;
+                }
+
+                private static int Test2(C c)
+                {
+                    if (c is [1, ..var sliceVal, 3])
+                    {
+                        return sliceVal;
+                    }
+            
+                    return 0;
+                }
+
+                static void Main()
+                {
+                    Console.WriteLine(Test1(new()));
+                    Console.WriteLine(Test2(new()));
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
+        comp.VerifyEmitDiagnostics();
+
+        var expectedOutput = """
+            Count
+            Indexer: 0
+            Indexer: 1
+            Slice
+            1
+            Count
+            Indexer: 0
+            Indexer: 1
+            0
+            """;
+
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyIL("Program.Test1", """
+            {
+              // Code size       53 (0x35)
+              .maxstack  4
+              .locals init (int V_0, //sliceVal
+                            int V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  brfalse.s  IL_0033
+              IL_0003:  ldarg.0
+              IL_0004:  callvirt   "int C.Count.get"
+              IL_0009:  stloc.1
+              IL_000a:  ldloc.1
+              IL_000b:  ldc.i4.2
+              IL_000c:  blt.s      IL_0033
+              IL_000e:  ldarg.0
+              IL_000f:  ldc.i4.0
+              IL_0010:  callvirt   "int C.this[int].get"
+              IL_0015:  ldc.i4.1
+              IL_0016:  bne.un.s   IL_0033
+              IL_0018:  ldarg.0
+              IL_0019:  ldloc.1
+              IL_001a:  ldc.i4.1
+              IL_001b:  sub
+              IL_001c:  callvirt   "int C.this[int].get"
+              IL_0021:  ldc.i4.2
+              IL_0022:  bne.un.s   IL_0033
+              IL_0024:  ldarg.0
+              IL_0025:  ldc.i4.1
+              IL_0026:  ldloc.1
+              IL_0027:  ldc.i4.1
+              IL_0028:  sub
+              IL_0029:  ldc.i4.1
+              IL_002a:  sub
+              IL_002b:  callvirt   "int C.Slice(int, int)"
+              IL_0030:  stloc.0
+              IL_0031:  ldloc.0
+              IL_0032:  ret
+              IL_0033:  ldc.i4.0
+              IL_0034:  ret
+            }
+            """);
+    }
+
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
     [InlineData("var")]
     [InlineData("string[]")]
@@ -9468,6 +9589,118 @@ public static class Extension
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    public void SlicePattern_FirstDeclarationPatternOfSameType_CustomTypeWithSideEffects()
+    {
+        var source = """
+            using System;
+
+            class C
+            {
+                public int Count
+                {
+                    get
+                    {
+                        Console.WriteLine("Count");
+                        return 2;
+                    }
+                }
+
+                public int this[int i]
+                {
+                    get
+                    {
+                        Console.WriteLine($"Indexer: {i}");
+                        return i == 0 ? 1 : 2;
+                    }
+                }
+
+                public int Slice(int i, int j)
+                {
+                    Console.WriteLine("Slice");
+                    return 1;
+                }
+            }
+
+            class Program
+            {
+                private static int Test1(C c)
+                {
+                    if (c is [..var sliceVal, 2])
+                    {
+                        return sliceVal;
+                    }
+
+                    return 0;
+                }
+
+                private static int Test2(C c)
+                {
+                    if (c is [..var sliceVal, 3])
+                    {
+                        return sliceVal;
+                    }
+            
+                    return 0;
+                }
+
+                static void Main()
+                {
+                    Console.WriteLine(Test1(new()));
+                    Console.WriteLine(Test2(new()));
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
+        comp.VerifyEmitDiagnostics();
+
+        var expectedOutput = """
+            Count
+            Indexer: 1
+            Slice
+            1
+            Count
+            Indexer: 1
+            0
+            """;
+
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyIL("Program.Test1", """
+            {
+              // Code size       41 (0x29)
+              .maxstack  4
+              .locals init (int V_0, //sliceVal
+                            int V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  brfalse.s  IL_0027
+              IL_0003:  ldarg.0
+              IL_0004:  callvirt   "int C.Count.get"
+              IL_0009:  stloc.1
+              IL_000a:  ldloc.1
+              IL_000b:  ldc.i4.1
+              IL_000c:  blt.s      IL_0027
+              IL_000e:  ldarg.0
+              IL_000f:  ldloc.1
+              IL_0010:  ldc.i4.1
+              IL_0011:  sub
+              IL_0012:  callvirt   "int C.this[int].get"
+              IL_0017:  ldc.i4.2
+              IL_0018:  bne.un.s   IL_0027
+              IL_001a:  ldarg.0
+              IL_001b:  ldc.i4.0
+              IL_001c:  ldloc.1
+              IL_001d:  ldc.i4.1
+              IL_001e:  sub
+              IL_001f:  callvirt   "int C.Slice(int, int)"
+              IL_0024:  stloc.0
+              IL_0025:  ldloc.0
+              IL_0026:  ret
+              IL_0027:  ldc.i4.0
+              IL_0028:  ret
+            }
+            """);
+    }
+
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
     [InlineData("var")]
     [InlineData("string[]")]
@@ -9708,6 +9941,116 @@ public static class Extension
               IL_0031:  initobj    "System.ReadOnlySpan<string>"
               IL_0037:  ldloc.2
               IL_0038:  ret
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    public void SlicePattern_LastDeclarationPatternOfSameType_CustomTypeWithSideEffects()
+    {
+        var source = """
+            using System;
+
+            class C
+            {
+                public int Count
+                {
+                    get
+                    {
+                        Console.WriteLine("Count");
+                        return 2;
+                    }
+                }
+
+                public int this[int i]
+                {
+                    get
+                    {
+                        Console.WriteLine($"Indexer: {i}");
+                        return i == 0 ? 1 : 2;
+                    }
+                }
+
+                public int Slice(int i, int j)
+                {
+                    Console.WriteLine("Slice");
+                    return 1;
+                }
+            }
+
+            class Program
+            {
+                private static int Test1(C c)
+                {
+                    if (c is [1, ..var sliceVal])
+                    {
+                        return sliceVal;
+                    }
+
+                    return 0;
+                }
+
+                private static int Test2(C c)
+                {
+                    if (c is [2, ..var sliceVal])
+                    {
+                        return sliceVal;
+                    }
+            
+                    return 0;
+                }
+
+                static void Main()
+                {
+                    Console.WriteLine(Test1(new()));
+                    Console.WriteLine(Test2(new()));
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
+        comp.VerifyEmitDiagnostics();
+
+        var expectedOutput = """
+            Count
+            Indexer: 0
+            Slice
+            1
+            Count
+            Indexer: 0
+            0
+            """;
+
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyIL("Program.Test1", """
+            {
+              // Code size       39 (0x27)
+              .maxstack  4
+              .locals init (int V_0, //sliceVal
+                            int V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  brfalse.s  IL_0025
+              IL_0003:  ldarg.0
+              IL_0004:  callvirt   "int C.Count.get"
+              IL_0009:  stloc.1
+              IL_000a:  ldloc.1
+              IL_000b:  ldc.i4.1
+              IL_000c:  blt.s      IL_0025
+              IL_000e:  ldarg.0
+              IL_000f:  ldc.i4.0
+              IL_0010:  callvirt   "int C.this[int].get"
+              IL_0015:  ldc.i4.1
+              IL_0016:  bne.un.s   IL_0025
+              IL_0018:  ldarg.0
+              IL_0019:  ldc.i4.1
+              IL_001a:  ldloc.1
+              IL_001b:  ldc.i4.1
+              IL_001c:  sub
+              IL_001d:  callvirt   "int C.Slice(int, int)"
+              IL_0022:  stloc.0
+              IL_0023:  ldloc.0
+              IL_0024:  ret
+              IL_0025:  ldc.i4.0
+              IL_0026:  ret
             }
             """);
     }
