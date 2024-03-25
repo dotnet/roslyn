@@ -3806,7 +3806,7 @@ class C { int Y => 1; }
 
             Assert.Equal(3, baseActiveStatementsMap.InstructionMap.Count);
 
-            var statements = baseActiveStatementsMap.InstructionMap.Values.OrderBy(v => v.Id).ToArray();
+            var statements = baseActiveStatementsMap.InstructionMap.Values.OrderBy(v => v.Id.Ordinal).ToArray();
             var s = statements[0];
             Assert.Equal(0x06000001, s.InstructionId.Method.Token);
             Assert.Equal(module4, s.InstructionId.Method.Module);
