@@ -75,15 +75,14 @@ internal sealed class VisualDiagnosticsServiceFactory(
         {
             // initialize VisualDiagnosticsLanguageService
             Workspace workspace = this._lspWorkspaceRegistrationService.GetAllRegistrations().Where(w => w.Kind == WorkspaceKind.Host).FirstOrDefault();
-            if (workspace != null)
-            {
-                IVisualDiagnosticsLanguageService? visualDiagnosticsLanguageService = workspace.Services.GetService<IVisualDiagnosticsLanguageService>();
+            Contract.ThrowIfFalse(workspace != null, "We should always have a host workspace.");
 
-                if (visualDiagnosticsLanguageService != null)
-                {
-                    await visualDiagnosticsLanguageService.InitializeAsync(serviceBroker, _cancellationToken).ConfigureAwait(false);
-                    _visualDiagnosticsLanguageService = visualDiagnosticsLanguageService;
-                }
+            IVisualDiagnosticsLanguageService? visualDiagnosticsLanguageService = workspace.Services.GetService<IVisualDiagnosticsLanguageService>();
+
+            if (visualDiagnosticsLanguageService != null)
+            {
+                await visualDiagnosticsLanguageService.InitializeAsync(serviceBroker, _cancellationToken).ConfigureAwait(false);
+                _visualDiagnosticsLanguageService = visualDiagnosticsLanguageService;
             }
         }
     }
