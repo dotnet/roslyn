@@ -22,14 +22,6 @@ internal abstract class AbstractHostDiagnosticUpdateSource
 
     public abstract Workspace Workspace { get; }
 
-    public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
-
-    public void RaiseDiagnosticsUpdated(ImmutableArray<DiagnosticsUpdatedArgs> args)
-    {
-        if (!args.IsEmpty)
-            DiagnosticsUpdated?.Invoke(this, args);
-    }
-
     public void ClearAnalyzerReferenceDiagnostics(AnalyzerFileReference analyzerReference, string language, ProjectId projectId)
     {
         // Perf: if we don't have any diagnostics at all, just return right away; this avoids loading the analyzers
@@ -40,7 +32,6 @@ internal abstract class AbstractHostDiagnosticUpdateSource
         using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
         var analyzers = analyzerReference.GetAnalyzers(language);
         AddArgsToClearAnalyzerDiagnostics(ref argsBuilder.AsRef(), analyzers, projectId);
-        RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
     }
 
     public void AddArgsToClearAnalyzerDiagnostics(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ImmutableArray<DiagnosticAnalyzer> analyzers, ProjectId projectId)

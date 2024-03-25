@@ -81,7 +81,6 @@ internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateS
     {
         using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
         UpdateAndAddDiagnosticsArgsForProject(ref argsBuilder.AsRef(), projectId, key, items);
-        RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
     }
 
     void IProjectSystemDiagnosticSource.ClearAllDiagnosticsForProject(ProjectId projectId)
@@ -107,7 +106,6 @@ internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateS
         }
 
         AddArgsToClearAnalyzerDiagnostics(ref argsBuilder.AsRef(), projectId);
-        RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
     }
 
     internal void ClearAndAddDiagnosticsArgsForProject(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId, object key)
@@ -134,7 +132,6 @@ internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateS
     {
         using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
         ClearAndAddDiagnosticsArgsForProject(ref argsBuilder.AsRef(), projectId, key);
-        RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
     }
 
     public DiagnosticData CreateAnalyzerLoadFailureDiagnostic(AnalyzerLoadFailureEventArgs e, string fullPath, ProjectId projectId, string language)

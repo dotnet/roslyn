@@ -111,7 +111,6 @@ internal sealed class AnalyzerFileWatcherService
                     {
                         using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
                         AddAnalyzerChangedWarningArgs(ref argsBuilder.AsRef(), projectId, filePath);
-                        _updateSource.RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
                     }
 
                     // If the the tracker is in place, at this point we can stop checking any further for this assembly
@@ -165,7 +164,5 @@ internal sealed class AnalyzerFileWatcherService
                 AddAnalyzerChangedWarningArgs(ref argsBuilder.AsRef(), project.Id, filePath);
             }
         }
-
-        _updateSource.RaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
     }
 }

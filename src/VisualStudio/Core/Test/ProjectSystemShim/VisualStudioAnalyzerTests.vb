@@ -42,33 +42,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact>
-        Public Sub AnalyzerErrorsAreUpdated()
-            Using workspace = New TestWorkspace(composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
-                Dim lazyWorkspace = New Lazy(Of VisualStudioWorkspace)(
-                                        Function()
-                                            Return Nothing
-                                        End Function)
-
-                Dim file = Path.GetTempFileName()
-
-                Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(lazyWorkspace)
-
-                Dim eventHandler = New EventHandlers(file)
-                AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
-
-                Using analyzer = New ProjectAnalyzerReference(file, hostDiagnosticUpdateSource, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
-                    Dim reference = analyzer.GetReference()
-                    reference.GetAnalyzers(LanguageNames.VisualBasic)
-
-                    RemoveHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
-                    AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf EventHandlers.DiagnosticRemovedTest
-                End Using
-
-                IO.File.Delete(file)
-            End Using
-        End Sub
-
         Private Class EventHandlers
             Public File As String
 
