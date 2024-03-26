@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         // key in the binder cache.
         // PERF: we are not using ValueTuple because its Equals is relatively slow.
-        private readonly struct BinderCacheKey : IEquatable<BinderCacheKey>
+        internal readonly struct BinderCacheKey : IEquatable<BinderCacheKey>
         {
             public readonly CSharpSyntaxNode syntaxNode;
             public readonly NodeUsage usage;
@@ -58,11 +58,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly ObjectPool<BinderFactoryVisitor> s_binderFactoryVisitorPool
             = new ObjectPool<BinderFactoryVisitor>(static () => new BinderFactoryVisitor(), 64);
 
-        internal BinderFactory(CSharpCompilation compilation, SyntaxTree syntaxTree, bool ignoreAccessibility)
+        private readonly ObjectPool<BinderFactoryVisitor> _binderFactoryVisitorPool;
+
+        internal BinderFactory(CSharpCompilation compilation, SyntaxTree syntaxTree, bool ignoreAccessibility, ObjectPool<BinderFactoryVisitor> binderFactoryVisitorPoolOpt = null)
         {
             _compilation = compilation;
             _syntaxTree = syntaxTree;
             _ignoreAccessibility = ignoreAccessibility;
+            _binderFactoryVisitorPool = binderFactoryVisitorPoolOpt ?? s_binderFactoryVisitorPool;
 
             // 50 is more or less a guess, but it seems to work fine for scenarios that I tried.
             // we need something big enough to keep binders for most classes and some methods 
@@ -137,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BinderFactoryVisitor GetBinderFactoryVisitor(int position, CSharpSyntaxNode memberDeclarationOpt, Symbol memberOpt)
         {
-            BinderFactoryVisitor visitor = s_binderFactoryVisitorPool.Allocate();
+            BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
             visitor.Initialize(factory: this, position, memberDeclarationOpt, memberOpt);
 
             return visitor;
@@ -146,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ClearBinderFactoryVisitor(BinderFactoryVisitor visitor)
         {
             visitor.Clear();
-            s_binderFactoryVisitorPool.Free(visitor);
+            _binderFactoryVisitorPool.Free(visitor);
         }
 
         internal InMethodBinder GetPrimaryConstructorInMethodBinder(SynthesizedPrimaryConstructor constructor)

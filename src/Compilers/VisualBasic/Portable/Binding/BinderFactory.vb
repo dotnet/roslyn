@@ -3,11 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -30,7 +27,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' a NodeUsage to sub-distinguish binders associated with nodes. Each kind of syntax node must have its
         ' associated usage value(s), because the usage is used when creating the binder (if not found in the cache).
         Private ReadOnly _cache As ConcurrentDictionary(Of ValueTuple(Of VisualBasicSyntaxNode, Byte), Binder)
+
         Private Shared ReadOnly s_binderFactoryVisitorPool As ObjectPool(Of BinderFactoryVisitor) = New ObjectPool(Of BinderFactoryVisitor)(Function() New BinderFactoryVisitor())
+        Private ReadOnly _binderFactoryVisitorPool As ObjectPool(Of BinderFactoryVisitor)
 
         Private ReadOnly Property InScript As Boolean
             Get
@@ -38,10 +37,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Sub New(sourceModule As SourceModuleSymbol, tree As SyntaxTree)
+        Public Sub New(sourceModule As SourceModuleSymbol, tree As SyntaxTree, Optional binderFactoryVisitorPoolOpt As ObjectPool(Of BinderFactoryVisitor) = Nothing)
             Me._sourceModule = sourceModule
             Me._tree = tree
             Me._cache = New ConcurrentDictionary(Of ValueTuple(Of VisualBasicSyntaxNode, Byte), Binder)
+            Me._binderFactoryVisitorPool = If(binderFactoryVisitorPoolOpt, s_binderFactoryVisitorPool)
         End Sub
 
         Private Function MakeBinder(node As SyntaxNode, position As Integer) As Binder
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetBinderFactoryVisitor(position As Integer) As BinderFactoryVisitor
-            Dim visitor = s_binderFactoryVisitorPool.Allocate()
+            Dim visitor = _binderFactoryVisitorPool.Allocate()
             visitor.Initialize(Me, position)
 
             Return visitor
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub ClearBinderFactoryVisitor(visitor As BinderFactoryVisitor)
             visitor.Clear()
-            s_binderFactoryVisitorPool.Free(visitor)
+            _binderFactoryVisitorPool.Free(visitor)
         End Sub
 
         ' Get binder for interior of a namespace block

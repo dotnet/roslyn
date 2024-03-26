@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class BinderFactory
     {
-        private sealed class BinderFactoryVisitor : CSharpSyntaxVisitor<Binder>
+        internal sealed class BinderFactoryVisitor : CSharpSyntaxVisitor<Binder>
         {
             private int _position;
             private CSharpSyntaxNode _memberDeclarationOpt;
