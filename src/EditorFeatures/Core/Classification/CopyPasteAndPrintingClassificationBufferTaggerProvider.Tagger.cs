@@ -94,6 +94,11 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             return [];
         }
 
+        private static IEnumerable<ITagSpan<IClassificationTag>> GetIntersectingTags(NormalizedSnapshotSpanCollection spans, TagSpanIntervalTree<IClassificationTag> cachedTags)
+            => SegmentedListPool<ITagSpan<IClassificationTag>>.ComputeList(
+                static (args, tags) => args.cachedTags.AddIntersectingTagSpans(args.spans, tags),
+                (cachedTags, spans));
+
         public IEnumerable<ITagSpan<IClassificationTag>> GetAllTags(NormalizedSnapshotSpanCollection spans, CancellationToken cancellationToken)
         {
             _owner._threadingContext.ThrowIfNotOnUIThread();
@@ -119,12 +124,12 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                 cachedTaggedSpan.Value.Contains(spanToTag))
             {
                 Contract.ThrowIfNull(cachedTags);
-                return SegmentedListPool<ITagSpan<IClassificationTag>>.ComputeList(
-                    static (args, tags) => args.cachedTags.AddIntersectingTagSpans(args.spans, tags),
-                    (cachedTags, spans));
+                return GetIntersectingTags(spans, cachedTags);
             }
-
-            return ComputeAndCacheAllTags(spans, snapshot, document, spanToTag, cancellationToken);
+            else
+            {
+                return ComputeAndCacheAllTags(spans, snapshot, document, spanToTag, cancellationToken);
+            }
         }
 
         private IEnumerable<ITagSpan<IClassificationTag>> ComputeAndCacheAllTags(
@@ -167,9 +172,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                 _cachedTags = cachedTags;
             }
 
-            return SegmentedListPool<ITagSpan<IClassificationTag>>.ComputeList(
-                static (args, tags) => args.cachedTags.AddIntersectingTagSpans(args.spans, tags),
-                (cachedTags, spans));
+            return GetIntersectingTags(spans, cachedTags);
 
             Task AddSyntacticSpansAsync(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> result, VoidResult _)
             {
