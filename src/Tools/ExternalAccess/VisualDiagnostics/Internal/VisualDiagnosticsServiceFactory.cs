@@ -74,7 +74,7 @@ internal sealed class VisualDiagnosticsServiceFactory(
         private async Task OnInitializeVisualDiagnosticsLanguageServiceAsync(IServiceBroker serviceBroker)
         {
             // initialize VisualDiagnosticsLanguageService
-            Workspace workspace = this._lspWorkspaceRegistrationService.GetAllRegistrations().Where(w => w.Kind == WorkspaceKind.Host).FirstOrDefault();
+            Workspace workspace = _lspWorkspaceRegistrationService.GetAllRegistrations().Where(w => w.Kind == WorkspaceKind.Host).FirstOrDefault();
             Contract.ThrowIfFalse(workspace != null, "We should always have a host workspace.");
 
             IVisualDiagnosticsLanguageService? visualDiagnosticsLanguageService = workspace.Services.GetService<IVisualDiagnosticsLanguageService>();
