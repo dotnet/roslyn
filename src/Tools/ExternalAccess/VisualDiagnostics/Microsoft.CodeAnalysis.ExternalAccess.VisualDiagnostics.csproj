@@ -20,11 +20,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.CodeAnalysis" Key="$(VisualStudioKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.CodeAnalysis.Diagnostics" Key="$(VisualStudioKey)" />
   </ItemGroup>
-  
-  <ItemGroup>
-    <!-- This is needed for IVisualDiagnosticsLanguageService service to load -->
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
