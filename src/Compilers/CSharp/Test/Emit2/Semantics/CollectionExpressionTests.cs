@@ -36559,7 +36559,7 @@ partial class Program
         [InlineData("in")]
         [InlineData("ref")]
         [InlineData("ref readonly")]
-        public void AddMethod_Extension_08(string refKind)
+        public void AddMethod_Extension_08A(string refKind)
         {
             string source = $$"""
                 using System.Collections;
@@ -36588,6 +36588,66 @@ partial class Program
                 """;
             string expectedOutput = (refKind == "ref") ? "[1, 2, 3], " : "[], ";
             CompileAndVerify([source, s_collectionExtensions], expectedOutput: expectedOutput);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("in")]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        public void AddMethod_Extension_08B(string refKind)
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable
+                {
+                    private List<T> _list;
+                    IEnumerator IEnumerable.GetEnumerator() => GetList().GetEnumerator();
+                    internal void __AddInternal(T t) { GetList().Add(t); }
+                    private List<T> GetList() => _list ??= new();
+                }
+                static class Extensions
+                {
+                    public static void Add<T>(this {{refKind}} MyCollection<T> collection, T t) { collection.__AddInternal(t); }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<int> z = [x, ..y];
+                        z.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, s_collectionExtensions], options: TestOptions.ReleaseExe);
+            switch (refKind)
+            {
+                case "":
+                    CompileAndVerify(comp, expectedOutput: "[1, 2, 3], ");
+                    break;
+                case "in":
+                case "ref readonly":
+                    comp.VerifyEmitDiagnostics(
+                        // (12,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'Add' must be a concrete (non-generic) value type.
+                        //     public static void Add<T>(this in MyCollection<T> collection, T t) { collection.__AddInternal(t); }
+                        Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "Add").WithArguments("Add").WithLocation(12, 24),
+                        // (20,31): error CS9230: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
+                        //         MyCollection<int> z = [x, ..y];
+                        Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(20, 31));
+                    break;
+                case "ref":
+                    comp.VerifyEmitDiagnostics(
+                        // (12,24): error CS8337: The first parameter of a 'ref' extension method 'Add' must be a value type or a generic type constrained to struct.
+                        //     public static void Add<T>(this ref MyCollection<T> collection, T t) { collection.__AddInternal(t); }
+                        Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "Add").WithArguments("Add").WithLocation(12, 24),
+                        // (20,31): error CS9230: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
+                        //         MyCollection<int> z = [x, ..y];
+                        Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(20, 31));
+                    break;
+            }
         }
 
         [Fact]
