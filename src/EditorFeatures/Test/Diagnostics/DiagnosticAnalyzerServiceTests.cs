@@ -1001,17 +1001,10 @@ class A
 
         private static (bool, bool) AnalyzerResultSetter(bool syntax, bool semantic, ImmutableArray<DiagnosticData> diagnostics)
         {
-            switch (diagnostics.Length)
+            foreach (var diagnostic in diagnostics)
             {
-                case 0:
-                    break;
-                case 1:
-                    syntax |= diagnostics[0].Id == Analyzer.s_syntaxRule.Id;
-                    semantic |= diagnostics[0].Id == Analyzer.s_semanticRule.Id;
-                    break;
-                default:
-                    AssertEx.Fail("shouldn't reach here");
-                    break;
+                syntax |= diagnostic.Id == Analyzer.s_syntaxRule.Id;
+                semantic |= diagnostic.Id == Analyzer.s_semanticRule.Id;
             }
 
             return (syntax, semantic);
