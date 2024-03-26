@@ -25350,44 +25350,49 @@ partial class Program
                 public class MyCollection<T> : IEnumerable
                 {
                     IEnumerator IEnumerable.GetEnumerator() => throw null;
-                }
-                public static class Extensions
-                {
-                    public static void Add<T>(this MyCollection<T> collection, string s) { }
+                    public void Add(string s) { }
                 }
                 """;
             string sourceB = """
                 class Program
                 {
-                    static MyCollection<int> Create(int x, int[] y)
+                    static MyCollection<int> Create()
                     {
-                        return /*<bind>*/[x, ..y]/*</bind>*/;
+                        return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
                     }
+                    static int F1() => 1;
+                    static int[] F2() => [2, 3];
                 }
                 """;
             var comp = CreateCompilation([sourceB, sourceA]);
             comp.VerifyEmitDiagnostics(
-                // (5,27): error CS1950: The best overloaded Add method 'Extensions.Add<int>(MyCollection<int>, string)' for the collection initializer has some invalid arguments
-                //         return /*<bind>*/[x, ..y]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "x").WithArguments("Extensions.Add<int>(MyCollection<int>, string)").WithLocation(5, 27),
-                // (5,27): error CS1503: Argument 2: cannot convert from 'int' to 'string'
-                //         return /*<bind>*/[x, ..y]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("2", "int", "string").WithLocation(5, 27),
-                // (5,30): error CS1503: Argument 2: cannot convert from 'int' to 'string'
-                //         return /*<bind>*/[x, ..y]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("2", "int", "string").WithLocation(5, 30),
-                // (5,32): error CS1950: The best overloaded Add method 'Extensions.Add<int>(MyCollection<int>, string)' for the collection initializer has some invalid arguments
-                //         return /*<bind>*/[x, ..y]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("Extensions.Add<int>(MyCollection<int>, string)").WithLocation(5, 32));
+                // (5,27): error CS1950: The best overloaded Add method 'MyCollection<int>.Add(string)' for the collection initializer has some invalid arguments
+                //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "F1()").WithArguments("MyCollection<int>.Add(string)").WithLocation(5, 27),
+                // (5,27): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "F1()").WithArguments("1", "int", "string").WithLocation(5, 27),
+                // (5,33): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "..F2()").WithArguments("1", "int", "string").WithLocation(5, 33),
+                // (5,35): error CS1950: The best overloaded Add method 'MyCollection<int>.Add(string)' for the collection initializer has some invalid arguments
+                //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "F2()").WithArguments("MyCollection<int>.Add(string)").WithLocation(5, 35));
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
-                ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection<System.Int32>..ctor()) (OperationKind.CollectionExpression, Type: MyCollection<System.Int32>, IsInvalid) (Syntax: '[x, ..y]')
+                ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection<System.Int32>..ctor()) (OperationKind.CollectionExpression, Type: MyCollection<System.Int32>, IsInvalid) (Syntax: '[F1(), ..F2()]')
                   Elements(2):
-                      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
-                      ISpreadOperation (ElementType: System.Int32) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..y')
+                      IInvocationOperation (System.Int32 Program.F1()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'F1()')
+                        Instance Receiver:
+                          null
+                        Arguments(0)
+                      ISpreadOperation (ElementType: System.Int32) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..F2()')
                         Operand:
-                          IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32[], IsInvalid) (Syntax: 'y')
+                          IInvocationOperation (System.Int32[] Program.F2()) (OperationKind.Invocation, Type: System.Int32[], IsInvalid) (Syntax: 'F2()')
+                            Instance Receiver:
+                              null
+                            Arguments(0)
                         ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           (Identity)
                 """);
@@ -25403,16 +25408,22 @@ partial class Program
                     Predecessors: [B0]
                     Statements (0)
                     Next (Return) Block[B2]
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<System.Int32>, IsInvalid, IsImplicit) (Syntax: '[x, ..y]')
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<System.Int32>, IsInvalid, IsImplicit) (Syntax: '[F1(), ..F2()]')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             (CollectionExpression)
                           Operand:
-                            ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection<System.Int32>..ctor()) (OperationKind.CollectionExpression, Type: MyCollection<System.Int32>, IsInvalid) (Syntax: '[x, ..y]')
+                            ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection<System.Int32>..ctor()) (OperationKind.CollectionExpression, Type: MyCollection<System.Int32>, IsInvalid) (Syntax: '[F1(), ..F2()]')
                               Elements(2):
-                                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
-                                  ISpreadOperation (ElementType: System.Int32) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..y')
+                                  IInvocationOperation (System.Int32 Program.F1()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'F1()')
+                                    Instance Receiver:
+                                      null
+                                    Arguments(0)
+                                  ISpreadOperation (ElementType: System.Int32) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..F2()')
                                     Operand:
-                                      IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32[], IsInvalid) (Syntax: 'y')
+                                      IInvocationOperation (System.Int32[] Program.F2()) (OperationKind.Invocation, Type: System.Int32[], IsInvalid) (Syntax: 'F2()')
+                                        Instance Receiver:
+                                          null
+                                        Arguments(0)
                                     ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                       (Identity)
                 Block[B2] - Exit
@@ -25423,6 +25434,99 @@ partial class Program
 
         [Fact]
         public void IOperation_InvalidAdd_02()
+        {
+            string sourceA = """
+                using System.Collections;
+                public class MyCollection<T> : IEnumerable
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                public static class Extensions
+                {
+                    public static void Add<T>(this MyCollection<T> collection, string s) { }
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static MyCollection<int> Create()
+                    {
+                        return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
+                    }
+                    static int F1() => 1;
+                    static int[] F2() => [2, 3];
+                }
+                """;
+            var comp = CreateCompilation([sourceB, sourceA]);
+            comp.VerifyEmitDiagnostics(
+                // (5,27): error CS1950: The best overloaded Add method 'Extensions.Add<int>(MyCollection<int>, string)' for the collection initializer has some invalid arguments
+                //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "F1()").WithArguments("Extensions.Add<int>(MyCollection<int>, string)").WithLocation(5, 27),
+                // (5,27): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "F1()").WithArguments("2", "int", "string").WithLocation(5, 27),
+                // (5,33): error CS1503: Argument 2: cannot convert from 'int' to 'string'
+                //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "..F2()").WithArguments("2", "int", "string").WithLocation(5, 33),
+                // (5,35): error CS1950: The best overloaded Add method 'Extensions.Add<int>(MyCollection<int>, string)' for the collection initializer has some invalid arguments
+                //         return /*<bind>*/[F1(), ..F2()]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "F2()").WithArguments("Extensions.Add<int>(MyCollection<int>, string)").WithLocation(5, 35));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection<System.Int32>..ctor()) (OperationKind.CollectionExpression, Type: MyCollection<System.Int32>, IsInvalid) (Syntax: '[F1(), ..F2()]')
+                  Elements(2):
+                      IInvocationOperation (System.Int32 Program.F1()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'F1()')
+                        Instance Receiver:
+                          null
+                        Arguments(0)
+                      ISpreadOperation (ElementType: System.Int32) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..F2()')
+                        Operand:
+                          IInvocationOperation (System.Int32[] Program.F2()) (OperationKind.Invocation, Type: System.Int32[], IsInvalid) (Syntax: 'F2()')
+                            Instance Receiver:
+                              null
+                            Arguments(0)
+                        ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (Identity)
+                """);
+
+            var tree = comp.SyntaxTrees[0];
+            var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Create");
+            VerifyFlowGraph(comp, method,
+                """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<System.Int32>, IsInvalid, IsImplicit) (Syntax: '[F1(), ..F2()]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionExpression)
+                          Operand:
+                            ICollectionExpressionOperation (2 elements, ConstructMethod: MyCollection<System.Int32>..ctor()) (OperationKind.CollectionExpression, Type: MyCollection<System.Int32>, IsInvalid) (Syntax: '[F1(), ..F2()]')
+                              Elements(2):
+                                  IInvocationOperation (System.Int32 Program.F1()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'F1()')
+                                    Instance Receiver:
+                                      null
+                                    Arguments(0)
+                                  ISpreadOperation (ElementType: System.Int32) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..F2()')
+                                    Operand:
+                                      IInvocationOperation (System.Int32[] Program.F2()) (OperationKind.Invocation, Type: System.Int32[], IsInvalid) (Syntax: 'F2()')
+                                        Instance Receiver:
+                                          null
+                                        Arguments(0)
+                                    ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                      (Identity)
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
+        }
+
+        [Fact]
+        public void IOperation_InvalidAdd_03()
         {
             string sourceA = """
                 using System.Collections;
@@ -25494,6 +25598,74 @@ partial class Program
                                       IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32[], IsInvalid) (Syntax: 'y')
                                     ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                       (Identity)
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
+        }
+
+        [Fact]
+        public void IOperation_InvalidAdd_04()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                public class MyCollection<T> : IEnumerable
+                {
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public Action<T> Add;
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static MyCollection<int> Create(int x, int[] y)
+                    {
+                        return /*<bind>*/[x, ..y]/*</bind>*/;
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceB, sourceA]);
+            comp.VerifyEmitDiagnostics(
+                // (5,26): error CS9230: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         return /*<bind>*/[x, ..y]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(5, 26));
+
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (2 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: MyCollection<System.Int32>, IsInvalid) (Syntax: '[x, ..y]')
+                  Elements(2):
+                      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
+                      ISpreadOperation (ElementType: System.Int32) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..y')
+                        Operand:
+                          IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32[], IsInvalid) (Syntax: 'y')
+                        ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (NoConversion)
+                """);
+
+            var tree = comp.SyntaxTrees[0];
+            var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Create");
+            VerifyFlowGraph(comp, method,
+                """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection<System.Int32>, IsInvalid, IsImplicit) (Syntax: '[x, ..y]')
+                          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (NoConversion)
+                          Operand:
+                            ICollectionExpressionOperation (2 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: MyCollection<System.Int32>, IsInvalid) (Syntax: '[x, ..y]')
+                              Elements(2):
+                                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
+                                  ISpreadOperation (ElementType: System.Int32) (OperationKind.Spread, Type: null, IsInvalid) (Syntax: '..y')
+                                    Operand:
+                                      IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32[], IsInvalid) (Syntax: 'y')
+                                    ElementConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                      (NoConversion)
                 Block[B2] - Exit
                     Predecessors: [B1]
                     Statements (0)

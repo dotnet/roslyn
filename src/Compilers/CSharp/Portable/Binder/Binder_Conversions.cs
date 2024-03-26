@@ -1430,10 +1430,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Overload resolution failed with one or more applicable or ambiguous
                         // Add methods. This case can be hit for spreads and non-spread elements.
                         Debug.Assert(call.HasErrors);
+                        Debug.Assert(call.Method.Name == "Add");
                         return call.Arguments[call.InvokedAsExtensionMethod ? 1 : 0];
+                    case BoundBadExpression badExpression:
+                        Debug.Assert(false); // Add test if we hit this assert.
+                        return badExpression;
                     default:
-                        Debug.Assert(element.Kind == BoundKind.BadExpression);
-                        return element;
+                        throw ExceptionUtilities.UnexpectedValue(element);
                 }
             }
 
