@@ -11,24 +11,23 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
 
-namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
-{
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryParentheses), Shared]
-    internal class CSharpRemoveUnnecessaryParenthesesCodeFixProvider :
-        AbstractRemoveUnnecessaryParenthesesCodeFixProvider<SyntaxNode>
-    {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpRemoveUnnecessaryParenthesesCodeFixProvider()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses;
 
-        protected override bool CanRemoveParentheses(SyntaxNode current, SemanticModel semanticModel, CancellationToken cancellationToken)
-            => current switch
-            {
-                ParenthesizedExpressionSyntax p => CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(p, semanticModel, cancellationToken, out _, out _),
-                ParenthesizedPatternSyntax p => CSharpRemoveUnnecessaryPatternParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(p, out _, out _),
-                _ => false,
-            };
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryParentheses), Shared]
+internal class CSharpRemoveUnnecessaryParenthesesCodeFixProvider :
+    AbstractRemoveUnnecessaryParenthesesCodeFixProvider<SyntaxNode>
+{
+    [ImportingConstructor]
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    public CSharpRemoveUnnecessaryParenthesesCodeFixProvider()
+    {
     }
+
+    protected override bool CanRemoveParentheses(SyntaxNode current, SemanticModel semanticModel, CancellationToken cancellationToken)
+        => current switch
+        {
+            ParenthesizedExpressionSyntax p => CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(p, semanticModel, cancellationToken, out _, out _),
+            ParenthesizedPatternSyntax p => CSharpRemoveUnnecessaryPatternParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(p, out _, out _),
+            _ => false,
+        };
 }

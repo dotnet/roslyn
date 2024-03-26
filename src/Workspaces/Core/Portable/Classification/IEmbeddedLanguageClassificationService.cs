@@ -9,24 +9,23 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Classification
-{
-    internal interface IEmbeddedLanguageClassificationService : ILanguageService
-    {
-        Task AddEmbeddedLanguageClassificationsAsync(
-            Document document,
-            ImmutableArray<TextSpan> textSpans,
-            ClassificationOptions options,
-            SegmentedList<ClassifiedSpan> result,
-            CancellationToken cancellationToken);
+namespace Microsoft.CodeAnalysis.Classification;
 
-        void AddEmbeddedLanguageClassifications(
-            SolutionServices solutionServices,
-            Project project,
-            SemanticModel semanticModel,
-            ImmutableArray<TextSpan> textSpans,
-            ClassificationOptions options,
-            SegmentedList<ClassifiedSpan> result,
-            CancellationToken cancellationToken);
-    }
+internal interface IEmbeddedLanguageClassificationService : ILanguageService
+{
+    Task AddEmbeddedLanguageClassificationsAsync(
+        Document document,
+        ImmutableArray<TextSpan> textSpans,
+        ClassificationOptions options,
+        SegmentedList<ClassifiedSpan> result,
+        CancellationToken cancellationToken);
+
+    void AddEmbeddedLanguageClassifications(
+        SolutionServices solutionServices,
+        Project project,
+        SemanticModel semanticModel,
+        ImmutableArray<TextSpan> textSpans,
+        ClassificationOptions options,
+        SegmentedList<ClassifiedSpan> result,
+        CancellationToken cancellationToken);
 }

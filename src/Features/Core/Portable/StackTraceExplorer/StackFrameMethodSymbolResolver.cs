@@ -8,27 +8,26 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 
-namespace Microsoft.CodeAnalysis.StackTraceExplorer
+namespace Microsoft.CodeAnalysis.StackTraceExplorer;
+
+internal class StackFrameMethodSymbolResolver : AbstractStackTraceSymbolResolver
 {
-    internal class StackFrameMethodSymbolResolver : AbstractStackTraceSymbolResolver
+    public override Task<IMethodSymbol?> TryGetBestMatchAsync(Project project,
+        INamedTypeSymbol type,
+        StackFrameSimpleNameNode methodNode,
+        StackFrameParameterList methodArguments,
+        StackFrameTypeArgumentList? methodTypeArguments,
+        CancellationToken cancellationToken)
     {
-        public override Task<IMethodSymbol?> TryGetBestMatchAsync(Project project,
-            INamedTypeSymbol type,
-            StackFrameSimpleNameNode methodNode,
-            StackFrameParameterList methodArguments,
-            StackFrameTypeArgumentList? methodTypeArguments,
-            CancellationToken cancellationToken)
-        {
-            var methodName = methodNode.ToString();
+        var methodName = methodNode.ToString();
 
-            var candidateMethods = type
-                .GetMembers()
-                .OfType<IMethodSymbol>()
-                .Where(m => m.Name == methodName)
-                .ToImmutableArray();
+        var candidateMethods = type
+            .GetMembers()
+            .OfType<IMethodSymbol>()
+            .Where(m => m.Name == methodName)
+            .ToImmutableArray();
 
-            var match = TryGetBestMatch(candidateMethods, methodTypeArguments, methodArguments);
-            return Task.FromResult(match);
-        }
+        var match = TryGetBestMatch(candidateMethods, methodTypeArguments, methodArguments);
+        return Task.FromResult(match);
     }
 }

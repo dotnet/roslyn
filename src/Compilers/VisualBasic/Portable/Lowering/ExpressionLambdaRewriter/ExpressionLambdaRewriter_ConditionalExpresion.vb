@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim paramLocalSymbol As LocalSymbol = Me._factory.SynthesizedLocal(parameterExpressionType)
             Dim parameterReference As BoundLocal = Me._factory.Local(paramLocalSymbol, True)
-            Dim parameter As BoundExpression = ConvertRuntimeHelperToExpressionTree("Parameter", _factory.[Typeof](lambdaParameter.Type), _factory.Literal(s_coalesceLambdaParameterName))
+            Dim parameter As BoundExpression = ConvertRuntimeHelperToExpressionTree("Parameter", _factory.[Typeof](lambdaParameter.Type, _factory.WellKnownType(WellKnownType.System_Type)), _factory.Literal(s_coalesceLambdaParameterName))
 
             Me._parameterMap(lambdaParameter) = parameterReference.MakeRValue
             Dim convertedValue As BoundExpression = Visit(body)

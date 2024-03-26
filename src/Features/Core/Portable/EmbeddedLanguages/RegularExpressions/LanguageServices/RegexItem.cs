@@ -4,17 +4,16 @@
 
 using Microsoft.CodeAnalysis.Completion;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
+
+internal partial class RegexEmbeddedCompletionProvider
 {
-    internal partial class RegexEmbeddedCompletionProvider
+    private readonly struct RegexItem(
+        string displayText, string inlineDescription, string fullDescription, CompletionChange change)
     {
-        private readonly struct RegexItem(
-            string displayText, string inlineDescription, string fullDescription, CompletionChange change)
-        {
-            public readonly string DisplayText = displayText;
-            public readonly string InlineDescription = inlineDescription;
-            public readonly string FullDescription = fullDescription;
-            public readonly CompletionChange Change = change;
-        }
+        public readonly string DisplayText = displayText;
+        public readonly string InlineDescription = inlineDescription;
+        public readonly string FullDescription = fullDescription;
+        public readonly CompletionChange Change = change;
     }
 }

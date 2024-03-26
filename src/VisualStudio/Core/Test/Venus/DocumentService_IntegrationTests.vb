@@ -31,15 +31,14 @@ Imports Microsoft.VisualStudio.Shell.TableControl
 Imports Microsoft.VisualStudio.Shell.TableManager
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.Editor.Host
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Public Class DocumentService_IntegrationTests
-        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
-            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
-            .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
+        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures
 
         <WpfFact>
         Public Async Function TestFindUsageIntegration() As System.Threading.Tasks.Task
@@ -68,7 +67,7 @@ class {|Definition:C1|}
             Using workspace = EditorTestWorkspace.Create(input, composition:=composition, documentServiceProvider:=TestDocumentServiceProvider.Instance)
 
                 Dim presenter = New StreamingFindUsagesPresenter(workspace, workspace.ExportProvider.AsExportProvider())
-                Dim tuple = presenter.StartSearch("test", supportsReferences:=True)
+                Dim tuple = presenter.StartSearch("test", New StreamingFindUsagesPresenterOptions() With {.SupportsReferences = True})
                 Dim context = tuple.context
 
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
@@ -230,7 +229,6 @@ class { }
                 ' confirm there are errors
                 Assert.True(model.GetDiagnostics().Any())
 
-                Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
                 Dim diagnosticService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
 
                 ' confirm diagnostic support is off for the document

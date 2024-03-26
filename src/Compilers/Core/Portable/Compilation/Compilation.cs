@@ -955,6 +955,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public INamedTypeSymbol GetSpecialType(SpecialType specialType)
         {
+            if (specialType <= SpecialType.None || specialType > SpecialType.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(specialType), $"Unexpected SpecialType: '{(int)specialType}'.");
+            }
+
             return (INamedTypeSymbol)CommonGetSpecialType(specialType).GetITypeSymbol();
         }
 
@@ -1139,11 +1144,9 @@ namespace Microsoft.CodeAnalysis
         // hash code conflicts, but seems to do the trick. The size is mostly arbitrary. My guess
         // is that there are maybe a couple dozen analyzers in the solution and each one has
         // ~0-2 unique well-known types, and the chance of hash collision is very low.
-        private readonly ConcurrentCache<string, INamedTypeSymbol?> _getTypeCache =
-            new ConcurrentCache<string, INamedTypeSymbol?>(50, ReferenceEqualityComparer.Instance);
+        private ConcurrentCache<string, INamedTypeSymbol?>? _getTypeCache;
 
-        private readonly ConcurrentCache<string, ImmutableArray<INamedTypeSymbol>> _getTypesCache =
-            new ConcurrentCache<string, ImmutableArray<INamedTypeSymbol>>(50, ReferenceEqualityComparer.Instance);
+        private ConcurrentCache<string, ImmutableArray<INamedTypeSymbol>>? _getTypesCache;
 
         /// <summary>
         /// Gets the type within the compilation's assembly and all referenced assemblies (other than
@@ -1187,12 +1190,15 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public INamedTypeSymbol? GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
-            if (!_getTypeCache.TryGetValue(fullyQualifiedMetadataName, out INamedTypeSymbol? val))
+            var getTypeCache = RoslynLazyInitializer.EnsureInitialized(
+                ref _getTypeCache, static () => new ConcurrentCache<string, INamedTypeSymbol?>(50, ReferenceEqualityComparer.Instance));
+
+            if (!getTypeCache.TryGetValue(fullyQualifiedMetadataName, out INamedTypeSymbol? val))
             {
                 val = CommonGetTypeByMetadataName(fullyQualifiedMetadataName);
-                var result = _getTypeCache.TryAdd(fullyQualifiedMetadataName, val);
+                var result = getTypeCache.TryAdd(fullyQualifiedMetadataName, val);
                 Debug.Assert(result
-                 || !_getTypeCache.TryGetValue(fullyQualifiedMetadataName, out var addedType) // Could fail if the type was already evicted from the cache
+                 || !getTypeCache.TryGetValue(fullyQualifiedMetadataName, out var addedType) // Could fail if the type was already evicted from the cache
                  || ReferenceEquals(addedType, val));
             }
             return val;
@@ -1215,12 +1221,15 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public ImmutableArray<INamedTypeSymbol> GetTypesByMetadataName(string fullyQualifiedMetadataName)
         {
-            if (!_getTypesCache.TryGetValue(fullyQualifiedMetadataName, out ImmutableArray<INamedTypeSymbol> val))
+            var getTypesCache = RoslynLazyInitializer.EnsureInitialized(
+                ref _getTypesCache, static () => new ConcurrentCache<string, ImmutableArray<INamedTypeSymbol>>(50, ReferenceEqualityComparer.Instance));
+
+            if (!getTypesCache.TryGetValue(fullyQualifiedMetadataName, out ImmutableArray<INamedTypeSymbol> val))
             {
                 val = getTypesByMetadataNameImpl();
-                var result = _getTypesCache.TryAdd(fullyQualifiedMetadataName, val);
+                var result = getTypesCache.TryAdd(fullyQualifiedMetadataName, val);
                 Debug.Assert(result
-                    || !_getTypesCache.TryGetValue(fullyQualifiedMetadataName, out var addedArray) // Could fail if the type was already evicted from the cache
+                    || !getTypesCache.TryGetValue(fullyQualifiedMetadataName, out var addedArray) // Could fail if the type was already evicted from the cache
                     || Enumerable.SequenceEqual(addedArray, val, ReferenceEqualityComparer.Instance));
             }
 
@@ -3347,8 +3356,6 @@ namespace Microsoft.CodeAnalysis
             RSAParameters? privateKeyOpt,
             CancellationToken cancellationToken)
         {
-            bool emitSecondaryAssembly = getMetadataPeStreamOpt != null;
-
             bool includePrivateMembersOnPrimaryOutput = metadataOnly ? includePrivateMembers : true;
             bool deterministicPrimaryOutput = (metadataOnly && !includePrivateMembers) || isDeterministic;
             if (!Cci.PeWriter.WritePeToStream(
@@ -3368,7 +3375,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // produce the secondary output (ref assembly) if needed
-            if (emitSecondaryAssembly)
+            if (getMetadataPeStreamOpt is not null)
             {
                 Debug.Assert(!metadataOnly);
                 Debug.Assert(!includePrivateMembers);
@@ -3686,7 +3693,7 @@ namespace Microsoft.CodeAnalysis
             return _lazyMakeMemberMissingMap != null && _lazyMakeMemberMissingMap.ContainsKey(member);
         }
 
-        internal void MakeTypeMissing(SpecialType type)
+        internal void MakeTypeMissing(ExtendedSpecialType type)
         {
             MakeTypeMissing((int)type);
         }
@@ -3706,7 +3713,7 @@ namespace Microsoft.CodeAnalysis
             _lazyMakeWellKnownTypeMissingMap[(int)type] = true;
         }
 
-        internal bool IsTypeMissing(SpecialType type)
+        internal bool IsTypeMissing(ExtendedSpecialType type)
         {
             return IsTypeMissing((int)type);
         }

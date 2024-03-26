@@ -4,16 +4,15 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
-{
-    internal sealed class InlineDiagnosticsOptionsStorage
-    {
-        public static readonly PerLanguageOption2<bool> EnableInlineDiagnostics =
-            new("dotnet_enable_inline_diagnostics",
-                defaultValue: false);
+namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 
-        public static readonly PerLanguageOption2<InlineDiagnosticsLocations> Location =
-            new("dotnet_inline_diagnostics_location",
-                defaultValue: InlineDiagnosticsLocations.PlacedAtEndOfCode, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<InlineDiagnosticsLocations>());
-    }
+internal sealed class InlineDiagnosticsOptionsStorage
+{
+    public static readonly PerLanguageOption2<bool> EnableInlineDiagnostics =
+        new("dotnet_enable_inline_diagnostics",
+            defaultValue: false);
+
+    public static readonly PerLanguageOption2<InlineDiagnosticsLocations> Location =
+        new("dotnet_inline_diagnostics_location",
+            defaultValue: InlineDiagnosticsLocations.PlacedAtEndOfCode, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<InlineDiagnosticsLocations>());
 }

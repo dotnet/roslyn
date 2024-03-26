@@ -10,10 +10,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.GraphModel;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
+
+internal interface IGraphQuery
 {
-    internal interface IGraphQuery
-    {
-        Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken);
-    }
+    Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken);
 }

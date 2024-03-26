@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Host
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             var workspace = workspaceServices.Workspace;
-            return new Service(workspace, EventListenerTracker<object>.GetListeners(workspace, eventListeners));
+            return new Service(workspace, EventListenerTracker<object>.GetListeners(workspace.Kind, eventListeners));
         }
 
         private class Service(Workspace workspace, IEnumerable<IEventListener<object>> eventListeners) : IWorkspaceEventListenerService

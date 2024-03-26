@@ -6,60 +6,59 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.QuickInfo
+namespace Microsoft.CodeAnalysis.QuickInfo;
+
+/// <summary>
+/// Sections are used to make up a <see cref="QuickInfoItem"/>.
+/// </summary>
+public sealed class QuickInfoSection
 {
     /// <summary>
-    /// Sections are used to make up a <see cref="QuickInfoItem"/>.
+    /// The kind of this section. Use <see cref="QuickInfoSectionKinds"/> for the most common kinds.
     /// </summary>
-    public sealed class QuickInfoSection
+    public string Kind { get; }
+
+    /// <summary>
+    /// The individual tagged parts of this section.
+    /// </summary>
+    public ImmutableArray<TaggedText> TaggedParts { get; }
+
+    private QuickInfoSection(string? kind, ImmutableArray<TaggedText> taggedParts)
     {
-        /// <summary>
-        /// The kind of this section. Use <see cref="QuickInfoSectionKinds"/> for the most common kinds.
-        /// </summary>
-        public string Kind { get; }
+        Kind = kind ?? string.Empty;
+        TaggedParts = taggedParts.NullToEmpty();
+    }
 
-        /// <summary>
-        /// The individual tagged parts of this section.
-        /// </summary>
-        public ImmutableArray<TaggedText> TaggedParts { get; }
+    /// <summary>
+    /// Creates a new instance of <see cref="QuickInfoSection"/>.
+    /// </summary>
+    /// <param name="kind">The kind of the section. Use <see cref="QuickInfoSectionKinds"/> for the most common kinds.</param>
+    /// <param name="taggedParts">The individual tagged parts of the section.</param>
+    public static QuickInfoSection Create(string? kind, ImmutableArray<TaggedText> taggedParts)
+        => new(kind, taggedParts);
 
-        private QuickInfoSection(string? kind, ImmutableArray<TaggedText> taggedParts)
+    private string? _text;
+
+    /// <summary>
+    /// The text of the section without tags.
+    /// </summary>
+    public string Text
+    {
+        get
         {
-            Kind = kind ?? string.Empty;
-            TaggedParts = taggedParts.NullToEmpty();
-        }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="QuickInfoSection"/>.
-        /// </summary>
-        /// <param name="kind">The kind of the section. Use <see cref="QuickInfoSectionKinds"/> for the most common kinds.</param>
-        /// <param name="taggedParts">The individual tagged parts of the section.</param>
-        public static QuickInfoSection Create(string? kind, ImmutableArray<TaggedText> taggedParts)
-            => new(kind, taggedParts);
-
-        private string? _text;
-
-        /// <summary>
-        /// The text of the section without tags.
-        /// </summary>
-        public string Text
-        {
-            get
+            if (_text == null)
             {
-                if (_text == null)
+                if (TaggedParts.Length == 0)
                 {
-                    if (TaggedParts.Length == 0)
-                    {
-                        _text = string.Empty;
-                    }
-                    else
-                    {
-                        Interlocked.CompareExchange(ref _text, string.Concat(TaggedParts.Select(t => t.Text)), null);
-                    }
+                    _text = string.Empty;
                 }
-
-                return _text;
+                else
+                {
+                    Interlocked.CompareExchange(ref _text, string.Concat(TaggedParts.Select(t => t.Text)), null);
+                }
             }
+
+            return _text;
         }
     }
 }
