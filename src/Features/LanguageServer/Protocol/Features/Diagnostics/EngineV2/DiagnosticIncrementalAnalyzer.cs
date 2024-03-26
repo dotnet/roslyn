@@ -72,12 +72,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private void AddDiagnosticsCreatedArgs(
             ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
-            Project project, DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticData> items)
+            Project project, ImmutableArray<DiagnosticData> items)
         {
             Contract.ThrowIfFalse(project.Solution.Workspace == Workspace);
 
             builder.Add(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                CreateId(analyzer, project.Id, AnalysisKind.NonLocal),
                 project.Solution,
                 project.Id,
                 documentId: null,
@@ -86,12 +85,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private void AddDiagnosticsRemovedArgs(
             ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
-            ProjectId projectId, Solution? solution, DiagnosticAnalyzer analyzer)
+            ProjectId projectId, Solution? solution)
         {
             Contract.ThrowIfFalse(solution == null || solution.Workspace == Workspace);
 
             builder.Add(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                CreateId(analyzer, projectId, AnalysisKind.NonLocal),
                 solution,
                 projectId,
                 documentId: null));
@@ -99,12 +97,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private void AddDiagnosticsCreatedArgs(
             ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
-            TextDocument document, DiagnosticAnalyzer analyzer, AnalysisKind kind, ImmutableArray<DiagnosticData> items)
+            TextDocument document,
+            ImmutableArray<DiagnosticData> items)
         {
             Contract.ThrowIfFalse(document.Project.Solution.Workspace == Workspace);
 
             builder.Add(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                CreateId(analyzer, document.Id, kind),
                 document.Project.Solution,
                 document.Project.Id,
                 document.Id,
@@ -113,22 +111,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private void AddDiagnosticsRemovedArgs(
             ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
-            DocumentId documentId, Solution? solution, DiagnosticAnalyzer analyzer, AnalysisKind kind)
+            DocumentId documentId, Solution? solution)
         {
             Contract.ThrowIfFalse(solution == null || solution.Workspace == Workspace);
 
             builder.Add(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                CreateId(analyzer, documentId, kind),
                 solution,
                 documentId.ProjectId,
                 documentId));
         }
-
-        private static object CreateId(DiagnosticAnalyzer analyzer, DocumentId documentId, AnalysisKind kind)
-            => new LiveDiagnosticUpdateArgsId(analyzer, documentId, kind);
-
-        private static object CreateId(DiagnosticAnalyzer analyzer, ProjectId projectId, AnalysisKind kind)
-            => new LiveDiagnosticUpdateArgsId(analyzer, projectId, kind);
 
         public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)
             => project.GetDependentVersionAsync(cancellationToken);

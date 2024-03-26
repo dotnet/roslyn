@@ -5,49 +5,56 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Common;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal sealed class DiagnosticsUpdatedArgs : UpdatedEventArgs
+internal sealed class DiagnosticsUpdatedArgs
 {
     public readonly DiagnosticsUpdatedKind Kind;
     public readonly Solution? Solution;
+
+    /// <summary>
+    /// <see cref="ProjectId"/> this update is associated with, or <see langword="null"/>.
+    /// </summary>
+    public readonly ProjectId? ProjectId;
+
+    /// <summary>
+    /// <see cref="DocumentId"/> this update is associated with, or <see langword="null"/>.
+    /// </summary>
+    public readonly DocumentId? DocumentId;
     public readonly ImmutableArray<DiagnosticData> Diagnostics;
 
     private DiagnosticsUpdatedArgs(
-        object id,
         Solution? solution,
         ProjectId? projectId,
         DocumentId? documentId,
         ImmutableArray<DiagnosticData> diagnostics,
         DiagnosticsUpdatedKind kind)
-        : base(id, projectId, documentId)
     {
         Debug.Assert(diagnostics.All(d => d.ProjectId == projectId && d.DocumentId == documentId));
         Debug.Assert(kind != DiagnosticsUpdatedKind.DiagnosticsRemoved || diagnostics.IsEmpty);
 
         Solution = solution;
+        ProjectId = projectId;
+        DocumentId = documentId;
         Kind = kind;
         Diagnostics = diagnostics;
     }
 
     public static DiagnosticsUpdatedArgs DiagnosticsCreated(
-        object id,
         Solution solution,
         ProjectId? projectId,
         DocumentId? documentId,
         ImmutableArray<DiagnosticData> diagnostics)
     {
-        return new DiagnosticsUpdatedArgs(id, solution, projectId, documentId, diagnostics, DiagnosticsUpdatedKind.DiagnosticsCreated);
+        return new DiagnosticsUpdatedArgs(solution, projectId, documentId, diagnostics, DiagnosticsUpdatedKind.DiagnosticsCreated);
     }
 
     public static DiagnosticsUpdatedArgs DiagnosticsRemoved(
-        object id,
         Solution? solution,
         ProjectId? projectId,
         DocumentId? documentId)
     {
-        return new DiagnosticsUpdatedArgs(id, solution, projectId, documentId, [], DiagnosticsUpdatedKind.DiagnosticsRemoved);
+        return new DiagnosticsUpdatedArgs(solution, projectId, documentId, [], DiagnosticsUpdatedKind.DiagnosticsRemoved);
     }
 }

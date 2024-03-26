@@ -93,10 +93,7 @@ internal sealed class EditAndContinueDiagnosticUpdateSource
         {
             foreach (var (documentId, diagnosticData) in documentDiagnostics.GroupBy(static data => data.DocumentId!))
             {
-                var diagnosticGroupId = (this, documentId);
-
                 argsBuilder.Add(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                    diagnosticGroupId,
                     solution,
                     documentId.ProjectId,
                     documentId: documentId,
@@ -108,10 +105,7 @@ internal sealed class EditAndContinueDiagnosticUpdateSource
         {
             foreach (var (projectId, diagnosticData) in projectDiagnostics.GroupBy(static data => data.ProjectId!))
             {
-                var diagnosticGroupId = (this, projectId);
-
                 argsBuilder.Add(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                    diagnosticGroupId,
                     solution,
                     projectId,
                     documentId: null,
@@ -121,10 +115,7 @@ internal sealed class EditAndContinueDiagnosticUpdateSource
 
         if (solutionDiagnostics.Length > 0)
         {
-            var diagnosticGroupId = this;
-
             argsBuilder.Add(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                diagnosticGroupId,
                 solution,
                 projectId: null,
                 documentId: null,
