@@ -497,6 +497,88 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Comments")]
+        public void TestAtColonTreatedAsComment_TrailingMultiLine_RazorRecovery()
+        {
+            var text = """
+                @: /*
+                Identifier
+                */
+                """;
+
+            var tokens = Lex(text).ToList();
+            var token = tokens[0];
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            Assert.Equal("""
+                @: /*
+                Identifier
+
+                """, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(2, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[0].Kind());
+            Assert.Equal("@: /*", trivia[0].ToFullString());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestAtColonTreatedAsComment_PreprocessorDisabled_RazorRecovery()
+        {
+            var text = """
+                #if false
+                @:
+                #endif
+                """;
+
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify();
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(3, trivia.Length);
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, trivia[0].Kind());
+            Assert.Equal(SyntaxKind.DisabledTextTrivia, trivia[1].Kind());
+            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, trivia[2].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestAtColonTreatedAsComment_PreprocessorEnabled_RazorRecovery()
+        {
+            var text = """
+                #if true
+                @:
+                #endif
+                """;
+
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(4, trivia.Length);
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, trivia[0].Kind());
+            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[1].Kind());
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, trivia[2].Kind());
+            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, trivia[3].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
         public void TestCommentWithTextWindowSentinel()
         {
             Assert.Equal('\uFFFF', SlidingTextWindow.InvalidCharacter);
