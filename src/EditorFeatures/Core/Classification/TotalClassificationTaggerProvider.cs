@@ -81,7 +81,8 @@ internal sealed class TotalClassificationAggregateTagger(
 
     public override void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> totalTags)
     {
-        var task = AddTagsAsync(
+        // Everything we pass in is synchronous, so we should immediately get a completed task back out.
+        AddTagsAsync(
             spans,
             totalTags,
             addSyntacticSpansAsync: static (spans, tags, arg) =>
@@ -99,10 +100,7 @@ internal sealed class TotalClassificationAggregateTagger(
                 arg.embeddedTagger.AddTags(spans, tags);
                 return Task.CompletedTask;
             },
-            (syntacticTagger, semanticTagger, embeddedTagger));
-
-        // Everything we pass in is synchronous, so we should immediately get a completed task back out.
-        task.VerifyCompleted();
+            (syntacticTagger, semanticTagger, embeddedTagger)).VerifyCompleted();
     }
 
     public static async Task AddTagsAsync<TArg>(
