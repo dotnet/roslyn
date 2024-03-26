@@ -30,17 +30,17 @@ internal sealed class TotalClassificationAggregateTagger(
         var task = AddTagsAsync(
             spans,
             totalTags,
-            static (spans, tags, arg) =>
+            addSyntacticSpansAsync: static (spans, tags, arg) =>
             {
                 arg.syntacticTagger.AddTags(spans, tags);
                 return ValueTaskFactory.CompletedTask;
             },
-            static (spans, tags, arg) =>
+            addSemanticSpansAsync: static (spans, tags, arg) =>
             {
                 arg.semanticTagger.AddTags(spans, tags);
                 return ValueTaskFactory.CompletedTask;
             },
-            static (spans, tags, arg) =>
+            addEmbeddedSpansAsync: static (spans, tags, arg) =>
             {
                 arg.embeddedTagger.AddTags(spans, tags);
                 return ValueTaskFactory.CompletedTask;
