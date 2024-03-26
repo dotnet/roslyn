@@ -107,8 +107,6 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             if (document == null)
                 return [];
 
-            var classificationService = document.GetRequiredLanguageService<IClassificationService>();
-
             // We want to classify from the start of the first requested span to the end of the 
             // last requested span.
             var spanToTag = new SnapshotSpan(snapshot, Span.FromBounds(spans.First().Start, spans.Last().End));
@@ -125,6 +123,18 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                     static (args, tags) => args.cachedTags.AddIntersectingTagSpans(args.spans, tags),
                     (cachedTags, spans));
             }
+
+            return ComputeAndCacheAllTags(spans, snapshot, document, spanToTag, cancellationToken);
+        }
+
+        private IEnumerable<ITagSpan<IClassificationTag>> ComputeAndCacheAllTags(
+            NormalizedSnapshotSpanCollection spans,
+            ITextSnapshot snapshot,
+            Document document,
+            SnapshotSpan spanToTag,
+            CancellationToken cancellationToken)
+        {
+            var classificationService = document.GetRequiredLanguageService<IClassificationService>();
 
             // Our cache is not there, or is out of date.  We need to compute the up to date results.
             var options = _globalOptions.GetClassificationOptions(document.Project.Language);
@@ -148,8 +158,8 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                     arg: default(VoidResult)).ConfigureAwait(false);
             });
 
-            cachedTaggedSpan = spanToTag;
-            cachedTags = new TagSpanIntervalTree<IClassificationTag>(snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive, mergedTags);
+            var cachedTaggedSpan = spanToTag;
+            var cachedTags = new TagSpanIntervalTree<IClassificationTag>(snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive, mergedTags);
 
             lock (_gate)
             {
