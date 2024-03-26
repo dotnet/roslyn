@@ -151,10 +151,13 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                 await TotalClassificationAggregateTagger.AddTagsAsync(
                     new NormalizedSnapshotSpanCollection(spanToTag),
                     mergedTags,
-                    AddSyntacticSpansAsync,
-                    AddSemanticSpansAsync,
-                    AddEmbeddedSpansAsync,
-                    arg: default(VoidResult)).ConfigureAwait(false);
+                    // We should only be asking for a single span when getting the syntactic classifications
+                    GetTaggingFunction(requireSingleSpan: true, span => classificationService.AddSyntacticClassificationsAsync(document, span, tempBuffer, cancellationToken)),
+                    // We should only be asking for a single span when getting the semantic classifications
+                    GetTaggingFunction(requireSingleSpan: true, span => classificationService.AddSemanticClassificationsAsync(document, span, options, tempBuffer, cancellationToken)),
+                    //  Note: many string literal spans may be passed in when getting embedded classifications
+                    GetTaggingFunction(requireSingleSpan: false, span => classificationService.AddEmbeddedLanguageClassificationsAsync(document, span, options, tempBuffer, cancellationToken)),
+                    arg: default).ConfigureAwait(false);
             });
 
             var cachedTags = new TagSpanIntervalTree<IClassificationTag>(snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive, mergedTags);
@@ -167,27 +170,11 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
 
             return GetIntersectingTags(spans, cachedTags);
 
-            Task AddSyntacticSpansAsync(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> result, VoidResult _)
+            Func<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, VoidResult, Task> GetTaggingFunction(
+                bool requireSingleSpan, Func<TextSpan, Task> addTagsAsync)
             {
-                Contract.ThrowIfTrue(spans.Count != 1, "We should only be asking for a single span when getting the syntactic classifications");
-
-                return AddSpansAsync(spans, result,
-                    span => classificationService.AddSyntacticClassificationsAsync(document, span, tempBuffer, cancellationToken));
-            }
-
-            Task AddSemanticSpansAsync(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> result, VoidResult _)
-            {
-                Contract.ThrowIfTrue(spans.Count != 1, "We should only be asking for a single span when getting the semantic classifications");
-
-                return AddSpansAsync(spans, result,
-                    span => classificationService.AddSemanticClassificationsAsync(document, span, options, tempBuffer, cancellationToken));
-            }
-
-            Task AddEmbeddedSpansAsync(NormalizedSnapshotSpanCollection stringLiteralSpans, SegmentedList<ITagSpan<IClassificationTag>> result, VoidResult _)
-            {
-                // Note: many string literal spans may be passed in here.
-                return AddSpansAsync(stringLiteralSpans, result,
-                    span => classificationService.AddEmbeddedLanguageClassificationsAsync(document, span, options, tempBuffer, cancellationToken));
+                Contract.ThrowIfTrue(requireSingleSpan && spans.Count != 1, "We should only be asking for a single span");
+                return (spans, tempBuffer, _) => AddSpansAsync(spans, tempBuffer, addTagsAsync);
             }
 
             async Task AddSpansAsync(
