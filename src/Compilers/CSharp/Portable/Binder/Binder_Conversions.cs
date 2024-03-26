@@ -1417,18 +1417,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDynamicCollectionElementInitializer dynamicInitializer:
                         return dynamicInitializer.Arguments[0];
                 }
+
                 if (throwOnErrors)
                 {
                     throw ExceptionUtilities.UnexpectedValue(element);
                 }
+
+                // Handle error cases from bindCollectionInitializerElementAddMethod.
                 switch (element)
                 {
                     case BoundCall call:
+                        // Overload resolution failed with one or more applicable or ambiguous
+                        // Add methods. This case can be hit for spreads and non-spread elements.
+                        Debug.Assert(call.HasErrors);
                         return call.Arguments[call.InvokedAsExtensionMethod ? 1 : 0];
                     default:
+                        Debug.Assert(element.Kind == BoundKind.BadExpression);
                         return element;
                 }
             }
+
             return element;
 
             static BoundExpression getCollectionInitializerElement(BoundCollectionElementInitializer collectionInitializer)
