@@ -215,7 +215,7 @@ internal sealed class TotalClassificationAggregateTagger(
             return true;
         }
 
-        async ValueTask AddEmbeddedClassificationsAsync()
+        async Task AddEmbeddedClassificationsAsync()
         {
             // nothing to do if we didn't run into any string literals.
             if (stringLiterals.Count == 0)
