@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification;
 
@@ -25,21 +27,36 @@ internal sealed class TotalClassificationAggregateTagger(
 
     public override void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> totalTags)
     {
-        AddTags(
+        var task = AddTagsAsync(
             spans,
             totalTags,
-            static (spans, tags, arg) => arg.syntacticTagger.AddTags(spans, tags),
-            static (spans, tags, arg) => arg.semanticTagger.AddTags(spans, tags),
-            static (spans, tags, arg) => arg.embeddedTagger.AddTags(spans, tags),
-            (syntacticTagger, semanticTagger, embeddedTagger));
+            static (spans, tags, arg) =>
+            {
+                arg.syntacticTagger.AddTags(spans, tags);
+                return ValueTaskFactory.CompletedTask;
+            },
+            static (spans, tags, arg) =>
+            {
+                arg.semanticTagger.AddTags(spans, tags);
+                return ValueTaskFactory.CompletedTask;
+            },
+            static (spans, tags, arg) =>
+            {
+                arg.embeddedTagger.AddTags(spans, tags);
+                return ValueTaskFactory.CompletedTask;
+            },
+            (syntacticTagger, semanticTagger, embeddedTagger)).AsTask();
+
+        // Everything we pass in is synchronous, so we should immediately get a completed task back out.
+        Contract.ThrowIfFalse(task.IsCompleted);
     }
 
-    public static void AddTags<TArg>(
+    public static async ValueTask AddTagsAsync<TArg>(
         NormalizedSnapshotSpanCollection spans,
         SegmentedList<ITagSpan<IClassificationTag>> totalTags,
-        Action<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, TArg> addSyntacticSpans,
-        Action<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, TArg> addSemanticSpans,
-        Action<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, TArg> addEmbeddedSpans,
+        Func<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, TArg, ValueTask> addSyntacticSpansAsync,
+        Func<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, TArg, ValueTask> addSemanticSpansAsync,
+        Func<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, TArg, ValueTask> addEmbeddedSpansAsync,
         TArg arg)
     {
         // First, get all the syntactic tags.  While they are generally overridden by semantic tags (since semantics
@@ -51,8 +68,8 @@ internal sealed class TotalClassificationAggregateTagger(
         using var _2 = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var syntacticSpans);
         using var _3 = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var semanticSpans);
 
-        addSyntacticSpans(spans, syntacticSpans, arg);
-        addSemanticSpans(spans, semanticSpans, arg);
+        await addSyntacticSpansAsync(spans, syntacticSpans, arg).ConfigureAwait(false);
+        await addSemanticSpansAsync(spans, semanticSpans, arg).ConfigureAwait(false);
 
         syntacticSpans.Sort(s_spanComparison);
         semanticSpans.Sort(s_spanComparison);
@@ -115,7 +132,7 @@ internal sealed class TotalClassificationAggregateTagger(
         // overridden by comments or excluded code).  All that remains is adding back the string literals we
         // skipped.  However, when we do so, we'll see if those string literals themselves should be overridden
         // by any embedded classifications.
-        AddEmbeddedClassifications();
+        await AddEmbeddedClassificationsAsync().ConfigureAwait(false);
 
         return;
 
@@ -144,7 +161,7 @@ internal sealed class TotalClassificationAggregateTagger(
             return true;
         }
 
-        void AddEmbeddedClassifications()
+        async ValueTask AddEmbeddedClassificationsAsync()
         {
             // nothing to do if we didn't run into any string literals.
             if (stringLiterals.Count == 0)
@@ -159,7 +176,7 @@ internal sealed class TotalClassificationAggregateTagger(
             // with the view spans to get the actual spans we want to classify.
             var stringLiteralSpans = NormalizedSnapshotSpanCollection.Intersection(stringLiteralSpansFull, spans);
 
-            addEmbeddedSpans(stringLiteralSpans, embeddedClassifications, arg);
+            await addEmbeddedSpansAsync(stringLiteralSpans, embeddedClassifications, arg).ConfigureAwait(false);
 
             // Nothing complex to do if we got no embedded classifications back.  Just add in all the string
             // classifications, untouched.
