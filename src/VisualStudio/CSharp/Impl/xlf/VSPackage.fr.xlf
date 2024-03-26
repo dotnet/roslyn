@@ -420,11 +420,6 @@ Afficher les éléments des espaces de noms qui ne sont pas importés (expérime
         <target state="translated">Toujours inclure les extraits de code</target>
         <note />
       </trans-unit>
-      <trans-unit id="An_empty_CSharp_script_file">
-        <source>An empty C# script file.</source>
-        <target state="translated">Fichier de script C# vide.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Default">
         <source>Default</source>
         <target state="translated">Par défaut</target>
@@ -432,7 +427,7 @@ Afficher les éléments des espaces de noms qui ne sont pas importés (expérime
       </trans-unit>
       <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
         <source>Include snippets when Tab is typed after an identifier</source>
-        <target state="new">Include snippets when Tab is typed after an identifier</target>
+        <target state="translated">Inclure des extraits de code quand Tab est typé après un identificateur</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_add_new_line_on_enter">
@@ -448,11 +443,6 @@ Afficher les éléments des espaces de noms qui ne sont pas importés (expérime
       <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
         <source>Only add new line on enter after end of fully typed word</source>
         <target state="translated">Ajouter une nouvelle ligne en appuyant sur Entrée seulement après la fin d'un mot entièrement tapé</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Visual_CSharp_Script">
-        <source>Visual C# Script</source>
-        <target state="translated">Script Visual C#</target>
         <note />
       </trans-unit>
     </body>

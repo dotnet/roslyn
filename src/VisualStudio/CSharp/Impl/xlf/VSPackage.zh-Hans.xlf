@@ -420,11 +420,6 @@ Show items from unimported namespaces (experimental);</source>
         <target state="translated">始终包含片段</target>
         <note />
       </trans-unit>
-      <trans-unit id="An_empty_CSharp_script_file">
-        <source>An empty C# script file.</source>
-        <target state="translated">一个空的 C# 脚本文件。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Default">
         <source>Default</source>
         <target state="translated">默认值</target>
@@ -432,7 +427,7 @@ Show items from unimported namespaces (experimental);</source>
       </trans-unit>
       <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
         <source>Include snippets when Tab is typed after an identifier</source>
-        <target state="new">Include snippets when Tab is typed after an identifier</target>
+        <target state="translated">在标识符后键入 Tab 时包含片段</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_add_new_line_on_enter">
@@ -448,11 +443,6 @@ Show items from unimported namespaces (experimental);</source>
       <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
         <source>Only add new line on enter after end of fully typed word</source>
         <target state="translated">只在键入完整的单词后点击回车后才添加新行</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Visual_CSharp_Script">
-        <source>Visual C# Script</source>
-        <target state="translated">Visual C# 脚本</target>
         <note />
       </trans-unit>
     </body>
