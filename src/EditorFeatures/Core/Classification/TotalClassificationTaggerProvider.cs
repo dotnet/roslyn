@@ -102,7 +102,7 @@ internal sealed class TotalClassificationAggregateTagger(
             (syntacticTagger, semanticTagger, embeddedTagger)).AsTask();
 
         // Everything we pass in is synchronous, so we should immediately get a completed task back out.
-        Contract.ThrowIfFalse(task.IsCompleted);
+        task.VerifyCompleted();
     }
 
     public static async ValueTask AddTagsAsync<TArg>(
