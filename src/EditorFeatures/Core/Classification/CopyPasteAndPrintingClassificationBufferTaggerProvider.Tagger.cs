@@ -202,7 +202,6 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                 SegmentedList<ITagSpan<IClassificationTag>> result,
                 Func<IClassificationService, Document, TextSpan, ClassificationOptions, SegmentedList<ClassifiedSpan>, CancellationToken, Task> addAsync)
             {
-                // Note: many string literal spans may be passed in here.
                 Contract.ThrowIfTrue(tempClassifiedSpans.Count != 0);
 
                 foreach (var span in spans)
