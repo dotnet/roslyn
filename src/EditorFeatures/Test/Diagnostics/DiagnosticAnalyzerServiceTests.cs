@@ -562,14 +562,12 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     throw ExceptionUtilities.UnexpectedValue(analysisScope);
             }
 
-            await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
-            var diagnostics = await service.GetDiagnosticsAsync(
-                project.Solution, projectId: null, documentId: null, includeSuppressedDiagnostics: includeSuppressor, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
+            var diagnostics = await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
 
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             var diagnostic = diagnostics.SingleOrDefault();
-            if (includeAnalyzer && analysisScope != BackgroundAnalysisScope.None)
+            if (includeAnalyzer)
             {
                 Assert.True(diagnostic != null);
                 Assert.Equal(NamedTypeAnalyzer.DiagnosticId, diagnostic.Id);
