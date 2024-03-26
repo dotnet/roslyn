@@ -2,29 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
-using Microsoft.VisualStudio.Shell.ServiceBroker;
-using InternalContracts = Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-[ExportBrokeredService(ManagedHotReloadLanguageServiceDescriptor.MonikerName, ManagedHotReloadLanguageServiceDescriptor.ServiceVersion, Audience = ServiceAudience.Local)]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalContracts.IManagedHotReloadLanguageService service) : IManagedHotReloadLanguageService, IExportedBrokeredService
+/// <summary>
+/// Exposes <see cref="EditAndContinueLanguageService"/> as a brokered service.
+/// TODO (https://github.com/dotnet/roslyn/issues/72713):
+/// Once debugger is updated to use the brokered service, this class should be removed and <see cref="EditAndContinueLanguageService"/> should be exported directly.
+/// </summary>
+internal sealed partial class ManagedEditAndContinueLanguageServiceBridge(EditAndContinueLanguageService service) : IManagedHotReloadLanguageService
 {
-    ServiceRpcDescriptor IExportedBrokeredService.Descriptor
-        => ManagedHotReloadLanguageServiceDescriptor.ServiceDescriptor;
-
-    public Task InitializeAsync(CancellationToken cancellationToken)
-        => Task.CompletedTask;
-
     public ValueTask StartSessionAsync(CancellationToken cancellationToken)
         => service.StartSessionAsync(cancellationToken);
 
@@ -41,7 +31,7 @@ internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalCont
         => service.OnCapabilitiesChangedAsync(cancellationToken);
 
     public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
-        => (await service.GetUpdatesAsync(cancellationToken).ConfigureAwait(false)).FromContract();
+        => (await service.GetUpdatesAsync(cancellationToken).ConfigureAwait(false));
 
     public ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
         => service.CommitUpdatesAsync(cancellationToken);
@@ -52,3 +42,4 @@ internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalCont
     public ValueTask<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
         => service.HasChangesAsync(sourceFilePath, cancellationToken);
 }
+
