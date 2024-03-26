@@ -201,7 +201,7 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "rel/d17.10",
+      "vsBranch": "main",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.10 P3]"
