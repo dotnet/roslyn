@@ -163,7 +163,8 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
 
             async ValueTask AddSyntacticSpansAsync(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> result, bool unused)
             {
-                Debug.Assert(spans.Count == 1, "We should only be asking for a single span when getting the syntactic classifications");
+                Contract.ThrowIfTrue(spans.Count != 1, "We should only be asking for a single span when getting the syntactic classifications");
+                Contract.ThrowIfTrue(tempClassifiedSpans.Count != 0);
 
                 await classificationService.AddSyntacticClassificationsAsync(
                     document, spans.Single().Span.ToTextSpan(), tempClassifiedSpans, cancellationToken).ConfigureAwait(false);
@@ -173,7 +174,8 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
 
             async ValueTask AddSemanticSpansAsync(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> result, bool unused)
             {
-                Debug.Assert(spans.Count == 1, "We should only be asking for a single span when getting the semantic classifications");
+                Contract.ThrowIfTrue(spans.Count != 1, "We should only be asking for a single span when getting the semantic classifications");
+                Contract.ThrowIfTrue(tempClassifiedSpans.Count != 0);
 
                 await classificationService.AddSemanticClassificationsAsync(
                     document, spans.Single().Span.ToTextSpan(), options, tempClassifiedSpans, cancellationToken).ConfigureAwait(false);
@@ -184,6 +186,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             async ValueTask AddEmbeddedSpansAsync(NormalizedSnapshotSpanCollection stringLiteralSpans, SegmentedList<ITagSpan<IClassificationTag>> result, bool unused)
             {
                 // Note: many string literal spans may be passed in here.
+                Contract.ThrowIfTrue(tempClassifiedSpans.Count != 0);
 
                 foreach (var stringLiteralSpan in stringLiteralSpans)
                 {
