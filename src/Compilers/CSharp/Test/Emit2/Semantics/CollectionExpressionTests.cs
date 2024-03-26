@@ -35714,6 +35714,7 @@ partial class Program
                         int x = 1;
                         int[] y = [2, 3];
                         MyCollection<int> z = [x, ..y];
+                        MyCollection<int> w = new() { x };
                     }
                 }
                 """;
@@ -35721,7 +35722,10 @@ partial class Program
             comp.VerifyEmitDiagnostics(
                 // (7,31): error CS9230: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         MyCollection<int> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(7, 31));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(7, 31),
+                // (8,39): error CS7036: There is no argument given that corresponds to the required parameter 'index' of 'MyCollection<int>.Add(int, ref int)'
+                //         MyCollection<int> w = new() { x };
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "x").WithArguments("index", $"MyCollection<int>.Add(int, {(useOut ? "out" : "ref")} int)").WithLocation(8, 39));
         }
 
         [Fact]
@@ -36118,6 +36122,7 @@ partial class Program
                         int x = 1;
                         int[] y = [2, 3];
                         MyCollection<int> z = [x, ..y];
+                        MyCollection<int> w = new() { x };
                     }
                 }
                 """;
@@ -36125,7 +36130,10 @@ partial class Program
             comp.VerifyEmitDiagnostics(
                 // (7,31): error CS9230: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         MyCollection<int> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(7, 31));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(7, 31),
+                // (8,39): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'MyCollection<int>.Add(int, params int)'
+                //         MyCollection<int> w = new() { x };
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "x").WithArguments("y", "MyCollection<int>.Add(int, params int)").WithLocation(8, 39));
         }
 
         [Fact]
