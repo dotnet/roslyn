@@ -161,27 +161,27 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                 static (args, tags) => args.cachedTags.AddIntersectingTagSpans(args.spans, tags),
                 (cachedTags, spans));
 
-            async Task AddSyntacticSpansAsync(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> result, VoidResult _)
+            Task AddSyntacticSpansAsync(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> result, VoidResult _)
             {
                 Contract.ThrowIfTrue(spans.Count != 1, "We should only be asking for a single span when getting the syntactic classifications");
 
-                await AddSpansAsync(spans, result,
-                    span => classificationService.AddSyntacticClassificationsAsync(document, span, tempBuffer, cancellationToken)).ConfigureAwait(false);
+                return AddSpansAsync(spans, result,
+                    span => classificationService.AddSyntacticClassificationsAsync(document, span, tempBuffer, cancellationToken));
             }
 
-            async Task AddSemanticSpansAsync(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> result, VoidResult _)
+            Task AddSemanticSpansAsync(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> result, VoidResult _)
             {
                 Contract.ThrowIfTrue(spans.Count != 1, "We should only be asking for a single span when getting the semantic classifications");
 
-                await AddSpansAsync(spans, result,
-                    span => classificationService.AddSemanticClassificationsAsync(document, span, options, tempBuffer, cancellationToken)).ConfigureAwait(false);
+                return AddSpansAsync(spans, result,
+                    span => classificationService.AddSemanticClassificationsAsync(document, span, options, tempBuffer, cancellationToken));
             }
 
-            async Task AddEmbeddedSpansAsync(NormalizedSnapshotSpanCollection stringLiteralSpans, SegmentedList<ITagSpan<IClassificationTag>> result, VoidResult _)
+            Task AddEmbeddedSpansAsync(NormalizedSnapshotSpanCollection stringLiteralSpans, SegmentedList<ITagSpan<IClassificationTag>> result, VoidResult _)
             {
                 // Note: many string literal spans may be passed in here.
-                await AddSpansAsync(stringLiteralSpans, result,
-                    span => classificationService.AddEmbeddedLanguageClassificationsAsync(document, span, options, tempBuffer, cancellationToken)).ConfigureAwait(false);
+                return AddSpansAsync(stringLiteralSpans, result,
+                    span => classificationService.AddEmbeddedLanguageClassificationsAsync(document, span, options, tempBuffer, cancellationToken));
             }
 
             async Task AddSpansAsync(
