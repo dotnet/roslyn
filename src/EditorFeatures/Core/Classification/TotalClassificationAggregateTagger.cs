@@ -25,6 +25,23 @@ internal sealed class TotalClassificationAggregateTagger(
 
     public override void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> totalTags)
     {
+        AddTags(
+            spans,
+            totalTags,
+            static (spans, tags, arg) => arg.syntacticTagger.AddTags(spans, tags),
+            static (spans, tags, arg) => arg.semanticTagger.AddTags(spans, tags),
+            static (spans, tags, arg) => arg.embeddedTagger.AddTags(spans, tags),
+            (syntacticTagger, semanticTagger, embeddedTagger));
+    }
+
+    public static void AddTags<TArg>(
+        NormalizedSnapshotSpanCollection spans,
+        SegmentedList<ITagSpan<IClassificationTag>> totalTags,
+        Action<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, TArg> addSyntacticSpans,
+        Action<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, TArg> addSemanticSpans,
+        Action<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, TArg> addEmbeddedSpans,
+        TArg arg)
+    {
         // First, get all the syntactic tags.  While they are generally overridden by semantic tags (since semantics
         // allows us to understand better what things like identifiers mean), they do take precedence for certain
         // tags like 'Comments' and 'Excluded Code'.  In those cases we want the classification to 'snap' instantly to
@@ -34,8 +51,8 @@ internal sealed class TotalClassificationAggregateTagger(
         using var _2 = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var syntacticSpans);
         using var _3 = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var semanticSpans);
 
-        syntacticTagger.AddTags(spans, syntacticSpans);
-        semanticTagger.AddTags(spans, semanticSpans);
+        addSyntacticSpans(spans, syntacticSpans, arg);
+        addSemanticSpans(spans, semanticSpans, arg);
 
         syntacticSpans.Sort(s_spanComparison);
         semanticSpans.Sort(s_spanComparison);
@@ -142,7 +159,7 @@ internal sealed class TotalClassificationAggregateTagger(
             // with the view spans to get the actual spans we want to classify.
             var stringLiteralSpans = NormalizedSnapshotSpanCollection.Intersection(stringLiteralSpansFull, spans);
 
-            embeddedTagger.AddTags(stringLiteralSpans, embeddedClassifications);
+            addEmbeddedSpans(stringLiteralSpans, embeddedClassifications, arg);
 
             // Nothing complex to do if we got no embedded classifications back.  Just add in all the string
             // classifications, untouched.
