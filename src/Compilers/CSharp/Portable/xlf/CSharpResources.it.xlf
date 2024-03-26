@@ -1417,6 +1417,11 @@
         <target state="translated">L'espressione condizionale non è valida nella versione del linguaggio {0} perché non è stato trovato un tipo comune tra '{1}' e '{2}'. Per usare una conversione tipizzata come destinazione, eseguire l'aggiornamento alla versione {3} o a versioni successive del linguaggio.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoModifiersOnUsing">
+        <source>Modifiers cannot be placed on using declarations</source>
+        <target state="new">Modifiers cannot be placed on using declarations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">Non è stato possibile individuare la directory di output</target>

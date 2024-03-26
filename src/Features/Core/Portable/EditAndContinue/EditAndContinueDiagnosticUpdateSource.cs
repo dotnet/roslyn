@@ -16,9 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-[Export(typeof(EditAndContinueDiagnosticUpdateSource))]
-[Shared]
-internal sealed class EditAndContinueDiagnosticUpdateSource : IDiagnosticUpdateSource
+[Export(typeof(EditAndContinueDiagnosticUpdateSource)), Shared]
+internal sealed class EditAndContinueDiagnosticUpdateSource
 {
     private int _diagnosticsVersion;
     private bool _previouslyHadDiagnostics;
@@ -32,12 +31,7 @@ internal sealed class EditAndContinueDiagnosticUpdateSource : IDiagnosticUpdateS
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public EditAndContinueDiagnosticUpdateSource(IDiagnosticUpdateSourceRegistrationService registrationService)
-        => registrationService.Register(this);
-
-    // for testing
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-    internal EditAndContinueDiagnosticUpdateSource()
+    public EditAndContinueDiagnosticUpdateSource()
     {
     }
 
@@ -68,7 +62,7 @@ internal sealed class EditAndContinueDiagnosticUpdateSource : IDiagnosticUpdateS
     /// <summary>
     /// Reports given set of project or solution level diagnostics. 
     /// </summary>
-    public void ReportDiagnostics(Workspace workspace, Solution solution, ImmutableArray<DiagnosticData> diagnostics, ImmutableArray<(DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits)
+    public void ReportDiagnostics(Solution solution, ImmutableArray<DiagnosticData> diagnostics, ImmutableArray<(DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits)
     {
         RoslynDebug.Assert(solution != null);
 
@@ -99,11 +93,7 @@ internal sealed class EditAndContinueDiagnosticUpdateSource : IDiagnosticUpdateS
         {
             foreach (var (documentId, diagnosticData) in documentDiagnostics.GroupBy(static data => data.DocumentId!))
             {
-                var diagnosticGroupId = (this, documentId);
-
                 argsBuilder.Add(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                    diagnosticGroupId,
-                    workspace,
                     solution,
                     documentId.ProjectId,
                     documentId: documentId,
@@ -115,11 +105,7 @@ internal sealed class EditAndContinueDiagnosticUpdateSource : IDiagnosticUpdateS
         {
             foreach (var (projectId, diagnosticData) in projectDiagnostics.GroupBy(static data => data.ProjectId!))
             {
-                var diagnosticGroupId = (this, projectId);
-
                 argsBuilder.Add(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                    diagnosticGroupId,
-                    workspace,
                     solution,
                     projectId,
                     documentId: null,
@@ -129,11 +115,7 @@ internal sealed class EditAndContinueDiagnosticUpdateSource : IDiagnosticUpdateS
 
         if (solutionDiagnostics.Length > 0)
         {
-            var diagnosticGroupId = this;
-
             argsBuilder.Add(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                diagnosticGroupId,
-                workspace,
                 solution,
                 projectId: null,
                 documentId: null,

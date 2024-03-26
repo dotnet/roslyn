@@ -29,11 +29,9 @@ internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateS
 
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public HostDiagnosticUpdateSource(Lazy<VisualStudioWorkspace> workspace, IDiagnosticUpdateSourceRegistrationService registrationService)
+    public HostDiagnosticUpdateSource(Lazy<VisualStudioWorkspace> workspace)
     {
         _workspace = workspace;
-
-        registrationService.Register(this);
     }
 
     public override Workspace Workspace
@@ -44,11 +42,9 @@ internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateS
         }
     }
 
-    private void AddDiagnosticsCreatedArgsForProject(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId, object key, IEnumerable<DiagnosticData> items)
+    private static void AddDiagnosticsCreatedArgsForProject(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId, IEnumerable<DiagnosticData> items)
     {
         var args = DiagnosticsUpdatedArgs.DiagnosticsCreated(
-            CreateId(projectId, key),
-            Workspace,
             solution: null,
             projectId: projectId,
             documentId: null,
@@ -57,19 +53,15 @@ internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateS
         builder.Add(args);
     }
 
-    private void AddDiagnosticsRemovedArgsForProject(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId, object key)
+    private static void AddDiagnosticsRemovedArgsForProject(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId)
     {
         var args = DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-            CreateId(projectId, key),
-            Workspace,
             solution: null,
             projectId: projectId,
             documentId: null);
 
         builder.Add(args);
     }
-
-    private object CreateId(ProjectId projectId, object key) => Tuple.Create(this, projectId, key);
 
     public void UpdateAndAddDiagnosticsArgsForProject(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId, object key, IEnumerable<DiagnosticData> items)
     {
@@ -82,7 +74,7 @@ internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateS
             _diagnosticMap.GetOrAdd(projectId, id => new HashSet<object>()).Add(key);
         }
 
-        AddDiagnosticsCreatedArgsForProject(ref builder, projectId, key, items);
+        AddDiagnosticsCreatedArgsForProject(ref builder, projectId, items);
     }
 
     void IProjectSystemDiagnosticSource.UpdateDiagnosticsForProject(ProjectId projectId, object key, IEnumerable<DiagnosticData> items)
@@ -108,9 +100,9 @@ internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateS
         using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
         if (projectDiagnosticKeys != null)
         {
-            foreach (var key in projectDiagnosticKeys)
+            foreach (var _ in projectDiagnosticKeys)
             {
-                AddDiagnosticsRemovedArgsForProject(ref argsBuilder.AsRef(), projectId, key);
+                AddDiagnosticsRemovedArgsForProject(ref argsBuilder.AsRef(), projectId);
             }
         }
 
@@ -134,7 +126,7 @@ internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateS
 
         if (raiseEvent)
         {
-            AddDiagnosticsRemovedArgsForProject(ref builder, projectId, key);
+            AddDiagnosticsRemovedArgsForProject(ref builder, projectId);
         }
     }
 

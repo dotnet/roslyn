@@ -4,12 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-
     internal sealed partial class RemoteWorkspace
     {
         /// <summary>
@@ -40,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Remote
         private InFlightSolution GetOrCreateSolutionAndAddInFlightCount_NoLock(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
-            int workspaceVersion,
             bool updatePrimaryBranch)
         {
             Contract.ThrowIfFalse(_gate.CurrentCount == 0);
@@ -56,8 +53,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // to compute the primary branch as well, let it know so it can start that now.
             if (updatePrimaryBranch)
             {
-                solution.TryKickOffPrimaryBranchWork_NoLock((disconnectedSolution, cancellationToken) =>
-                    this.TryUpdateWorkspaceCurrentSolutionAsync(workspaceVersion, disconnectedSolution, cancellationToken));
+                solution.TryKickOffPrimaryBranchWork_NoLock(this.UpdateWorkspaceCurrentSolutionAsync);
             }
 
             CheckCacheInvariants_NoLock();

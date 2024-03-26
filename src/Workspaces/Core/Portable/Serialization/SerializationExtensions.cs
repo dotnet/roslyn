@@ -30,7 +30,6 @@ internal static class SerializationExtensions
             MetadataReference => WellKnownSynchronizationKind.MetadataReference,
             AnalyzerReference => WellKnownSynchronizationKind.AnalyzerReference,
             SerializableSourceText => WellKnownSynchronizationKind.SerializableSourceText,
-            SourceText => WellKnownSynchronizationKind.SourceText,
             SourceGeneratedDocumentIdentity => WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity,
             _ => throw ExceptionUtilities.UnexpectedValue(value),
         };

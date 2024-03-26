@@ -1417,6 +1417,11 @@
         <target state="translated">Der bedingte Ausdruck ist in der Sprachversion {0} nicht gültig, da zwischen „{1}“ und „{2}“ kein allgemeiner Typ gefunden wurde. Um eine Zielkonvertierung zu verwenden, führen Sie ein Upgrade auf die Sprachversion {3} oder höher aus.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoModifiersOnUsing">
+        <source>Modifiers cannot be placed on using declarations</source>
+        <target state="new">Modifiers cannot be placed on using declarations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">Das Ausgabeverzeichnis konnte nicht bestimmt werden.</target>

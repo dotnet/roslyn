@@ -21,6 +21,11 @@ internal interface IWorkspaceTelemetryService : IWorkspaceService
     bool HasActiveSession { get; }
 
     /// <summary>
+    /// True if the active session belongs to a Microsoft internal user.
+    /// </summary>
+    bool IsUserMicrosoftInternal { get; }
+
+    /// <summary>
     /// Serialized the current telemetry settings. Returns <see langword="null"/> if session hasn't started.
     /// </summary>
     string? SerializeCurrentSessionSettings();
