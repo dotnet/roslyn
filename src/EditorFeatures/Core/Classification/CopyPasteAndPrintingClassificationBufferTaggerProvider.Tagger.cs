@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -107,18 +108,16 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             if (document == null)
                 return [];
 
-            var classificationService = document.GetRequiredLanguageService<IClassificationService>();
-
             // We want to classify from the start of the first requested span to the end of the 
             // last requested span.
-            var spanToTag = new SnapshotSpan(snapshot, Span.FromBounds(spans.First().Start, spans.Last().End));
+            var spanToTag = TextSpan.FromBounds(spans.First().Start, spans.Last().End);
 
             var (cachedTaggedSpan, cachedTags) = GetCachedInfo();
 
             // We don't need to actually classify if what we're being asked for is a subspan
             // of the last classification we performed.
             if (cachedTaggedSpan?.Snapshot == snapshot &&
-                cachedTaggedSpan.Value.Contains(spanToTag))
+                cachedTaggedSpan.Value.Span.ToTextSpan().Contains(spanToTag))
             {
                 Contract.ThrowIfNull(cachedTags);
                 return SegmentedListPool<ITagSpan<IClassificationTag>>.ComputeList(
@@ -129,27 +128,13 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             // Our cache is not there, or is out of date.  We need to compute the up to date results.
             var options = _globalOptions.GetClassificationOptions(document.Project.Language);
 
-            // temp buffer we can use across all our classification calls.  Should be cleared between each call.
-            using var _1 = Classifier.GetPooledList(out var tempBuffer);
+            using var helper = new Helper(_owner, document, snapshot, spanToTag, options);
 
-            // Final list of tags to produce, containing syntax/semantic/embedded classification tags.
-            using var _2 = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var mergedTags);
+            _owner._threadingContext.JoinableTaskFactory.Run(() => helper.AddTagsAsync(cancellationToken));
 
-            _owner._threadingContext.JoinableTaskFactory.Run(async () =>
-            {
-                // Defer to our helper which will compute syntax/semantic/embedded classifications, properly
-                // layering them into the final result we return.
-                await TotalClassificationAggregateTagger.AddTagsAsync(
-                    new NormalizedSnapshotSpanCollection(spanToTag),
-                    mergedTags,
-                    AddSyntacticSpansAsync,
-                    AddSemanticSpansAsync,
-                    AddEmbeddedSpansAsync,
-                    arg: default(VoidResult)).ConfigureAwait(false);
-            });
-
-            cachedTaggedSpan = spanToTag;
-            cachedTags = new TagSpanIntervalTree<IClassificationTag>(snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive, mergedTags);
+            cachedTaggedSpan = spanToTag.ToSnapshotSpan(snapshot);
+            cachedTags = new TagSpanIntervalTree<IClassificationTag>(
+                snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive, helper.MergedTags);
 
             lock (_gate)
             {
@@ -160,53 +145,122 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             return SegmentedListPool<ITagSpan<IClassificationTag>>.ComputeList(
                 static (args, tags) => args.cachedTags.AddIntersectingTagSpans(args.spans, tags),
                 (cachedTags, spans));
-
-            async ValueTask AddSyntacticSpansAsync(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> result, VoidResult _)
-            {
-                Contract.ThrowIfTrue(spans.Count != 1, "We should only be asking for a single span when getting the syntactic classifications");
-
-                await AddSpansAsync(spans, result,
-                    span => classificationService.AddSyntacticClassificationsAsync(document, span, tempBuffer, cancellationToken)).ConfigureAwait(false);
-            }
-
-            async ValueTask AddSemanticSpansAsync(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> result, VoidResult _)
-            {
-                Contract.ThrowIfTrue(spans.Count != 1, "We should only be asking for a single span when getting the semantic classifications");
-
-                await AddSpansAsync(spans, result,
-                    span => classificationService.AddSemanticClassificationsAsync(document, span, options, tempBuffer, cancellationToken)).ConfigureAwait(false);
-            }
-
-            async ValueTask AddEmbeddedSpansAsync(NormalizedSnapshotSpanCollection stringLiteralSpans, SegmentedList<ITagSpan<IClassificationTag>> result, VoidResult _)
-            {
-                // Note: many string literal spans may be passed in here.
-                await AddSpansAsync(stringLiteralSpans, result,
-                    span => classificationService.AddEmbeddedLanguageClassificationsAsync(document, span, options, tempBuffer, cancellationToken)).ConfigureAwait(false);
-            }
-
-            async ValueTask AddSpansAsync(
-                NormalizedSnapshotSpanCollection spans,
-                SegmentedList<ITagSpan<IClassificationTag>> result,
-                Func<TextSpan, Task> addAsync)
-            {
-                Contract.ThrowIfTrue(tempBuffer.Count != 0);
-
-                foreach (var span in spans)
-                {
-                    await addAsync(span.Span.ToTextSpan()).ConfigureAwait(false);
-
-                    foreach (var classifiedSpan in tempBuffer)
-                        result.Add(ClassificationUtilities.Convert(_owner._typeMap, snapshot, classifiedSpan));
-
-                    tempBuffer.Clear();
-                }
-            }
         }
 
         private (SnapshotSpan? cachedTaggedSpan, TagSpanIntervalTree<IClassificationTag>? cachedTags) GetCachedInfo()
         {
             lock (_gate)
                 return (_cachedTaggedSpan, _cachedTags);
+        }
+
+        private readonly struct Helper : IDisposable
+        {
+            private readonly CopyPasteAndPrintingClassificationBufferTaggerProvider _owner;
+            private readonly Document _document;
+            private readonly ITextSnapshot _snapshot;
+            private readonly TextSpan _spanToTag;
+            private readonly ClassificationOptions _options;
+            private readonly IClassificationService _classificationService;
+            private readonly PooledObject<SegmentedList<ClassifiedSpan>> _tempBuffer;
+            private readonly PooledObject<SegmentedList<ITagSpan<IClassificationTag>>> _mergedTags;
+
+            public Helper(
+                CopyPasteAndPrintingClassificationBufferTaggerProvider owner,
+                Document document,
+                ITextSnapshot snapshot,
+                TextSpan spanToTag,
+                ClassificationOptions options)
+            {
+                _owner = owner;
+                _document = document;
+                _snapshot = snapshot;
+                _options = options;
+                _spanToTag = spanToTag;
+                _classificationService = document.GetRequiredLanguageService<IClassificationService>();
+
+                // temp buffer we can use across all our classification calls.  Should be cleared between each call.
+                _tempBuffer = Classifier.GetPooledList(out _);
+
+                // Final list of tags to produce, containing syntax/semantic/embedded classification tags.
+                _mergedTags = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out _);
+            }
+
+            public void Dispose()
+            {
+                _tempBuffer.Dispose();
+                _mergedTags.Dispose();
+            }
+
+            internal async Task AddTagsAsync(CancellationToken cancellationToken)
+            {
+                // Defer to our helper which will compute syntax/semantic/embedded classifications, properly
+                // layering them into the final result we return.
+                await TotalClassificationAggregateTagger.AddTagsAsync(
+                    new NormalizedSnapshotSpanCollection(_spanToTag.ToSnapshotSpan(_snapshot)),
+                    _mergedTags.Object,
+                    AddSyntacticSpansAsync,
+                    AddSemanticSpansAsync,
+                    AddEmbeddedSpansAsync,
+                    (this, cancellationToken)).ConfigureAwait(false);
+            }
+
+            private static async ValueTask AddSyntacticSpansAsync(
+                NormalizedSnapshotSpanCollection spans,
+                SegmentedList<ITagSpan<IClassificationTag>> result,
+                (Helper helper, CancellationToken cancellationToken) arg)
+            {
+                Contract.ThrowIfTrue(spans.Count != 1, "We should only be asking for a single span when getting the syntactic classifications");
+
+                await AddSpansAsync(spans, result,
+                    static (helper, span, cancellationToken) =>
+                        helper._classificationService.AddSyntacticClassificationsAsync(helper._document, span, helper._tempBuffer.Object, cancellationToken),
+                    arg.helper, arg.cancellationToken).ConfigureAwait(false);
+            }
+
+            private async ValueTask AddSemanticSpansAsync(
+                NormalizedSnapshotSpanCollection spans,
+                SegmentedList<ITagSpan<IClassificationTag>> result,
+                (Helper helper, CancellationToken cancellationToken) arg)
+            {
+                Contract.ThrowIfTrue(spans.Count != 1, "We should only be asking for a single span when getting the semantic classifications");
+
+                await AddSpansAsync(
+                    spans, result,
+                    static (helper, span, cancellationToken) =>
+                        helper._classificationService.AddSemanticClassificationsAsync(helper._document, span, helper._options, helper._tempBuffer.Object, cancellationToken),
+                    arg.helper, arg.cancellationToken).ConfigureAwait(false);
+            }
+
+            private static async ValueTask AddEmbeddedSpansAsync(
+                NormalizedSnapshotSpanCollection stringLiteralSpans,
+                SegmentedList<ITagSpan<IClassificationTag>> result,
+                (Helper helper, CancellationToken cancellationToken) arg)
+            {
+                // Note: many string literal spans may be passed in here.
+                await AddSpansAsync(stringLiteralSpans, result,
+                    static (helper, span, cancellationToken) => helper._classificationService.AddEmbeddedLanguageClassificationsAsync(
+                        helper._document, span, helper._options, helper._tempBuffer.Object, cancellationToken),
+                    arg.helper, arg.cancellationToken).ConfigureAwait(false);
+            }
+
+            private static async ValueTask AddSpansAsync(
+                NormalizedSnapshotSpanCollection spans,
+                SegmentedList<ITagSpan<IClassificationTag>> result,
+                Func<Helper, TextSpan, CancellationToken, Task> addAsync,
+                Helper helper,
+                CancellationToken cancellationToken)
+            {
+                foreach (var span in spans)
+                {
+                    Contract.ThrowIfTrue(helper._tempBuffer.Object.Count != 0);
+                    await addAsync(helper, span.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+
+                    foreach (var classifiedSpan in helper._tempBuffer.Object)
+                        result.Add(ClassificationUtilities.Convert(helper._owner._typeMap, helper._snapshot, classifiedSpan));
+
+                    helper._tempBuffer.Object.Clear();
+                }
+            }
         }
     }
 }
