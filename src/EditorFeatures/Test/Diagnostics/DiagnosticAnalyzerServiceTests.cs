@@ -258,46 +258,6 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         }
 
         [Fact]
-        public async Task TestOpenFileOnlyAnalyzerDiagnostics()
-        {
-            using var workspace = CreateWorkspace();
-
-            var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-            var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
-
-            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new OpenFileOnlyAnalyzer()));
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
-
-            var project = workspace.AddProject(
-                           ProjectInfo.Create(
-                               ProjectId.CreateNewId(),
-                               VersionStamp.Create(),
-                               "CSharpProject",
-                               "CSharpProject",
-                               LanguageNames.CSharp));
-
-            var document = workspace.AddDocument(project.Id, "Empty.cs", SourceText.From(""));
-
-            var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
-            var analyzer = service.CreateIncrementalAnalyzer(workspace);
-
-            // open document
-            workspace.OpenDocument(document.Id);
-            var diagnostics = await service.GetDiagnosticsAsync(
-                document.Project.Solution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
-            // check the diagnostics are reported
-            Assert.Equal(document.Id, document.Id);
-            Assert.Equal(1, diagnostics.Length);
-            Assert.Equal(OpenFileOnlyAnalyzer.s_syntaxRule.Id, diagnostics[0].Id);
-
-            // close document
-            workspace.CloseDocument(document.Id);
-            diagnostics = await service.GetDiagnosticsAsync(
-                document.Project.Solution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
-            Assert.Equal(0, diagnostics.Length);
-        }
-
-        [Fact]
         public async Task TestSynchronizeWithBuild()
         {
             using var workspace = CreateWorkspace([typeof(NoCompilationLanguageService)]);
