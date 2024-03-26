@@ -199,9 +199,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             // open document
             workspace.OpenDocument(document.Id);
 
-            await analyzer.ForceAnalyzeProjectAsync(document.Project, CancellationToken.None);
-            var diagnostics = await service.GetDiagnosticsAsync(
-                document.Project.Solution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
+            var diagnostics = await analyzer.ForceAnalyzeProjectAsync(document.Project, CancellationToken.None);
 
             foreach (var diagnostic in diagnostics)
             {
@@ -239,10 +237,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var syntax = false;
             var semantic = false;
 
-            await analyzer.ForceAnalyzeProjectAsync(document.Project, CancellationToken.None);
-
-            var diagnostics = await service.GetDiagnosticsAsync(
-                document.Project.Solution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
+            var diagnostics = await analyzer.ForceAnalyzeProjectAsync(document.Project, CancellationToken.None);
 
             (syntax, semantic) = resultSetter(syntax, semantic, diagnostics);
 
