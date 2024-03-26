@@ -21,12 +21,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public async ValueTask SynchronizeWithBuildAsync(
+        public async ValueTask<ImmutableArray<DiagnosticData>> SynchronizeWithBuildAsync(
             ImmutableDictionary<ProjectId,
             ImmutableArray<DiagnosticData>> buildDiagnostics,
             bool onBuildCompleted,
             CancellationToken cancellationToken)
         {
+            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var allDiagnostics);
+
             using (Logger.LogBlock(FunctionId.DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync, LogSynchronizeWithBuild, buildDiagnostics, cancellationToken))
             {
                 DebugVerifyBuildDiagnostics(buildDiagnostics);
@@ -57,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         var result = GetResultOrEmpty(newResult, stateSet.Analyzer, project.Id, VersionStamp.Default);
 
                         await state.SaveToInMemoryStorageAsync(project, result).ConfigureAwait(false);
+                        allDiagnostics.AddRange(result.GetAllDiagnostics());
                     }
                 }
 
@@ -64,6 +67,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (onBuildCompleted)
                     AnalyzerService.RequestDiagnosticRefresh();
             }
+
+            return allDiagnostics.ToImmutable();
         }
 
         [Conditional("DEBUG")]
