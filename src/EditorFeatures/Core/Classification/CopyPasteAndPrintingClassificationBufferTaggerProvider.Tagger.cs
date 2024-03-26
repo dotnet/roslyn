@@ -112,11 +112,11 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             if (classificationService == null)
                 return [];
 
-            GetCachedInfo(out var cachedTaggedSpan, out var cachedTags);
-
             // We want to classify from the start of the first requested span to the end of the 
             // last requested span.
             var spanToTag = new SnapshotSpan(snapshot, Span.FromBounds(spans.First().Start, spans.Last().End));
+
+            GetCachedInfo(out var cachedTaggedSpan, out var cachedTags);
 
             // We don't need to actually classify if what we're being asked for is a subspan
             // of the last classification we performed.
