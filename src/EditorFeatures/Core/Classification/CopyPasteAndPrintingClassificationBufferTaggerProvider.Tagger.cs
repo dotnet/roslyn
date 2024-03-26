@@ -88,8 +88,6 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
 
         public IEnumerable<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
-            _owner._threadingContext.ThrowIfNotOnUIThread();
-
             // we never return any tags for GetTags.  This tagger is only for 'Accurate' scenarios.
             return [];
         }
