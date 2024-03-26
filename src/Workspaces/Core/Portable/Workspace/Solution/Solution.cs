@@ -1586,9 +1586,10 @@ public partial class Solution
     /// implementation of <see cref="TextExtensions.GetOpenDocumentInCurrentContextWithChanges"/> where if a user has a source
     /// generated file open, we need to make sure everything lines up.
     /// </summary>
-    internal Document WithFrozenSourceGeneratedDocument(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)
+    internal Document WithFrozenSourceGeneratedDocument(
+        SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)
     {
-        var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, text)]);
+        var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, generationDateTime, text)]);
         var newSolution = newCompilationState != _compilationState
             ? new Solution(newCompilationState)
             : this;
@@ -1600,7 +1601,8 @@ public partial class Solution
         return newProject.GetOrCreateSourceGeneratedDocument(newDocumentState);
     }
 
-    internal Solution WithFrozenSourceGeneratedDocuments(ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)> documents)
+    internal Solution WithFrozenSourceGeneratedDocuments(
+        ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)> documents)
     {
         var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments(documents);
         return newCompilationState != _compilationState

@@ -1655,8 +1655,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal Symbol GetSpecialTypeMember(SpecialMember member, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
+            return GetSpecialTypeMember(this.Compilation, member, diagnostics, syntax);
+        }
+
+        internal static Symbol GetSpecialTypeMember(CSharpCompilation compilation, SpecialMember member, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
+        {
             Symbol memberSymbol;
-            return TryGetSpecialTypeMember(this.Compilation, member, syntax, diagnostics, out memberSymbol)
+            return TryGetSpecialTypeMember(compilation, member, syntax, diagnostics, out memberSymbol)
                 ? memberSymbol
                 : null;
         }

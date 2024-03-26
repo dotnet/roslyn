@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask SynchronizePrimaryWorkspaceAsync(Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken)
+        public ValueTask SynchronizePrimaryWorkspaceAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var workspace = GetWorkspace();
                     var assetProvider = workspace.CreateAssetProvider(solutionChecksum, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
-                    await workspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
+                    await workspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
@@ -65,10 +65,11 @@ namespace Microsoft.CodeAnalysis.Remote
                     // Now attempt to manually apply the edit, producing the new forked text.  Store that directly in
                     // the asset cache so that future calls to retrieve it can do so quickly, without synchronizing over
                     // the entire document.
-                    var newText = new SerializableSourceText(text.WithChanges(textChanges));
-                    var newChecksum = serializer.CreateChecksum(newText, cancellationToken);
+                    var newText = text.WithChanges(textChanges);
+                    var newSerializableText = new SerializableSourceText(newText, newText.GetContentHash());
+                    var newChecksum = serializer.CreateChecksum(newSerializableText, cancellationToken);
 
-                    WorkspaceManager.SolutionAssetCache.GetOrAdd(newChecksum, newText);
+                    WorkspaceManager.SolutionAssetCache.GetOrAdd(newChecksum, newSerializableText);
                 }
 
                 return;

@@ -72,16 +72,6 @@
         <target state="translated">솔루션의 모든 '{0}' 수정</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_all_0_in_containing_member_for_1">
-        <source>Fix all '{0}' in containing member for '{1}'</source>
-        <target state="translated">'{1}'에 대한 포함 구성원의 모든 '{0}' 수정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_containing_type_for_1">
-        <source>Fix all '{0}' in containing type for '{1}'</source>
-        <target state="translated">'{1}'에 대한 포함 유형의 모든 '{0}' 수정</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Invalid_number_of_parameters_for_binary_operator">
         <source>Invalid number of parameters for binary operator.</source>
         <target state="translated">이진 연산자에 대해 잘못된 매개 변수 수입니다.</target>

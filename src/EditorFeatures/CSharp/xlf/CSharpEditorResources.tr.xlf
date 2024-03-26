@@ -52,11 +52,6 @@
         <target state="translated">     (Eklemek için TAB tuşuna basın)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">Akıllı Girintileme</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Split_raw_string">
         <source>Split raw string</source>
         <target state="translated">Ham dizeyi böl</target>

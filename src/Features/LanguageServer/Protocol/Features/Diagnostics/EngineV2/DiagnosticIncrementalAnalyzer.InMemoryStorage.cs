@@ -21,13 +21,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 AssertKey(key);
 
                 entry = default;
-                if (!s_map.TryGetValue(analyzer, out var analyzerMap) ||
-                    !analyzerMap.TryGetValue(key, out entry))
-                {
-                    return false;
-                }
-
-                return true;
+                return s_map.TryGetValue(analyzer, out var analyzerMap) &&
+                    analyzerMap.TryGetValue(key, out entry);
             }
 
             public static void Cache(DiagnosticAnalyzer analyzer, (object key, string stateKey) key, CacheEntry entry)
