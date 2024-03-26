@@ -442,6 +442,61 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Comments")]
+        public void TestAtColonTreatedAsComment_RazorRecovery()
+        {
+            var text = "@: More text";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(1, trivia.Length);
+            Assert.NotEqual(default, trivia[0]);
+            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[0].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestAtColonTreatedAsCommentAsTrailingTrivia_RazorRecovery()
+        {
+            var text = """
+                Identifier @: More text
+                // Regular comment
+                SecondIdentifier
+                """;
+            var tokens = Lex(text).ToList();
+            var token = tokens[0];
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1056: Unexpected character '@'
+                TestBase.Diagnostic(ErrorCode.ERR_UnexpectedCharacter).WithArguments("@").WithLocation(1, 1));
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(0, trivia.Length);
+            trivia = token.GetTrailingTrivia().ToArray();
+            Assert.Equal(3, trivia.Length);
+            Assert.NotEqual(default, trivia[1]);
+            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[1].Kind());
+            Assert.Equal("@: More text", trivia[1].ToFullString());
+
+            token = tokens[1];
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            Assert.Equal("""
+                // Regular comment
+                SecondIdentifier
+                """, token.ToFullString());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
         public void TestCommentWithTextWindowSentinel()
         {
             Assert.Equal('\uFFFF', SlidingTextWindow.InvalidCharacter);
