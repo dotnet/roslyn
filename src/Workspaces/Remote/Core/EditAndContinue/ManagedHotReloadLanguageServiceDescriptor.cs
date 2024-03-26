@@ -5,17 +5,19 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.ServiceHub.Framework;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 internal static class ManagedHotReloadLanguageServiceDescriptor
 {
     private const string ServiceName = "ManagedHotReloadLanguageService";
-    public const string ServiceVersion = "0.1";
+    public const string ServiceVersion = "1.0";
     public const string MonikerName = BrokeredServiceDescriptors.LanguageServerComponentNamespace + "." + BrokeredServiceDescriptors.LanguageServerComponentName + "." + ServiceName;
 
-    public static readonly ServiceJsonRpcDescriptor ServiceDescriptor = BrokeredServiceDescriptors.CreateServerServiceDescriptor(ServiceName, new(ServiceVersion));
+    public static readonly ServiceJsonRpcDescriptor DevKitDescriptor = BrokeredServiceDescriptors.CreateServerServiceDescriptor(ServiceName, new(ServiceVersion));
+    public static readonly ServiceJsonRpcDescriptor VisualStudioDescriptor = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceDescriptors.ComponentName, ServiceName, suffix: "", ServiceDescriptors.GetFeatureDisplayName);
 
     static ManagedHotReloadLanguageServiceDescriptor()
-        => Debug.Assert(ServiceDescriptor.Moniker.Name == MonikerName);
+        => Debug.Assert(DevKitDescriptor.Moniker.Name == MonikerName);
 }

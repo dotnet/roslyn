@@ -183,7 +183,7 @@ internal sealed class RoslynPackage : AbstractPackage
 
         // Must be profferred before any C#/VB projects are loaded and the corresponding UI context activated.
         serviceBrokerContainer.Proffer(
-            ManagedHotReloadLanguageServiceDescriptor.ServiceDescriptor,
+            ManagedHotReloadLanguageServiceDescriptor.VisualStudioDescriptor,
             (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>())));
     }
 

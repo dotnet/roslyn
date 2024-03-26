@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalContracts.IManagedHotReloadLanguageService service) : IManagedHotReloadLanguageService, IExportedBrokeredService
 {
     ServiceRpcDescriptor IExportedBrokeredService.Descriptor
-        => ManagedHotReloadLanguageServiceDescriptor.ServiceDescriptor;
+        => ManagedHotReloadLanguageServiceDescriptor.DevKitDescriptor;
 
     public Task InitializeAsync(CancellationToken cancellationToken)
         => Task.CompletedTask;
