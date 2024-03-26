@@ -87,30 +87,30 @@ internal sealed class TotalClassificationAggregateTagger(
             addSyntacticSpansAsync: static (spans, tags, arg) =>
             {
                 arg.syntacticTagger.AddTags(spans, tags);
-                return ValueTaskFactory.CompletedTask;
+                return Task.CompletedTask;
             },
             addSemanticSpansAsync: static (spans, tags, arg) =>
             {
                 arg.semanticTagger.AddTags(spans, tags);
-                return ValueTaskFactory.CompletedTask;
+                return Task.CompletedTask;
             },
             addEmbeddedSpansAsync: static (spans, tags, arg) =>
             {
                 arg.embeddedTagger.AddTags(spans, tags);
-                return ValueTaskFactory.CompletedTask;
+                return Task.CompletedTask;
             },
-            (syntacticTagger, semanticTagger, embeddedTagger)).AsTask();
+            (syntacticTagger, semanticTagger, embeddedTagger));
 
         // Everything we pass in is synchronous, so we should immediately get a completed task back out.
         task.VerifyCompleted();
     }
 
-    public static async ValueTask AddTagsAsync<TArg>(
+    public static async Task AddTagsAsync<TArg>(
         NormalizedSnapshotSpanCollection spans,
         SegmentedList<ITagSpan<IClassificationTag>> totalTags,
-        Func<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, TArg, ValueTask> addSyntacticSpansAsync,
-        Func<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, TArg, ValueTask> addSemanticSpansAsync,
-        Func<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, TArg, ValueTask> addEmbeddedSpansAsync,
+        Func<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, TArg, Task> addSyntacticSpansAsync,
+        Func<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, TArg, Task> addSemanticSpansAsync,
+        Func<NormalizedSnapshotSpanCollection, SegmentedList<ITagSpan<IClassificationTag>>, TArg, Task> addEmbeddedSpansAsync,
         TArg arg)
     {
         // First, get all the syntactic tags.  While they are generally overridden by semantic tags (since semantics
