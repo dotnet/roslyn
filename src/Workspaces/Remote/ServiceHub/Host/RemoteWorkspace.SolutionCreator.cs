@@ -87,10 +87,11 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
 
                     if (newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.HasValue &&
-                        newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.HasValue)
+                        newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.HasValue &&
+                        !newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentGenerationDateTimes.IsDefault)
                     {
                         var count = newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.Value.Count;
-                        var _ = ArrayBuilder<(SourceGeneratedDocumentIdentity, SourceText)>.GetInstance(count, out var frozenDocuments);
+                        var _ = ArrayBuilder<(SourceGeneratedDocumentIdentity identity, DateTime generationDateTime, SourceText text)>.GetInstance(count, out var frozenDocuments);
 
                         for (var i = 0; i < count; i++)
                         {
@@ -100,8 +101,9 @@ namespace Microsoft.CodeAnalysis.Remote
                             var documentStateChecksums = await _assetProvider.GetAssetAsync<DocumentStateChecksums>(
                                 assetHint: AssetHint.None, newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value.Checksums[i], cancellationToken).ConfigureAwait(false);
 
+                            var generationDateTime = newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentGenerationDateTimes[i];
                             var text = await _assetProvider.GetAssetAsync<SourceText>(assetHint: newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value.Ids[i], documentStateChecksums.Text, cancellationToken).ConfigureAwait(false);
-                            frozenDocuments.Add((identity, text));
+                            frozenDocuments.Add((identity, generationDateTime, text));
                         }
 
                         solution = solution.WithFrozenSourceGeneratedDocuments(frozenDocuments.ToImmutable());

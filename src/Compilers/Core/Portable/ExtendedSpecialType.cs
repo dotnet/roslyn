@@ -58,6 +58,16 @@ namespace Microsoft.CodeAnalysis
 
         public override string ToString()
         {
+            if (_value > (int)SpecialType.None && _value <= (int)SpecialType.Count)
+            {
+                return ((SpecialType)_value).ToString();
+            }
+
+            if (_value >= (int)InternalSpecialType.First && _value < (int)InternalSpecialType.NextAvailable)
+            {
+                return ((InternalSpecialType)_value).ToString();
+            }
+
             return _value.ToString();
         }
     }

@@ -1046,7 +1046,7 @@ internal sealed partial class SolutionCompilationState
     /// generated file open, we need to make sure everything lines up.
     /// </summary>
     public SolutionCompilationState WithFrozenSourceGeneratedDocuments(
-        ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceText sourceText)> documents)
+        ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText sourceText)> documents)
     {
         // We won't support freezing multiple source generated documents more than once in a chain, simply because we have no need
         // to support that; these solutions are created on demand when we need to operate on an open source generated document,
@@ -1060,14 +1060,15 @@ internal sealed partial class SolutionCompilationState
 
         // We'll keep track if every document we're reusing is the exact same as the final generated output we already have
         using var _ = ArrayBuilder<SourceGeneratedDocumentState>.GetInstance(documents.Length, out var documentStates);
-        foreach (var (documentIdentity, sourceText) in documents)
+        foreach (var (documentIdentity, generationDateTime, sourceText) in documents)
         {
             var existingGeneratedState = TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentIdentity.DocumentId);
             if (existingGeneratedState != null)
             {
                 var newGeneratedState = existingGeneratedState
                     .WithText(sourceText)
-                    .WithParseOptions(existingGeneratedState.ParseOptions);
+                    .WithParseOptions(existingGeneratedState.ParseOptions)
+                    .WithGenerationDateTime(generationDateTime);
 
                 // If the content already matched, we can just reuse the existing state, so we don't need to track this one
                 if (newGeneratedState != existingGeneratedState)
@@ -1083,7 +1084,8 @@ internal sealed partial class SolutionCompilationState
                     projectState.ParseOptions!,
                     projectState.LanguageServices,
                     // Just compute the checksum from the source text passed in.
-                    originalSourceTextChecksum: null);
+                    originalSourceTextChecksum: null,
+                    generationDateTime);
                 documentStates.Add(newGeneratedState);
             }
         }

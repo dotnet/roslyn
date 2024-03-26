@@ -535,7 +535,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var document = CreateWorkspace().CurrentSolution.AddProject("empty", "empty", LanguageNames.CSharp).AddDocument("empty", SourceText.From(""));
             var serializer = document.Project.Solution.Services.GetService<ISerializerService>();
 
-            var source = serializer.CreateChecksum(await document.GetTextAsync().ConfigureAwait(false), CancellationToken.None);
+            var text = await document.GetTextAsync().ConfigureAwait(false);
+            var source = serializer.CreateChecksum(text, CancellationToken.None);
             var metadata = serializer.CreateChecksum(new MissingMetadataReference(), CancellationToken.None);
             var analyzer = serializer.CreateChecksum(new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing"), new MissingAnalyzerLoader()), CancellationToken.None);
 

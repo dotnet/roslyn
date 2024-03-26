@@ -45,15 +45,4 @@ internal sealed class TestDiagnosticTagProducer<TProvider, TTag>
             location: new DiagnosticDataLocation(new FileLinePositionSpan(document.FilePath, linePosSpan), document.Id),
             language: document.Project.Language);
     }
-
-    private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource
-    {
-        public void RaiseDiagnosticsUpdated(ImmutableArray<DiagnosticsUpdatedArgs> args)
-        {
-            DiagnosticsUpdated?.Invoke(this, args);
-        }
-
-        public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
-        public event EventHandler DiagnosticsCleared { add { } remove { } }
-    }
 }

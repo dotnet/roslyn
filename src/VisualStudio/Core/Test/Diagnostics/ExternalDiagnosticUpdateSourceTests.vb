@@ -466,13 +466,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                         location:=New DiagnosticDataLocation(New FileLinePositionSpan("Test.txt", New LinePosition(4, 4), New LinePosition(4, 4)), documentId:=Nothing),
                         language:=project.Language)
 
-                    AddHandler service.DiagnosticsUpdated, Sub(o, argsCollection)
-                                                               Dim args = argsCollection.Single()
-                                                               Dim diagnostics = args.Diagnostics
+                    'AddHandler service.DiagnosticsUpdated, Sub(o, argsCollection)
+                    '                                           Dim args = argsCollection.Single()
+                    '                                           Dim diagnostics = args.Diagnostics
 
-                                                               Assert.Single(diagnostics)
-                                                               Assert.Equal(diagnostics(0).Id, diagnostic.Id)
-                                                           End Sub
+                    '                                           Assert.Single(diagnostics)
+                    '                                           Assert.Equal(diagnostics(0).Id, diagnostic.Id)
+                    '                                       End Sub
 
                     source.AddNewErrors(project.Id, diagnostic)
                     Await waiter.ExpeditedWaitAsync()
@@ -630,7 +630,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Function
 
         Private Class TestDiagnosticAnalyzerService
-            Implements IDiagnosticAnalyzerService, IDiagnosticUpdateSource
+            Implements IDiagnosticAnalyzerService
 
             Private ReadOnly _analyzerInfoCache As DiagnosticAnalyzerInfoCache
 
@@ -646,9 +646,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     Return _analyzerInfoCache
                 End Get
             End Property
-
-            Public Event DiagnosticsUpdated As EventHandler(Of ImmutableArray(Of DiagnosticsUpdatedArgs)) Implements IDiagnosticUpdateSource.DiagnosticsUpdated
-            Public Event DiagnosticsCleared As EventHandler Implements IDiagnosticUpdateSource.DiagnosticsCleared
 
             Public Sub RequestDiagnosticRefresh() Implements IDiagnosticAnalyzerService.RequestDiagnosticRefresh
             End Sub

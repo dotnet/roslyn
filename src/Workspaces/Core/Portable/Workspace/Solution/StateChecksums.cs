@@ -5,11 +5,13 @@
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
@@ -19,7 +21,8 @@ internal sealed class SolutionCompilationStateChecksums
     public SolutionCompilationStateChecksums(
         Checksum solutionState,
         ChecksumCollection? frozenSourceGeneratedDocumentIdentities,
-        ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocuments)
+        ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocuments,
+        ImmutableArray<DateTime> frozenSourceGeneratedDocumentGenerationDateTimes)
     {
         // For the frozen source generated document info, we expect two either have both checksum collections or neither, and they
         // should both be the same length as there is a 1:1 correspondence between them.
@@ -29,7 +32,10 @@ internal sealed class SolutionCompilationStateChecksums
         SolutionState = solutionState;
         FrozenSourceGeneratedDocumentIdentities = frozenSourceGeneratedDocumentIdentities;
         FrozenSourceGeneratedDocuments = frozenSourceGeneratedDocuments;
+        FrozenSourceGeneratedDocumentGenerationDateTimes = frozenSourceGeneratedDocumentGenerationDateTimes;
 
+        // note: intentionally not mixing in FrozenSourceGeneratedDocumentGenerationDateTimes as that is not part of the
+        // identity contract of this type.
         Checksum = Checksum.Create(
             SolutionState,
             FrozenSourceGeneratedDocumentIdentities?.Checksum ?? Checksum.Null,
@@ -40,6 +46,9 @@ internal sealed class SolutionCompilationStateChecksums
     public Checksum SolutionState { get; }
     public ChecksumCollection? FrozenSourceGeneratedDocumentIdentities { get; }
     public ChecksumsAndIds<DocumentId>? FrozenSourceGeneratedDocuments { get; }
+
+    // note: intentionally not part of the identity contract of this type.
+    public ImmutableArray<DateTime> FrozenSourceGeneratedDocumentGenerationDateTimes { get; }
 
     public void AddAllTo(HashSet<Checksum> checksums)
     {
@@ -61,6 +70,7 @@ internal sealed class SolutionCompilationStateChecksums
         {
             this.FrozenSourceGeneratedDocumentIdentities.Value.WriteTo(writer);
             this.FrozenSourceGeneratedDocuments!.Value.WriteTo(writer);
+            writer.WriteArray(this.FrozenSourceGeneratedDocumentGenerationDateTimes, static (w, d) => w.WriteInt64(d.Ticks));
         }
     }
 
@@ -72,17 +82,20 @@ internal sealed class SolutionCompilationStateChecksums
         var hasFrozenSourceGeneratedDocuments = reader.ReadBoolean();
         ChecksumCollection? frozenSourceGeneratedDocumentIdentities = null;
         ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocuments = null;
+        ImmutableArray<DateTime> frozenSourceGeneratedDocumentGenerationDateTimes = default;
 
         if (hasFrozenSourceGeneratedDocuments)
         {
             frozenSourceGeneratedDocumentIdentities = ChecksumCollection.ReadFrom(reader);
             frozenSourceGeneratedDocuments = ChecksumsAndIds<DocumentId>.ReadFrom(reader);
+            frozenSourceGeneratedDocumentGenerationDateTimes = reader.ReadArray(r => new DateTime(r.ReadInt64()));
         }
 
         var result = new SolutionCompilationStateChecksums(
             solutionState: solutionState,
-            frozenSourceGeneratedDocumentIdentities: frozenSourceGeneratedDocumentIdentities,
-            frozenSourceGeneratedDocuments: frozenSourceGeneratedDocuments);
+            frozenSourceGeneratedDocumentIdentities,
+            frozenSourceGeneratedDocuments,
+            frozenSourceGeneratedDocumentGenerationDateTimes);
         Contract.ThrowIfFalse(result.Checksum == checksum);
         return result;
     }
