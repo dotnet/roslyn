@@ -28,7 +28,6 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
     private sealed class Tagger : IAccurateTagger<IClassificationTag>, IDisposable
     {
         private readonly CopyPasteAndPrintingClassificationBufferTaggerProvider _owner;
-        private readonly ITextBuffer _subjectBuffer;
         private readonly ITaggerEventSource _eventSource;
         private readonly IGlobalOptionService _globalOptions;
 
@@ -45,7 +44,6 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             IGlobalOptionService globalOptions)
         {
             _owner = owner;
-            _subjectBuffer = subjectBuffer;
             _globalOptions = globalOptions;
 
             _eventSource = TaggerEventSources.Compose(
@@ -103,7 +101,6 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                 return [];
 
             var snapshot = spans.First().Snapshot;
-            Debug.Assert(snapshot.TextBuffer == _subjectBuffer);
 
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)

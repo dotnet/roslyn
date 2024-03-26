@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.Classification;
 /// i.e. if you're printing, you want semantic classification even for code that's not in view.
 /// The same applies to copy/pasting.
 /// </summary>
+/// <remarks>
+/// The <see cref="IAccurateTagger{T}"/> returned from <see cref="CreateTagger{T}"/> can be used on any thread.
+/// </remarks>
 [Export(typeof(ITaggerProvider))]
 [TagType(typeof(IClassificationTag))]
 [ContentType(ContentTypeNames.CSharpContentType)]
