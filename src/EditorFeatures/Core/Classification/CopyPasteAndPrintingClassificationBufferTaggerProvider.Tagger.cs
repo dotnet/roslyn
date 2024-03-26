@@ -191,13 +191,15 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                 _mergedTags.Dispose();
             }
 
+            public SegmentedList<ITagSpan<IClassificationTag>> MergedTags => _mergedTags.Object;
+
             internal async Task AddTagsAsync(CancellationToken cancellationToken)
             {
                 // Defer to our helper which will compute syntax/semantic/embedded classifications, properly
                 // layering them into the final result we return.
                 await TotalClassificationAggregateTagger.AddTagsAsync(
                     new NormalizedSnapshotSpanCollection(_spanToTag.ToSnapshotSpan(_snapshot)),
-                    _mergedTags.Object,
+                    this.MergedTags,
                     AddSyntacticSpansAsync,
                     AddSemanticSpansAsync,
                     AddEmbeddedSpansAsync,
