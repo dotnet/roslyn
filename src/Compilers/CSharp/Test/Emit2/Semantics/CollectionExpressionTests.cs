@@ -13431,6 +13431,56 @@ partial class Program
             Assert.Equal(expectedConversionKind, conversion.Kind);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72541")]
+        public void NamedArgumentConversion()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    static void Main()
+                    {
+                        C.M(y: [new D { }]);
+                    }
+                    static void M(string x, IReadOnlyList<D> y) { }
+                }
+
+                class D { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,11): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'C.M(string, IReadOnlyList<D>)'
+                //         C.M(y: [new D { }]);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("x", "C.M(string, System.Collections.Generic.IReadOnlyList<D>)").WithLocation(8, 11));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72541")]
+        public void NamedArgumentConversion_CollectionInitializer()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    static void Main()
+                    {
+                        C.M(y: new() { new D() { } });
+                    }
+                    static void M(string x, List<D> y) { }
+                }
+
+                class D { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,11): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'C.M(string, List<D>)'
+                //         C.M(y: new() { new D() { } });
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("x", "C.M(string, System.Collections.Generic.List<D>)").WithLocation(8, 11));
+        }
+
         [CombinatorialData]
         [Theory]
         public void CollectionBuilder_01(bool useCompilationReference)

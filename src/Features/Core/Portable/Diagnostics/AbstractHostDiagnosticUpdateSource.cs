@@ -5,8 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
@@ -30,43 +28,6 @@ internal abstract class AbstractHostDiagnosticUpdateSource
     {
         if (!args.IsEmpty)
             DiagnosticsUpdated?.Invoke(this, args);
-    }
-
-    public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, ProjectId? projectId)
-    {
-        // check whether we are reporting project specific diagnostic or workspace wide diagnostic
-        var solution = Workspace.CurrentSolution;
-        var project = projectId != null ? solution.GetProject(projectId) : null;
-
-        // check whether project the diagnostic belong to still exist
-        if (projectId != null && project == null)
-        {
-            // project the diagnostic belong to already removed from the solution.
-            // ignore the diagnostic
-            return;
-        }
-
-        ReportAnalyzerDiagnostic(analyzer, DiagnosticData.Create(solution, diagnostic, project), project);
-    }
-
-    public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, DiagnosticData diagnosticData, Project? project)
-    {
-        var raiseDiagnosticsUpdated = true;
-
-        var dxs = ImmutableInterlocked.AddOrUpdate(ref _analyzerHostDiagnosticsMap,
-            analyzer,
-            [diagnosticData],
-            (a, existing) =>
-            {
-                var newDiags = existing.Add(diagnosticData);
-                raiseDiagnosticsUpdated = newDiags.Count > existing.Count;
-                return newDiags;
-            });
-
-        if (raiseDiagnosticsUpdated)
-        {
-            RaiseDiagnosticsUpdated([MakeCreatedArgs(analyzer, dxs, project)]);
-        }
     }
 
     public void ClearAnalyzerReferenceDiagnostics(AnalyzerFileReference analyzerReference, string language, ProjectId projectId)
@@ -114,34 +75,26 @@ internal abstract class AbstractHostDiagnosticUpdateSource
                 ImmutableInterlocked.TryUpdate(ref _analyzerHostDiagnosticsMap, analyzer, newDiags, existing))
             {
                 var project = Workspace.CurrentSolution.GetProject(projectId);
-                builder.Add(MakeRemovedArgs(analyzer, project));
+                builder.Add(MakeRemovedArgs(project));
             }
         }
         else if (ImmutableInterlocked.TryRemove(ref _analyzerHostDiagnosticsMap, analyzer, out existing))
         {
             var project = Workspace.CurrentSolution.GetProject(projectId);
-            builder.Add(MakeRemovedArgs(analyzer, project));
+            builder.Add(MakeRemovedArgs(project));
 
             if (existing.Any(d => d.ProjectId == null))
             {
-                builder.Add(MakeRemovedArgs(analyzer, project: null));
+                builder.Add(MakeRemovedArgs(project: null));
             }
         }
     }
 
-    private DiagnosticsUpdatedArgs MakeCreatedArgs(DiagnosticAnalyzer analyzer, ImmutableHashSet<DiagnosticData> items, Project? project)
-    {
-        return DiagnosticsUpdatedArgs.DiagnosticsCreated(
-            CreateId(analyzer, project), Workspace, project?.Solution, project?.Id, documentId: null, diagnostics: items.ToImmutableArray());
-    }
-
-    private DiagnosticsUpdatedArgs MakeRemovedArgs(DiagnosticAnalyzer analyzer, Project? project)
+    private static DiagnosticsUpdatedArgs MakeRemovedArgs(Project? project)
     {
         return DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-            CreateId(analyzer, project), Workspace, project?.Solution, project?.Id, documentId: null);
+            project?.Solution, project?.Id, documentId: null);
     }
-
-    private HostArgsId CreateId(DiagnosticAnalyzer analyzer, Project? project) => new(this, analyzer, project?.Id);
 
     internal TestAccessor GetTestAccessor()
         => new(this);
@@ -162,24 +115,5 @@ internal abstract class AbstractHostDiagnosticUpdateSource
 
             return diagnostics;
         }
-    }
-
-    private sealed class HostArgsId(AbstractHostDiagnosticUpdateSource source, DiagnosticAnalyzer analyzer, ProjectId? projectId) : AnalyzerUpdateArgsId(analyzer)
-    {
-        private readonly AbstractHostDiagnosticUpdateSource _source = source;
-        private readonly ProjectId? _projectId = projectId;
-
-        public override bool Equals(object? obj)
-        {
-            if (obj is not HostArgsId other)
-            {
-                return false;
-            }
-
-            return _source == other._source && _projectId == other._projectId && base.Equals(obj);
-        }
-
-        public override int GetHashCode()
-            => Hash.Combine(_source.GetHashCode(), Hash.Combine(_projectId == null ? 1 : _projectId.GetHashCode(), base.GetHashCode()));
     }
 }
