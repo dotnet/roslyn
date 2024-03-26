@@ -39,7 +39,7 @@ internal sealed class VisualDiagnosticsServiceFactory(
 
     public void OnServiceBrokerInitialized(IServiceBroker serviceBroker)
     {
-        _OnInitializedService.Value?.OnServiceBrokerInitialized(serviceBroker);
+        _OnInitializedService.Value.OnServiceBrokerInitialized(serviceBroker);
     }
 
     private class OnInitializedService : ILspService, IOnInitialized, IOnServiceBrokerInitialized, IDisposable
