@@ -459,7 +459,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 """;
 
             var expectedCodeAfterCommit = $$"""
-
                 {{trivia}}
                 foreach (var item in new int[10])
                 {

@@ -1042,7 +1042,8 @@ System.AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledExce
 void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
 {
     throw new System.NotImplementedException();
-}";
+}
+";
             testState.AssertCodeIs(expectedCode);
         }
 

@@ -95,6 +95,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
             }
 
+            [MemberNotNullWhen(true, nameof(_residualTrivia))]
+            private bool HasResidualTrivia => _residualTrivia is { Count: > 0 };
+
             private void AddResidualTrivia(SyntaxTriviaList trivia, bool requiresNewLine = false)
             {
                 if (requiresNewLine)
@@ -158,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             private bool ShouldVisit(SyntaxNode node)
             {
-                return node.FullSpan.IntersectsWith(_searchSpan) || (_residualTrivia != null && _residualTrivia.Count > 0);
+                return node.FullSpan.IntersectsWith(_searchSpan) || HasResidualTrivia;
             }
 
             [return: NotNullIfNotNull(nameof(node))]
@@ -193,14 +196,176 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
 
                 // the next token gets the accrued trivia.
-                if (result.Kind() != SyntaxKind.None && _residualTrivia != null && _residualTrivia.Count > 0)
+                if (result.Kind() != SyntaxKind.None && HasResidualTrivia)
                 {
                     _residualTrivia.Add(result.LeadingTrivia);
-                    result = result.WithLeadingTrivia(_residualTrivia.ToList());
+                    result = result.WithLeadingTrivia(ProcessElasticMarkers(_residualTrivia.ToList()));
                     _residualTrivia.Clear();
                 }
 
                 return result;
+            }
+
+            public override SyntaxTriviaList VisitList(SyntaxTriviaList list)
+            {
+                var count = list.Count;
+                if (count != 0)
+                {
+                    // Prevent any residual trivia from affecting the processing of structured trivia
+                    var preservedTrivia = ResidualTrivia;
+                    _residualTrivia?.Clear();
+
+                    SyntaxTriviaListBuilder? alternate = null;
+                    var index = -1;
+
+                    foreach (var item in list)
+                    {
+                        index++;
+                        var visited = this.VisitListElement(item);
+
+                        //skip the null check since SyntaxTrivia is a value type
+                        if ((visited != item || HasResidualTrivia) && alternate == null)
+                        {
+                            alternate = new SyntaxTriviaListBuilder(count);
+                            alternate.Add(list, 0, index);
+                        }
+
+                        if (alternate != null && visited.Kind() != SyntaxKind.None)
+                        {
+                            alternate.Add(visited);
+                        }
+
+                        if (HasResidualTrivia)
+                        {
+                            // Residual trivia produced during the processing of structured trivia gets inserted into
+                            // the containing trivia list at the location immediately after the structured trivia that
+                            // produced it.
+                            alternate!.Add(_residualTrivia);
+                            _residualTrivia.Clear();
+                        }
+                    }
+
+                    Debug.Assert(!HasResidualTrivia);
+                    Debug.Assert(!preservedTrivia.Any() || _residualTrivia != null);
+                    _residualTrivia?.Add(preservedTrivia);
+
+                    if (alternate != null)
+                    {
+                        return ProcessElasticMarkers(alternate.ToList());
+                    }
+                }
+
+                return list;
+            }
+
+            /// <summary>
+            /// Rewrite a trivia list when it contains <see cref="SyntaxFactory.ElasticMarker"/> produced by node
+            /// removal to also remove extraneous blank lines surrounding the removed node. This method specifically
+            /// looks for an elastic marker surrounded by both preceding and following blank lines. When found, this
+            /// method removes blank lines such that the maximum number of consecutive blank lines appearing in the
+            /// source after node removal is no greater than the maximum number of consecutive blank lines prior to node
+            /// removal.
+            /// </summary>
+            private SyntaxTriviaList ProcessElasticMarkers(SyntaxTriviaList list)
+            {
+                if ((_options & SyntaxRemoveOptions.AddElasticMarker) == 0)
+                {
+                    return list;
+                }
+
+                for (var i = 0; i < list.Count; i++)
+                {
+                    if (!isElasticMarker(list[i]))
+                        continue;
+
+                    var preceedingLines = getPreceedingBlankLineCount(list, i);
+                    var followingLines = getFollowingBlankLineCount(list, i);
+                    var linesToRemove = Math.Min(preceedingLines, followingLines);
+                    if (linesToRemove > 0)
+                    {
+                        // Extraneous blank lines are removed after the elastic marker
+                        list = removeBlankLinesAfterMarker(list, i, linesToRemove);
+                    }
+                }
+
+                return list;
+
+                static bool isElasticMarker(in SyntaxTrivia trivia)
+                    => trivia.IsKind(SyntaxKind.WhitespaceTrivia) && trivia.FullWidth == 0 && trivia.HasAnnotation(SyntaxAnnotation.ElasticAnnotation);
+
+                static int getPreceedingBlankLineCount(in SyntaxTriviaList list, int index)
+                {
+                    var blankLineCount = 0;
+                    for (var i = index - 1; i >= 0; i--)
+                    {
+                        // Lines are assumed to be blank when the EndOfLine is reached, and then corrected if that
+                        // assumption proves incorrect.
+                        if (list[i].IsKind(SyntaxKind.WhitespaceTrivia))
+                        {
+                            // All preceeding whitespace, including elastic markers seen previously, are ignored
+                            continue;
+                        }
+                        else if (list[i].IsKind(SyntaxKind.EndOfLineTrivia))
+                        {
+                            blankLineCount++;
+                        }
+                        else
+                        {
+                            // A non-ignored trivia is encountered. Assume that the EndOfLine for this trivia is not
+                            // blank.
+                            return Math.Max(0, blankLineCount - 1);
+                        }
+                    }
+
+                    // The beginning of the list was reached, so no need to correct for a non-blank line.
+                    return blankLineCount;
+                }
+
+                static int getFollowingBlankLineCount(in SyntaxTriviaList list, int index)
+                {
+                    var blankLineCount = 0;
+                    for (var i = index + 1; i < list.Count; i++)
+                    {
+                        // The current line is assumed to be blank now that a node was removed, and is counted with the
+                        // following blank lines.
+                        if (list[i].IsKind(SyntaxKind.WhitespaceTrivia))
+                        {
+                            if (isElasticMarker(list[i]))
+                            {
+                                // This marker will be processed once it is reached
+                                break;
+                            }
+
+                            continue;
+                        }
+                        else if (list[i].IsKind(SyntaxKind.EndOfLineTrivia))
+                        {
+                            blankLineCount++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                    return blankLineCount;
+                }
+
+                static SyntaxTriviaList removeBlankLinesAfterMarker(SyntaxTriviaList list, int index, int linesToRemove)
+                {
+                    var linesRemoved = 0;
+                    for (int i = index + 1; linesRemoved < linesToRemove && i < list.Count; i++)
+                    {
+                        if (list[i].IsKind(SyntaxKind.EndOfLineTrivia))
+                        {
+                            list = list.RemoveAt(i);
+                            linesRemoved++;
+                            i--;
+                        }
+                    }
+
+                    return list;
+                }
             }
 
             // deal with separated lists and removal of associated separators
