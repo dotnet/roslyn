@@ -168,9 +168,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             {
                 Contract.ThrowIfTrue(spans.Count != 1, "We should only be asking for a single span when getting the syntactic classifications");
 
-                await AddSpansAsync(
-                    spans,
-                    result,
+                await AddSpansAsync(spans, result,
                     static (service, doc, span, options, temp, c) => service.AddSyntacticClassificationsAsync(doc, span, temp, c)).ConfigureAwait(false);
             }
 
@@ -178,18 +176,14 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             {
                 Contract.ThrowIfTrue(spans.Count != 1, "We should only be asking for a single span when getting the semantic classifications");
 
-                await AddSpansAsync(
-                    spans,
-                    result,
+                await AddSpansAsync(spans, result,
                     static (service, doc, span, options, temp, c) => service.AddSemanticClassificationsAsync(doc, span, options, temp, c)).ConfigureAwait(false);
             }
 
             async ValueTask AddEmbeddedSpansAsync(NormalizedSnapshotSpanCollection stringLiteralSpans, SegmentedList<ITagSpan<IClassificationTag>> result, bool _)
             {
                 // Note: many string literal spans may be passed in here.
-                await AddSpansAsync(
-                    stringLiteralSpans,
-                    result,
+                await AddSpansAsync(stringLiteralSpans, result,
                     static (service, doc, span, options, temp, c) => service.AddEmbeddedLanguageClassificationsAsync(doc, span, options, temp, c)).ConfigureAwait(false);
             }
 
