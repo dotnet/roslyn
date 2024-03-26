@@ -293,6 +293,8 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
             // two should have been called.
             Assert.NotEmpty(diagnostics);
+
+            Assert.True(diagnostics.Any(d => d.Id == NoNameAnalyzer.s_syntaxRule.Id));
         }
 
         [Fact]
