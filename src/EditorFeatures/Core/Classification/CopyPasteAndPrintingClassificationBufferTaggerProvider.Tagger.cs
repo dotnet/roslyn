@@ -159,10 +159,9 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                 }
             }
 
-            return SegmentedListPool.ComputeList(
+            return SegmentedListPool<ITagSpan<IClassificationTag>>.ComputeList(
                 static (args, tags) => args.cachedTags?.AddIntersectingTagSpans(args.spans, tags),
-                (cachedTags, spans),
-                _: (ITagSpan<IClassificationTag>?)null);
+                (cachedTags, spans));
 
             async ValueTask AddSyntacticSpansAsync(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> result, bool _)
             {
