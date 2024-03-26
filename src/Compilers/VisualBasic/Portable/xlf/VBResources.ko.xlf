@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="ERR_LockTypeUnsupported">
         <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
-        <target state="translated">'System.Threading.Lock' 형식의 값은 SyncLock에서 지원되지 않습니다. Try/Finally 블록에서 'Enter' 및 'Exit' 메서드를 수동으로 호출해 보세요.</target>
+        <target state="translated">SyncLock에서는 'System.Threading.Lock' 형식의 값이 지원되지 않습니다. 대신 Try/Finally 블록에서 'Enter' 및 'Exit' 메서드를 수동으로 호출하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">

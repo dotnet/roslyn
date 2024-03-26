@@ -615,12 +615,12 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
-        <target state="translated">Un valor de tipo 'System.Threading.Lock' convertido a otro tipo usará un bloqueo basado en monitor probablemente no deseado en la instrucción SyncLock.</target>
+        <target state="translated">Un valor de tipo 'System.Threading.Lock' convertido a otro tipo probablemente usará un bloqueo basado en monitor no deseado en la instrucción SyncLock.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock_Title">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
-        <target state="translated">Un valor de tipo 'System.Threading.Lock' convertido a otro tipo usará un bloqueo basado en monitor probablemente no deseado en la instrucción SyncLock.</target>
+        <target state="translated">Un valor de tipo 'System.Threading.Lock' convertido a otro tipo probablemente usará un bloqueo basado en monitor no deseado en la instrucción SyncLock.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">
