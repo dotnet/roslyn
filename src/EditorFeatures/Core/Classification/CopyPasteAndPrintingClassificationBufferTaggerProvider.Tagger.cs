@@ -100,17 +100,14 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             if (spans.Count == 0)
                 return [];
 
-            var firstSpan = spans.First();
-            var snapshot = firstSpan.Snapshot;
+            var snapshot = spans.First().Snapshot;
             Debug.Assert(snapshot.TextBuffer == _subjectBuffer);
 
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
                 return [];
 
-            var classificationService = document.GetLanguageService<IClassificationService>();
-            if (classificationService == null)
-                return [];
+            var classificationService = document.GetRequiredLanguageService<IClassificationService>();
 
             // We want to classify from the start of the first requested span to the end of the 
             // last requested span.
