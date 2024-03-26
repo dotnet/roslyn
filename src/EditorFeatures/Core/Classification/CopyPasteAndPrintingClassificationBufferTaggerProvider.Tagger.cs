@@ -168,7 +168,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                 await classificationService.AddSyntacticClassificationsAsync(
                     document, spans.Single().Span.ToTextSpan(), tempClassifiedSpans, cancellationToken).ConfigureAwait(false);
 
-                ConvertAndClear(result);
+                ConvertAndClearTempClassifiedSpans(result);
             }
 
             async ValueTask AddSemanticSpansAsync(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> result, bool unused)
@@ -178,7 +178,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                 await classificationService.AddSemanticClassificationsAsync(
                     document, spans.Single().Span.ToTextSpan(), options, tempClassifiedSpans, cancellationToken).ConfigureAwait(false);
 
-                ConvertAndClear(result);
+                ConvertAndClearTempClassifiedSpans(result);
             }
 
             async ValueTask AddEmbeddedSpansAsync(NormalizedSnapshotSpanCollection stringLiteralSpans, SegmentedList<ITagSpan<IClassificationTag>> result, bool unused)
@@ -190,11 +190,11 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                     await classificationService.AddEmbeddedLanguageClassificationsAsync(
                         document, spans.Single().Span.ToTextSpan(), options, tempClassifiedSpans, cancellationToken).ConfigureAwait(false);
 
-                    ConvertAndClear(result);
+                    ConvertAndClearTempClassifiedSpans(result);
                 }
             }
 
-            void ConvertAndClear(SegmentedList<ITagSpan<IClassificationTag>> result)
+            void ConvertAndClearTempClassifiedSpans(SegmentedList<ITagSpan<IClassificationTag>> result)
             {
                 foreach (var classifiedSpan in tempClassifiedSpans)
                     result.Add(ClassificationUtilities.Convert(_owner._typeMap, snapshot, classifiedSpan));
