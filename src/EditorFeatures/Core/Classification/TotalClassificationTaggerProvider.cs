@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Classification;
 [Microsoft.VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed partial class TotalClassificationTaggerProvider(
+internal sealed class TotalClassificationTaggerProvider(
     IThreadingContext threadingContext,
     ClassificationTypeMap typeMap,
     IGlobalOptionService globalOptions,
