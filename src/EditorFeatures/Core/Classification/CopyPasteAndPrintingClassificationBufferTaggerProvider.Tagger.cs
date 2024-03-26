@@ -126,12 +126,15 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
 
             var options = _globalOptions.GetClassificationOptions(document.Project.Language);
 
-            using var _1 = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var totalTags);
-            using var _2 = Classifier.GetPooledList(out var tempClassifiedSpans);
+            // temp buffer we can use across all our classification calls.  Should be cleared between each call.
+            using var _1 = Classifier.GetPooledList(out var tempClassifiedSpans);
 
             if (!canReuseCache)
             {
                 // Our cache is not there, or is out of date.  We need to compute the up to date results.
+
+                // Final list of tags to produce, containing syntax/semantic/embedded classification tags.
+                using var _2 = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var mergedTags);
 
                 _owner._threadingContext.JoinableTaskFactory.Run(async () =>
                 {
@@ -139,7 +142,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                     // layering them into the final result we return.
                     await TotalClassificationAggregateTagger.AddTagsAsync(
                         new NormalizedSnapshotSpanCollection(spanToTag),
-                        totalTags,
+                        mergedTags,
                         AddSyntacticSpansAsync,
                         AddSemanticSpansAsync,
                         AddEmbeddedSpansAsync,
@@ -147,7 +150,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                 });
 
                 cachedTaggedSpan = spanToTag;
-                cachedTags = new TagSpanIntervalTree<IClassificationTag>(snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive, totalTags);
+                cachedTags = new TagSpanIntervalTree<IClassificationTag>(snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive, mergedTags);
 
                 lock (_gate)
                 {
