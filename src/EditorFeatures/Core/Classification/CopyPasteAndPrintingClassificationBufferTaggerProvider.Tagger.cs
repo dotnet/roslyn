@@ -194,7 +194,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                 foreach (var stringLiteralSpan in stringLiteralSpans)
                 {
                     await classificationService.AddEmbeddedLanguageClassificationsAsync(
-                        document, spans.Single().Span.ToTextSpan(), options, tempClassifiedSpans, cancellationToken).ConfigureAwait(false);
+                        document, stringLiteralSpan.Span.ToTextSpan(), options, tempClassifiedSpans, cancellationToken).ConfigureAwait(false);
 
                     ConvertAndClearTempClassifiedSpans(result);
                 }
