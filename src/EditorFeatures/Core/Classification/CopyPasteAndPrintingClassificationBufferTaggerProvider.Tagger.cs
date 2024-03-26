@@ -116,51 +116,52 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             // last requested span.
             var spanToTag = new SnapshotSpan(snapshot, Span.FromBounds(spans.First().Start, spans.Last().End));
 
-            GetCachedInfo(out var cachedTaggedSpan, out var cachedTags);
+            var (cachedTaggedSpan, cachedTags) = GetCachedInfo();
 
             // We don't need to actually classify if what we're being asked for is a subspan
             // of the last classification we performed.
-            var canReuseCache =
-                cachedTaggedSpan?.Snapshot == snapshot &&
-                cachedTaggedSpan.Value.Contains(spanToTag);
+            if (cachedTaggedSpan?.Snapshot == snapshot &&
+                cachedTaggedSpan.Value.Contains(spanToTag))
+            {
+                Contract.ThrowIfNull(cachedTags);
+                return SegmentedListPool<ITagSpan<IClassificationTag>>.ComputeList(
+                    static (args, tags) => args.cachedTags.AddIntersectingTagSpans(args.spans, tags),
+                    (cachedTags, spans));
+            }
 
+            // Our cache is not there, or is out of date.  We need to compute the up to date results.
             var options = _globalOptions.GetClassificationOptions(document.Project.Language);
 
             // temp buffer we can use across all our classification calls.  Should be cleared between each call.
             using var _1 = Classifier.GetPooledList(out var tempBuffer);
 
-            if (!canReuseCache)
+            // Final list of tags to produce, containing syntax/semantic/embedded classification tags.
+            using var _2 = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var mergedTags);
+
+            _owner._threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                // Our cache is not there, or is out of date.  We need to compute the up to date results.
+                // Defer to our helper which will compute syntax/semantic/embedded classifications, properly
+                // layering them into the final result we return.
+                await TotalClassificationAggregateTagger.AddTagsAsync(
+                    new NormalizedSnapshotSpanCollection(spanToTag),
+                    mergedTags,
+                    AddSyntacticSpansAsync,
+                    AddSemanticSpansAsync,
+                    AddEmbeddedSpansAsync,
+                    arg: default(VoidResult)).ConfigureAwait(false);
+            });
 
-                // Final list of tags to produce, containing syntax/semantic/embedded classification tags.
-                using var _2 = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var mergedTags);
+            cachedTaggedSpan = spanToTag;
+            cachedTags = new TagSpanIntervalTree<IClassificationTag>(snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive, mergedTags);
 
-                _owner._threadingContext.JoinableTaskFactory.Run(async () =>
-                {
-                    // Defer to our helper which will compute syntax/semantic/embedded classifications, properly
-                    // layering them into the final result we return.
-                    await TotalClassificationAggregateTagger.AddTagsAsync(
-                        new NormalizedSnapshotSpanCollection(spanToTag),
-                        mergedTags,
-                        AddSyntacticSpansAsync,
-                        AddSemanticSpansAsync,
-                        AddEmbeddedSpansAsync,
-                        /*unused*/ default(VoidResult)).ConfigureAwait(false);
-                });
-
-                cachedTaggedSpan = spanToTag;
-                cachedTags = new TagSpanIntervalTree<IClassificationTag>(snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive, mergedTags);
-
-                lock (_gate)
-                {
-                    _cachedTaggedSpan = cachedTaggedSpan;
-                    _cachedTags = cachedTags;
-                }
+            lock (_gate)
+            {
+                _cachedTaggedSpan = cachedTaggedSpan;
+                _cachedTags = cachedTags;
             }
 
             return SegmentedListPool<ITagSpan<IClassificationTag>>.ComputeList(
-                static (args, tags) => args.cachedTags?.AddIntersectingTagSpans(args.spans, tags),
+                static (args, tags) => args.cachedTags.AddIntersectingTagSpans(args.spans, tags),
                 (cachedTags, spans));
 
             async ValueTask AddSyntacticSpansAsync(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> result, VoidResult _)
@@ -205,13 +206,10 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             }
         }
 
-        private void GetCachedInfo(out SnapshotSpan? cachedTaggedSpan, out TagSpanIntervalTree<IClassificationTag>? cachedTags)
+        private (SnapshotSpan? cachedTaggedSpan, TagSpanIntervalTree<IClassificationTag>? cachedTags) GetCachedInfo()
         {
             lock (_gate)
-            {
-                cachedTaggedSpan = _cachedTaggedSpan;
-                cachedTags = _cachedTags;
-            }
+                return (_cachedTaggedSpan, _cachedTags);
         }
     }
 }
