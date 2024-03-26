@@ -62,7 +62,7 @@ internal sealed class VisualDiagnosticsServiceFactory(
         public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
-            _taskCompletionSource.SetResult(true);
+            _taskCompletionSource.TrySetResult(true);
             return Task.CompletedTask;
         }
 
