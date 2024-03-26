@@ -425,10 +425,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
 
             var incrementalAnalyzer = service.CreateIncrementalAnalyzer(project.Solution.Workspace);
-            await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
-
-            var diagnostics = await service.GetDiagnosticsAsync(
-                project.Solution, projectId: null, documentId: null, includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
+            var diagnostics = await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
 
             if (expectAnalyzerExecuted)
             {
@@ -437,6 +434,79 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             else
             {
                 Assert.Empty(diagnostics);
+            }
+        }
+
+        [Theory, CombinatorialData]
+        internal async Task TestAdditionalFileAnalyzer(bool registerFromInitialize, bool testMultiple)
+        {
+            using var workspace = CreateWorkspace();
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
+
+            var globalOptions = GetGlobalOptions(workspace);
+
+            var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), "CSharpProject", "CSharpProject", LanguageNames.CSharp);
+            var project = workspace.AddProject(projectInfo);
+
+            var diagnosticSpan = new TextSpan(2, 2);
+            var analyzer = new AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan, id: "ID0001");
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
+            if (testMultiple)
+            {
+                analyzer = new AdditionalFileAnalyzer2(registerFromInitialize, diagnosticSpan, id: "ID0002");
+                analyzers = analyzers.Add(analyzer);
+            }
+
+            var analyzerReference = new AnalyzerImageReference(analyzers);
+            project = project.WithAnalyzerReferences(new[] { analyzerReference })
+                .AddAdditionalDocument(name: "dummy.txt", text: "Additional File Text", filePath: "dummy.txt").Project;
+            if (testMultiple)
+            {
+                project = project.AddAdditionalDocument(name: "dummy2.txt", text: "Additional File2 Text", filePath: "dummy2.txt").Project;
+            }
+
+            var applied = workspace.TryApplyChanges(project.Solution);
+            Assert.True(applied);
+
+            var exportProvider = workspace.Services.SolutionServices.ExportProvider;
+            var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
+
+            var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
+            var firstAdditionalDocument = project.AdditionalDocuments.FirstOrDefault();
+
+            workspace.OpenAdditionalDocument(firstAdditionalDocument.Id);
+
+            var diagnostics = await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+
+            var expectedCount = testMultiple ? 4 : 1;
+
+            Assert.Equal(expectedCount, diagnostics.Length);
+
+            for (var i = 0; i < analyzers.Length; i++)
+            {
+                analyzer = (AdditionalFileAnalyzer)analyzers[i];
+                foreach (var additionalDoc in project.AdditionalDocuments)
+                {
+                    var applicableDiagnostics = diagnostics.Where(
+                        d => d.Id == analyzer.Descriptor.Id && d.DataLocation.UnmappedFileSpan.Path == additionalDoc.FilePath);
+
+                    var text = await additionalDoc.GetTextAsync();
+
+                    var diagnostic = Assert.Single(applicableDiagnostics);
+                    Assert.Equal(diagnosticSpan, diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text));
+                    diagnostics = diagnostics.Remove(diagnostic);
+                }
+            }
+
+            Assert.Empty(diagnostics);
+        }
+
+        private class AdditionalFileAnalyzer2 : AdditionalFileAnalyzer
+        {
+            public AdditionalFileAnalyzer2(bool registerFromInitialize, TextSpan diagnosticSpan, string id)
+                : base(registerFromInitialize, diagnosticSpan, id)
+            {
             }
         }
 
@@ -623,10 +693,7 @@ class A
                     break;
             }
 
-            await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
-
-            var diagnostics = await service.GetDiagnosticsAsync(
-                project.Solution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
+            var diagnostics = await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
 
             diagnostics = diagnostics
                 .Where(d => d.Id == IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId)
