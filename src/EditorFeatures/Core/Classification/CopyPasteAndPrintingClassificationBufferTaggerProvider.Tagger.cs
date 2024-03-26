@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
@@ -128,13 +129,15 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             // Our cache is not there, or is out of date.  We need to compute the up to date results.
             var options = _globalOptions.GetClassificationOptions(document.Project.Language);
 
-            using var helper = new Helper(_owner, document, snapshot, spanToTag, options);
+            // Final list of tags to produce, containing syntax/semantic/embedded classification tags.
+            using var _ = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out var mergedTags);
+            using var helper = new Helper(_owner, document, snapshot, spanToTag, options, mergedTags);
 
             _owner._threadingContext.JoinableTaskFactory.Run(() => helper.AddTagsAsync(cancellationToken));
 
             cachedTaggedSpan = spanToTag.ToSnapshotSpan(snapshot);
             cachedTags = new TagSpanIntervalTree<IClassificationTag>(
-                snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive, helper.MergedTags);
+                snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive, mergedTags);
 
             lock (_gate)
             {
@@ -162,36 +165,30 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             private readonly ClassificationOptions _options;
             private readonly IClassificationService _classificationService;
             private readonly PooledObject<SegmentedList<ClassifiedSpan>> _tempBuffer;
-            private readonly PooledObject<SegmentedList<ITagSpan<IClassificationTag>>> _mergedTags;
+            private readonly SegmentedList<ITagSpan<IClassificationTag>> _mergedTags;
 
             public Helper(
                 CopyPasteAndPrintingClassificationBufferTaggerProvider owner,
                 Document document,
                 ITextSnapshot snapshot,
                 TextSpan spanToTag,
-                ClassificationOptions options)
+                ClassificationOptions options,
+                SegmentedList<ITagSpan<IClassificationTag>> mergedTags)
             {
                 _owner = owner;
                 _document = document;
                 _snapshot = snapshot;
-                _options = options;
                 _spanToTag = spanToTag;
+                _options = options;
+                _mergedTags = mergedTags;
                 _classificationService = document.GetRequiredLanguageService<IClassificationService>();
 
                 // temp buffer we can use across all our classification calls.  Should be cleared between each call.
                 _tempBuffer = Classifier.GetPooledList(out _);
-
-                // Final list of tags to produce, containing syntax/semantic/embedded classification tags.
-                _mergedTags = SegmentedListPool.GetPooledList<ITagSpan<IClassificationTag>>(out _);
             }
 
             public void Dispose()
-            {
-                _tempBuffer.Dispose();
-                _mergedTags.Dispose();
-            }
-
-            public SegmentedList<ITagSpan<IClassificationTag>> MergedTags => _mergedTags.Object;
+                => _tempBuffer.Dispose();
 
             internal async Task AddTagsAsync(CancellationToken cancellationToken)
             {
@@ -199,7 +196,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                 // layering them into the final result we return.
                 await TotalClassificationAggregateTagger.AddTagsAsync(
                     new NormalizedSnapshotSpanCollection(_spanToTag.ToSnapshotSpan(_snapshot)),
-                    this.MergedTags,
+                    _mergedTags,
                     AddSyntacticSpansAsync,
                     AddSemanticSpansAsync,
                     AddEmbeddedSpansAsync,
