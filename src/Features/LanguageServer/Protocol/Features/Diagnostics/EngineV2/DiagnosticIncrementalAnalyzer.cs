@@ -5,14 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -65,93 +62,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return;
             }
 
-            // events will be automatically serialized.
-            var project = e.Project;
-            var stateSets = e.Removed;
-
             // make sure we drop cache related to the analyzers
-            foreach (var stateSet in stateSets)
-            {
+            foreach (var stateSet in e.Removed)
                 stateSet.OnRemoved();
-            }
-
-            ClearAllDiagnostics(stateSets, project.Id);
-        }
-
-        private void ClearAllDiagnostics(ImmutableArray<StateSet> stateSets, ProjectId projectId)
-        {
-            AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
-            {
-                using var _ = PooledHashSet<DocumentId>.GetInstance(out var documentSet);
-                using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
-
-                foreach (var stateSet in stateSets)
-                {
-                    Debug.Assert(documentSet.Count == 0);
-
-                    stateSet.CollectDocumentsWithDiagnostics(projectId, documentSet);
-
-                    // PERF: don't fire events for ones that we dont have any diagnostics on
-                    if (documentSet.Count > 0)
-                    {
-                        AddProjectDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), projectId, documentSet);
-                        documentSet.Clear();
-                    }
-                }
-
-                raiseEvents(argsBuilder.ToImmutableAndClear());
-            });
-        }
-
-        private void AddDiagnosticsCreatedArgs(
-            ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
-            Project project, ImmutableArray<DiagnosticData> items)
-        {
-            Contract.ThrowIfFalse(project.Solution.Workspace == Workspace);
-
-            builder.Add(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                project.Solution,
-                project.Id,
-                documentId: null,
-                diagnostics: items));
-        }
-
-        private void AddDiagnosticsRemovedArgs(
-            ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
-            ProjectId projectId, Solution? solution)
-        {
-            Contract.ThrowIfFalse(solution == null || solution.Workspace == Workspace);
-
-            builder.Add(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                solution,
-                projectId,
-                documentId: null));
-        }
-
-        private void AddDiagnosticsCreatedArgs(
-            ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
-            TextDocument document,
-            ImmutableArray<DiagnosticData> items)
-        {
-            Contract.ThrowIfFalse(document.Project.Solution.Workspace == Workspace);
-
-            builder.Add(DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                document.Project.Solution,
-                document.Project.Id,
-                document.Id,
-                items));
-        }
-
-        private void AddDiagnosticsRemovedArgs(
-            ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
-            DocumentId documentId, Solution? solution)
-        {
-            Contract.ThrowIfFalse(solution == null || solution.Workspace == Workspace);
-
-            builder.Add(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                solution,
-                documentId.ProjectId,
-                documentId));
         }
 
         public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)

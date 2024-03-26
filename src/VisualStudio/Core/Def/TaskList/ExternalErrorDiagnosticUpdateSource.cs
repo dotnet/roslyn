@@ -363,7 +363,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     /// It raises diagnostic update events for both the Build-only diagnostics and Build + Intellisense diagnostics
     /// in the error list.
     /// </summary>
-    private ValueTask SyncBuildErrorsAndReportOnBuildCompletedAsync(DiagnosticAnalyzerService diagnosticService, InProgressState inProgressState)
+    private async ValueTask SyncBuildErrorsAndReportOnBuildCompletedAsync(DiagnosticAnalyzerService diagnosticService, InProgressState inProgressState)
     {
         var solution = inProgressState.Solution;
         var cancellationToken = inProgressState.CancellationToken;
@@ -393,7 +393,8 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         ProcessAndRaiseDiagnosticsUpdated(argsBuilder.ToImmutableAndClear());
 
         // Report pending live errors
-        return diagnosticService.SynchronizeWithBuildAsync(_workspace, pendingLiveErrorsToSync, onBuildCompleted: true, cancellationToken);
+        await diagnosticService.SynchronizeWithBuildAsync(
+            _workspace, pendingLiveErrorsToSync, onBuildCompleted: true, cancellationToken).ConfigureAwait(false);
     }
 
     private static DiagnosticsUpdatedArgs CreateArgsToReportBuildErrors<T>(T item, Solution solution, ImmutableArray<DiagnosticData> buildErrors)
@@ -503,16 +504,15 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         state.MarkLiveErrorsReported(projectId);
     }
 
-    private ValueTask SetLiveErrorsForProjectAsync(ProjectId projectId, ImmutableArray<DiagnosticData> diagnostics, CancellationToken cancellationToken)
+    private async ValueTask SetLiveErrorsForProjectAsync(ProjectId projectId, ImmutableArray<DiagnosticData> diagnostics, CancellationToken cancellationToken)
     {
         if (_diagnosticService is DiagnosticAnalyzerService diagnosticAnalyzerService)
         {
             // make those errors live errors
             var map = ProjectErrorMap.Empty.Add(projectId, diagnostics);
-            return diagnosticAnalyzerService.SynchronizeWithBuildAsync(_workspace, map, onBuildCompleted: false, cancellationToken);
+            await diagnosticAnalyzerService.SynchronizeWithBuildAsync(
+                _workspace, map, onBuildCompleted: false, cancellationToken).ConfigureAwait(false);
         }
-
-        return default;
     }
 
     private CancellationToken GetApplicableCancellationToken(InProgressState? state)
