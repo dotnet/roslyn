@@ -9278,6 +9278,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver = ReplaceTypeOrValueReceiver(typeOrValue, useType, diagnostics);
             }
 
+            if (receiver.Type.IsRefLikeType)
+            {
+                // Cannot perform a dynamic call on a ref struct '{0}'.
+                Error(diagnostics, ErrorCode.ERR_CannotDynamicInvokeOnRefStruct, receiver.Syntax, receiver.Type);
+                hasErrors = true;
+            }
+
             var argArray = BuildArgumentsForDynamicInvocation(arguments, diagnostics);
             var refKindsArray = arguments.RefKinds.ToImmutableOrNull();
 
