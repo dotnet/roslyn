@@ -376,10 +376,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
 
             var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
-            await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
-
-            var diagnostics = await service.GetDiagnosticsAsync(
-                project.Solution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
+            var diagnostics = await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
             Assert.NotEmpty(diagnostics);
         }
 
@@ -947,9 +944,7 @@ class A
             var service = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
 
             var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
-            await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
-            var diagnostics = await service.GetDiagnosticsAsync(
-                project.Solution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
+            var diagnostics = await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
 
             Assert.NotEmpty(diagnostics);
         }
