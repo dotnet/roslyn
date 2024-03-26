@@ -1223,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected virtual NamedTypeSymbol ConstructCore(ImmutableArray<TypeWithAnnotations> typeArguments, bool unbound)
         {
-            return new ConstructedNamedTypeSymbol(this, typeArguments, unbound);
+            return new ConstructedNamedTypeSymbol(this, OneOrMany.Create(typeArguments), unbound);
         }
 
         /// <summary>
