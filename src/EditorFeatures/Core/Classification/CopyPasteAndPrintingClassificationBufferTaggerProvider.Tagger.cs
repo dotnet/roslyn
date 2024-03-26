@@ -101,7 +101,6 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
 
         public IEnumerable<ITagSpan<IClassificationTag>> GetAllTags(NormalizedSnapshotSpanCollection spans, CancellationToken cancellationToken)
         {
-            _owner._threadingContext.ThrowIfNotOnUIThread();
             if (spans.Count == 0)
                 return [];
 
