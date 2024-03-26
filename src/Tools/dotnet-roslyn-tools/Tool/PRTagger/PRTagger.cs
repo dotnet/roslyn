@@ -39,7 +39,6 @@ internal static class PRTagger
             logger: logger,
             buildNumber: vsBuild,
             maxFetchingVsBuildNumber: maxFetchingVSBuildNumber,
-            resultsFilter: BuildResult.Succeeded,
             buildQueryOrder: BuildQueryOrder.FinishTimeDescending).ConfigureAwait(false);
 
         if (builds is null)
