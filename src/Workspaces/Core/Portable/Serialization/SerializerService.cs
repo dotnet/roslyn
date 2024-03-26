@@ -84,7 +84,7 @@ internal partial class SerializerService : ISerializerService
                     return CreateChecksum((AnalyzerReference)value, cancellationToken);
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
-                    return Checksum.Create(((SerializableSourceText)value).GetContentHash());
+                    return Checksum.Create(((SerializableSourceText)value).ContentHash);
 
                 case WellKnownSynchronizationKind.SourceText:
                     return Checksum.Create(((SourceText)value).GetContentHash());
@@ -149,7 +149,8 @@ internal partial class SerializerService : ISerializerService
                     return;
 
                 case WellKnownSynchronizationKind.SourceText:
-                    SerializeSourceText(new SerializableSourceText((SourceText)value), writer, context, cancellationToken);
+                    var sourceText = (SourceText)value;
+                    SerializeSourceText(new SerializableSourceText(sourceText, sourceText.GetContentHash()), writer, context, cancellationToken);
                     return;
 
                 case WellKnownSynchronizationKind.SolutionCompilationState:
