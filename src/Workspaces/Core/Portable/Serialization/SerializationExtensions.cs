@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.IO;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -29,7 +30,6 @@ internal static class SerializationExtensions
             MetadataReference => WellKnownSynchronizationKind.MetadataReference,
             AnalyzerReference => WellKnownSynchronizationKind.AnalyzerReference,
             SerializableSourceText => WellKnownSynchronizationKind.SerializableSourceText,
-            SourceText => WellKnownSynchronizationKind.SourceText,
             SourceGeneratedDocumentIdentity => WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity,
             _ => throw ExceptionUtilities.UnexpectedValue(value),
         };
@@ -37,7 +37,7 @@ internal static class SerializationExtensions
     public static CompilationOptions FixUpCompilationOptions(this ProjectInfo.ProjectAttributes info, CompilationOptions compilationOptions)
     {
         return compilationOptions.WithXmlReferenceResolver(GetXmlResolver(info.FilePath))
-                                 .WithStrongNameProvider(new DesktopStrongNameProvider(GetStrongNameKeyPaths(info)));
+                                 .WithStrongNameProvider(new DesktopStrongNameProvider(GetStrongNameKeyPaths(info), Path.GetTempPath()));
     }
 
     private static XmlFileResolver GetXmlResolver(string? filePath)

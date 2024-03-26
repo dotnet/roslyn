@@ -1417,6 +1417,11 @@
         <target state="translated">语言版本 {0} 中的条件表达式无效，因为在“{1}”和“{2}”之间未找到通用类型。如需使用目标类型转换，请升级到语言版本 {3} 或更高版本。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoModifiersOnUsing">
+        <source>Modifiers cannot be placed on using declarations</source>
+        <target state="new">Modifiers cannot be placed on using declarations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">无法确定输出目录</target>

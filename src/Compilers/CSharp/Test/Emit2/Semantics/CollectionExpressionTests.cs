@@ -10892,7 +10892,7 @@ static class Program
                 """);
 
             comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe);
-            comp.MakeMemberMissing(WellKnownMember.System_Array__Empty);
+            comp.MakeMemberMissing(SpecialMember.System_Array__Empty);
             verifier = CompileAndVerify(comp, expectedOutput: "[], [], ");
             verifier.VerifyIL("Program.Main",
                 """
@@ -12186,6 +12186,19 @@ namespace System
         [Theory]
         [InlineData((int)SpecialMember.System_Collections_IEnumerable__GetEnumerator, "System.Collections.IEnumerable", "GetEnumerator")]
         [InlineData((int)SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator, "System.Collections.Generic.IEnumerable`1", "GetEnumerator")]
+        [InlineData((int)SpecialMember.System_Collections_Generic_IReadOnlyCollection_T__Count, "System.Collections.Generic.IReadOnlyCollection`1", "Count")]
+        [InlineData((int)SpecialMember.System_Collections_Generic_IReadOnlyList_T__get_Item, "System.Collections.Generic.IReadOnlyList`1", "get_Item")]
+        [InlineData((int)SpecialMember.System_Collections_Generic_ICollection_T__Count, "System.Collections.Generic.ICollection`1", "Count")]
+        [InlineData((int)SpecialMember.System_Collections_Generic_ICollection_T__IsReadOnly, "System.Collections.Generic.ICollection`1", "IsReadOnly")]
+        [InlineData((int)SpecialMember.System_Collections_Generic_ICollection_T__Add, "System.Collections.Generic.ICollection`1", "Add")]
+        [InlineData((int)SpecialMember.System_Collections_Generic_ICollection_T__Clear, "System.Collections.Generic.ICollection`1", "Clear")]
+        [InlineData((int)SpecialMember.System_Collections_Generic_ICollection_T__Contains, "System.Collections.Generic.ICollection`1", "Contains")]
+        [InlineData((int)SpecialMember.System_Collections_Generic_ICollection_T__CopyTo, "System.Collections.Generic.ICollection`1", "CopyTo")]
+        [InlineData((int)SpecialMember.System_Collections_Generic_ICollection_T__Remove, "System.Collections.Generic.ICollection`1", "Remove")]
+        [InlineData((int)SpecialMember.System_Collections_Generic_IList_T__get_Item, "System.Collections.Generic.IList`1", "get_Item")]
+        [InlineData((int)SpecialMember.System_Collections_Generic_IList_T__IndexOf, "System.Collections.Generic.IList`1", "IndexOf")]
+        [InlineData((int)SpecialMember.System_Collections_Generic_IList_T__Insert, "System.Collections.Generic.IList`1", "Insert")]
+        [InlineData((int)SpecialMember.System_Collections_Generic_IList_T__RemoveAt, "System.Collections.Generic.IList`1", "RemoveAt")]
         public void SynthesizedReadOnlyList_MissingSpecialMembers(int missingMember, string missingMemberTypeName, string missingMemberName)
         {
             string source = """
@@ -12295,19 +12308,6 @@ namespace System
         [InlineData((int)WellKnownMember.System_Collections_IList__Insert, "System.Collections.IList", "Insert")]
         [InlineData((int)WellKnownMember.System_Collections_IList__Remove, "System.Collections.IList", "Remove")]
         [InlineData((int)WellKnownMember.System_Collections_IList__RemoveAt, "System.Collections.IList", "RemoveAt")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_IReadOnlyCollection_T__Count, "System.Collections.Generic.IReadOnlyCollection`1", "Count")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_IReadOnlyList_T__get_Item, "System.Collections.Generic.IReadOnlyList`1", "get_Item")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__Count, "System.Collections.Generic.ICollection`1", "Count")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__IsReadOnly, "System.Collections.Generic.ICollection`1", "IsReadOnly")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__Add, "System.Collections.Generic.ICollection`1", "Add")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__Clear, "System.Collections.Generic.ICollection`1", "Clear")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__Contains, "System.Collections.Generic.ICollection`1", "Contains")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__CopyTo, "System.Collections.Generic.ICollection`1", "CopyTo")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_ICollection_T__Remove, "System.Collections.Generic.ICollection`1", "Remove")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_IList_T__get_Item, "System.Collections.Generic.IList`1", "get_Item")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_IList_T__IndexOf, "System.Collections.Generic.IList`1", "IndexOf")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_IList_T__Insert, "System.Collections.Generic.IList`1", "Insert")]
-        [InlineData((int)WellKnownMember.System_Collections_Generic_IList_T__RemoveAt, "System.Collections.Generic.IList`1", "RemoveAt")]
         [InlineData((int)WellKnownMember.System_NotSupportedException__ctor, "System.NotSupportedException", ".ctor")]
         public void SynthesizedReadOnlyList_MissingWellKnownMembers(int missingMember, string missingMemberTypeName, string missingMemberName)
         {
@@ -13429,6 +13429,56 @@ partial class Program
             Assert.Equal(expectedType, typeInfo.Type?.ToTestDisplayString());
             Assert.Equal(expectedConvertedType, typeInfo.ConvertedType?.ToTestDisplayString());
             Assert.Equal(expectedConversionKind, conversion.Kind);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72541")]
+        public void NamedArgumentConversion()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    static void Main()
+                    {
+                        C.M(y: [new D { }]);
+                    }
+                    static void M(string x, IReadOnlyList<D> y) { }
+                }
+
+                class D { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,11): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'C.M(string, IReadOnlyList<D>)'
+                //         C.M(y: [new D { }]);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("x", "C.M(string, System.Collections.Generic.IReadOnlyList<D>)").WithLocation(8, 11));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72541")]
+        public void NamedArgumentConversion_CollectionInitializer()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    static void Main()
+                    {
+                        C.M(y: new() { new D() { } });
+                    }
+                    static void M(string x, List<D> y) { }
+                }
+
+                class D { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,11): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'C.M(string, List<D>)'
+                //         C.M(y: new() { new D() { } });
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("x", "C.M(string, System.Collections.Generic.List<D>)").WithLocation(8, 11));
         }
 
         [CombinatorialData]
@@ -34469,7 +34519,6 @@ partial class Program
 
         [Theory]
         [InlineData((int)WellKnownMember.System_IndexOutOfRangeException__ctor)]
-        [InlineData((int)WellKnownMember.System_Array__SetValue)]
         [InlineData((int)WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default)]
         [InlineData((int)WellKnownMember.System_Collections_Generic_EqualityComparer_T__Equals)]
         public void SynthesizedReadOnlyList_SingleElement_MissingMembers(int missingMember)
@@ -34506,6 +34555,7 @@ partial class Program
         [InlineData((int)SpecialMember.System_Collections_IEnumerator__Current)]
         [InlineData((int)SpecialMember.System_Collections_IEnumerator__MoveNext)]
         [InlineData((int)SpecialMember.System_Collections_IEnumerator__Reset)]
+        [InlineData((int)SpecialMember.System_Array__SetValue)]
         public void SynthesizedReadOnlyList_SingleElement_MissingSpecialMembers(int missingMember)
         {
             string source = """

@@ -84,6 +84,7 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int StringLiteralExpression => (int)SyntaxKind.StringLiteralExpression;
     public int TrueLiteralExpression => (int)SyntaxKind.TrueLiteralExpression;
 
+    public int AddExpression => (int)SyntaxKind.AddExpression;
     public int AddressOfExpression => (int)SyntaxKind.AddressOfExpression;
     public int AnonymousObjectCreationExpression => (int)SyntaxKind.AnonymousObjectCreationExpression;
     public int ArrayCreationExpression => (int)SyntaxKind.ArrayCreationExpression;

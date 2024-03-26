@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -123,6 +124,7 @@ internal partial class SolutionCompilationState
 
                 ChecksumCollection? frozenSourceGeneratedDocumentIdentities = null;
                 ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocuments = null;
+                ImmutableArray<DateTime> frozenSourceGeneratedDocumentGenerationDateTimes = default;
 
                 if (FrozenSourceGeneratedDocumentStates.HasValue)
                 {
@@ -131,12 +133,14 @@ internal partial class SolutionCompilationState
                         .SelectAsArray(static (s, arg) => arg.serializer.CreateChecksum(s.Identity, cancellationToken: arg.cancellationToken), (serializer, cancellationToken));
                     frozenSourceGeneratedDocumentIdentities = new ChecksumCollection(identityChecksums);
                     frozenSourceGeneratedDocuments = await FrozenSourceGeneratedDocumentStates.Value.GetChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false);
+                    frozenSourceGeneratedDocumentGenerationDateTimes = FrozenSourceGeneratedDocumentStates.Value.SelectAsArray(d => d.GenerationDateTime);
                 }
 
                 var compilationStateChecksums = new SolutionCompilationStateChecksums(
                     solutionStateChecksum,
                     frozenSourceGeneratedDocumentIdentities,
-                    frozenSourceGeneratedDocuments);
+                    frozenSourceGeneratedDocuments,
+                    frozenSourceGeneratedDocumentGenerationDateTimes);
                 return (compilationStateChecksums, projectCone);
             }
         }

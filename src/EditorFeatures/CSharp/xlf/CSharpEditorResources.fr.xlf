@@ -52,11 +52,6 @@
         <target state="translated">     (Appuyez sur TAB pour insérer)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">Retrait intelligent</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Split_raw_string">
         <source>Split raw string</source>
         <target state="translated">Fractionner la chaîne brute</target>
