@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Classification;
 
 internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
 {
-    private sealed class Tagger : IAccurateTagger<IClassificationTag>, IDisposable
+    public sealed class Tagger : IAccurateTagger<IClassificationTag>, IDisposable
     {
         private readonly CopyPasteAndPrintingClassificationBufferTaggerProvider _owner;
         private readonly ITaggerEventSource _eventSource;

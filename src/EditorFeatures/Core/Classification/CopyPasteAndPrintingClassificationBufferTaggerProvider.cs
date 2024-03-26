@@ -43,7 +43,7 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider(
     private readonly ClassificationTypeMap _typeMap = typeMap;
     private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-    public IAccurateTagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
+    public Tagger? CreateTagger<T>(ITextBuffer buffer) where T : ITag
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
@@ -54,9 +54,9 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider(
             return null;
         }
 
-        return new Tagger(this, buffer, _asyncListener, _globalOptions) as IAccurateTagger<T>;
+        return new Tagger(this, buffer, _asyncListener, _globalOptions);
     }
 
     ITagger<T>? ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
-        => CreateTagger<T>(buffer);
+        => CreateTagger<T>(buffer) as IAccurateTagger<T>;
 }
