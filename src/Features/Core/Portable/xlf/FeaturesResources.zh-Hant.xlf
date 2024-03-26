@@ -320,6 +320,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">基底類別包含無法存取的未實作成員</target>
         <note />
       </trans-unit>
+      <trans-unit id="Built_in_Copilot_analysis">
+        <source>Built-in Copilot analysis</source>
+        <target state="new">Built-in Copilot analysis</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
         <source>C# and Visual Basic References</source>
         <target state="translated">C# 與 Visual Basic 參考</target>
@@ -648,6 +653,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Directives_from_0">
         <source>Directives from '{0}'</source>
         <target state="translated">來自 '{0}' 的指示詞</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Dismiss">
+        <source>Dismiss</source>
+        <target state="new">Dismiss</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -2578,11 +2588,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Resolve_0">
         <source>Resolve: '{0}'</source>
         <target state="translated">解析: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Resolve_conflict_markers">
-        <source>Resolve conflict markers</source>
-        <target state="translated">解決衝突標記</target>
         <note />
       </trans-unit>
       <trans-unit id="Resolve_module_0_of_1">
