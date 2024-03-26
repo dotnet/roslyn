@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="CSharpLanguageServiceExtension.OpenInteractiveWindow.DisplayName">
         <source>C# Interactive</source>
-        <target state="new">C# Interactive</target>
+        <target state="translated">C# Interativo</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharpLanguageServiceExtension.OpenSemanticSearchWindow.DisplayName">
         <source>C# Semantic Search</source>
-        <target state="translated">Pesquisa Semântica C#</target>
+        <target state="translated">Pesquisa semântica do C#</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharpLanguageServiceExtension.ResetInteractiveWindowFromProject.DisplayName">
