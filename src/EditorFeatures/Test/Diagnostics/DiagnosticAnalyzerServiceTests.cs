@@ -219,9 +219,6 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                 }
             }
 
-            // wait for all events to raised
-            await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
-
             Assert.Equal(enabledWithEditorconfig, syntaxDiagnostic);
             Assert.Equal(enabledWithEditorconfig, semanticDiagnostic);
             Assert.Equal(enabledWithEditorconfig, compilationDiagnostic);
@@ -248,9 +245,6 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                 document.Project.Solution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
 
             (syntax, semantic) = resultSetter(syntax, semantic, diagnostics);
-
-            // wait for all events to raised
-            await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
 
             // two should have been called.
             Assert.Equal(expectedSyntax, syntax);
@@ -302,13 +296,8 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                 onBuildCompleted: true,
                 CancellationToken.None);
 
-            // wait for all events to raised
-            await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
-
             // two should have been called.
             Assert.NotEmpty(diagnostics);
-
-            // we should reach here without crashing
         }
 
         [Fact]
@@ -618,8 +607,6 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
             var diagnostics = await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
 
-            await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
-
             var diagnostic = diagnostics.SingleOrDefault();
             if (includeAnalyzer)
             {
@@ -751,8 +738,6 @@ class A
                 .Where(d => d.Id == IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId)
                 .OrderBy(d => d.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text))
                 .ToImmutableArray();
-
-            await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             var root = await document.GetSyntaxRootAsync();
             text = await document.GetTextAsync();
@@ -968,8 +953,6 @@ class A
             await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
             var diagnostics = await service.GetDiagnosticsAsync(
                 project.Solution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
-
-            await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             Assert.NotEmpty(diagnostics);
         }
