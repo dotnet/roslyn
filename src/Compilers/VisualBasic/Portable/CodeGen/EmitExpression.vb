@@ -2227,7 +2227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitSymbolToken(type, boundTypeOfOperator.SourceType.Syntax)
 
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=0) 'argument off, return value on
-            Dim getTypeMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Type__GetTypeFromHandle), MethodSymbol)
+            Dim getTypeMethod = boundTypeOfOperator.GetTypeFromHandle
             Debug.Assert(getTypeMethod IsNot Nothing) ' Should have been checked during binding
             EmitSymbolToken(getTypeMethod, boundTypeOfOperator.Syntax)
             EmitPopIfUnused(used)
@@ -2270,8 +2270,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitSymbolToken(method, node.Syntax)
 
             If node.GetMethodFromHandle.ParameterCount = 1 Then
+                Debug.Assert(Not method.ContainingType.IsGenericType AndAlso Not method.ContainingType.IsAnonymousType)
                 _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=0) ' argument off, return value on
             Else
+                Debug.Assert(method.ContainingType.IsGenericType OrElse method.ContainingType.IsAnonymousType)
                 Debug.Assert(node.GetMethodFromHandle.ParameterCount = 2)
 
                 _builder.EmitOpCode(ILOpCode.Ldtoken)
