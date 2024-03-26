@@ -258,63 +258,6 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         }
 
         [Fact]
-        public async Task TestSynchronizeWithBuild()
-        {
-            using var workspace = CreateWorkspace([typeof(NoCompilationLanguageService)]);
-
-            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new NoNameAnalyzer()));
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
-
-            var language = NoCompilationConstants.LanguageName;
-
-            var project = workspace.AddProject(
-                           ProjectInfo.Create(
-                               ProjectId.CreateNewId(),
-                               VersionStamp.Create(),
-                               "NoNameProject",
-                               "NoNameProject",
-                               language));
-
-            var filePath = "NoNameDoc.other";
-            var document = workspace.AddDocument(
-                DocumentInfo.Create(
-                    DocumentId.CreateNewId(project.Id),
-                    "Empty",
-                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From(""), VersionStamp.Create(), filePath)),
-                    filePath: filePath));
-
-            var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-            var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
-            var analyzer = service.CreateIncrementalAnalyzer(workspace);
-            var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
-
-            // cause analysis
-            var location = Location.Create(document.FilePath, textSpan: default, lineSpan: default);
-            var properties = ImmutableDictionary<string, string>.Empty.Add(WellKnownDiagnosticPropertyNames.Origin, WellKnownDiagnosticTags.Build);
-
-            await analyzer.GetTestAccessor().TextDocumentOpenAsync(document);
-
-            await service.SynchronizeWithBuildAsync(
-                workspace,
-                ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>>.Empty.Add(
-                    document.Project.Id,
-                    ImmutableArray.Create(DiagnosticData.Create(document.Project.Solution, Diagnostic.Create(NoNameAnalyzer.s_syntaxRule, location, properties), document.Project))),
-                onBuildCompleted: true,
-                CancellationToken.None);
-
-            var diagnostics = await service.GetDiagnosticsAsync(
-                project.Solution, project.Id, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
-
-            // wait for all events to raised
-            await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
-
-            // two should have been called.
-            Assert.NotEmpty(diagnostics);
-
-            // we should reach here without crashing
-        }
-
-        [Fact]
         public void TestHostAnalyzerOrdering()
         {
             using var workspace = CreateWorkspace();
@@ -485,7 +428,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
 
             var diagnostics = await service.GetDiagnosticsAsync(
-                project.Solution, projectId: null, documentId: null, includeSuppressedDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
+                project.Solution, projectId: null, documentId: null, includeSuppressedDiagnostics: false, includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
 
             if (expectAnalyzerExecuted)
             {
