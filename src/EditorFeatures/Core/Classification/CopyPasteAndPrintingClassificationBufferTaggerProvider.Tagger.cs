@@ -169,10 +169,10 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                 Contract.ThrowIfTrue(spans.Count != 1, "We should only be asking for a single span when getting the syntactic classifications");
                 Contract.ThrowIfTrue(tempClassifiedSpans.Count != 0);
 
-                await classificationService.AddSyntacticClassificationsAsync(
-                    document, spans.Single().Span.ToTextSpan(), tempClassifiedSpans, cancellationToken).ConfigureAwait(false);
-
-                ConvertAndClearTempClassifiedSpans(result);
+                await AddSpansAsync(
+                    spans,
+                    result,
+                    static (service, doc, span, options, temp, c) => service.AddSyntacticClassificationsAsync(doc, span, temp, c)).ConfigureAwait(false);
             }
 
             async ValueTask AddSemanticSpansAsync(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<IClassificationTag>> result, bool unused)
@@ -180,10 +180,10 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                 Contract.ThrowIfTrue(spans.Count != 1, "We should only be asking for a single span when getting the semantic classifications");
                 Contract.ThrowIfTrue(tempClassifiedSpans.Count != 0);
 
-                await classificationService.AddSemanticClassificationsAsync(
-                    document, spans.Single().Span.ToTextSpan(), options, tempClassifiedSpans, cancellationToken).ConfigureAwait(false);
-
-                ConvertAndClearTempClassifiedSpans(result);
+                await AddSpansAsync(
+                    spans,
+                    result,
+                    static (service, doc, span, options, temp, c) => service.AddSemanticClassificationsAsync(doc, span, options, temp, c)).ConfigureAwait(false);
             }
 
             async ValueTask AddEmbeddedSpansAsync(NormalizedSnapshotSpanCollection stringLiteralSpans, SegmentedList<ITagSpan<IClassificationTag>> result, bool unused)
@@ -191,21 +191,29 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
                 // Note: many string literal spans may be passed in here.
                 Contract.ThrowIfTrue(tempClassifiedSpans.Count != 0);
 
-                foreach (var stringLiteralSpan in stringLiteralSpans)
-                {
-                    await classificationService.AddEmbeddedLanguageClassificationsAsync(
-                        document, stringLiteralSpan.Span.ToTextSpan(), options, tempClassifiedSpans, cancellationToken).ConfigureAwait(false);
-
-                    ConvertAndClearTempClassifiedSpans(result);
-                }
+                await AddSpansAsync(
+                    stringLiteralSpans,
+                    result,
+                    static (service, doc, span, options, temp, c) => service.AddEmbeddedLanguageClassificationsAsync(doc, span, options, temp, c)).ConfigureAwait(false);
             }
 
-            void ConvertAndClearTempClassifiedSpans(SegmentedList<ITagSpan<IClassificationTag>> result)
+            async ValueTask AddSpansAsync(
+                NormalizedSnapshotSpanCollection spans,
+                SegmentedList<ITagSpan<IClassificationTag>> result,
+                Func<IClassificationService, Document, TextSpan, ClassificationOptions, SegmentedList<ClassifiedSpan>, CancellationToken, Task> addAsync)
             {
-                foreach (var classifiedSpan in tempClassifiedSpans)
-                    result.Add(ClassificationUtilities.Convert(_owner._typeMap, snapshot, classifiedSpan));
+                // Note: many string literal spans may be passed in here.
+                Contract.ThrowIfTrue(tempClassifiedSpans.Count != 0);
 
-                tempClassifiedSpans.Clear();
+                foreach (var span in spans)
+                {
+                    await addAsync(classificationService, document, span.Span.ToTextSpan(), options, tempClassifiedSpans, cancellationToken).ConfigureAwait(false);
+
+                    foreach (var classifiedSpan in tempClassifiedSpans)
+                        result.Add(ClassificationUtilities.Convert(_owner._typeMap, snapshot, classifiedSpan));
+
+                    tempClassifiedSpans.Clear();
+                }
             }
         }
 
