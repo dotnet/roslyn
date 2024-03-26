@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         RoslynDebug.Assert(oldAnalysisResult.DocumentIds != null);
 
                         // remove old diagnostics
-                        AddProjectDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), stateSet, oldAnalysisResult.ProjectId, oldAnalysisResult.DocumentIds, handleActiveFile: false);
+                        AddProjectDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), oldAnalysisResult.ProjectId, oldAnalysisResult.DocumentIds);
                         continue;
                     }
 
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     // first remove ones no longer needed.
                     var documentsToRemove = oldAnalysisResult.DocumentIds.Except(newAnalysisResult.DocumentIds);
-                    AddProjectDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), stateSet, oldAnalysisResult.ProjectId, documentsToRemove, handleActiveFile: false);
+                    AddProjectDiagnosticsRemovedArgs(ref argsBuilder.AsRef(), oldAnalysisResult.ProjectId, documentsToRemove);
 
                     // next update or create new ones
                     argsBuilder.AddRange(await CreateProjectDiagnosticsCreatedArgsAsync(project, stateSet, oldAnalysisResult, newAnalysisResult, CancellationToken.None).ConfigureAwait(false));
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private void AddDocumentDiagnosticsArgsIfNeeded(
             ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
-            TextDocument document, DiagnosticAnalyzer analyzer, AnalysisKind kind,
+            TextDocument document, AnalysisKind kind,
             DiagnosticAnalysisResult oldResult, DiagnosticAnalysisResult newResult)
         {
             // if our old result is from build and we don't have actual data, don't try micro-optimize and always refresh diagnostics.
@@ -252,12 +252,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             var oldItems = oldResult.GetDocumentDiagnostics(document.Id, kind);
             var newItems = newResult.GetDocumentDiagnostics(document.Id, kind);
 
-            AddDocumentDiagnosticsArgsIfNeeded(ref builder, document, analyzer, kind, oldItems, newItems, forceUpdate);
+            AddDocumentDiagnosticsArgsIfNeeded(ref builder, document, oldItems, newItems, forceUpdate);
         }
 
         private void AddDocumentDiagnosticsArgsIfNeeded(
             ref TemporaryArray<DiagnosticsUpdatedArgs> builder,
-            TextDocument document, DiagnosticAnalyzer analyzer, AnalysisKind kind,
+            TextDocument document,
             ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems,
             bool forceUpdate)
         {
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return;
             }
 
-            AddDiagnosticsCreatedArgs(ref builder, document, analyzer, kind, newItems);
+            AddDiagnosticsCreatedArgs(ref builder, document, newItems);
         }
 
         private async Task<ImmutableArray<DiagnosticsUpdatedArgs>> CreateProjectDiagnosticsCreatedArgsAsync(Project project, StateSet stateSet, DiagnosticAnalysisResult oldAnalysisResult, DiagnosticAnalysisResult newAnalysisResult, CancellationToken cancellationToken)
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     continue;
                 }
 
-                AddDocumentDiagnosticsArgsIfNeeded(ref argsBuilder.AsRef(), document, stateSet.Analyzer, AnalysisKind.NonLocal, oldAnalysisResult, newAnalysisResult);
+                AddDocumentDiagnosticsArgsIfNeeded(ref argsBuilder.AsRef(), document, AnalysisKind.NonLocal, oldAnalysisResult, newAnalysisResult);
 
                 // we don't raise events for active file. it will be taken cared by active file analysis
                 if (stateSet.IsActiveFile(documentId))
@@ -307,32 +307,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     continue;
                 }
 
-                AddDocumentDiagnosticsArgsIfNeeded(ref argsBuilder.AsRef(), document, stateSet.Analyzer, AnalysisKind.Syntax, oldAnalysisResult, newAnalysisResult);
-                AddDocumentDiagnosticsArgsIfNeeded(ref argsBuilder.AsRef(), document, stateSet.Analyzer, AnalysisKind.Semantic, oldAnalysisResult, newAnalysisResult);
+                AddDocumentDiagnosticsArgsIfNeeded(ref argsBuilder.AsRef(), document, AnalysisKind.Syntax, oldAnalysisResult, newAnalysisResult);
+                AddDocumentDiagnosticsArgsIfNeeded(ref argsBuilder.AsRef(), document, AnalysisKind.Semantic, oldAnalysisResult, newAnalysisResult);
             }
 
-            AddDiagnosticsCreatedArgs(ref argsBuilder.AsRef(), project, stateSet.Analyzer, newAnalysisResult.GetOtherDiagnostics());
+            AddDiagnosticsCreatedArgs(ref argsBuilder.AsRef(), project, newAnalysisResult.GetOtherDiagnostics());
 
             return argsBuilder.ToImmutableAndClear();
         }
 
-        private void AddProjectDiagnosticsRemovedArgs(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, StateSet stateSet, ProjectId projectId, IEnumerable<DocumentId> documentIds, bool handleActiveFile)
+        private void AddProjectDiagnosticsRemovedArgs(ref TemporaryArray<DiagnosticsUpdatedArgs> builder, ProjectId projectId, IEnumerable<DocumentId> documentIds)
         {
             foreach (var documentId in documentIds)
-            {
-                AddDiagnosticsRemovedArgs(ref builder, documentId, solution: null, stateSet.Analyzer, AnalysisKind.NonLocal);
+                AddDiagnosticsRemovedArgs(ref builder, documentId, solution: null);
 
-                // we don't raise events for active file. it will be taken care of by active file analysis
-                if (!handleActiveFile && stateSet.IsActiveFile(documentId))
-                {
-                    continue;
-                }
-
-                AddDiagnosticsRemovedArgs(ref builder, documentId, solution: null, stateSet.Analyzer, AnalysisKind.Syntax);
-                AddDiagnosticsRemovedArgs(ref builder, documentId, solution: null, stateSet.Analyzer, AnalysisKind.Semantic);
-            }
-
-            AddDiagnosticsRemovedArgs(ref builder, projectId, solution: null, stateSet.Analyzer);
+            AddDiagnosticsRemovedArgs(ref builder, projectId, solution: null);
         }
 
         public TestAccessor GetTestAccessor()
