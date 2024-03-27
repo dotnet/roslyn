@@ -10,7 +10,6 @@
           mc:Ignorable="d"
           GotKeyboardFocus="ComboBox_GotKeyboardFocus"
           LostKeyboardFocus="ComboBox_LostKeyboardFocus"
-          LostFocus="ComboBox_LostFocus"
           Unloaded="ComboBox_Unloaded"
           PreviewKeyUp="ComboBox_PreviewKeyUp"
           SelectionChanged="ComboBox_SelectionChanged"

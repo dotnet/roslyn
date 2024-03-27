@@ -96,7 +96,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    private static bool toggleEveryInvocation; // Temporary flag for prototyping
+    private static bool toggleEveryInvocation; // Temporary flag for prototyping. This will be replaced by a read of a feature flag
 
     private void OnGetSuggestionsCommandExecute()
     {
