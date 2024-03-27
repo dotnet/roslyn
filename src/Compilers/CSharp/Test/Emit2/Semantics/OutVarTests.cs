@@ -19633,6 +19633,9 @@ public class Cls
                 // (8,25): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         Test2(Test1(out System.ArgIterator x1), x1);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.ArgIterator").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(8, 25),
+                // (9,9): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var x = default(System.ArgIterator);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(9, 9),
                 // (9,13): warning CS0219: The variable 'x' is assigned but its value is never used
                 //         var x = default(System.ArgIterator);
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(9, 13),
