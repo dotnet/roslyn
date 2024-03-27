@@ -280,7 +280,7 @@ internal sealed class TotalClassificationAggregateTagger(
             return true;
 
         // Syntactic identifiers can be overridden by better semantic interpretations.
-        if (currentSyntactic.Tag.ClassificationType.Classification == ClassificationTypeNames.Identifier)
+        if (currentSyntactic.Tag.ClassificationType.Classification is ClassificationTypeNames.Identifier)
             return true;
 
         // Something else.  For now keep both.  This can be revised in the future if other cases where semantics should
