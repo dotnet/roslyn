@@ -99,7 +99,7 @@ internal abstract partial class VisualStudioWorkspaceImpl
         var workspaceStatusService = this.Services.GetRequiredService<IWorkspaceStatusService>();
         await workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 
-        var projectIdSet = projectIds.Contains(null) ? null : (ImmutableHashSet<ProjectId>)projectIds.ToImmutableHashSet()!;
+        ImmutableSegmentedList<ProjectId?>? projectIdSet = projectIds.Contains(null) ? null : projectIds;
         await this.SetCurrentSolutionAsync(
             oldSolution =>
             {
@@ -113,7 +113,7 @@ internal abstract partial class VisualStudioWorkspaceImpl
 
         return;
 
-        static FrozenDictionary<ProjectId, int> GetUpdatedSourceGeneratorVersions(Solution solution, ImmutableHashSet<ProjectId>? projectIdSet)
+        static FrozenDictionary<ProjectId, int> GetUpdatedSourceGeneratorVersions(Solution solution, ImmutableSegmentedList<ProjectId?>? projectIdSet)
         {
             // If the entire solution needs to be regenerated, then take every project and increase its source generator version.
             if (projectIdSet is null)
@@ -129,8 +129,11 @@ internal abstract partial class VisualStudioWorkspaceImpl
             var dependencyGraph = solution.GetProjectDependencyGraph();
             using var _ = CodeAnalysis.PooledObjects.PooledDictionary<ProjectId, int>.GetInstance(out var result);
 
-            foreach (var projectId in projectIdSet)
+            foreach (var projectId in projectIdSet.Value)
             {
+                // Checked by caller
+                Contract.ThrowIfNull(projectId);
+
                 var savedProject = solution.GetProject(projectId);
                 if (savedProject != null && !result.ContainsKey(projectId))
                 {
