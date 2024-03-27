@@ -636,6 +636,32 @@ namespace Microsoft.CodeAnalysis
             return default;
         }
 
+        public static TValue? Single<TValue, TArg>(this ImmutableArray<TValue> array, Func<TValue, TArg, bool> predicate, TArg arg)
+        {
+            var hasValue = false;
+            TValue? value = default;
+            foreach (var item in array)
+            {
+                if (predicate(item, arg))
+                {
+                    if (hasValue)
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+
+                    value = item;
+                    hasValue = true;
+                }
+            }
+
+            if (!hasValue)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            return value;
+        }
+
         /// <summary>
         /// Casts the immutable array of a Type to an immutable array of its base type.
         /// </summary>

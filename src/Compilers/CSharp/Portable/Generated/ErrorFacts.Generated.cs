@@ -338,7 +338,13 @@
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.WRN_ConvertingLock:
+<<<<<<< HEAD
                 case ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList:
+=======
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
+>>>>>>> dotnet/main
                     return true;
                 default:
                     return false;

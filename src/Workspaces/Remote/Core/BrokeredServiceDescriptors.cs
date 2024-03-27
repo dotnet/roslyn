@@ -78,20 +78,20 @@ internal static class BrokeredServiceDescriptors
     /// <summary>
     /// Descriptor for services proferred by the client extension (implemented in TypeScript).
     /// </summary>
-    public static ServiceJsonRpcDescriptor CreateClientServiceDescriptor(string serviceName, Version? version)
+    public static ServiceJsonRpcDescriptor CreateClientServiceDescriptor(string serviceName, Version? version = null)
         => new ClientServiceDescriptor(CreateMoniker(LanguageServerComponentNamespace, LanguageClientComponentName, serviceName, version), clientInterface: null)
            .WithExceptionStrategy(ExceptionProcessing.ISerializable);
 
     /// <summary>
-    /// Descriptor for services proferred by Roslyn server (implemented in C#). 
+    /// Descriptor for services proferred by Roslyn server or Visual Studio in-proc (implemented in C#). 
     /// </summary>
-    public static ServiceJsonRpcDescriptor CreateServerServiceDescriptor(string serviceName, Version? version)
+    public static ServiceJsonRpcDescriptor CreateServerServiceDescriptor(string serviceName, Version? version = null)
         => CreateDescriptor(CreateMoniker(LanguageServerComponentNamespace, LanguageServerComponentName, serviceName, version));
 
     /// <summary>
     /// Descriptor for services proferred by the debugger server (implemented in C#). 
     /// </summary>
-    public static ServiceJsonRpcDescriptor CreateDebuggerServiceDescriptor(string serviceName, Version? version)
+    public static ServiceJsonRpcDescriptor CreateDebuggerServiceDescriptor(string serviceName, Version? version = null)
         => CreateDescriptor(CreateMoniker(VisualStudioComponentNamespace, DebuggerComponentName, serviceName, version));
 
     private static ServiceJsonRpcDescriptor CreateDescriptor(ServiceMoniker moniker)

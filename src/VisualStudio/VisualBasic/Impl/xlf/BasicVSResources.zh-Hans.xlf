@@ -182,11 +182,6 @@
         <target state="translated">Import 指令</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sort_imports">
-        <source>Sort imports</source>
-        <target state="translated">对 import 进行排序</target>
-        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
-      </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in _NuGet packages</source>
         <target state="translated">建议对 NuGet 包中的类型使用 import(_N)</target>

@@ -207,11 +207,6 @@
         <target state="translated">Nie można użyć kolekcji typu dynamicznego w asynchronicznej instrukcji foreach</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadExtensionUnderlyingType">
-        <source>The extended type may not be dynamic, a pointer, a ref struct, or an extension.</source>
-        <target state="new">The extended type may not be dynamic, a pointer, a ref struct, or an extension.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
         <source>The type '{0}' may not be used for a field of a record.</source>
         <target state="translated">Typ „{0}” nie może być używany dla pola rekordu.</target>
@@ -307,16 +302,6 @@
         <target state="translated">Typ „{0}” jest nieprawidłowy dla „using static”. Można używać tylko klasy, struktury, interfejsu, wyliczenia, delegata lub przestrzeni nazw.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadVisBaseExtension">
-        <source>Inconsistent accessibility: base extension '{1}' is less accessible than extension '{0}'</source>
-        <target state="new">Inconsistent accessibility: base extension '{1}' is less accessible than extension '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadVisUnderlyingType">
-        <source>Inconsistent accessibility: underlying type '{1}' is less accessible than extension '{0}'</source>
-        <target state="new">Inconsistent accessibility: underlying type '{1}' is less accessible than extension '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
         <source>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</source>
         <target state="translated">Atrybut AsyncMethodBuilder jest niedozwolony w metodach anonimowych bez jawnego zwracanego typu.</target>
@@ -390,6 +375,11 @@
       <trans-unit id="ERR_CantConvAnonMethReturnType">
         <source>Cannot convert {0} to type '{1}' because the return type does not match the delegate return type</source>
         <target state="translated">Nie można przekonwertować {0} na typ "{1}", ponieważ zwracany typ jest niezgodny ze zwracanym typem delegowania</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections">
+        <source>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</source>
+        <target state="new">The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -507,11 +497,6 @@
         <target state="translated">Konstruktor kopiujący „{0}” musi być publiczny lub chroniony, ponieważ rekord nie jest zapieczętowany.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CycleInBaseExtensions">
-        <source>Base extension '{1}' causes a cycle in the extension hierarchy of '{0}'.</source>
-        <target state="new">Base extension '{1}' causes a cycle in the extension hierarchy of '{0}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">Nazwa „{0}” nie jest zgodna z odpowiednim parametrem „Deconstruct” „{1}”.</target>
@@ -577,21 +562,6 @@
         <target state="translated">Element „{0}” jest jawnie zaimplementowany więcej niż raz.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DuplicateExtensionInBaseList">
-        <source>'{0}' is already listed in the base extension list</source>
-        <target state="new">'{0}' is already listed in the base extension list</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DuplicateExtensionWithDifferencesInBaseList">
-        <source>'{0}' is already listed in the base extension list on type '{2}' as '{1}'.</source>
-        <target state="new">'{0}' is already listed in the base extension list on type '{2}' as '{1}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DuplicateExtensionWithTupleNamesInBaseList">
-        <source>'{0}' is already listed in the base extension list on type '{2}' with different tuple element names, as '{1}'.</source>
-        <target state="new">'{0}' is already listed in the base extension list on type '{2}' with different tuple element names, as '{1}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateInterceptor">
         <source>The indicated call is intercepted multiple times.</source>
         <target state="translated">Wskazane wywołanie jest przechwytywane wiele razy.</target>
@@ -645,6 +615,11 @@
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="translated">Jawne stosowanie elementu „System.Runtime.CompilerServices.NullableAttribute” jest niedozwolone.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitParamArrayOrCollection">
+        <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
+        <target state="new">Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
@@ -730,16 +705,6 @@
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
         <source>An expression tree may not contain a with-expression.</source>
         <target state="translated">Drzewo wyrażeń nie może zawierać wyrażenia with.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExtensionMethodInExtension">
-        <source>Extension methods are not allowed in extension types.</source>
-        <target state="new">Extension methods are not allowed in extension types.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExtensionMissingUnderlyingType">
-        <source>No part of a partial extension '{0}' includes an underlying type specification.</source>
-        <target state="new">No part of a partial extension '{0}' includes an underlying type specification.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
@@ -840,11 +805,6 @@
       <trans-unit id="ERR_FileTypeNonUniquePath">
         <source>File-local type '{0}' must be declared in a file with a unique path. Path '{1}' is used in multiple files.</source>
         <target state="translated">Typ pliku lokalnego „{0}” musi być zadeklarowany w pliku z unikatową ścieżką. Ścieżka „{1}” jest używana w wielu plikach.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FileTypeUnderlying">
-        <source>File-local type '{0}' cannot be used as a underlying type of non-file-local extension '{1}'.</source>
-        <target state="new">File-local type '{0}' cannot be used as a underlying type of non-file-local extension '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
@@ -1327,11 +1287,6 @@
         <target state="translated">Wzorce listy nie mogą być używane dla wartości typu „{0}”. Nie znaleziono odpowiedniej właściwości „Długość” ani „Liczba”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MalformedExtensionInMetadata">
-        <source>Extension marker method on type '{0}' is malformed.</source>
-        <target state="new">Extension marker method on type '{0}' is malformed.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">Żadne z przeciążeń dla elementu „{0}” nie pasuje do wskaźnika funkcji „{1}”</target>
@@ -1462,6 +1417,11 @@
         <target state="translated">Wyrażenie warunkowe nie jest prawidłowe w wersji językowej {0} ponieważ nie znaleziono typu wspólnego między "{1}" i "{2}". Aby użyć konwersji z typem docelowym, uaktualnij do wersji językowej {3} lub nowszej.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoModifiersOnUsing">
+        <source>Modifiers cannot be placed on using declarations</source>
+        <target state="new">Modifiers cannot be placed on using declarations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">Nie można było określić katalogu wyjściowego</target>
@@ -1537,11 +1497,6 @@
         <target state="translated">Pominięcie argumentu typu jest niedozwolone w bieżącym kontekście</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_OnlyBaseExtensionAllowed">
-        <source>A base extension must be an extension type.</source>
-        <target state="new">A base extension must be an extension type.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_OperatorCantBeChecked">
         <source>User-defined operator '{0}' cannot be declared checked</source>
         <target state="translated">Nie można zadeklarować operatora „{0}” zdefiniowanego przez użytkownika</target>
@@ -1582,9 +1537,44 @@
         <target state="translated">Funkcja „sprawdzanie wartości null parametru” nie jest obsługiwana.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialDifferentExtensionModifiers">
-        <source>Partial declarations of '{0}' must specify the same extension modifier ('implicit' or 'explicit').</source>
-        <target state="new">Partial declarations of '{0}' must specify the same extension modifier ('implicit' or 'explicit').</target>
+      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
+        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
+        <target state="new">Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
+        <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
+        <target state="new">Constructor '{0}' leaves required member '{1}' uninitialized.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionExpressionTree">
+        <source>An expression tree may not contain an expanded form of non-array params collection parameter.</source>
+        <target state="new">An expression tree may not contain an expanded form of non-array params collection parameter.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionExtensionAddMethod">
+        <source>'{0}' does not contain a definition for a suitable instance 'Add' method</source>
+        <target state="new">'{0}' does not contain a definition for a suitable instance 'Add' method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionInfiniteChainOfConstructorCalls">
+        <source>Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</source>
+        <target state="new">Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionMissingConstructor">
+        <source>Non-array params collection type must have an applicable constructor that can be called with no arguments.</source>
+        <target state="new">Non-array params collection type must have an applicable constructor that can be called with no arguments.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember">
+        <source>Method '{0}' cannot be less visible than the member with params collection '{1}'.</source>
+        <target state="new">Method '{0}' cannot be less visible than the member with params collection '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsMustBeCollection">
+        <source>The params parameter must have a valid collection type</source>
+        <target state="new">The params parameter must have a valid collection type</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
@@ -1630,11 +1620,6 @@
       <trans-unit id="ERR_PartialMethodWithOutParamMustHaveAccessMods">
         <source>Partial method '{0}' must have accessibility modifiers because it has 'out' parameters.</source>
         <target state="translated">Metoda częściowa „{0}” musi mieć modyfikatory dostępności, ponieważ ma parametry „out”.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMultipleUnderlyingTypes">
-        <source>Partial declarations of '{0}' must not extend different types.</source>
-        <target state="new">Partial declarations of '{0}' must not extend different types.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
@@ -1952,11 +1937,6 @@
         <target state="translated">Operator rozłożenia „..” nie może operować na zmiennych typu „{0}”, ponieważ „{0}” nie zawiera publicznego wystąpienia lub definicji rozszerzenia dla elementu „{1}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_StateInExtension">
-        <source>'{0}': cannot declare instance members with state in extension types.</source>
-        <target state="new">'{0}': cannot declare instance members with state in extension types.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">
         <source>Record member '{0}' may not be static.</source>
         <target state="translated">Składowa rekordu „{0}” nie może być statyczna.</target>
@@ -1970,11 +1950,6 @@
       <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureVariable">
         <source>A static anonymous function cannot contain a reference to '{0}'.</source>
         <target state="translated">Statyczna funkcja anonimowa nie może zawierać odwołania do elementu „{0}”.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_StaticBaseTypeOnInstanceExtension">
-        <source>Instance extension '{0}' cannot extend type '{1}' because it is static.</source>
-        <target state="new">Instance extension '{0}' cannot extend type '{1}' because it is static.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticLocalFunctionCannotCaptureThis">
@@ -2097,16 +2072,6 @@
         <target state="translated">Pole „{0}” musi być w pełni przypisane, zanim kontrolka zostanie zwrócona do obiektu wywołującego. Rozważ zaktualizowanie pola do wersji językowej „{1}”, aby automatycznie ustawić domyślne pole.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_UnderlyingTypesMismatch">
-        <source>Extension '{0}' extends '{1}' but base extension '{2}' extends '{3}'.</source>
-        <target state="new">Extension '{0}' extends '{1}' but base extension '{2}' extends '{3}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnderspecifiedImplicitExtension">
-        <source>The underlying type '{0}' of implicit extension '{1}' must reference all the type parameters declared by the extension, but type parameter '{2}' is missing.</source>
-        <target state="new">The underlying type '{0}' of implicit extension '{1}' must reference all the type parameters declared by the extension, but type parameter '{2}' is missing.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
         <source>Unexpected parameter list.</source>
         <target state="translated">Nieoczekiwana lista parametrów.</target>
@@ -2227,11 +2192,6 @@
         <target state="translated">pola automatycznej struktury domyślnej</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureBaseExtensions">
-        <source>base extensions</source>
-        <target state="new">base extensions</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureCheckedUserDefinedOperators">
         <source>checked user-defined operators</source>
         <target state="translated">zaznaczone operatory zdefiniowane przez użytkownika</target>
@@ -2350,6 +2310,11 @@
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
         <target state="translated">Konstruktory struktury bez parametrów</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureParamsCollections">
+        <source>params collections</source>
+        <target state="new">params collections</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -2707,14 +2672,34 @@
         <target state="translated">Odwołanie do analizatora określono wiele razy</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DuplicateExtensionWithNullabilityMismatchInBaseList">
-        <source>'{0}' is already listed in the base extension list on type '{1}' with different nullability of reference types.</source>
-        <target state="new">'{0}' is already listed in the base extension list on type '{1}' with different nullability of reference types.</target>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor">
+        <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="new">One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_DuplicateExtensionWithNullabilityMismatchInBaseList_Title">
-        <source>Extension is already listed in the base extension list with different nullability of reference types.</source>
-        <target state="new">Extension is already listed in the base extension list with different nullability of reference types.</target>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor_Title">
+        <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="new">One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer">
+        <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="new">One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer_Title">
+        <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="new">One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod">
+        <source>One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="new">One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod_Title">
+        <source>One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="new">One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall">
@@ -3258,8 +3243,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceInterfaceNesting">
-        <source>Enums, classes, structures, and extensions cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
-        <target state="needs-review-translation">Wyliczenia, klasy i struktury nie mogą być deklarowane w interfejsie mającym parametr typu „in” lub „out”.</target>
+        <source>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</source>
+        <target state="translated">Wyliczenia, klasy i struktury nie mogą być deklarowane w interfejsie mającym parametr typu „in” lub „out”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongFuncPtrCallingConvention">
@@ -6248,11 +6233,6 @@
         <target state="translated">Metoda z atrybutem vararg nie może być ogólna, znajdować się w typie ogólnym ani mieć parametru params</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParamsMustBeArray">
-        <source>The params parameter must be a single dimensional array</source>
-        <target state="translated">Parametr params musi być tablicą jednowymiarową</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_IllegalArglist">
         <source>An __arglist expression may only appear inside of a call or new expression</source>
         <target state="translated">Wyrażenie __arglist może się pojawić tylko wewnątrz wywołania lub nowego wyrażenia</target>
@@ -6399,8 +6379,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must all be the same kind of type.</source>
-        <target state="needs-review-translation">Wszystkie częściowe deklaracje elementu "{0}" muszą być klasami, klasami rekordów, strukturami rekordów lub interfejsami</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
+        <target state="translated">Wszystkie częściowe deklaracje elementu "{0}" muszą być klasami, klasami rekordów, strukturami rekordów lub interfejsami</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
@@ -6429,8 +6409,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'implicit/explicit extension', or a method return type.</source>
-        <target state="needs-review-translation">Modyfikator „partial” może pojawić się tylko bezpośrednio przed słowem kluczowym „class”, „record” „struct”, „interface” lub zwracanym typem metody.</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
+        <target state="translated">Modyfikator „partial” może pojawić się tylko bezpośrednio przed słowem kluczowym „class”, „record” „struct”, „interface” lub zwracanym typem metody.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -7727,11 +7707,6 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <target state="translated">W języku C# nie można użyć elementu System.Void. Aby uzyskać obiekt typu void, użyj elementu typeof(void).</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitParamArray">
-        <source>Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.</source>
-        <target state="translated">Nie używaj atrybutu „System.ParamArrayAttribute”. Zamiast niego użyj słowa kluczowego „params”.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_BitwiseOrSignExtend">
         <source>Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first</source>
         <target state="translated">Operator LUB działający na bitach został użyty względem argumentu ze znakiem. Rozważ możliwość wcześniejszego rzutowania na mniejszy typ bez znaku.</target>
@@ -7858,8 +7833,8 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstanceMemberInStaticClass">
-        <source>'{0}': cannot declare instance members in a static type</source>
-        <target state="needs-review-translation">„{0}”: nie można zadeklarować składowych wystąpienia w klasie statycznej</target>
+        <source>'{0}': cannot declare instance members in a static class</source>
+        <target state="translated">„{0}”: nie można zadeklarować składowych wystąpienia w klasie statycznej</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticBaseClass">
@@ -7923,8 +7898,8 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <note />
       </trans-unit>
       <trans-unit id="ERR_IndexerInStaticClass">
-        <source>'{0}': cannot declare indexers in a static type</source>
-        <target state="needs-review-translation">„{0}”: nie można zadeklarować indeksatorów w klasie statycznej</target>
+        <source>'{0}': cannot declare indexers in a static class</source>
+        <target state="translated">„{0}”: nie można zadeklarować indeksatorów w klasie statycznej</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParameterIsStaticClass">
@@ -10982,8 +10957,8 @@ Pominięcie ostrzeżenia należy wziąć pod uwagę tylko w sytuacji, gdy na pew
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
-        <source>Cannot specify a default value for a parameter array</source>
-        <target state="translated">Nie można określić wartości domyślnej dla tablicy parametrów</target>
+        <source>Cannot specify a default value for a parameter collection</source>
+        <target state="needs-review-translation">Nie można określić wartości domyślnej dla tablicy parametrów</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">

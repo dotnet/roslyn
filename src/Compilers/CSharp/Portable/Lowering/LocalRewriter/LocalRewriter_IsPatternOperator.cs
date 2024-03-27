@@ -108,29 +108,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal BoundExpression LowerGeneralIsPattern(BoundIsPatternExpression node, BoundDecisionDag decisionDag)
             {
+                Debug.Assert(node.Type is { SpecialType: SpecialType.System_Boolean });
+
                 _factory.Syntax = node.Syntax;
-                var resultBuilder = ArrayBuilder<BoundStatement>.GetInstance();
                 var inputExpression = _localRewriter.VisitExpression(node.Expression);
-                decisionDag = ShareTempsIfPossibleAndEvaluateInput(decisionDag, inputExpression, resultBuilder, out _);
+                var sideEffectsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+
+                // The optimization of sharing pattern-matching temps with user variables can always apply to
+                // an is-pattern expression because there is no when clause that could possibly intervene during
+                // the execution of the pattern-matching automaton and change one of those variables.
+                decisionDag = ShareTempsAndEvaluateInput(inputExpression, decisionDag, sideEffectsBuilder.Add, out _);
 
                 // lower the decision dag.
                 ImmutableArray<BoundStatement> loweredDag = LowerDecisionDagCore(decisionDag);
-                resultBuilder.Add(_factory.Block(loweredDag));
-                Debug.Assert(node.Type is { SpecialType: SpecialType.System_Boolean });
-                LocalSymbol resultTemp = _factory.SynthesizedLocal(node.Type, node.Syntax, kind: SynthesizedLocalKind.LoweringTemp);
-                LabelSymbol afterIsPatternExpression = _factory.GenerateLabel("afterIsPatternExpression");
-                LabelSymbol trueLabel = node.WhenTrueLabel;
-                LabelSymbol falseLabel = node.WhenFalseLabel;
-                if (_statements.Count != 0)
-                    resultBuilder.Add(_factory.Block(_statements.ToArray()));
-                resultBuilder.Add(_factory.Label(trueLabel));
-                resultBuilder.Add(_factory.Assignment(_factory.Local(resultTemp), _factory.Literal(true)));
-                resultBuilder.Add(_factory.Goto(afterIsPatternExpression));
-                resultBuilder.Add(_factory.Label(falseLabel));
-                resultBuilder.Add(_factory.Assignment(_factory.Local(resultTemp), _factory.Literal(false)));
-                resultBuilder.Add(_factory.Label(afterIsPatternExpression));
-                _localRewriter._needsSpilling = true;
-                return _factory.SpillSequence(_tempAllocator.AllTemps().Add(resultTemp), resultBuilder.ToImmutableAndFree(), _factory.Local(resultTemp));
+
+                return _factory.Sequence(
+                    _tempAllocator.AllTemps(),
+                    sideEffectsBuilder.ToImmutableAndFree(),
+                    new BoundLoweredIsPatternExpression(
+                        node.Syntax,
+                        // Note: it is not expected for this node to trigger spilling
+                        loweredDag.AddRange(_statements),
+                        node.WhenTrueLabel,
+                        node.WhenFalseLabel,
+                        node.Type));
             }
         }
 

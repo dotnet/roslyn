@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,7 +42,7 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
         }, cancellationToken);
     }
 
-    public ValueTask<ImmutableArray<string>> GetContentsAsync(
+    public ValueTask<ImmutableArray<(string contents, DateTime generationDateTime)>> GetContentsAsync(
         Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
@@ -49,14 +50,14 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             var project = solution.GetRequiredProject(projectId);
             var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
 
-            using var _ = ArrayBuilder<string>.GetInstance(documentIds.Length, out var result);
+            using var _ = ArrayBuilder<(string contents, DateTime generationDateTime)>.GetInstance(documentIds.Length, out var result);
 
             foreach (var id in documentIds)
             {
                 Contract.ThrowIfFalse(id.IsSourceGenerated);
                 var state = documentStates.GetRequiredState(id);
                 var text = await state.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                result.Add(text.ToString());
+                result.Add((text.ToString(), state.GenerationDateTime));
             }
 
             return result.ToImmutableAndClear();

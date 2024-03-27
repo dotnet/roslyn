@@ -432,7 +432,13 @@ class X
                         case ErrorCode.WRN_UseDefViolationRefField:
                         case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                         case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
+<<<<<<< HEAD
                         case ErrorCode.WRN_DuplicateExtensionWithNullabilityMismatchInBaseList:
+=======
+                        case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
+                        case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
+                        case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
+>>>>>>> dotnet/main
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

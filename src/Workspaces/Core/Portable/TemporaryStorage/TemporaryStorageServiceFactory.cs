@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Host;
 #if NETCOREAPP
 [SupportedOSPlatform("windows")]
 #endif
-internal partial class TemporaryStorageService : ITemporaryStorageService2
+internal sealed partial class TemporaryStorageService : ITemporaryStorageServiceInternal
 {
     /// <summary>
     /// The maximum size in bytes of a single storage unit in a memory mapped file which is shared with other
@@ -105,8 +105,9 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
     public ITemporaryTextStorageInternal CreateTemporaryTextStorage()
         => new TemporaryTextStorage(this);
 
-    public ITemporaryTextStorageInternal AttachTemporaryTextStorage(string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding)
-        => new TemporaryTextStorage(this, storageName, offset, size, checksumAlgorithm, encoding);
+    public TemporaryTextStorage AttachTemporaryTextStorage(
+        string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, ImmutableArray<byte> contentHash)
+        => new(this, storageName, offset, size, checksumAlgorithm, encoding, contentHash);
 
     ITemporaryStreamStorageInternal ITemporaryStorageServiceInternal.CreateTemporaryStreamStorage()
         => CreateTemporaryStreamStorage();
@@ -114,8 +115,8 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
     internal TemporaryStreamStorage CreateTemporaryStreamStorage()
         => new(this);
 
-    public ITemporaryStreamStorageInternal AttachTemporaryStreamStorage(string storageName, long offset, long size)
-        => new TemporaryStreamStorage(this, storageName, offset, size);
+    public TemporaryStreamStorage AttachTemporaryStreamStorage(string storageName, long offset, long size)
+        => new(this, storageName, offset, size);
 
     /// <summary>
     /// Allocate shared storage of a specified size.
@@ -167,42 +168,56 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
     public static string CreateUniqueName(long size)
         => "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
 
-    private sealed class TemporaryTextStorage : ITemporaryTextStorageInternal, ITemporaryTextStorageWithName
+    public sealed class TemporaryTextStorage : ITemporaryTextStorageInternal, ITemporaryStorageWithName
     {
         private readonly TemporaryStorageService _service;
         private SourceHashAlgorithm _checksumAlgorithm;
         private Encoding? _encoding;
-        private ImmutableArray<byte> _checksum;
+        private ImmutableArray<byte> _contentHash;
         private MemoryMappedInfo? _memoryMappedInfo;
 
         public TemporaryTextStorage(TemporaryStorageService service)
             => _service = service;
 
-        public TemporaryTextStorage(TemporaryStorageService service, string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding)
+        public TemporaryTextStorage(
+            TemporaryStorageService service,
+            string storageName,
+            long offset,
+            long size,
+            SourceHashAlgorithm checksumAlgorithm,
+            Encoding? encoding,
+            ImmutableArray<byte> contentHash)
         {
             _service = service;
             _checksumAlgorithm = checksumAlgorithm;
             _encoding = encoding;
+            _contentHash = contentHash;
             _memoryMappedInfo = new MemoryMappedInfo(storageName, offset, size);
         }
 
         // TODO: cleanup https://github.com/dotnet/roslyn/issues/43037
-        // Offet, Size not accessed if Name is null
+        // Offset, Size not accessed if Name is null
         public string? Name => _memoryMappedInfo?.Name;
         public long Offset => _memoryMappedInfo!.Offset;
         public long Size => _memoryMappedInfo!.Size;
+
+        /// <summary>
+        /// Gets the value for the <see cref="SourceText.ChecksumAlgorithm"/> property for the <see cref="SourceText"/>
+        /// represented by this temporary storage.
+        /// </summary>
         public SourceHashAlgorithm ChecksumAlgorithm => _checksumAlgorithm;
+
+        /// <summary>
+        /// Gets the value for the <see cref="SourceText.Encoding"/> property for the <see cref="SourceText"/>
+        /// represented by this temporary storage.
+        /// </summary>
         public Encoding? Encoding => _encoding;
 
-        public ImmutableArray<byte> GetContentHash()
-        {
-            if (_checksum.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedInitialize(ref _checksum, ReadText(CancellationToken.None).GetContentHash());
-            }
-
-            return _checksum;
-        }
+        /// <summary>
+        /// Gets the checksum for the <see cref="SourceText"/> represented by this temporary storage. This is equivalent
+        /// to calling <see cref="SourceText.GetContentHash"/>.
+        /// </summary>
+        public ImmutableArray<byte> ContentHash => _contentHash;
 
         public void Dispose()
         {
@@ -213,6 +228,7 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
 
             _memoryMappedInfo = null;
             _encoding = null;
+            _contentHash = default;
         }
 
         public SourceText ReadText(CancellationToken cancellationToken)
@@ -264,6 +280,7 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
             {
                 _checksumAlgorithm = text.ChecksumAlgorithm;
                 _encoding = text.Encoding;
+                _contentHash = text.GetContentHash();
 
                 // the method we use to get text out of SourceText uses Unicode (2bytes per char). 
                 var size = Encoding.Unicode.GetMaxByteCount(text.Length);
@@ -301,7 +318,7 @@ internal partial class TemporaryStorageService : ITemporaryStorageService2
         }
     }
 
-    internal class TemporaryStreamStorage : ITemporaryStreamStorageInternal, ITemporaryStorageWithName
+    internal sealed class TemporaryStreamStorage : ITemporaryStreamStorageInternal, ITemporaryStorageWithName
     {
         private readonly TemporaryStorageService _service;
         private MemoryMappedInfo? _memoryMappedInfo;

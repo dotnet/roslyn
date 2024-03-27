@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,5 +26,5 @@ internal interface ISolutionAssetProvider
     /// save substantially on performance by avoiding having to search the full solution tree to find matching items for
     /// a particular checksum.</param>
     ValueTask WriteAssetsAsync(
-        PipeWriter pipeWriter, Checksum solutionChecksum, AssetHint assetHint, ImmutableArray<Checksum> checksums, CancellationToken cancellationToken);
+        PipeWriter pipeWriter, Checksum solutionChecksum, AssetHint assetHint, ReadOnlyMemory<Checksum> checksums, CancellationToken cancellationToken);
 }

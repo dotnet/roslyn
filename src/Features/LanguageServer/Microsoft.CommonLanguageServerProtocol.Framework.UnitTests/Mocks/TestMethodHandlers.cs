@@ -77,7 +77,7 @@ internal class TestMethodHandlerWithoutAttribute : INotificationHandler<TestRequ
 }
 
 [LanguageServerEndpoint(Name, LanguageServerConstants.DefaultLanguageName)]
-public class MutatingHandler : IRequestHandler<int, string, TestRequestContext>
+internal class MutatingHandler : IRequestHandler<int, string, TestRequestContext>
 {
     public const string Name = "MutatingMethod";
     public static readonly IMethodHandler Instance = new MutatingHandler();
@@ -96,7 +96,7 @@ public class MutatingHandler : IRequestHandler<int, string, TestRequestContext>
 }
 
 [LanguageServerEndpoint(Name, LanguageServerConstants.DefaultLanguageName)]
-public class CompletingHandler : IRequestHandler<int, string, TestRequestContext>
+internal class CompletingHandler : IRequestHandler<int, string, TestRequestContext>
 {
     public const string Name = "CompletingMethod";
     public static readonly IMethodHandler Instance = new CompletingHandler();
@@ -118,7 +118,7 @@ public class CompletingHandler : IRequestHandler<int, string, TestRequestContext
 }
 
 [LanguageServerEndpoint(Name, LanguageServerConstants.DefaultLanguageName)]
-public class CancellingHandler : IRequestHandler<int, string, TestRequestContext>
+internal class CancellingHandler : IRequestHandler<int, string, TestRequestContext>
 {
     public const string Name = "CancellingMethod";
     public static readonly IMethodHandler Instance = new CancellingHandler();
@@ -137,7 +137,7 @@ public class CancellingHandler : IRequestHandler<int, string, TestRequestContext
 }
 
 [LanguageServerEndpoint(Name, LanguageServerConstants.DefaultLanguageName)]
-public class ThrowingHandler : IRequestHandler<int, string, TestRequestContext>
+internal class ThrowingHandler : IRequestHandler<int, string, TestRequestContext>
 {
     public const string Name = "ThrowingMethod";
     public static readonly IMethodHandler Instance = new ThrowingHandler();

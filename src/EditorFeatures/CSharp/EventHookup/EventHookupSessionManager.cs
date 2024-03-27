@@ -6,6 +6,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
@@ -17,7 +18,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 
@@ -40,7 +40,7 @@ internal sealed partial class EventHookupSessionManager(
     // For test purposes only!
     internal ClassifiedTextElement[] TEST_MostRecentToolTipContent { get; set; }
 
-    internal void EventHookupFoundInSession(EventHookupSession analyzedSession)
+    internal void EventHookupFoundInSession(EventHookupSession analyzedSession, string eventName)
     {
         ThreadingContext.ThrowIfNotOnUIThread();
 
@@ -52,7 +52,7 @@ internal sealed partial class EventHookupSessionManager(
         if (_toolTipPresenter == null &&
             CurrentSession == analyzedSession &&
             caretPoint.HasValue &&
-            IsCaretWithinSpanOrAtEnd(analyzedSession.TrackingSpan, analyzedSession.TextView.TextSnapshot, caretPoint.Value))
+            IsCaretWithinSpanOrAtEnd(analyzedSession.TrackingSpan, analyzedSession.SubjectBuffer.CurrentSnapshot, caretPoint.Value))
         {
             // Create a tooltip presenter that stays alive, even when the user types, without tracking the mouse.
             _toolTipPresenter = _toolTipService.CreatePresenter(analyzedSession.TextView,
@@ -62,7 +62,7 @@ internal sealed partial class EventHookupSessionManager(
             // GetEventNameTask() gets back the event name, only needs to add a semicolon after it.
             var textRuns = new[]
             {
-                new ClassifiedTextRun(ClassificationTypeNames.MethodName, analyzedSession.GetEventNameTask.Result, ClassifiedTextRunStyle.UseClassificationFont),
+                new ClassifiedTextRun(ClassificationTypeNames.MethodName, eventName, ClassifiedTextRunStyle.UseClassificationFont),
                 new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ";", ClassifiedTextRunStyle.UseClassificationFont),
                 new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpEditorResources.Press_TAB_to_insert),
             };
@@ -108,26 +108,29 @@ internal sealed partial class EventHookupSessionManager(
         EventHookupCommandHandler eventHookupCommandHandler,
         ITextView textView,
         ITextBuffer subjectBuffer,
+        int position,
+        Document document,
         IAsynchronousOperationListener asyncListener,
         Mutex testSessionHookupMutex)
     {
-        CurrentSession = new EventHookupSession(this, eventHookupCommandHandler, textView, subjectBuffer, asyncListener, _globalOptions, testSessionHookupMutex);
+        CurrentSession = new EventHookupSession(
+            this, eventHookupCommandHandler, textView, subjectBuffer, position, document, asyncListener, _globalOptions, testSessionHookupMutex);
     }
 
-    internal void CancelAndDismissExistingSessions()
+    public void DismissExistingSessions()
     {
         ThreadingContext.ThrowIfNotOnUIThread();
-
-        if (CurrentSession != null)
-        {
-            CurrentSession.Cancel();
-            CurrentSession = null;
-        }
 
         if (_toolTipPresenter != null)
         {
             _toolTipPresenter.Dismiss();
             _toolTipPresenter = null;
+        }
+
+        if (CurrentSession != null)
+        {
+            CurrentSession.CancelBackgroundTasks();
+            CurrentSession = null;
         }
 
         // For test purposes only!
@@ -145,7 +148,7 @@ internal sealed partial class EventHookupSessionManager(
         {
             if (change.OldText.Length > 0 || change.NewText.Any(c => c != ' '))
             {
-                CancelAndDismissExistingSessions();
+                DismissExistingSessions();
                 return;
             }
         }
@@ -160,7 +163,7 @@ internal sealed partial class EventHookupSessionManager(
 
         if (CurrentSession == null)
         {
-            CancelAndDismissExistingSessions();
+            DismissExistingSessions();
             return;
         }
 
@@ -168,16 +171,13 @@ internal sealed partial class EventHookupSessionManager(
 
         if (!caretPoint.HasValue)
         {
-            CancelAndDismissExistingSessions();
+            DismissExistingSessions();
         }
 
-        var snapshotSpan = CurrentSession.TrackingSpan.GetSpan(CurrentSession.TextView.TextSnapshot);
+        var snapshotSpan = CurrentSession.TrackingSpan.GetSpan(CurrentSession.SubjectBuffer.CurrentSnapshot);
         if (snapshotSpan.Snapshot != caretPoint.Value.Snapshot || !snapshotSpan.Contains(caretPoint.Value))
         {
-            CancelAndDismissExistingSessions();
+            DismissExistingSessions();
         }
     }
-
-    internal bool IsTrackingSession()
-        => CurrentSession != null;
 }

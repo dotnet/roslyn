@@ -38,9 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Public Class DocumentService_IntegrationTests
-        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
-            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
-            .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
+        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures
 
         <WpfFact>
         Public Async Function TestFindUsageIntegration() As System.Threading.Tasks.Task
@@ -231,7 +229,6 @@ class { }
                 ' confirm there are errors
                 Assert.True(model.GetDiagnostics().Any())
 
-                Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
                 Dim diagnosticService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
 
                 ' confirm diagnostic support is off for the document

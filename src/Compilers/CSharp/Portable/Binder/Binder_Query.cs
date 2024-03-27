@@ -957,8 +957,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var methodGroup = (BoundMethodGroup)ultimateReceiver;
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+<<<<<<< HEAD
                     // PROTOTYPE we'll want extension types to contribute
                     var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteInfo: ref useSiteInfo);
+=======
+                    var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.None);
+>>>>>>> dotnet/main
                     diagnostics.Add(node, useSiteInfo);
                     diagnostics.AddRange(resolution.Diagnostics);
                     if (resolution.HasAnyErrors)
