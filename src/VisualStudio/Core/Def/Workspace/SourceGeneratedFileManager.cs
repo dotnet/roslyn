@@ -227,7 +227,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
     {
     }
 
-    private class OpenSourceGeneratedFile : ForegroundThreadAffinitizedObject, IDisposable
+    private sealed class OpenSourceGeneratedFile : ForegroundThreadAffinitizedObject, IDisposable
     {
         private readonly SourceGeneratedFileManager _fileManager;
         private readonly ITextBuffer _textBuffer;
