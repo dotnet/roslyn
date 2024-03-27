@@ -34899,95 +34899,109 @@ partial class Program
                 """);
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72098")]
         [Fact]
-        public void AddMethod_System_Windows_Input_InputGestureCollection()
+        public void AddMethod_Derived_01()
         {
-            string sourceA = """
+            string source = """
                 using System.Collections;
                 using System.Collections.Generic;
-                namespace System.Windows.Input
-                {
-                    public class InputGesture
-                    {
-                    }
-                    public sealed class InputGestureCollection : IList
-                    {
-                        private readonly List<object> _list = new();
-                        object IList.this[int index] { get => _list[index]; set => _list[index] = value; }
-                        bool IList.IsFixedSize => false;
-                        bool IList.IsReadOnly => false;
-                        int ICollection.Count => _list.Count;
-                        bool ICollection.IsSynchronized => false;
-                        object ICollection.SyncRoot => this;
-                        int IList.Add(object value) => ((IList)_list).Add(value);
-                        void IList.Clear() { _list.Clear(); }
-                        bool IList.Contains(object value) => _list.Contains(value);
-                        void ICollection.CopyTo(Array array, int index) => ((IList)_list).CopyTo(array, index);
-                        IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
-                        int IList.IndexOf(object value) => _list.IndexOf(value);
-                        void IList.Insert(int index, object value) => _list.Insert(index, value);
-                        void IList.Remove(object value) => _list.Remove(value);
-                        void IList.RemoveAt(int index) => _list.RemoveAt(index);
-                        public int Add(InputGesture value) => ((IList)_list).Add(value);
-                    }
-                }
-                """;
-            var comp = CreateCompilation(sourceA);
-            var refA = comp.EmitToImageReference();
 
-            string sourceB = """
-                using System.Windows.Input;
+                class Element { }
+
+                class ElementCollection : IEnumerable
+                {
+                    private readonly List<object> _list = new();
+                    public IEnumerator GetEnumerator() => _list.GetEnumerator();
+                    public void Add(Element element) { _list.Add(element); }
+                }
+
                 class Program
                 {
                     static void Main()
                     {
-                        InputGestureCollection c = [new InputGesture(), null];
+                        ElementCollection c = [new Element(), null];
                         c.Report();
                     }
                 }
                 """;
-            CompileAndVerify([sourceB, s_collectionExtensions], references: [refA], expectedOutput: "[System.Windows.Input.InputGesture, null], ");
+            CompileAndVerify([source, s_collectionExtensions], expectedOutput: "[Element, null], ");
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72098")]
         [Fact]
-        public void AddMethod_System_CommandLine_Command()
+        public void AddMethod_Derived_02()
         {
-            string sourceA = """
+            string source = """
                 using System.Collections;
                 using System.Collections.Generic;
-                namespace System.CommandLine
-                {
-                    public class Symbol
-                    {
-                    }
-                    public class Argument : Symbol
-                    {
-                    }
-                    public class Command : Symbol, IEnumerable<Symbol>
-                    {
-                        private readonly List<Symbol> _symbols = new();
-                        public IEnumerator<Symbol> GetEnumerator() => _symbols.GetEnumerator();
-                        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-                        public void Add(Argument argument) { _symbols.Add(argument); }
-                        public void Add(Command command) { _symbols.Add(command); }
-                    }
-                }
-                """;
-            var comp = CreateCompilation(sourceA);
-            var refA = comp.EmitToImageReference();
 
-            string sourceB = """
-                using System.CommandLine;
+                class Base { }
+                class Element : Base { }
+
+                class ElementCollection : IEnumerable<Base>
+                {
+                    private readonly List<Base> _list = new();
+                    public IEnumerator<Base> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    public void Add(Element element) { _list.Add(element); }
+                }
+
                 class Program
                 {
                     static void Main()
                     {
-                        Command c = [new Argument(), new Command()];
+                        ElementCollection c = [new Element(), null];
                         c.Report();
                     }
                 }
                 """;
-            CompileAndVerify([sourceB, s_collectionExtensions], references: [refA], expectedOutput: "[System.CommandLine.Argument, []], ");
+            CompileAndVerify([source, s_collectionExtensions], expectedOutput: "[Element, null], ");
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71240")]
+        [Fact]
+        public void AddMethod_Derived_03()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class Sample<T> : IEnumerable<object[]>
+                {
+                    private readonly List<object[]> _list = new();
+                    IEnumerator<object[]> IEnumerable<object[]>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public void Add(T t) { if (t is object[] o) _list.Add(o); }
+                }
+                """;
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Sample<string[]> s = [["a"], ["b"], ["c"]];
+                        s.Report();
+                    }
+                }
+                """;
+            CompileAndVerify([sourceA, sourceB1, s_collectionExtensions], expectedOutput: "[[a], [b], [c]], ");
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Sample<string> s = ["a", null];
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB2]);
+            comp.VerifyEmitDiagnostics(
+                // (5,29): error CS0029: Cannot implicitly convert type 'string' to 'object[]'
+                //         Sample<string> s = ["a", null];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""a""").WithArguments("string", "object[]").WithLocation(5, 29));
         }
 
         [Fact]
