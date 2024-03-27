@@ -436,18 +436,30 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 
             if (oldProject != null && newProject != null)
             {
+                // Trivial check.  see if the SG version of these projects changed.  If so, we definitely want to update
+                // this generated file.
+                if (oldProject.SourceGeneratorVersion != newProject.SourceGeneratorVersion)
+                {
+                    _batchingWorkQueue.AddWork();
+                    return;
+                }
+
                 // We'll start this work asynchronously to figure out if we need to change; if the file is closed the cancellationToken
                 // is triggered and this will no-op.
                 var asyncToken = _fileManager._listener.BeginAsyncOperation(nameof(OpenSourceGeneratedFile) + "." + nameof(OnWorkspaceChanged));
+                CheckDependentVersionsAsync().CompletesAsyncOperation(asyncToken);
+            }
 
-                Task.Run(async () =>
+            async Task CheckDependentVersionsAsync()
+            {
+                // Ensure we do this off the thread that is telling us about workspace changes.
+                await Task.Yield();
+
+                if (await oldProject.GetDependentVersionAsync(_cancellationTokenSource.Token).ConfigureAwait(false) !=
+                    await newProject.GetDependentVersionAsync(_cancellationTokenSource.Token).ConfigureAwait(false))
                 {
-                    if (await oldProject.GetDependentVersionAsync(_cancellationTokenSource.Token).ConfigureAwait(false) !=
-                        await newProject.GetDependentVersionAsync(_cancellationTokenSource.Token).ConfigureAwait(false))
-                    {
-                        _batchingWorkQueue.AddWork();
-                    }
-                }, _cancellationTokenSource.Token).CompletesAsyncOperation(asyncToken);
+                    _batchingWorkQueue.AddWork();
+                }
             }
         }
 
