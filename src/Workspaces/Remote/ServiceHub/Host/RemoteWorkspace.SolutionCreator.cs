@@ -58,12 +58,13 @@ namespace Microsoft.CodeAnalysis.Remote
                     // if needed again later.
                     solution = solution.WithoutFrozenSourceGeneratedDocuments();
 
-                    var oldSolutionCompilationChecksums = await solution.CompilationState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                     var newSolutionCompilationChecksums = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
                         assetHint: AssetHint.None, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
-                    var oldSolutionChecksums = await solution.CompilationState.SolutionState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                     var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
                         assetHint: AssetHint.None, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
+
+                    var oldSolutionCompilationChecksums = await solution.CompilationState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                    var oldSolutionChecksums = await solution.CompilationState.SolutionState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
                     if (oldSolutionChecksums.Attributes != newSolutionChecksums.Attributes)
                     {
@@ -178,12 +179,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var _4 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var oldProjectIdToStateChecksums);
                 using var _5 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var newProjectIdToStateChecksums);
 
+                // Now, find the full state checksums for all the old projects
                 foreach (var (projectId, oldChecksum) in oldProjectIdToChecksum)
                 {
-                    var oldProjectState = solutionState.GetRequiredProjectState(projectId);
-
                     // this should be cheap since we already computed oldSolutionChecksums (which calls into this).
-                    var oldProjectStateChecksums = await oldProjectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                    var oldProjectStateChecksums = await solutionState
+                        .GetRequiredProjectState(projectId)
+                        .GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                     Contract.ThrowIfTrue(oldProjectStateChecksums.ProjectId != projectId);
                     Contract.ThrowIfTrue(oldChecksum != oldProjectStateChecksums.Checksum);
 
@@ -438,21 +440,61 @@ namespace Microsoft.CodeAnalysis.Remote
                 Func<Solution, ImmutableArray<DocumentId>, Solution> removeDocuments,
                 CancellationToken cancellationToken) where TDocumentState : TextDocumentState
             {
-                using var _1 = PooledHashSet<Checksum>.GetInstance(out var olds);
-                using var _2 = PooledHashSet<Checksum>.GetInstance(out var news);
+                using var _1 = PooledDictionary<DocumentId, Checksum>.GetInstance(out var oldDocumentIdToChecksum);
+                using var _2 = PooledDictionary<DocumentId, Checksum>.GetInstance(out var newDocumentIdToChecksum);
+                using var _3 = PooledHashSet<DocumentId>.GetInstance(out var allDocumentIds);
 
-                olds.AddRange(oldChecksums.Checksums.Children);
-                news.AddRange(newChecksums.Checksums.Children);
+                foreach (var (oldChecksum, documentId) in oldChecksums)
+                    oldDocumentIdToChecksum.Add(documentId, oldChecksum);
 
-                // remove documents that exist in both side
-                olds.ExceptWith(newChecksums.Checksums);
-                news.ExceptWith(oldChecksums.Checksums);
+                foreach (var (newChecksum, documentId) in newChecksums)
+                    newDocumentIdToChecksum.Add(documentId, newChecksum);
 
-                using var _3 = PooledDictionary<DocumentId, DocumentStateChecksums>.GetInstance(out var oldDocumentIdToStateChecksums);
-                using var _4 = PooledDictionary<DocumentId, DocumentStateChecksums>.GetInstance(out var newDocumentIdToStateChecksums);
+                allDocumentIds.AddRange(oldChecksums.Ids);
+                allDocumentIds.AddRange(newChecksums.Ids);
 
-                await PopulateOldDocumentMapAsync().ConfigureAwait(false);
-                await PopulateNewDocumentMapAsync(this).ConfigureAwait(false);
+                // remove documents that are the same on both sides
+                // remove projects that are the same on both sides.
+                foreach (var documentId in allDocumentIds)
+                {
+                    if (oldDocumentIdToChecksum.TryGetValue(documentId, out var oldChecksum) &&
+                        newDocumentIdToChecksum.TryGetValue(documentId, out var newChecksum) &&
+                        oldChecksum == newChecksum)
+                    {
+                        oldDocumentIdToChecksum.Remove(documentId);
+                        newDocumentIdToChecksum.Remove(documentId);
+                    }
+                }
+
+                using var _4 = PooledDictionary<DocumentId, DocumentStateChecksums>.GetInstance(out var oldDocumentIdToStateChecksums);
+                using var _5 = PooledDictionary<DocumentId, DocumentStateChecksums>.GetInstance(out var newDocumentIdToStateChecksums);
+
+                // Now, find the full state checksums for all the old documents
+                foreach (var (documentId, oldChecksum) in oldDocumentIdToChecksum)
+                {
+                    // this should be cheap since we already computed oldSolutionChecksums (which calls into this).
+                    var oldDocumentStateChecksums = await existingTextDocumentStates
+                        .GetRequiredState(documentId)
+                        .GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfTrue(oldDocumentStateChecksums.DocumentId != documentId);
+                    Contract.ThrowIfTrue(oldDocumentStateChecksums.Checksum != oldChecksum);
+
+                    oldDocumentIdToStateChecksums.Add(documentId, oldDocumentStateChecksums);
+                }
+
+                // sync over the *info* about all the added/changed documents.  We'll want the info so we can determine
+                // what actually changed.
+                using var _6 = PooledHashSet<Checksum>.GetInstance(out var newChecksumsToSync);
+                newChecksumsToSync.AddRange(newDocumentIdToChecksum.Values);
+
+                var documentStateChecksums = await _assetProvider.GetAssetsAsync<DocumentStateChecksums>(
+                    assetHint: project.Id, newChecksumsToSync, cancellationToken).ConfigureAwait(false);
+
+                foreach (var (checksum, documentStateChecksum) in documentStateChecksums)
+                {
+                    Contract.ThrowIfTrue(checksum != documentStateChecksum.Checksum);
+                    newDocumentIdToStateChecksums.Add(documentStateChecksum.DocumentId, documentStateChecksum);
+                }
 
                 // If more than two documents changed during a single update, perform a bulk synchronization on the
                 // project to avoid large numbers of small synchronization calls during document updates.
@@ -462,6 +504,17 @@ namespace Microsoft.CodeAnalysis.Remote
                     await _assetProvider.SynchronizeProjectAssetsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
                 }
 
+                return await UpdateDocumentsAsync(project, addDocuments, removeDocuments, oldDocumentIdToStateChecksums, newDocumentIdToStateChecksums, cancellationToken).ConfigureAwait(false);
+            }
+
+            private async Task<Project> UpdateDocumentsAsync(
+                Project project,
+                Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
+                Func<Solution, ImmutableArray<DocumentId>, Solution> removeDocuments,
+                Dictionary<DocumentId, DocumentStateChecksums> oldDocumentIdToStateChecksums,
+                Dictionary<DocumentId, DocumentStateChecksums> newDocumentIdToStateChecksums,
+                CancellationToken cancellationToken)
+            {
                 // added document
                 ImmutableArray<DocumentInfo>.Builder? lazyDocumentsToAdd = null;
                 foreach (var (documentId, newDocumentChecksums) in newDocumentIdToStateChecksums)
@@ -482,22 +535,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     project = addDocuments(project.Solution, lazyDocumentsToAdd.ToImmutable()).GetProject(project.Id)!;
                 }
 
-                // changed document
-                foreach (var (documentId, newDocumentChecksums) in newDocumentIdToStateChecksums)
-                {
-                    if (!oldDocumentIdToStateChecksums.TryGetValue(documentId, out var oldDocumentChecksums))
-                    {
-                        continue;
-                    }
-
-                    Contract.ThrowIfTrue(oldDocumentChecksums.Checksum == newDocumentChecksums.Checksum);
-
-                    var document = project.GetDocument(documentId) ?? project.GetAdditionalDocument(documentId) ?? project.GetAnalyzerConfigDocument(documentId);
-                    Contract.ThrowIfNull(document);
-
-                    project = await UpdateDocumentAsync(document, oldDocumentChecksums, newDocumentChecksums, cancellationToken).ConfigureAwait(false);
-                }
-
                 // removed document
                 ImmutableArray<DocumentId>.Builder? lazyDocumentsToRemove = null;
                 foreach (var (documentId, _) in oldDocumentIdToStateChecksums)
@@ -515,26 +552,23 @@ namespace Microsoft.CodeAnalysis.Remote
                     project = removeDocuments(project.Solution, lazyDocumentsToRemove.ToImmutable()).GetProject(project.Id)!;
                 }
 
-                return project;
-
-                async Task PopulateOldDocumentMapAsync()
+                // changed document
+                foreach (var (documentId, newDocumentChecksums) in newDocumentIdToStateChecksums)
                 {
-                    foreach (var (_, state) in existingTextDocumentStates.States)
+                    if (!oldDocumentIdToStateChecksums.TryGetValue(documentId, out var oldDocumentChecksums))
                     {
-                        var documentChecksums = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-                        if (olds.Contains(documentChecksums.Checksum))
-                            oldDocumentIdToStateChecksums.Add(state.Id, documentChecksums);
+                        continue;
                     }
+
+                    Contract.ThrowIfTrue(oldDocumentChecksums.Checksum == newDocumentChecksums.Checksum);
+
+                    var document = project.GetDocument(documentId) ?? project.GetAdditionalDocument(documentId) ?? project.GetAnalyzerConfigDocument(documentId);
+                    Contract.ThrowIfNull(document);
+
+                    project = await UpdateDocumentAsync(document, oldDocumentChecksums, newDocumentChecksums, cancellationToken).ConfigureAwait(false);
                 }
 
-                async Task PopulateNewDocumentMapAsync(SolutionCreator @this)
-                {
-                    var documentStateChecksums = await @this._assetProvider.GetAssetsAsync<DocumentStateChecksums>(
-                        assetHint: project.Id, news, cancellationToken).ConfigureAwait(false);
-
-                    foreach (var (_, documentStateChecksum) in documentStateChecksums)
-                        newDocumentIdToStateChecksums.Add(documentStateChecksum.DocumentId, documentStateChecksum);
-                }
+                return project;
             }
 
             private async Task<Project> UpdateDocumentAsync(TextDocument document, DocumentStateChecksums oldDocumentChecksums, DocumentStateChecksums newDocumentChecksums, CancellationToken cancellationToken)
