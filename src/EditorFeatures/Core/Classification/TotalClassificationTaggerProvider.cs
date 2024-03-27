@@ -136,8 +136,7 @@ internal sealed class TotalClassificationAggregateTagger(
         {
             // If both the syntactic and semantic tags are for the same span, then prefer the semantic one.  The latter
             // is more accurate, but often will produce these accurate tags more slowly than the syntactic classifier.
-            if (currentSyntactic.Span == currentSemantic.Span &&
-                PreferSemanticOverSyntactic(currentSyntactic, currentSemantic))
+            if (PreferCurrentSemanticOverSyntacticTag())
             {
                 totalTags.Add(currentSemantic);
                 currentSyntactic = GetNextSyntacticSpan();
@@ -197,6 +196,24 @@ internal sealed class TotalClassificationAggregateTagger(
         await AddEmbeddedClassificationsAsync().ConfigureAwait(false);
 
         return;
+
+        bool PreferCurrentSemanticOverSyntacticTag()
+        {
+            if (currentSyntactic.Span == currentSemantic.Span)
+            {
+                // If they have the same classification type, then can def take one instead of both.
+                if (currentSyntactic.Tag == currentSemantic.Tag)
+                    return true;
+
+                // Syntactic identifiers can be overridden by better semantic interpretations.
+                if (currentSyntactic.Tag.ClassificationType.Classification is ClassificationTypeNames.Identifier)
+                    return true;
+            }
+
+            // Something else.  For now keep both.  This can be revised in the future if other cases where semantics should
+            // override syntax are found.
+            return false;
+        }
 
         bool TryProcessSyntacticStringLiteral()
         {
@@ -269,23 +286,6 @@ internal sealed class TotalClassificationAggregateTagger(
 
         ITagSpan<IClassificationTag>? GetNextSemanticSpan()
             => semanticEnumerator.MoveNext() ? semanticEnumerator.Current : null;
-    }
-
-    private static bool PreferSemanticOverSyntactic(
-        ITagSpan<IClassificationTag> currentSyntactic,
-        ITagSpan<IClassificationTag> currentSemantic)
-    {
-        // If they have the same classification type, then can def take one instead of both.
-        if (currentSyntactic.Tag == currentSemantic.Tag)
-            return true;
-
-        // Syntactic identifiers can be overridden by better semantic interpretations.
-        if (currentSyntactic.Tag.ClassificationType.Classification is ClassificationTypeNames.Identifier)
-            return true;
-
-        // Something else.  For now keep both.  This can be revised in the future if other cases where semantics should
-        // override syntax are found.
-        return false;
     }
 
     private readonly struct ClassificationTagSpanIntervalIntrospector : IIntervalIntrospector<ITagSpan<IClassificationTag>>
