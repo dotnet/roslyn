@@ -1127,7 +1127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Debug.Assert(finalApplicableCandidates.Length > 0);
 
-                                addMethods = filterOutBadGenericMethods(addMethodBinder, syntax, methodGroup, resolution, finalApplicableCandidates, ref useSiteInfo);
+                                addMethods = filterOutBadGenericMethods(addMethodBinder, syntax, methodGroup, analyzedArguments, resolution, finalApplicableCandidates, ref useSiteInfo);
                                 result = !addMethods.IsEmpty;
                             }
                         }
@@ -1151,18 +1151,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             static ImmutableArray<MethodSymbol> filterOutBadGenericMethods(
-                Binder addMethodBinder, SyntaxNode syntax, BoundMethodGroup methodGroup, MethodGroupResolution resolution,
+                Binder addMethodBinder, SyntaxNode syntax, BoundMethodGroup methodGroup, AnalyzedArguments analyzedArguments, MethodGroupResolution resolution,
                 ImmutableArray<MemberResolutionResult<MethodSymbol>> finalApplicableCandidates, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 Debug.Assert(methodGroup.ReceiverOpt is not null);
-
-                ImmutableArray<MethodSymbol> addMethods;
                 var resultBuilder = ArrayBuilder<MethodSymbol>.GetInstance(finalApplicableCandidates.Length);
 
                 foreach (var candidate in finalApplicableCandidates)
                 {
                     // If the method is generic, skip it if the type arguments cannot be inferred.
-                    var typeParameters = candidate.Member.TypeParameters;
+                    var member = candidate.Member;
+                    var typeParameters = member.TypeParameters;
 
                     if (!typeParameters.IsEmpty)
                     {
@@ -1172,73 +1171,61 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Overload resolution doesn't check the conversion when 'this' type refers to a type parameter
                             TypeSymbol? receiverType = methodGroup.ReceiverOpt.Type;
                             Debug.Assert(receiverType is not null);
-                            bool thisTypeIsOpen = typeParameters.Any((typeParameter, parameter) => parameter.Type.ContainsTypeParameter(typeParameter), candidate.Member.Parameters[0]);
+                            bool thisTypeIsOpen = typeParameters.Any((typeParameter, parameter) => parameter.Type.ContainsTypeParameter(typeParameter), member.Parameters[0]);
                             MethodSymbol? constructed = null;
                             bool wasFullyInferred = false;
 
                             if (thisTypeIsOpen)
                             {
                                 constructed = ReducedExtensionMethodSymbol.InferExtensionMethodTypeArguments(
-                                                            candidate.Member, receiverType, addMethodBinder.Compilation, ref useSiteInfo, out wasFullyInferred);
+                                                            member, receiverType, addMethodBinder.Compilation, ref useSiteInfo, out wasFullyInferred);
                             }
 
                             if (constructed is null || !wasFullyInferred)
                             {
                                 // It is quite possible that inference failed because we didn't supply type from the second argument
-                                if (typeParameters.Any((typeParameter, parameter) => parameter.Type.ContainsTypeParameter(typeParameter), candidate.Member.Parameters[1]))
-                                {
-                                    // Let's attempt inference with type for the second parameter
-                                    // We are going to use the second parameter's type for that
-                                    var definition = candidate.Member;
-                                    var argumentRefKinds = ArrayBuilder<RefKind>.GetInstance(2, RefKind.None);
-
-                                    OverloadResolution.GetEffectiveParameterTypes(
-                                        definition,
-                                        argumentCount: 2,
-                                        argToParamMap: default,
-                                        argumentRefKinds: argumentRefKinds,
-                                        isMethodGroupConversion: false,
-                                        allowRefOmittedArguments: methodGroup.ReceiverOpt.IsExpressionOfComImportType(),
-                                        binder: addMethodBinder,
-                                        expanded: candidate.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
-                                        parameterTypes: out ImmutableArray<TypeWithAnnotations> parameterTypes,
-                                        parameterRefKinds: out ImmutableArray<RefKind> parameterRefKinds);
-
-                                    argumentRefKinds.Free();
-
-                                    TypeSymbol secondArgumentType = candidate.Member.Parameters[1].Type;
-
-                                    if (constructed?.TypeSubstitution is { } typeMap)
-                                    {
-                                        // If we were able to infer something just from the first parameter,
-                                        // apply that to the second type, otherwise inference is going to fail
-                                        // for those type parameters.
-                                        secondArgumentType = typeMap.SubstituteType(secondArgumentType).Type;
-                                    }
-
-                                    MethodTypeInferenceResult inferenceResult = MethodTypeInferrer.Infer(
-                                        addMethodBinder,
-                                        addMethodBinder.Conversions,
-                                        definition.TypeParameters,
-                                        definition.ContainingType,
-                                        parameterTypes,
-                                        parameterRefKinds,
-                                        ImmutableArray.Create<BoundExpression>(methodGroup.ReceiverOpt, new BoundValuePlaceholder(syntax, secondArgumentType) { WasCompilerGenerated = true }),
-                                        ref useSiteInfo);
-
-                                    if (!inferenceResult.Success)
-                                    {
-                                        continue;
-                                    }
-
-                                    if (thisTypeIsOpen)
-                                    {
-                                        constructed = definition.Construct(inferenceResult.InferredTypeArguments);
-                                    }
-                                }
-                                else
+                                if (!typeParameters.Any((typeParameter, parameter) => parameter.Type.ContainsTypeParameter(typeParameter), member.Parameters[1]))
                                 {
                                     continue;
+                                }
+
+                                // Let's attempt inference with type for the second parameter
+                                // We are going to use the second parameter's type for that
+                                OverloadResolution.GetEffectiveParameterTypes(
+                                    member,
+                                    argumentCount: 2,
+                                    argToParamMap: default,
+                                    argumentRefKinds: analyzedArguments.RefKinds,
+                                    isMethodGroupConversion: false,
+                                    allowRefOmittedArguments: methodGroup.ReceiverOpt.IsExpressionOfComImportType(), // PROTOTYPE: Test effect of this flag
+                                    binder: addMethodBinder,
+                                    expanded: candidate.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
+                                    parameterTypes: out ImmutableArray<TypeWithAnnotations> parameterTypes,
+                                    parameterRefKinds: out ImmutableArray<RefKind> parameterRefKinds);
+
+                                // If we were able to infer something just from the first parameter,
+                                // use partially substituted second type, otherwise inference might fail
+                                // for type parameters "shared" between the parameters.
+                                TypeSymbol secondArgumentType = (constructed ?? member).Parameters[1].Type;
+
+                                MethodTypeInferenceResult inferenceResult = MethodTypeInferrer.Infer(
+                                    addMethodBinder,
+                                    addMethodBinder.Conversions,
+                                    member.TypeParameters,
+                                    member.ContainingType,
+                                    parameterTypes,
+                                    parameterRefKinds,
+                                    ImmutableArray.Create<BoundExpression>(methodGroup.ReceiverOpt, new BoundValuePlaceholder(syntax, secondArgumentType) { WasCompilerGenerated = true }),
+                                    ref useSiteInfo);
+
+                                if (!inferenceResult.Success)
+                                {
+                                    continue;
+                                }
+
+                                if (thisTypeIsOpen)
+                                {
+                                    constructed = member.Construct(inferenceResult.InferredTypeArguments);
                                 }
                             }
 
@@ -1254,18 +1241,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                             }
                         }
-                        else if (typeParameters.Any((typeParameter, parameter) => !parameter.Type.ContainsTypeParameter(typeParameter), candidate.Member.Parameters[0]))
+                        else if (typeParameters.Any((typeParameter, parameter) => !parameter.Type.ContainsTypeParameter(typeParameter), member.Parameters[0]))
                         {
                             // A type parameter does not appear in the parameter type.
                             continue;
                         }
                     }
 
-                    resultBuilder.Add(candidate.Member);
+                    resultBuilder.Add(member);
                 }
 
-                addMethods = resultBuilder.ToImmutableAndFree();
-                return addMethods;
+                return resultBuilder.ToImmutableAndFree();
             }
 
             // This is what CanEarlyBindSingleCandidateInvocationWithDynamicArgument is doing in terms of reporting diagnostics and detecting a failure

@@ -36709,6 +36709,53 @@ partial class Program
         }
 
         [Fact]
+        public void AddMethod_Extension_12_ConstraintsViolated()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable
+                {
+                    private readonly List<T> _list = new();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    internal void __AddInternal(T t) { _list.Add(t); }
+                }
+                static class Extensions
+                {
+                    public static void Add<T>(this MyCollection<T> collection, params T[] args)
+                        where T : struct
+                    {
+                        if (args is null) return;
+                        foreach (var a in args)
+                            collection.__AddInternal(a);
+                    }
+                }
+                """;
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<int?> z = [x, ..y];
+                        z.Report();
+                        MyCollection<int?> w = new() { x };
+                    }
+                }
+                """;
+            CreateCompilation([sourceA, sourceB1, s_collectionExtensions]).VerifyDiagnostics(
+                // (7,32): error CS9230: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         MyCollection<int?> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y]").WithArguments("MyCollection<int?>").WithLocation(7, 32),
+                // (9,40): error CS0453: The type 'int?' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Extensions.Add<T>(MyCollection<T>, params T[])'
+                //         MyCollection<int?> w = new() { x };
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("Extensions.Add<T>(MyCollection<T>, params T[])", "T", "int?").WithLocation(9, 40)
+                );
+        }
+
+        [Fact]
         public void AddMethod_Base()
         {
             string source = """
