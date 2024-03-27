@@ -1209,10 +1209,7 @@ class C
         await Task.FromResult(false);
     }
 }");
-            comp.VerifyDiagnostics(
-                // (7,26): error CS8177: Async methods cannot have by-reference locals
-                //         ref readonly int x = ref (new int[1])[0];
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "x").WithLocation(7, 26));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1229,10 +1226,7 @@ class C
         yield return i;
     }
 }");
-            comp.VerifyDiagnostics(
-                // (7,26): error CS8176: Iterators cannot have by-reference locals
-                //         ref readonly int x = ref (new int[1])[0];
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(7, 26));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1247,7 +1241,7 @@ class C
         switch (this)
         {
             default:
-                ref readonly int x = ref (new int[1])[0]; // 1
+                ref readonly int x = ref (new int[1])[0];
                 yield return 1;
                 yield return x;
 
@@ -1260,10 +1254,10 @@ class C
         }
     }
 }");
-            comp.VerifyDiagnostics(
-                // (10,34): error CS8176: Iterators cannot have by-reference locals
-                //                 ref readonly int x = ref (new int[1])[0]; // 1
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(10, 34));
+            comp.VerifyEmitDiagnostics(
+                // (12,30): error CS4013: Instance of type 'ref readonly int' cannot be used inside a nested function, query expression, iterator block or async method
+                //                 yield return x;
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "x").WithArguments("ref readonly ", "int").WithLocation(12, 30));
         }
 
         [Fact]
@@ -1278,22 +1272,19 @@ class C
         switch (this)
         {
             default:
-                ref readonly int x; // 1, 2
+                ref readonly int x; // 1
                 yield return 1;
-                yield return x; // 3
+                yield return x; // 2
                 break;
         }
     }
 }");
             comp.VerifyDiagnostics(
-                // (10,34): error CS8176: Iterators cannot have by-reference locals
-                //                 ref readonly int x; // 1, 2
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(10, 34),
                 // (10,34): error CS8174: A declaration of a by-reference variable must have an initializer
-                //                 ref readonly int x; // 1, 2
+                //                 ref readonly int x; // 1
                 Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "x").WithLocation(10, 34),
                 // (12,30): error CS0165: Use of unassigned local variable 'x'
-                //                 yield return x; // 3
+                //                 yield return x; // 2
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(12, 30));
         }
 
@@ -1316,9 +1307,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (10,43): error CS8176: Iterators cannot have by-reference locals
+                // (10,49): error CS1510: A ref or out value must be an assignable variable
                 //                 foreach (ref readonly int x in (new int[1]))
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(10, 43));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new int[1]").WithLocation(10, 49));
         }
 
         [Fact]
@@ -1331,18 +1322,15 @@ class C
     IEnumerable<int> M()
     {
         if (true)
-            ref int x = ref (new int[1])[0]; // 1, 2
+            ref int x = ref (new int[1])[0]; // 1
         
         yield return 1;
     }
 }");
             comp.VerifyDiagnostics(
                 // (8,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
-                //             ref int x = ref (new int[1])[0]; // 1, 2
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "ref int x = ref (new int[1])[0];").WithLocation(8, 13),
-                // (8,21): error CS8176: Iterators cannot have by-reference locals
-                //             ref int x = ref (new int[1])[0]; // 1, 2
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(8, 21));
+                //             ref int x = ref (new int[1])[0]; // 1
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "ref int x = ref (new int[1])[0];").WithLocation(8, 13));
         }
 
         [Fact]
@@ -1355,18 +1343,15 @@ class C
     async Task M()
     {
         if (true)
-            ref int x = ref (new int[1])[0]; // 1, 2
+            ref int x = ref (new int[1])[0]; // 1
         
         await Task.Yield();
     }
 }");
             comp.VerifyDiagnostics(
                 // (8,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
-                //             ref int x = ref (new int[1])[0]; // 1, 2
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "ref int x = ref (new int[1])[0];").WithLocation(8, 13),
-                // (8,21): error CS8177: Async methods cannot have by-reference locals
-                //             ref int x = ref (new int[1])[0]; // 1, 2
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "x").WithLocation(8, 21));
+                //             ref int x = ref (new int[1])[0]; // 1
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "ref int x = ref (new int[1])[0];").WithLocation(8, 13));
         }
 
         [Fact]
@@ -3088,13 +3073,7 @@ class TestClass
     }
 }";
 
-            CreateCompilation(code).VerifyDiagnostics(
-                // (13,21): error CS8176: Iterators cannot have by-reference locals
-                //             ref int z = ref x;
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "z").WithLocation(13, 21),
-                // (8,17): error CS8176: Iterators cannot have by-reference locals
-                //         ref int y = ref x;
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "y").WithLocation(8, 17));
+            CreateCompilation(code).VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
@@ -3115,13 +3094,7 @@ class TestClass
         });
     }
 }";
-            CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
-                // (8,17): error CS8177: Async methods cannot have by-reference locals
-                //         ref int y = ref x;
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "y").WithLocation(8, 17),
-                // (11,21): error CS8177: Async methods cannot have by-reference locals
-                //             ref int z = ref x;
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "z").WithLocation(11, 21));
+            CreateCompilationWithMscorlib45(code).VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
@@ -3434,10 +3407,7 @@ class Program
 }
 ";
 
-            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (8,17): error CS8177: Async methods cannot have by-reference locals
-                //         ref int i = ref field;
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "i").WithLocation(8, 17),
+            CreateCompilationWithMscorlib46(text).VerifyEmitDiagnostics(
                 // (6,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     static async void Goo()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo").WithLocation(6, 23));
@@ -3461,10 +3431,7 @@ class Program
 }
 ";
 
-            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (10,17): error CS8931: Iterators cannot have by-reference locals
-                //         ref int i = ref field;
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "i").WithLocation(10, 17));
+            CreateCompilationWithMscorlib46(text).VerifyEmitDiagnostics();
         }
 
         [Fact]

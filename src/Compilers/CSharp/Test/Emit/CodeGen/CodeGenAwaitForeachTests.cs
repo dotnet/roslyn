@@ -1695,17 +1695,88 @@ class C
             => throw null;
         public int Current { get => throw null; }
     }
-}";
-            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
+}" + s_IAsyncEnumerable;
+
+            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
-                // (6,32): error CS8177: Async methods cannot have by-reference locals
+                // (6,32): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         await foreach (ref var i in new C())
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "i").WithLocation(6, 32));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(6, 32));
+
+            var expectedDiagnostics = new[]
+            {
+                // (6,37): error CS1510: A ref or out value must be an assignable variable
+                //         await foreach (ref var i in new C())
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new C()").WithLocation(6, 37)
+            };
+
+            comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilationWithTasksExtensions(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             Assert.Equal(default, model.GetForEachStatementInfo(foreachSyntax));
+        }
+
+        [Theory, CombinatorialData]
+        public void TestWithPattern_Ref_Iterator([CombinatorialValues("        ", "readonly")] string modifier)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    static async Task Main()
+                    {
+                        await foreach (int i in F())
+                        {
+                            Console.Write(i);
+                        }
+                    }
+
+                    static async IAsyncEnumerable<int> F()
+                    {
+                        await foreach (ref {{modifier}} var i in new C())
+                        {
+                            yield return i;
+                        }
+                    }
+
+                    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token = default) => new();
+
+                    public sealed class Enumerator
+                    {
+                        private readonly int[] _array = [1, 2, 3];
+                        private int _index = -1;
+                        public Task<bool> MoveNextAsync()
+                        {
+                            if (_index < _array.Length) _index++;
+                            return Task.FromResult(_index < _array.Length);
+                        }       
+                        public ref int Current => ref _array[_index];
+                    }
+                }
+                """ + AsyncStreamsTypes;
+
+            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (17,41): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await foreach (ref readonly var i in new C())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(17, 41));
+
+            var expectedOutput = "123";
+
+            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
