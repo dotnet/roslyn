@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -36,12 +37,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 [Export(typeof(SourceGeneratedFileManager))]
 internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly SVsServiceProvider _serviceProvider;
     private readonly IThreadingContext _threadingContext;
     private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffinitizedObject;
-    private readonly IAsynchronousOperationListener _listener;
     private readonly ITextDocumentFactoryService _textDocumentFactoryService;
     private readonly VisualStudioDocumentNavigationService _visualStudioDocumentNavigationService;
+
+    private readonly IAsynchronousOperationListener _listener;
+    private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
     /// <summary>
     /// The temporary directory that we'll create file names under to act as a prefix we can later recognize and use.
@@ -67,7 +70,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public SourceGeneratedFileManager(
-        [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+        SVsServiceProvider serviceProvider,
         IThreadingContext threadingContext,
         OpenTextBufferProvider openTextBufferProvider,
         IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
@@ -84,9 +87,10 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         _visualStudioWorkspace = visualStudioWorkspace;
         _visualStudioDocumentNavigationService = visualStudioDocumentNavigationService;
 
-        Directory.CreateDirectory(_temporaryDirectory);
-
+        _listenerProvider = listenerProvider;
         _listener = listenerProvider.GetListener(FeatureAttribute.SourceGenerators);
+
+        Directory.CreateDirectory(_temporaryDirectory);
 
         openTextBufferProvider.AddListener(this);
     }
@@ -254,12 +258,14 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         /// we haven't been given it yet.
         /// </summary>
         private IVsWindowFrame? _windowFrame;
+        private VisualStudioInfoBar? _infoBar;
 
         private string? _windowFrameMessageToShow = null;
         private ImageMoniker _windowFrameImageMonikerToShow = default;
         private string? _currentWindowFrameMessage = null;
         private ImageMoniker _currentWindowFrameImageMoniker = default;
-        private IVsInfoBarUIElement? _currentWindowFrameInfoBarElement = null;
+        //
+        //private IVsInfoBarUIElement? _currentWindowFrameInfoBarElement = null;
 
         public OpenSourceGeneratedFile(SourceGeneratedFileManager fileManager, ITextBuffer textBuffer, Workspace workspace, SourceGeneratedDocumentIdentity documentIdentity, IThreadingContext threadingContext)
             : base(threadingContext, assertIsForeground: true)
@@ -462,6 +468,8 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             }
 
             _windowFrame = windowFrame;
+            _infoBar = new VisualStudioInfoBar(
+                this.ThreadingContext, _fileManager._serviceProvider, _fileManager._listenerProvider, windowFrame);
 
             // We'll override the window frame and never show it as dirty, even if there's an underlying edit
             windowFrame.SetProperty((int)__VSFPROPID2.VSFPROPID_OverrideDirtyState, false);
@@ -475,38 +483,25 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         {
             AssertIsForeground();
 
-            if (_windowFrameMessageToShow == null ||
-                _windowFrame == null ||
-                _currentWindowFrameMessage == _windowFrameMessageToShow &&
-                !_currentWindowFrameImageMoniker.Equals(_windowFrameImageMonikerToShow))
+            if (_windowFrameMessageToShow is null ||
+                _infoBar is null)
             {
-                // We don't have anything to do, or anything to do yet.
+                // If we don't have a frame, or even a message, we can't do anything yet.
                 return;
             }
 
-            var infoBarFactory = (IVsInfoBarUIFactory)_fileManager._serviceProvider.GetService(typeof(SVsInfoBarUIFactory));
-            Assumes.Present(infoBarFactory);
-
-            if (ErrorHandler.Failed(_windowFrame.GetProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, out var infoBarHostObject)) ||
-                infoBarHostObject is not IVsInfoBarHost infoBarHost)
+            if (_currentWindowFrameMessage == _windowFrameMessageToShow &&
+                _currentWindowFrameImageMoniker.Equals(_windowFrameImageMonikerToShow))
             {
+                // bail out if no change is needed
                 return;
             }
 
-            // Remove the existing bar
-            if (_currentWindowFrameInfoBarElement != null)
-            {
-                infoBarHost.RemoveInfoBar(_currentWindowFrameInfoBarElement);
-            }
-
-            var infoBar = new InfoBarModel(_windowFrameMessageToShow, _windowFrameImageMonikerToShow, isCloseButtonVisible: false);
-            var infoBarUI = infoBarFactory.CreateInfoBar(infoBar);
-
-            infoBarHost.AddInfoBar(infoBarUI);
+            _infoBar.ShowInfoBar(
+                _windowFrameMessageToShow, removeExistingInfoBar: true, isCloseButtonVisible: false, _windowFrameImageMonikerToShow);
 
             _currentWindowFrameMessage = _windowFrameMessageToShow;
             _currentWindowFrameImageMoniker = _windowFrameImageMonikerToShow;
-            _currentWindowFrameInfoBarElement = infoBarUI;
         }
 
         public Task<bool> NavigateToSpanAsync(TextSpan sourceSpan, CancellationToken cancellationToken)

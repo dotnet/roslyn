@@ -35,7 +35,9 @@ internal partial class VisualStudioErrorReportingService : IErrorReportingServic
         _threadingContext = threadingContext;
         _activityLog = activityLog;
         _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
-        _infoBar = new VisualStudioInfoBar(threadingContext, serviceProvider, listenerProvider);
+
+        // Attach this info bar to the global shell location for info-bars (independent of any particular window).
+        _infoBar = new VisualStudioInfoBar(threadingContext, serviceProvider, listenerProvider, windowFrame: null);
     }
 
     public string HostDisplayName => "Visual Studio";
