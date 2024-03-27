@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private NamespaceSymbol? _lazyContainingNamespace;
 
             /// <summary>
-            /// Either <see cref="SpecialType"/>, <see cref="WellKnownType"/>, or -1 if not initialized.
+            /// Either <see cref="SpecialType"/>, <see cref="InternalSpecialType"/>, <see cref="WellKnownType"/>, or -1 if not initialized.
             /// </summary>
             private int _lazyTypeId;
 
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
 
-            public TopLevel(ModuleSymbol module, ref MetadataTypeName fullName, SpecialType specialType, DiagnosticInfo? errorInfo = null)
+            public TopLevel(ModuleSymbol module, ref MetadataTypeName fullName, ExtendedSpecialType specialType, DiagnosticInfo? errorInfo = null)
                 : this(module, ref fullName, (int)specialType, errorInfo)
             {
             }
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (_lazyTypeId == -1)
                     {
-                        SpecialType typeId = SpecialType.None;
+                        ExtendedSpecialType typeId = default;
 
                         AssemblySymbol containingAssembly = _containingModule.ContainingAssembly;
 
@@ -305,12 +305,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            public override SpecialType SpecialType
+            public override ExtendedSpecialType ExtendedSpecialType
             {
                 get
                 {
                     int typeId = TypeId;
-                    return (typeId >= (int)WellKnownType.First) ? SpecialType.None : (SpecialType)_lazyTypeId;
+                    return (typeId >= (int)WellKnownType.First) ? SpecialType.None : (ExtendedSpecialType)typeId;
                 }
             }
 
@@ -434,11 +434,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            public override SpecialType SpecialType
+            public override ExtendedSpecialType ExtendedSpecialType
             {
                 get
                 {
-                    return SpecialType.None; // do not have nested types among CORE types yet.
+                    return default; // do not have nested types among CORE types yet.
                 }
             }
 

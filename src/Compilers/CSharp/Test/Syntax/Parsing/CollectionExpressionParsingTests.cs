@@ -17128,4 +17128,988 @@ class C
         N(SyntaxKind.CloseBracketToken);
         EOF();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72557")]
+    public void TestIncompleteString1()
+    {
+        UsingTree("""
+            public enum BundleType
+            {
+                [A("B", "C"), Description("Goo
+                bar baz")]
+                A,
+                [A("B", "C"), Description("Goo
+                bar baz")]
+                B,
+            }
+            """,
+            // (3,31): error CS1010: Newline in constant
+            //     [A("B", "C"), Description("Goo
+            Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(3, 31),
+            // (3,35): error CS1026: ) expected
+            //     [A("B", "C"), Description("Goo
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 35),
+            // (3,35): error CS1003: Syntax error, ',' expected
+            //     [A("B", "C"), Description("Goo
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(3, 35),
+            // (4,9): error CS1003: Syntax error, ',' expected
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "baz").WithArguments(",").WithLocation(4, 9),
+            // (4,12): error CS1010: Newline in constant
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(4, 12),
+            // (4,15): error CS1003: Syntax error, ',' expected
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(4, 15),
+            // (5,7): error CS1003: Syntax error, ']' expected
+            //     A,
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(5, 7),
+            // (6,31): error CS1010: Newline in constant
+            //     [A("B", "C"), Description("Goo
+            Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(6, 31),
+            // (6,35): error CS1026: ) expected
+            //     [A("B", "C"), Description("Goo
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 35),
+            // (6,35): error CS1003: Syntax error, ',' expected
+            //     [A("B", "C"), Description("Goo
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(6, 35),
+            // (7,9): error CS1003: Syntax error, ',' expected
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "baz").WithArguments(",").WithLocation(7, 9),
+            // (7,12): error CS1010: Newline in constant
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(7, 12),
+            // (7,15): error CS1003: Syntax error, ',' expected
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(7, 15),
+            // (8,7): error CS1003: Syntax error, ']' expected
+            //     B,
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(8, 7),
+            // (8,7): error CS1001: Identifier expected
+            //     B,
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(8, 7));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.EnumDeclaration);
+            {
+                N(SyntaxKind.PublicKeyword);
+                N(SyntaxKind.EnumKeyword);
+                N(SyntaxKind.IdentifierToken, "BundleType");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.EnumMemberDeclaration);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"B\"");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"C\"");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Description");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"Goo");
+                                    }
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "bar");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "baz");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"B\"");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"C\"");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Description");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"Goo");
+                                    }
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "bar");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "baz");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.CloseBracketToken);
+                    }
+                    M(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72557")]
+    public void TestIncompleteString2()
+    {
+        UsingTree("""
+            public enum BundleType
+            {
+                [A("B", "C"), Description("X", "Goo
+                bar baz")]
+                A,
+                [A("B", "C"), Description("X", "Goo
+                bar baz")]
+                B,
+            }
+            """,
+            // (3,36): error CS1010: Newline in constant
+            //     [A("B", "C"), Description("X", "Goo
+            Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(3, 36),
+            // (3,40): error CS1026: ) expected
+            //     [A("B", "C"), Description("X", "Goo
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 40),
+            // (3,40): error CS1003: Syntax error, ',' expected
+            //     [A("B", "C"), Description("X", "Goo
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(3, 40),
+            // (4,9): error CS1003: Syntax error, ',' expected
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "baz").WithArguments(",").WithLocation(4, 9),
+            // (4,12): error CS1010: Newline in constant
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(4, 12),
+            // (4,15): error CS1003: Syntax error, ',' expected
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(4, 15),
+            // (5,7): error CS1003: Syntax error, ']' expected
+            //     A,
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(5, 7),
+            // (6,36): error CS1010: Newline in constant
+            //     [A("B", "C"), Description("X", "Goo
+            Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(6, 36),
+            // (6,40): error CS1026: ) expected
+            //     [A("B", "C"), Description("X", "Goo
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 40),
+            // (6,40): error CS1003: Syntax error, ',' expected
+            //     [A("B", "C"), Description("X", "Goo
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(6, 40),
+            // (7,9): error CS1003: Syntax error, ',' expected
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "baz").WithArguments(",").WithLocation(7, 9),
+            // (7,12): error CS1010: Newline in constant
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(7, 12),
+            // (7,15): error CS1003: Syntax error, ',' expected
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(7, 15),
+            // (8,7): error CS1003: Syntax error, ']' expected
+            //     B,
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(8, 7),
+            // (8,7): error CS1001: Identifier expected
+            //     B,
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(8, 7));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.EnumDeclaration);
+            {
+                N(SyntaxKind.PublicKeyword);
+                N(SyntaxKind.EnumKeyword);
+                N(SyntaxKind.IdentifierToken, "BundleType");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.EnumMemberDeclaration);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"B\"");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"C\"");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Description");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"X\"");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"Goo");
+                                    }
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "bar");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "baz");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"B\"");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"C\"");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Description");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"X\"");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"Goo");
+                                    }
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "bar");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "baz");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.CloseBracketToken);
+                    }
+                    M(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72557")]
+    public void TestIncompleteString3()
+    {
+        UsingTree("""
+            public enum BundleType
+            {
+                [A("B", "C"), Description($"Goo
+                bar baz")]
+                A,
+                [A("B", "C"), Description($"Goo
+                bar baz")]
+                B,
+            }
+            """,
+            // (3,35): error CS1039: Unterminated string literal
+            //     [A("B", "C"), Description($"Goo
+            Diagnostic(ErrorCode.ERR_UnterminatedStringLit, "o").WithLocation(3, 35),
+            // (3,36): error CS1026: ) expected
+            //     [A("B", "C"), Description($"Goo
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 36),
+            // (3,36): error CS1003: Syntax error, ',' expected
+            //     [A("B", "C"), Description($"Goo
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(3, 36),
+            // (4,9): error CS1003: Syntax error, ',' expected
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "baz").WithArguments(",").WithLocation(4, 9),
+            // (4,12): error CS1010: Newline in constant
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(4, 12),
+            // (4,15): error CS1003: Syntax error, ',' expected
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(4, 15),
+            // (5,7): error CS1003: Syntax error, ']' expected
+            //     A,
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(5, 7),
+            // (6,35): error CS1039: Unterminated string literal
+            //     [A("B", "C"), Description($"Goo
+            Diagnostic(ErrorCode.ERR_UnterminatedStringLit, "o").WithLocation(6, 35),
+            // (6,36): error CS1026: ) expected
+            //     [A("B", "C"), Description($"Goo
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 36),
+            // (6,36): error CS1003: Syntax error, ',' expected
+            //     [A("B", "C"), Description($"Goo
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(6, 36),
+            // (7,9): error CS1003: Syntax error, ',' expected
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "baz").WithArguments(",").WithLocation(7, 9),
+            // (7,12): error CS1010: Newline in constant
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(7, 12),
+            // (7,15): error CS1003: Syntax error, ',' expected
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(7, 15),
+            // (8,7): error CS1003: Syntax error, ']' expected
+            //     B,
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(8, 7),
+            // (8,7): error CS1001: Identifier expected
+            //     B,
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(8, 7));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.EnumDeclaration);
+            {
+                N(SyntaxKind.PublicKeyword);
+                N(SyntaxKind.EnumKeyword);
+                N(SyntaxKind.IdentifierToken, "BundleType");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.EnumMemberDeclaration);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"B\"");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"C\"");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Description");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.InterpolatedStringExpression);
+                                    {
+                                        N(SyntaxKind.InterpolatedStringStartToken);
+                                        N(SyntaxKind.InterpolatedStringText);
+                                        {
+                                            N(SyntaxKind.InterpolatedStringTextToken);
+                                        }
+                                        M(SyntaxKind.InterpolatedStringEndToken);
+                                    }
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "bar");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "baz");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"B\"");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"C\"");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Description");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.InterpolatedStringExpression);
+                                    {
+                                        N(SyntaxKind.InterpolatedStringStartToken);
+                                        N(SyntaxKind.InterpolatedStringText);
+                                        {
+                                            N(SyntaxKind.InterpolatedStringTextToken);
+                                        }
+                                        M(SyntaxKind.InterpolatedStringEndToken);
+                                    }
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "bar");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "baz");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.CloseBracketToken);
+                    }
+                    M(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72557")]
+    public void TestIncompleteString4()
+    {
+        UsingTree("""
+            public enum BundleType
+            {
+                [A("B", "C"), Description("X", $"Goo
+                bar baz")]
+                A,
+                [A("B", "C"), Description("X", $"Goo
+                bar baz")]
+                B,
+            }
+            """,
+            // (3,40): error CS1039: Unterminated string literal
+            //     [A("B", "C"), Description("X", $"Goo
+            Diagnostic(ErrorCode.ERR_UnterminatedStringLit, "o").WithLocation(3, 40),
+            // (3,41): error CS1026: ) expected
+            //     [A("B", "C"), Description("X", $"Goo
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 41),
+            // (3,41): error CS1003: Syntax error, ',' expected
+            //     [A("B", "C"), Description("X", $"Goo
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(3, 41),
+            // (4,9): error CS1003: Syntax error, ',' expected
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "baz").WithArguments(",").WithLocation(4, 9),
+            // (4,12): error CS1010: Newline in constant
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(4, 12),
+            // (4,15): error CS1003: Syntax error, ',' expected
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(4, 15),
+            // (5,7): error CS1003: Syntax error, ']' expected
+            //     A,
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(5, 7),
+            // (6,40): error CS1039: Unterminated string literal
+            //     [A("B", "C"), Description("X", $"Goo
+            Diagnostic(ErrorCode.ERR_UnterminatedStringLit, "o").WithLocation(6, 40),
+            // (6,41): error CS1026: ) expected
+            //     [A("B", "C"), Description("X", $"Goo
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 41),
+            // (6,41): error CS1003: Syntax error, ',' expected
+            //     [A("B", "C"), Description("X", $"Goo
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(6, 41),
+            // (7,9): error CS1003: Syntax error, ',' expected
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "baz").WithArguments(",").WithLocation(7, 9),
+            // (7,12): error CS1010: Newline in constant
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(7, 12),
+            // (7,15): error CS1003: Syntax error, ',' expected
+            //     bar baz")]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(7, 15),
+            // (8,7): error CS1003: Syntax error, ']' expected
+            //     B,
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(8, 7),
+            // (8,7): error CS1001: Identifier expected
+            //     B,
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(8, 7));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.EnumDeclaration);
+            {
+                N(SyntaxKind.PublicKeyword);
+                N(SyntaxKind.EnumKeyword);
+                N(SyntaxKind.IdentifierToken, "BundleType");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.EnumMemberDeclaration);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"B\"");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"C\"");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Description");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"X\"");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.InterpolatedStringExpression);
+                                    {
+                                        N(SyntaxKind.InterpolatedStringStartToken);
+                                        N(SyntaxKind.InterpolatedStringText);
+                                        {
+                                            N(SyntaxKind.InterpolatedStringTextToken);
+                                        }
+                                        M(SyntaxKind.InterpolatedStringEndToken);
+                                    }
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "bar");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "baz");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"B\"");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"C\"");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Description");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.StringLiteralExpression);
+                                    {
+                                        N(SyntaxKind.StringLiteralToken, "\"X\"");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.InterpolatedStringExpression);
+                                    {
+                                        N(SyntaxKind.InterpolatedStringStartToken);
+                                        N(SyntaxKind.InterpolatedStringText);
+                                        {
+                                            N(SyntaxKind.InterpolatedStringTextToken);
+                                        }
+                                        M(SyntaxKind.InterpolatedStringEndToken);
+                                    }
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "bar");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "baz");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.CloseBracketToken);
+                    }
+                    M(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
 }

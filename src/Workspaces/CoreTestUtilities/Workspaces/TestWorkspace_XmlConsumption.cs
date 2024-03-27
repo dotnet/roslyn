@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private const string CommonReferencesNetCoreAppName = "CommonReferencesNetCoreApp";
         private const string CommonReferencesNet6Name = "CommonReferencesNet6";
         private const string CommonReferencesNet7Name = "CommonReferencesNet7";
+        private const string CommonReferencesNet8Name = "CommonReferencesNet8";
         private const string CommonReferencesNetStandard20Name = "CommonReferencesNetStandard20";
         private const string CommonReferencesMinCorlibName = "CommonReferencesMinCorlib";
         private const string ReferencesOnDiskAttributeName = "ReferencesOnDisk";
@@ -926,6 +927,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ((bool?)net7).Value)
             {
                 references = TargetFrameworkUtil.GetReferences(TargetFramework.Net70).ToList();
+            }
+
+            var net8 = element.Attribute(CommonReferencesNet8Name);
+            if (net8 != null &&
+                ((bool?)net8).HasValue &&
+                ((bool?)net8).Value)
+            {
+                references = TargetFrameworkUtil.GetReferences(TargetFramework.Net80).ToList();
             }
 
             var mincorlib = element.Attribute(CommonReferencesMinCorlibName);

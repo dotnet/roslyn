@@ -1289,5 +1289,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Regex.OtherEscape("a"),
                 Regex.Comment("(?#comment)"));
         }
+
+        [Theory, CombinatorialData]
+        public async Task TestRegexNotOnBinaryExpression(TestHost testHost)
+        {
+            await TestAsync(
+                """
+                using System.Text.RegularExpressions;
+
+                class Program
+                {
+                    void Goo()
+                    {
+                        // language=regex
+                        var r = @"[a-" + @"z]";
+                    }
+                }
+                """,
+                testHost,
+                Namespace("System"),
+                Namespace("Text"),
+                Namespace("RegularExpressions"),
+                Keyword("var"));
+        }
     }
 }

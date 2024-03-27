@@ -1107,6 +1107,23 @@ public class UseCollectionExpressionForArrayTests
         }.RunAsync();
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72337")]
+    public async Task TestTargetTypedArgumentPrimaryConstructor1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                       class C(int[] x);
+                       class C2() : C([|[|new|] int[]|] { 1, 2, 3 });
+                       """,
+            FixedCode = """
+                        class C(int[] x);
+                        class C2() : C([1, 2, 3]);
+                        """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
     [Fact]
     public async Task TestNotTargetTypedArgument2()
     {

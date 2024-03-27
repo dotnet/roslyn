@@ -77,7 +77,6 @@ public static class Classifier
     {
         var projectServices = services.GetLanguageServices(semanticModel.Language);
         var classificationService = projectServices.GetRequiredService<ISyntaxClassificationService>();
-        var embeddedLanguageService = projectServices.GetRequiredService<IEmbeddedLanguageClassificationService>();
 
         var syntaxClassifiers = classificationService.GetDefaultSyntaxClassifiers();
 
@@ -94,8 +93,12 @@ public static class Classifier
         classificationService.AddSemanticClassifications(semanticModel, textSpan, getNodeClassifiers, getTokenClassifiers, semanticClassifications, options, cancellationToken);
 
         // intentionally adding to the semanticClassifications array here.
-        if (includedEmbeddedClassifications && project != null)
+        if (includedEmbeddedClassifications
+            && project != null
+            && projectServices.GetService<IEmbeddedLanguageClassificationService>() is { } embeddedLanguageService)
+        {
             embeddedLanguageService.AddEmbeddedLanguageClassifications(services, project, semanticModel, textSpan, options, semanticClassifications, cancellationToken);
+        }
 
         var allClassifications = new List<ClassifiedSpan>(semanticClassifications.Where(s => s.TextSpan.OverlapsWith(textSpan)));
         var semanticSet = semanticClassifications.Select(s => s.TextSpan).ToSet();

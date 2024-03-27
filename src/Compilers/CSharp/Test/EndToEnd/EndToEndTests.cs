@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 
         // This test is a canary attempting to make sure that we don't regress the # of fluent calls that 
         // the compiler can handle. 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1874763")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/72678"), WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1874763")]
         public void OverflowOnFluentCall_ExtensionMethods()
         {
             int numberFluentCalls = (IntPtr.Size, ExecutionConditionUtil.Configuration, RuntimeUtilities.IsDesktopRuntime, RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) switch

@@ -34,7 +34,8 @@ try {
 
   if ($bootstrap) {
     Write-Host "Building Roslyn"
-    Exec-Script (Join-Path $PSScriptRoot "build.ps1") "-restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog"
+    & eng/build.ps1 -restore -build -bootstrap -prepareMachine:$prepareMachine -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog
+    Test-LastExitCode
   }
 
   Subst-TempDir

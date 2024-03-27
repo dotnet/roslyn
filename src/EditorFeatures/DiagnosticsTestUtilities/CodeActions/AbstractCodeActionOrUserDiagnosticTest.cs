@@ -155,9 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             => null;
 
         protected virtual TestComposition GetComposition()
-            => EditorTestCompositions.EditorFeatures
-                .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
-                .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
+            => EditorTestCompositions.EditorFeatures;
 
         protected virtual void InitializeWorkspace(EditorTestWorkspace workspace, TestParameters parameters)
         {

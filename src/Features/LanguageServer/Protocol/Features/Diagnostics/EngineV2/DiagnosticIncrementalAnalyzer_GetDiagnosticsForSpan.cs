@@ -121,9 +121,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // If we are computing full document diagnostics, we will attempt to perform incremental
                 // member edit analysis. This analysis is currently only enabled with LSP pull diagnostics.
                 var incrementalAnalysis = !range.HasValue
-                    && document is Document sourceDocument
-                    && sourceDocument.SupportsSyntaxTree
-                    && owner.GlobalOptions.IsLspPullDiagnostics();
+                    && document is Document { SupportsSyntaxTree: true };
 
                 return new LatestDiagnosticsForSpanGetter(
                     owner, compilationWithAnalyzers, document, text, stateSets, shouldIncludeDiagnostic, includeCompilerDiagnostics,

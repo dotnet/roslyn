@@ -209,6 +209,14 @@
   </ItemGroup>
 
   <!--
+    Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk.props creates content items for all files in .vsextension dir.
+    NuGet includes content items in package, by default but these items should only be included in the VSIX.
+  -->
+  <ItemGroup>
+    <Content Update=".vsextension\**\*" Pack="false" />
+  </ItemGroup>
+
+  <!--
     Append common text to package specific PackageDescription.
   -->
   <Target Name="_AppendCommonPackageDescription" 

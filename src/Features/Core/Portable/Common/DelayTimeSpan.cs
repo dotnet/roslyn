@@ -29,6 +29,11 @@ internal static class DelayTimeSpan
     public static readonly TimeSpan Idle = TimeSpan.FromMilliseconds(1500);
 
     /// <summary>
+    /// 10 seconds.
+    /// </summary>
+    public static readonly TimeSpan IdleWithLongDelay = TimeSpan.FromMilliseconds(10000);
+
+    /// <summary>
     /// 3 seconds.
     /// </summary>
     public static readonly TimeSpan NonFocus = TimeSpan.FromMilliseconds(3000);

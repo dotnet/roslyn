@@ -1328,9 +1328,6 @@ This version used in: {2}</value>
   <data name="Implement_explicitly" xml:space="preserve">
     <value>Implement explicitly</value>
   </data>
-  <data name="Resolve_conflict_markers" xml:space="preserve">
-    <value>Resolve conflict markers</value>
-  </data>
   <data name="Base_classes_contain_inaccessible_unimplemented_members" xml:space="preserve">
     <value>Base classes contain inaccessible unimplemented members</value>
   </data>
@@ -3227,5 +3224,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Fix_All_0" xml:space="preserve">
     <value>Fix All: {0}</value>
+  </data>
+  <data name="Built_in_Copilot_analysis" xml:space="preserve">
+    <value>Built-in Copilot analysis</value>
+  </data>
+  <data name="Dismiss" xml:space="preserve">
+    <value>Dismiss</value>
   </data>
 </root>

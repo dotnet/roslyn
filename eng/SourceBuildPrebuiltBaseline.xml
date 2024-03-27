@@ -32,6 +32,7 @@
     <UsagePattern IdentityGlob="System.Configuration.ConfigurationManager/8.0*" />
     <UsagePattern IdentityGlob="System.Diagnostics.DiagnosticSource/8.0*" />
     <UsagePattern IdentityGlob="System.Diagnostics.EventLog/8.0*" />
+    <UsagePattern IdentityGlob="System.Resources.Extensions/8.0*" />
     <UsagePattern IdentityGlob="System.Security.Cryptography.ProtectedData/8.0*" />
     <UsagePattern IdentityGlob="System.Security.Permissions/8.0*" />
     <UsagePattern IdentityGlob="System.Text.Encodings.Web/8.0*" />

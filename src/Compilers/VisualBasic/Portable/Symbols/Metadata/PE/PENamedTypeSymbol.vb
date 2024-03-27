@@ -1137,13 +1137,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         If Not import Then
                             Select Case Me.TypeKind
                                 Case TypeKind.Structure
-                                    Dim specialType = Me.SpecialType
-                                    If specialType = SpecialType.None OrElse specialType = SpecialType.System_Nullable_T Then
-                                        ' This is an ordinary struct
-                                        If ([module].GetFieldDefFlagsOrThrow(fieldDef) And FieldAttributes.Static) = 0 Then
-                                            import = True
-                                        End If
-                                    End If
+                                    Select Case Me.SpecialType
+                                        Case SpecialType.System_Void,
+                                             SpecialType.System_Boolean,
+                                             SpecialType.System_Char,
+                                             SpecialType.System_Byte,
+                                             SpecialType.System_SByte,
+                                             SpecialType.System_Int16,
+                                             SpecialType.System_UInt16,
+                                             SpecialType.System_Int32,
+                                             SpecialType.System_UInt32,
+                                             SpecialType.System_Int64,
+                                             SpecialType.System_UInt64,
+                                             SpecialType.System_Single,
+                                             SpecialType.System_Double,
+                                             SpecialType.System_Decimal,
+                                             SpecialType.System_IntPtr,
+                                             SpecialType.System_UIntPtr,
+                                             SpecialType.System_DateTime,
+                                             SpecialType.System_TypedReference,
+                                             SpecialType.System_ArgIterator,
+                                             SpecialType.System_RuntimeArgumentHandle,
+                                             SpecialType.System_RuntimeFieldHandle,
+                                             SpecialType.System_RuntimeMethodHandle,
+                                             SpecialType.System_RuntimeTypeHandle
+                                        Case Else
+                                            ' This is an ordinary struct
+                                            If ([module].GetFieldDefFlagsOrThrow(fieldDef) And FieldAttributes.Static) = 0 Then
+                                                import = True
+                                            End If
+                                    End Select
 
                                 Case TypeKind.Enum
                                     If ([module].GetFieldDefFlagsOrThrow(fieldDef) And FieldAttributes.Static) = 0 Then

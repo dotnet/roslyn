@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -22,13 +21,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public async ValueTask SynchronizeWithBuildAsync(
+        public async ValueTask<ImmutableArray<DiagnosticData>> SynchronizeWithBuildAsync(
             ImmutableDictionary<ProjectId,
             ImmutableArray<DiagnosticData>> buildDiagnostics,
-            TaskQueue postBuildAndErrorListRefreshTaskQueue,
             bool onBuildCompleted,
             CancellationToken cancellationToken)
         {
+            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var allDiagnostics);
+
             using (Logger.LogBlock(FunctionId.DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync, LogSynchronizeWithBuild, buildDiagnostics, cancellationToken))
             {
                 DebugVerifyBuildDiagnostics(buildDiagnostics);
@@ -59,46 +59,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         var result = GetResultOrEmpty(newResult, stateSet.Analyzer, project.Id, VersionStamp.Default);
 
                         await state.SaveToInMemoryStorageAsync(project, result).ConfigureAwait(false);
-                    }
-
-                    // Raise diagnostic updated events after the new diagnostics have been stored into the in-memory cache.
-                    if (diagnostics.IsEmpty)
-                    {
-                        ClearAllDiagnostics(stateSets, projectId);
-                    }
-                    else
-                    {
-                        RaiseProjectDiagnosticsIfNeeded(project, stateSets, newResult);
+                        allDiagnostics.AddRange(result.GetAllDiagnostics());
                     }
                 }
 
                 // Refresh live diagnostics after solution build completes.
                 if (onBuildCompleted)
-                {
-                    // Enqueue re-analysis of active document with high-priority right away.
-                    if (_documentTrackingService.GetActiveDocument(solution) is { } activeDocument)
-                    {
-                        AnalyzerService.Reanalyze(Workspace, projectIds: null, documentIds: ImmutableArray.Create(activeDocument.Id), highPriority: true);
-                    }
-
-                    // Enqueue remaining re-analysis with normal priority on a separate task queue
-                    // that will execute at the end of all the post build and error list refresh tasks.
-                    _ = postBuildAndErrorListRefreshTaskQueue.ScheduleTask(nameof(SynchronizeWithBuildAsync), () =>
-                    {
-                        // Enqueue re-analysis of open documents.
-                        AnalyzerService.Reanalyze(Workspace, projectIds: null, documentIds: Workspace.GetOpenDocumentIds(), highPriority: false);
-
-                        // Enqueue re-analysis of projects, if required.
-                        foreach (var projectsByLanguage in solution.Projects.GroupBy(p => p.Language))
-                        {
-                            if (GlobalOptions.IsFullSolutionAnalysisEnabled(projectsByLanguage.Key))
-                            {
-                                AnalyzerService.Reanalyze(Workspace, projectsByLanguage.Select(p => p.Id), documentIds: null, highPriority: false);
-                            }
-                        }
-                    }, cancellationToken);
-                }
+                    AnalyzerService.RequestDiagnosticRefresh();
             }
+
+            return allDiagnostics.ToImmutable();
         }
 
         [Conditional("DEBUG")]

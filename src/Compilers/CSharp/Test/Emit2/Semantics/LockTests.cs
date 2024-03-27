@@ -1749,6 +1749,106 @@ public class LockTests : CSharpTestBase
     }
 
     [Fact]
+    public void ObjectEquality()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            using System.Threading;
+
+            static class C
+            {
+                static void Main()
+                {
+                    Lock? l = new();
+                    if (l != null)
+                    {
+                        lock (l) { Console.Write("1"); }
+                    }
+                    if (l == null)
+                    {
+                        throw null!;
+                    }
+                    if (l is { })
+                    {
+                        lock (l) { Console.Write("2"); }
+                    }
+                    if (l is { } l2)
+                    {
+                        lock (l2) { Console.Write("3"); }
+                    }
+                    if (l is not { })
+                    {
+                        throw null!;
+                    }
+                    if (l is null)
+                    {
+                        throw null!;
+                    }
+                    if (l is not null)
+                    {
+                        lock (l) { Console.Write("4"); }
+                    }
+                    if (l is not null and var l3)
+                    {
+                        lock (l3) { Console.Write("5"); }
+                    }
+                    if (null != l)
+                    {
+                        lock (l) { Console.Write("6"); }
+                    }
+                    if (null == l)
+                    {
+                        throw null!;
+                    }
+                    if (!(l == null))
+                    {
+                        lock (l) { Console.Write("7"); }
+                    }
+                    if (!(l != null))
+                    {
+                        throw null!;
+                    }
+
+                    Lock? l4 = new();
+                    if (l == l4)
+                    {
+                        throw null!;
+                    }
+                    if (l != l4)
+                    {
+                        lock (l4) { Console.Write("8"); }
+                    }
+                    if (ReferenceEquals(l, l4))
+                    {
+                        throw null!;
+                    }
+                    if (((object)l) == l4)
+                    {
+                        throw null!;
+                    }
+                    if (l == new Lock())
+                    {
+                        throw null!;
+                    }
+                }
+            }
+            """;
+        var verifier = CompileAndVerify([source, LockTypeDefinition], verify: Verification.FailsILVerify,
+            expectedOutput: "E1DE2DE3DE4DE5DE6DE7DE8D");
+        verifier.VerifyDiagnostics(
+            // (68,29): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+            //         if (ReferenceEquals(l, l4))
+            Diagnostic(ErrorCode.WRN_ConvertingLock, "l").WithLocation(68, 29),
+            // (68,32): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+            //         if (ReferenceEquals(l, l4))
+            Diagnostic(ErrorCode.WRN_ConvertingLock, "l4").WithLocation(68, 32),
+            // (72,22): warning CS9216: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.
+            //         if (((object)l) == l4)
+            Diagnostic(ErrorCode.WRN_ConvertingLock, "l").WithLocation(72, 22));
+    }
+
+    [Fact]
     public void Await()
     {
         var source = """

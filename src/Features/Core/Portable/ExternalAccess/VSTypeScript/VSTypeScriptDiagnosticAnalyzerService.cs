@@ -20,5 +20,5 @@ internal sealed class VSTypeScriptAnalyzerService(IDiagnosticAnalyzerService ser
     private readonly IDiagnosticAnalyzerService _service = service;
 
     public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
-        => _service.Reanalyze(workspace, projectIds, documentIds, highPriority);
+        => _service.RequestDiagnosticRefresh();
 }

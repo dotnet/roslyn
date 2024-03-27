@@ -984,5 +984,90 @@ BC42508: A value of type 'System.Threading.Lock' converted to a different type w
   IL_002b:  ret
 }]]>)
         End Sub
+
+        <Fact>
+        Public Sub LockType_ObjectEquality()
+            Dim source = <![CDATA[
+Imports System
+Imports System.Threading
+
+Module Program
+    Sub Main()
+        Dim l As Lock = New Lock()
+
+        If l IsNot Nothing Then
+            Console.Write("1")
+        End If
+
+        If l Is Nothing Then
+            Throw New Exception
+        End If
+
+        If l IsNot Nothing Then
+            Console.Write("2")
+        End If
+
+        If l Is Nothing Then
+            Throw New Exception
+        End If
+
+        If Not (l Is Nothing) Then
+            Console.Write("3")
+        End If
+
+        If Not (l IsNot Nothing) Then
+            Throw New Exception
+        End If
+
+        Dim l2 As Lock = New Lock()
+
+        If l Is l2 Then
+            Throw New Exception
+        End If
+
+        If l IsNot l2 Then
+            Console.Write("4")
+        End If
+
+        If ReferenceEquals(l, l2) Then
+            Throw New Exception
+        End If
+
+        If (CObj(l)) Is l2 Then
+            Throw New Exception
+        End If
+
+        If (CObj(l)) IsNot l2 Then
+            Console.Write("5")
+        End If
+
+        If l Is New Lock() Then
+            Throw New Exception
+        End If
+    End Sub
+End Module
+
+Namespace System.Threading
+    Public Class Lock
+    End Class
+End Namespace
+]]>.Value
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            Dim verifier = CompileAndVerify(comp, expectedOutput:="12345")
+            verifier.Diagnostics.AssertTheseDiagnostics(<![CDATA[
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        If ReferenceEquals(l, l2) Then
+                           ~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        If ReferenceEquals(l, l2) Then
+                              ~~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        If (CObj(l)) Is l2 Then
+                 ~
+BC42508: A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.
+        If (CObj(l)) IsNot l2 Then
+                 ~
+]]>)
+        End Sub
     End Class
 End Namespace

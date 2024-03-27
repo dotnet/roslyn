@@ -117,18 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Node_does_not_descend_from_root" xml:space="preserve">
-    <value>Node does not descend from root.</value>
-  </data>
-  <data name="Node_not_in_parent_s_child_list" xml:space="preserve">
-    <value>Node not in parent's child list</value>
-  </data>
-  <data name="Trivia_is_not_associated_with_token" xml:space="preserve">
-    <value>Trivia is not associated with token</value>
-  </data>
-  <data name="Cannot_retrieve_the_Span_of_a_null_syntax_reference" xml:space="preserve">
-    <value>Cannot retrieve the Span of a null syntax reference.</value>
-  </data>
   <data name="Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit" xml:space="preserve">
     <value>Only attributes, constructor initializers, expressions or statements can be made explicit</value>
   </data>

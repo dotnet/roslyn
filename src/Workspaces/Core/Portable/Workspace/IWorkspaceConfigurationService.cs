@@ -39,11 +39,11 @@ internal readonly record struct WorkspaceConfigurationOptions(
     [property: DataMember(Order = 2)] bool DisableRecoverableText = false,
     [property: DataMember(Order = 3)] bool ValidateCompilationTrackerStates =
 #if DEBUG // We will default this on in DEBUG builds
-        true,
+        true
 #else
-        false,
+        false
 #endif
-    [property: DataMember(Order = 4)] bool RunSourceGeneratorsInSameProcessOnly = false)
+    )
 {
     public WorkspaceConfigurationOptions()
         : this(CacheStorage: StorageDatabase.SQLite)
@@ -59,6 +59,5 @@ internal readonly record struct WorkspaceConfigurationOptions(
     public static readonly WorkspaceConfigurationOptions RemoteDefault = new(
         CacheStorage: StorageDatabase.None,
         EnableOpeningSourceGeneratedFiles: false,
-        DisableRecoverableText: false,
-        RunSourceGeneratorsInSameProcessOnly: false);
+        DisableRecoverableText: false);
 }

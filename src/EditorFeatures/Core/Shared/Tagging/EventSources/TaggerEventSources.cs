@@ -50,9 +50,6 @@ internal static partial class TaggerEventSources
     public static ITaggerEventSource OnGlobalOptionChanged(IGlobalOptionService globalOptions, IOption2 globalOption)
         => new GlobalOptionChangedEventSource(globalOptions, globalOption);
 
-    public static ITaggerEventSource OnDiagnosticsChanged(ITextBuffer subjectBuffer, IDiagnosticService service)
-        => new DiagnosticsChangedEventSource(subjectBuffer, service);
-
     public static ITaggerEventSource OnParseOptionChanged(ITextBuffer subjectBuffer)
         => new ParseOptionChangedEventSource(subjectBuffer);
 

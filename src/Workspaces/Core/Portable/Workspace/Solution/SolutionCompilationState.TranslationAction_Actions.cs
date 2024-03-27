@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -126,16 +128,46 @@ internal partial class SolutionCompilationState
             ImmutableArray<DocumentState> documents)
             : TranslationAction(oldProjectState, newProjectState)
         {
+            /// <summary>
+            /// Amount to break batches of documents into.  That allows us to process things in parallel, without also
+            /// creating too many individual actions that then need to be processed.
+            /// </summary>
+            public const int AddDocumentsBatchSize = 32;
+
             public readonly ImmutableArray<DocumentState> Documents = documents;
 
             public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {
-                // Parse all the documents in parallel.
-                using var _ = ArrayBuilder<Task<SyntaxTree>>.GetInstance(this.Documents.Length, out var tasks);
-                foreach (var document in this.Documents)
-                    tasks.Add(Task.Run(async () => await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false), cancellationToken));
+#if NETSTANDARD
+                using var _1 = ArrayBuilder<Task>.GetInstance(this.Documents.Length, out var tasks);
 
-                var trees = await Task.WhenAll(tasks).ConfigureAwait(false);
+                // We want to parse in parallel.  But we don't want to have too many parses going on at the same time.
+                // So we use a semaphore here to only allow that many in at a time.  Once we hit that amount, it will
+                // block further parallel work.  However, as the semaphore is released, new work will be let in.
+                var semaphore = new SemaphoreSlim(initialCount: AddDocumentsBatchSize);
+                foreach (var document in this.Documents)
+                {
+                    tasks.Add(Task.Run(async () =>
+                    {
+                        using (await semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                            await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    }, cancellationToken));
+                }
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+#else
+                await Parallel.ForEachAsync(
+                    this.Documents,
+                    cancellationToken,
+                    static async (document, cancellationToken) =>
+                        await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
+#endif
+
+                using var _2 = ArrayBuilder<SyntaxTree>.GetInstance(this.Documents.Length, out var trees);
+
+                foreach (var document in this.Documents)
+                    trees.Add(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+
                 return oldCompilation.AddSyntaxTrees(trees);
             }
 

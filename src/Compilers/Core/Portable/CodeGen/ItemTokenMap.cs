@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        public IEnumerable<T> GetAllItems()
+        public T[] CopyItems()
         {
             lock (_items)
             {

@@ -123,7 +123,7 @@ IParameterInitializerOperation (Parameter: [System.Int32 p1 = 0]) (OperationKind
   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1751: Cannot specify a default value for a parameter array
+                // CS1751: Cannot specify a default value for a parameter collection
                 //     void M(int p1 /*<bind>*/= 0/*</bind>*/, params int[] p2 = null) { }
                 Diagnostic(ErrorCode.ERR_DefaultValueForParamsParameter, "params").WithLocation(4, 45)
             };
@@ -149,7 +149,7 @@ IParameterInitializerOperation (Parameter: params System.Int32[] p2) (OperationK
       ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1751: Cannot specify a default value for a parameter array
+                // CS1751: Cannot specify a default value for a parameter collection
                 //     void M(int p1 = 0, params int[] p2 /*<bind>*/= null/*</bind>*/) { }
                 Diagnostic(ErrorCode.ERR_DefaultValueForParamsParameter, "params").WithLocation(4, 24)
             };

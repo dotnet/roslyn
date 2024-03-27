@@ -6053,5 +6053,47 @@ public class C
             var comp = CSharpTestBase.CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
         }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void IsPatternExpressionInAsyncMethodShouldNotAffectHoistedLocals()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+                using System.Collections.Immutable;
+
+                await M(ImmutableArray.Create<string>("", new('a', 10), new('a', 20), new('a', 30)));
+                Console.WriteLine("done");
+
+                public partial class Program
+                {
+                    public static void M1(bool b)
+                    { 
+                        Console.WriteLine(b);
+                    }
+
+                    public static async Task M(ImmutableArray<string> a)
+                    {
+                        await Task.Yield();
+                        foreach (var i in a)
+                        {
+                            M1(i.Length is 10 or 20 or 30);
+                            await Task.Delay(1).ConfigureAwait(false);
+                        }
+                    }
+                }
+                """;
+
+            // ImmutableArray is only available when we specify a targetFramework
+            string expectedOutput = """
+                                    False
+                                    True
+                                    True
+                                    True
+                                    done
+                                    """;
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+        }
     }
 }

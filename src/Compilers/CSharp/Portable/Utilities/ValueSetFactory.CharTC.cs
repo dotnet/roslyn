@@ -4,7 +4,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -12,8 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class ValueSetFactory
     {
-        private struct CharTC : INumericTC<char>
+        private class CharTC : INumericTC<char>
         {
+            public static readonly CharTC Instance = new CharTC();
+
             char INumericTC<char>.MinValue => char.MinValue;
 
             char INumericTC<char>.MaxValue => char.MaxValue;

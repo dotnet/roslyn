@@ -5,6 +5,7 @@
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata;
 
@@ -44,15 +45,35 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
         /// (either for the VB runtime classes, or types like System.Task etc.) will need 
         /// to use IDs that are all mutually disjoint. 
         /// </summary>
-        public readonly short DeclaringTypeId;
+        private readonly short _declaringTypeId;
+
+        public bool IsSpecialTypeMember => _declaringTypeId < (int)InternalSpecialType.NextAvailable;
+
+        public ExtendedSpecialType DeclaringSpecialType
+        {
+            get
+            {
+                Debug.Assert(_declaringTypeId < (int)InternalSpecialType.NextAvailable);
+                return (ExtendedSpecialType)_declaringTypeId;
+            }
+        }
+
+        public WellKnownType DeclaringWellKnownType
+        {
+            get
+            {
+                Debug.Assert(_declaringTypeId >= (int)WellKnownType.First);
+                return (WellKnownType)_declaringTypeId;
+            }
+        }
 
         public string DeclaringTypeMetadataName
         {
             get
             {
-                return DeclaringTypeId <= (int)SpecialType.Count
-                           ? ((SpecialType)DeclaringTypeId).GetMetadataName()!
-                           : ((WellKnownType)DeclaringTypeId).GetMetadataName();
+                return IsSpecialTypeMember
+                           ? DeclaringSpecialType.GetMetadataName()!
+                           : DeclaringWellKnownType.GetMetadataName();
             }
         }
 
@@ -101,7 +122,7 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
             ushort Arity = 0)
         {
             this.Flags = Flags;
-            this.DeclaringTypeId = DeclaringTypeId;
+            this._declaringTypeId = DeclaringTypeId;
             this.Name = Name;
             this.Arity = Arity;
             this.Signature = Signature;

@@ -344,9 +344,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var getAwaiterMethod = ((BoundCall)getAwaiterCall).Method;
+            var call = (BoundCall)getAwaiterCall;
+            var getAwaiterMethod = call.Method;
             if (getAwaiterMethod is ErrorMethodSymbol ||
-                HasOptionalOrVariableParameters(getAwaiterMethod) || // We might have been able to resolve a GetAwaiter overload with optional parameters, so check for that here
+                call.Expanded || HasOptionalParameters(getAwaiterMethod) || // We might have been able to resolve a GetAwaiter overload with optional parameters, so check for that here
                 getAwaiterMethod.ReturnsVoid) // If GetAwaiter returns void, don't bother checking that it returns an Awaiter.
             {
                 Error(diagnostics, ErrorCode.ERR_BadAwaitArg, node, expression.Type);
@@ -451,7 +452,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            getResultMethod = ((BoundCall)getAwaiterGetResultCall).Method;
+            var call = (BoundCall)getAwaiterGetResultCall;
+            getResultMethod = call.Method;
             if (getResultMethod.IsExtensionMethod)
             {
                 Error(diagnostics, ErrorCode.ERR_NoSuchMember, node, awaiterType, WellKnownMemberNames.GetResult);
@@ -460,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (HasOptionalOrVariableParameters(getResultMethod) || getResultMethod.IsConditional)
+            if (call.Expanded || HasOptionalParameters(getResultMethod) || getResultMethod.IsConditional)
             {
                 Error(diagnostics, ErrorCode.ERR_BadAwaiterPattern, node, awaiterType, awaitedExpressionType);
                 getResultMethod = null;
@@ -472,14 +474,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private static bool HasOptionalOrVariableParameters(MethodSymbol method)
+        private static bool HasOptionalParameters(MethodSymbol method)
         {
             RoslynDebug.Assert(method != null);
 
             if (method.ParameterCount != 0)
             {
                 var parameter = method.Parameters[method.ParameterCount - 1];
-                return parameter.IsOptional || parameter.IsParams;
+                return parameter.IsOptional;
             }
 
             return false;

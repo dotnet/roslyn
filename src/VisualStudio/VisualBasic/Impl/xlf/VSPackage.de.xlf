@@ -130,16 +130,6 @@ Erweiterte Farben verwenden;Editor-Farbschema;Vererbungsspielraum;Richtlinien im
         <target state="translated">Visual Basic-Tools</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_Visual_Basic_script_file">
-        <source>An empty Visual Basic script file.</source>
-        <target state="translated">Eine leere Visual Basic-Skriptdatei.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Visual_Basic_Script">
-        <source>Visual Basic Script</source>
-        <target state="translated">Visual Basic-Skript</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

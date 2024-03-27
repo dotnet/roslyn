@@ -9,4 +9,5 @@ internal static class RedundantEqualityConstants
     public const string RedundantSide = nameof(RedundantSide);
     public const string Left = nameof(Left);
     public const string Right = nameof(Right);
+    public const string Negate = nameof(Negate);
 }

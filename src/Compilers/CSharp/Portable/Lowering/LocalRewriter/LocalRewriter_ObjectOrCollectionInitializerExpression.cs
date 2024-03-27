@@ -201,6 +201,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return initializer.Update(addMethod, rewrittenArguments, rewrittenReceiver, expanded: false, argsToParamsOpt: default, defaultArguments: default, invokedAsExtensionMethod: false, initializer.ResultKind, rewrittenType);
             }
 
+            if (Instrument)
+            {
+                Instrumenter.InterceptCallAndAdjustArguments(ref addMethod, ref rewrittenReceiver, ref rewrittenArguments, ref argumentRefKindsOpt);
+            }
+
             return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, argumentRefKindsOpt, initializer.ResultKind, addMethod.ReturnType, temps.ToImmutableAndFree());
         }
 
@@ -295,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!memberInit.Arguments.IsDefaultOrEmpty)
                         {
-                            Debug.Assert(memberInit.Arguments.Count(a => a.IsParamsArray) == (memberInit.Expanded ? 1 : 0));
+                            Debug.Assert(memberInit.Arguments.Count(a => a.IsParamsArrayOrCollection) <= (memberInit.Expanded ? 1 : 0));
 
                             var args = EvaluateSideEffectingArgumentsToTemps(
                                 memberInit.Arguments,
@@ -398,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (rewrittenArrayAccess is BoundArrayAccess arrayAccess)
                         {
-                            Debug.Assert(!arrayAccess.Indices.Any(a => a.IsParamsArray));
+                            Debug.Assert(!arrayAccess.Indices.Any(a => a.IsParamsArrayOrCollection));
 
                             var indices = EvaluateSideEffectingArgumentsToTemps(
                                 arrayAccess.Indices,
@@ -530,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var argument in initializerMember.Arguments)
                     {
-                        if (argument is BoundArrayCreation { IsParamsArray: true, InitializerOpt: var initializers })
+                        if (argument is BoundArrayCreation { IsParamsArrayOrCollection: true, InitializerOpt: var initializers })
                         {
                             Debug.Assert(initializers is not null);
                             foreach (var element in initializers.Initializers)
@@ -588,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression replacement;
 
-                if (arg.IsParamsArray)
+                if (arg.IsParamsArrayOrCollection)
                 {
                     // Capturing the array instead is going to lead to an observable behavior difference. Not just an IL difference,
                     // see Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.ObjectAndCollectionInitializerTests.DictionaryInitializerTestSideeffects001param for example.

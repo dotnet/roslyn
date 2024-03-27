@@ -78,6 +78,7 @@ prepare_machine=false
 warn_as_error=false
 properties=""
 source_build=false
+restoreUseStaticGraphEvaluation=true
 solution_to_build="Compilers.slnf"
 
 args=""
@@ -172,6 +173,8 @@ while [[ $# > 0 ]]; do
       # Arcade specifies /p:ArcadeBuildFromSource=true instead of --sourceBuild, but that's not developer friendly so we
       # have an alias.
       source_build=true
+      # RestoreUseStaticGraphEvaluation will cause prebuilts
+      restoreUseStaticGraphEvaluation=false
       ;;
     --solution)
       solution_to_build=$2
@@ -294,6 +297,7 @@ function BuildSolution {
     /p:Pack=$pack \
     /p:Publish=$publish \
     /p:RunAnalyzersDuringBuild=$run_analyzers \
+    /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \

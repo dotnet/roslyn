@@ -3003,7 +3003,7 @@ True";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("ConsoleApp1.TestHelper.IsValueTypeT<T>(ConsoleApp1.Result<T>)",
 @"{
-  // Code size       31 (0x1f)
+  // Code size       28 (0x1c)
   .maxstack  2
   .locals init (T V_0, //v
                 bool V_1)
@@ -3014,15 +3014,13 @@ True";
   IL_0008:  ldloc.0
   IL_0009:  box        ""T""
   IL_000e:  ldnull
-  IL_000f:  cgt.un
-  IL_0011:  ldc.i4.0
-  IL_0012:  ceq
-  IL_0014:  stloc.1
-  IL_0015:  ldloc.1
-  IL_0016:  brfalse.s  IL_001e
-  IL_0018:  newobj     ""ConsoleApp1.NotPossibleException..ctor()""
-  IL_001d:  throw
-  IL_001e:  ret
+  IL_000f:  ceq
+  IL_0011:  stloc.1
+  IL_0012:  ldloc.1
+  IL_0013:  brfalse.s  IL_001b
+  IL_0015:  newobj     ""ConsoleApp1.NotPossibleException..ctor()""
+  IL_001a:  throw
+  IL_001b:  ret
 }");
         }
 
@@ -5510,23 +5508,19 @@ class C
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1", """
 {
-  // Code size       26 (0x1a)
+  // Code size       23 (0x17)
   .maxstack  1
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
   IL_0001:  isinst     "int"
   IL_0006:  brtrue.s   IL_0012
   IL_0008:  ldarg.0
   IL_0009:  isinst     "long"
   IL_000e:  brtrue.s   IL_0012
-  IL_0010:  br.s       IL_0016
+  IL_0010:  br.s       IL_0015
   IL_0012:  ldc.i4.1
-  IL_0013:  stloc.0
-  IL_0014:  br.s       IL_0018
-  IL_0016:  ldc.i4.0
-  IL_0017:  stloc.0
-  IL_0018:  ldloc.0
-  IL_0019:  ret
+  IL_0013:  br.s       IL_0016
+  IL_0015:  ldc.i4.0
+  IL_0016:  ret
 }
 """);
             compVerifier.VerifyIL("C.M2", """
@@ -5551,22 +5545,18 @@ class C
             compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1", """
 {
-  // Code size       24 (0x18)
+  // Code size       20 (0x14)
   .maxstack  1
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
   IL_0001:  isinst     "int"
   IL_0006:  brtrue.s   IL_0010
   IL_0008:  ldarg.0
   IL_0009:  isinst     "long"
-  IL_000e:  brfalse.s  IL_0014
+  IL_000e:  brfalse.s  IL_0012
   IL_0010:  ldc.i4.1
-  IL_0011:  stloc.0
-  IL_0012:  br.s       IL_0016
-  IL_0014:  ldc.i4.0
-  IL_0015:  stloc.0
-  IL_0016:  ldloc.0
-  IL_0017:  ret
+  IL_0011:  ret
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
 }
 """);
             compVerifier.VerifyIL("C.M2", @"
@@ -5610,27 +5600,20 @@ class C
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1", """
 {
-  // Code size       40 (0x28)
+  // Code size       33 (0x21)
   .maxstack  1
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
   IL_0001:  isinst     "int"
   IL_0006:  brtrue.s   IL_0012
   IL_0008:  ldarg.0
   IL_0009:  isinst     "long"
   IL_000e:  brtrue.s   IL_0012
-  IL_0010:  br.s       IL_0016
-  IL_0012:  ldc.i4.1
-  IL_0013:  stloc.0
-  IL_0014:  br.s       IL_0018
-  IL_0016:  ldc.i4.0
-  IL_0017:  stloc.0
-  IL_0018:  ldloc.0
-  IL_0019:  brtrue.s   IL_0022
-  IL_001b:  ldstr      "False"
-  IL_0020:  br.s       IL_0027
-  IL_0022:  ldstr      "True"
-  IL_0027:  ret
+  IL_0010:  br.s       IL_0014
+  IL_0012:  br.s       IL_001b
+  IL_0014:  ldstr      "False"
+  IL_0019:  br.s       IL_0020
+  IL_001b:  ldstr      "True"
+  IL_0020:  ret
 }
 """);
             compVerifier.VerifyIL("C.M2", """
@@ -5655,26 +5638,18 @@ class C
             compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1", """
 {
-  // Code size       37 (0x25)
+  // Code size       28 (0x1c)
   .maxstack  1
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
   IL_0001:  isinst     "int"
-  IL_0006:  brtrue.s   IL_0010
+  IL_0006:  brtrue.s   IL_0016
   IL_0008:  ldarg.0
   IL_0009:  isinst     "long"
-  IL_000e:  brfalse.s  IL_0014
-  IL_0010:  ldc.i4.1
-  IL_0011:  stloc.0
-  IL_0012:  br.s       IL_0016
-  IL_0014:  ldc.i4.0
-  IL_0015:  stloc.0
-  IL_0016:  ldloc.0
-  IL_0017:  brtrue.s   IL_001f
-  IL_0019:  ldstr      "False"
-  IL_001e:  ret
-  IL_001f:  ldstr      "True"
-  IL_0024:  ret
+  IL_000e:  brtrue.s   IL_0016
+  IL_0010:  ldstr      "False"
+  IL_0015:  ret
+  IL_0016:  ldstr      "True"
+  IL_001b:  ret
 }
 """);
             compVerifier.VerifyIL("C.M2", @"
@@ -5718,13 +5693,12 @@ class C
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1", @"
     {
-      // Code size       47 (0x2f)
+      // Code size       44 (0x2c)
       .maxstack  2
-      .locals init (char V_0,
-                    bool V_1)
+      .locals init (char V_0)
       IL_0000:  ldarg.0
       IL_0001:  isinst     ""char""
-      IL_0006:  brfalse.s  IL_002b
+      IL_0006:  brfalse.s  IL_002a
       IL_0008:  ldarg.0
       IL_0009:  unbox.any  ""char""
       IL_000e:  stloc.0
@@ -5734,21 +5708,18 @@ class C
       IL_0014:  ldloc.0
       IL_0015:  ldc.i4.s   122
       IL_0017:  ble.s      IL_0027
-      IL_0019:  br.s       IL_002b
+      IL_0019:  br.s       IL_002a
       IL_001b:  ldloc.0
       IL_001c:  ldc.i4.s   65
-      IL_001e:  blt.s      IL_002b
+      IL_001e:  blt.s      IL_002a
       IL_0020:  ldloc.0
       IL_0021:  ldc.i4.s   90
       IL_0023:  ble.s      IL_0027
-      IL_0025:  br.s       IL_002b
+      IL_0025:  br.s       IL_002a
       IL_0027:  ldc.i4.1
-      IL_0028:  stloc.1
-      IL_0029:  br.s       IL_002d
-      IL_002b:  ldc.i4.0
-      IL_002c:  stloc.1
-      IL_002d:  ldloc.1
-      IL_002e:  ret
+      IL_0028:  br.s       IL_002b
+      IL_002a:  ldc.i4.0
+      IL_002b:  ret
     }
 ");
             compVerifier.VerifyIL("C.M2", @"
@@ -5791,13 +5762,12 @@ class C
             compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1", @"
     {
-      // Code size       45 (0x2d)
+      // Code size       41 (0x29)
       .maxstack  2
-      .locals init (char V_0,
-                    bool V_1)
+      .locals init (char V_0)
       IL_0000:  ldarg.0
       IL_0001:  isinst     ""char""
-      IL_0006:  brfalse.s  IL_0029
+      IL_0006:  brfalse.s  IL_0027
       IL_0008:  ldarg.0
       IL_0009:  unbox.any  ""char""
       IL_000e:  stloc.0
@@ -5807,20 +5777,17 @@ class C
       IL_0014:  ldloc.0
       IL_0015:  ldc.i4.s   122
       IL_0017:  ble.s      IL_0025
-      IL_0019:  br.s       IL_0029
+      IL_0019:  br.s       IL_0027
       IL_001b:  ldloc.0
       IL_001c:  ldc.i4.s   65
-      IL_001e:  blt.s      IL_0029
+      IL_001e:  blt.s      IL_0027
       IL_0020:  ldloc.0
       IL_0021:  ldc.i4.s   90
-      IL_0023:  bgt.s      IL_0029
+      IL_0023:  bgt.s      IL_0027
       IL_0025:  ldc.i4.1
-      IL_0026:  stloc.1
-      IL_0027:  br.s       IL_002b
-      IL_0029:  ldc.i4.0
-      IL_002a:  stloc.1
-      IL_002b:  ldloc.1
-      IL_002c:  ret
+      IL_0026:  ret
+      IL_0027:  ldc.i4.0
+      IL_0028:  ret
     }
 ");
             compVerifier.VerifyIL("C.M2", @"
@@ -5882,34 +5849,27 @@ class C
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1", @"
     {
-      // Code size       38 (0x26)
+      // Code size       31 (0x1f)
       .maxstack  2
-      .locals init (bool V_0)
       IL_0000:  ldarg.0
       IL_0001:  ldc.i4.s   97
       IL_0003:  blt.s      IL_000c
       IL_0005:  ldarg.0
       IL_0006:  ldc.i4.s   122
       IL_0008:  ble.s      IL_0018
-      IL_000a:  br.s       IL_001c
+      IL_000a:  br.s       IL_001a
       IL_000c:  ldarg.0
       IL_000d:  ldc.i4.s   65
-      IL_000f:  blt.s      IL_001c
+      IL_000f:  blt.s      IL_001a
       IL_0011:  ldarg.0
       IL_0012:  ldc.i4.s   90
       IL_0014:  ble.s      IL_0018
-      IL_0016:  br.s       IL_001c
-      IL_0018:  ldc.i4.1
-      IL_0019:  stloc.0
-      IL_001a:  br.s       IL_001e
-      IL_001c:  ldc.i4.0
-      IL_001d:  stloc.0
-      IL_001e:  ldloc.0
-      IL_001f:  brtrue.s   IL_0024
-      IL_0021:  ldc.i4.0
-      IL_0022:  br.s       IL_0025
-      IL_0024:  ldc.i4.1
-      IL_0025:  ret
+      IL_0016:  br.s       IL_001a
+      IL_0018:  br.s       IL_001d
+      IL_001a:  ldc.i4.0
+      IL_001b:  br.s       IL_001e
+      IL_001d:  ldc.i4.1
+      IL_001e:  ret
     }
 ");
             compVerifier.VerifyIL("C.M2", @"
@@ -5940,31 +5900,27 @@ class C
             compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1", @"
     {
-      // Code size       33 (0x21)
+      // Code size       30 (0x1e)
       .maxstack  2
-      .locals init (bool V_0)
       IL_0000:  ldarg.0
       IL_0001:  ldc.i4.s   97
       IL_0003:  blt.s      IL_000c
       IL_0005:  ldarg.0
       IL_0006:  ldc.i4.s   122
       IL_0008:  ble.s      IL_0016
-      IL_000a:  br.s       IL_001a
+      IL_000a:  br.s       IL_0019
       IL_000c:  ldarg.0
       IL_000d:  ldc.i4.s   65
-      IL_000f:  blt.s      IL_001a
+      IL_000f:  blt.s      IL_0019
       IL_0011:  ldarg.0
       IL_0012:  ldc.i4.s   90
-      IL_0014:  bgt.s      IL_001a
+      IL_0014:  bgt.s      IL_0019
       IL_0016:  ldc.i4.1
-      IL_0017:  stloc.0
-      IL_0018:  br.s       IL_001c
+      IL_0017:  br.s       IL_001a
+      IL_0019:  ldc.i4.0
       IL_001a:  ldc.i4.0
-      IL_001b:  stloc.0
-      IL_001c:  ldloc.0
-      IL_001d:  ldc.i4.0
-      IL_001e:  cgt.un
-      IL_0020:  ret
+      IL_001b:  cgt.un
+      IL_001d:  ret
     }
 ");
             compVerifier.VerifyIL("C.M2", @"
@@ -6026,11 +5982,10 @@ class C
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1", @"
     {
-      // Code size       46 (0x2e)
+      // Code size       43 (0x2b)
       .maxstack  2
       .locals init (bool V_0,
-                    bool V_1,
-                    int V_2)
+                    int V_1)
       IL_0000:  nop
       IL_0001:  ldarg.0
       IL_0002:  ldc.i4.s   97
@@ -6038,31 +5993,28 @@ class C
       IL_0006:  ldarg.0
       IL_0007:  ldc.i4.s   122
       IL_0009:  ble.s      IL_0019
-      IL_000b:  br.s       IL_001d
+      IL_000b:  br.s       IL_001c
       IL_000d:  ldarg.0
       IL_000e:  ldc.i4.s   65
-      IL_0010:  blt.s      IL_001d
+      IL_0010:  blt.s      IL_001c
       IL_0012:  ldarg.0
       IL_0013:  ldc.i4.s   90
       IL_0015:  ble.s      IL_0019
-      IL_0017:  br.s       IL_001d
+      IL_0017:  br.s       IL_001c
       IL_0019:  ldc.i4.1
-      IL_001a:  stloc.0
-      IL_001b:  br.s       IL_001f
-      IL_001d:  ldc.i4.0
-      IL_001e:  stloc.0
-      IL_001f:  ldloc.0
-      IL_0020:  stloc.1
-      IL_0021:  ldloc.1
-      IL_0022:  brfalse.s  IL_0028
-      IL_0024:  ldc.i4.1
-      IL_0025:  stloc.2
-      IL_0026:  br.s       IL_002c
-      IL_0028:  ldc.i4.0
-      IL_0029:  stloc.2
-      IL_002a:  br.s       IL_002c
-      IL_002c:  ldloc.2
-      IL_002d:  ret
+      IL_001a:  br.s       IL_001d
+      IL_001c:  ldc.i4.0
+      IL_001d:  stloc.0
+      IL_001e:  ldloc.0
+      IL_001f:  brfalse.s  IL_0025
+      IL_0021:  ldc.i4.1
+      IL_0022:  stloc.1
+      IL_0023:  br.s       IL_0029
+      IL_0025:  ldc.i4.0
+      IL_0026:  stloc.1
+      IL_0027:  br.s       IL_0029
+      IL_0029:  ldloc.1
+      IL_002a:  ret
     }
 ");
             compVerifier.VerifyIL("C.M2", @"
@@ -6109,33 +6061,25 @@ class C
             compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1", @"
     {
-      // Code size       35 (0x23)
+      // Code size       26 (0x1a)
       .maxstack  2
-      .locals init (bool V_0)
       IL_0000:  ldarg.0
       IL_0001:  ldc.i4.s   97
       IL_0003:  blt.s      IL_000c
       IL_0005:  ldarg.0
       IL_0006:  ldc.i4.s   122
       IL_0008:  ble.s      IL_0016
-      IL_000a:  br.s       IL_001a
+      IL_000a:  br.s       IL_0018
       IL_000c:  ldarg.0
       IL_000d:  ldc.i4.s   65
-      IL_000f:  blt.s      IL_001a
+      IL_000f:  blt.s      IL_0018
       IL_0011:  ldarg.0
       IL_0012:  ldc.i4.s   90
-      IL_0014:  bgt.s      IL_001a
+      IL_0014:  bgt.s      IL_0018
       IL_0016:  ldc.i4.1
-      IL_0017:  stloc.0
-      IL_0018:  br.s       IL_001c
-      IL_001a:  ldc.i4.0
-      IL_001b:  stloc.0
-      IL_001c:  ldloc.0
-      IL_001d:  brfalse.s  IL_0021
-      IL_001f:  ldc.i4.1
-      IL_0020:  ret
-      IL_0021:  ldc.i4.0
-      IL_0022:  ret
+      IL_0017:  ret
+      IL_0018:  ldc.i4.0
+      IL_0019:  ret
     }
 ");
             compVerifier.VerifyIL("C.M2", @"

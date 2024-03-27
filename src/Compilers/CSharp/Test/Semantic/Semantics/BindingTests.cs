@@ -641,6 +641,38 @@ class C
         }
 
         [Fact]
+        public void ChooseExpandedFormIfBadArgCountAndBadArgument_Constructor()
+        {
+            var source =
+@"class C
+{
+    static void M(object o)
+    {
+        _ = new C();
+        _ = new C(o);
+        _ = new C(1, o);
+        _ = new C(1, 2, o);
+    }
+
+    C(int i, params int[] args) { }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,17): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'C.C(int, params int[])'
+                //         _ = new C();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("i", "C.C(int, params int[])").WithLocation(5, 17),
+                // (6,19): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                //         _ = new C(o);
+                Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("1", "object", "int").WithLocation(6, 19),
+                // (7,22): error CS1503: Argument 2: cannot convert from 'object' to 'int'
+                //         _ = new C(1, o);
+                Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("2", "object", "int").WithLocation(7, 22),
+                // (8,25): error CS1503: Argument 3: cannot convert from 'object' to 'int'
+                //         _ = new C(1, 2, o);
+                Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("3", "object", "int").WithLocation(8, 25)
+                );
+        }
+
+        [Fact]
         public void AmbiguousAndBadArgument()
         {
             var source =

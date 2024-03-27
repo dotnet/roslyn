@@ -8354,64 +8354,63 @@ and: False
 not: True")
                 .VerifyIL("C.Test", """
 {
-  // Code size      167 (0xa7)
+  // Code size      166 (0xa6)
   .maxstack  3
   .locals init (bool V_0)
   IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldstr      "string 1"
-  IL_0007:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_000c:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-  IL_0011:  brtrue.s   IL_0027
-  IL_0013:  ldarg.0
-  IL_0014:  ldstr      "string 2"
-  IL_0019:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_001e:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-  IL_0023:  brtrue.s   IL_0027
-  IL_0025:  br.s       IL_002b
-  IL_0027:  ldc.i4.1
-  IL_0028:  stloc.0
-  IL_0029:  br.s       IL_002d
-  IL_002b:  ldc.i4.0
-  IL_002c:  stloc.0
-  IL_002d:  ldstr      "or: "
-  IL_0032:  ldloca.s   V_0
-  IL_0034:  call       "string bool.ToString()"
-  IL_0039:  call       "string string.Concat(string, string)"
-  IL_003e:  call       "void System.Console.WriteLine(string)"
-  IL_0043:  nop
-  IL_0044:  ldstr      "and: "
-  IL_0049:  ldarg.0
-  IL_004a:  ldstr      "string 1"
-  IL_004f:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_0054:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-  IL_0059:  brfalse.s  IL_0067
-  IL_005b:  ldarga.s   V_0
-  IL_005d:  call       "int System.ReadOnlySpan<char>.Length.get"
-  IL_0062:  ldc.i4.7
-  IL_0063:  ceq
-  IL_0065:  br.s       IL_0068
-  IL_0067:  ldc.i4.0
-  IL_0068:  stloc.0
-  IL_0069:  ldloca.s   V_0
-  IL_006b:  call       "string bool.ToString()"
-  IL_0070:  call       "string string.Concat(string, string)"
-  IL_0075:  call       "void System.Console.WriteLine(string)"
-  IL_007a:  nop
-  IL_007b:  ldstr      "not: "
-  IL_0080:  ldarg.0
-  IL_0081:  ldstr      "string 1"
-  IL_0086:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_008b:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
-  IL_0090:  ldc.i4.0
-  IL_0091:  ceq
-  IL_0093:  stloc.0
-  IL_0094:  ldloca.s   V_0
-  IL_0096:  call       "string bool.ToString()"
-  IL_009b:  call       "string string.Concat(string, string)"
-  IL_00a0:  call       "void System.Console.WriteLine(string)"
-  IL_00a5:  nop
-  IL_00a6:  ret
+  IL_0001:  ldstr      "or: "
+  IL_0006:  ldarg.0
+  IL_0007:  ldstr      "string 1"
+  IL_000c:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0011:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+  IL_0016:  brtrue.s   IL_002c
+  IL_0018:  ldarg.0
+  IL_0019:  ldstr      "string 2"
+  IL_001e:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0023:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+  IL_0028:  brtrue.s   IL_002c
+  IL_002a:  br.s       IL_002f
+  IL_002c:  ldc.i4.1
+  IL_002d:  br.s       IL_0030
+  IL_002f:  ldc.i4.0
+  IL_0030:  stloc.0
+  IL_0031:  ldloca.s   V_0
+  IL_0033:  call       "string bool.ToString()"
+  IL_0038:  call       "string string.Concat(string, string)"
+  IL_003d:  call       "void System.Console.WriteLine(string)"
+  IL_0042:  nop
+  IL_0043:  ldstr      "and: "
+  IL_0048:  ldarg.0
+  IL_0049:  ldstr      "string 1"
+  IL_004e:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0053:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+  IL_0058:  brfalse.s  IL_0066
+  IL_005a:  ldarga.s   V_0
+  IL_005c:  call       "int System.ReadOnlySpan<char>.Length.get"
+  IL_0061:  ldc.i4.7
+  IL_0062:  ceq
+  IL_0064:  br.s       IL_0067
+  IL_0066:  ldc.i4.0
+  IL_0067:  stloc.0
+  IL_0068:  ldloca.s   V_0
+  IL_006a:  call       "string bool.ToString()"
+  IL_006f:  call       "string string.Concat(string, string)"
+  IL_0074:  call       "void System.Console.WriteLine(string)"
+  IL_0079:  nop
+  IL_007a:  ldstr      "not: "
+  IL_007f:  ldarg.0
+  IL_0080:  ldstr      "string 1"
+  IL_0085:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_008a:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+  IL_008f:  ldc.i4.0
+  IL_0090:  ceq
+  IL_0092:  stloc.0
+  IL_0093:  ldloca.s   V_0
+  IL_0095:  call       "string bool.ToString()"
+  IL_009a:  call       "string string.Concat(string, string)"
+  IL_009f:  call       "void System.Console.WriteLine(string)"
+  IL_00a4:  nop
+  IL_00a5:  ret
 }
 """);
         }
@@ -8920,14 +8919,14 @@ class C
   IL_0066:  call       ""string bool.ToString()""
   IL_006b:  call       ""string string.Concat(string, string)""
   IL_0070:  call       ""void System.Console.WriteLine(string)""
-  IL_0075:  ldarg.0
-  IL_0076:  ldstr      """"
-  IL_007b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0080:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0085:  pop
-  IL_0086:  ldc.i4.1
-  IL_0087:  stloc.0
-  IL_0088:  ldstr      ""4.""
+  IL_0075:  ldstr      ""4.""
+  IL_007a:  ldarg.0
+  IL_007b:  ldstr      """"
+  IL_0080:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0085:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_008a:  pop
+  IL_008b:  ldc.i4.1
+  IL_008c:  stloc.0
   IL_008d:  ldloca.s   V_0
   IL_008f:  call       ""string bool.ToString()""
   IL_0094:  call       ""string string.Concat(string, string)""
@@ -9952,64 +9951,63 @@ and: False
 not: True")
                 .VerifyIL("C.Test", """
 {
-  // Code size      167 (0xa7)
+  // Code size      166 (0xa6)
   .maxstack  3
   .locals init (bool V_0)
   IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldstr      "string 1"
-  IL_0007:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_000c:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-  IL_0011:  brtrue.s   IL_0027
-  IL_0013:  ldarg.0
-  IL_0014:  ldstr      "string 2"
-  IL_0019:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_001e:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-  IL_0023:  brtrue.s   IL_0027
-  IL_0025:  br.s       IL_002b
-  IL_0027:  ldc.i4.1
-  IL_0028:  stloc.0
-  IL_0029:  br.s       IL_002d
-  IL_002b:  ldc.i4.0
-  IL_002c:  stloc.0
-  IL_002d:  ldstr      "or: "
-  IL_0032:  ldloca.s   V_0
-  IL_0034:  call       "string bool.ToString()"
-  IL_0039:  call       "string string.Concat(string, string)"
-  IL_003e:  call       "void System.Console.WriteLine(string)"
-  IL_0043:  nop
-  IL_0044:  ldstr      "and: "
-  IL_0049:  ldarg.0
-  IL_004a:  ldstr      "string 1"
-  IL_004f:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_0054:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-  IL_0059:  brfalse.s  IL_0067
-  IL_005b:  ldarga.s   V_0
-  IL_005d:  call       "int System.Span<char>.Length.get"
-  IL_0062:  ldc.i4.7
-  IL_0063:  ceq
-  IL_0065:  br.s       IL_0068
-  IL_0067:  ldc.i4.0
-  IL_0068:  stloc.0
-  IL_0069:  ldloca.s   V_0
-  IL_006b:  call       "string bool.ToString()"
-  IL_0070:  call       "string string.Concat(string, string)"
-  IL_0075:  call       "void System.Console.WriteLine(string)"
-  IL_007a:  nop
-  IL_007b:  ldstr      "not: "
-  IL_0080:  ldarg.0
-  IL_0081:  ldstr      "string 1"
-  IL_0086:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
-  IL_008b:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
-  IL_0090:  ldc.i4.0
-  IL_0091:  ceq
-  IL_0093:  stloc.0
-  IL_0094:  ldloca.s   V_0
-  IL_0096:  call       "string bool.ToString()"
-  IL_009b:  call       "string string.Concat(string, string)"
-  IL_00a0:  call       "void System.Console.WriteLine(string)"
-  IL_00a5:  nop
-  IL_00a6:  ret
+  IL_0001:  ldstr      "or: "
+  IL_0006:  ldarg.0
+  IL_0007:  ldstr      "string 1"
+  IL_000c:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0011:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_0016:  brtrue.s   IL_002c
+  IL_0018:  ldarg.0
+  IL_0019:  ldstr      "string 2"
+  IL_001e:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0023:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_0028:  brtrue.s   IL_002c
+  IL_002a:  br.s       IL_002f
+  IL_002c:  ldc.i4.1
+  IL_002d:  br.s       IL_0030
+  IL_002f:  ldc.i4.0
+  IL_0030:  stloc.0
+  IL_0031:  ldloca.s   V_0
+  IL_0033:  call       "string bool.ToString()"
+  IL_0038:  call       "string string.Concat(string, string)"
+  IL_003d:  call       "void System.Console.WriteLine(string)"
+  IL_0042:  nop
+  IL_0043:  ldstr      "and: "
+  IL_0048:  ldarg.0
+  IL_0049:  ldstr      "string 1"
+  IL_004e:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0053:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_0058:  brfalse.s  IL_0066
+  IL_005a:  ldarga.s   V_0
+  IL_005c:  call       "int System.Span<char>.Length.get"
+  IL_0061:  ldc.i4.7
+  IL_0062:  ceq
+  IL_0064:  br.s       IL_0067
+  IL_0066:  ldc.i4.0
+  IL_0067:  stloc.0
+  IL_0068:  ldloca.s   V_0
+  IL_006a:  call       "string bool.ToString()"
+  IL_006f:  call       "string string.Concat(string, string)"
+  IL_0074:  call       "void System.Console.WriteLine(string)"
+  IL_0079:  nop
+  IL_007a:  ldstr      "not: "
+  IL_007f:  ldarg.0
+  IL_0080:  ldstr      "string 1"
+  IL_0085:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_008a:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+  IL_008f:  ldc.i4.0
+  IL_0090:  ceq
+  IL_0092:  stloc.0
+  IL_0093:  ldloca.s   V_0
+  IL_0095:  call       "string bool.ToString()"
+  IL_009a:  call       "string string.Concat(string, string)"
+  IL_009f:  call       "void System.Console.WriteLine(string)"
+  IL_00a4:  nop
+  IL_00a5:  ret
 }
 """);
         }
@@ -10523,14 +10521,14 @@ class C
   IL_0066:  call       ""string bool.ToString()""
   IL_006b:  call       ""string string.Concat(string, string)""
   IL_0070:  call       ""void System.Console.WriteLine(string)""
-  IL_0075:  ldarg.0
-  IL_0076:  ldstr      """"
-  IL_007b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0080:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0085:  pop
-  IL_0086:  ldc.i4.1
-  IL_0087:  stloc.0
-  IL_0088:  ldstr      ""4.""
+  IL_0075:  ldstr      ""4.""
+  IL_007a:  ldarg.0
+  IL_007b:  ldstr      """"
+  IL_0080:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0085:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_008a:  pop
+  IL_008b:  ldc.i4.1
+  IL_008c:  stloc.0
   IL_008d:  ldloca.s   V_0
   IL_008f:  call       ""string bool.ToString()""
   IL_0094:  call       ""string string.Concat(string, string)""
@@ -11591,16 +11589,16 @@ static class C
             // in the exception filter (at IL_00b6) before accessing `.InnerException` on it.
             verifier.VerifyIL("C.<ExceptionFilterBroken>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      471 (0x1d7)
+  // Code size      460 (0x1cc)
   .maxstack  3
   .locals init (int V_0,
                 bool V_1,
-                System.Exception V_2,
-                string V_3,
-                bool V_4,
-                System.Runtime.CompilerServices.TaskAwaiter V_5,
-                C.<ExceptionFilterBroken>d__1 V_6,
-                System.Exception V_7,
+                System.Runtime.CompilerServices.TaskAwaiter V_2,
+                C.<ExceptionFilterBroken>d__1 V_3,
+                System.Exception V_4,
+                bool V_5,
+                System.Exception V_6,
+                string V_7,
                 int V_8,
                 System.Runtime.CompilerServices.TaskAwaiter<bool> V_9)
   IL_0000:  ldarg.0
@@ -11616,7 +11614,7 @@ static class C
     IL_000e:  beq.s      IL_0014
     IL_0010:  br.s       IL_0019
     IL_0012:  br.s       IL_0021
-    IL_0014:  br         IL_0166
+    IL_0014:  br         IL_0159
     IL_0019:  nop
     IL_001a:  ldarg.0
     IL_001b:  ldc.i4.0
@@ -11627,193 +11625,188 @@ static class C
       IL_0022:  ldloc.0
       IL_0023:  brfalse.s  IL_0027
       IL_0025:  br.s       IL_0029
-      IL_0027:  br.s       IL_0068
+      IL_0027:  br.s       IL_0065
       IL_0029:  nop
       IL_002a:  call       ""System.Threading.Tasks.Task C.ThrowException()""
       IL_002f:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
-      IL_0034:  stloc.s    V_5
-      IL_0036:  ldloca.s   V_5
-      IL_0038:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
-      IL_003d:  brtrue.s   IL_0085
-      IL_003f:  ldarg.0
-      IL_0040:  ldc.i4.0
-      IL_0041:  dup
-      IL_0042:  stloc.0
-      IL_0043:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
-      IL_0048:  ldarg.0
-      IL_0049:  ldloc.s    V_5
-      IL_004b:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<ExceptionFilterBroken>d__1.<>u__1""
+      IL_0034:  stloc.2
+      IL_0035:  ldloca.s   V_2
+      IL_0037:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
+      IL_003c:  brtrue.s   IL_0081
+      IL_003e:  ldarg.0
+      IL_003f:  ldc.i4.0
+      IL_0040:  dup
+      IL_0041:  stloc.0
+      IL_0042:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+      IL_0047:  ldarg.0
+      IL_0048:  ldloc.2
+      IL_0049:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<ExceptionFilterBroken>d__1.<>u__1""
+      IL_004e:  ldarg.0
+      IL_004f:  stloc.3
       IL_0050:  ldarg.0
-      IL_0051:  stloc.s    V_6
-      IL_0053:  ldarg.0
-      IL_0054:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
-      IL_0059:  ldloca.s   V_5
-      IL_005b:  ldloca.s   V_6
-      IL_005d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<ExceptionFilterBroken>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<ExceptionFilterBroken>d__1)""
-      IL_0062:  nop
-      IL_0063:  leave      IL_01d6
-      IL_0068:  ldarg.0
-      IL_0069:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<ExceptionFilterBroken>d__1.<>u__1""
-      IL_006e:  stloc.s    V_5
-      IL_0070:  ldarg.0
-      IL_0071:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<ExceptionFilterBroken>d__1.<>u__1""
-      IL_0076:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
-      IL_007c:  ldarg.0
-      IL_007d:  ldc.i4.m1
-      IL_007e:  dup
-      IL_007f:  stloc.0
-      IL_0080:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
-      IL_0085:  ldloca.s   V_5
-      IL_0087:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
-      IL_008c:  nop
-      IL_008d:  ldc.i4.1
-      IL_008e:  stloc.1
-      IL_008f:  leave      IL_01c1
+      IL_0051:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
+      IL_0056:  ldloca.s   V_2
+      IL_0058:  ldloca.s   V_3
+      IL_005a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<ExceptionFilterBroken>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<ExceptionFilterBroken>d__1)""
+      IL_005f:  nop
+      IL_0060:  leave      IL_01cb
+      IL_0065:  ldarg.0
+      IL_0066:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<ExceptionFilterBroken>d__1.<>u__1""
+      IL_006b:  stloc.2
+      IL_006c:  ldarg.0
+      IL_006d:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<ExceptionFilterBroken>d__1.<>u__1""
+      IL_0072:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+      IL_0078:  ldarg.0
+      IL_0079:  ldc.i4.m1
+      IL_007a:  dup
+      IL_007b:  stloc.0
+      IL_007c:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+      IL_0081:  ldloca.s   V_2
+      IL_0083:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+      IL_0088:  nop
+      IL_0089:  ldc.i4.1
+      IL_008a:  stloc.1
+      IL_008b:  leave      IL_01b6
     }
     filter
     {
-      IL_0094:  isinst     ""System.Exception""
-      IL_0099:  dup
-      IL_009a:  brtrue.s   IL_00a0
-      IL_009c:  pop
-      IL_009d:  ldc.i4.0
-      IL_009e:  br.s       IL_0106
-      IL_00a0:  stloc.s    V_7
-      IL_00a2:  ldarg.0
-      IL_00a3:  ldloc.s    V_7
-      IL_00a5:  stfld      ""object C.<ExceptionFilterBroken>d__1.<>s__1""
-      IL_00aa:  ldarg.0
-      IL_00ab:  ldarg.0
-      IL_00ac:  ldfld      ""object C.<ExceptionFilterBroken>d__1.<>s__1""
-      IL_00b1:  castclass  ""System.Exception""
-      IL_00b6:  stfld      ""System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3""
-      IL_00bb:  ldarg.0
-      IL_00bc:  ldfld      ""System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3""
-      IL_00c1:  callvirt   ""System.Exception System.Exception.InnerException.get""
-      IL_00c6:  stloc.2
-      IL_00c7:  ldloc.2
-      IL_00c8:  brfalse.s  IL_00f2
-      IL_00ca:  ldloc.2
-      IL_00cb:  callvirt   ""string System.Exception.Message.get""
-      IL_00d0:  stloc.3
-      IL_00d1:  ldloc.3
-      IL_00d2:  ldstr      ""bad dog""
-      IL_00d7:  call       ""bool string.op_Equality(string, string)""
-      IL_00dc:  brtrue.s   IL_00ed
-      IL_00de:  ldloc.3
-      IL_00df:  ldstr      ""dog bad""
-      IL_00e4:  call       ""bool string.op_Equality(string, string)""
-      IL_00e9:  brtrue.s   IL_00ed
-      IL_00eb:  br.s       IL_00f2
-      IL_00ed:  ldc.i4.1
-      IL_00ee:  stloc.s    V_4
-      IL_00f0:  br.s       IL_00f5
+      IL_0090:  isinst     ""System.Exception""
+      IL_0095:  dup
+      IL_0096:  brtrue.s   IL_009c
+      IL_0098:  pop
+      IL_0099:  ldc.i4.0
+      IL_009a:  br.s       IL_00fa
+      IL_009c:  stloc.s    V_4
+      IL_009e:  ldarg.0
+      IL_009f:  ldloc.s    V_4
+      IL_00a1:  stfld      ""object C.<ExceptionFilterBroken>d__1.<>s__1""
+      IL_00a6:  ldarg.0
+      IL_00a7:  ldarg.0
+      IL_00a8:  ldfld      ""object C.<ExceptionFilterBroken>d__1.<>s__1""
+      IL_00ad:  castclass  ""System.Exception""
+      IL_00b2:  stfld      ""System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3""
+      IL_00b7:  ldarg.0
+      IL_00b8:  ldfld      ""System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3""
+      IL_00bd:  callvirt   ""System.Exception System.Exception.InnerException.get""
+      IL_00c2:  stloc.s    V_6
+      IL_00c4:  ldloc.s    V_6
+      IL_00c6:  brfalse.s  IL_00f2
+      IL_00c8:  ldloc.s    V_6
+      IL_00ca:  callvirt   ""string System.Exception.Message.get""
+      IL_00cf:  stloc.s    V_7
+      IL_00d1:  ldloc.s    V_7
+      IL_00d3:  ldstr      ""bad dog""
+      IL_00d8:  call       ""bool string.op_Equality(string, string)""
+      IL_00dd:  brtrue.s   IL_00ef
+      IL_00df:  ldloc.s    V_7
+      IL_00e1:  ldstr      ""dog bad""
+      IL_00e6:  call       ""bool string.op_Equality(string, string)""
+      IL_00eb:  brtrue.s   IL_00ef
+      IL_00ed:  br.s       IL_00f2
+      IL_00ef:  ldc.i4.1
+      IL_00f0:  br.s       IL_00f3
       IL_00f2:  ldc.i4.0
-      IL_00f3:  stloc.s    V_4
-      IL_00f5:  ldarg.0
-      IL_00f6:  ldloc.s    V_4
-      IL_00f8:  stfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__4""
-      IL_00fd:  ldarg.0
-      IL_00fe:  ldfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__4""
-      IL_0103:  ldc.i4.0
-      IL_0104:  cgt.un
-      IL_0106:  endfilter
+      IL_00f3:  stloc.s    V_5
+      IL_00f5:  ldloc.s    V_5
+      IL_00f7:  ldc.i4.0
+      IL_00f8:  cgt.un
+      IL_00fa:  endfilter
     }  // end filter
     {  // handler
-      IL_0108:  pop
-      IL_0109:  ldarg.0
-      IL_010a:  ldc.i4.1
-      IL_010b:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>s__2""
-      IL_0110:  leave.s    IL_011b
+      IL_00fc:  pop
+      IL_00fd:  ldarg.0
+      IL_00fe:  ldc.i4.1
+      IL_00ff:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>s__2""
+      IL_0104:  leave.s    IL_010f
     }
     catch object
     {
-      IL_0112:  pop
-      IL_0113:  nop
-      IL_0114:  ldc.i4.0
-      IL_0115:  stloc.1
-      IL_0116:  leave      IL_01c1
+      IL_0106:  pop
+      IL_0107:  nop
+      IL_0108:  ldc.i4.0
+      IL_0109:  stloc.1
+      IL_010a:  leave      IL_01b6
     }
-    IL_011b:  ldarg.0
-    IL_011c:  ldfld      ""int C.<ExceptionFilterBroken>d__1.<>s__2""
-    IL_0121:  stloc.s    V_8
-    IL_0123:  ldloc.s    V_8
-    IL_0125:  ldc.i4.1
-    IL_0126:  beq.s      IL_012a
-    IL_0128:  br.s       IL_0199
-    IL_012a:  nop
-    IL_012b:  call       ""System.Threading.Tasks.Task<bool> C.TrueAsync()""
-    IL_0130:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<bool> System.Threading.Tasks.Task<bool>.GetAwaiter()""
-    IL_0135:  stloc.s    V_9
-    IL_0137:  ldloca.s   V_9
-    IL_0139:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.IsCompleted.get""
-    IL_013e:  brtrue.s   IL_0183
-    IL_0140:  ldarg.0
-    IL_0141:  ldc.i4.1
-    IL_0142:  dup
-    IL_0143:  stloc.0
-    IL_0144:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
-    IL_0149:  ldarg.0
-    IL_014a:  ldloc.s    V_9
-    IL_014c:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<ExceptionFilterBroken>d__1.<>u__2""
-    IL_0151:  ldarg.0
-    IL_0152:  stloc.s    V_6
-    IL_0154:  ldarg.0
-    IL_0155:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
-    IL_015a:  ldloca.s   V_9
-    IL_015c:  ldloca.s   V_6
-    IL_015e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<bool>, C.<ExceptionFilterBroken>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<bool>, ref C.<ExceptionFilterBroken>d__1)""
-    IL_0163:  nop
-    IL_0164:  leave.s    IL_01d6
-    IL_0166:  ldarg.0
-    IL_0167:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<ExceptionFilterBroken>d__1.<>u__2""
-    IL_016c:  stloc.s    V_9
-    IL_016e:  ldarg.0
-    IL_016f:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<ExceptionFilterBroken>d__1.<>u__2""
-    IL_0174:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<bool>""
-    IL_017a:  ldarg.0
-    IL_017b:  ldc.i4.m1
-    IL_017c:  dup
-    IL_017d:  stloc.0
-    IL_017e:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+    IL_010f:  ldarg.0
+    IL_0110:  ldfld      ""int C.<ExceptionFilterBroken>d__1.<>s__2""
+    IL_0115:  stloc.s    V_8
+    IL_0117:  ldloc.s    V_8
+    IL_0119:  ldc.i4.1
+    IL_011a:  beq.s      IL_011e
+    IL_011c:  br.s       IL_018c
+    IL_011e:  nop
+    IL_011f:  call       ""System.Threading.Tasks.Task<bool> C.TrueAsync()""
+    IL_0124:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<bool> System.Threading.Tasks.Task<bool>.GetAwaiter()""
+    IL_0129:  stloc.s    V_9
+    IL_012b:  ldloca.s   V_9
+    IL_012d:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.IsCompleted.get""
+    IL_0132:  brtrue.s   IL_0176
+    IL_0134:  ldarg.0
+    IL_0135:  ldc.i4.1
+    IL_0136:  dup
+    IL_0137:  stloc.0
+    IL_0138:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+    IL_013d:  ldarg.0
+    IL_013e:  ldloc.s    V_9
+    IL_0140:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<ExceptionFilterBroken>d__1.<>u__2""
+    IL_0145:  ldarg.0
+    IL_0146:  stloc.3
+    IL_0147:  ldarg.0
+    IL_0148:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
+    IL_014d:  ldloca.s   V_9
+    IL_014f:  ldloca.s   V_3
+    IL_0151:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<bool>, C.<ExceptionFilterBroken>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<bool>, ref C.<ExceptionFilterBroken>d__1)""
+    IL_0156:  nop
+    IL_0157:  leave.s    IL_01cb
+    IL_0159:  ldarg.0
+    IL_015a:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<ExceptionFilterBroken>d__1.<>u__2""
+    IL_015f:  stloc.s    V_9
+    IL_0161:  ldarg.0
+    IL_0162:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<ExceptionFilterBroken>d__1.<>u__2""
+    IL_0167:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<bool>""
+    IL_016d:  ldarg.0
+    IL_016e:  ldc.i4.m1
+    IL_016f:  dup
+    IL_0170:  stloc.0
+    IL_0171:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+    IL_0176:  ldarg.0
+    IL_0177:  ldloca.s   V_9
+    IL_0179:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.GetResult()""
+    IL_017e:  stfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__4""
     IL_0183:  ldarg.0
-    IL_0184:  ldloca.s   V_9
-    IL_0186:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.GetResult()""
-    IL_018b:  stfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__5""
-    IL_0190:  ldarg.0
-    IL_0191:  ldfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__5""
-    IL_0196:  stloc.1
-    IL_0197:  leave.s    IL_01c1
-    IL_0199:  ldarg.0
-    IL_019a:  ldnull
-    IL_019b:  stfld      ""object C.<ExceptionFilterBroken>d__1.<>s__1""
-    IL_01a0:  ldarg.0
-    IL_01a1:  ldnull
-    IL_01a2:  stfld      ""System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3""
-    IL_01a7:  leave.s    IL_01c1
+    IL_0184:  ldfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__4""
+    IL_0189:  stloc.1
+    IL_018a:  leave.s    IL_01b6
+    IL_018c:  ldarg.0
+    IL_018d:  ldnull
+    IL_018e:  stfld      ""object C.<ExceptionFilterBroken>d__1.<>s__1""
+    IL_0193:  ldarg.0
+    IL_0194:  ldnull
+    IL_0195:  stfld      ""System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3""
+    IL_019a:  leave.s    IL_01b6
   }
   catch System.Exception
   {
-    IL_01a9:  stloc.2
-    IL_01aa:  ldarg.0
-    IL_01ab:  ldc.i4.s   -2
-    IL_01ad:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
-    IL_01b2:  ldarg.0
-    IL_01b3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
-    IL_01b8:  ldloc.2
-    IL_01b9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.SetException(System.Exception)""
-    IL_01be:  nop
-    IL_01bf:  leave.s    IL_01d6
+    IL_019c:  stloc.s    V_6
+    IL_019e:  ldarg.0
+    IL_019f:  ldc.i4.s   -2
+    IL_01a1:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+    IL_01a6:  ldarg.0
+    IL_01a7:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
+    IL_01ac:  ldloc.s    V_6
+    IL_01ae:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.SetException(System.Exception)""
+    IL_01b3:  nop
+    IL_01b4:  leave.s    IL_01cb
   }
-  IL_01c1:  ldarg.0
-  IL_01c2:  ldc.i4.s   -2
-  IL_01c4:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
-  IL_01c9:  ldarg.0
-  IL_01ca:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
-  IL_01cf:  ldloc.1
-  IL_01d0:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.SetResult(bool)""
-  IL_01d5:  nop
-  IL_01d6:  ret
+  IL_01b6:  ldarg.0
+  IL_01b7:  ldc.i4.s   -2
+  IL_01b9:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+  IL_01be:  ldarg.0
+  IL_01bf:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
+  IL_01c4:  ldloc.1
+  IL_01c5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.SetResult(bool)""
+  IL_01ca:  nop
+  IL_01cb:  ret
 }
 ");
         }
@@ -11940,8 +11933,8 @@ static class C
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "True");
             verifier.VerifyIL("C.<ExceptionFilterBroken>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
- {
-  // Code size      527 (0x20f)
+{
+  // Code size      513 (0x201)
   .maxstack  3
   .locals init (int V_0,
                 bool V_1,
@@ -11950,9 +11943,9 @@ static class C
                 System.Exception V_4,
                 int V_5,
                 System.Exception V_6,
-                string V_7,
-                bool V_8,
-                System.Exception V_9,
+                bool V_7,
+                System.Exception V_8,
+                string V_9,
                 System.Runtime.CompilerServices.TaskAwaiter<bool> V_10)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
@@ -11967,7 +11960,7 @@ static class C
     IL_000e:  beq.s      IL_0014
     IL_0010:  br.s       IL_0019
     IL_0012:  br.s       IL_0021
-    IL_0014:  br         IL_0192
+    IL_0014:  br         IL_0184
     IL_0019:  nop
     IL_001a:  ldarg.0
     IL_001b:  ldc.i4.0
@@ -12002,7 +11995,7 @@ static class C
       IL_0058:  ldloca.s   V_3
       IL_005a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<ExceptionFilterBroken>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<ExceptionFilterBroken>d__1)""
       IL_005f:  nop
-      IL_0060:  leave      IL_020e
+      IL_0060:  leave      IL_0200
       IL_0065:  ldarg.0
       IL_0066:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<ExceptionFilterBroken>d__1.<>u__1""
       IL_006b:  stloc.2
@@ -12019,7 +12012,7 @@ static class C
       IL_0088:  nop
       IL_0089:  ldc.i4.1
       IL_008a:  stloc.1
-      IL_008b:  leave      IL_01f9
+      IL_008b:  leave      IL_01eb
     }
     catch System.Exception
     {
@@ -12038,7 +12031,7 @@ static class C
     IL_00ab:  ldloc.s    V_5
     IL_00ad:  ldc.i4.1
     IL_00ae:  beq.s      IL_00b5
-    IL_00b0:  br         IL_01d6
+    IL_00b0:  br         IL_01c8
     IL_00b5:  ldarg.0
     IL_00b6:  ldarg.0
     IL_00b7:  ldfld      ""object C.<ExceptionFilterBroken>d__1.<>s__1""
@@ -12061,135 +12054,130 @@ static class C
       IL_00db:  brtrue.s   IL_00e1
       IL_00dd:  pop
       IL_00de:  ldc.i4.0
-      IL_00df:  br.s       IL_013c
-      IL_00e1:  stloc.s    V_9
+      IL_00df:  br.s       IL_012e
+      IL_00e1:  stloc.s    V_6
       IL_00e3:  ldarg.0
-      IL_00e4:  ldloc.s    V_9
+      IL_00e4:  ldloc.s    V_6
       IL_00e6:  stfld      ""object C.<ExceptionFilterBroken>d__1.<>s__4""
       IL_00eb:  ldarg.0
       IL_00ec:  ldfld      ""System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3""
       IL_00f1:  callvirt   ""System.Exception System.Exception.InnerException.get""
-      IL_00f6:  stloc.s    V_6
-      IL_00f8:  ldloc.s    V_6
-      IL_00fa:  brfalse.s  IL_0128
-      IL_00fc:  ldloc.s    V_6
+      IL_00f6:  stloc.s    V_8
+      IL_00f8:  ldloc.s    V_8
+      IL_00fa:  brfalse.s  IL_0126
+      IL_00fc:  ldloc.s    V_8
       IL_00fe:  callvirt   ""string System.Exception.Message.get""
-      IL_0103:  stloc.s    V_7
-      IL_0105:  ldloc.s    V_7
+      IL_0103:  stloc.s    V_9
+      IL_0105:  ldloc.s    V_9
       IL_0107:  ldstr      ""bad dog""
       IL_010c:  call       ""bool string.op_Equality(string, string)""
       IL_0111:  brtrue.s   IL_0123
-      IL_0113:  ldloc.s    V_7
+      IL_0113:  ldloc.s    V_9
       IL_0115:  ldstr      ""dog bad""
       IL_011a:  call       ""bool string.op_Equality(string, string)""
       IL_011f:  brtrue.s   IL_0123
-      IL_0121:  br.s       IL_0128
+      IL_0121:  br.s       IL_0126
       IL_0123:  ldc.i4.1
-      IL_0124:  stloc.s    V_8
-      IL_0126:  br.s       IL_012b
-      IL_0128:  ldc.i4.0
-      IL_0129:  stloc.s    V_8
-      IL_012b:  ldarg.0
-      IL_012c:  ldloc.s    V_8
-      IL_012e:  stfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__6""
-      IL_0133:  ldarg.0
-      IL_0134:  ldfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__6""
-      IL_0139:  ldc.i4.0
-      IL_013a:  cgt.un
-      IL_013c:  endfilter
+      IL_0124:  br.s       IL_0127
+      IL_0126:  ldc.i4.0
+      IL_0127:  stloc.s    V_7
+      IL_0129:  ldloc.s    V_7
+      IL_012b:  ldc.i4.0
+      IL_012c:  cgt.un
+      IL_012e:  endfilter
     }  // end filter
     {  // handler
-      IL_013e:  pop
-      IL_013f:  ldarg.0
-      IL_0140:  ldc.i4.1
-      IL_0141:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>s__5""
-      IL_0146:  leave.s    IL_0148
+      IL_0130:  pop
+      IL_0131:  ldarg.0
+      IL_0132:  ldc.i4.1
+      IL_0133:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>s__5""
+      IL_0138:  leave.s    IL_013a
     }
-    IL_0148:  ldarg.0
-    IL_0149:  ldfld      ""int C.<ExceptionFilterBroken>d__1.<>s__5""
-    IL_014e:  stloc.s    V_5
-    IL_0150:  ldloc.s    V_5
-    IL_0152:  ldc.i4.1
-    IL_0153:  beq.s      IL_0157
-    IL_0155:  br.s       IL_01c5
-    IL_0157:  nop
-    IL_0158:  call       ""System.Threading.Tasks.Task<bool> C.TrueAsync()""
-    IL_015d:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<bool> System.Threading.Tasks.Task<bool>.GetAwaiter()""
-    IL_0162:  stloc.s    V_10
-    IL_0164:  ldloca.s   V_10
-    IL_0166:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.IsCompleted.get""
-    IL_016b:  brtrue.s   IL_01af
-    IL_016d:  ldarg.0
-    IL_016e:  ldc.i4.1
-    IL_016f:  dup
-    IL_0170:  stloc.0
-    IL_0171:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
-    IL_0176:  ldarg.0
-    IL_0177:  ldloc.s    V_10
-    IL_0179:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<ExceptionFilterBroken>d__1.<>u__2""
-    IL_017e:  ldarg.0
-    IL_017f:  stloc.3
-    IL_0180:  ldarg.0
-    IL_0181:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
-    IL_0186:  ldloca.s   V_10
-    IL_0188:  ldloca.s   V_3
-    IL_018a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<bool>, C.<ExceptionFilterBroken>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<bool>, ref C.<ExceptionFilterBroken>d__1)""
-    IL_018f:  nop
-    IL_0190:  leave.s    IL_020e
-    IL_0192:  ldarg.0
-    IL_0193:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<ExceptionFilterBroken>d__1.<>u__2""
-    IL_0198:  stloc.s    V_10
-    IL_019a:  ldarg.0
-    IL_019b:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<ExceptionFilterBroken>d__1.<>u__2""
-    IL_01a0:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<bool>""
-    IL_01a6:  ldarg.0
-    IL_01a7:  ldc.i4.m1
-    IL_01a8:  dup
-    IL_01a9:  stloc.0
-    IL_01aa:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
-    IL_01af:  ldarg.0
-    IL_01b0:  ldloca.s   V_10
-    IL_01b2:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.GetResult()""
-    IL_01b7:  stfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__7""
-    IL_01bc:  ldarg.0
-    IL_01bd:  ldfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__7""
-    IL_01c2:  stloc.1
-    IL_01c3:  leave.s    IL_01f9
-    IL_01c5:  ldarg.0
-    IL_01c6:  ldnull
-    IL_01c7:  stfld      ""object C.<ExceptionFilterBroken>d__1.<>s__4""
-    IL_01cc:  nop
-    IL_01cd:  ldarg.0
-    IL_01ce:  ldnull
-    IL_01cf:  stfld      ""System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3""
-    IL_01d4:  br.s       IL_01d6
-    IL_01d6:  ldarg.0
-    IL_01d7:  ldnull
-    IL_01d8:  stfld      ""object C.<ExceptionFilterBroken>d__1.<>s__1""
-    IL_01dd:  leave.s    IL_01f9
+    IL_013a:  ldarg.0
+    IL_013b:  ldfld      ""int C.<ExceptionFilterBroken>d__1.<>s__5""
+    IL_0140:  stloc.s    V_5
+    IL_0142:  ldloc.s    V_5
+    IL_0144:  ldc.i4.1
+    IL_0145:  beq.s      IL_0149
+    IL_0147:  br.s       IL_01b7
+    IL_0149:  nop
+    IL_014a:  call       ""System.Threading.Tasks.Task<bool> C.TrueAsync()""
+    IL_014f:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<bool> System.Threading.Tasks.Task<bool>.GetAwaiter()""
+    IL_0154:  stloc.s    V_10
+    IL_0156:  ldloca.s   V_10
+    IL_0158:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.IsCompleted.get""
+    IL_015d:  brtrue.s   IL_01a1
+    IL_015f:  ldarg.0
+    IL_0160:  ldc.i4.1
+    IL_0161:  dup
+    IL_0162:  stloc.0
+    IL_0163:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+    IL_0168:  ldarg.0
+    IL_0169:  ldloc.s    V_10
+    IL_016b:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<ExceptionFilterBroken>d__1.<>u__2""
+    IL_0170:  ldarg.0
+    IL_0171:  stloc.3
+    IL_0172:  ldarg.0
+    IL_0173:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
+    IL_0178:  ldloca.s   V_10
+    IL_017a:  ldloca.s   V_3
+    IL_017c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<bool>, C.<ExceptionFilterBroken>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<bool>, ref C.<ExceptionFilterBroken>d__1)""
+    IL_0181:  nop
+    IL_0182:  leave.s    IL_0200
+    IL_0184:  ldarg.0
+    IL_0185:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<ExceptionFilterBroken>d__1.<>u__2""
+    IL_018a:  stloc.s    V_10
+    IL_018c:  ldarg.0
+    IL_018d:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<ExceptionFilterBroken>d__1.<>u__2""
+    IL_0192:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<bool>""
+    IL_0198:  ldarg.0
+    IL_0199:  ldc.i4.m1
+    IL_019a:  dup
+    IL_019b:  stloc.0
+    IL_019c:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+    IL_01a1:  ldarg.0
+    IL_01a2:  ldloca.s   V_10
+    IL_01a4:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.GetResult()""
+    IL_01a9:  stfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__6""
+    IL_01ae:  ldarg.0
+    IL_01af:  ldfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__6""
+    IL_01b4:  stloc.1
+    IL_01b5:  leave.s    IL_01eb
+    IL_01b7:  ldarg.0
+    IL_01b8:  ldnull
+    IL_01b9:  stfld      ""object C.<ExceptionFilterBroken>d__1.<>s__4""
+    IL_01be:  nop
+    IL_01bf:  ldarg.0
+    IL_01c0:  ldnull
+    IL_01c1:  stfld      ""System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3""
+    IL_01c6:  br.s       IL_01c8
+    IL_01c8:  ldarg.0
+    IL_01c9:  ldnull
+    IL_01ca:  stfld      ""object C.<ExceptionFilterBroken>d__1.<>s__1""
+    IL_01cf:  leave.s    IL_01eb
   }
   catch System.Exception
   {
-    IL_01df:  stloc.s    V_6
-    IL_01e1:  ldarg.0
-    IL_01e2:  ldc.i4.s   -2
-    IL_01e4:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
-    IL_01e9:  ldarg.0
-    IL_01ea:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
-    IL_01ef:  ldloc.s    V_6
-    IL_01f1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.SetException(System.Exception)""
-    IL_01f6:  nop
-    IL_01f7:  leave.s    IL_020e
+    IL_01d1:  stloc.s    V_8
+    IL_01d3:  ldarg.0
+    IL_01d4:  ldc.i4.s   -2
+    IL_01d6:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+    IL_01db:  ldarg.0
+    IL_01dc:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
+    IL_01e1:  ldloc.s    V_8
+    IL_01e3:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.SetException(System.Exception)""
+    IL_01e8:  nop
+    IL_01e9:  leave.s    IL_0200
   }
-  IL_01f9:  ldarg.0
-  IL_01fa:  ldc.i4.s   -2
-  IL_01fc:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
-  IL_0201:  ldarg.0
-  IL_0202:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
-  IL_0207:  ldloc.1
-  IL_0208:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.SetResult(bool)""
-  IL_020d:  nop
-  IL_020e:  ret
+  IL_01eb:  ldarg.0
+  IL_01ec:  ldc.i4.s   -2
+  IL_01ee:  stfld      ""int C.<ExceptionFilterBroken>d__1.<>1__state""
+  IL_01f3:  ldarg.0
+  IL_01f4:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool> C.<ExceptionFilterBroken>d__1.<>t__builder""
+  IL_01f9:  ldloc.1
+  IL_01fa:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<bool>.SetResult(bool)""
+  IL_01ff:  nop
+  IL_0200:  ret
 }
 ");
         }

@@ -71,7 +71,15 @@ internal abstract class AbstractTypeImportCompletionProvider<AliasDeclarationTyp
         {
             foreach (var symbol in scope.Aliases)
             {
-                if (symbol is { Target: ITypeSymbol { TypeKind: not TypeKind.Error } target })
+                if (symbol is
+                    {
+                        Target: ITypeSymbol
+                        {
+                            Name: not null,
+                            ContainingNamespace: not null,
+                            TypeKind: not TypeKind.Error
+                        } target
+                    })
                 {
                     // If the target type is a type constructs from generics type, e.g.
                     // using AliasBar = Bar<int>

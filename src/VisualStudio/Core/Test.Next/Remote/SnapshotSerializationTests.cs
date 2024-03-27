@@ -535,7 +535,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var document = CreateWorkspace().CurrentSolution.AddProject("empty", "empty", LanguageNames.CSharp).AddDocument("empty", SourceText.From(""));
             var serializer = document.Project.Solution.Services.GetService<ISerializerService>();
 
-            var source = serializer.CreateChecksum(await document.GetTextAsync().ConfigureAwait(false), CancellationToken.None);
+            var text = await document.GetTextAsync().ConfigureAwait(false);
+            var source = serializer.CreateChecksum(new SerializableSourceText(text, text.GetContentHash()), CancellationToken.None);
             var metadata = serializer.CreateChecksum(new MissingMetadataReference(), CancellationToken.None);
             var analyzer = serializer.CreateChecksum(new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing"), new MissingAnalyzerLoader()), CancellationToken.None);
 
@@ -607,40 +608,42 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             // test with right serializable encoding
             var sourceText = SourceText.From("Hello", Encoding.UTF8);
+            var serializableSourceText = new SerializableSourceText(sourceText, sourceText.GetContentHash());
             using (var stream = SerializableBytes.CreateWritableStream())
             {
                 using var context = new SolutionReplicationContext();
 
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(sourceText, objectWriter, context, CancellationToken.None);
+                    serializer.Serialize(serializableSourceText, objectWriter, context, CancellationToken.None);
                 }
 
                 stream.Position = 0;
 
                 using var objectReader = ObjectReader.TryGetReader(stream);
 
-                var newText = (SourceText)serializer.Deserialize(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
-                Assert.Equal(sourceText.ToString(), newText.ToString());
+                var newText = (SerializableSourceText)serializer.Deserialize(serializableSourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                Assert.Equal(sourceText.ToString(), newText.GetText(CancellationToken.None).ToString());
             }
 
             // test with wrong encoding that doesn't support serialization
             sourceText = SourceText.From("Hello", new NotSerializableEncoding());
+            serializableSourceText = new SerializableSourceText(sourceText, sourceText.GetContentHash());
             using (var stream = SerializableBytes.CreateWritableStream())
             {
                 using var context = new SolutionReplicationContext();
 
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(sourceText, objectWriter, context, CancellationToken.None);
+                    serializer.Serialize(serializableSourceText, objectWriter, context, CancellationToken.None);
                 }
 
                 stream.Position = 0;
 
                 using var objectReader = ObjectReader.TryGetReader(stream);
 
-                var newText = (SourceText)serializer.Deserialize(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
-                Assert.Equal(sourceText.ToString(), newText.ToString());
+                var newText = (SerializableSourceText)serializer.Deserialize(serializableSourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                Assert.Equal(sourceText.ToString(), newText.GetText(CancellationToken.None).ToString());
             }
         }
 
@@ -709,7 +712,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
         {
-            protected override string PreparePathToLoad(string fullPath, ImmutableHashSet<string> cultureNames)
+            protected override string PreparePathToLoad(string fullPath)
+                => throw new FileNotFoundException(fullPath);
+
+            protected override string PrepareSatelliteAssemblyToLoad(string fullPath, string cultureName)
                 => throw new FileNotFoundException(fullPath);
         }
 

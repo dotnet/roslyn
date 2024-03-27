@@ -76,6 +76,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             new ConcurrentDictionary<(ImmutableArray<ConstantValue> Constants, ushort ElementType), CachedArrayField>(ConstantValueAndUShortEqualityComparer.Instance);
 
         private ModuleVersionIdField? _mvidField;
+        private ModuleCancellationTokenField? _moduleCancellationTokenField;
+
         // Dictionary that maps from analysis kind to instrumentation payload field.
         private readonly ConcurrentDictionary<int, InstrumentationPayloadRootField> _instrumentationPayloadRootFields = new ConcurrentDictionary<int, InstrumentationPayloadRootField>();
 
@@ -156,10 +158,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
             fieldsBuilder.AddRange(_mappedFields.Values);
             fieldsBuilder.AddRange(_cachedArrayFields.Values);
             fieldsBuilder.AddRange(_cachedArrayFieldsForConstants.Values);
+
             if (_mvidField != null)
-            {
                 fieldsBuilder.Add(_mvidField);
-            }
+
+            if (_moduleCancellationTokenField != null)
+                fieldsBuilder.Add(_moduleCancellationTokenField);
+
             fieldsBuilder.AddRange(_instrumentationPayloadRootFields.Values);
             fieldsBuilder.Sort(FieldComparer.Instance);
             _orderedSynthesizedFields = fieldsBuilder.ToImmutableAndFree();
@@ -301,6 +306,18 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             Debug.Assert(_mvidField.Type == mvidType);
             return _mvidField;
+        }
+
+        internal Cci.IFieldReference GetModuleCancellationToken(Cci.ITypeReference cancellationTokenType)
+        {
+            if (_moduleCancellationTokenField == null)
+            {
+                Debug.Assert(!IsFrozen);
+                Interlocked.CompareExchange(ref _moduleCancellationTokenField, new ModuleCancellationTokenField(this, cancellationTokenType), null);
+            }
+
+            Debug.Assert(_moduleCancellationTokenField.Type == cancellationTokenType);
+            return _moduleCancellationTokenField;
         }
 
         internal Cci.IFieldReference GetOrAddInstrumentationPayloadRoot(int analysisKind, Cci.ITypeReference payloadRootType)
@@ -707,6 +724,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public override ImmutableArray<byte> MappedData => default(ImmutableArray<byte>);
         public override bool IsReadOnly => true;
+    }
+
+    /// <summary>
+    /// Synthesized by <see cref="InstrumentationKind.ModuleCancellation"/> instrumentation.
+    /// </summary>
+    internal sealed class ModuleCancellationTokenField(Cci.INamedTypeDefinition containingType, Cci.ITypeReference type)
+        : SynthesizedStaticField("ModuleCancellationToken", containingType, type)
+    {
+        public override ImmutableArray<byte> MappedData => default;
+        public override bool IsReadOnly => false;
     }
 
     internal sealed class InstrumentationPayloadRootField : SynthesizedStaticField

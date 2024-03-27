@@ -33,6 +33,7 @@
     <PackageReference Include="System.Collections.Immutable" IncludeInVsix="true" />
     <PackageReference Include="System.Memory" IncludeInVsix="true" />
     <PackageReference Include="System.Reflection.Metadata" IncludeInVsix="true" />
+    <PackageReference Include="System.Numerics.Vectors" IncludeInVsix="true" />
     <PackageReference Include="System.Text.Encoding.CodePages" IncludeInVsix="true" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" IncludeInVsix="true" />
     <PackageReference Include="System.Threading.Tasks.Extensions" IncludeInVsix="true" />

@@ -30,7 +30,7 @@ if (!File.Exists(vssdkPackageSpecPath))
 
 var vssdkPackageSpec = XDocument.Parse(File.ReadAllText(vssdkPackageSpecPath));
 
-var properties = new List<string>();
+var properties = new List<(string packageId, string version)>();
 
 foreach (var node in vssdkPackageSpec.Descendants())
 {
@@ -44,6 +44,7 @@ foreach (var node in vssdkPackageSpec.Descendants())
 
         if (!id.StartsWith("Microsoft.VisualStudio") &&
             !id.StartsWith("Microsoft.ServiceHub") &&
+            !id.StartsWith("Microsoft.Build") &&
             id != "Newtonsoft.Json" &&
             id != "StreamJsonRpc" &&
             id != "Nerdbank.Streams")
@@ -56,15 +57,31 @@ foreach (var node in vssdkPackageSpec.Descendants())
             continue;
         }
 
-        properties.Add($"<PackageVersion Include=\"{id}\" Version=\"{version}\" />");
+        properties.Add((id, version));
     }
 }
 
 properties.Sort();
 
-foreach (var property in properties)
+var seenMsbuild = false;
+foreach (var (id, version) in properties)
 {
-    Console.WriteLine(property);
+    if (!id.StartsWith("Microsoft.Build"))
+    {
+        Console.WriteLine($"<PackageVersion Include=\"{id}\" Version=\"{version}\" />");
+    }
+    else if (!seenMsbuild)
+    {
+        Console.WriteLine($$"""
+            <ItemGroup Condition="'$(DotnetBuildFromSource)' != 'true' and '$(TargetFramework)' == 'net472'">
+              <PackageVersion Include="Microsoft.Build" Version="{{version}}" />
+              <PackageVersion Include="Microsoft.Build.Framework" Version="{{version}}" />
+              <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="{{version}}" />
+            </ItemGroup>
+            """);
+
+        seenMsbuild = true;
+    }
 }
 
 return 0;

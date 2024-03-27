@@ -95,20 +95,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         private static CodeRefactoringSuggestedAction CreateRefactoringSuggestedAction(EditorTestWorkspace workspace, CodeRefactoringProvider provider, out EditorLayerExtensionManager.ExtensionManager extensionManager)
         {
             var codeActions = new List<CodeAction>();
-            RefactoringSetup(workspace, provider, codeActions, out extensionManager, out var textBuffer);
+            RefactoringSetup(workspace, provider, codeActions, out extensionManager, out var textBuffer, out var document);
             var suggestedAction = new CodeRefactoringSuggestedAction(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider>(),
-                workspace, workspace.CurrentSolution, textBuffer, provider, codeActions.First(), fixAllFlavors: null);
+                workspace, document, textBuffer, provider, codeActions.First(), fixAllFlavors: null);
             return suggestedAction;
         }
 
         private static void RefactoringSetup(
             EditorTestWorkspace workspace, CodeRefactoringProvider provider, List<CodeAction> codeActions,
             out EditorLayerExtensionManager.ExtensionManager extensionManager,
-            out VisualStudio.Text.ITextBuffer textBuffer)
+            out VisualStudio.Text.ITextBuffer textBuffer,
+            out Document document)
         {
-            var document = GetDocument(workspace);
+            document = GetDocument(workspace);
             textBuffer = workspace.GetTestDocument(document.Id).GetTextBuffer();
             var span = document.GetSyntaxRootAsync().Result.Span;
             var context = new CodeRefactoringContext(document, span, (a) => codeActions.Add(a), CancellationToken.None);

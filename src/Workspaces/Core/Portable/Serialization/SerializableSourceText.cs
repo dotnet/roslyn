@@ -5,15 +5,20 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Text;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Host.TemporaryStorageService;
 
 namespace Microsoft.CodeAnalysis.Serialization;
+
+#pragma warning disable CA1416 // Validate platform compatibility
 
 /// <summary>
 /// Represents a <see cref="SourceText"/> which can be serialized for sending to another process. The text is not
@@ -28,7 +33,7 @@ internal sealed class SerializableSourceText
     /// <remarks>
     /// Exactly one of <see cref="_storage"/> or <see cref="_text"/> will be non-<see langword="null"/>.
     /// </remarks>
-    private readonly ITemporaryTextStorageWithName? _storage;
+    private readonly TemporaryTextStorage? _storage;
 
     /// <summary>
     /// The <see cref="SourceText"/> in the current process.
@@ -39,27 +44,39 @@ internal sealed class SerializableSourceText
     private readonly SourceText? _text;
 
     /// <summary>
+    /// The hash that would be produced by calling <inheritdoc cref="SourceText.GetContentHash"/> on <see
+    /// cref="_text"/>.  Can be passed in when already known to avoid unnecessary computation costs.
+    /// </summary>
+    public readonly ImmutableArray<byte> ContentHash;
+
+    /// <summary>
     /// Weak reference to a SourceText computed from <see cref="_storage"/>.  Useful so that if multiple requests
     /// come in for the source text, the same one can be returned as long as something is holding it alive.
     /// </summary>
     private readonly WeakReference<SourceText?> _computedText = new(target: null);
 
-    public SerializableSourceText(ITemporaryTextStorageWithName storage)
-        : this(storage, text: null)
+    public SerializableSourceText(TemporaryTextStorage storage, ImmutableArray<byte> contentHash)
+        : this(storage, text: null, contentHash)
     {
     }
 
-    public SerializableSourceText(SourceText text)
-        : this(storage: null, text)
+    public SerializableSourceText(SourceText text, ImmutableArray<byte> contentHash)
+        : this(storage: null, text, contentHash)
     {
     }
 
-    private SerializableSourceText(ITemporaryTextStorageWithName? storage, SourceText? text)
+    private SerializableSourceText(TemporaryTextStorage? storage, SourceText? text, ImmutableArray<byte> contentHash)
     {
         Debug.Assert(storage is null != text is null);
 
         _storage = storage;
         _text = text;
+        ContentHash = contentHash;
+
+#if DEBUG
+        var computedContentHash = TryGetText()?.GetContentHash() ?? _storage!.ContentHash;
+        Debug.Assert(contentHash.SequenceEqual(computedContentHash));
+#endif
     }
 
     /// <summary>
@@ -69,11 +86,6 @@ internal sealed class SerializableSourceText
     /// <returns></returns>
     private SourceText? TryGetText()
         => _text ?? _computedText.GetTarget();
-
-    public ImmutableArray<byte> GetContentHash()
-    {
-        return TryGetText()?.GetContentHash() ?? _storage!.GetContentHash();
-    }
 
     public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
     {
@@ -99,17 +111,18 @@ internal sealed class SerializableSourceText
         return text;
     }
 
-    public static ValueTask<SerializableSourceText> FromTextDocumentStateAsync(TextDocumentState state, CancellationToken cancellationToken)
+    public static ValueTask<SerializableSourceText> FromTextDocumentStateAsync(
+        TextDocumentState state, CancellationToken cancellationToken)
     {
-        if (state.Storage is ITemporaryTextStorageWithName storage)
+        if (state.Storage is TemporaryTextStorage storage)
         {
-            return new ValueTask<SerializableSourceText>(new SerializableSourceText(storage));
+            return new ValueTask<SerializableSourceText>(new SerializableSourceText(storage, storage.ContentHash));
         }
         else
         {
             return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
                 static (state, cancellationToken) => state.GetTextAsync(cancellationToken),
-                static (text, _) => new SerializableSourceText(text),
+                static (text, _) => new SerializableSourceText(text, text.GetContentHash()),
                 state,
                 cancellationToken);
         }
@@ -124,6 +137,7 @@ internal sealed class SerializableSourceText
 
             writer.WriteInt32((int)_storage.ChecksumAlgorithm);
             writer.WriteEncoding(_storage.Encoding);
+            writer.WriteByteArray(ImmutableCollectionsMarshal.AsArray(_storage.ContentHash)!);
 
             writer.WriteInt32((int)SerializationKinds.MemoryMapFile);
             writer.WriteString(_storage.Name);
@@ -136,6 +150,8 @@ internal sealed class SerializableSourceText
 
             writer.WriteInt32((int)_text.ChecksumAlgorithm);
             writer.WriteEncoding(_text.Encoding);
+            writer.WriteByteArray(ImmutableCollectionsMarshal.AsArray(_text.GetContentHash())!);
+
             writer.WriteInt32((int)SerializationKinds.Bits);
             _text.WriteTo(writer, cancellationToken);
         }
@@ -151,31 +167,27 @@ internal sealed class SerializableSourceText
 
         var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
         var encoding = reader.ReadEncoding();
+        var contentHash = ImmutableCollectionsMarshal.AsImmutableArray(reader.ReadByteArray());
 
         var kind = (SerializationKinds)reader.ReadInt32();
         Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
 
         if (kind == SerializationKinds.MemoryMapFile)
         {
-            var storage2 = (ITemporaryStorageService2)storageService;
+            var storage2 = (TemporaryStorageService)storageService;
 
             var name = reader.ReadRequiredString();
             var offset = reader.ReadInt64();
             var size = reader.ReadInt64();
 
-            var storage = storage2.AttachTemporaryTextStorage(name, offset, size, checksumAlgorithm, encoding);
-            if (storage is ITemporaryTextStorageWithName storageWithName)
-            {
-                return new SerializableSourceText(storageWithName);
-            }
-            else
-            {
-                return new SerializableSourceText(storage.ReadText(cancellationToken));
-            }
+            var storage = storage2.AttachTemporaryTextStorage(name, offset, size, checksumAlgorithm, encoding, contentHash);
+            return new SerializableSourceText(storage, contentHash);
         }
         else
         {
-            return new SerializableSourceText(SourceTextExtensions.ReadFrom(textService, reader, encoding, checksumAlgorithm, cancellationToken));
+            return new SerializableSourceText(
+                SourceTextExtensions.ReadFrom(textService, reader, encoding, checksumAlgorithm, cancellationToken),
+                contentHash);
         }
     }
 }

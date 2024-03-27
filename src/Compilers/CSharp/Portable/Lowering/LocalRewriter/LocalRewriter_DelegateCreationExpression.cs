@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
         {
+            Debug.Assert(!node.Type.IsAnonymousType); // Missing EnsureParamCollectionAttributeExists call?
+
             if (node.Argument.HasDynamicType())
             {
                 var loweredArgument = VisitExpression(node.Argument);

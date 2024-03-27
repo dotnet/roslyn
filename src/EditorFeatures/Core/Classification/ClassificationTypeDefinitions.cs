@@ -423,6 +423,13 @@ internal sealed class ClassificationTypeDefinitions
     internal readonly ClassificationTypeDefinition ReassignedVariableTypeDefinition;
     #endregion
 
+    #region Obsolete Symbol
+    [Export]
+    [Name(ClassificationTypeNames.ObsoleteSymbol)]
+    [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+    internal readonly ClassificationTypeDefinition ObsoleteSymbolTypeDefinition;
+    #endregion
+
     #region Static Symbol
     [Export]
     [Name(ClassificationTypeNames.StaticSymbol)]

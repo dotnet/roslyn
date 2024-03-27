@@ -63,7 +63,9 @@ internal static partial class DeclarationFinder
 
         // Lazily produce the compilation.  We don't want to incur any costs (especially source generators) if there
         // are no results for this query in this project.
-        var lazyCompilation = AsyncLazy.Create(project.GetRequiredCompilationAsync);
+        var lazyCompilation = AsyncLazy.Create(static (project, cancellationToken) =>
+            project.GetRequiredCompilationAsync(cancellationToken),
+            arg: project);
 
         if (project.SupportsCompilation)
         {
@@ -114,12 +116,13 @@ internal static partial class DeclarationFinder
             {
                 using var _ = ArrayBuilder<ISymbol>.GetInstance(out var buffer);
 
-                var lazyAssembly = AsyncLazy.Create(async cancellationToken =>
-                {
-                    var compilation = await lazyCompilation.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                    var assemblySymbol = compilation.GetAssemblyOrModuleSymbol(peReference) as IAssemblySymbol;
-                    return assemblySymbol;
-                });
+                var lazyAssembly = AsyncLazy.Create(static async (arg, cancellationToken) =>
+                    {
+                        var compilation = await arg.lazyCompilation.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                        var assemblySymbol = compilation.GetAssemblyOrModuleSymbol(arg.peReference) as IAssemblySymbol;
+                        return assemblySymbol;
+                    },
+                    arg: (lazyCompilation, peReference));
 
                 await AddMetadataDeclarationsWithNormalQueryAsync(
                     project, lazyAssembly, peReference,

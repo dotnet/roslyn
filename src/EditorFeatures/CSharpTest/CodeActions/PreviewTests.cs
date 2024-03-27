@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
     public partial class PreviewTests : AbstractCSharpCodeActionTest
     {
         private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeaturesWpf
-            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
             .AddParts(
-                typeof(MockDiagnosticUpdateSourceRegistrationService),
                 typeof(MockPreviewPaneService));
 
         private const string AddedDocumentName = "AddedDocument";

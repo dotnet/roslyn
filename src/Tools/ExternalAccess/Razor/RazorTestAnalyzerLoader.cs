@@ -4,34 +4,25 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 [Export(typeof(RazorTestAnalyzerLoader)), Shared]
 internal class RazorTestAnalyzerLoader
 {
-    private readonly IDiagnosticAnalyzerService _analyzerService;
-    private readonly DiagnosticService _diagnosticService;
-    private readonly IGlobalOptionService _globalOptionService;
-
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RazorTestAnalyzerLoader(IDiagnosticAnalyzerService analyzerService, IDiagnosticService diagnosticService, IGlobalOptionService globalOptionService)
+    public RazorTestAnalyzerLoader()
     {
-        _analyzerService = analyzerService;
-        _diagnosticService = (DiagnosticService)diagnosticService;
-        _globalOptionService = globalOptionService;
     }
 
+#pragma warning disable IDE0060 // Remove unused parameter
+#pragma warning disable CA1822 // Mark members as static
     public void InitializeDiagnosticsServices(Workspace workspace)
+#pragma warning restore CA1822 // Mark members as static
+#pragma warning restore IDE0060 // Remove unused parameter
     {
-        _globalOptionService.SetGlobalOption(InternalDiagnosticsOptionsStorage.NormalDiagnosticMode, DiagnosticMode.LspPull);
-        _ = ((IIncrementalAnalyzerProvider)_analyzerService).CreateIncrementalAnalyzer(workspace);
-        _diagnosticService.Register((IDiagnosticUpdateSource)_analyzerService);
     }
 
     public static IAnalyzerAssemblyLoader CreateAnalyzerAssemblyLoader()

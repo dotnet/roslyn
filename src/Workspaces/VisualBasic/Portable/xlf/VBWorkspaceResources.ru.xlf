@@ -227,21 +227,6 @@
         <target state="translated">Вводит операцию преобразования типа, которая не выдает исключение. Если попытка преобразования не удалась, TryCast не возвращает ничего из того, что ваша программа может протестировать.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Node_does_not_descend_from_root">
-        <source>Node does not descend from root.</source>
-        <target state="translated">Узел не является корневым.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_not_in_parent_s_child_list">
-        <source>Node not in parent's child list</source>
-        <target state="translated">Узел не входит в родительский список дочерних узлов</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Trivia_is_not_associated_with_token">
-        <source>Trivia is not associated with token</source>
-        <target state="translated">Trivia не связана с токеном</target>
-        <note />
-      </trans-unit>
       <trans-unit id="typeOrMember">
         <source>&lt;typeOrMember&gt;</source>
         <target state="translated">&lt;typeOrMember&gt;</target>

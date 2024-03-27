@@ -364,8 +364,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          WellKnownMember.Microsoft_VisualBasic_CompilerServices_Conversions__ChangeType, syntax) Then
 
                     ' value = ChangeType(value, GetType(targetType))
-
-                    Dim getTypeExpr = New BoundGetType(syntax, New BoundTypeExpression(syntax, targetType), changeTypeMethod.Parameters(1).Type)
+                    Dim factory As New SyntheticBoundNodeFactory(_topMethod, _currentMethodOrLambda, syntax, _compilationState, _diagnostics)
+                    Dim getTypeExpr = factory.Typeof(targetType, changeTypeMethod.Parameters(1).Type)
 
                     'TODO: should we suppress object clone here? Dev11 does not.
                     value = New BoundCall(syntax,
@@ -933,12 +933,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundLiteral(node, ConstantValue.Create(value), booleanType)
         End Function
 
-        Private Shared Function MakeGetTypeExpression(node As SyntaxNode,
+        Private Function MakeGetTypeExpression(node As SyntaxNode,
                                                type As TypeSymbol,
-                                               typeType As TypeSymbol) As BoundGetType
+                                               typeType As TypeSymbol) As BoundExpression
 
-            Dim typeExpr = New BoundTypeExpression(node, type)
-            Return New BoundGetType(node, typeExpr, typeType)
+            Dim factory As New SyntheticBoundNodeFactory(_topMethod, _currentMethodOrLambda, node, _compilationState, _diagnostics)
+            Return factory.Typeof(type, typeType)
         End Function
 
         Private Function MakeArrayOfGetTypeExpressions(node As SyntaxNode,

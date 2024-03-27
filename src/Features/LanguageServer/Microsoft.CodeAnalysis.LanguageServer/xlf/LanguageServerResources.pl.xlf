@@ -32,11 +32,6 @@
         <target state="translated">Ukończono (ponownie)ładowanie wszystkich projektów w usłudze {0}</target>
         <note>The placeholder is a time duration like 00:15</note>
       </trans-unit>
-      <trans-unit id="Debugger_attached">
-        <source>Debugger attached</source>
-        <target state="translated">Dołączono debuger</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Debugging_tests">
         <source>Debugging tests...</source>
         <target state="translated">Trwa debugowanie testów...</target>
@@ -62,9 +57,9 @@
         <target state="translated">Niepowodzenie:    {0}, zakończone powodzeniem:    {1}, pominięte:    {2}, łącznie:    {3}, czas trwania: {4}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_read_runsettings_file_at_0:1">
+      <trans-unit id="Failed_to_read_runsettings_file_at_0_1">
         <source>Failed to read .runsettings file at {0}:{1}</source>
-        <target state="translated">Nie można odczytać pliku .runsettings w {0}:{1}</target>
+        <target state="new">Failed to read .runsettings file at {0}:{1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_run_restore_on_0">

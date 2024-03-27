@@ -101,3 +101,26 @@ static class C
     public static string M(I2 o, in int x) => "2";
 }
 ```
+
+## Prefer pattern-based over interface-based disposal in async `using`
+
+***Introduced in Visual Studio 2022 version 17.10p3***
+
+An async `using` prefers to bind using a pattern-based `DisposeAsync()` method rather than the interface-based `IAsyncDisposable.DisposeAsync()`.
+
+For instance, the public `DisposeAsync()` method will be picked, rather than the private interface implementation:
+```csharp
+await using (var x = new C()) { }
+
+public class C : System.IAsyncDisposable
+{
+    ValueTask IAsyncDisposable.DisposeAsync() => throw null; // no longer picked
+
+    public async ValueTask DisposeAsync()
+    {
+        Console.WriteLine("PICKED");
+        await Task.Yield();
+    }
+}
+```
+

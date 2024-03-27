@@ -35,8 +35,9 @@ internal static partial class DependentTypeFinder
             if (!s_projectToIndex.TryGetValue(project.State, out var lazyIndex))
             {
                 lazyIndex = s_projectToIndex.GetValue(
-                    project.State, p => new AsyncLazy<ProjectIndex>(
-                        c => CreateIndexAsync(project, c)));
+                    project.State, p => AsyncLazy.Create(
+                        static (project, c) => CreateIndexAsync(project, c),
+                        project));
             }
 
             return lazyIndex.GetValueAsync(cancellationToken);

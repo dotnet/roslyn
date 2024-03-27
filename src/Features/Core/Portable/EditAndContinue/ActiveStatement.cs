@@ -18,7 +18,7 @@ internal sealed class ActiveStatement
     /// <summary>
     /// Ordinal of the active statement within the set of all active statements.
     /// </summary>
-    public readonly int Ordinal;
+    public readonly ActiveStatementId Id;
 
     /// <summary>
     /// The instruction of the active statement that is being executed.
@@ -37,11 +37,9 @@ internal sealed class ActiveStatement
     /// </summary>
     public readonly ActiveStatementFlags Flags;
 
-    public ActiveStatement(int ordinal, ActiveStatementFlags flags, SourceFileSpan span, ManagedInstructionId instructionId)
+    public ActiveStatement(ActiveStatementId id, ActiveStatementFlags flags, SourceFileSpan span, ManagedInstructionId instructionId)
     {
-        Debug.Assert(ordinal >= 0);
-
-        Ordinal = ordinal;
+        Id = id;
         Flags = flags;
         FileSpan = span;
         InstructionId = instructionId;
@@ -54,10 +52,10 @@ internal sealed class ActiveStatement
         => WithFileSpan(FileSpan.WithSpan(span));
 
     public ActiveStatement WithFileSpan(SourceFileSpan span)
-        => new(Ordinal, Flags, span, InstructionId);
+        => new(Id, Flags, span, InstructionId);
 
     public ActiveStatement WithFlags(ActiveStatementFlags flags)
-        => new(Ordinal, flags, FileSpan, InstructionId);
+        => new(Id, flags, FileSpan, InstructionId);
 
     public LinePositionSpan Span
         => FileSpan.Span;
@@ -90,5 +88,5 @@ internal sealed class ActiveStatement
         => (Flags & ActiveStatementFlags.Stale) != 0;
 
     private string GetDebuggerDisplay()
-        => $"{Ordinal}: {Span}";
+        => $"{Id}: {Span}";
 }

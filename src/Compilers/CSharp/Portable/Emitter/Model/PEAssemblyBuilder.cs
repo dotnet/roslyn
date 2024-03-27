@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyRequiresLocationAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyParamCollectionAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsByRefLikeAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsUnmanagedAttribute;
         private SynthesizedEmbeddedNullableAttributeSymbol _lazyNullableAttribute;
@@ -96,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             builder.AddIfNotNull(_lazyEmbeddedAttribute);
             builder.AddIfNotNull(_lazyIsReadOnlyAttribute);
             builder.AddIfNotNull(_lazyRequiresLocationAttribute);
+            builder.AddIfNotNull(_lazyParamCollectionAttribute);
             builder.AddIfNotNull(_lazyIsUnmanagedAttribute);
             builder.AddIfNotNull(_lazyIsByRefLikeAttribute);
             builder.AddIfNotNull(_lazyNullableAttribute);
@@ -316,6 +318,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.TrySynthesizeRequiresLocationAttribute();
         }
 
+        protected override SynthesizedAttributeData TrySynthesizeParamCollectionAttribute()
+        {
+            if ((object)_lazyParamCollectionAttribute != null)
+            {
+                return SynthesizedAttributeData.Create(
+                    Compilation,
+                    _lazyParamCollectionAttribute.Constructors[0],
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.TrySynthesizeParamCollectionAttribute();
+        }
+
         protected override SynthesizedAttributeData TrySynthesizeIsUnmanagedAttribute()
         {
             if ((object)_lazyIsUnmanagedAttribute != null)
@@ -388,6 +404,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ref _lazyRequiresLocationAttribute,
                     diagnostics,
                     AttributeDescription.RequiresLocationAttribute,
+                    createParameterlessEmbeddedAttributeSymbol);
+            }
+
+            if ((needsAttributes & EmbeddableAttributes.ParamCollectionAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyParamCollectionAttribute,
+                    diagnostics,
+                    AttributeDescription.ParamCollectionAttribute,
                     createParameterlessEmbeddedAttributeSymbol);
             }
 

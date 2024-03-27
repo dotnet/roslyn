@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
             public ImmutableArray<string> MemberNames;
             public Action<ImmutableArray<PickMembersOption>> OptionsCallback;
 
-            protected override Workspace CreateWorkspaceImpl()
+            protected override Task<Workspace> CreateWorkspaceImplAsync()
             {
                 // If we're a dialog test, then mixin our mock and initialize its values to the ones the test asked for.
                 var workspace = new AdhocWorkspace(s_composition.GetHostServices());
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
                 service.MemberNames = MemberNames;
                 service.OptionsCallback = OptionsCallback;
 
-                return workspace;
+                return Task.FromResult<Workspace>(workspace);
             }
         }
 

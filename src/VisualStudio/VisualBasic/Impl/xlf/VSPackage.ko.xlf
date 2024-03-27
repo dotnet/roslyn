@@ -130,16 +130,6 @@ JSON 문자열 색상 지정,
         <target state="translated">Visual Basic 도구</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_Visual_Basic_script_file">
-        <source>An empty Visual Basic script file.</source>
-        <target state="translated">비어 있는 Visual Basic 스크립트 파일입니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Visual_Basic_Script">
-        <source>Visual Basic Script</source>
-        <target state="translated">Visual Basic 스크립트</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

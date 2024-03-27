@@ -85,7 +85,8 @@ internal class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
                           SyntaxKind.ThisConstructorInitializer or
                           SyntaxKind.BaseConstructorInitializer or
                           SyntaxKind.EqualsValueClause or
-                          SyntaxKind.ArrowExpressionClause;
+                          SyntaxKind.ArrowExpressionClause or
+                          SyntaxKind.PrimaryConstructorBaseType;
 
     protected override void ValidateSpeculativeSemanticModel(SemanticModel speculativeSemanticModel, SyntaxNode nodeToSpeculate)
     {
@@ -156,6 +157,10 @@ internal class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
 
             case SyntaxKind.ArrowExpressionClause:
                 semanticModel.TryGetSpeculativeSemanticModel(position, (ArrowExpressionClauseSyntax)nodeToSpeculate, out speculativeModel);
+                return speculativeModel;
+
+            case SyntaxKind.PrimaryConstructorBaseType:
+                semanticModel.TryGetSpeculativeSemanticModel(position, (PrimaryConstructorBaseTypeSyntax)nodeToSpeculate, out speculativeModel);
                 return speculativeModel;
         }
 

@@ -32,11 +32,6 @@
         <target state="translated">已完成 {0} 中所有專案的(重新)載入</target>
         <note>The placeholder is a time duration like 00:15</note>
       </trans-unit>
-      <trans-unit id="Debugger_attached">
-        <source>Debugger attached</source>
-        <target state="translated">已連結偵錯工具</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Debugging_tests">
         <source>Debugging tests...</source>
         <target state="translated">正在偵錯測試...</target>
@@ -62,9 +57,9 @@
         <target state="translated">失敗:    {0}，通過:    {1}，跳過:    {2}，總計:    {3}，持續時間: {4}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_read_runsettings_file_at_0:1">
+      <trans-unit id="Failed_to_read_runsettings_file_at_0_1">
         <source>Failed to read .runsettings file at {0}:{1}</source>
-        <target state="translated">無法讀取位於 {0} 的 .runsettings 檔案: {1}</target>
+        <target state="new">Failed to read .runsettings file at {0}:{1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_run_restore_on_0">

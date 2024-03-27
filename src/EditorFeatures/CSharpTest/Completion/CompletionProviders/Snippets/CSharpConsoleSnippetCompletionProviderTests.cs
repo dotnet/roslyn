@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WpfFact]
-        public async Task InsertAsyncConsoleSnippetTest()
+        public async Task InsertNormalConsoleSnippetInAsyncContextTest()
         {
             var markupBeforeCommit =
                 """
@@ -67,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 {
                     public async Task MethodAsync()
                     {
-                        await Console.Out.WriteLineAsync($$);
+                        Console.WriteLine($$);
                     }
                 }
                 """;

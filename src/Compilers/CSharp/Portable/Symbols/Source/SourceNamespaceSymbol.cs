@@ -100,8 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Location TryGetFirstLocation()
-            => _mergedDeclaration.Declarations[0].NameLocation;
+#nullable enable
+        public override Location? TryGetFirstLocation()
+            => _mergedDeclaration.Declarations is [var declaration, ..] ? declaration.NameLocation : null;
+#nullable disable
 
         public override bool HasLocationContainedWithin(SyntaxTree tree, TextSpan declarationSpan, out bool wasZeroWidthMatch)
         {

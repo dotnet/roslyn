@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -55,6 +56,10 @@ internal static class SymbolCompletionItem
         builder.Add(new KeyValuePair<string, string>("ContextPosition", contextPosition.ToString()));
         AddSupportedPlatforms(builder, supportedPlatforms);
         symbolEncoder(symbols, builder);
+
+        tags = tags.NullToEmpty();
+        if (symbols.All(symbol => symbol.IsObsolete()) && !tags.Contains(WellKnownTags.Deprecated))
+            tags = tags.Add(WellKnownTags.Deprecated);
 
         var firstSymbol = symbols[0];
         var item = CommonCompletionItem.Create(

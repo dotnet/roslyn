@@ -10,7 +10,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Example;
 
-public class ExampleLanguageServer : AbstractLanguageServer<ExampleRequestContext>
+internal class ExampleLanguageServer : AbstractLanguageServer<ExampleRequestContext>
 {
     private readonly Action<IServiceCollection>? _addExtraHandlers;
 

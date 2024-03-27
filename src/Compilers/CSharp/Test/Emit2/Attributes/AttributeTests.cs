@@ -3449,6 +3449,8 @@ namespace AttributeTest
                 attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "" });
 
                 Assert.True(attrs.First().AttributeConstructor.Parameters.Last().IsParams);
+                Assert.True(attrs.First().AttributeConstructor.Parameters.Last().IsParamsArray);
+                Assert.False(attrs.First().AttributeConstructor.Parameters.Last().IsParamsCollection);
             };
 
             Action<ModuleSymbol> mdAttributeValidator = (ModuleSymbol m) =>
@@ -3586,6 +3588,8 @@ namespace AttributeTest
                 attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "whatever" });
 
                 Assert.True(attrs.First().AttributeConstructor.Parameters.Last().IsParams);
+                Assert.True(attrs.First().AttributeConstructor.Parameters.Last().IsParamsArray);
+                Assert.False(attrs.First().AttributeConstructor.Parameters.Last().IsParamsCollection);
             };
 
             Action<ModuleSymbol> mdAttributeValidator = (ModuleSymbol m) =>
@@ -8806,6 +8810,8 @@ public class IA
             Assert.Equal(0, method.GetAttributes().Length);
             var yParam = method.Parameters[1];
             Assert.True(yParam.IsParams);
+            Assert.True(yParam.IsParamsArray);
+            Assert.False(yParam.IsParamsCollection);
             Assert.Equal(0, yParam.GetAttributes().Length);
         }
 

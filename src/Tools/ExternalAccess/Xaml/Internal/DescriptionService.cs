@@ -74,7 +74,20 @@ internal sealed class DescriptionService : IDescriptionService
                 builder.AddLineBreak();
             }
 
-            builder.AddRange(section.TaggedParts);
+            foreach (var part in section.TaggedParts)
+            {
+                if (part.Style == (TaggedTextStyle.Code | TaggedTextStyle.PreserveWhitespace) &&
+                    builder.LastOrDefault().Tag != TextTags.CodeBlockStart)
+                {
+                    builder.Add(new TaggedText(TextTags.CodeBlockStart, string.Empty));
+                    builder.Add(part);
+                    builder.Add(new TaggedText(TextTags.CodeBlockEnd, string.Empty));
+                }
+                else
+                {
+                    builder.Add(part);
+                }
+            }
         }
 
         return builder.ToImmutableArray();

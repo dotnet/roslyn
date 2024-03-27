@@ -12,16 +12,6 @@
         <target state="translated">正在添加缺少的 imports…</target>
         <note>Thread awaited dialog text. "imports" is a language specific term and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Case_Correction">
-        <source>Case Correction</source>
-        <target state="translated">大小写更正</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Correcting_word_casing">
-        <source>Correcting word casing...</source>
-        <target state="translated">正在更正单词的大小写...</target>
-        <note />
-      </trans-unit>
       <trans-unit id="This_call_is_required_by_the_designer">
         <source>This call is required by the designer.</source>
         <target state="translated">此调用是设计器所必需的。</target>
@@ -37,11 +27,6 @@
         <target state="translated">最终构造</target>
         <note />
       </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">智能缩进</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
         <target state="translated">正在设置文档格式...</target>
@@ -50,11 +35,6 @@
       <trans-unit id="Insert_new_line">
         <source>Insert new line</source>
         <target state="translated">插入新行</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_Paste">
-        <source>Format Paste</source>
-        <target state="translated">格式粘贴</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_pasted_text">

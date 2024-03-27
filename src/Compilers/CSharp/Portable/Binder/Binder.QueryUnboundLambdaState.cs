@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override int ParameterCount { get { return _parameters.Length; } }
             public override bool IsAsync { get { return false; } }
             public override bool IsStatic => false;
-            public override bool HasParamsArray => false;
             public override RefKind RefKind(int index) { return Microsoft.CodeAnalysis.RefKind.None; }
             public override ScopedKind DeclaredScope(int index) => ScopedKind.None;
             public override MessageID MessageID { get { return MessageID.IDS_FeatureQueryExpression; } } // TODO: what is the correct ID here?

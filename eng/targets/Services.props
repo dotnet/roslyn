@@ -52,5 +52,6 @@
   <ItemGroup>
     <InProcService Include="Microsoft.VisualStudio.LanguageServices.SolutionAssetProvider" />
     <InProcService Include="Microsoft.VisualStudio.LanguageServices.WorkspaceProjectFactoryService" />
+    <InProcService Include="Microsoft.CodeAnalysis.LanguageServer.ManagedHotReloadLanguageService" Version="0.1" />
   </ItemGroup>
 </Project>

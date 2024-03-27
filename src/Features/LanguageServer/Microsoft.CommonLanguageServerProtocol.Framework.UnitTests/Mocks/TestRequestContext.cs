@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
-public class TestRequestContext
+internal class TestRequestContext
 {
-    public class Factory : AbstractRequestContextFactory<TestRequestContext>
+    internal class Factory : AbstractRequestContextFactory<TestRequestContext>
     {
         public static readonly Factory Instance = new();
 

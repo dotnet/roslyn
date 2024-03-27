@@ -880,14 +880,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitGetType(node As BoundGetType) As BoundNode
+            Debug.Assert(node.Type.ExtendedSpecialType = InternalSpecialType.System_Type OrElse
+                         TypeSymbol.Equals(node.Type, Compilation.GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.AllIgnoreOptionsForVB))
+
             Dim result = DirectCast(MyBase.VisitGetType(node), BoundGetType)
 
             ' Emit needs this method.
-            If Not TryGetWellknownMember(Of MethodSymbol)(Nothing, WellKnownMember.System_Type__GetTypeFromHandle, node.Syntax) Then
-                Return New BoundGetType(result.Syntax, result.SourceType, result.Type, hasErrors:=True)
+            Dim tryGetResult As Boolean
+            Dim getTypeFromHandle As MethodSymbol = Nothing
+
+            If node.Type.ExtendedSpecialType = InternalSpecialType.System_Type Then
+                tryGetResult = TryGetSpecialMember(Of MethodSymbol)(getTypeFromHandle, SpecialMember.System_Type__GetTypeFromHandle, node.Syntax)
+            Else
+                tryGetResult = TryGetWellknownMember(Of MethodSymbol)(getTypeFromHandle, WellKnownMember.System_Type__GetTypeFromHandle, node.Syntax)
             End If
 
-            Return result
+            If Not tryGetResult Then
+                Return New BoundGetType(result.Syntax, result.SourceType, getTypeFromHandle:=Nothing, result.Type, hasErrors:=True)
+            End If
+
+            Debug.Assert(TypeSymbol.Equals(result.Type, getTypeFromHandle.ReturnType, TypeCompareKind.AllIgnoreOptionsForVB))
+            Return New BoundGetType(result.Syntax, result.SourceType, getTypeFromHandle, result.Type)
         End Function
 
         Public Overrides Function VisitArrayCreation(node As BoundArrayCreation) As BoundNode

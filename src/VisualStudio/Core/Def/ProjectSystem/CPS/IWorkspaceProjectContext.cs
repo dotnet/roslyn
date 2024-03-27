@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
@@ -71,8 +72,18 @@ internal interface IWorkspaceProjectContext : IDisposable
     /// </summary>
     void RemoveAnalyzerConfigFile(string filePath);
 
+    /// <summary>
+    /// Creates a batching scope for this context
+    /// </summary>
+    ValueTask<IAsyncDisposable> CreateBatchScopeAsync(CancellationToken cancellationToken);
+
+    // Can be removed once CPS starts consuming CreateBatchScopeAsync
     void StartBatch();
+
+    // Can be removed once CPS starts consuming CreateBatchScopeAsync
     IAsyncDisposable CreateBatchScope();
+
+    // Can be removed once CPS starts consuming CreateBatchScopeAsync
     ValueTask EndBatchAsync();
 
     void ReorderSourceFiles(IEnumerable<string> filePaths);

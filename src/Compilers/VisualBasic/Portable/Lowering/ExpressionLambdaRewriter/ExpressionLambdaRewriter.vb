@@ -265,7 +265,7 @@ lSelect:
 #If DEBUG Then
                     If node.Kind = BoundKind.GetType Then
                         Dim gt = DirectCast(node, BoundGetType)
-                        node = gt.Update(gt.SourceType.MemberwiseClone(Of BoundTypeExpression)(), gt.Type)
+                        node = gt.Update(gt.SourceType.MemberwiseClone(Of BoundTypeExpression)(), gt.GetTypeFromHandle, gt.Type)
                     Else
                         node = node.MemberwiseClone(Of BoundExpression)()
                     End If
@@ -333,7 +333,11 @@ lSelect:
                 parameters.Add(parameterReference)
                 _parameterMap(p) = parameterReference
 
-                Dim parameter As BoundExpression = ConvertRuntimeHelperToExpressionTree("Parameter", _factory.[Typeof](p.Type.InternalSubstituteTypeParameters(_typeMap).Type), _factory.Literal(p.Name))
+                Dim parameter As BoundExpression = ConvertRuntimeHelperToExpressionTree("Parameter",
+                                                                                        _factory.[Typeof](
+                                                                                            p.Type.InternalSubstituteTypeParameters(_typeMap).Type,
+                                                                                            _factory.WellKnownType(WellKnownType.System_Type)),
+                                                                                        _factory.Literal(p.Name))
                 If Not parameter.HasErrors Then
                     initializers.Add(_factory.AssignmentExpression(parameterReferenceLValue, parameter))
                 End If
@@ -386,7 +390,7 @@ lSelect:
             Else
                 Return ConvertRuntimeHelperToExpressionTree("Call",
                                                             If(method.IsShared, _factory.Null(_expressionType), receiverOpt),
-                                                            _factory.MethodInfo(method), ConvertArgumentsIntoArray(node.Arguments))
+                                                            _factory.MethodInfo(method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)), ConvertArgumentsIntoArray(node.Arguments))
             End If
         End Function
 
@@ -430,7 +434,7 @@ lSelect:
             End If
 
             Dim getMethod As MethodSymbol = [property].GetMostDerivedGetMethod()
-            Return ConvertRuntimeHelperToExpressionTree("Property", rewrittenReceiver, _factory.MethodInfo(getMethod))
+            Return ConvertRuntimeHelperToExpressionTree("Property", rewrittenReceiver, _factory.MethodInfo(getMethod, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
         End Function
 
         Private Function VisitLambda(node As BoundLambda) As BoundExpression
@@ -469,30 +473,33 @@ lSelect:
 
             Dim result As BoundExpression
 
-            Dim methodInfo As BoundExpression = Me._factory.MethodInfo(If(method.CallsiteReducedFromMethod, method))
+            Dim targetMethod As MethodSymbol = If(method.CallsiteReducedFromMethod, method)
 
             Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
-            Dim createDelegate = Binder.GetWellKnownTypeMember(Me._factory.Compilation, WellKnownMember.System_Reflection_MethodInfo__CreateDelegate, useSiteInfo)
+            Dim createDelegate = DirectCast(Binder.GetWellKnownTypeMember(Me._factory.Compilation, WellKnownMember.System_Reflection_MethodInfo__CreateDelegate, useSiteInfo), MethodSymbol)
+
             If createDelegate IsNot Nothing And useSiteInfo.DiagnosticInfo Is Nothing Then
 
                 Diagnostics.AddDependencies(useSiteInfo)
 
+                Dim methodInfo As BoundExpression = Me._factory.MethodInfo(targetMethod, createDelegate.ContainingType)
+
                 ' beginning in 4.5, we do it this way
                 result = Me._factory.Call(methodInfo,
-                                          DirectCast(createDelegate, MethodSymbol),
-                                          Me._factory.[Typeof](delegateType),
+                                          createDelegate,
+                                          Me._factory.[Typeof](delegateType, createDelegate.Parameters(0).Type),
                                           receiverOpt)
 
             Else
                 ' 4.0 and earlier we do it this way
-                createDelegate = Me._factory.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Delegate__CreateDelegate4)
+                createDelegate = DirectCast(Me._factory.SpecialMember(SpecialMember.System_Delegate__CreateDelegate4), MethodSymbol)
 
                 If createDelegate IsNot Nothing Then
                     result = Me._factory.Call(Me._factory.Null(Me.ObjectType),
-                                              DirectCast(createDelegate, MethodSymbol),
-                                              Me._factory.[Typeof](delegateType),
+                                              createDelegate,
+                                              Me._factory.[Typeof](delegateType, createDelegate.Parameters(0).Type),
                                               receiverOpt,
-                                              methodInfo,
+                                              Me._factory.MethodInfo(targetMethod, createDelegate.Parameters(2).Type),
                                               Me._factory.Literal(False))
 
                 Else
@@ -538,7 +545,7 @@ lSelect:
         End Function
 
         Private Function VisitNewT(node As BoundNewT) As BoundExpression
-            Return VisitObjectCreationContinued(ConvertRuntimeHelperToExpressionTree("New", _factory.[Typeof](node.Type)), node.InitializerOpt)
+            Return VisitObjectCreationContinued(ConvertRuntimeHelperToExpressionTree("New", _factory.[Typeof](node.Type, _factory.WellKnownType(WellKnownType.System_Type))), node.InitializerOpt)
         End Function
 
         Private Function VisitObjectCreationContinued(creation As BoundExpression, initializerOpt As BoundExpression) As BoundExpression
@@ -597,7 +604,7 @@ lSelect:
 
                 Dim memberRef As BoundExpression = If(leftSymbol.Kind = SymbolKind.Field,
                                                       Me._factory.FieldInfo(DirectCast(leftSymbol, FieldSymbol)),
-                                                      Me._factory.MethodInfo((DirectCast(leftSymbol, PropertySymbol)).SetMethod))
+                                                      Me._factory.MethodInfo((DirectCast(leftSymbol, PropertySymbol)).SetMethod, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
 
                 newInitializers(i) = _factory.Convert(MemberBindingType, ConvertRuntimeHelperToExpressionTree("Bind", memberRef, Visit(right)))
             Next
@@ -624,7 +631,7 @@ lSelect:
                                             ElementInitType,
                                             ConvertRuntimeHelperToExpressionTree(
                                                     "ElementInit",
-                                                    _factory.MethodInfo([call].Method),
+                                                    _factory.MethodInfo([call].Method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)),
                                                     ConvertArgumentsIntoArray(If([call].Method.IsShared AndAlso [call].Method.IsExtensionMethod,
                                                                                  [call].Arguments.RemoveAt(0),
                                                                                  [call].Arguments))))
@@ -642,7 +649,7 @@ lSelect:
                 (node.Arguments.Length = 0 AndAlso Not node.Type.IsStructureType() OrElse
                 node.ConstructorOpt.IsDefaultValueTypeConstructor()) Then
 
-                Return ConvertRuntimeHelperToExpressionTree("New", _factory.[Typeof](node.Type))
+                Return ConvertRuntimeHelperToExpressionTree("New", _factory.[Typeof](node.Type, _factory.WellKnownType(WellKnownType.System_Type)))
             End If
 
             Dim ctor = _factory.ConstructorInfo(node.ConstructorOpt)
@@ -655,7 +662,7 @@ lSelect:
 
                 Dim methodInfos(properties.Length - 1) As BoundExpression
                 For i = 0 To properties.Length - 1
-                    methodInfos(i) = Me._factory.Convert(Me.MemberInfoType, Me._factory.MethodInfo(properties(i).GetMethod))
+                    methodInfos(i) = Me._factory.Convert(Me.MemberInfoType, Me._factory.MethodInfo(properties(i).GetMethod, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
                 Next
 
                 Return ConvertRuntimeHelperToExpressionTree("New", ctor, args, Me._factory.Array(Me.MemberInfoType, methodInfos.AsImmutableOrNull()))
@@ -700,7 +707,7 @@ lSelect:
 
         Private Function VisitArrayCreation(node As BoundArrayCreation) As BoundExpression
             Dim arrayType = DirectCast(node.Type, ArrayTypeSymbol)
-            Dim boundType As BoundExpression = _factory.[Typeof](arrayType.ElementType)
+            Dim boundType As BoundExpression = _factory.[Typeof](arrayType.ElementType, _factory.WellKnownType(WellKnownType.System_Type))
             Dim initializer As BoundArrayInitialization = node.InitializerOpt
             If initializer IsNot Nothing AndAlso Not initializer.Initializers.IsEmpty Then
                 Debug.Assert(arrayType.IsSZArray, "Not SZArray should be addressed in DiagnosticsPass")
@@ -719,7 +726,7 @@ lSelect:
         End Function
 
         Private Function VisitTypeOf(node As BoundTypeOf) As BoundExpression
-            Return ConvertRuntimeHelperToExpressionTree("TypeIs", Visit(node.Operand), _factory.[Typeof](node.TargetType))
+            Return ConvertRuntimeHelperToExpressionTree("TypeIs", Visit(node.Operand), _factory.[Typeof](node.TargetType, _factory.WellKnownType(WellKnownType.System_Type)))
         End Function
 
 #End Region
@@ -730,14 +737,14 @@ lSelect:
         Private Function [Call](receiver As BoundExpression, method As MethodSymbol, ParamArray params As BoundExpression()) As BoundExpression
             Dim factoryArgs(0 To params.Length + 1) As BoundExpression
             factoryArgs(0) = receiver
-            factoryArgs(1) = _factory.MethodInfo(method)
+            factoryArgs(1) = _factory.MethodInfo(method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo))
             Array.Copy(params, 0, factoryArgs, 2, params.Length)
             Return ConvertRuntimeHelperToExpressionTree("Call", factoryArgs)
         End Function
 
         ' Emit a Default node for a specific type
         Private Function [Default](type As TypeSymbol) As BoundExpression
-            Return ConvertRuntimeHelperToExpressionTree("Default", _factory.[Typeof](type))
+            Return ConvertRuntimeHelperToExpressionTree("Default", _factory.[Typeof](type, _factory.WellKnownType(WellKnownType.System_Type)))
         End Function
 
         ' Emit a New node to a specific type with a helper constructor and one argument
@@ -753,7 +760,7 @@ lSelect:
         Private Function InitWithParameterlessValueTypeConstructor(type As TypeSymbol) As BoundExpression
             ' The "New" overload without a methodInfo automatically generates the parameterless constructor for us.
             Debug.Assert(type.IsValueType)
-            Return ConvertRuntimeHelperToExpressionTree("New", _factory.[Typeof](type))
+            Return ConvertRuntimeHelperToExpressionTree("New", _factory.[Typeof](type, _factory.WellKnownType(WellKnownType.System_Type)))
         End Function
 
         Private Function IsIntegralType(type As TypeSymbol) As Boolean
@@ -769,7 +776,7 @@ lSelect:
         End Function
 
         Private Function CreateLiteralExpression(node As BoundExpression, type As TypeSymbol) As BoundExpression
-            Return ConvertRuntimeHelperToExpressionTree("Constant", _factory.Convert(Me.ObjectType, node), _factory.[Typeof](type))
+            Return ConvertRuntimeHelperToExpressionTree("Constant", _factory.Convert(Me.ObjectType, node), _factory.[Typeof](type, _factory.WellKnownType(WellKnownType.System_Type)))
         End Function
 
         ''' <summary>

@@ -467,6 +467,15 @@ internal sealed partial class ProjectSystemProject
         }
     }
 
+    public async ValueTask<BatchScope> CreateBatchScopeAsync(CancellationToken cancellationToken)
+    {
+        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        {
+            _activeBatchScopes++;
+            return new BatchScope(this);
+        }
+    }
+
     public sealed class BatchScope : IDisposable, IAsyncDisposable
     {
         private readonly ProjectSystemProject _project;
@@ -980,7 +989,7 @@ internal sealed partial class ProjectSystemProject
         }
     }
 
-    private const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
+    internal const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
     private static readonly string s_razorSourceGeneratorSdkDirectory = Path.Combine("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators") + PathUtilities.DirectorySeparatorStr;
     private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames =
     [
@@ -993,6 +1002,7 @@ internal sealed partial class ProjectSystemProject
 
     private OneOrMany<string> GetMappedAnalyzerPaths(string fullPath)
     {
+        fullPath = Path.GetFullPath(fullPath);
         // Map all files in the SDK directory that contains the Razor source generator to source generator files loaded from VSIX.
         // Include the generator and all its dependencies shipped in VSIX, discard the generator and all dependencies in the SDK
         if (fullPath.LastIndexOf(s_razorSourceGeneratorSdkDirectory, StringComparison.OrdinalIgnoreCase) + s_razorSourceGeneratorSdkDirectory.Length - 1 ==

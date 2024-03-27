@@ -7,4 +7,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal static class WellKnownDiagnosticCustomTags
 {
     public const string DoesNotSupportF1Help = nameof(DoesNotSupportF1Help);
+    public const string CopilotSuggestion = nameof(CopilotSuggestion);
 }

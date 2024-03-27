@@ -52,10 +52,9 @@ internal partial class TagSpanIntervalTree<TTag> where TTag : ITag
     }
 
     public IList<ITagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
-        => SegmentedListPool.ComputeList(
+        => SegmentedListPool<ITagSpan<TTag>>.ComputeList(
             static (args, tags) => args.@this.AppendIntersectingSpansInSortedOrder(args.snapshotSpan, tags),
-            (@this: this, snapshotSpan),
-            _: (ITagSpan<TTag>?)null);
+            (@this: this, snapshotSpan));
 
     /// <summary>
     /// Gets all the spans that intersect with <paramref name="snapshotSpan"/> in sorted order and adds them to

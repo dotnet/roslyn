@@ -130,16 +130,6 @@ Utiliser des couleurs améliorées ; Modèle de couleurs de l’éditeur;Marge d
         <target state="translated">Outils Visual Basic</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_Visual_Basic_script_file">
-        <source>An empty Visual Basic script file.</source>
-        <target state="translated">Fichier de script Visual Basic vide.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Visual_Basic_Script">
-        <source>Visual Basic Script</source>
-        <target state="translated">Script Visual Basic</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

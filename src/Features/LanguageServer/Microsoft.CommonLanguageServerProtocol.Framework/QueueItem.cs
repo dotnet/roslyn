@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// This is consumed as 'generated' code in a source package and therefore requires an explicit nullable enable
+#nullable enable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -113,6 +116,8 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
     /// representing the task that the client is waiting for, then re-thrown so that
     /// the queue can correctly handle them depending on the type of request.
     /// </summary>
+    /// <param name="context">Context used for the request.</param>
+    /// <param name="handler">The handler to execute.</param>
     /// <param name="cancellationToken"></param>
     /// <returns>The result of the request.</returns>
     public async Task StartRequestAsync(TRequestContext? context, IMethodHandler handler, CancellationToken cancellationToken)

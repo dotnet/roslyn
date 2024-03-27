@@ -701,12 +701,6 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
             rightWorkspace = null;
         };
 
-        if (_editorOptionsService.GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-        {
-            leftWorkspace?.Target.EnableSolutionCrawler();
-            rightWorkspace?.Target.EnableSolutionCrawler();
-        }
-
         return CreateDifferenceViewerPreview(diffViewer);
     }
 

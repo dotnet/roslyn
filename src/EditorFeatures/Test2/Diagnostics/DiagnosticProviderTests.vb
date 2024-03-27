@@ -37,11 +37,9 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         Private Const s_mappedFileAttributeName As String = "MappedFile"
 
         Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures _
-            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
             .AddParts(
                 GetType(NoCompilationContentTypeLanguageService),
-                GetType(NoCompilationContentTypeDefinitions),
-                GetType(MockDiagnosticUpdateSourceRegistrationService))
+                GetType(NoCompilationContentTypeDefinitions))
 
         <Fact>
         Public Sub TestNoErrors()
@@ -268,17 +266,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                     workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, language, BackgroundAnalysisScope.OpenFiles)
                 Next
 
-                Dim registrationService = workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)()
-                registrationService.Register(workspace)
-
                 Dim diagnosticProvider = GetDiagnosticProvider(workspace)
-                Dim actualDiagnostics = diagnosticProvider.GetCachedDiagnosticsAsync(workspace, projectId:=Nothing, documentId:=Nothing,
-                                                                                     includeSuppressedDiagnostics:=False,
-                                                                                     includeLocalDocumentDiagnostics:=True,
-                                                                                     includeNonLocalDocumentDiagnostics:=True,
-                                                                                     CancellationToken.None).Result
-
-                registrationService.Unregister(workspace)
+                Dim actualDiagnostics = diagnosticProvider.GetDiagnosticsAsync(
+                    workspace.CurrentSolution, projectId:=Nothing, documentId:=Nothing,
+                    includeSuppressedDiagnostics:=False,
+                    includeNonLocalDocumentDiagnostics:=True,
+                    CancellationToken.None).Result
 
                 If diagnostics Is Nothing Then
                     Assert.Equal(0, actualDiagnostics.Length)
@@ -301,17 +294,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim analyzerReference = New TestAnalyzerReferenceByLanguage(compilerAnalyzersMap)
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-            Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
             Dim analyzerService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
-
-            ' CollectErrors generates interleaved background and foreground tasks.
-            Dim service = DirectCast(workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)(), SolutionCrawlerRegistrationService)
-            service.GetTestAccessor().WaitUntilCompletion(workspace, SpecializedCollections.SingletonEnumerable(analyzerService.CreateIncrementalAnalyzer(workspace)).WhereNotNull().ToImmutableArray())
 
             Return analyzerService
         End Function
 
-        Private Shared Function GetExpectedDiagnostics(workspace As EditorTestWorkspace, diagnostics As XElement) As List(Of DiagnosticData)
+        Friend Shared Function GetExpectedDiagnostics(workspace As EditorTestWorkspace, diagnostics As XElement) As List(Of DiagnosticData)
             Dim result As New List(Of DiagnosticData)
             Dim mappedLine As Integer, mappedColumn As Integer, originalLine As Integer, originalColumn As Integer
             Dim Id As String, message As String, originalFile As String, mappedFile As String

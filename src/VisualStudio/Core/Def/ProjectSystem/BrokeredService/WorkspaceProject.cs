@@ -32,7 +32,8 @@ internal sealed class WorkspaceProject : IWorkspaceProject
     [Obsolete($"Call the {nameof(AddAdditionalFilesAsync)} overload that takes {nameof(SourceFileInfo)}.")]
     public async Task AddAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken cancellationToken)
     {
-        await using var batch = _project.CreateBatchScope().ConfigureAwait(false);
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var additionalFilePath in additionalFilePaths)
             _project.AddAdditionalFile(additionalFilePath);
@@ -40,7 +41,8 @@ internal sealed class WorkspaceProject : IWorkspaceProject
 
     public async Task AddAdditionalFilesAsync(IReadOnlyList<SourceFileInfo> additionalFiles, CancellationToken cancellationToken)
     {
-        await using var batchScope = _project.CreateBatchScope().ConfigureAwait(false);
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var additionalFile in additionalFiles)
             _project.AddAdditionalFile(additionalFile.FilePath, folderNames: additionalFile.FolderNames.ToImmutableArray());
@@ -48,7 +50,8 @@ internal sealed class WorkspaceProject : IWorkspaceProject
 
     public async Task RemoveAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken cancellationToken)
     {
-        await using var batch = _project.CreateBatchScope().ConfigureAwait(false);
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var additionalFilePath in additionalFilePaths)
             _project.RemoveAdditionalFile(additionalFilePath);
@@ -56,14 +59,16 @@ internal sealed class WorkspaceProject : IWorkspaceProject
 
     public async Task AddAnalyzerConfigFilesAsync(IReadOnlyList<string> analyzerConfigPaths, CancellationToken cancellationToken)
     {
-        await using var batch = _project.CreateBatchScope().ConfigureAwait(false);
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var analyzerConfigPath in analyzerConfigPaths)
             _project.AddAnalyzerConfigFile(analyzerConfigPath);
     }
     public async Task RemoveAnalyzerConfigFilesAsync(IReadOnlyList<string> analyzerConfigPaths, CancellationToken cancellationToken)
     {
-        await using var batch = _project.CreateBatchScope().ConfigureAwait(false);
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var analyzerConfigPath in analyzerConfigPaths)
             _project.RemoveAnalyzerConfigFile(analyzerConfigPath);
@@ -71,7 +76,8 @@ internal sealed class WorkspaceProject : IWorkspaceProject
 
     public async Task AddAnalyzerReferencesAsync(IReadOnlyList<string> analyzerPaths, CancellationToken cancellationToken)
     {
-        await using var batch = _project.CreateBatchScope().ConfigureAwait(false);
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var analyzerPath in analyzerPaths)
             _project.AddAnalyzerReference(analyzerPath);
@@ -79,7 +85,8 @@ internal sealed class WorkspaceProject : IWorkspaceProject
 
     public async Task RemoveAnalyzerReferencesAsync(IReadOnlyList<string> analyzerPaths, CancellationToken cancellationToken)
     {
-        await using var batch = _project.CreateBatchScope().ConfigureAwait(false);
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var analyzerPath in analyzerPaths)
             _project.RemoveAnalyzerReference(analyzerPath);
@@ -87,7 +94,8 @@ internal sealed class WorkspaceProject : IWorkspaceProject
 
     public async Task AddMetadataReferencesAsync(IReadOnlyList<MetadataReferenceInfo> metadataReferences, CancellationToken cancellationToken)
     {
-        await using var batch = _project.CreateBatchScope().ConfigureAwait(false);
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var metadataReference in metadataReferences)
         {
@@ -99,7 +107,8 @@ internal sealed class WorkspaceProject : IWorkspaceProject
 
     public async Task RemoveMetadataReferencesAsync(IReadOnlyList<MetadataReferenceInfo> metadataReferences, CancellationToken cancellationToken)
     {
-        await using var batch = _project.CreateBatchScope().ConfigureAwait(false);
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         // The existing IWorkspaceProjectContext API here is a bit odd in that it only looks at the file path, and trusts that there aren't two
         // references with the same path but different properties.
@@ -109,7 +118,8 @@ internal sealed class WorkspaceProject : IWorkspaceProject
 
     public async Task AddSourceFilesAsync(IReadOnlyList<SourceFileInfo> sourceFiles, CancellationToken cancellationToken)
     {
-        await using var batch = _project.CreateBatchScope().ConfigureAwait(false);
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var sourceFile in sourceFiles)
         {
@@ -120,7 +130,8 @@ internal sealed class WorkspaceProject : IWorkspaceProject
     }
     public async Task RemoveSourceFilesAsync(IReadOnlyList<string> sourceFiles, CancellationToken cancellationToken)
     {
-        await using var batch = _project.CreateBatchScope().ConfigureAwait(false);
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var sourceFile in sourceFiles)
             _project.RemoveSourceFile(sourceFile);
@@ -128,7 +139,8 @@ internal sealed class WorkspaceProject : IWorkspaceProject
 
     public async Task AddDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken)
     {
-        await using var batch = _project.CreateBatchScope().ConfigureAwait(false);
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var dynamicFilePath in dynamicFilePaths)
             _project.AddDynamicFile(dynamicFilePath);
@@ -136,7 +148,8 @@ internal sealed class WorkspaceProject : IWorkspaceProject
 
     public async Task RemoveDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken)
     {
-        await using var batch = _project.CreateBatchScope().ConfigureAwait(false);
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var dynamicFilePath in dynamicFilePaths)
             _project.RemoveDynamicFile(dynamicFilePath);
@@ -144,7 +157,8 @@ internal sealed class WorkspaceProject : IWorkspaceProject
 
     public async Task SetBuildSystemPropertiesAsync(IReadOnlyDictionary<string, string> properties, CancellationToken cancellationToken)
     {
-        await using var batch = _project.CreateBatchScope().ConfigureAwait(false);
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var property in properties)
             _project.SetProperty(property.Key, property.Value);
@@ -168,9 +182,11 @@ internal sealed class WorkspaceProject : IWorkspaceProject
         return Task.CompletedTask;
     }
 
-    public Task<IWorkspaceProjectBatch> StartBatchAsync(CancellationToken cancellationToken)
+    public async Task<IWorkspaceProjectBatch> StartBatchAsync(CancellationToken cancellationToken)
     {
-        return Task.FromResult<IWorkspaceProjectBatch>(new WorkspaceProjectBatch(_project.CreateBatchScope()));
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+
+        return new WorkspaceProjectBatch(disposableBatchScope);
     }
 
     private class WorkspaceProjectBatch : IWorkspaceProjectBatch

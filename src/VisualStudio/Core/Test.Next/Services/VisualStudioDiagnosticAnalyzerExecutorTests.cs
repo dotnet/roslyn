@@ -245,7 +245,7 @@ End Class";
         }
 
         private static InProcOrRemoteHostAnalyzerRunner CreateAnalyzerRunner()
-            => new(new DiagnosticAnalyzerInfoCache());
+            => new(enabled: true, new DiagnosticAnalyzerInfoCache());
 
         private static async Task<DiagnosticAnalysisResult> AnalyzeAsync(TestWorkspace workspace, ProjectId projectId, Type analyzerType, IdeAnalyzerOptions ideOptions, CancellationToken cancellationToken = default)
         {

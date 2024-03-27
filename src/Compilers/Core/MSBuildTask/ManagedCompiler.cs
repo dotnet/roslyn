@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     Log.LogError($"Critical error {responseType} when building");
                     return false;
                 case BuildResponse.ResponseType.Rejected:
-                    Log.LogError($"Compiler request rejected");
+                    Log.LogError($"Compiler request rejected: {((RejectedBuildResponse)response!).Reason}");
                     return false;
                 case BuildResponse.ResponseType.CannotConnect:
                     if (Interlocked.Increment(ref s_connectFailedCount) > maxCannotConnectCount)

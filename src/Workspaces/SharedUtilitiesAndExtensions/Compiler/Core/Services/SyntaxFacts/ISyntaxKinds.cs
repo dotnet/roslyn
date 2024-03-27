@@ -126,6 +126,7 @@ internal interface ISyntaxKinds
 
     #region expressions
 
+    int AddExpression { get; }
     int AddressOfExpression { get; }
     int AnonymousObjectCreationExpression { get; }
     int ArrayCreationExpression { get; }

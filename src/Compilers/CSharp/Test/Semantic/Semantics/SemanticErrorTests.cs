@@ -7092,6 +7092,9 @@ struct S
     {
         this.value += value;
     }
+    void Add(string value)
+    {
+    }
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
@@ -7162,6 +7165,9 @@ struct S
     void Add(int value)
     {
         this.value += value;
+    }
+    void Add(string value)
+    {
     }
 }
 ";
@@ -18361,12 +18367,40 @@ class A
         // CS1970ERR_ExplicitDynamicAttr --> AttributeTests_Dynamic.ExplicitDynamicAttribute
 
         [Fact]
-        public void CS1971ERR_NoDynamicPhantomOnBase()
+        public void CS1971ERR_NoDynamicPhantomOnBase_01()
+        {
+            const string text = @"
+public class B
+{
+    public virtual void M(object o) { System.Console.Write(""Called""); }
+}
+public class D : B
+{
+    public override void M(object o) {}
+
+    void N(dynamic d)
+    {
+        base.M(d);
+    }
+
+    static void Main()
+    {
+        new D().N(1);
+    }
+}
+";
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CS1971ERR_NoDynamicPhantomOnBase_02()
         {
             const string text = @"
 public class B
 {
     public virtual void M(object o) {}
+    public void M(int o) {}
 }
 public class D : B
 {
@@ -18380,16 +18414,16 @@ public class D : B
 ";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
-                // (12,9): error CS1971: The call to method 'M' needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.
+                // (13,9): error CS1971: The call to method 'M' needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.
                 //         base.M(d);
                 Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBase, "base.M(d)").WithArguments("M"));
         }
 
         [Fact]
-        public void CS1972ERR_NoDynamicPhantomOnBaseIndexer()
+        public void CS1972ERR_NoDynamicPhantomOnBaseIndexer_01()
         {
             const string text = @"
-public class B
+public partial class B
 {
     public string this[int index]
     {
@@ -18404,6 +18438,13 @@ public class D : B
         int s = base[(dynamic)o];
     }
 }
+public partial class B
+{
+    public string this[long index]
+    {
+        get { return ""You passed "" + index; }
+    }
+}
 ";
 
             var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
@@ -18414,7 +18455,92 @@ public class D : B
         }
 
         [Fact]
-        public void CS1973ERR_BadArgTypeDynamicExtension()
+        public void CS1972ERR_NoDynamicPhantomOnBaseIndexer_02()
+        {
+            const string text = @"
+public class B
+{
+    public string this[int index]
+    {
+        get { return ""You passed "" + index; }
+    }
+}
+public class D : B
+{
+    static void Main()
+    {
+        D d = new D();
+        System.Console.Write(d.M(1));
+    }
+
+    public string M(object o)
+    {
+        return base[(dynamic)o];
+    }
+}
+";
+
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "You passed 1").VerifyDiagnostics();
+
+            verifier.VerifyIL("D.M",
+@"
+{
+  // Code size       78 (0x4e)
+  .maxstack  4
+  .locals init (string V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> D.<>o__1.<>p__0""
+  IL_0007:  brfalse.s  IL_000b
+  IL_0009:  br.s       IL_002f
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldtoken    ""int""
+  IL_0011:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0016:  ldtoken    ""D""
+  IL_001b:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0020:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
+  IL_0025:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_002a:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> D.<>o__1.<>p__0""
+  IL_002f:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> D.<>o__1.<>p__0""
+  IL_0034:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target""
+  IL_0039:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> D.<>o__1.<>p__0""
+  IL_003e:  ldarg.1
+  IL_003f:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+  IL_0044:  call       ""string B.this[int].get""
+  IL_0049:  stloc.0
+  IL_004a:  br.s       IL_004c
+  IL_004c:  ldloc.0
+  IL_004d:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CS1973ERR_BadArgTypeDynamicExtension_01()
+        {
+            const string text = @"
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        B b = new B();
+        b.Goo(d);
+    }
+}
+public class B { }
+static public class Extension
+{
+    public static void Goo(this B b, int x) { System.Console.Write(""Called""); }
+}";
+
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CS1973ERR_BadArgTypeDynamicExtension_02()
         {
             const string text = @"
 class Program
@@ -18430,11 +18556,12 @@ public class B { }
 static public class Extension
 {
     public static void Goo(this B b, int x) { }
+    public static void Goo(this B b, long x) { }
 }";
 
             var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
-// (8,9): error CS1973: 'B' has no applicable method named 'Goo' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
+// (9,9): error CS1973: 'B' has no applicable method named 'Goo' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
 //         b.Goo(d);
 Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "b.Goo(d)").WithArguments("B", "Goo"));
         }
@@ -18445,10 +18572,10 @@ Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "b.Goo(d)").WithArguments("
             var text = @"
 class A
 {
-    public A(int x)
-    {
+    public A(int x) {}
 
-    }
+    public A(long x) {}
+
 }
 class B : A
 {
@@ -18473,6 +18600,8 @@ class B
     { }
 
     public B(int a, int b)
+    { }
+    public B(long a, int b)
     { }
 }
 ";
@@ -18536,7 +18665,11 @@ class C
         new C(delegate { }, y);
     }
  
-    public C(Action a, Action y)
+    public C(Action a, int y)
+    {
+    }
+ 
+    public C(Action a, long y)
     {
     }
 }";
@@ -18574,15 +18707,27 @@ unsafe  class C : IEnumerable<object>
 
     public static void SomeStaticMethod() {}
 
-    public void Add(dynamic d, int x, int* ptr)
+    public void Add(int d, int x, int* ptr)
     {
     }
 
-    public void Add(dynamic d, RuntimeArgumentHandle x)
+    public void Add(long d, int x, int* ptr)
     {
     }
 
-    public void Add(dynamic d, Action f)
+    public void Add(int d, RuntimeArgumentHandle x)
+    {
+    }
+
+    public void Add(long d, RuntimeArgumentHandle x)
+    {
+    }
+
+    public void Add(int d, Action f)
+    {
+    }
+
+    public void Add(long d, Action f)
     {
     }
 
@@ -18613,7 +18758,7 @@ unsafe  class C : IEnumerable<object>
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(18, 18),
                 // (19,13): error CS1950: The best overloaded Add method 'C.Add(dynamic, RuntimeArgumentHandle)' for the collection initializer has some invalid arguments
                 //             { d, GetEnumerator },
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "{ d, GetEnumerator }").WithArguments("C.Add(dynamic, System.RuntimeArgumentHandle)").WithLocation(19, 13),
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "{ d, GetEnumerator }").WithArguments("C.Add(int, System.RuntimeArgumentHandle)").WithLocation(19, 13),
                 // (19,18): error CS1503: Argument 2: cannot convert from 'method group' to 'RuntimeArgumentHandle'
                 //             { d, GetEnumerator },
                 Diagnostic(ErrorCode.ERR_BadArgType, "GetEnumerator").WithArguments("2", "method group", "System.RuntimeArgumentHandle").WithLocation(19, 18),
@@ -22530,7 +22675,7 @@ public class List<T>
         }
 
         [Fact]
-        public void CS1974WRN_DynamicDispatchToConditionalMethod()
+        public void CS1974WRN_DynamicDispatchToConditionalMethod_01()
         {
             var text = @"
 using System.Diagnostics;
@@ -22547,7 +22692,7 @@ class Myclass
 
     [Conditional(""DEBUG"")]
     static void Goo(string d) {}
-
+    static void Goo(long d) {}
     [Conditional(""DEBUG"")]
     static void Bar(int x, int y) {}
     
@@ -22559,6 +22704,35 @@ class Myclass
 // (9,9): warning CS1974: The dynamically dispatched call to method 'Goo' may fail at runtime because one or more applicable overloads are conditional methods.
 //         Goo(d); 
 Diagnostic(ErrorCode.WRN_DynamicDispatchToConditionalMethod, "Goo(d)").WithArguments("Goo"));
+        }
+
+        [Fact]
+        public void CS1974WRN_DynamicDispatchToConditionalMethod_02()
+        {
+            var text = @"
+using System.Diagnostics;
+class Myclass
+{
+    static void Main()
+    {
+        dynamic d = null;
+        // No warning because Goo is statically bound.
+        Goo(d); 
+        // No warning; only the two-parameter Bar is conditional.
+        Bar(d);
+    }
+
+    [Conditional(""DEBUG"")]
+    static void Goo(string d) {}
+
+    [Conditional(""DEBUG"")]
+    static void Bar(int x, int y) {}
+    
+    static void Bar(string x) {}
+}";
+
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

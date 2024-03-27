@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -37,8 +38,12 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
     {
     }
 
+    [MemberNotNullWhen(true, nameof(CurrentSession))]
     public bool HasActiveSession
         => CurrentSession != null && CurrentSession.IsOptedIn;
+
+    public bool IsUserMicrosoftInternal
+        => HasActiveSession && CurrentSession.IsUserMicrosoftInternal;
 
     public string? SerializeCurrentSessionSettings()
         => CurrentSession?.SerializeSettings();

@@ -3,10 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.QuickInfo;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -17,9 +16,17 @@ internal static class ConversionHelpers
     public static Uri CreateAbsoluteUri(string absolutePath)
         => ProtocolConversions.CreateAbsoluteUri(absolutePath);
 
-    /// <summary>
-    /// Helper to create <see cref="LSP.Hover"/> from <see cref="QuickInfoItem"/>.
-    /// </summary>
-    public static Task<LSP.Hover> CreateHoverResultAsync(TextDocument document, QuickInfoItem info, XamlRequestContext context, CancellationToken cancellationToken)
-        => DefaultLspHoverResultCreationService.CreateDefaultHoverAsync(document, info, context.ClientCapabilities, cancellationToken);
+    public static (string content, bool isMarkdown) CreateMarkdownContent(TextDocument document, QuickInfoItem info, XamlRequestContext context)
+    {
+        var clientSupportsMarkdown = context.ClientCapabilities?.TextDocument?.Hover?.ContentFormat?.Contains(LSP.MarkupKind.Markdown) == true;
+
+        // Insert line breaks in between sections to ensure we get double spacing between sections.
+        var tags = info.Sections
+            .SelectMany(section => section.TaggedParts.Add(new TaggedText(TextTags.LineBreak, Environment.NewLine)))
+            .ToImmutableArray();
+
+        var language = document.Project.Language;
+        var markupContent = ProtocolConversions.GetDocumentationMarkupContent(tags, language, clientSupportsMarkdown);
+        return (markupContent.Value, markupContent.Kind == LSP.MarkupKind.Markdown);
+    }
 }

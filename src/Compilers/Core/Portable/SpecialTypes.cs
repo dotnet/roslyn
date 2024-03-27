@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis
         /// that we could use ids to index into the array
         /// </summary>
         /// <remarks></remarks>
-        private static readonly string?[] s_emittedNames = new string?[(int)SpecialType.Count + 1]
+        private static readonly string?[] s_emittedNames = new string?[(int)InternalSpecialType.NextAvailable]
         {
             // The following things should be in sync:
-            // 1) SpecialType enum
+            // 1) SpecialType/InternalSpecialType enum
             // 2) names in SpecialTypes.EmittedNames array.
             // 3) languageNames in SemanticFacts.cs
             // 4) languageNames in SemanticFacts.vb
@@ -70,16 +70,21 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.RuntimeFeature",
             "System.Runtime.CompilerServices.PreserveBaseOverridesAttribute",
             "System.Runtime.CompilerServices.InlineArrayAttribute",
+            "System.ReadOnlySpan`1",
+            "System.IFormatProvider",
+            "System.Type",
+            "System.Reflection.MethodBase",
+            "System.Reflection.MethodInfo",
         };
 
-        private static readonly Dictionary<string, SpecialType> s_nameToTypeIdMap;
+        private static readonly Dictionary<string, ExtendedSpecialType> s_nameToTypeIdMap;
 
         private static readonly Microsoft.Cci.PrimitiveTypeCode[] s_typeIdToTypeCodeMap;
         private static readonly SpecialType[] s_typeCodeToTypeIdMap;
 
         static SpecialTypes()
         {
-            s_nameToTypeIdMap = new Dictionary<string, SpecialType>((int)SpecialType.Count);
+            s_nameToTypeIdMap = new Dictionary<string, ExtendedSpecialType>((int)InternalSpecialType.NextAvailable - 1);
 
             int i;
 
@@ -88,7 +93,7 @@ namespace Microsoft.CodeAnalysis
                 string? name = s_emittedNames[i];
                 RoslynDebug.Assert(name is object);
                 Debug.Assert(name.IndexOf('+') < 0); // Compilers aren't prepared to lookup for a nested special type.
-                s_nameToTypeIdMap.Add(name, (SpecialType)i);
+                s_nameToTypeIdMap.Add(name, (ExtendedSpecialType)i);
             }
 
             s_typeIdToTypeCodeMap = new Microsoft.Cci.PrimitiveTypeCode[(int)SpecialType.Count + 1];
@@ -143,21 +148,21 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the name of the special type as it would appear in metadata.
         /// </summary>
-        public static string? GetMetadataName(this SpecialType id)
+        public static string? GetMetadataName(this ExtendedSpecialType id)
         {
             return s_emittedNames[(int)id];
         }
 
-        public static SpecialType GetTypeFromMetadataName(string metadataName)
+        public static ExtendedSpecialType GetTypeFromMetadataName(string metadataName)
         {
-            SpecialType id;
+            ExtendedSpecialType id;
 
             if (s_nameToTypeIdMap.TryGetValue(metadataName, out id))
             {
                 return id;
             }
 
-            return SpecialType.None;
+            return default;
         }
 
         public static SpecialType GetTypeFromMetadataName(Microsoft.Cci.PrimitiveTypeCode typeCode)

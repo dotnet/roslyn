@@ -266,6 +266,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodSymbol? GetWellKnownMethodSymbol(WellKnownMember overload, SyntaxNode syntax)
             => (MethodSymbol?)Binder.GetWellKnownTypeMember(_factory.Compilation, overload, _diagnostics, syntax: syntax, isOptional: false);
 
+        private MethodSymbol? GetSpecialMethodSymbol(SpecialMember overload, SyntaxNode syntax)
+            => (MethodSymbol?)Binder.GetSpecialTypeMember(_factory.Compilation, overload, _diagnostics, syntax: syntax);
+
         public override void PreInstrumentBlock(BoundBlock original, LocalRewriter rewriter)
         {
             Previous.PreInstrumentBlock(original, rewriter);
@@ -343,14 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var instrumentationEpilogue = (returnLogger != null) ?
                 _factory.ExpressionStatement(_factory.Call(receiver: _factory.Local(_scope.ContextVariable), returnLogger)) : _factory.NoOp(NoOpStatementFlavor.Default);
 
-            // currently don't need to compose multiple instrumentations
-            Debug.Assert(instrumentation is null);
-
-            instrumentation = new BoundBlockInstrumentation(
-                _factory.Syntax,
-                _scope.ContextVariable,
-                instrumentationPrologue,
-                instrumentationEpilogue);
+            instrumentation = _factory.CombineInstrumentation(instrumentation, _scope.ContextVariable, instrumentationPrologue, instrumentationEpilogue);
 
             _scope.Close(isMethodBody);
         }
@@ -463,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (parameter.Type.SpecialType == SpecialType.System_String && targetType.SpecialType != SpecialType.System_String)
             {
-                var toStringMethod = GetWellKnownMethodSymbol(WellKnownMember.System_Object__ToString, value.Syntax);
+                var toStringMethod = GetSpecialMethodSymbol(SpecialMember.System_Object__ToString, value.Syntax);
 
                 BoundExpression toString;
                 if (toStringMethod is null)

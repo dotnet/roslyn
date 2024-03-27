@@ -101,13 +101,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     hubClient.Logger.TraceEvent(TraceEventType.Error, 1, "Roslyn ServiceHub process initialization failed.");
                 }
 
-                if (configuration.HasFlag(RemoteProcessConfiguration.EnableSolutionCrawler))
-                {
-                    await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
-                        (service, cancellationToken) => service.StartSolutionCrawlerAsync(cancellationToken),
-                        cancellationToken).ConfigureAwait(false);
-                }
-
                 await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
                     (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
                     cancellationToken).ConfigureAwait(false);

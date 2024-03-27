@@ -830,10 +830,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             project = project.AddAnalyzerConfigDocument(".editorconfig", SourceText.From(editorconfigText), filePath: @"z:\\.editorconfig").Project;
             workspace.TryApplyChanges(project.Solution);
 
-            // register this workspace to solution crawler so that analyzer service associate itself with given workspace
-            var incrementalAnalyzerProvider = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>() as IIncrementalAnalyzerProvider;
-            incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace);
-
             var hostdoc = workspace.Documents.Single();
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
 
@@ -930,10 +926,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             }
 
             workspace.TryApplyChanges(solution);
-
-            // register this workspace to solution crawler so that analyzer service associate itself with given workspace
-            var incrementalAnalyzerProvider = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>() as IIncrementalAnalyzerProvider;
-            incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace);
 
             var hostdoc = workspace.Documents.Single();
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);

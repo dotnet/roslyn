@@ -13825,7 +13825,8 @@ void M(dynamic d, [InterpolatedStringHandlerArgument(""d"")]CustomHandler c) {}
 
 public partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, dynamic d) : this() {}
+    public CustomHandler(int literalLength, int formattedCount, int d) : this() {}
+    public CustomHandler(int literalLength, int formattedCount, long d) : this() {}
 }
 ";
 
@@ -13853,7 +13854,8 @@ void M(dynamic d, [InterpolatedStringHandlerArgument(""d"")]CustomHandler c) {}
 
 public partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, dynamic d) : this() {}
+    public CustomHandler(int literalLength, int formattedCount, int d) : this() {}
+    public CustomHandler(int literalLength, int formattedCount, long d) : this() {}
 }
 ";
 
@@ -14100,7 +14102,7 @@ public struct CustomHandler
         [Theory]
         [InlineData(@"$""literal{d}""")]
         [InlineData(@"$""literal"" + $""{d}""")]
-        public void DynamicConstruction_08(string expression)
+        public void DynamicConstruction_08_01(string expression)
         {
             var code = @"
 using System;
@@ -14123,6 +14125,75 @@ public struct CustomHandler
     }
 
     public void AppendFormatted(dynamic d)
+    {
+        Console.WriteLine(""AppendFormatted"");
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+AppendLiteral
+AppendFormatted");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  3
+  .locals init (object V_0, //d
+            CustomHandler V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  box        ""int""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  ldc.i4.7
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""CustomHandler..ctor(int, int)""
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  ldstr      ""literal""
+  IL_0017:  call       ""void CustomHandler.AppendLiteral(dynamic)""
+  IL_001c:  ldloca.s   V_1
+  IL_001e:  ldloc.0
+  IL_001f:  call       ""void CustomHandler.AppendFormatted(dynamic)""
+  IL_0024:  ldloc.1
+  IL_0025:  call       ""void Program.<<Main>$>g__M|0_0(CustomHandler)""
+  IL_002a:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData(@"$""literal{d}""")]
+        [InlineData(@"$""literal"" + $""{d}""")]
+        public void DynamicConstruction_08_02(string expression)
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+dynamic d = 1;
+M(" + expression + @");
+
+void M(CustomHandler c) {}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount)
+    {
+    }
+
+    public void AppendLiteral(dynamic d)
+    {
+        Console.WriteLine(""AppendLiteral"");
+    }
+
+    public void AppendFormatted(dynamic d)
+    {
+        Console.WriteLine(""---"");
+    }
+
+    public void AppendFormatted(int d)
     {
         Console.WriteLine(""AppendFormatted"");
     }
@@ -14215,6 +14286,12 @@ public struct CustomHandler
     }
 
     public bool AppendFormatted(dynamic d)
+    {
+        Console.WriteLine(""---"");
+        return true;
+    }
+
+    public bool AppendFormatted(long d)
     {
         Console.WriteLine(""AppendFormatted"");
         return true;
@@ -16932,7 +17009,7 @@ CustomHandler c = " + expression + ";";
         [Theory]
         [InlineData(@"$""Literal{1}""")]
         [InlineData(@"$""Literal"" + $""{1}""")]
-        public void ConversionInParamsArguments(string expression)
+        public void ConversionInParamsArguments_01(string expression)
         {
             var code = @"
 using System;
@@ -17004,6 +17081,31 @@ format:
   IL_0063:  ret
 }
 ");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71488")]
+        public void ConversionInParamsArguments_02()
+        {
+            var code = @"
+using System;
+using System.Linq;
+using System.Runtime.CompilerServices;
+
+M("""", $""test"");
+
+void M(string s, [InterpolatedStringHandlerArgument(nameof(s))] params CustomHandler[] handlers)
+{
+    Console.WriteLine(string.Join(Environment.NewLine, handlers.Select(h => h.ToString())));
+}
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(8,19): error CS8946: 'CustomHandler[]' is not an interpolated string handler type.
+                // void M(string s, [InterpolatedStringHandlerArgument(nameof(s))] params CustomHandler[] handlers)
+                Diagnostic(ErrorCode.ERR_TypeIsNotAnInterpolatedStringHandlerType, "InterpolatedStringHandlerArgument(nameof(s))").WithArguments("CustomHandler[]").WithLocation(8, 19)
+                );
         }
 
         [Theory]

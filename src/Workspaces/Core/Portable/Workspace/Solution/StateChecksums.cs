@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
@@ -18,7 +21,8 @@ internal sealed class SolutionCompilationStateChecksums
     public SolutionCompilationStateChecksums(
         Checksum solutionState,
         ChecksumCollection? frozenSourceGeneratedDocumentIdentities,
-        ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocuments)
+        ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocuments,
+        ImmutableArray<DateTime> frozenSourceGeneratedDocumentGenerationDateTimes)
     {
         // For the frozen source generated document info, we expect two either have both checksum collections or neither, and they
         // should both be the same length as there is a 1:1 correspondence between them.
@@ -28,7 +32,10 @@ internal sealed class SolutionCompilationStateChecksums
         SolutionState = solutionState;
         FrozenSourceGeneratedDocumentIdentities = frozenSourceGeneratedDocumentIdentities;
         FrozenSourceGeneratedDocuments = frozenSourceGeneratedDocuments;
+        FrozenSourceGeneratedDocumentGenerationDateTimes = frozenSourceGeneratedDocumentGenerationDateTimes;
 
+        // note: intentionally not mixing in FrozenSourceGeneratedDocumentGenerationDateTimes as that is not part of the
+        // identity contract of this type.
         Checksum = Checksum.Create(
             SolutionState,
             FrozenSourceGeneratedDocumentIdentities?.Checksum ?? Checksum.Null,
@@ -39,6 +46,9 @@ internal sealed class SolutionCompilationStateChecksums
     public Checksum SolutionState { get; }
     public ChecksumCollection? FrozenSourceGeneratedDocumentIdentities { get; }
     public ChecksumsAndIds<DocumentId>? FrozenSourceGeneratedDocuments { get; }
+
+    // note: intentionally not part of the identity contract of this type.
+    public ImmutableArray<DateTime> FrozenSourceGeneratedDocumentGenerationDateTimes { get; }
 
     public void AddAllTo(HashSet<Checksum> checksums)
     {
@@ -60,6 +70,7 @@ internal sealed class SolutionCompilationStateChecksums
         {
             this.FrozenSourceGeneratedDocumentIdentities.Value.WriteTo(writer);
             this.FrozenSourceGeneratedDocuments!.Value.WriteTo(writer);
+            writer.WriteArray(this.FrozenSourceGeneratedDocumentGenerationDateTimes, static (w, d) => w.WriteInt64(d.Ticks));
         }
     }
 
@@ -71,23 +82,27 @@ internal sealed class SolutionCompilationStateChecksums
         var hasFrozenSourceGeneratedDocuments = reader.ReadBoolean();
         ChecksumCollection? frozenSourceGeneratedDocumentIdentities = null;
         ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocuments = null;
+        ImmutableArray<DateTime> frozenSourceGeneratedDocumentGenerationDateTimes = default;
 
         if (hasFrozenSourceGeneratedDocuments)
         {
             frozenSourceGeneratedDocumentIdentities = ChecksumCollection.ReadFrom(reader);
             frozenSourceGeneratedDocuments = ChecksumsAndIds<DocumentId>.ReadFrom(reader);
+            frozenSourceGeneratedDocumentGenerationDateTimes = reader.ReadArray(r => new DateTime(r.ReadInt64()));
         }
 
         var result = new SolutionCompilationStateChecksums(
             solutionState: solutionState,
-            frozenSourceGeneratedDocumentIdentities: frozenSourceGeneratedDocumentIdentities,
-            frozenSourceGeneratedDocuments: frozenSourceGeneratedDocuments);
+            frozenSourceGeneratedDocumentIdentities,
+            frozenSourceGeneratedDocuments,
+            frozenSourceGeneratedDocumentGenerationDateTimes);
         Contract.ThrowIfFalse(result.Checksum == checksum);
         return result;
     }
 
     public async Task FindAsync(
         SolutionCompilationState compilationState,
+        ProjectCone? projectCone,
         AssetHint assetHint,
         HashSet<Checksum> searchingChecksumsLeft,
         Dictionary<Checksum, object> result,
@@ -123,16 +138,18 @@ internal sealed class SolutionCompilationStateChecksums
         }
 
         var solutionState = compilationState.SolutionState;
-        if (solutionState.TryGetStateChecksums(out var solutionChecksums))
-            await solutionChecksums.FindAsync(solutionState, assetHint, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-
-        foreach (var projectId in solutionState.ProjectIds)
+        if (projectCone is null)
         {
-            if (searchingChecksumsLeft.Count == 0)
-                break;
-
-            if (solutionState.TryGetStateChecksums(projectId, out solutionChecksums))
-                await solutionChecksums.FindAsync(solutionState, assetHint, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            // If we're not in a project cone, start the search at the top most state-checksum corresponding to the
+            // entire solution.
+            Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(out var solutionChecksums));
+            await solutionChecksums.FindAsync(solutionState, projectCone, assetHint, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            // Otherwise, grab the top-most state checksum for this cone and search within that.
+            Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(projectCone.RootProjectId, out var solutionChecksums));
+            await solutionChecksums.FindAsync(solutionState, projectCone, assetHint, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
         }
     }
 }
@@ -145,6 +162,8 @@ internal sealed class SolutionStateChecksums(
     ChecksumsAndIds<ProjectId> projects,
     ChecksumCollection analyzerReferences)
 {
+    private ProjectCone? _projectCone;
+
     public Checksum Checksum { get; } = Checksum.Create(stackalloc[]
     {
         projectConeId == null ? Checksum.Null : projectConeId.Checksum,
@@ -157,6 +176,14 @@ internal sealed class SolutionStateChecksums(
     public Checksum Attributes { get; } = attributes;
     public ChecksumsAndIds<ProjectId> Projects { get; } = projects;
     public ChecksumCollection AnalyzerReferences { get; } = analyzerReferences;
+
+    // Acceptably not threadsafe.  ProjectCone is a class, and the runtime guarantees anyone will see this field fully
+    // initialized.  It's acceptable to have multiple instances of this in a race condition as the data will be same
+    // (and our asserts don't check for reference equality, only value equality).
+    public ProjectCone? ProjectCone => _projectCone ??= ComputeProjectCone();
+
+    private ProjectCone? ComputeProjectCone()
+        => ProjectConeId == null ? null : new ProjectCone(ProjectConeId, Projects.Ids.ToFrozenSet());
 
     public void AddAllTo(HashSet<Checksum> checksums)
     {
@@ -193,6 +220,7 @@ internal sealed class SolutionStateChecksums(
 
     public async Task FindAsync(
         SolutionState solution,
+        ProjectCone? projectCone,
         AssetHint assetHint,
         HashSet<Checksum> searchingChecksumsLeft,
         Dictionary<Checksum, object> result,
@@ -216,6 +244,10 @@ internal sealed class SolutionStateChecksums(
 
         if (assetHint.ProjectId != null)
         {
+            Contract.ThrowIfTrue(
+                projectCone != null && !projectCone.Contains(assetHint.ProjectId),
+                "Requesting an asset outside of the cone explicitly being asked for!");
+
             var projectState = solution.GetProjectState(assetHint.ProjectId);
             if (projectState != null &&
                 projectState.TryGetStateChecksums(out var projectStateChecksums))
@@ -231,10 +263,15 @@ internal sealed class SolutionStateChecksums(
             // level. This ensures that when we are trying to sync the projects referenced by a SolutionStateChecksums'
             // instance that we don't unnecessarily walk all documents looking just for those.
 
-            foreach (var (_, projectState) in solution.ProjectStates)
+            foreach (var (projectId, projectState) in solution.ProjectStates)
             {
                 if (searchingChecksumsLeft.Count == 0)
                     break;
+
+                // If we're syncing a project cone, no point at all at looking at child projects of the solution that
+                // are not in that cone.
+                if (projectCone != null && !projectCone.Contains(projectId))
+                    continue;
 
                 if (projectState.TryGetStateChecksums(out var projectStateChecksums) &&
                     searchingChecksumsLeft.Remove(projectStateChecksums.Checksum))
@@ -245,10 +282,15 @@ internal sealed class SolutionStateChecksums(
 
             // Now actually do the depth first search into each project.
 
-            foreach (var (_, projectState) in solution.ProjectStates)
+            foreach (var (projectId, projectState) in solution.ProjectStates)
             {
                 if (searchingChecksumsLeft.Count == 0)
                     break;
+
+                // If we're syncing a project cone, no point at all at looking at child projects of the solution that
+                // are not in that cone.
+                if (projectCone != null && !projectCone.Contains(projectId))
+                    continue;
 
                 // It's possible not all all our projects have checksums.  Specifically, we may have only been asked to
                 // compute the checksum tree for a subset of projects that were all that a feature needed.

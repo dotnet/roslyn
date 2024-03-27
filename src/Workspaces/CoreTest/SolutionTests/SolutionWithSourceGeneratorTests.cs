@@ -834,7 +834,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             static async Task AssertFrozen(Project project, SourceGeneratedDocumentIdentity identity)
             {
-                var frozenWithSingleDocument = project.Solution.WithFrozenSourceGeneratedDocument(identity, SourceText.From("// Frozen Document"));
+                var frozenWithSingleDocument = project.Solution.WithFrozenSourceGeneratedDocument(
+                    identity, DateTime.Now, SourceText.From("// Frozen Document"));
                 Assert.Equal("// Frozen Document", (await frozenWithSingleDocument.GetTextAsync()).ToString());
                 var frozenTree = Assert.Single((await frozenWithSingleDocument.Project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
                 Assert.Equal("// Frozen Document", frozenTree.ToString());
@@ -860,7 +861,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // And now freeze both of them at once
             var solutionWithFrozenDocuments = solution.WithFrozenSourceGeneratedDocuments(
-                [(sourceGeneratedDocument1.Identity, SourceText.From("// Frozen 1")), (sourceGeneratedDocument2.Identity, SourceText.From("// Frozen 2"))]);
+                [(sourceGeneratedDocument1.Identity, DateTime.Now, SourceText.From("// Frozen 1")), (sourceGeneratedDocument2.Identity, DateTime.Now, SourceText.From("// Frozen 2"))]);
 
             Assert.Equal("// Frozen 1", (await (await solutionWithFrozenDocuments.GetRequiredProject(projectId1).GetSourceGeneratedDocumentsAsync()).Single().GetTextAsync()).ToString());
             Assert.Equal("// Frozen 2", (await (await solutionWithFrozenDocuments.GetRequiredProject(projectId2).GetSourceGeneratedDocumentsAsync()).Single().GetTextAsync()).ToString());
@@ -879,7 +880,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var sourceGeneratedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
             var sourceGeneratedDocumentIdentity = sourceGeneratedDocument.Identity;
 
-            var frozenSolution = project.Solution.WithFrozenSourceGeneratedDocument(sourceGeneratedDocumentIdentity, SourceText.From("// Hello, World"));
+            var frozenSolution = project.Solution.WithFrozenSourceGeneratedDocument(
+                sourceGeneratedDocumentIdentity, sourceGeneratedDocument.GenerationDateTime, SourceText.From("// Hello, World"));
             Assert.Same(project.Solution, frozenSolution.Project.Solution);
         }
     }

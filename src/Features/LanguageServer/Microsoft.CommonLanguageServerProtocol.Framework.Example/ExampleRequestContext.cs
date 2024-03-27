@@ -4,7 +4,7 @@
 
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
-public class ExampleRequestContext
+internal class ExampleRequestContext
 {
     public ILspServices LspServices;
     public ILspLogger Logger;

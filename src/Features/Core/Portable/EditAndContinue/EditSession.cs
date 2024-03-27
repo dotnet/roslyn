@@ -108,10 +108,14 @@ internal sealed class EditSession
         telemetry.SetBreakState(inBreakState);
 
         BaseActiveStatements = lazyActiveStatementMap ?? (inBreakState
-            ? AsyncLazy.Create(GetBaseActiveStatementsAsync)
-            : new AsyncLazy<ActiveStatementsMap>(ActiveStatementsMap.Empty));
+            ? AsyncLazy.Create(static (self, cancellationToken) =>
+                self.GetBaseActiveStatementsAsync(cancellationToken),
+                arg: this)
+            : AsyncLazy.Create(ActiveStatementsMap.Empty));
 
-        Capabilities = AsyncLazy.Create(GetCapabilitiesAsync);
+        Capabilities = AsyncLazy.Create(static (self, cancellationToken) =>
+            self.GetCapabilitiesAsync(cancellationToken),
+            arg: this);
         Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements, Capabilities);
     }
 

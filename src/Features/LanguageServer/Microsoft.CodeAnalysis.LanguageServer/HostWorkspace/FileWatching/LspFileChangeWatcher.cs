@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.ProjectSystem;
@@ -64,7 +65,8 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
         /// The list of file paths we're watching manually that were outside the directories being watched. The count in this case counts
         /// the number of 
         /// </summary>
-        private readonly Dictionary<string, int> _watchedFiles = new Dictionary<string, int>(StringComparer.Ordinal);
+        private readonly Dictionary<string, int> _watchedFiles = new Dictionary<string, int>(_stringComparer);
+        private static readonly StringComparer _stringComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
 
         public FileChangeContext(ImmutableArray<WatchedDirectory> watchedDirectories, LspFileChangeWatcher lspFileChangeWatcher)
         {

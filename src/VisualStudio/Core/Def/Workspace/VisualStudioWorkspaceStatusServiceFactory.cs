@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.OperationProgress;
@@ -23,55 +22,29 @@ using Task = System.Threading.Tasks.Task;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
 [ExportWorkspaceServiceFactory(typeof(IWorkspaceStatusService), ServiceLayer.Host), Shared]
-internal sealed class VisualStudioWorkspaceStatusServiceFactory : IWorkspaceServiceFactory
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VisualStudioWorkspaceStatusServiceFactory(
+    SVsServiceProvider serviceProvider,
+    IThreadingContext threadingContext,
+    IAsynchronousOperationListenerProvider listenerProvider) : IWorkspaceServiceFactory
 {
-    private static readonly Option2<bool> s_partialLoadModeFeatureFlag = new("visual_studio_workspace_partial_load_mode", defaultValue: false);
-
-    private readonly IAsyncServiceProvider2 _serviceProvider;
-    private readonly IThreadingContext _threadingContext;
-    private readonly IGlobalOptionService _globalOptions;
-    private readonly IAsynchronousOperationListener _listener;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioWorkspaceStatusServiceFactory(
-        SVsServiceProvider serviceProvider,
-        IThreadingContext threadingContext,
-        IGlobalOptionService globalOptions,
-        IAsynchronousOperationListenerProvider listenerProvider)
-    {
-        _serviceProvider = (IAsyncServiceProvider2)serviceProvider;
-        _threadingContext = threadingContext;
-        _globalOptions = globalOptions;
-
-        // for now, we use workspace so existing tests can automatically wait for full solution load event
-        // subscription done in test
-        _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
-    }
+    private readonly IAsyncServiceProvider2 _serviceProvider = (IAsyncServiceProvider2)serviceProvider;
+    private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
 
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
     {
-        if (workspaceServices.Workspace is VisualStudioWorkspace)
-        {
-            if (!_globalOptions.GetOption(s_partialLoadModeFeatureFlag))
-            {
-                // don't enable partial load mode for ones that are not in experiment yet
-                return new WorkspaceStatusService();
-            }
-
-            // only VSWorkspace supports partial load mode
-            return new Service(_serviceProvider, _threadingContext, _listener);
-        }
-
-        return new WorkspaceStatusService();
+        return workspaceServices.Workspace is VisualStudioWorkspace
+            ? new Service(_serviceProvider, threadingContext, _listener)
+            : new DefaultWorkspaceStatusService();
     }
 
     /// <summary>
     /// for prototype, we won't care about what solution is actually fully loaded. 
     /// we will just see whatever solution VS has at this point of time has actually fully loaded
     /// </summary>
-    private class Service : IWorkspaceStatusService
+    private sealed class Service : IWorkspaceStatusService
     {
         private readonly IAsyncServiceProvider2 _serviceProvider;
         private readonly IThreadingContext _threadingContext;

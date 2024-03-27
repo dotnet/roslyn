@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.Snippets;
 
 internal abstract class AbstractConsoleSnippetProvider : AbstractStatementSnippetProvider
 {
-    protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token);
-
     public override string Identifier => "cw";
 
     public override string Description => FeaturesResources.console_writeline;
@@ -44,25 +42,15 @@ internal abstract class AbstractConsoleSnippetProvider : AbstractStatementSnippe
         return syntaxFacts.IsExpressionStatement;
     }
 
-    protected override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
+    protected override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var generator = SyntaxGenerator.GetGenerator(document);
-        var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
-        // We know symbol is not null at this point since it was checked when determining
-        // if we are in a valid location to insert the snippet.
-        var declaration = GetAsyncSupportingDeclaration(token);
-        var isAsync = declaration is not null && generator.GetModifiers(declaration).IsAsync;
-
-        var invocation = isAsync
-            ? generator.AwaitExpression(generator.InvocationExpression(
-                generator.MemberAccessExpression(generator.MemberAccessExpression(generator.IdentifierName(nameof(Console)), generator.IdentifierName(nameof(Console.Out))), nameof(Console.Out.WriteLineAsync))))
-            : generator.InvocationExpression(generator.MemberAccessExpression(generator.IdentifierName(nameof(Console)), nameof(Console.WriteLine)));
+        var invocation = generator.InvocationExpression(generator.MemberAccessExpression(generator.IdentifierName(nameof(Console)), nameof(Console.WriteLine)));
         var expressionStatement = generator.ExpressionStatement(invocation);
 
-        // Need to normalize the whitespace for the asynchronous case because it doesn't insert a space following the await
-        return new TextChange(TextSpan.FromBounds(position, position), expressionStatement.NormalizeWhitespace().ToFullString());
+        var change = new TextChange(TextSpan.FromBounds(position, position), expressionStatement.ToFullString());
+        return Task.FromResult(change);
     }
 
     /// <summary>

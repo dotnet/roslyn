@@ -298,8 +298,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestAfterPartial()
-            => await VerifyKeywordAsync(@"partial $$");
+        public async Task TestNotAfterPartial()
+            => await VerifyAbsenceAsync(@"partial $$");
 
         [Fact]
         public async Task TestAfterAbstract()
@@ -437,9 +437,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestAfterReadOnly()
+        public async Task TestNotAfterPublicReadOnly()
         {
-            await VerifyKeywordAsync(
+            await VerifyAbsenceAsync(
+                """
+                class C {
+                    public readonly $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterReadOnlyPartial()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C {
+                    readonly partial $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterReadOnly()
+        {
+            await VerifyAbsenceAsync(
                 """
                 class C {
                     readonly $$

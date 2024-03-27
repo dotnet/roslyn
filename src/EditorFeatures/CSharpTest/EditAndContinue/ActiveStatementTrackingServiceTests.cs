@@ -40,15 +40,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             spanProvider.GetBaseActiveStatementSpansImpl = (_, documentIds) => ImmutableArray.Create(
                 ImmutableArray.Create(
-                    new ActiveStatementSpan(0, span11, ActiveStatementFlags.NonLeafFrame, unmappedDocumentId: null),
-                    new ActiveStatementSpan(1, span12, ActiveStatementFlags.LeafFrame, unmappedDocumentId: null)),
+                    new ActiveStatementSpan(new ActiveStatementId(0), span11, ActiveStatementFlags.NonLeafFrame),
+                    new ActiveStatementSpan(new ActiveStatementId(1), span12, ActiveStatementFlags.LeafFrame)),
                 ImmutableArray<ActiveStatementSpan>.Empty);
 
             spanProvider.GetAdjustedActiveStatementSpansImpl = (document, _) => document.Name switch
             {
                 "1.cs" => ImmutableArray.Create(
-                    new ActiveStatementSpan(0, span21, ActiveStatementFlags.NonLeafFrame, unmappedDocumentId: null),
-                    new ActiveStatementSpan(1, span22, ActiveStatementFlags.LeafFrame, unmappedDocumentId: null)),
+                    new ActiveStatementSpan(new ActiveStatementId(0), span21, ActiveStatementFlags.NonLeafFrame),
+                    new ActiveStatementSpan(new ActiveStatementId(1), span22, ActiveStatementFlags.LeafFrame)),
                 "2.cs" => ImmutableArray<ActiveStatementSpan>.Empty,
                 _ => throw ExceptionUtilities.Unreachable()
             };

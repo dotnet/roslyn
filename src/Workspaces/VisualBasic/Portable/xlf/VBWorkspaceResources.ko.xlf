@@ -227,21 +227,6 @@
         <target state="translated">예외를 throw하지 않는 형식 변환 작업을 지정합니다. 변환하지 못한 경우 프로그램에서 테스트할 수 있도록 TryCast에서 Nothing을 반환합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Node_does_not_descend_from_root">
-        <source>Node does not descend from root.</source>
-        <target state="translated">노드가 루트의 내림차순이 아닙니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_not_in_parent_s_child_list">
-        <source>Node not in parent's child list</source>
-        <target state="translated">부모의 자식 목록에 노드가 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Trivia_is_not_associated_with_token">
-        <source>Trivia is not associated with token</source>
-        <target state="translated">Trivia가 토큰에 연결되어 있지 않습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="typeOrMember">
         <source>&lt;typeOrMember&gt;</source>
         <target state="translated">&lt;typeOrMember&gt;</target>

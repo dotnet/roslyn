@@ -556,11 +556,12 @@ public class Document : TextDocument
 
     private void InitializeCachedOptions(OptionSet solutionOptions)
     {
-        var newAsyncLazy = AsyncLazy.Create(async cancellationToken =>
+        var newAsyncLazy = AsyncLazy.Create(static async (arg, cancellationToken) =>
         {
-            var options = await GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return new DocumentOptionSet(options, solutionOptions, Project.Language);
-        });
+            var options = await arg.self.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return new DocumentOptionSet(options, arg.solutionOptions, arg.self.Project.Language);
+        },
+        arg: (self: this, solutionOptions));
 
         Interlocked.CompareExchange(ref _cachedOptions, newAsyncLazy, comparand: null);
     }

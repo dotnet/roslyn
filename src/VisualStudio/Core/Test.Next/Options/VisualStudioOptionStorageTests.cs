@@ -237,8 +237,6 @@ public class VisualStudioOptionStorageTests
             "file_header_template",                                                         // repository specific
             "FormattingOptions_WrappingColumn",                                             // TODO: https://github.com/dotnet/roslyn/issues/66062
             "insert_final_newline",                                                         // TODO: https://github.com/dotnet/roslyn/issues/66062
-            "InternalDiagnosticsOptions_LiveShareDiagnosticMode",                           // TODO: remove once switched to LSP diagnostics
-            "InternalDiagnosticsOptions_RazorDiagnosticMode",                               // TODO: remove once switched to LSP diagnostics
             "RazorDesignTimeDocumentFormattingOptions_TabSize",                             // TODO: remove once Razor removes design-time documents
             "RazorDesignTimeDocumentFormattingOptions_UseTabs",                             // TODO: remove once Razor removes design-time documents
             "RecommendationOptions_FilterOutOfScopeLocals",                                 // public option not stored in VS storage

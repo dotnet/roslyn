@@ -171,7 +171,7 @@ internal sealed class CodeRefactoringService(
     {
         return extensionManager.PerformFunctionAsync(
             provider,
-            async () =>
+            async cancellationToken =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 using var _ = ArrayBuilder<(CodeAction action, TextSpan? applicableToSpan)>.GetInstance(out var actions);
@@ -205,7 +205,7 @@ internal sealed class CodeRefactoringService(
                 var fixAllProviderInfo = extensionManager.PerformFunction(
                     provider, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, provider, FixAllProviderInfo.Create), defaultValue: null);
                 return new CodeRefactoring(provider, actions.ToImmutable(), fixAllProviderInfo, options);
-            }, defaultValue: null);
+            }, defaultValue: null, cancellationToken);
     }
 
     private class ProjectCodeRefactoringProvider

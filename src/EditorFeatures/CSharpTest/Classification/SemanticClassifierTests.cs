@@ -642,7 +642,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 """,
                 testHost,
                 Namespace("System"),
-                Class("Obsolete"));
+                Class("Obsolete"),
+                Obsolete("C"));
         }
 
         [Theory, CombinatorialData]

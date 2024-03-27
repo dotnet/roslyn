@@ -77,6 +77,10 @@
             {
               "filename": "/Microsoft.CodeAnalysis.Workspaces.dll",
               "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb", "WinForms.OptProfTests.winforms_largeform_cs" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.LanguageServer.Protocol.dll",
+              "testCases":[ "WinForms.OptProfTests.winforms_largeform_cs" ]
             }
           ]
         },
@@ -141,6 +145,10 @@
             },
             {
               "filename": "/Microsoft.CodeAnalysis.Workspaces.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.LanguageServer.Protocol.dll",
               "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
             }
           ]
@@ -218,6 +226,10 @@
             },
             {
               "filename": "/Microsoft.CodeAnalysis.Workspaces.dll",
+              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.LanguageServer.Protocol.dll",
               "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
             }
           ]

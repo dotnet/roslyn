@@ -535,6 +535,34 @@ class Class1 { }
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText, index: 1);
         }
 
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/72632")]
+        public async Task MoveNestedTypeToNewFile_Simple_DottedName_WithPrimaryConstructor()
+        {
+            var code =
+@"internal class Outer()
+{
+    private class Inner[||]
+    {
+    }
+}";
+
+            var codeAfterMove =
+@"internal partial class Outer()
+{
+}";
+
+            var expectedDocumentName = "Outer.Inner.cs";
+
+            var destinationDocumentText =
+@"internal partial class Outer
+{
+    private class Inner
+    {
+    }
+}";
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText, index: 1);
+        }
+
         [WpfFact]
         public async Task MoveNestedTypeToNewFile_ParentHasOtherMembers()
         {

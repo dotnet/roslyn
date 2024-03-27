@@ -516,7 +516,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         invokeMethod.Parameters.SequenceEqual(otherInvokeMethod.Parameters,
                             (x, y) => isCorrespondingType(x.TypeWithAnnotations, y.TypeWithAnnotations) &&
                                 x.ExplicitDefaultConstantValue == y.ExplicitDefaultConstantValue &&
-                                x.IsParams == y.IsParams) &&
+                                x.IsParamsArray == y.IsParamsArray &&
+                                x.IsParamsCollection == y.IsParamsCollection) &&
                         isCorrespondingType(invokeMethod.ReturnTypeWithAnnotations, otherInvokeMethod.ReturnTypeWithAnnotations);
                 }
 

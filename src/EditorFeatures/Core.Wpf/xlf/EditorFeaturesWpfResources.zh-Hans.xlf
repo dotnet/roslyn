@@ -32,11 +32,6 @@
         <target state="translated">在交互窗口中执行所选内容。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generating_suggestions">
-        <source>Generating suggestions...</source>
-        <target state="translated">正在生成建议...</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Get_AI_suggestions">
         <source>Get AI-powered rename suggestions (Ctrl+Space)</source>
         <target state="translated">获取 AI 支持的重命名建议(Ctrl+空格键)</target>
@@ -45,11 +40,6 @@
       <trans-unit id="Interactive_host_process_platform">
         <source>Interactive host process platform</source>
         <target state="translated">交互式主机进程平台</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Print_a_list_of_referenced_assemblies">
-        <source>Print a list of referenced assemblies.</source>
-        <target state="translated">打印引用程序集的列表。</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_the_execution_environment_to_the_initial_state_and_keep_history_with_the_option_to_switch_the_runtime_of_the_host_process">
@@ -75,11 +65,6 @@
       <trans-unit id="The_CurrentWindow_property_may_only_be_assigned_once">
         <source>The CurrentWindow property may only be assigned once.</source>
         <target state="translated">只能对 CurrentWindow 属性进行一次赋值。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_references_command_is_not_supported_in_this_Interactive_Window_implementation">
-        <source>The references command is not supported in this Interactive Window implementation.</source>
-        <target state="translated">此交互窗口实现中不支持引用命令。</target>
         <note />
       </trans-unit>
     </body>

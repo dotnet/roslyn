@@ -5451,6 +5451,8 @@ namespace System
     public class Object {}
     public class ValueType {}
     public struct Void {}
+
+    public struct RuntimeTypeHandle {}
 }
 ";
             var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
@@ -5466,8 +5468,6 @@ namespace System
     {
         public static Type GetTypeFromHandle(RuntimeTypeHandle handle) => default;
     }
-
-    public struct RuntimeTypeHandle {}
 }
 ";
             var comp1 = CreateEmptyCompilation(source1, references: new[] { comp0Ref }, parseOptions: parseOptions);
