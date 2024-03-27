@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -21,6 +22,7 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LicenseManagement.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -36,12 +38,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 [Export(typeof(SourceGeneratedFileManager))]
 internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly SVsServiceProvider _serviceProvider;
     private readonly IThreadingContext _threadingContext;
     private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffinitizedObject;
-    private readonly IAsynchronousOperationListener _listener;
     private readonly ITextDocumentFactoryService _textDocumentFactoryService;
     private readonly VisualStudioDocumentNavigationService _visualStudioDocumentNavigationService;
+
+    private readonly IAsynchronousOperationListener _listener;
+    private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
     /// <summary>
     /// The temporary directory that we'll create file names under to act as a prefix we can later recognize and use.
@@ -67,7 +71,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public SourceGeneratedFileManager(
-        [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+        SVsServiceProvider serviceProvider,
         IThreadingContext threadingContext,
         OpenTextBufferProvider openTextBufferProvider,
         IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
@@ -84,9 +88,10 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         _visualStudioWorkspace = visualStudioWorkspace;
         _visualStudioDocumentNavigationService = visualStudioDocumentNavigationService;
 
-        Directory.CreateDirectory(_temporaryDirectory);
-
+        _listenerProvider = listenerProvider;
         _listener = listenerProvider.GetListener(FeatureAttribute.SourceGenerators);
+
+        Directory.CreateDirectory(_temporaryDirectory);
 
         openTextBufferProvider.AddListener(this);
     }
@@ -223,7 +228,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
     {
     }
 
-    private class OpenSourceGeneratedFile : ForegroundThreadAffinitizedObject, IDisposable
+    private sealed class OpenSourceGeneratedFile : ForegroundThreadAffinitizedObject, IDisposable
     {
         private readonly SourceGeneratedFileManager _fileManager;
         private readonly ITextBuffer _textBuffer;
@@ -250,16 +255,13 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         private readonly AsyncBatchingWorkQueue _batchingWorkQueue;
 
         /// <summary>
-        /// The <see cref="IVsWindowFrame"/> of the active window. This may be null if we're in the middle of construction and
-        /// we haven't been given it yet.
+        /// The info bar of the active window. This may be null if we're in the middle of construction and we haven't
+        /// created it yet
         /// </summary>
-        private IVsWindowFrame? _windowFrame;
+        private VisualStudioInfoBar? _infoBar;
+        private VisualStudioInfoBar.InfoBarMessage? _currentInfoBarMessage;
 
-        private string? _windowFrameMessageToShow = null;
-        private ImageMoniker _windowFrameImageMonikerToShow = default;
-        private string? _currentWindowFrameMessage = null;
-        private ImageMoniker _currentWindowFrameImageMoniker = default;
-        private IVsInfoBarUIElement? _currentWindowFrameInfoBarElement = null;
+        private (string message, ImageMoniker imageMoniker)? _infoToShow = null;
 
         public OpenSourceGeneratedFile(SourceGeneratedFileManager fileManager, ITextBuffer textBuffer, Workspace workspace, SourceGeneratedDocumentIdentity documentIdentity, IThreadingContext threadingContext)
             : base(threadingContext, assertIsForeground: true)
@@ -371,8 +373,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            _windowFrameMessageToShow = windowFrameMessageToShow;
-            _windowFrameImageMonikerToShow = windowFrameImageMonikerToShow;
+            _infoToShow = (windowFrameMessageToShow, windowFrameImageMonikerToShow);
 
             // Update the text if we have new text
             if (generatedSource != null)
@@ -467,13 +468,14 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         {
             AssertIsForeground();
 
-            if (_windowFrame != null)
+            if (_infoBar != null)
             {
                 // We already have a window frame, and we don't expect to get a second one
                 return;
             }
 
-            _windowFrame = windowFrame;
+            _infoBar = new VisualStudioInfoBar(
+                this.ThreadingContext, _fileManager._serviceProvider, _fileManager._listenerProvider, windowFrame);
 
             // We'll override the window frame and never show it as dirty, even if there's an underlying edit
             windowFrame.SetProperty((int)__VSFPROPID2.VSFPROPID_OverrideDirtyState, false);
@@ -487,38 +489,27 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         {
             AssertIsForeground();
 
-            if (_windowFrameMessageToShow == null ||
-                _windowFrame == null ||
-                _currentWindowFrameMessage == _windowFrameMessageToShow &&
-                !_currentWindowFrameImageMoniker.Equals(_windowFrameImageMonikerToShow))
+            if (_infoToShow is null || _infoBar is null)
             {
-                // We don't have anything to do, or anything to do yet.
+                // If we don't have a frame, or even a message, we can't do anything yet.
                 return;
             }
 
-            var infoBarFactory = (IVsInfoBarUIFactory)_fileManager._serviceProvider.GetService(typeof(SVsInfoBarUIFactory));
-            Assumes.Present(infoBarFactory);
-
-            if (ErrorHandler.Failed(_windowFrame.GetProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, out var infoBarHostObject)) ||
-                infoBarHostObject is not IVsInfoBarHost infoBarHost)
+            if (_currentInfoBarMessage != null)
             {
-                return;
+                if (_currentInfoBarMessage.Message == _infoToShow.Value.message &&
+                    _currentInfoBarMessage.ImageMoniker.Equals(_infoToShow.Value.imageMoniker))
+                {
+                    // bail out if no change is needed
+                    return;
+                }
+
+                // Otherwise, remove the current message.
+                _currentInfoBarMessage.Remove();
             }
 
-            // Remove the existing bar
-            if (_currentWindowFrameInfoBarElement != null)
-            {
-                infoBarHost.RemoveInfoBar(_currentWindowFrameInfoBarElement);
-            }
-
-            var infoBar = new InfoBarModel(_windowFrameMessageToShow, _windowFrameImageMonikerToShow, isCloseButtonVisible: false);
-            var infoBarUI = infoBarFactory.CreateInfoBar(infoBar);
-
-            infoBarHost.AddInfoBar(infoBarUI);
-
-            _currentWindowFrameMessage = _windowFrameMessageToShow;
-            _currentWindowFrameImageMoniker = _windowFrameImageMonikerToShow;
-            _currentWindowFrameInfoBarElement = infoBarUI;
+            _currentInfoBarMessage = _infoBar.ShowInfoBarMessageFromUIThread(
+                _infoToShow.Value.message, isCloseButtonVisible: false, _infoToShow.Value.imageMoniker);
         }
 
         public Task<bool> NavigateToSpanAsync(TextSpan sourceSpan, CancellationToken cancellationToken)

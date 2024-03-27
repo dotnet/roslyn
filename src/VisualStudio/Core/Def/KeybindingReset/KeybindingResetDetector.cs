@@ -96,7 +96,9 @@ internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObjec
     {
         _globalOptions = globalOptions;
         _serviceProvider = serviceProvider;
-        _infoBar = new VisualStudioInfoBar(threadingContext, serviceProvider, listenerProvider);
+
+        // Attach this info bar to the global shell location for info-bars (independent of any particular window).
+        _infoBar = new VisualStudioInfoBar(threadingContext, serviceProvider, listenerProvider, windowFrame: null);
     }
 
     public Task InitializeAsync()
@@ -239,7 +241,7 @@ internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObjec
 
         var message = ServicesVSResources.We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor;
         KeybindingsResetLogger.Log("InfoBarShown");
-        _infoBar.ShowInfoBar(
+        _infoBar.ShowInfoBarMessageFromAnyThread(
             string.Format(message, ReSharperExtensionName),
             new InfoBarUI(title: ServicesVSResources.Reset_Visual_Studio_default_keymapping,
                           kind: InfoBarUI.UIKind.Button,

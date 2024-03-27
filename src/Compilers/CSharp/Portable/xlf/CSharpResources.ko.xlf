@@ -5079,13 +5079,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</source>
-        <target state="translated">생성자를 종료할 때 null을 허용하지 않는 {0} '{1}'에 null이 아닌 값을 포함해야 합니다. {0}을(를) null 허용으로 선언해 보세요.</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the required modifier or declaring the {0} as nullable.</source>
+        <target state="needs-review-translation">생성자를 종료할 때 null을 허용하지 않는 {0} '{1}'에 null이 아닌 값을 포함해야 합니다. {0}을(를) null 허용으로 선언해 보세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
-        <target state="translated">생성자를 종료할 때 null을 허용하지 않는 필드에 null이 아닌 값을 포함해야 합니다. null 허용으로 선언해 보세요.</target>
+        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider adding the required modifier or declaring as nullable.</source>
+        <target state="needs-review-translation">생성자를 종료할 때 null을 허용하지 않는 필드에 null이 아닌 값을 포함해야 합니다. null 허용으로 선언해 보세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
