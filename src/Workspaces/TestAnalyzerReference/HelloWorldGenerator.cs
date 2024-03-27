@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.TestSourceGenerator
                 {
                     public static string GetMessage()
                     {
-                        return "Hello, World!";
+                        return "Hello, World @ {{DateTime.UtcNow.ToLongTimeString()}}";
                     }
                 }
                 """, encoding: Encoding.UTF8));
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.TestSourceGenerator
                 {
                     public static string GetMessage()
                     {
-                        return "Hola, Mundo!";
+                        return "Hola, Mundo @ {{DateTime.UtcNow.ToLongTimeString()}}";
                     }
                 }
                 """, encoding: Encoding.UTF8));
