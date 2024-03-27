@@ -37022,7 +37022,40 @@ partial class Program
         }
 
         [Fact]
-        public void AddMethod_Extension_13_ConstraintsViolated()
+        public void AddMethod_Extension_13_WrongThisType()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list = new();
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    internal void __AddInternal(T t) { _list.Add(t); }
+                }
+                static class Extensions
+                {
+                    public static void Add<T>(this IEnumerable<object> collection, T t) { ((MyCollection<T>)collection).__AddInternal(t); }
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        string x = "1";
+                        string[] y = ["2", "3"];
+                        MyCollection<string> z = [x, ..y];
+                        z.Report();
+                    }
+                }
+                """;
+            CompileAndVerify([sourceA, sourceB, s_collectionExtensions], expectedOutput: "[1, 2, 3], ");
+        }
+
+        [Fact]
+        public void AddMethod_Extension_14_ConstraintsViolated()
         {
             string sourceA = """
                 using System.Collections;
@@ -37069,7 +37102,7 @@ partial class Program
         }
 
         [Fact]
-        public void AddMethod_Extension_14_Dynamic()
+        public void AddMethod_Extension_15_Dynamic()
         {
             string sourceA = """
                 using System.Collections;
@@ -37101,6 +37134,45 @@ partial class Program
                 // (11,36): error CS1103: The first parameter of an extension method cannot be of type 'dynamic'
                 //     public static void Add<T>(this dynamic d, T t) { d.__AddInternal(t); }
                 Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(11, 36));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72769")]
+        [Fact]
+        public void AddMethod_RefOmittedArguments()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Runtime.InteropServices;
+
+                [ComImport]
+                [Guid("5CDF1E39-B461-4A9B-9359-1D6F7DECE1B3")]
+                class MyCollection : IEnumerable
+                {
+                    extern IEnumerator IEnumerable.GetEnumerator();
+                }
+
+                static class Extensions
+                {
+                    public static void Add<T>(this MyCollection collection, ref T x) => throw null;
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection z = [x, ..y];
+                        MyCollection w = new() { x };
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB]);
+            // https://github.com/dotnet/roslyn/issues/72769: VerifyEmitDiagnostics() results in Debug.Assert
+            // failures in LocalRewriter.MakeCollectionInitializer() and GetEffectiveArgumentRefKinds().
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -37714,7 +37786,7 @@ partial class Program
         }
 
         [Fact]
-        public void AddMethod_Unsafe()
+        public void AddMethod_Unsafe_01()
         {
             string sourceA = """
                 using System.Collections;
@@ -37763,6 +37835,74 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("MyCollection<object>.Add(void*)").WithLocation(7, 40));
 
             CompileAndVerify([sourceA, sourceB, sourceC, s_collectionExtensions], options: TestOptions.UnsafeReleaseExe, expectedOutput: "[1, 2, 3], ");
+        }
+
+        [Fact]
+        public void AddMethod_Unsafe_02()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable
+                {
+                    private readonly List<T> _list = new();
+                    public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    internal void __AddInternal(T t) { _list.Add(t); }
+                }
+                static class Extensions1
+                {
+                    unsafe public static void Add<T>(this MyCollection<T> collection, void* p) => throw null;
+                }
+                """;
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<object> z = [x, ..y];
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB1, s_collectionExtensions], options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // (7,35): error CS1950: The best overloaded Add method 'Extensions1.Add<object>(MyCollection<object>, void*)' for the collection initializer has some invalid arguments
+                //         MyCollection<object> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "x").WithArguments("Extensions1.Add<object>(MyCollection<object>, void*)").WithLocation(7, 35),
+                // (7,35): error CS1503: Argument 2: cannot convert from 'int' to 'void*'
+                //         MyCollection<object> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("2", "int", "void*").WithLocation(7, 35),
+                // (7,38): error CS1503: Argument 2: cannot convert from 'int' to 'void*'
+                //         MyCollection<object> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_BadArgType, "..y").WithArguments("2", "int", "void*").WithLocation(7, 38),
+                // (7,40): error CS1950: The best overloaded Add method 'Extensions1.Add<object>(MyCollection<object>, void*)' for the collection initializer has some invalid arguments
+                //         MyCollection<object> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "y").WithArguments("Extensions1.Add<object>(MyCollection<object>, void*)").WithLocation(7, 40));
+
+            string sourceB2 = """
+                using N;
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<object> z = [x, ..y];
+                        z.Report();
+                    }
+                }
+                namespace N
+                {
+                    static class Extensions2
+                    {
+                        public static void Add<T>(this MyCollection<T> collection, T t) { collection.__AddInternal(t); }
+                    }
+                }
+                """;
+            CompileAndVerify([sourceA, sourceB2, s_collectionExtensions], options: TestOptions.UnsafeReleaseExe, expectedOutput: "[1, 2, 3], ");
         }
 
         [Fact]

@@ -1197,7 +1197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     argToParamMap: default,
                                     argumentRefKinds: analyzedArguments.RefKinds,
                                     isMethodGroupConversion: false,
-                                    allowRefOmittedArguments: methodGroup.ReceiverOpt.IsExpressionOfComImportType(), // PROTOTYPE: Test effect of this flag
+                                    allowRefOmittedArguments: methodGroup.ReceiverOpt.IsExpressionOfComImportType(),
                                     binder: addMethodBinder,
                                     expanded: candidate.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
                                     parameterTypes: out ImmutableArray<TypeWithAnnotations> parameterTypes,

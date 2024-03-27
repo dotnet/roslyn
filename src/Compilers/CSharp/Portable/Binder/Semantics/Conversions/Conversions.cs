@@ -198,8 +198,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return Conversion.NoConversion;
                 }
-
-                // PROTOTYPE: Probably should at least accumulate dependencies and propagate them in case of success.
             }
 
             var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
