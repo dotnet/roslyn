@@ -36972,6 +36972,56 @@ partial class Program
         }
 
         [Fact]
+        public void AddMethod_Extension_12_WrongThisType()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T, U> : IEnumerable
+                {
+                    private readonly List<T> _list = new();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    internal void __AddInternal(T t) { _list.Add(t); }
+                }
+                static class Extensions
+                {
+                    public static void Add<T>(this MyCollection<T, string> collection, T t) { collection.__AddInternal(t); }
+                }
+                """;
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<int, string> z = [x, ..y];
+                        z.Report();
+                    }
+                }
+                """;
+            CompileAndVerify([sourceA, sourceB1, s_collectionExtensions], expectedOutput: "[1, 2, 3], ");
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<int, object> z = [x, ..y];
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB2]);
+            comp.VerifyEmitDiagnostics(
+                // (7,39): error CS9215: Collection expression type 'MyCollection<int, object>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         MyCollection<int, object> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<int, object>").WithLocation(7, 39));
+        }
+
+        [Fact]
         public void AddMethod_Extension_12_ConstraintsViolated()
         {
             string sourceA = """

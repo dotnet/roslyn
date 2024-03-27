@@ -1236,7 +1236,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var conversion = conversions.ConvertExtensionMethodThisArg(constructed.Parameters[0].Type, receiverType, ref useSiteInfo);
                                 if (!conversion.Exists)
                                 {
-                                    // PROTOTYPE: Test this code path
                                     continue; // Conversion to 'this' parameter failed
                                 }
                             }
