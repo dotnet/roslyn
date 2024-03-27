@@ -39,93 +39,105 @@ internal sealed class VisualStudioInfoBar(
     /// </summary>
     private readonly HashSet<string> _currentlyShowingMessages = [];
 
-    public InfoBarMessage? ShowInfoBarMessage(string message, params InfoBarUI[] items)
-        => ShowInfoBarMessage(message, isCloseButtonVisible: true, KnownMonikers.StatusInformation, items);
+    public void ShowInfoBarMessageFromAnyThread(string message, params InfoBarUI[] items)
+        => ShowInfoBarMessageFromAnyThread(message, isCloseButtonVisible: true, KnownMonikers.StatusInformation, items);
 
-    public InfoBarMessage? ShowInfoBarMessage(
+    public void ShowInfoBarMessageFromAnyThread(
         string message,
         bool isCloseButtonVisible,
         ImageMoniker imageMoniker,
         params InfoBarUI[] items)
     {
         // We can be called from any thread since errors can occur anywhere, however we can only construct and InfoBar from the UI thread.
-        return _threadingContext.JoinableTaskFactory.Run(async () =>
+        _threadingContext.JoinableTaskFactory.RunAsync(async () =>
         {
-            using var _ = _listener.BeginAsyncOperation(nameof(ShowInfoBarMessage));
+            using var _ = _listener.BeginAsyncOperation(nameof(ShowInfoBarMessageFromAnyThread));
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
-
-            // If we're already shown this same message to the user, then do not bother showing it
-            // to them again.  It will just be noisy.
-            if (GetInfoBarHostObject() is not IVsInfoBarHost infoBarHost ||
-                _serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) is not IVsInfoBarUIFactory factory)
-            {
-                return null;
-            }
-
-            if (_currentlyShowingMessages.Contains(message))
-                return null;
-
-            // create action item list
-            var actionItems = new List<IVsInfoBarActionItem>();
-
-            foreach (var item in items)
-            {
-                switch (item.Kind)
-                {
-                    case InfoBarUI.UIKind.Button:
-                        actionItems.Add(new InfoBarButton(item.Title));
-                        break;
-                    case InfoBarUI.UIKind.HyperLink:
-                        actionItems.Add(new InfoBarHyperlink(item.Title));
-                        break;
-                    case InfoBarUI.UIKind.Close:
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(item.Kind);
-                }
-            }
-
-            var infoBarModel = new InfoBarModel(
-                new[] { new InfoBarTextSpan(message) },
-                actionItems,
-                imageMoniker,
-                isCloseButtonVisible);
-
-            var infoBarUI = factory.CreateInfoBar(infoBarModel);
-            if (infoBarUI == null)
-                return null;
-
-            uint? infoBarCookie = null;
-            var eventSink = new InfoBarEvents(items, onClose: () =>
-            {
-                Contract.ThrowIfFalse(_threadingContext.JoinableTaskContext.IsOnMainThread);
-
-                // Remove the message from the list that we're keeping track of.  Future identical
-                // messages can now be shown.
-                _currentlyShowingMessages.Remove(message);
-
-                // Run given onClose action if there is one.
-                items.FirstOrDefault(i => i.Kind == InfoBarUI.UIKind.Close).Action?.Invoke();
-
-                if (infoBarCookie.HasValue)
-                {
-                    infoBarUI.Unadvise(infoBarCookie.Value);
-                }
-            });
-
-            if (ErrorHandler.Succeeded(infoBarUI.Advise(eventSink, out var cookie)))
-                infoBarCookie = cookie;
-
-            infoBarHost.AddInfoBar(infoBarUI);
-
-            _currentlyShowingMessages.Add(message);
-            return new InfoBarMessage(this, infoBarHost, message, imageMoniker, infoBarUI, infoBarCookie);
+            ShowInfoBarMessageFromUIThread(message, isCloseButtonVisible, imageMoniker, items);
         });
+    }
+
+    public InfoBarMessage? ShowInfoBarMessageFromUIThread(
+        string message,
+        bool isCloseButtonVisible,
+        ImageMoniker imageMoniker,
+        params InfoBarUI[] items)
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
+
+        // If we're already shown this same message to the user, then do not bother showing it
+        // to them again.  It will just be noisy.
+        if (GetInfoBarHostObject() is not IVsInfoBarHost infoBarHost ||
+            _serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) is not IVsInfoBarUIFactory factory)
+        {
+            return null;
+        }
+
+        if (_currentlyShowingMessages.Contains(message))
+            return null;
+
+        // create action item list
+        var actionItems = new List<IVsInfoBarActionItem>();
+
+        foreach (var item in items)
+        {
+            switch (item.Kind)
+            {
+                case InfoBarUI.UIKind.Button:
+                    actionItems.Add(new InfoBarButton(item.Title));
+                    break;
+                case InfoBarUI.UIKind.HyperLink:
+                    actionItems.Add(new InfoBarHyperlink(item.Title));
+                    break;
+                case InfoBarUI.UIKind.Close:
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(item.Kind);
+            }
+        }
+
+        var infoBarModel = new InfoBarModel(
+            new[] { new InfoBarTextSpan(message) },
+            actionItems,
+            imageMoniker,
+            isCloseButtonVisible);
+
+        var infoBarUI = factory.CreateInfoBar(infoBarModel);
+        if (infoBarUI == null)
+            return null;
+
+        uint? infoBarCookie = null;
+        var eventSink = new InfoBarEvents(items, onClose: () =>
+        {
+            Contract.ThrowIfFalse(_threadingContext.JoinableTaskContext.IsOnMainThread);
+
+            // Remove the message from the list that we're keeping track of.  Future identical
+            // messages can now be shown.
+            _currentlyShowingMessages.Remove(message);
+
+            // Run given onClose action if there is one.
+            items.FirstOrDefault(i => i.Kind == InfoBarUI.UIKind.Close).Action?.Invoke();
+
+            if (infoBarCookie.HasValue)
+            {
+                infoBarUI.Unadvise(infoBarCookie.Value);
+            }
+        });
+
+        if (ErrorHandler.Succeeded(infoBarUI.Advise(eventSink, out var cookie)))
+            infoBarCookie = cookie;
+
+        infoBarHost.AddInfoBar(infoBarUI);
+
+        _currentlyShowingMessages.Add(message);
+        return new InfoBarMessage(this, infoBarHost, message, imageMoniker, infoBarUI, infoBarCookie);
     }
 
     private object? GetInfoBarHostObject()
     {
+        _threadingContext.ThrowIfNotOnUIThread();
+
         if (_windowFrame != null)
             return ErrorHandler.Succeeded(_windowFrame.GetProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, out var windowInfoBarHostObject)) ? windowInfoBarHostObject : null;
 

@@ -496,7 +496,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 _currentInfoBarMessage.Remove();
             }
 
-            _currentInfoBarMessage = _infoBar.ShowInfoBarMessage(
+            _currentInfoBarMessage = _infoBar.ShowInfoBarMessageFromUIThread(
                 _infoToShow.Value.message, isCloseButtonVisible: false, _infoToShow.Value.imageMoniker);
         }
 

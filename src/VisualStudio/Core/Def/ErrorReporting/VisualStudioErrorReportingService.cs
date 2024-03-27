@@ -46,7 +46,7 @@ internal partial class VisualStudioErrorReportingService : IErrorReportingServic
     {
         var stackTrace = exception is null ? "" : GetFormattedExceptionStack(exception);
         LogGlobalErrorToActivityLog(message, stackTrace);
-        _infoBar.ShowInfoBar(message, items);
+        _infoBar.ShowInfoBarMessageFromAnyThread(message, items);
 
         Logger.Log(FunctionId.VS_ErrorReportingService_ShowGlobalErrorInfo, KeyValueLogMessage.Create(LogType.UserAction, m =>
         {

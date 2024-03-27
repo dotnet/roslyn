@@ -241,7 +241,7 @@ internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObjec
 
         var message = ServicesVSResources.We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor;
         KeybindingsResetLogger.Log("InfoBarShown");
-        _infoBar.ShowInfoBar(
+        _infoBar.ShowInfoBarMessageFromAnyThread(
             string.Format(message, ReSharperExtensionName),
             new InfoBarUI(title: ServicesVSResources.Reset_Visual_Studio_default_keymapping,
                           kind: InfoBarUI.UIKind.Button,
