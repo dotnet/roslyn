@@ -201,7 +201,7 @@ internal sealed class TotalClassificationAggregateTagger(
             if (currentSyntactic.Span == currentSemantic.Span)
             {
                 // If they have the same classification type, then can def take one instead of both.
-                if (currentSyntactic.Tag == currentSemantic.Tag)
+                if (currentSyntactic.Tag.ClassificationType == currentSemantic.Tag.ClassificationType)
                     return true;
 
                 // Syntactic identifiers can be overridden by better semantic interpretations.
