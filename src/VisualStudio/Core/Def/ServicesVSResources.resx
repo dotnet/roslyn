@@ -1915,4 +1915,10 @@ Additional information: {1}</value>
   <data name="Roslyn_save_command_handler" xml:space="preserve">
     <value>Roslyn save command handler</value>
   </data>
+  <data name="Generator_running" xml:space="preserve">
+    <value>Generator running...</value>
+  </data>
+  <data name="Rerun_generator" xml:space="preserve">
+    <value>Rerun generator</value>
+  </data>
 </root>

@@ -10,10 +10,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -56,7 +58,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
     /// Map of currently open generated files; the key is the generated full file path.
     /// </summary>
     private readonly Dictionary<string, OpenSourceGeneratedFile> _openFiles = [];
-    private readonly VisualStudioWorkspace _visualStudioWorkspace;
+    private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
 
     /// <summary>
     /// When we have to put a placeholder file on disk, we put it in a directory named by the GUID portion of the DocumentId.
@@ -76,7 +78,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         OpenTextBufferProvider openTextBufferProvider,
         IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
         ITextDocumentFactoryService textDocumentFactoryService,
-        VisualStudioWorkspace visualStudioWorkspace,
+        VisualStudioWorkspaceImpl visualStudioWorkspace,
         VisualStudioDocumentNavigationService visualStudioDocumentNavigationService,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
@@ -188,7 +190,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             // Attach to the text buffer if we haven't already
             if (!_openFiles.TryGetValue(moniker, out var openFile))
             {
-                openFile = new OpenSourceGeneratedFile(this, textBuffer, _visualStudioWorkspace, documentIdentity, _threadingContext);
+                openFile = new OpenSourceGeneratedFile(this, textBuffer, documentIdentity);
                 _openFiles.Add(moniker, openFile);
 
                 _threadingContext.JoinableTaskFactory.Run(() => openFile.RefreshFileAsync(CancellationToken.None).AsTask());
@@ -232,7 +234,6 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
     {
         private readonly SourceGeneratedFileManager _fileManager;
         private readonly ITextBuffer _textBuffer;
-        private readonly Workspace _workspace;
         private readonly SourceGeneratedDocumentIdentity _documentIdentity;
         private readonly IWorkspaceConfigurationService? _workspaceConfigurationService;
 
@@ -263,14 +264,13 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 
         private (string message, ImageMoniker imageMoniker)? _infoToShow = null;
 
-        public OpenSourceGeneratedFile(SourceGeneratedFileManager fileManager, ITextBuffer textBuffer, Workspace workspace, SourceGeneratedDocumentIdentity documentIdentity, IThreadingContext threadingContext)
-            : base(threadingContext, assertIsForeground: true)
+        public OpenSourceGeneratedFile(SourceGeneratedFileManager fileManager, ITextBuffer textBuffer, SourceGeneratedDocumentIdentity documentIdentity)
+            : base(fileManager._threadingContext, assertIsForeground: true)
         {
             _fileManager = fileManager;
             _textBuffer = textBuffer;
-            _workspace = workspace;
             _documentIdentity = documentIdentity;
-            _workspaceConfigurationService = _workspace.Services.GetService<IWorkspaceConfigurationService>();
+            _workspaceConfigurationService = _fileManager._visualStudioWorkspace.Services.GetService<IWorkspaceConfigurationService>();
 
             // We'll create a read-only region for the file, but it'll be a dynamic region we can temporarily suspend
             // while we're doing edits.
@@ -285,7 +285,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 readOnlyRegionEdit.Apply();
             }
 
-            _workspace.WorkspaceChanged += OnWorkspaceChanged;
+            _fileManager._visualStudioWorkspace.WorkspaceChanged += OnWorkspaceChanged;
 
             _batchingWorkQueue = new AsyncBatchingWorkQueue(
                 TimeSpan.FromSeconds(1),
@@ -294,15 +294,17 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 _cancellationTokenSource.Token);
         }
 
+        private VisualStudioWorkspaceImpl Workspace => _fileManager._visualStudioWorkspace;
+
         private void DisconnectFromWorkspaceIfOpen()
         {
             AssertIsForeground();
 
-            if (_workspace.IsDocumentOpen(_documentIdentity.DocumentId))
+            if (this.Workspace.IsDocumentOpen(_documentIdentity.DocumentId))
             {
                 var sourceGeneratedDocument = (SourceGeneratedDocument?)_textBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 Contract.ThrowIfNull(sourceGeneratedDocument);
-                _workspace.OnSourceGeneratedDocumentClosed(sourceGeneratedDocument);
+                this.Workspace.OnSourceGeneratedDocumentClosed(sourceGeneratedDocument);
             }
         }
 
@@ -310,7 +312,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         {
             AssertIsForeground();
 
-            _workspace.WorkspaceChanged -= OnWorkspaceChanged;
+            this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
             // Disconnect the buffer from the workspace before making it eligible for edits
             DisconnectFromWorkspaceIfOpen();
@@ -331,7 +333,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         {
             SourceGeneratedDocument? generatedDocument = null;
             SourceText? generatedSource = null;
-            var project = _workspace.CurrentSolution.GetProject(_documentIdentity.DocumentId.ProjectId);
+            var project = this.Workspace.CurrentSolution.GetProject(_documentIdentity.DocumentId.ProjectId);
 
             // Locals correspond to the equivalently-named fields; we'll assign these and then assign to the fields while on the
             // UI thread to avoid any potential race where we update the InfoBar while this is running.
@@ -408,9 +410,9 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                     // if the file is repeatedly appearing and disappearing.
                     var connectToWorkspace = _workspaceConfigurationService?.Options.EnableOpeningSourceGeneratedFiles != false;
 
-                    if (connectToWorkspace && !_workspace.IsDocumentOpen(_documentIdentity.DocumentId))
+                    if (connectToWorkspace && !this.Workspace.IsDocumentOpen(_documentIdentity.DocumentId))
                     {
-                        _workspace.OnSourceGeneratedDocumentOpened(_textBuffer.AsTextContainer(), generatedDocument);
+                        this.Workspace.OnSourceGeneratedDocumentOpened(_textBuffer.AsTextContainer(), generatedDocument);
                     }
                 }
                 finally
@@ -508,8 +510,29 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 _currentInfoBarMessage.Remove();
             }
 
-            _currentInfoBarMessage = _infoBar.ShowInfoBarMessageFromUIThread(
-                _infoToShow.Value.message, isCloseButtonVisible: false, _infoToShow.Value.imageMoniker);
+            VisualStudioInfoBar.InfoBarMessage? message = null;
+            InfoBarUI[] infoBarItems = [];
+
+            var options = this.Workspace.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
+            if (options.SourceGeneratorExecution != SourceGeneratorExecutionPreference.Automatic)
+            {
+                infoBarItems = [new InfoBarUI(ServicesVSResources.Rerun_generator, InfoBarUI.UIKind.Button, () =>
+                {
+                    _fileManager._threadingContext.ThrowIfNotOnUIThread();
+                    Contract.ThrowIfNull(message);
+
+                    message.Remove();
+
+                    _currentInfoBarMessage = _infoBar.ShowInfoBarMessageFromUIThread(
+                        ServicesVSResources.Generator_running, isCloseButtonVisible: false, KnownMonikers.StatusInformation);
+
+                    this.Workspace.EnqueueUpdateSourceGeneratorVersion(this._documentIdentity.DocumentId.ProjectId);
+                })];
+            }
+
+            message = _infoBar.ShowInfoBarMessageFromUIThread(
+                _infoToShow.Value.message, isCloseButtonVisible: false, _infoToShow.Value.imageMoniker, infoBarItems);
+            _currentInfoBarMessage = message;
         }
 
         public Task<bool> NavigateToSpanAsync(TextSpan sourceSpan, CancellationToken cancellationToken)

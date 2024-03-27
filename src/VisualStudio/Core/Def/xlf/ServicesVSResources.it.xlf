@@ -512,6 +512,11 @@
         <target state="translated">Genera file con estensione editorconfig dalle impostazioni</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generator_running">
+        <source>Generator running...</source>
+        <target state="new">Generator running...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Go_To_Definition">
         <source>Go To Definition</source>
         <target state="translated">Vai alla definizione</target>
@@ -1210,6 +1215,11 @@
       <trans-unit id="Requires_System_HashCode_be_present_in_project">
         <source>Requires 'System.HashCode' be present in project</source>
         <target state="translated">Richiede la presenza di 'System.HashCode' nel progetto</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rerun_generator">
+        <source>Rerun generator</source>
+        <target state="new">Rerun generator</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">

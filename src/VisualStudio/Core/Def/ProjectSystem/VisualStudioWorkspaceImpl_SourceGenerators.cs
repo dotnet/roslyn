@@ -84,7 +84,7 @@ internal abstract partial class VisualStudioWorkspaceImpl
         this.EnqueueUpdateSourceGeneratorVersion(projectId: null);
     }
 
-    private void EnqueueUpdateSourceGeneratorVersion(ProjectId? projectId)
+    public void EnqueueUpdateSourceGeneratorVersion(ProjectId? projectId)
         => _updateSourceGeneratorsQueue.AddWork(projectId);
 
     private async ValueTask ProcessUpdateSourceGeneratorRequestAsync(
