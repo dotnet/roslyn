@@ -194,10 +194,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (elements.Length > 0 &&
-                    !_binder.HasCollectionExpressionAddMethod(syntax, targetType))
+                    !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, addMethods: out _, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }
+
+                // PROTOTYPE: Probably should at least accumulate dependencies and propagate them in case of success.
             }
 
             var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);

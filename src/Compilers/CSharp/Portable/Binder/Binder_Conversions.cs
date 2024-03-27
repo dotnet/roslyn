@@ -944,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal bool HasCollectionExpressionApplicableAddMethod(SyntaxNode syntax, TypeSymbol targetType, TypeSymbol elementType, out ImmutableArray<MethodSymbol> addMethods, BindingDiagnosticBag diagnostics)
+        internal bool HasCollectionExpressionApplicableAddMethod(SyntaxNode syntax, TypeSymbol targetType, out ImmutableArray<MethodSymbol> addMethods, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!targetType.IsDynamic());
 
@@ -958,7 +958,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-            var elementPlaceholder = new BoundValuePlaceholder(syntax, elementType) { WasCompilerGenerated = true };
+
+            // For the element, we create a dynamic argument and will be forcing overload resolution to convert it to any type.
+            // This way we are going to do most of the work in terms of determining applicability of 'Add' method candidates
+            // in overload resolution.
+            var elementPlaceholder = new BoundValuePlaceholder(syntax, Compilation.DynamicType) { WasCompilerGenerated = true };
+
             var addMethodBinder = WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod | BinderFlags.CollectionExpressionConversionValidation);
 
             if (namedType is not null)
@@ -1047,19 +1052,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics, out addMethods);
             }
 
-            // This is what BindDynamicInvocation is doing in terms of reporting diagnostics and detecting a failure
-            static bool bindDynamicInvocation(
-                Binder addMethodBinder,
-                SyntaxNode node,
-                AnalyzedArguments arguments,
-                BindingDiagnosticBag diagnostics)
-            {
-                ImmutableArray<BoundExpression> argArray = addMethodBinder.BuildArgumentsForDynamicInvocation(arguments, diagnostics);
-                var refKindsArray = arguments.RefKinds.ToImmutableOrNull();
-
-                return !ReportBadDynamicArguments(node, argArray, refKindsArray, diagnostics, queryClause: null);
-            }
-
             // This is what BindMethodGroupInvocation is doing in terms of reporting diagnostics and detecting a failure
             static bool bindMethodGroupInvocation(
                 Binder addMethodBinder,
@@ -1070,12 +1062,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindingDiagnosticBag diagnostics,
                 out ImmutableArray<MethodSymbol> addMethods)
             {
+                Debug.Assert(methodGroup.ReceiverOpt is not null);
+
                 bool result;
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = addMethodBinder.GetNewCompoundUseSiteInfo(diagnostics);
                 var resolution = addMethodBinder.ResolveMethodGroup(
                     methodGroup, expression, WellKnownMemberNames.CollectionInitializerAddMethodName, analyzedArguments,
                     useSiteInfo: ref useSiteInfo,
-                    options: (analyzedArguments.HasDynamicArgument ? OverloadResolution.Options.DynamicResolution : OverloadResolution.Options.None));
+                    options: OverloadResolution.Options.DynamicResolution | OverloadResolution.Options.DynamicConvertsToAnything);
 
                 diagnostics.Add(expression, useSiteInfo);
 
@@ -1100,10 +1094,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
+                        Debug.Assert(resolution.AnalyzedArguments.HasDynamicArgument);
+
                         // If overload resolution found one or more applicable methods and at least one argument
                         // was dynamic then treat this as a dynamic call.
-                        if (resolution.AnalyzedArguments.HasDynamicArgument &&
-                            resolution.OverloadResolutionResult.HasAnyApplicableMember)
+                        if (resolution.OverloadResolutionResult.HasAnyApplicableMember)
                         {
                             // Note that the runtime binder may consider candidates that haven't passed compile-time final validation 
                             // and an ambiguity error may be reported. Also additional checks are performed in runtime final validation 
@@ -1132,28 +1127,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Debug.Assert(finalApplicableCandidates.Length > 0);
 
-                                if (resolution.IsExtensionMethodGroup)
-                                {
-                                    // error CS1973: 'T' has no applicable method named 'M' but appears to have an
-                                    // extension method by that name. Extension methods cannot be dynamically dispatched. Consider
-                                    // casting the dynamic arguments or calling the extension method without the extension method
-                                    // syntax.
-
-                                    // We found an extension method, so the instance associated with the method group must have 
-                                    // existed and had a type.
-                                    Debug.Assert(methodGroup.InstanceOpt?.Type is not null);
-
-                                    Error(diagnostics, ErrorCode.ERR_BadArgTypeDynamicExtension, syntax, methodGroup.InstanceOpt.Type, methodGroup.Name);
-                                    addMethods = [];
-                                    result = false;
-                                }
-                                else
-                                {
-                                    addMethodBinder.ReportDynamicInvocationWarnings(syntax, methodGroup, diagnostics, resolution, finalApplicableCandidates);
-
-                                    addMethods = finalApplicableCandidates.SelectAsArray(r => r.Member);
-                                    result = bindDynamicInvocation(addMethodBinder, syntax, resolution.AnalyzedArguments, diagnostics);
-                                }
+                                addMethods = filterOutBadGenericMethods(addMethodBinder, syntax, methodGroup, resolution, finalApplicableCandidates, ref useSiteInfo);
+                                result = !addMethods.IsEmpty;
                             }
                         }
                         else
@@ -1175,6 +1150,149 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
+            static ImmutableArray<MethodSymbol> filterOutBadGenericMethods(
+                Binder addMethodBinder, SyntaxNode syntax, BoundMethodGroup methodGroup, MethodGroupResolution resolution,
+                ImmutableArray<MemberResolutionResult<MethodSymbol>> finalApplicableCandidates, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                Debug.Assert(methodGroup.ReceiverOpt is not null);
+
+                ImmutableArray<MethodSymbol> addMethods;
+                var resultBuilder = ArrayBuilder<MethodSymbol>.GetInstance(finalApplicableCandidates.Length);
+
+                foreach (var candidate in finalApplicableCandidates)
+                {
+                    // If the method is generic, skip it if the type arguments cannot be inferred.
+                    var typeParameters = candidate.Member.TypeParameters;
+
+                    if (!typeParameters.IsEmpty)
+                    {
+                        if (resolution.IsExtensionMethodGroup)
+                        {
+                            // We need to validate an ability to infer type arguments as well as check conversion to 'this' parameter.
+                            // Overload resolution doesn't check the conversion when 'this' type refers to a type parameter
+                            TypeSymbol? receiverType = methodGroup.ReceiverOpt.Type;
+                            Debug.Assert(receiverType is not null);
+                            bool thisTypeIsOpen = typeParameters.Any((typeParameter, parameter) => parameter.Type.ContainsTypeParameter(typeParameter), candidate.Member.Parameters[0]);
+                            MethodSymbol? constructed = null;
+                            bool wasFullyInferred = false;
+
+                            if (thisTypeIsOpen)
+                            {
+                                constructed = ReducedExtensionMethodSymbol.InferExtensionMethodTypeArguments(
+                                                            candidate.Member, receiverType, addMethodBinder.Compilation, ref useSiteInfo, out wasFullyInferred);
+                            }
+
+                            if (constructed is null || !wasFullyInferred)
+                            {
+                                // It is quite possible that inference failed because we didn't supply type from the second argument
+                                if (typeParameters.Any((typeParameter, parameter) => parameter.Type.ContainsTypeParameter(typeParameter), candidate.Member.Parameters[1]))
+                                {
+                                    // Let's attempt inference with type for the second parameter
+                                    // We are going to use the second parameter's type for that
+                                    var definition = candidate.Member;
+                                    var argumentRefKinds = ArrayBuilder<RefKind>.GetInstance(2, RefKind.None);
+
+                                    OverloadResolution.GetEffectiveParameterTypes(
+                                        definition,
+                                        argumentCount: 2,
+                                        argToParamMap: default,
+                                        argumentRefKinds: argumentRefKinds,
+                                        isMethodGroupConversion: false,
+                                        allowRefOmittedArguments: methodGroup.ReceiverOpt.IsExpressionOfComImportType(),
+                                        binder: addMethodBinder,
+                                        expanded: candidate.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
+                                        parameterTypes: out ImmutableArray<TypeWithAnnotations> parameterTypes,
+                                        parameterRefKinds: out ImmutableArray<RefKind> parameterRefKinds);
+
+                                    argumentRefKinds.Free();
+
+                                    TypeSymbol secondArgumentType = candidate.Member.Parameters[1].Type;
+
+                                    if (constructed?.TypeSubstitution is { } typeMap)
+                                    {
+                                        // If we were able to infer something just from the first parameter,
+                                        // apply that to the second type, otherwise inference is going to fail
+                                        // for those type parameters.
+                                        secondArgumentType = typeMap.SubstituteType(secondArgumentType).Type;
+                                    }
+
+                                    MethodTypeInferenceResult inferenceResult = MethodTypeInferrer.Infer(
+                                        addMethodBinder,
+                                        addMethodBinder.Conversions,
+                                        definition.TypeParameters,
+                                        definition.ContainingType,
+                                        parameterTypes,
+                                        parameterRefKinds,
+                                        ImmutableArray.Create<BoundExpression>(methodGroup.ReceiverOpt, new BoundValuePlaceholder(syntax, secondArgumentType) { WasCompilerGenerated = true }),
+                                        ref useSiteInfo);
+
+                                    if (!inferenceResult.Success)
+                                    {
+                                        continue;
+                                    }
+
+                                    if (thisTypeIsOpen)
+                                    {
+                                        constructed = definition.Construct(inferenceResult.InferredTypeArguments);
+                                    }
+                                }
+                                else
+                                {
+                                    continue;
+                                }
+                            }
+
+                            if (thisTypeIsOpen)
+                            {
+                                Debug.Assert(constructed is not null);
+                                var conversions = constructed.ContainingAssembly.CorLibrary.TypeConversions;
+                                var conversion = conversions.ConvertExtensionMethodThisArg(constructed.Parameters[0].Type, receiverType, ref useSiteInfo);
+                                if (!conversion.Exists)
+                                {
+                                    // PROTOTYPE: Test this code path
+                                    continue; // Conversion to 'this' parameter failed
+                                }
+                            }
+                        }
+                        else if (typeParameters.Any((typeParameter, parameter) => !parameter.Type.ContainsTypeParameter(typeParameter), candidate.Member.Parameters[0]))
+                        {
+                            // A type parameter does not appear in the parameter type.
+                            continue;
+                        }
+                    }
+
+                    resultBuilder.Add(candidate.Member);
+                }
+
+                addMethods = resultBuilder.ToImmutableAndFree();
+                return addMethods;
+            }
+
+            // This is what CanEarlyBindSingleCandidateInvocationWithDynamicArgument is doing in terms of reporting diagnostics and detecting a failure
+            static bool canEarlyBindSingleCandidateInvocationWithDynamicArgument(
+                        Binder addMethodBinder,
+                        SyntaxNode syntax,
+                        BoundMethodGroup boundMethodGroup,
+                        BindingDiagnosticBag diagnostics,
+                        MethodGroupResolution resolution,
+                        MemberResolutionResult<MethodSymbol> methodResolutionResult,
+                        MethodSymbol singleCandidate)
+            {
+                Debug.Assert(boundMethodGroup.TypeArgumentsOpt.IsDefaultOrEmpty);
+
+                if (singleCandidate.IsGenericMethod)
+                {
+                    return false;
+                }
+
+                if (addMethodBinder.IsAmbiguousDynamicParamsArgument(resolution.AnalyzedArguments.Arguments, methodResolutionResult, out SyntaxNode argumentSyntax))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
             // This is what TryEarlyBindSingleCandidateInvocationWithDynamicArgument is doing in terms of reporting diagnostics and detecting a failure
             static bool? tryEarlyBindSingleCandidateInvocationWithDynamicArgument(
                 Binder addMethodBinder,
@@ -1187,7 +1305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out MethodSymbol? addMethod)
             {
                 MethodSymbol singleCandidate = methodResolutionResult.LeastOverriddenMember;
-                if (!addMethodBinder.CanEarlyBindSingleCandidateInvocationWithDynamicArgument(syntax, boundMethodGroup, diagnostics, resolution, methodResolutionResult, singleCandidate))
+                if (!canEarlyBindSingleCandidateInvocationWithDynamicArgument(addMethodBinder, syntax, boundMethodGroup, diagnostics, resolution, methodResolutionResult, singleCandidate))
                 {
                     addMethod = null;
                     return null;
@@ -1282,122 +1400,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 addMethod = method;
                 return !gotError;
-            }
-        }
-
-        internal bool HasCollectionExpressionAddMethod(SyntaxNode syntax, TypeSymbol targetType)
-        {
-            const string methodName = "Add";
-            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-
-            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-            var memberAccess = BindInstanceMemberAccess(
-                syntax,
-                right: syntax,
-                boundLeft: implicitReceiver,
-                rightName: methodName,
-                rightArity: 0,
-                typeArgumentsSyntax: default,
-                typeArgumentsWithAnnotations: default,
-                invoked: true,
-                indexed: false,
-                BindingDiagnosticBag.Discarded);
-            if (memberAccess is not BoundMethodGroup methodGroup)
-            {
-                return false;
-            }
-
-            Debug.Assert(methodGroup.SearchExtensionMethods);
-
-            if (methodGroup.ResultKind == LookupResultKind.Viable &&
-                methodGroup.Methods.Any(m => isApplicableAddMethod(m.GetConstructedLeastOverriddenMethod(accessingTypeOpt: null, requireSameReturnType: false), expectingExtensionMethod: false)))
-            {
-                return true;
-            }
-
-            if (methodGroup.SearchExtensionMethods &&
-                hasApplicableAddExtensionMethod(syntax, implicitReceiver))
-            {
-                return true;
-            }
-
-            return false;
-
-            bool hasApplicableAddExtensionMethod(SyntaxNode syntax, BoundObjectOrCollectionValuePlaceholder implicitReceiver)
-            {
-                foreach (var scope in new ExtensionMethodScopes(this))
-                {
-                    var methodGroup = MethodGroup.GetInstance();
-                    PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, syntax, implicitReceiver, rightName: methodName, typeArgumentsWithAnnotations: default, BindingDiagnosticBag.Discarded);
-                    bool anyApplicable = methodGroup.Methods.Any(m => isApplicableAddMethod(m, expectingExtensionMethod: true));
-                    methodGroup.Free();
-                    if (anyApplicable)
-                    {
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            bool isApplicableAddMethod(MethodSymbol method, bool expectingExtensionMethod)
-            {
-                if (method.IsStatic != expectingExtensionMethod)
-                {
-                    return false;
-                }
-
-                var parameters = method.Parameters;
-                int valueIndex = expectingExtensionMethod ? 1 : 0;
-                int requiredLength = valueIndex + 1;
-                if (parameters.Length < requiredLength)
-                {
-                    return false;
-                }
-
-                // Any trailing parameters must be optional or params.
-                int optionalLength = parameters.Length - (OverloadResolution.IsValidParams(this, method) ? 1 : 0);
-                for (int i = requiredLength; i < optionalLength; i++)
-                {
-                    if (parameters[i] is not ({ IsOptional: true, RefKind: RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter }))
-                    {
-                        return false;
-                    }
-                }
-
-                // Extension method 'this' parameter must be by value, ref, in, or ref readonly.
-                if (expectingExtensionMethod)
-                {
-                    if (parameters[0].RefKind is not (RefKind.None or RefKind.Ref or RefKind.In or RefKind.RefReadOnlyParameter))
-                    {
-                        Debug.Assert(false); // We should have treated this method as unsupported. Add a corresponding test.
-                        return false;
-                    }
-                }
-
-                // Value parameter must be by value, in, or ref readonly.
-                if (parameters[valueIndex].RefKind is not (RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter))
-                {
-                    return false;
-                }
-
-                // If the method is generic, fail if there are type arguments that are not referenced
-                // in the required parameters types. That is, fail if we know the type arguments cannot
-                // be inferred from the arguments.
-                var typeParameters = method.TypeParameters;
-                if (typeParameters.Length > 0)
-                {
-                    var requiredParameters = parameters.AsSpan(0, requiredLength);
-                    foreach (var typeParameter in typeParameters)
-                    {
-                        if (requiredParameters.All(typeParameter, (parameter, typeParameter) => !parameter.Type.ContainsTypeParameter(typeParameter)))
-                        {
-                            // The type parameter does not appear in any of the parameter types.
-                            return false;
-                        }
-                    }
-                }
-
-                return true;
             }
         }
 
@@ -1558,7 +1560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     if (elements.Length > 0 &&
-                        !HasCollectionExpressionAddMethod(node.Syntax, targetType))
+                        !HasCollectionExpressionApplicableAddMethod(node.Syntax, targetType, addMethods: out _, diagnostics))
                     {
                         Error(diagnostics, ErrorCode.ERR_CollectionExpressionMissingAdd_New, node.Syntax, targetType);
                         reportedErrors = true;

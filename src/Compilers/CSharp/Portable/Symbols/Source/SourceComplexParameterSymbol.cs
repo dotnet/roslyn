@@ -1579,8 +1579,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 checkIsAtLeastAsVisible(syntax, binder, constructor, diagnostics);
                             }
 
-                            if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, Type, elementType, out ImmutableArray<MethodSymbol> addMethods, diagnostics))
+                            if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, Type, out ImmutableArray<MethodSymbol> addMethods, diagnostics))
                             {
+                                // PROTOTYPE: Report ERR_CollectionExpressionMissingAdd_New or similar if there are no errors in the bag
+                                //            Probably shouldn't happen, but better safe than sorry.
                                 return;
                             }
 
