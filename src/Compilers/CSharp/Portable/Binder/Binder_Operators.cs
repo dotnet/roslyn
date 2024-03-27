@@ -648,25 +648,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (needsFilterDiagnostics)
                 {
-                    Debug.Assert(conversionDiagnostics != diagnostics);
-                    diagnostics.AddDependencies(conversionDiagnostics);
-
-                    var sourceBag = conversionDiagnostics.DiagnosticBag;
-                    Debug.Assert(sourceBag is not null);
-
-                    if (!sourceBag.IsEmptyWithoutResolution)
-                    {
-                        foreach (var diagnostic in sourceBag.AsEnumerableWithoutResolution())
-                        {
-                            var code = diagnostic is DiagnosticWithInfo { HasLazyInfo: true, LazyInfo.Code: var lazyCode } ? lazyCode : diagnostic.Code;
-                            if ((ErrorCode)code is not ErrorCode.WRN_ConvertingLock)
-                            {
-                                diagnostics.Add(diagnostic);
-                            }
-                        }
-                    }
-
-                    conversionDiagnostics.Free();
+                    conversionDiagnostics.CopyFilteredToAndFree(diagnostics,
+                        static code => code is not ErrorCode.WRN_ConvertingLock);
                 }
 
                 resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType, diagnostics);

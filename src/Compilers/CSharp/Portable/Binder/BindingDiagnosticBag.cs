@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -184,6 +185,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 DiagnosticBag?.Add(info, location);
             }
+        }
+
+        internal void CopyFilteredToAndFree(BindingDiagnosticBag target, Func<ErrorCode, bool> predicate)
+        {
+            Debug.Assert(target != this);
+            target.AddDependencies(this);
+
+            var bag = DiagnosticBag;
+            Debug.Assert(bag is not null);
+
+            if (bag?.IsEmptyWithoutResolution == false)
+            {
+                foreach (var diagnostic in bag.AsEnumerableWithoutResolution())
+                {
+                    var code = diagnostic is DiagnosticWithInfo { HasLazyInfo: true, LazyInfo.Code: var lazyCode }
+                        ? lazyCode
+                        : diagnostic.Code;
+                    if (predicate((ErrorCode)code))
+                    {
+                        target.Add(diagnostic);
+                    }
+                }
+            }
+
+            Free();
         }
     }
 }
