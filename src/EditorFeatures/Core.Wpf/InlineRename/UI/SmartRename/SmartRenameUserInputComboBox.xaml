@@ -210,7 +210,7 @@
                         x:Uid="ProgressBarHost"
                         Grid.Row="1"
                         Grid.Column="0"
-                        BorderThickness="0" 
+                        BorderThickness="0"
                         Visibility="{Binding IsUsingDropdown, Converter={StaticResource BooleanToCollapsedVisibilityConverter}, Mode=OneWay}">
                     <ProgressBar x:Name="ProgressBar"
                                  x:Uid="ProgressBar"
@@ -224,7 +224,7 @@
                         x:Uid="panelBorder"
                         Grid.Row="2"
                         Grid.Column="0"
-                        Height="60"
+                        Height="62"
                         Visibility="{Binding IsUsingResultPanel, Converter={StaticResource BooleanToCollapsedVisibilityConverter}, Mode=OneWay}"
                         BorderBrush="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxPopupBorderBrushKey}}"
                         BorderThickness="1">
@@ -240,15 +240,16 @@
                                         Orientation="Vertical"
                                         Visibility="{Binding IsInProgress, Converter={StaticResource BooleanToHiddenVisibilityConverter}, Mode=OneWay}"
                                         >
-                                <ProgressBar x:Name="PanelProgressBar"
-                                             x:Uid="PanelProgressBar"
-                                             Margin="{TemplateBinding BorderThickness}"
-                                             IsIndeterminate="{Binding IsInProgress}"
-                                             Foreground="{StaticResource copilotBranding}"
-                                             Background="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarMenuBackgroundGradientBeginKey}}" />
                                 <TextBlock x:Name="PanelLabel"
                                            x:Uid="PanelLabel"
-                                        Text="Generating suggestions..." />
+                                           Padding="2"
+                                           Text="Generating suggestions..." />
+                                <ProgressBar x:Name="PanelProgressBar"
+                                     x:Uid="PanelProgressBar"
+                                     Margin="{TemplateBinding BorderThickness}"
+                                     IsIndeterminate="{Binding IsInProgress}"
+                                     Foreground="{StaticResource copilotBranding}"
+                                     Background="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxPopupBackgroundGradientBrushKey}}" />
                             </StackPanel>
                             <ItemsPresenter x:Name="AltItemsPresenter"
                                     x:Uid="AltItemsPresenter"
