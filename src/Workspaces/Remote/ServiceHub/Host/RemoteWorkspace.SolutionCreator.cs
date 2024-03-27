@@ -132,16 +132,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 using var _1 = PooledDictionary<ProjectId, Checksum>.GetInstance(out var oldProjectIdToChecksum);
                 using var _2 = PooledDictionary<ProjectId, Checksum>.GetInstance(out var newProjectIdToChecksum);
-                using var _3 = PooledHashSet<ProjectId>.GetInstance(out var allProjectIds);
 
                 foreach (var (oldChecksum, projectId) in oldSolutionChecksums.Projects)
                     oldProjectIdToChecksum.Add(projectId, oldChecksum);
 
                 foreach (var (newChecksum, projectId) in newSolutionChecksums.Projects)
                     newProjectIdToChecksum.Add(projectId, newChecksum);
-
-                allProjectIds.AddRange(oldSolutionChecksums.Projects.Ids);
-                allProjectIds.AddRange(newSolutionChecksums.Projects.Ids);
 
                 // If there are old projects that are now missing on the new side, and this is a projectConeSync, then
                 // exclude them from the old side as well.  This way we only consider projects actually added or
@@ -164,11 +160,11 @@ namespace Microsoft.CodeAnalysis.Remote
                     Contract.ThrowIfFalse(oldProjectIdToChecksum.Keys.All(newProjectIdToChecksum.Keys.Contains));
                 }
 
-                // remove projects that are the same on both sides.
-                foreach (var projectId in allProjectIds)
+                // remove projects that are the same on both sides.  We can just iterate over one of the maps as,
+                // definitionally, for the project to be on both sides, it will be contained in both.
+                foreach (var (projectId, oldChecksum) in oldProjectIdToChecksum)
                 {
-                    if (oldProjectIdToChecksum.TryGetValue(projectId, out var oldChecksum) &&
-                        newProjectIdToChecksum.TryGetValue(projectId, out var newChecksum) &&
+                    if (newProjectIdToChecksum.TryGetValue(projectId, out var newChecksum) &&
                         oldChecksum == newChecksum)
                     {
                         oldProjectIdToChecksum.Remove(projectId);
@@ -176,8 +172,8 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                 }
 
-                using var _4 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var oldProjectIdToStateChecksums);
-                using var _5 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var newProjectIdToStateChecksums);
+                using var _3 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var oldProjectIdToStateChecksums);
+                using var _4 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var newProjectIdToStateChecksums);
 
                 // Now, find the full state checksums for all the old projects
                 foreach (var (projectId, oldChecksum) in oldProjectIdToChecksum)
@@ -194,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // sync over the *info* about all the added/changed projects.  We'll want the info so we can determine
                 // what actually changed.
-                using var _6 = PooledHashSet<Checksum>.GetInstance(out var newChecksumsToSync);
+                using var _5 = PooledHashSet<Checksum>.GetInstance(out var newChecksumsToSync);
                 newChecksumsToSync.AddRange(newProjectIdToChecksum.Values);
 
                 var newProjectStateChecksums = await _assetProvider.GetAssetsAsync<ProjectStateChecksums>(
@@ -442,7 +438,6 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using var _1 = PooledDictionary<DocumentId, Checksum>.GetInstance(out var oldDocumentIdToChecksum);
                 using var _2 = PooledDictionary<DocumentId, Checksum>.GetInstance(out var newDocumentIdToChecksum);
-                using var _3 = PooledHashSet<DocumentId>.GetInstance(out var allDocumentIds);
 
                 foreach (var (oldChecksum, documentId) in oldChecksums)
                     oldDocumentIdToChecksum.Add(documentId, oldChecksum);
@@ -450,23 +445,20 @@ namespace Microsoft.CodeAnalysis.Remote
                 foreach (var (newChecksum, documentId) in newChecksums)
                     newDocumentIdToChecksum.Add(documentId, newChecksum);
 
-                allDocumentIds.AddRange(oldChecksums.Ids);
-                allDocumentIds.AddRange(newChecksums.Ids);
-
-                // remove documents that are the same on both sides
-                foreach (var documentId in allDocumentIds)
+                // remove documents that are the same on both sides.  We can just iterate over one of the maps as,
+                // definitionally, for the project to be on both sides, it will be contained in both.
+                foreach (var (projectId, oldChecksum) in oldDocumentIdToChecksum)
                 {
-                    if (oldDocumentIdToChecksum.TryGetValue(documentId, out var oldChecksum) &&
-                        newDocumentIdToChecksum.TryGetValue(documentId, out var newChecksum) &&
+                    if (newDocumentIdToChecksum.TryGetValue(projectId, out var newChecksum) &&
                         oldChecksum == newChecksum)
                     {
-                        oldDocumentIdToChecksum.Remove(documentId);
-                        newDocumentIdToChecksum.Remove(documentId);
+                        oldDocumentIdToChecksum.Remove(projectId);
+                        newDocumentIdToChecksum.Remove(projectId);
                     }
                 }
 
-                using var _4 = PooledDictionary<DocumentId, DocumentStateChecksums>.GetInstance(out var oldDocumentIdToStateChecksums);
-                using var _5 = PooledDictionary<DocumentId, DocumentStateChecksums>.GetInstance(out var newDocumentIdToStateChecksums);
+                using var _3 = PooledDictionary<DocumentId, DocumentStateChecksums>.GetInstance(out var oldDocumentIdToStateChecksums);
+                using var _4 = PooledDictionary<DocumentId, DocumentStateChecksums>.GetInstance(out var newDocumentIdToStateChecksums);
 
                 // Now, find the full state checksums for all the old documents
                 foreach (var (documentId, oldChecksum) in oldDocumentIdToChecksum)
@@ -483,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // sync over the *info* about all the added/changed documents.  We'll want the info so we can determine
                 // what actually changed.
-                using var _6 = PooledHashSet<Checksum>.GetInstance(out var newChecksumsToSync);
+                using var _5 = PooledHashSet<Checksum>.GetInstance(out var newChecksumsToSync);
                 newChecksumsToSync.AddRange(newDocumentIdToChecksum.Values);
 
                 var documentStateChecksums = await _assetProvider.GetAssetsAsync<DocumentStateChecksums>(
