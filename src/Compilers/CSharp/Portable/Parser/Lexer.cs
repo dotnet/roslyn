@@ -1943,6 +1943,7 @@ LoopExit:
                             this.AddError(TextWindow.Position, width: 1, ErrorCode.ERR_UnexpectedCharacter, '@');
                             lexMultiLineComment(ref triviaList, delimiter: '@');
                             onlyWhitespaceOnLine = false;
+                            break;
                         }
                         else if (ch == ':')
                         {
@@ -1950,8 +1951,12 @@ LoopExit:
                             this.AddError(TextWindow.Position, width: 1, ErrorCode.ERR_UnexpectedCharacter, '@');
                             lexSingleLineComment(ref triviaList);
                             onlyWhitespaceOnLine = false;
+                            break;
                         }
-                        break;
+                        else
+                        {
+                            return;
+                        }
                     case '\r':
                     case '\n':
                         var endOfLine = this.ScanEndOfLine();
