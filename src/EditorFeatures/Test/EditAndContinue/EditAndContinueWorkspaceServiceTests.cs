@@ -2087,8 +2087,13 @@ class C { int Y => 2; }
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1371694")]
         public async Task Project_Add()
         {
+            // Project A:
             var sourceA1 = "class A { void M() { System.Console.WriteLine(1); } }";
+
+            // Project B (baseline, but not loaded into solution):
             var sourceB1 = "class B { int F() => 1; }";
+
+            // Additional documents added to B:
             var sourceB2 = "class B { int G() => 1; }";
             var sourceB3 = "class B { int F() => 2; }";
 
@@ -2141,7 +2146,7 @@ class C { int Y => 2; }
             }, baseSpans.Select(spans => spans.IsEmpty ? "<empty>" : string.Join(",", spans.Select(s => s.LineSpan.ToString()))));
 
             var trackedActiveSpans = ImmutableArray.Create(
-                new ActiveStatementSpan(1, activeLineSpanB1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, unmappedDocumentId: null));
+                new ActiveStatementSpan(new ActiveStatementId(0), activeLineSpanB1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame));
 
             var currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(documentB2, (_, _, _) => new(trackedActiveSpans), CancellationToken.None);
             // TODO: https://github.com/dotnet/roslyn/issues/1204
@@ -3591,8 +3596,8 @@ class C { int Y => 1; }
 
             EnterBreakState(debuggingSession, activeStatements);
 
-            var activeStatementSpan11 = new ActiveStatementSpan(0, activeLineSpan11, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, unmappedDocumentId: null);
-            var activeStatementSpan12 = new ActiveStatementSpan(1, activeLineSpan12, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, unmappedDocumentId: null);
+            var activeStatementSpan11 = new ActiveStatementSpan(new ActiveStatementId(0), activeLineSpan11, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame);
+            var activeStatementSpan12 = new ActiveStatementSpan(new ActiveStatementId(1), activeLineSpan12, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame);
 
             var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document1.Id), CancellationToken.None);
             AssertEx.Equal(new[]
@@ -3611,8 +3616,8 @@ class C { int Y => 1; }
             var document2 = solution.GetDocument(documentId);
 
             // tracking span update triggered by the edit:
-            var activeStatementSpan21 = new ActiveStatementSpan(0, activeLineSpan21, ActiveStatementFlags.NonLeafFrame, unmappedDocumentId: null);
-            var activeStatementSpan22 = new ActiveStatementSpan(1, activeLineSpan22, ActiveStatementFlags.LeafFrame, unmappedDocumentId: null);
+            var activeStatementSpan21 = new ActiveStatementSpan(new ActiveStatementId(0), activeLineSpan21, ActiveStatementFlags.NonLeafFrame);
+            var activeStatementSpan22 = new ActiveStatementSpan(new ActiveStatementId(1), activeLineSpan22, ActiveStatementFlags.LeafFrame);
             var trackedActiveSpans2 = ImmutableArray.Create(activeStatementSpan21, activeStatementSpan22);
 
             currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(document2, (_, _, _) => new(trackedActiveSpans2), CancellationToken.None);
@@ -3671,8 +3676,8 @@ class C { int Y => 1; }
             var baseSpans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
             AssertEx.Equal(new[]
             {
-                new ActiveStatementSpan(0, activeLineSpan11, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, unmappedDocumentId: null),
-                new ActiveStatementSpan(1, activeLineSpan12, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, unmappedDocumentId: null)
+                new ActiveStatementSpan(new ActiveStatementId(0), activeLineSpan11, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame),
+                new ActiveStatementSpan(new ActiveStatementId(1), activeLineSpan12, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame)
             }, baseSpans);
 
             // change the source (valid edit):
@@ -3801,7 +3806,7 @@ class C { int Y => 1; }
 
             Assert.Equal(3, baseActiveStatementsMap.InstructionMap.Count);
 
-            var statements = baseActiveStatementsMap.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
+            var statements = baseActiveStatementsMap.InstructionMap.Values.OrderBy(v => v.Id.Ordinal).ToArray();
             var s = statements[0];
             Assert.Equal(0x06000001, s.InstructionId.Method.Token);
             Assert.Equal(module4, s.InstructionId.Method.Module);
@@ -4197,7 +4202,7 @@ class C
             var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
             AssertEx.Equal(new[]
             {
-                new ActiveStatementSpan(0, new LinePositionSpan(new(4,41), new(4,42)), ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, unmappedDocumentId: null),
+                new ActiveStatementSpan(new ActiveStatementId(0), new LinePositionSpan(new(4,41), new(4,42)), ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame),
             }, spans);
 
             solution = solution.WithDocumentText(documentId, CreateText(SourceMarkers.Clear(markedSourceV4)));
@@ -4299,8 +4304,8 @@ class C
             var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
             AssertEx.Equal(new[]
             {
-                new ActiveStatementSpan(0, expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, documentId),
-                new ActiveStatementSpan(1, expectedSpanF1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, documentId)
+                new ActiveStatementSpan(new ActiveStatementId(0), expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, documentId),
+                new ActiveStatementSpan(new ActiveStatementId(1), expectedSpanF1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, documentId)
             }, spans);
 
             solution = solution.WithDocumentText(documentId, CreateText(SourceMarkers.Clear(markedSource3)));
@@ -4312,8 +4317,8 @@ class C
             spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
             AssertEx.Equal(new[]
             {
-                new ActiveStatementSpan(0, expectedSpanG2, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, documentId),
-                new ActiveStatementSpan(1, expectedSpanF2, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, documentId)
+                new ActiveStatementSpan(new ActiveStatementId(0), expectedSpanG2, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, documentId),
+                new ActiveStatementSpan(new ActiveStatementId(1), expectedSpanF2, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, documentId)
             }, spans);
 
             // no rude edits:
@@ -4408,7 +4413,7 @@ class C
             var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
             AssertEx.Equal(new[]
             {
-                new ActiveStatementSpan(0, expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, unmappedDocumentId: null)
+                new ActiveStatementSpan(new ActiveStatementId(0), expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame)
                 // active statement in F has been deleted
             }, spans);
 

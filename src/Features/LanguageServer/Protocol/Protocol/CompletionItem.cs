@@ -53,6 +53,17 @@ namespace Roslyn.LanguageServer.Protocol
         } = CompletionItemKind.None;
 
         /// <summary>
+        /// Tags for this completion item.
+        /// </summary>
+        [DataMember(Name = "tags")]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public CompletionItemTag[]? Tags
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets or sets the completion detail.
         /// </summary>
         [DataMember(Name = "detail")]
