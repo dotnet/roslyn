@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
@@ -282,5 +283,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             => _projectSystemProject.RemoveAnalyzerConfigFile(filePath);
 
         public IAsyncDisposable CreateBatchScope() => _projectSystemProject.CreateBatchScope();
+
+        public async ValueTask<IAsyncDisposable> CreateBatchScopeAsync(CancellationToken cancellationToken)
+            => await _projectSystemProject.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
     }
 }

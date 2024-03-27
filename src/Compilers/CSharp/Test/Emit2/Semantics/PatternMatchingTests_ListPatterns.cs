@@ -8915,4 +8915,383 @@ public static class Extension
             // _ = a switch { { Length: < 1000 } => 0 };
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 1000 }").WithLocation(2, 7));
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns()
+    {
+        // One of the property patterns is treated as a non-negative Count pattern,
+        // while the other is a regular property pattern.
+        var source = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+System.Console.Write(select(new List<int>()));
+System.Console.Write(select(new List<int>() { 42 }));
+System.Console.Write(select(new C()));
+
+int select(ICollection c)
+{
+    try
+    {
+        return c switch
+        {
+            { Count: 0 } => 0,
+            IList { Count: > 0 } => 1,
+        };
+    }
+    catch
+    {
+        return 2;
+    }
+}
+
+class C : System.Collections.ICollection
+{
+    public int Count => 1;
+    public object SyncRoot => throw new NotImplementedException();
+    public bool IsSynchronized => throw new NotImplementedException();
+    public void CopyTo(Array array, int index) => throw new NotImplementedException();
+    public IEnumerator GetEnumerator() => throw new NotImplementedException();
+}
+""";
+        CompileAndVerify(source, expectedOutput: "012").VerifyDiagnostics(
+            // (13,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(13, 18)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns_ReverseOrder()
+    {
+        var source = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+System.Console.Write(select(new List<int>()));
+System.Console.Write(select(new List<int>() { 42 }));
+System.Console.Write(select(new C()));
+
+int select(ICollection c)
+{
+    try
+    {
+        return c switch
+        {
+            IList { Count: > 0 } => 1,
+            { Count: 0 } => 0,
+        };
+    }
+    catch
+    {
+        return 2;
+    }
+}
+
+class C : System.Collections.ICollection
+{
+    public int Count => 1;
+    public object SyncRoot => throw new NotImplementedException();
+    public bool IsSynchronized => throw new NotImplementedException();
+    public void CopyTo(Array array, int index) => throw new NotImplementedException();
+    public IEnumerator GetEnumerator() => throw new NotImplementedException();
+}
+""";
+        CompileAndVerify(source, expectedOutput: "012").VerifyDiagnostics(
+            // (13,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(13, 18)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns_NegativeTest()
+    {
+        var source = """
+using System.Collections;
+using System.Collections.Generic;
+
+var result = (ICollection)new List<int>() switch
+{
+    IList { Count: > 0 } => throw null,
+    IList { Count: < 0 } => throw null,
+    { Count: 0 } => "ran",
+};
+
+System.Console.Write(result);
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (4,43): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            // var result = (ICollection)new List<int>() switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(4, 43),
+            // (7,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //     IList { Count: < 0 } => throw null,
+            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "IList { Count: < 0 }").WithLocation(7, 5)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns_NegativeTestAfterRegularPropertyPattern()
+    {
+        var source = """
+using System.Collections;
+using System.Collections.Generic;
+
+_ = (ICollection)new List<int>() switch
+{
+    IList { Count: > 0 } => 0,
+    { Count: 0 } => 0,
+    IList { Count: < 0 } => 0,
+};
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (4,34): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            // _ = (ICollection)new List<int>() switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(4, 34),
+            // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //     IList { Count: < 0 } => 0,
+            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "IList { Count: < 0 }").WithLocation(8, 5)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns_ExplicitICollectionType()
+    {
+        var source = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+System.Console.Write(select(new List<int>()));
+System.Console.Write(select(new List<int>() { 42 }));
+System.Console.Write(select(new C()));
+
+int select(ICollection c)
+{
+    try
+    {
+        return c switch
+        {
+            ICollection { Count: 0 } => 0,
+            IList { Count: 1 } => 1,
+        };
+    }
+    catch
+    {
+        return 2;
+    }
+}
+
+class C : System.Collections.ICollection
+{
+    public int Count => 1;
+    public object SyncRoot => throw new NotImplementedException();
+    public bool IsSynchronized => throw new NotImplementedException();
+    public void CopyTo(Array array, int index) => throw new NotImplementedException();
+    public IEnumerator GetEnumerator() => throw new NotImplementedException();
+}
+""";
+        CompileAndVerify(source, expectedOutput: "012").VerifyDiagnostics(
+            // (13,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(13, 18)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns_Subsumed()
+    {
+        var source = """
+using System.Collections;
+
+_ = (ICollection)null switch
+{
+    { Count: <0 or >0 } => 0,
+    IList { Count: >0 } => 1,
+    { Count: 0 } => 2,
+};
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (6,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+            //     IList { Count: >0 } => 1,
+            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "IList { Count: >0 }").WithLocation(6, 5)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns_Or()
+    {
+        var source = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+System.Console.Write(select(new List<int>()));
+System.Console.Write(select(new List<int>() { 42 }));
+System.Console.Write(select(new C()));
+
+int select(ICollection c)
+{
+    try
+    {
+        return c switch
+        {
+            { Count: 0 } or (IList { Count: > 0 }) => 1,
+        };
+    }
+    catch
+    {
+        return 2;
+    }
+}
+
+class C : System.Collections.ICollection
+{
+    public int Count => 1;
+    public object SyncRoot => throw new NotImplementedException();
+    public bool IsSynchronized => throw new NotImplementedException();
+    public void CopyTo(Array array, int index) => throw new NotImplementedException();
+    public IEnumerator GetEnumerator() => throw new NotImplementedException();
+}
+""";
+        CompileAndVerify(source, expectedOutput: "112").VerifyDiagnostics(
+            // (13,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(13, 18)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns_Or_ReverseOrder()
+    {
+        var source = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+System.Console.Write(select(new List<int>()));
+System.Console.Write(select(new List<int>() { 42 }));
+System.Console.Write(select(new C()));
+
+int select(ICollection c)
+{
+    try
+    {
+        return c switch
+        {
+            (IList { Count: > 0 }) or { Count: 0 } => 1,
+        };
+    }
+    catch
+    {
+        return 2;
+    }
+}
+
+class C : System.Collections.ICollection
+{
+    public int Count => 1;
+    public object SyncRoot => throw new NotImplementedException();
+    public bool IsSynchronized => throw new NotImplementedException();
+    public void CopyTo(Array array, int index) => throw new NotImplementedException();
+    public IEnumerator GetEnumerator() => throw new NotImplementedException();
+}
+""";
+        CompileAndVerify(source, expectedOutput: "112").VerifyDiagnostics(
+            // (13,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 1 }' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: 1 }").WithLocation(13, 18)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns_And()
+    {
+        var source = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+System.Console.Write(select(new List<int>()));
+System.Console.Write(select(new List<int>() { 42 }));
+System.Console.Write(select(new C()));
+
+int select(ICollection c)
+{
+    try
+    {
+        return c switch
+        {
+            { Count: >= 0 } and (IList { Count: > 0 }) => 1,
+        };
+    }
+    catch
+    {
+        return 2;
+    }
+}
+
+class C : System.Collections.ICollection
+{
+    public int Count => 1;
+    public object SyncRoot => throw new NotImplementedException();
+    public bool IsSynchronized => throw new NotImplementedException();
+    public void CopyTo(Array array, int index) => throw new NotImplementedException();
+    public IEnumerator GetEnumerator() => throw new NotImplementedException();
+}
+""";
+        CompileAndVerify(source, expectedOutput: "212").VerifyDiagnostics(
+            // (13,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: -1 }' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Count: -1 }").WithLocation(13, 18)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
+    public void MixedCountPatterns_And_ReverseOrder()
+    {
+        var source = """
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+System.Console.Write(select(new List<int>()));
+System.Console.Write(select(new List<int>() { 42 }));
+System.Console.Write(select(new C()));
+
+int select(ICollection c)
+{
+    try
+    {
+        return c switch
+        {
+            (IList { Count: > 0 }) and { Count: >= 0 } => 1,
+        };
+    }
+    catch
+    {
+        return 2;
+    }
+}
+
+class C : System.Collections.ICollection
+{
+    public int Count => 1;
+    public object SyncRoot => throw new NotImplementedException();
+    public bool IsSynchronized => throw new NotImplementedException();
+    public void CopyTo(Array array, int index) => throw new NotImplementedException();
+    public IEnumerator GetEnumerator() => throw new NotImplementedException();
+}
+""";
+        CompileAndVerify(source, expectedOutput: "212").VerifyDiagnostics(
+            // (13,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(13, 18)
+            );
+    }
 }

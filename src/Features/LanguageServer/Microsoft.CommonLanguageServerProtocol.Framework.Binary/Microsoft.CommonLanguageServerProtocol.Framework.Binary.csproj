@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Defines a binary for VS insertion containing the clasp source.
+    This is a temporary project to ship the clasp binary in VS until partners (Razor and Webtools)
+    upgrade to the latest source-only version of the original clasp package.
+    
+    TODO, delete - https://github.com/dotnet/roslyn/issues/72251
+  -->
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Microsoft.CommonLanguageServerProtocol.Framework</AssemblyName>
+
+    <!-- Generate a nuget package for this to ensure symbols are uploaded. -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CommonLanguageServerProtocol.Framework.Binary</PackageId>
+    <PackageDescription>
+      A legacy binary implementation of Microsoft.CommonLanguageServerProtocol.Framework.
+    </PackageDescription>
+
+    <!-- Set visibility based on if this is a binary or just sources - https://github.com/dotnet/roslyn/issues/72251 -->
+    <DefineConstants>BINARY_COMPAT</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="StreamJsonRpc" />
+  </ItemGroup>
+  <Import Project="..\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.Shared.projitems" Label="Shared" />
+
+</Project>

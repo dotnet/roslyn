@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.ObsoleteSymbol;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ReassignedVariable;
 using Microsoft.CodeAnalysis.Remote;
@@ -139,6 +140,7 @@ internal abstract class AbstractClassificationService : IClassificationService
         {
             var classificationService = document.GetRequiredLanguageService<ISyntaxClassificationService>();
             var reassignedVariableService = document.GetRequiredLanguageService<IReassignedVariableService>();
+            var obsoleteSymbolService = document.GetRequiredLanguageService<IObsoleteSymbolService>();
 
             var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
             var classifiers = classificationService.GetDefaultSyntaxClassifiers();
@@ -154,6 +156,13 @@ internal abstract class AbstractClassificationService : IClassificationService
                 var reassignedVariableSpans = await reassignedVariableService.GetLocationsAsync(document, textSpans, cancellationToken).ConfigureAwait(false);
                 foreach (var span in reassignedVariableSpans)
                     result.Add(new ClassifiedSpan(span, ClassificationTypeNames.ReassignedVariable));
+            }
+
+            if (options.ClassifyObsoleteSymbols)
+            {
+                var obsoleteSymbolSpans = await obsoleteSymbolService.GetLocationsAsync(document, textSpans, cancellationToken).ConfigureAwait(false);
+                foreach (var span in obsoleteSymbolSpans)
+                    result.Add(new ClassifiedSpan(span, ClassificationTypeNames.ObsoleteSymbol));
             }
         }
         else if (type == ClassificationType.EmbeddedLanguage)

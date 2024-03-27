@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Collections.Immutable;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -28,7 +27,7 @@ public partial class Solution
     private readonly SolutionCompilationState _compilationState;
 
     // Values for all these are created on demand.
-    private ImmutableHashMap<ProjectId, Project> _projectIdToProjectMap;
+    private ImmutableDictionary<ProjectId, Project> _projectIdToProjectMap;
 
     /// <summary>
     /// Result of calling <see cref="WithFrozenPartialCompilationsAsync"/>.
@@ -45,10 +44,13 @@ public partial class Solution
         SolutionCompilationState compilationState,
         AsyncLazy<Solution>? cachedFrozenSolution = null)
     {
-        _projectIdToProjectMap = [];
+        _projectIdToProjectMap = ImmutableDictionary<ProjectId, Project>.Empty;
         _compilationState = compilationState;
 
-        _cachedFrozenSolution = cachedFrozenSolution ?? AsyncLazy.Create(synchronousComputeFunction: ComputeFrozenSolution);
+        _cachedFrozenSolution = cachedFrozenSolution ??
+            AsyncLazy.Create(synchronousComputeFunction: static (self, c) =>
+                self.ComputeFrozenSolution(c),
+                this);
     }
 
     internal Solution(
@@ -138,7 +140,7 @@ public partial class Solution
     {
         if (this.ContainsProject(projectId))
         {
-            return ImmutableHashMapExtensions.GetOrAdd(ref _projectIdToProjectMap, projectId, s_createProjectFunction, this);
+            return ImmutableInterlocked.GetOrAdd(ref _projectIdToProjectMap, projectId, s_createProjectFunction, this);
         }
 
         return null;
@@ -1510,7 +1512,9 @@ public partial class Solution
         }
 
         static AsyncLazy<Solution> CreateLazyFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId)
-            => AsyncLazy.Create(synchronousComputeFunction: cancellationToken => ComputeFrozenSolution(compilationState, documentId, cancellationToken));
+            => AsyncLazy.Create(synchronousComputeFunction: static (arg, cancellationToken) =>
+                ComputeFrozenSolution(arg.compilationState, arg.documentId, cancellationToken),
+                arg: (compilationState, documentId));
 
         static Solution ComputeFrozenSolution(SolutionCompilationState compilationState, DocumentId documentId, CancellationToken cancellationToken)
         {
@@ -1582,9 +1586,10 @@ public partial class Solution
     /// implementation of <see cref="TextExtensions.GetOpenDocumentInCurrentContextWithChanges"/> where if a user has a source
     /// generated file open, we need to make sure everything lines up.
     /// </summary>
-    internal Document WithFrozenSourceGeneratedDocument(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)
+    internal Document WithFrozenSourceGeneratedDocument(
+        SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)
     {
-        var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, text)]);
+        var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, generationDateTime, text)]);
         var newSolution = newCompilationState != _compilationState
             ? new Solution(newCompilationState)
             : this;
@@ -1596,7 +1601,8 @@ public partial class Solution
         return newProject.GetOrCreateSourceGeneratedDocument(newDocumentState);
     }
 
-    internal Solution WithFrozenSourceGeneratedDocuments(ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)> documents)
+    internal Solution WithFrozenSourceGeneratedDocuments(
+        ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)> documents)
     {
         var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments(documents);
         return newCompilationState != _compilationState

@@ -12,11 +12,6 @@
         <target state="translated">추상 메서드</target>
         <note>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
       </trans-unit>
-      <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
-        <source>An element with the same key but a different value already exists.</source>
-        <target state="translated">키가 같지만 값이 다른 요소가 이미 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Begins_with_I">
         <source>Begins with I</source>
         <target state="translated">I로 시작</target>
@@ -161,11 +156,6 @@
         <source>Public or Protected Field</source>
         <target state="translated">공용 또는 보호된 필드</target>
         <note>{locked: public}{locked: protected}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Segment_size_must_be_power_of_2_greater_than_1">
-        <source>Segment size must be power of 2 greater than 1</source>
-        <target state="translated">세그먼트 크기는 1보다 큰 2의 거듭제곱이어야 합니다.</target>
-        <note />
       </trans-unit>
       <trans-unit id="Specified_sequence_has_duplicate_items">
         <source>Specified sequence has duplicate items</source>

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ColorSchemes;
 using Microsoft.CodeAnalysis.Common;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -179,6 +180,11 @@ internal sealed class RoslynPackage : AbstractPackage
         serviceBrokerContainer.Proffer(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
             (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new WorkspaceProjectFactoryService(this.ComponentModel.GetService<IWorkspaceProjectContextFactory>())));
+
+        // Must be profferred before any C#/VB projects are loaded and the corresponding UI context activated.
+        serviceBrokerContainer.Proffer(
+            ManagedHotReloadLanguageServiceDescriptor.VisualStudioDescriptor,
+            (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>())));
     }
 
     private async Task LoadOptionPersistersAsync(IComponentModel componentModel, CancellationToken cancellationToken)
@@ -214,7 +220,6 @@ internal sealed class RoslynPackage : AbstractPackage
     {
         await TaskScheduler.Default;
 
-        await GetServiceAsync(typeof(SVsTaskStatusCenterService)).ConfigureAwait(false);
         await GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(false);
         await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(false);
         await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(false);
@@ -223,7 +228,6 @@ internal sealed class RoslynPackage : AbstractPackage
 
         // we need to load it as early as possible since we can have errors from
         // package from each language very early
-        await this.ComponentModel.GetService<TaskCenterSolutionAnalysisProgressReporter>().InitializeAsync().ConfigureAwait(false);
         await this.ComponentModel.GetService<VisualStudioSuppressionFixService>().InitializeAsync(this).ConfigureAwait(false);
         await this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
         await this.ComponentModel.GetService<VisualStudioDiagnosticListSuppressionStateService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);

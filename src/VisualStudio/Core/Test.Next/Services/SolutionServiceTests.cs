@@ -330,52 +330,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact]
-        public async Task TestRemoteWorkspaceSolutionCrawler()
-        {
-            var code = @"class Test { void Method() { } }";
-
-            // create base solution
-            using var workspace = TestWorkspace.CreateCSharp(code);
-            using var remoteWorkspace = CreateRemoteWorkspace();
-
-            // Start solution crawler in the remote workspace:
-            remoteWorkspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(remoteWorkspace);
-
-            // create solution service
-            var solution = workspace.CurrentSolution;
-            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
-
-            // update primary workspace
-            var solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
-            await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
-
-            // get solution in remote host
-            var remoteSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
-
-            // get solution cralwer in remote host
-            var solutionCrawlerService = remoteSolution.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
-            Assert.NotNull(solutionCrawlerService);
-
-            // check remote workspace has enabled solution crawler in remote host
-            var testAnalyzerProvider = new TestAnalyzerProvider();
-            solutionCrawlerService.AddAnalyzerProvider(
-                testAnalyzerProvider,
-                new IncrementalAnalyzerProviderMetadata("Test", highPriorityForActiveFile: false, [WorkspaceKind.RemoteWorkspace]));
-
-            // check our solution crawler has ran
-            Assert.True(await testAnalyzerProvider.Analyzer.Called);
-
-            testAnalyzerProvider.Analyzer.Reset();
-
-            // update remote workspace
-            remoteSolution = remoteSolution.WithDocumentText(remoteSolution.Projects.First().Documents.First().Id, SourceText.From(code + " class Test2 { }"));
-            await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceCurrentSolutionAsync(remoteSolution, solution.WorkspaceVersion + 1);
-
-            // check solution update correctly ran solution crawler
-            Assert.True(await testAnalyzerProvider.Analyzer.Called);
-        }
-
-        [Fact]
         public async Task TestRemoteWorkspace()
         {
             var code = @"class Test { void Method() { } }";
@@ -499,7 +453,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // Now freeze with some content
             var documentIdentity = (await solution.Projects.Single().GetSourceGeneratedDocumentsAsync()).First().Identity;
             var frozenText1 = SourceText.From("// Hello, World!");
-            var frozenSolution1 = solution.WithFrozenSourceGeneratedDocument(documentIdentity, frozenText1).Project.Solution;
+            var frozenSolution1 = solution.WithFrozenSourceGeneratedDocument(documentIdentity, DateTime.Now, frozenText1).Project.Solution;
 
             assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, frozenSolution1);
             solutionChecksum = await frozenSolution1.CompilationState.GetChecksumAsync(CancellationToken.None);
@@ -508,7 +462,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // Try freezing with some different content from the original solution
             var frozenText2 = SourceText.From("// Hello, World! A second time!");
-            var frozenSolution2 = solution.WithFrozenSourceGeneratedDocument(documentIdentity, frozenText2).Project.Solution;
+            var frozenSolution2 = solution.WithFrozenSourceGeneratedDocument(documentIdentity, DateTime.Now, frozenText2).Project.Solution;
 
             assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, frozenSolution2);
             solutionChecksum = await frozenSolution2.CompilationState.GetChecksumAsync(CancellationToken.None);
@@ -970,34 +924,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-        }
-
-        private class TestAnalyzerProvider : IIncrementalAnalyzerProvider
-        {
-            public readonly TestAnalyzer Analyzer = new TestAnalyzer();
-
-            public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            {
-                return Analyzer;
-            }
-
-            public class TestAnalyzer : IncrementalAnalyzerBase
-            {
-                private TaskCompletionSource<bool> _source = new TaskCompletionSource<bool>();
-
-                public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
-                {
-                    _source.SetResult(true);
-                    return Task.CompletedTask;
-                }
-
-                public Task<bool> Called => _source.Task;
-
-                public void Reset()
-                {
-                    _source = new TaskCompletionSource<bool>();
-                }
-            }
         }
     }
 }

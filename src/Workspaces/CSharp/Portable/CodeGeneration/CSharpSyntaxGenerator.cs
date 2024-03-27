@@ -802,6 +802,19 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
                              .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
                              .WithBody(null);
 
+                case SyntaxKind.OperatorDeclaration:
+                    var operatorDeclaration = (OperatorDeclarationSyntax)member;
+                    var abstractVirtualModifiers = operatorDeclaration.Modifiers.Where(x =>
+                        x.Kind() == SyntaxKind.AbstractKeyword
+                        || x.Kind() == SyntaxKind.VirtualKeyword
+                        || x.Kind() == SyntaxKind.PublicKeyword);
+                    var modifiersToken = SyntaxFactory.TokenList(abstractVirtualModifiers);
+                    modifiersToken = modifiersToken.Insert(0, SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    return operatorDeclaration
+                        .WithModifiers(modifiersToken)
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                        .WithBody(null);
+
                 case SyntaxKind.PropertyDeclaration:
                     var property = (PropertyDeclarationSyntax)member;
                     return property
@@ -1186,6 +1199,9 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
             LambdaExpressionSyntax lambdaExpression => lambdaExpression.WithAttributeLists(attributeLists),
             _ => declaration,
         };
+
+    internal override SyntaxNode? GetPrimaryConstructorParameterList(SyntaxNode declaration)
+        => declaration is TypeDeclarationSyntax { ParameterList: { } parameterList } ? parameterList : null;
 
     internal override ImmutableArray<SyntaxNode> GetTypeInheritance(SyntaxNode declaration)
         => declaration is BaseTypeDeclarationSyntax baseType && baseType.BaseList != null

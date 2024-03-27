@@ -146,6 +146,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
 
+        #region Obsolete Symobl
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ObsoleteSymbol)]
+        [Name(ClassificationTypeNames.ObsoleteSymbol)]
+        [Order(After = Priority.High)]
+        [UserVisible(false)]
+        [ExcludeFromCodeCoverage]
+        private class ObsoleteSymbolFormatDefinition : ClassificationFormatDefinition
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public ObsoleteSymbolFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.Obsolete_symbol;
+                this.TextDecorations = System.Windows.TextDecorations.Strikethrough;
+            }
+        }
+        #endregion
+
         #region Symbol - Static
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StaticSymbol)]

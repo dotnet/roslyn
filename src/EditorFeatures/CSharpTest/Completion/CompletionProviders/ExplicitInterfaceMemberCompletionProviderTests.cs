@@ -758,7 +758,7 @@ class C : I
         }
 
         [Fact]
-        public async Task TestWithParamsParameter()
+        public async Task TestWithParamsArrayParameter()
         {
             var markup = """
                 interface I
@@ -785,6 +785,41 @@ class C : I
                 """;
 
             await VerifyProviderCommitAsync(markup, "M(params string[] args)", expected, '\t');
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/72224")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72224")]
+        public async Task TestWithParamsCollectionParameter()
+        {
+            var markup = """
+                using System.Collections.Generic;
+
+                interface I
+                {
+                    void M(params IEnumerable<string> args);
+                }
+
+                class C : I
+                {
+                    void I.$$
+                }
+                """;
+
+            var expected = """
+                using System.Collections.Generic;
+
+                interface I
+                {
+                    void M(params IEnumerable<string> args);
+                }
+
+                class C : I
+                {
+                    void I.M(params IEnumerable<string> args)
+                }
+                """;
+
+            await VerifyProviderCommitAsync(markup, "M(params IEnumerable<string> args)", expected, '\t');
         }
 
         [Fact]

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -100,10 +101,10 @@ internal sealed class FindUsagesServerCallback(Solution solution, IFindUsagesCon
         => _context.ProgressTracker.ItemsCompletedAsync(count, cancellationToken);
 
     public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
-        => _context.ReportMessageAsync(message, cancellationToken);
+        => _context.ReportNoResultsAsync(message, cancellationToken);
 
     public ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
-        => _context.ReportInformationalMessageAsync(message, cancellationToken);
+        => _context.ReportMessageAsync(message, NotificationSeverity.Information, cancellationToken);
 
     public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
         => _context.SetSearchTitleAsync(title, cancellationToken);
