@@ -141,7 +141,6 @@ internal sealed class TotalClassificationAggregateTagger(
                 totalTags.Add(currentSemantic);
                 currentSyntactic = GetNextSyntacticSpan();
                 currentSemantic = GetNextSemanticSpan();
-                continue;
             }
             else if (currentSemantic.Span.Start <= currentSyntactic.Span.Start)
             {
