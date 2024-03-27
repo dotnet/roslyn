@@ -134,9 +134,12 @@ internal sealed class TotalClassificationAggregateTagger(
 
         while (currentSyntactic != null && currentSemantic != null)
         {
-            // If both the syntactic and semantic tags are for the same span, then prefer the semantic one.  The latter
-            // is more accurate, but often will produce these accurate tags more slowly than the syntactic classifier.
-            if (PreferCurrentSemanticOverSyntacticTag())
+            // If both the syntactic and semantic tags are for the same span, and the semantic tag is more specific,
+            // then just prefer that one (and eschew the syntactic one). Semantics is more accurate, but often will
+            // produce these accurate tags more slowly than the syntactic classifier.  This allows the syntactic
+            // classifier to produce an initial result, which the semantic classifier can refine.
+            if (currentSyntactic.Span == currentSemantic.Span &&
+                currentSemantic.Tag.ClassificationType.IsOfType(currentSyntactic.Tag.ClassificationType.Classification))
             {
                 totalTags.Add(currentSemantic);
                 currentSyntactic = GetNextSyntacticSpan();
@@ -195,24 +198,6 @@ internal sealed class TotalClassificationAggregateTagger(
         await AddEmbeddedClassificationsAsync().ConfigureAwait(false);
 
         return;
-
-        bool PreferCurrentSemanticOverSyntacticTag()
-        {
-            if (currentSyntactic.Span == currentSemantic.Span)
-            {
-                // If they have the same classification type, then can def take one instead of both.
-                if (currentSyntactic.Tag.ClassificationType == currentSemantic.Tag.ClassificationType)
-                    return true;
-
-                // Syntactic identifiers can be overridden by better semantic interpretations.
-                if (currentSyntactic.Tag.ClassificationType.Classification is ClassificationTypeNames.Identifier)
-                    return true;
-            }
-
-            // Something else.  For now keep both.  This can be revised in the future if other cases where semantics should
-            // override syntax are found.
-            return false;
-        }
 
         bool TryProcessSyntacticStringLiteral()
         {
