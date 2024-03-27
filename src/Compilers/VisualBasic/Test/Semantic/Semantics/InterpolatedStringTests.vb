@@ -84,6 +84,47 @@ End Module
 
         End Sub
 
+        <Fact()>
+        Public Sub StringConcatConstEmbedded()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System        
+Module Module1
+
+    Sub Main()
+        Const s = "s"
+        Const c = "c"c
+        Dim v = "v"
+        Console.WriteLine($"ab{c}d{s}tu{v}wxyz")
+    End Sub
+
+End Module
+]]>
+    </file>
+</compilation>,
+expectedOutput:=<![CDATA[
+abcdstuvwxyz
+]]>).
+            VerifyIL("Module1.Main",
+            <![CDATA[
+{
+  // Code size       28 (0x1c)
+  .maxstack  3
+  .locals init (String V_0) //v
+  IL_0000:  ldstr      "v"
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      "abcdstu"
+  IL_000b:  ldloc.0
+  IL_000c:  ldstr      "wxyz"
+  IL_0011:  call       "Function String.Concat(String, String, String) As String"
+  IL_0016:  call       "Sub System.Console.WriteLine(String)"
+  IL_001b:  ret
+}
+]]>)
+        End Sub
+
         <Fact>
         Public Sub InterpolationWithAlignment()
 
@@ -180,7 +221,7 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub EscapeSequences()
+        Public Sub EscapeSequencesStringConcat()
 
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -195,6 +236,25 @@ Module Program
 End Module
     </file>
 </compilation>, expectedOutput:="Solution: { Ø }")
+
+        End Sub
+
+        <Fact>
+        Public Sub EscapeSequences()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System.Console
+
+Module Program
+    Sub Main()
+        Dim arr As Object() = {}
+        Write($"Solution: {{ { If(arr.Length > 0, String.Join("", "", arr), "Ø") } }} / Length: {arr.Length}")
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:="Solution: { Ø } / Length: 0")
 
         End Sub
 
@@ -302,6 +362,62 @@ End Module
     </file>
 </compilation>, expectedOutput:="The date/time is 2014-12-18 09:00:00.")
 
+        End Sub
+
+        <Fact>
+        Public Sub NestedInterpolationsToStringConcat()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System.Console
+
+Module Program
+    Sub Main()
+        Const bar = "bar"
+        Dim baz = "baz"
+        Const u = "u"c
+        Write($"foo {$"{bar} {baz} q{u}x"} quux")
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:="foo bar baz qux quux").
+            VerifyIL("Program.Main",
+            <![CDATA[
+{
+  // Code size       28 (0x1c)
+  .maxstack  3
+  .locals init (String V_0) //baz
+  IL_0000:  ldstr      "baz"
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      "foo bar "
+  IL_000b:  ldloc.0
+  IL_000c:  ldstr      " qux quux"
+  IL_0011:  call       "Function String.Concat(String, String, String) As String"
+  IL_0016:  call       "Sub System.Console.Write(String)"
+  IL_001b:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ExpressionTreeAsIs()
+            Dim toObject = If(Environment.Version.Major > 4, ", Object", "")
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Linq.Expressions
+Imports Microsoft.VisualBasic
+
+Module Program
+    Sub Main()
+        Dim ex As Expression(Of Func(Of String, String)) = Function(str) $"{str}{ChrW(32)}{NameOf(Main)}{str}"
+        Console.Write(ex)
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:="str => Format(""{0}{1}{2}{3}"", new [] {Convert(str" & toObject & "), Convert( " & toObject & "), Convert(""Main""" & toObject & "), Convert(str" & toObject & ")})")
         End Sub
 
         <Fact>
