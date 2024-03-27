@@ -22,6 +22,7 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LicenseManagement.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -258,9 +259,9 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         /// created it yet
         /// </summary>
         private VisualStudioInfoBar? _infoBar;
+        private VisualStudioInfoBar.InfoBarMessage? _currentInfoBarMessage;
 
-        private (string message, ImageMoniker moniker)? _infoToShow = null;
-        private (string message, ImageMoniker moniker)? _currentInfo = null;
+        private (string message, ImageMoniker imageMoniker)? _infoToShow = null;
 
         public OpenSourceGeneratedFile(SourceGeneratedFileManager fileManager, ITextBuffer textBuffer, Workspace workspace, SourceGeneratedDocumentIdentity documentIdentity, IThreadingContext threadingContext)
             : base(threadingContext, assertIsForeground: true)
@@ -482,17 +483,21 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 return;
             }
 
-            if (_currentInfo.HasValue &&
-                _infoToShow.Value.Equals(_currentInfo.Value))
+            if (_currentInfoBarMessage != null)
             {
-                // bail out if no change is needed
-                return;
+                if (_currentInfoBarMessage.Message == _infoToShow.Value.message &&
+                    _currentInfoBarMessage.ImageMoniker.Equals(_infoToShow.Value.imageMoniker))
+                {
+                    // bail out if no change is needed
+                    return;
+                }
+
+                // Otherwise, remove the current message.
+                _currentInfoBarMessage.Remove();
             }
 
-            _infoBar.ShowInfoBar(
-                _infoToShow.Value.message, removeExistingInfoBar: true, isCloseButtonVisible: false, _infoToShow.Value.moniker);
-
-            _currentInfo = _infoToShow;
+            _currentInfoBarMessage = _infoBar.ShowInfoBarMessage(
+                _infoToShow.Value.message, isCloseButtonVisible: false, _infoToShow.Value.imageMoniker);
         }
 
         public Task<bool> NavigateToSpanAsync(TextSpan sourceSpan, CancellationToken cancellationToken)

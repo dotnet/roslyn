@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio;
@@ -38,25 +39,19 @@ internal sealed class VisualStudioInfoBar(
     /// </summary>
     private readonly HashSet<string> _currentlyShowingMessages = [];
 
-    /// <summary>
-    /// The last info bar we showed.  Accessed on UI thread only.
-    /// </summary>
-    private (string message, IVsInfoBarUIElement element, uint? infoBarCookie)? _lastShownInfoBar;
+    public InfoBarMessage? ShowInfoBarMessage(string message, params InfoBarUI[] items)
+        => ShowInfoBarMessage(message, isCloseButtonVisible: true, KnownMonikers.StatusInformation, items);
 
-    public void ShowInfoBar(string message, params InfoBarUI[] items)
-        => ShowInfoBar(message, removeExistingInfoBar: false, isCloseButtonVisible: true, KnownMonikers.StatusInformation, items);
-
-    public void ShowInfoBar(
+    public InfoBarMessage? ShowInfoBarMessage(
         string message,
-        bool removeExistingInfoBar,
         bool isCloseButtonVisible,
-        ImageMoniker moniker,
+        ImageMoniker imageMoniker,
         params InfoBarUI[] items)
     {
         // We can be called from any thread since errors can occur anywhere, however we can only construct and InfoBar from the UI thread.
-        _threadingContext.JoinableTaskFactory.RunAsync(async () =>
+        return _threadingContext.JoinableTaskFactory.Run(async () =>
         {
-            using var _ = _listener.BeginAsyncOperation(nameof(ShowInfoBar));
+            using var _ = _listener.BeginAsyncOperation(nameof(ShowInfoBarMessage));
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
@@ -65,22 +60,11 @@ internal sealed class VisualStudioInfoBar(
             if (GetInfoBarHostObject() is not IVsInfoBarHost infoBarHost ||
                 _serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) is not IVsInfoBarUIFactory factory)
             {
-                return;
-            }
-
-            if (removeExistingInfoBar && _lastShownInfoBar != null)
-            {
-                var (lastShownMessage, lastShownElement, lastShownEvents) = _lastShownInfoBar.Value;
-
-                if (lastShownEvents.HasValue)
-                    lastShownElement.Unadvise(lastShownEvents.Value);
-
-                infoBarHost.RemoveInfoBar(lastShownElement);
-                _currentlyShowingMessages.Remove(lastShownMessage);
+                return null;
             }
 
             if (_currentlyShowingMessages.Contains(message))
-                return;
+                return null;
 
             // create action item list
             var actionItems = new List<IVsInfoBarActionItem>();
@@ -105,12 +89,12 @@ internal sealed class VisualStudioInfoBar(
             var infoBarModel = new InfoBarModel(
                 new[] { new InfoBarTextSpan(message) },
                 actionItems,
-                moniker,
+                imageMoniker,
                 isCloseButtonVisible);
 
             var infoBarUI = factory.CreateInfoBar(infoBarModel);
             if (infoBarUI == null)
-                return;
+                return null;
 
             uint? infoBarCookie = null;
             var eventSink = new InfoBarEvents(items, onClose: () =>
@@ -136,7 +120,7 @@ internal sealed class VisualStudioInfoBar(
             infoBarHost.AddInfoBar(infoBarUI);
 
             _currentlyShowingMessages.Add(message);
-            _lastShownInfoBar = (message, infoBarUI, infoBarCookie);
+            return new InfoBarMessage(this, infoBarHost, message, imageMoniker, infoBarUI, infoBarCookie);
         });
     }
 
@@ -148,6 +132,34 @@ internal sealed class VisualStudioInfoBar(
         return _serviceProvider.GetService(typeof(SVsShell)) is IVsShell shell && ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out var globalInfoBarHostObject))
             ? globalInfoBarHostObject
             : null;
+    }
+
+    public sealed class InfoBarMessage(
+        VisualStudioInfoBar visualStudioInfoBar,
+        IVsInfoBarHost infoBarHost,
+        string message,
+        ImageMoniker imageMoniker,
+        IVsInfoBarUIElement infoBarUI,
+        uint? infoBarCookie)
+    {
+        public readonly string Message = message;
+        public readonly ImageMoniker ImageMoniker = imageMoniker;
+
+        private bool _removed;
+
+        public void Remove()
+        {
+            visualStudioInfoBar._threadingContext.ThrowIfNotOnUIThread();
+            if (_removed)
+                return;
+
+            _removed = true;
+            if (infoBarCookie.HasValue)
+                infoBarUI.Unadvise(infoBarCookie.Value);
+
+            infoBarHost.RemoveInfoBar(infoBarUI);
+            visualStudioInfoBar._currentlyShowingMessages.Remove(this.Message);
+        }
     }
 
     private sealed class InfoBarEvents : IVsInfoBarUIEvents
