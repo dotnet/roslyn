@@ -5079,13 +5079,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</source>
-        <target state="translated">null 非許容の {0} '{1}' には、コンストラクターの終了時に null 以外の値が入っていなければなりません。{0} を Null 許容として宣言することをご検討ください。</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the required modifier or declaring the {0} as nullable.</source>
+        <target state="needs-review-translation">null 非許容の {0} '{1}' には、コンストラクターの終了時に null 以外の値が入っていなければなりません。{0} を Null 許容として宣言することをご検討ください。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
-        <target state="translated">null 非許容のフィールドには、コンストラクターの終了時に null 以外の値が入っていなければなりません。Null 許容として宣言することをご検討ください。</target>
+        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider adding the required modifier or declaring as nullable.</source>
+        <target state="needs-review-translation">null 非許容のフィールドには、コンストラクターの終了時に null 以外の値が入っていなければなりません。Null 許容として宣言することをご検討ください。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
