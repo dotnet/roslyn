@@ -399,10 +399,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckNamedArgumentsForDynamicInvocation(arguments, diagnostics);
 
             bool hasErrors = false;
+            BoundExpression? receiver;
             if (expression.Kind == BoundKind.MethodGroup)
             {
                 BoundMethodGroup methodGroup = (BoundMethodGroup)expression;
-                BoundExpression receiver = methodGroup.ReceiverOpt;
+                receiver = methodGroup.ReceiverOpt;
 
                 // receiver is null if we are calling a static method declared on an outer class via its simple name:
                 if (receiver != null)
@@ -459,24 +460,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     methodGroup.ResultKind);
                             break;
                     }
-
-                    if (receiver.Type.IsRefLikeType)
-                    {
-                        // Cannot perform a dynamic call on a ref struct '{0}'.
-                        Error(diagnostics, ErrorCode.ERR_CannotDynamicInvokeOnRefStruct, receiver.Syntax, receiver.Type);
-                        hasErrors = true;
-                    }
                 }
             }
             else
             {
                 expression = BindToNaturalType(expression, diagnostics);
+
+                if (expression is BoundDynamicMemberAccess memberAccess)
+                {
+                    receiver = memberAccess.Receiver;
+                }
+                else
+                {
+                    receiver = expression;
+                }
             }
 
             ImmutableArray<BoundExpression> argArray = BuildArgumentsForDynamicInvocation(arguments, diagnostics);
             var refKindsArray = arguments.RefKinds.ToImmutableOrNull();
 
-            hasErrors &= ReportBadDynamicArguments(node, argArray, refKindsArray, diagnostics, queryClause);
+            hasErrors &= ReportBadDynamicArguments(node, receiver, argArray, refKindsArray, diagnostics, queryClause);
 
             return new BoundDynamicInvocation(
                 node,
@@ -536,6 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Returns true if there were errors.
         private static bool ReportBadDynamicArguments(
             SyntaxNode node,
+            BoundExpression? receiver,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKinds,
             BindingDiagnosticBag diagnostics,
@@ -543,6 +547,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool hasErrors = false;
             bool reportedBadQuery = false;
+
+            if (receiver != null && !IsLegalDynamicOperand(receiver))
+            {
+                // Cannot perform a dynamic call on a ref struct '{0}'.
+                Error(diagnostics, ErrorCode.ERR_CannotDynamicInvokeOnRefStruct, receiver.Syntax, receiver.Type);
+                hasErrors = true;
+            }
 
             if (!refKinds.IsDefault)
             {

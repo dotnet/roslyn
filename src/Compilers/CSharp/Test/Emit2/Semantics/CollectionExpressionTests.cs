@@ -20434,6 +20434,29 @@ partial class Program
             CompileAndVerify(new[] { source, s_collectionExtensions }, verify: Verification.Skipped, expectedOutput: "[0, 1], ");
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/72762")]
+        public void RefStruct_04()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                dynamic d = null;
+                S s = [d];
+
+                ref struct S : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add<T>(T t) => throw null;
+                }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/72762 - There should be diagnostics for S implementing an interface, and
+            // there should also be a diagnostic that `s` cannot be used a recevier for a dynamic call.
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
         [CombinatorialData]
         [Theory]
         public void RefSafety_Return_01([CombinatorialValues(TargetFramework.Net70, TargetFramework.Net80)] TargetFramework targetFramework)
