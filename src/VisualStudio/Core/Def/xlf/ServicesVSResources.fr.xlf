@@ -1402,6 +1402,11 @@
         <target state="translated">Trace de la pile {0}</target>
         <note>Header for numbered stack trace view tabs</note>
       </trans-unit>
+      <trans-unit id="Strike_out_obsolete_symbols">
+        <source>Strike out obsolete symbols</source>
+        <target state="new">Strike out obsolete symbols</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
         <target state="translated">Suggestion</target>

@@ -176,6 +176,12 @@ namespace Roslyn.LanguageServer.Protocol
             writer.WritePropertyName("kind");
             writer.WriteValue(completionItem.Kind);
 
+            if (completionItem.Tags != null)
+            {
+                writer.WritePropertyName("tags");
+                serializer.Serialize(writer, completionItem.Tags);
+            }
+
             if (completionItem.Detail != null)
             {
                 writer.WritePropertyName("detail");

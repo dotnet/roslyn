@@ -232,6 +232,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
                     <CheckBox x:Name="Underline_reassigned_variables"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Underline_reassigned_variables}" />
+                    <CheckBox x:Name="Strike_out_obsolete_symbols"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Strike_out_obsolete_symbols}" />
                 </StackPanel>
             </GroupBox>
             

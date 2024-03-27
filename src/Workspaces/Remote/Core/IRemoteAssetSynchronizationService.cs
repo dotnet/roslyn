@@ -7,14 +7,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Remote;
-
-internal interface IRemoteAssetSynchronizationService
+namespace Microsoft.CodeAnalysis.Remote
 {
-    /// <summary>
-    /// Synchronize data to OOP proactively so that the corresponding solution is often already available when features
-    /// call into it.
-    /// </summary>
-    ValueTask SynchronizePrimaryWorkspaceAsync(Checksum solutionChecksum, CancellationToken cancellationToken);
-    ValueTask SynchronizeTextAsync(DocumentId documentId, Checksum baseTextChecksum, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken);
+    internal interface IRemoteAssetSynchronizationService
+    {
+        /// <summary>
+        /// Synchronize data to OOP proactively so that the corresponding solution is often already available when
+        /// features call into it.
+        /// </summary>
+        ValueTask SynchronizePrimaryWorkspaceAsync(Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken);
+        ValueTask SynchronizeTextAsync(DocumentId documentId, Checksum baseTextChecksum, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken);
+    }
 }
