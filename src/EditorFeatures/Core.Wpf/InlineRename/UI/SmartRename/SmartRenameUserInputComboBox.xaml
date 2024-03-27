@@ -10,6 +10,7 @@
           mc:Ignorable="d"
           GotKeyboardFocus="ComboBox_GotKeyboardFocus"
           LostKeyboardFocus="ComboBox_LostKeyboardFocus"
+          LostFocus="ComboBox_LostFocus"
           Unloaded="ComboBox_Unloaded"
           PreviewKeyUp="ComboBox_PreviewKeyUp"
           SelectionChanged="ComboBox_SelectionChanged"
@@ -23,6 +24,7 @@
     <ComboBox.Resources>
         <ResourceDictionary>
             <vsui:BooleanToHiddenVisibilityConverter x:Key="BooleanToHiddenVisibilityConverter"/>
+            <vsui:BooleanToCustomVisibilityConverter x:Key="BooleanToCollapsedVisibilityConverter"/>
             <SolidColorBrush x:Key="copilotBranding" Color="#6F66E3"/>
 
             <ControlTemplate x:Key="ComboBoxItemTemplate" TargetType="{x:Type ComboBoxItem}">
@@ -95,6 +97,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -102,6 +105,7 @@
                 </Grid.ColumnDefinitions>
                 <Popup x:Name="PART_Popup"
                                x:Uid="PART_Popup"
+                               Visibility="{Binding IsUsingDropdown, Converter={StaticResource BooleanToCollapsedVisibilityConverter}, Mode=OneWay}"
                                AllowsTransparency="true"
                                Grid.ColumnSpan="2"
                                Placement="Bottom"
@@ -202,15 +206,60 @@
                         </Canvas>
                     </Button.Content>
                 </Button>
-                <ProgressBar x:Name="ProgressBar"
-                             x:Uid="ProgressBar"
-                             Grid.Row="1"
-                             Grid.Column="0"
-                             Margin="{TemplateBinding BorderThickness}"
-                             IsIndeterminate="{Binding IsInProgress}"
-                             Visibility="{Binding IsInProgress, Converter={StaticResource BooleanToHiddenVisibilityConverter}, Mode=OneWay}"
-                             Foreground="{StaticResource copilotBranding}"
-                             Background="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarMenuBackgroundGradientBeginKey}}" />
+                <Border x:Name="ProgressBarHost"
+                        x:Uid="ProgressBarHost"
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        BorderThickness="0" 
+                        Visibility="{Binding IsUsingDropdown, Converter={StaticResource BooleanToCollapsedVisibilityConverter}, Mode=OneWay}">
+                    <ProgressBar x:Name="ProgressBar"
+                                 x:Uid="ProgressBar"
+                                 Margin="{TemplateBinding BorderThickness}"
+                                 IsIndeterminate="{Binding IsInProgress}"
+                                 Visibility="{Binding IsInProgress, Converter={StaticResource BooleanToHiddenVisibilityConverter}, Mode=OneWay}"
+                                 Foreground="{StaticResource copilotBranding}"
+                                 Background="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarMenuBackgroundGradientBeginKey}}" />
+                </Border>
+                <Border x:Name="panelBorder"
+                        x:Uid="panelBorder"
+                        Grid.Row="2"
+                        Grid.Column="0"
+                        Height="60"
+                        Visibility="{Binding IsUsingResultPanel, Converter={StaticResource BooleanToCollapsedVisibilityConverter}, Mode=OneWay}"
+                        BorderBrush="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxPopupBorderBrushKey}}"
+                        BorderThickness="1">
+                    <ScrollViewer x:Name="PanelScrollViewer"
+                        x:Uid="PanelScrollViewer">
+                        <Grid x:Name="panelGrid"
+                            x:Uid="panelGrid"
+                            RenderOptions.ClearTypeHint="Enabled"
+                            RenderOptions.BitmapScalingMode="{x:Static vsui:DpiHelper.BitmapScalingMode}"
+                            Background="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxPopupBackgroundGradientBrushKey}}">
+                            <StackPanel x:Name="PanelProgressBarHost"
+                                        x:Uid="PanelProgressBarHost"
+                                        Orientation="Vertical"
+                                        Visibility="{Binding IsInProgress, Converter={StaticResource BooleanToHiddenVisibilityConverter}, Mode=OneWay}"
+                                        >
+                                <ProgressBar x:Name="PanelProgressBar"
+                                             x:Uid="PanelProgressBar"
+                                             Margin="{TemplateBinding BorderThickness}"
+                                             IsIndeterminate="{Binding IsInProgress}"
+                                             Foreground="{StaticResource copilotBranding}"
+                                             Background="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarMenuBackgroundGradientBeginKey}}" />
+                                <TextBlock x:Name="PanelLabel"
+                                           x:Uid="PanelLabel"
+                                        Text="Generating suggestions..." />
+                            </StackPanel>
+                            <ItemsPresenter x:Name="AltItemsPresenter"
+                                    x:Uid="AltItemsPresenter"
+                                    VirtualizingStackPanel.IsVirtualizing="True"
+                                    KeyboardNavigation.DirectionalNavigation="Contained"
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                    PreviewMouseUp="ItemsPresenter_PreviewMouseUp">
+                            </ItemsPresenter>
+                        </Grid>
+                    </ScrollViewer>
+                </Border>
             </Grid>
             <ControlTemplate.Triggers>
                 <Trigger SourceName="PART_EditableTextBox" Property="IsEnabled" Value="false">

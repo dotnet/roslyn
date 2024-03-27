@@ -44,6 +44,8 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
     public string StatusMessage => _smartRenameSession.StatusMessage;
 
     public bool StatusMessageVisibility => _smartRenameSession.StatusMessageVisibility;
+    public bool IsUsingResultPanel { get; set; }
+    public bool IsUsingDropdown { get; set; }
 
     private string? _selectedSuggestedName;
 
@@ -85,7 +87,16 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
         this.BaseViewModel.IdentifierText = baseViewModel.IdentifierText;
 
         GetSuggestionsCommand = new DelegateCommand(OnGetSuggestionsCommandExecute, null, threadingContext.JoinableTaskFactory);
+        toggleEveryInvocation = !toggleEveryInvocation;
+        IsUsingResultPanel = toggleEveryInvocation;
+        IsUsingDropdown = !IsUsingResultPanel;
+        if (IsUsingResultPanel)
+        {
+            OnGetSuggestionsCommandExecute();
+        }
     }
+
+    private static bool toggleEveryInvocation; // Temporary flag for prototyping
 
     private void OnGetSuggestionsCommandExecute()
     {
@@ -107,8 +118,14 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
             var textInputBackup = BaseViewModel.IdentifierText;
 
             SuggestedNames.Clear();
+            var count = 0;
             foreach (var name in _smartRenameSession.SuggestedNames)
             {
+                if (++count > 3 && IsUsingResultPanel)
+                {
+                    // Set limit of 3 results when using the result panel
+                    break;
+                }
                 SuggestedNames.Add(name);
             }
 

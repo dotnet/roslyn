@@ -118,8 +118,18 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
         _dropDownPopup.IsOpen = false;
     }
 
+    private void ComboBox_LostFocus(object sender, RoutedEventArgs e)
+    {
+        Assumes.NotNull(_dropDownPopup);
+        _dropDownPopup.IsOpen = false;
+    }
+
     private void ComboBox_PreviewKeyUp(object sender, KeyEventArgs e)
     {
+        if (!_smartRenameViewModel.IsUsingDropdown)
+        {
+            return;
+        }
         if ((e.Key is Key.Up or Key.Down) && Items.Count > 0)
         {
             Assumes.NotNull(_dropDownPopup);
@@ -144,6 +154,10 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
 
     private void InnerTextBox_GotFocus(object sender, RoutedEventArgs e)
     {
+        if (!_smartRenameViewModel.IsUsingDropdown)
+        {
+            return;
+        }
         if (Items.Count > 0)
         {
             Assumes.NotNull(_dropDownPopup);
