@@ -55,8 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            if (exprType?.IsWellKnownTypeLock() == true &&
-                TryFindLockTypeInfo(exprType, diagnostics, exprSyntax) is { } lockTypeInfo)
+            bool isLockObjectBased = exprType?.IsWellKnownTypeLock() == true;
+            if (isLockObjectBased &&
+                TryFindLockTypeInfo(exprType!, diagnostics, exprSyntax) is { } lockTypeInfo)
             {
                 CheckFeatureAvailability(exprSyntax, MessageID.IDS_FeatureLockObject, diagnostics);
 
@@ -73,8 +74,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     errorCode: ErrorCode.ERR_BadSpecialByRefLock);
             }
 
-            BoundStatement stmt = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
+            var needsFilterDiagnostics = isLockObjectBased && diagnostics.AccumulatesDiagnostics;
+            var bodyDiagnostics = needsFilterDiagnostics ? BindingDiagnosticBag.GetInstance(template: diagnostics) : diagnostics;
+
+            BoundStatement stmt = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, bodyDiagnostics);
             Debug.Assert(this.Locals.IsDefaultOrEmpty);
+
+            if (needsFilterDiagnostics)
+            {
+                bodyDiagnostics.CopyFilteredToAndFree(diagnostics,
+                    static code => code is not ErrorCode.WRN_BadYieldInLock);
+            }
+
             return new BoundLockStatement(_syntax, expr, stmt, hasErrors);
         }
 
