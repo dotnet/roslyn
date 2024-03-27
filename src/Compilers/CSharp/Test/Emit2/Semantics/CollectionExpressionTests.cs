@@ -37022,7 +37022,7 @@ partial class Program
         }
 
         [Fact]
-        public void AddMethod_Extension_12_ConstraintsViolated()
+        public void AddMethod_Extension_13_ConstraintsViolated()
         {
             string sourceA = """
                 using System.Collections;
@@ -37066,6 +37066,41 @@ partial class Program
                 //         MyCollection<int?> w = new() { x };
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("Extensions.Add<T>(MyCollection<T>, params T[])", "T", "int?").WithLocation(9, 40)
                 );
+        }
+
+        [Fact]
+        public void AddMethod_Extension_14_Dynamic()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable
+                {
+                    private readonly List<T> _list = new();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    internal void __AddInternal(T t) { _list.Add(t); }
+                }
+                static class Extensions
+                {
+                    public static void Add<T>(this dynamic d, T t) { d.__AddInternal(t); }
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int x = 1;
+                        int[] y = [2, 3];
+                        MyCollection<int> z = [x, ..y];
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB]);
+            comp.VerifyEmitDiagnostics(
+                // (11,36): error CS1103: The first parameter of an extension method cannot be of type 'dynamic'
+                //     public static void Add<T>(this dynamic d, T t) { d.__AddInternal(t); }
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(11, 36));
         }
 
         [Fact]
@@ -38621,8 +38656,5 @@ class Program
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1]").WithArguments("Create", "long", "MyCollection").WithLocation(5, 14)
                 );
         }
-
-        // PROTOTYPE: Can we extend 'dynamic' type?
-        //            If so, test an 'Add' method like that. 
     }
 }
