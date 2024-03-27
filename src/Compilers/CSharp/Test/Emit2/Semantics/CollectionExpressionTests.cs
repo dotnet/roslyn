@@ -25725,6 +25725,9 @@ partial class Program
                 """;
             var comp = CreateCompilation([sourceB, sourceA]);
             comp.VerifyEmitDiagnostics(
+                // (5,26): error CS0118: 'Add' is a field but is used like a method
+                //         return /*<bind>*/[x, ..y]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadSKknown, "[x, ..y]").WithArguments("Add", "field", "method").WithLocation(5, 26),
                 // (5,26): error CS9230: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         return /*<bind>*/[x, ..y]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(5, 26));
@@ -36787,6 +36790,9 @@ partial class Program
                         // (12,24): error CS8338: The first 'in' or 'ref readonly' parameter of the extension method 'Add' must be a concrete (non-generic) value type.
                         //     public static void Add<T>(this in MyCollection<T> collection, T t) { collection.__AddInternal(t); }
                         Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "Add").WithArguments("Add").WithLocation(12, 24),
+                        // (20,31): error CS1061: 'MyCollection<int>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<int>' could be found (are you missing a using directive or an assembly reference?)
+                        //         MyCollection<int> z = [x, ..y];
+                        Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x, ..y]").WithArguments("MyCollection<int>", "Add").WithLocation(20, 31),
                         // (20,31): error CS9230: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
                         //         MyCollection<int> z = [x, ..y];
                         Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(20, 31));
@@ -36796,6 +36802,9 @@ partial class Program
                         // (12,24): error CS8337: The first parameter of a 'ref' extension method 'Add' must be a value type or a generic type constrained to struct.
                         //     public static void Add<T>(this ref MyCollection<T> collection, T t) { collection.__AddInternal(t); }
                         Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "Add").WithArguments("Add").WithLocation(12, 24),
+                        // (20,31): error CS1061: 'MyCollection<int>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<int>' could be found (are you missing a using directive or an assembly reference?)
+                        //         MyCollection<int> z = [x, ..y];
+                        Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x, ..y]").WithArguments("MyCollection<int>", "Add").WithLocation(20, 31),
                         // (20,31): error CS9230: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
                         //         MyCollection<int> z = [x, ..y];
                         Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd_New, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(20, 31));
