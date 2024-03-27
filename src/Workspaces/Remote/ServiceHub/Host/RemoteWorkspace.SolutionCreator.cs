@@ -139,6 +139,18 @@ namespace Microsoft.CodeAnalysis.Remote
                 foreach (var (newChecksum, projectId) in newSolutionChecksums.Projects)
                     newProjectIdToChecksum.Add(projectId, newChecksum);
 
+                // remove projects that are the same on both sides.  We can just iterate over one of the maps as,
+                // definitionally, for the project to be on both sides, it will be contained in both.
+                foreach (var (oldChecksum, projectId) in oldSolutionChecksums.Projects)
+                {
+                    if (newProjectIdToChecksum.TryGetValue(projectId, out var newChecksum) &&
+                        oldChecksum == newChecksum)
+                    {
+                        oldProjectIdToChecksum.Remove(projectId);
+                        newProjectIdToChecksum.Remove(projectId);
+                    }
+                }
+
                 // If there are old projects that are now missing on the new side, and this is a projectConeSync, then
                 // exclude them from the old side as well.  This way we only consider projects actually added or
                 // changed.
@@ -158,18 +170,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     // All the old projects must be in the new project set.  Though the reverse doesn't have to hold.
                     // The new project set may contain additional projects to add.
                     Contract.ThrowIfFalse(oldProjectIdToChecksum.Keys.All(newProjectIdToChecksum.Keys.Contains));
-                }
-
-                // remove projects that are the same on both sides.  We can just iterate over one of the maps as,
-                // definitionally, for the project to be on both sides, it will be contained in both.
-                foreach (var (projectId, oldChecksum) in oldProjectIdToChecksum)
-                {
-                    if (newProjectIdToChecksum.TryGetValue(projectId, out var newChecksum) &&
-                        oldChecksum == newChecksum)
-                    {
-                        oldProjectIdToChecksum.Remove(projectId);
-                        newProjectIdToChecksum.Remove(projectId);
-                    }
                 }
 
                 using var _3 = PooledDictionary<ProjectId, ProjectStateChecksums>.GetInstance(out var oldProjectIdToStateChecksums);
@@ -447,13 +447,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // remove documents that are the same on both sides.  We can just iterate over one of the maps as,
                 // definitionally, for the project to be on both sides, it will be contained in both.
-                foreach (var (projectId, oldChecksum) in oldDocumentIdToChecksum)
+                foreach (var (oldChecksum, documentId) in oldChecksums)
                 {
-                    if (newDocumentIdToChecksum.TryGetValue(projectId, out var newChecksum) &&
+                    if (newDocumentIdToChecksum.TryGetValue(documentId, out var newChecksum) &&
                         oldChecksum == newChecksum)
                     {
-                        oldDocumentIdToChecksum.Remove(projectId);
-                        newDocumentIdToChecksum.Remove(projectId);
+                        oldDocumentIdToChecksum.Remove(documentId);
+                        newDocumentIdToChecksum.Remove(documentId);
                     }
                 }
 
