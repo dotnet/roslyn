@@ -1581,7 +1581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, Type, out ImmutableArray<MethodSymbol> addMethods, diagnostics))
                             {
-                                // PROTOTYPE: Report ERR_CollectionExpressionMissingAdd_New or similar if there are no errors in the bag
+                                // PROTOTYPE: Report ERR_CollectionExpressionMissingAdd or similar if there are no errors in the bag
                                 //            Probably shouldn't happen, but better safe than sorry.
                                 return;
                             }

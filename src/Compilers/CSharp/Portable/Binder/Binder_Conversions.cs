@@ -1551,7 +1551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (elements.Length > 0 &&
                         !HasCollectionExpressionApplicableAddMethod(node.Syntax, targetType, addMethods: out _, diagnostics))
                     {
-                        Error(diagnostics, ErrorCode.ERR_CollectionExpressionMissingAdd_New, node.Syntax, targetType);
+                        Error(diagnostics, ErrorCode.ERR_CollectionExpressionMissingAdd, node.Syntax, targetType);
                         reportedErrors = true;
                     }
                 }
