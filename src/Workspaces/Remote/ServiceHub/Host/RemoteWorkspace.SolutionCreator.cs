@@ -454,7 +454,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 allDocumentIds.AddRange(newChecksums.Ids);
 
                 // remove documents that are the same on both sides
-                // remove projects that are the same on both sides.
                 foreach (var documentId in allDocumentIds)
                 {
                     if (oldDocumentIdToChecksum.TryGetValue(documentId, out var oldChecksum) &&
