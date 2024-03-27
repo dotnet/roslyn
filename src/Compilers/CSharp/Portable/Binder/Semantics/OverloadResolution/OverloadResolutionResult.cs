@@ -505,23 +505,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // but no argument was supplied for it then the first such method is 
                         // the best bad method.
                         case MemberResolutionKind.RequiredParameterMissing:
-                            if ((binder.Flags & BinderFlags.CollectionExpressionConversionValidation) != 0)
+                            if ((binder.Flags & BinderFlags.CollectionExpressionConversionValidation) != 0 && receiver is null)
                             {
-                                if (receiver is null)
-                                {
-                                    Debug.Assert(firstSupported.Member is MethodSymbol { MethodKind: MethodKind.Constructor });
-                                    diagnostics.Add(
-                                        isParamsModifierValidation ?
-                                            ErrorCode.ERR_ParamsCollectionMissingConstructor :
-                                            ErrorCode.ERR_CollectionExpressionMissingConstructor,
-                                        location);
-                                }
-                                else
-                                {
-                                    Debug.Assert(firstSupported.Member is MethodSymbol { Name: "Add" });
-                                    int argumentOffset = arguments.IsExtensionMethodInvocation ? 1 : 0;
-                                    diagnostics.Add(ErrorCode.ERR_CollectionExpressionMissingAdd, location, arguments.Arguments[argumentOffset].Type, firstSupported.Member);
-                                }
+                                Debug.Assert(firstSupported.Member is MethodSymbol { MethodKind: MethodKind.Constructor });
+                                diagnostics.Add(
+                                    isParamsModifierValidation ?
+                                        ErrorCode.ERR_ParamsCollectionMissingConstructor :
+                                        ErrorCode.ERR_CollectionExpressionMissingConstructor,
+                                    location);
                             }
                             else
                             {
@@ -1127,12 +1118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (flags.Includes(BinderFlags.CollectionExpressionConversionValidation))
-                {
-                    Debug.Assert(arguments.Arguments.Count == argumentOffset + 1);
-                    diagnostics.Add(ErrorCode.ERR_CollectionExpressionMissingAdd, location, arguments.Arguments[argumentOffset].Type, method);
-                }
-                else
+                if (!flags.Includes(BinderFlags.CollectionExpressionConversionValidation))
                 {
                     //  The best overloaded Add method '{0}' for the collection initializer has some invalid arguments
                     diagnostics.Add(ErrorCode.ERR_BadArgTypesForCollectionAdd, location, symbols, method);
