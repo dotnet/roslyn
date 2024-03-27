@@ -93,6 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         foreach (CSharpSyntaxNode syntax in kvp.Value)
                         {
+                            // PROTOTYPE: Improve error message (the instance might be usable in iterator/async just not across yield/await)
                             // CS4013: Instance of type '{0}{1}' cannot be used inside an anonymous function, query expression, iterator block or async method
                             diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, refKindPrefix, type);
                         }
