@@ -254,18 +254,13 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         private readonly AsyncBatchingWorkQueue _batchingWorkQueue;
 
         /// <summary>
-        /// The <see cref="IVsWindowFrame"/> of the active window. This may be null if we're in the middle of construction and
-        /// we haven't been given it yet.
+        /// The info bar of the active window. This may be null if we're in the middle of construction and we haven't
+        /// created it yet
         /// </summary>
-        private IVsWindowFrame? _windowFrame;
         private VisualStudioInfoBar? _infoBar;
 
-        private string? _windowFrameMessageToShow = null;
-        private ImageMoniker _windowFrameImageMonikerToShow = default;
-        private string? _currentWindowFrameMessage = null;
-        private ImageMoniker _currentWindowFrameImageMoniker = default;
-        //
-        //private IVsInfoBarUIElement? _currentWindowFrameInfoBarElement = null;
+        private (string message, ImageMoniker moniker)? _infoToShow = null;
+        private (string message, ImageMoniker moniker)? _currentInfo = null;
 
         public OpenSourceGeneratedFile(SourceGeneratedFileManager fileManager, ITextBuffer textBuffer, Workspace workspace, SourceGeneratedDocumentIdentity documentIdentity, IThreadingContext threadingContext)
             : base(threadingContext, assertIsForeground: true)
@@ -377,8 +372,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            _windowFrameMessageToShow = windowFrameMessageToShow;
-            _windowFrameImageMonikerToShow = windowFrameImageMonikerToShow;
+            _infoToShow = (windowFrameMessageToShow, windowFrameImageMonikerToShow);
 
             // Update the text if we have new text
             if (generatedSource != null)
@@ -461,13 +455,12 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         {
             AssertIsForeground();
 
-            if (_windowFrame != null)
+            if (_infoBar != null)
             {
                 // We already have a window frame, and we don't expect to get a second one
                 return;
             }
 
-            _windowFrame = windowFrame;
             _infoBar = new VisualStudioInfoBar(
                 this.ThreadingContext, _fileManager._serviceProvider, _fileManager._listenerProvider, windowFrame);
 
@@ -483,25 +476,23 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         {
             AssertIsForeground();
 
-            if (_windowFrameMessageToShow is null ||
-                _infoBar is null)
+            if (_infoToShow is null || _infoBar is null)
             {
                 // If we don't have a frame, or even a message, we can't do anything yet.
                 return;
             }
 
-            if (_currentWindowFrameMessage == _windowFrameMessageToShow &&
-                _currentWindowFrameImageMoniker.Equals(_windowFrameImageMonikerToShow))
+            if (_currentInfo.HasValue &&
+                _infoToShow.Value.Equals(_currentInfo.Value))
             {
                 // bail out if no change is needed
                 return;
             }
 
             _infoBar.ShowInfoBar(
-                _windowFrameMessageToShow, removeExistingInfoBar: true, isCloseButtonVisible: false, _windowFrameImageMonikerToShow);
+                _infoToShow.Value.message, removeExistingInfoBar: true, isCloseButtonVisible: false, _infoToShow.Value.moniker);
 
-            _currentWindowFrameMessage = _windowFrameMessageToShow;
-            _currentWindowFrameImageMoniker = _windowFrameImageMonikerToShow;
+            _currentInfo = _infoToShow;
         }
 
         public Task<bool> NavigateToSpanAsync(TextSpan sourceSpan, CancellationToken cancellationToken)
