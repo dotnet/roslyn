@@ -10,14 +10,12 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -128,7 +126,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 newSpan: new SourceSpan(1, 2, 1, 5));
 
             var activeSpans1 = ImmutableArray.Create(
-                new ActiveStatementSpan(0, new LinePositionSpan(new LinePosition(1, 2), new LinePosition(3, 4)), ActiveStatementFlags.NonLeafFrame, documentId));
+                new ActiveStatementSpan(new ActiveStatementId(0), new LinePositionSpan(new LinePosition(1, 2), new LinePosition(3, 4)), ActiveStatementFlags.NonLeafFrame, documentId));
 
             var activeStatementSpanProvider = new ActiveStatementSpanProvider((documentId, path, cancellationToken) =>
             {
@@ -291,7 +289,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             // GetBaseActiveStatementSpans
 
-            var activeStatementSpan1 = new ActiveStatementSpan(0, span1, ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.PartiallyExecuted, unmappedDocumentId: documentId);
+            var activeStatementSpan1 = new ActiveStatementSpan(new ActiveStatementId(0), span1, ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.PartiallyExecuted, UnmappedDocumentId: documentId);
 
             mockEncService.GetBaseActiveStatementSpansImpl = (solution, documentIds) =>
             {

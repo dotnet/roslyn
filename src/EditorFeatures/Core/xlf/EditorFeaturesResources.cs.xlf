@@ -202,6 +202,11 @@
         <target state="translated">Ne</target>
         <note />
       </trans-unit>
+      <trans-unit id="Obsolete_symbol">
+        <source>Obsolete symbol</source>
+        <target state="new">Obsolete symbol</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="translated">Operátor – přetížení</target>
