@@ -77,13 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var variable = kvp.Key;
 
-                    var (type, refKindPrefix) = variable switch
-                    {
-                        LocalSymbol l => (l.Type, l.RefKind.ToLocalPrefix()),
-                        ParameterSymbol p => (p.Type, p.RefKind.ToParameterPrefix()),
-                        _ => throw ExceptionUtilities.UnexpectedValue(variable),
-                    };
-
                     if (variable is SynthesizedLocal local && local.SynthesizedKind == SynthesizedLocalKind.Spill)
                     {
                         Debug.Assert(local.TypeWithAnnotations.IsRestrictedType());
@@ -91,6 +84,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
+                        var (type, refKindPrefix) = variable switch
+                        {
+                            LocalSymbol l => (l.Type, l.RefKind.ToLocalPrefix()),
+                            ParameterSymbol p => (p.Type, p.RefKind.ToParameterPrefix()),
+                            _ => throw ExceptionUtilities.UnexpectedValue(variable),
+                        };
+
                         foreach (CSharpSyntaxNode syntax in kvp.Value)
                         {
                             // CS4013: Instance of type '{0}{1}' cannot be used inside an anonymous function, query expression, iterator block or async method
