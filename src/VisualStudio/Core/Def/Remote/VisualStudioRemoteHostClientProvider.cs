@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var serviceBroker = brokeredServiceContainer.GetFullAccessServiceBroker();
 
                 var configuration =
-                    (_globalOptions.GetOption(RemoteHostOptionsStorage.OOPCoreClr) ? RemoteProcessConfiguration.Core : 0) |
+                    RemoteProcessConfiguration.Core |
                     (_globalOptions.GetOption(RemoteHostOptionsStorage.OOPServerGCFeatureFlag) ? RemoteProcessConfiguration.ServerGC : 0);
 
                 // VS AsyncLazy does not currently support cancellation:
