@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.TestSourceGenerator
                 {
                     public static string GetMessage()
                     {
-                        return "Hello, World";
+                        return "Hello, World!";
                     }
                 }
                 """, encoding: Encoding.UTF8));
