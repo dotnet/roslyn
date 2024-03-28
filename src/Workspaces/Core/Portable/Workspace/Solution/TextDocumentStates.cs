@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis;
 /// <summary>
 /// Holds on a <see cref="DocumentId"/> to <see cref="TextDocumentState"/> map and an ordering.
 /// </summary>
-internal readonly struct TextDocumentStates<TState>
+internal sealed class TextDocumentStates<TState>
     where TState : TextDocumentState
 {
     public static readonly TextDocumentStates<TState> Empty =
@@ -37,7 +37,7 @@ internal readonly struct TextDocumentStates<TState>
     /// </summary>
     private readonly ImmutableSortedDictionary<DocumentId, TState> _map;
 
-    private readonly FrozenDictionary<string, OneOrMany<DocumentId>> _filePathToDocumentIds;
+    private FrozenDictionary<string, OneOrMany<DocumentId>>? _filePathToDocumentIds;
 
     private TextDocumentStates(
         ImmutableList<DocumentId> ids,
@@ -48,26 +48,7 @@ internal readonly struct TextDocumentStates<TState>
 
         _ids = ids;
         _map = map;
-        _filePathToDocumentIds = filePathToDocumentIds ?? ComputeFilePathToDocumentIds(map);
-    }
-
-    private static FrozenDictionary<string, OneOrMany<DocumentId>> ComputeFilePathToDocumentIds(
-        ImmutableSortedDictionary<DocumentId, TState> map)
-    {
-        using var _ = PooledDictionary<string, OneOrMany<DocumentId>>.GetInstance(out var result);
-
-        foreach (var (documentId, state) in map)
-        {
-            var filePath = state.FilePath;
-            if (filePath is null)
-                continue;
-
-            result[filePath] = result.TryGetValue(filePath, out var existingValue)
-                ? existingValue.Add(documentId)
-                : OneOrMany.Create(documentId);
-        }
-
-        return result.ToFrozenDictionary();
+        _filePathToDocumentIds = filePathToDocumentIds;
     }
 
     public TextDocumentStates(IEnumerable<TState> states)
@@ -108,7 +89,7 @@ internal readonly struct TextDocumentStates<TState>
     /// <summary>
     /// <see cref="DocumentId"/>s in the order in which they were added to the project (the compilation order).
     /// </summary>
-    public readonly IReadOnlyList<DocumentId> Ids => _ids;
+    public IReadOnlyList<DocumentId> Ids => _ids;
 
     /// <summary>
     /// States ordered by <see cref="DocumentId"/>.
@@ -314,10 +295,31 @@ internal readonly struct TextDocumentStates<TState>
 
     public void AddDocumentIdsWithFilePath(ref TemporaryArray<DocumentId> temporaryArray, string filePath)
     {
+        // Lazily initialize the file path map if not computed.
+        _filePathToDocumentIds ??= ComputeFilePathToDocumentIds();
+
         if (_filePathToDocumentIds.TryGetValue(filePath, out var oneOrMany))
         {
             foreach (var value in oneOrMany)
                 temporaryArray.Add(value);
         }
+    }
+
+    private FrozenDictionary<string, OneOrMany<DocumentId>> ComputeFilePathToDocumentIds()
+    {
+        using var _ = PooledDictionary<string, OneOrMany<DocumentId>>.GetInstance(out var result);
+
+        foreach (var (documentId, state) in _map)
+        {
+            var filePath = state.FilePath;
+            if (filePath is null)
+                continue;
+
+            result[filePath] = result.TryGetValue(filePath, out var existingValue)
+                ? existingValue.Add(documentId)
+                : OneOrMany.Create(documentId);
+        }
+
+        return result.ToFrozenDictionary();
     }
 }

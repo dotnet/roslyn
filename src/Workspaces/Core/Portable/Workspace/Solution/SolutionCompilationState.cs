@@ -115,7 +115,7 @@ internal sealed partial class SolutionCompilationState
 
         if (newSolutionState == this.SolutionState &&
             projectIdToTrackerMap == _projectIdToTrackerMap &&
-            newFrozenSourceGeneratedDocumentStates.Equals(FrozenSourceGeneratedDocumentStates))
+            Equals(newFrozenSourceGeneratedDocumentStates, FrozenSourceGeneratedDocumentStates))
         {
             return this;
         }
@@ -1010,7 +1010,7 @@ internal sealed partial class SolutionCompilationState
         if (FrozenSourceGeneratedDocumentStates == null)
             return this;
 
-        var projectIdsToUnfreeze = FrozenSourceGeneratedDocumentStates.Value.States.Values
+        var projectIdsToUnfreeze = FrozenSourceGeneratedDocumentStates.States.Values
             .Select(static state => state.Identity.DocumentId.ProjectId)
             .Distinct()
             .ToImmutableArray();
