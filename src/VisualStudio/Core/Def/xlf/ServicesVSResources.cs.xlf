@@ -1437,6 +1437,11 @@
         <target state="translated">Generátor {0}, který vygeneroval tento soubor, přestal tento soubor generovat. Soubor už není součástí projektu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_project_no_longer_exists">
+        <source>The project no longer exists</source>
+        <target state="new">The project no longer exists</target>
+        <note />
+      </trans-unit>
       <trans-unit id="This_action_cannot_be_undone_Do_you_wish_to_continue">
         <source>This action cannot be undone. Do you wish to continue?</source>
         <target state="translated">Tato akce se nedá vrátit. Chcete pokračovat?</target>
