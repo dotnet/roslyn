@@ -5,15 +5,13 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
@@ -158,7 +156,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(Workspace wor
         return null;
     }
 
-    public async ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, Document designTimeDocument, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
     {
         // filter out documents that are not synchronized to remote process before we attempt remote invoke:
         if (!RemoteSupportedLanguages.IsSupported(document.Project.Language))
@@ -170,14 +168,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(Workspace wor
         if (client == null)
         {
             var diagnostics = await GetLocalService().GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
-
-            if (designTimeDocument != document)
-            {
-                diagnostics = diagnostics.SelectAsArray(
-                    diagnostic => RemapLocation(designTimeDocument, DiagnosticData.Create(document.Project.Solution, diagnostic, document.Project)));
-            }
-
-            return diagnostics;
+            return diagnostics.SelectAsArray(diagnostic => DiagnosticData.Create(document.Project.Solution, diagnostic, document.Project));
         }
 
         var diagnosticData = await client.TryInvokeAsync<IRemoteEditAndContinueService, ImmutableArray<DiagnosticData>>(
@@ -186,49 +177,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(Workspace wor
             callbackTarget: new ActiveStatementSpanProviderCallback(activeStatementSpanProvider),
             cancellationToken).ConfigureAwait(false);
 
-        if (!diagnosticData.HasValue)
-        {
-            return [];
-        }
-
-        var project = document.Project;
-
-        var result = new FixedSizeArrayBuilder<Diagnostic>(diagnosticData.Value.Length);
-        foreach (var data in diagnosticData.Value)
-        {
-            Debug.Assert(data.DataLocation != null);
-
-            Diagnostic diagnostic;
-
-            // Workaround for solution crawler not supporting mapped locations to make Razor work.
-            // We pretend the diagnostic is in the original document, but use the mapped line span.
-            // Razor will ignore the column (which will be off because #line directives can't currently map columns) and only use the line number.
-            if (designTimeDocument != document)
-            {
-                diagnostic = RemapLocation(designTimeDocument, data);
-            }
-            else
-            {
-                diagnostic = await data.ToDiagnosticAsync(document.Project, cancellationToken).ConfigureAwait(false);
-            }
-
-            result.Add(diagnostic);
-        }
-
-        return result.MoveToImmutable();
-    }
-
-    private static Diagnostic RemapLocation(Document designTimeDocument, DiagnosticData data)
-    {
-        Debug.Assert(data.DataLocation != null);
-        Debug.Assert(designTimeDocument.FilePath != null);
-
-        // If the location in the generated document is in a scope of user-visible #line mapping use the mapped span,
-        // otherwise (if it's hidden) display the diagnostic at the start of the file.
-        var span = data.DataLocation.UnmappedFileSpan != data.DataLocation.MappedFileSpan ? data.DataLocation.MappedFileSpan.Span : default;
-        var location = Location.Create(designTimeDocument.FilePath, textSpan: default, span);
-
-        return data.ToDiagnostic(location, []);
+        return diagnosticData.HasValue ? diagnosticData.Value : [];
     }
 
     public async ValueTask SetFileLoggingDirectoryAsync(string? logDirectory, CancellationToken cancellationToken)
