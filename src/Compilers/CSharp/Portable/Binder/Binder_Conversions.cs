@@ -1051,13 +1051,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool bindDynamicInvocation(
                 Binder addMethodBinder,
                 SyntaxNode node,
+                BoundExpression? receiver,
                 AnalyzedArguments arguments,
                 BindingDiagnosticBag diagnostics)
             {
                 ImmutableArray<BoundExpression> argArray = addMethodBinder.BuildArgumentsForDynamicInvocation(arguments, diagnostics);
                 var refKindsArray = arguments.RefKinds.ToImmutableOrNull();
 
-                return !ReportBadDynamicArguments(node, argArray, refKindsArray, diagnostics, queryClause: null);
+                return !ReportBadDynamicArguments(node, receiver, argArray, refKindsArray, diagnostics, queryClause: null);
             }
 
             // This is what BindMethodGroupInvocation is doing in terms of reporting diagnostics and detecting a failure
@@ -1152,7 +1153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     addMethodBinder.ReportDynamicInvocationWarnings(syntax, methodGroup, diagnostics, resolution, finalApplicableCandidates);
 
                                     addMethods = finalApplicableCandidates.SelectAsArray(r => r.Member);
-                                    result = bindDynamicInvocation(addMethodBinder, syntax, resolution.AnalyzedArguments, diagnostics);
+                                    result = bindDynamicInvocation(addMethodBinder, syntax, methodGroup.ReceiverOpt, resolution.AnalyzedArguments, diagnostics);
                                 }
                             }
                         }
