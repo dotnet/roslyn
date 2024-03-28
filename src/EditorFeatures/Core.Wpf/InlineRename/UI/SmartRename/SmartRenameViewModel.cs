@@ -122,13 +122,12 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    private static bool toggleEveryInvocation; // Temporary flag for prototyping. This will be replaced by a read of a feature flag
-
     private void OnGetSuggestionsCommandExecute()
     {
         _threadingContext.ThrowIfNotOnUIThread();
         if (IsUsingResultPanel && SuggestedNames.Count > 0)
         {
+            // Don't get suggestions again in the automatic scenario
             return;
         }
         if (_getSuggestionsTask.Status is TaskStatus.RanToCompletion or TaskStatus.Faulted or TaskStatus.Canceled)
