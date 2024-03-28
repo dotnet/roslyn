@@ -288,7 +288,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 readOnlyRegionEdit.Apply();
             }
 
-            _fileManager._visualStudioWorkspace.WorkspaceChanged += OnWorkspaceChanged;
+            this.Workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             _batchingWorkQueue = new AsyncBatchingWorkQueue(
                 TimeSpan.FromSeconds(1),
