@@ -6461,6 +6461,306 @@ class Program
             CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_ParamsArray()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long[] a) => Console.Write(a.Length);
+                    static public void Test1(this object p, params long[] a) => Console.Write(a.Length);
+
+                    static public void Test2(this object p, params long[] a) => Console.Write(a.Length);
+                    static public void Test2(this Program p, long[] a) => Console.Write(a.Length);
+                }
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (7,18): error CS8917: The delegate type could not be inferred.
+                    //         var x1 = new Program().Test1;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                    // (8,18): error CS8917: The delegate type could not be inferred.
+                    //         var x2 = new Program().Test2;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_ParamsArray_CustomDelegateType()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        D x1 = new Program().Test1;
+                        D x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long[] a) => Console.Write(a.Length);
+                    static public void Test1(this object p, params long[] a) => Console.Write(a.Length);
+
+                    static public void Test2(this object p, params long[] a) => Console.Write(a.Length);
+                    static public void Test2(this Program p, long[] a) => Console.Write(a.Length);
+                }
+
+                delegate void D(params long[] a);
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CompileAndVerify(source, expectedOutput: "00",
+                    parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_DefaultValue()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long a) => Console.Write(a);
+                    static public void Test1(this object p, long a = 1) => Console.Write(a);
+
+                    static public void Test2(this object p, long a = 2) => Console.Write(a);
+                    static public void Test2(this Program p, long a) => Console.Write(a);
+                }
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (7,18): error CS8917: The delegate type could not be inferred.
+                    //         var x1 = new Program().Test1;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                    // (8,18): error CS8917: The delegate type could not be inferred.
+                    //         var x2 = new Program().Test2;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_DefaultValue_DifferentValues()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long a = 1) => Console.Write(a);
+                    static public void Test1(this object p, long a = 2) => Console.Write(a);
+
+                    static public void Test2(this object p, long a = 3) => Console.Write(a);
+                    static public void Test2(this Program p, long a = 4) => Console.Write(a);
+                }
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (7,18): error CS8917: The delegate type could not be inferred.
+                    //         var x1 = new Program().Test1;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                    // (8,18): error CS8917: The delegate type could not be inferred.
+                    //         var x2 = new Program().Test2;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_DefaultValue_SameValues()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long a = 1) => Console.Write(a);
+                    static public void Test1(this object p, long a = 1) => Console.Write(a);
+
+                    static public void Test2(this object p, long a = 2) => Console.Write(a);
+                    static public void Test2(this Program p, long a = 2) => Console.Write(a);
+                }
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (7,18): error CS8917: The delegate type could not be inferred.
+                    //         var x1 = new Program().Test1;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                    // (8,18): error CS8917: The delegate type could not be inferred.
+                    //         var x2 = new Program().Test2;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_DefaultValue_CustomDelegateType()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        D x1 = new Program().Test1;
+                        D x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long a) => Console.Write(a);
+                    static public void Test1(this object p, long a = 1) => Console.Write(a);
+
+                    static public void Test2(this object p, long a = 2) => Console.Write(a);
+                    static public void Test2(this Program p, long a) => Console.Write(a);
+                }
+                
+                delegate void D(long a = 3);
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CompileAndVerify(source, expectedOutput: "33",
+                    parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_DefaultValue_CustomDelegateType_DifferentValues()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        D x1 = new Program().Test1;
+                        D x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long a = 5) => Console.Write(a);
+                    static public void Test1(this object p, long a = 6) => Console.Write(a);
+
+                    static public void Test2(this object p, long a = 7) => Console.Write(a);
+                    static public void Test2(this Program p, long a = 8) => Console.Write(a);
+                }
+                
+                delegate void D(long a = 3);
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CompileAndVerify(source, expectedOutput: "33",
+                    parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_DefaultValue_CustomDelegateType_SameValues()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        D x1 = new Program().Test1;
+                        D x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long a = 1) => Console.Write(a);
+                    static public void Test1(this object p, long a = 1) => Console.Write(a);
+
+                    static public void Test2(this object p, long a = 2) => Console.Write(a);
+                    static public void Test2(this Program p, long a = 2) => Console.Write(a);
+                }
+                
+                delegate void D(long a = 3);
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            {
+                CompileAndVerify(source, expectedOutput: "33",
+                    parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
+            }
+        }
+
         [Fact]
         public void BestCommonType_01()
         {

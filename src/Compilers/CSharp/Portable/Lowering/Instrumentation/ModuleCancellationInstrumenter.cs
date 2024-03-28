@@ -198,6 +198,7 @@ internal sealed class ModuleCancellationInstrumenter(
                         parametersWithCancellationToken.AsSpan(0, methodDefinition.Parameters.Length),
                         typeMap,
                         MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
+                        considerParamsAndDefaultValues: true,
                         TypeComparisonKind) &&
                     MemberSignatureComparer.HaveSameReturnTypes(
                         methodDefinition,
