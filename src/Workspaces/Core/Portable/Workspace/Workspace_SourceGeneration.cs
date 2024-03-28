@@ -59,31 +59,41 @@ public partial class Workspace
         static FrozenDictionary<ProjectId, SourceGeneratorExecutionVersion> GetUpdatedSourceGeneratorVersions(
             Solution solution, ImmutableSegmentedList<(ProjectId? projectId, bool forceRegeneration)> projectIds)
         {
-            // First check if we're updating for the entire solution.
-
-            if (projectIds.Any(t => t.projectId is null))
-            {
-                // Determine if we want a major/minor update depending on if we see `forceRegeneration: true` passed in.
-                var major = projectIds.Any(t => t.projectId is null && t.forceRegeneration);
-
-                return solution.ProjectIds.ToFrozenDictionary(
-                    p => solution.GetRequiredProject(p).Id,
-                    p => Increment(solution.GetRequiredProject(p).SourceGeneratorExecutionVersion, major));
-            }
-
-            // Otherwise, for all the projects involved requested, update their source generator version.  Do this for
-            // all projects that transitively depend on that project, so that their generators will run as well when
-            // next asked.
+            // For all the projects explicitly requested, update their source generator version.  Do this for all
+            // projects that transitively depend on that project, so that their generators will run as well when next
+            // asked.
             var dependencyGraph = solution.GetProjectDependencyGraph();
 
             using var _ = CodeAnalysis.PooledObjects.PooledDictionary<ProjectId, SourceGeneratorExecutionVersion>.GetInstance(out var result);
 
-            // Do a pass where we update minor versions if requested.
-            PopulateSourceGeneratorExecutionVersions(major: false);
+            // Determine if we want a major solution change, forcing regeneration of all projects.
+            var solutionMajor = projectIds.Any(t => t.projectId is null && t.forceRegeneration);
 
-            // Then update major versions.  We do this after the minor-version pass so that major version updates
-            // overwrite minor-version updates.
-            PopulateSourceGeneratorExecutionVersions(major: true);
+            // If it's not a major solution change, then go update the versions for all projects requested.
+            if (!solutionMajor)
+            {
+                // Do a pass where we update minor versions if requested.
+                PopulateSourceGeneratorExecutionVersions(major: false);
+
+                // Then update major versions.  We do this after the minor-version pass so that major version updates
+                // overwrite minor-version updates.
+                PopulateSourceGeneratorExecutionVersions(major: true);
+            }
+
+            // Now, if we've been asked to do an entire solution update, get any projects we didn't already mark, and
+            // update their execution version as well.
+            if (projectIds.Any(t => t.projectId is null))
+            {
+                foreach (var projectId in solution.ProjectIds)
+                {
+                    if (!result.ContainsKey(projectId))
+                    {
+                        result.Add(
+                            projectId,
+                            Increment(solution.GetRequiredProject(projectId).SourceGeneratorExecutionVersion, solutionMajor));
+                    }
+                }
+            }
 
             return result.ToFrozenDictionary();
 
@@ -91,7 +101,9 @@ public partial class Workspace
             {
                 foreach (var (projectId, forceRegeneration) in projectIds)
                 {
-                    Contract.ThrowIfNull(projectId);
+                    if (projectId is null)
+                        continue;
+
                     if (forceRegeneration != major)
                         continue;
 
