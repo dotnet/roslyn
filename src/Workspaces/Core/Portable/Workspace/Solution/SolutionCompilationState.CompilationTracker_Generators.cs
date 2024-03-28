@@ -222,7 +222,9 @@ internal partial class SolutionCompilationState
 
                     // ParseOptions may have changed between last generation and this one.  Ensure that they are
                     // properly propagated to the generated doc.
-                    generatedDocumentsBuilder.Add(existingDocument.WithParseOptions(this.ProjectState.ParseOptions!));
+                    generatedDocumentsBuilder.Add(existingDocument
+                        .WithParseOptions(this.ProjectState.ParseOptions!)
+                        .WithGenerationDateTime(generationDateTime));
                 }
             }
 
