@@ -685,6 +685,19 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 ImmutableArray.Create(("SG.cs", CreateStreamText(contents, useBOM: useBOM2, useMemoryStream: useMemoryStream2))));
         }
 
+        [Fact]
+        public async Task TestBalancedSourceGenerationExecution_DoNotRegenerateOnEdit()
+        {
+            using var workspace = CreateWorkspace();
+
+            var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            globalOptionService.SetGlobalOptions()
+
+            var configurationService = (WorkspaceConfigurationService)workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+            configurationService.Clear();
+
+        }
+
         private static async Task<Solution> VerifyIncrementalUpdatesAsync(
             TestWorkspace localWorkspace,
             Workspace remoteWorkspace,

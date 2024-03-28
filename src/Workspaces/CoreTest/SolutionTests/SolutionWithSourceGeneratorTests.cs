@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -25,7 +26,7 @@ using static Microsoft.CodeAnalysis.UnitTests.WorkspaceTestUtilities;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
-    public class SolutionWithSourceGeneratorTests : TestBase
+    public sealed class SolutionWithSourceGeneratorTests : TestBase
     {
         [Theory, CombinatorialData]
         public async Task SourceGeneratorBasedOnAdditionalFileGeneratesSyntaxTrees(
