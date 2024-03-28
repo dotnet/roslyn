@@ -72,7 +72,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
 
     public bool IsSuggestionsPanelCollapsed
     {
-        get => !IsUsingDropdown && _globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
+        get => IsUsingDropdown || _globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
         set
         {
             if (value != IsSuggestionsPanelCollapsed)
@@ -86,8 +86,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
 
     public bool IsSuggestionsPanelExpanded
     {
-        get => !IsSuggestionsPanelCollapsed;
-        set => IsSuggestionsPanelCollapsed = !value;
+        get => IsUsingResultPanel && !IsSuggestionsPanelCollapsed;
     }
 
     public static string GetSuggestionsTooltip => EditorFeaturesWpfResources.Get_AI_suggestions;
@@ -128,7 +127,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
     private void OnGetSuggestionsCommandExecute()
     {
         _threadingContext.ThrowIfNotOnUIThread();
-        if (SuggestedNames.Count > 0)
+        if (IsUsingResultPanel && SuggestedNames.Count > 0)
         {
             return;
         }

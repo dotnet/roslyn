@@ -106,7 +106,7 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
     {
         if (_smartRenameViewModel.IsUsingResultPanel)
         {
-            _smartRenameViewModel.IsSuggestionsPanelExpanded = !_smartRenameViewModel.IsSuggestionsPanelExpanded;
+            _smartRenameViewModel.IsSuggestionsPanelCollapsed = !_smartRenameViewModel.IsSuggestionsPanelCollapsed;
             if (_smartRenameViewModel.IsSuggestionsPanelExpanded)
             {
                 _smartRenameViewModel.GetSuggestionsCommand.Execute(null);

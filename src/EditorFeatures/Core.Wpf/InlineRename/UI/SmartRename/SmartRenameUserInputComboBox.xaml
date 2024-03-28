@@ -73,22 +73,23 @@
                 <Setter Property="Margin" Value="3,1,1,1"/>
                 <Setter Property="MinHeight" Value="0"/>
                 <Setter Property="MinWidth" Value="0"/>
-                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderDefaultBrushKey}}"/>
-                <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonDefaultBrushKey}}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderBrushKey}}"/>
+                <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="Cursor" Value="Arrow"/>
                 <Setter Property="ForceCursor" Value="True"/>
                 <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsSuggestionsPanelExpanded}" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonDefaultBrushKey}}"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderPressedBrushKey}}"/>
+                    </DataTrigger>
                     <Trigger Property="IsMouseOver" Value="true">
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderHoverBrushKey}}"/>
-                        <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonFocusedBrushKey}}"/>
+                        <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonHoverBrushKey}}"/>
                     </Trigger>
                     <Trigger Property="IsKeyboardFocused" Value="true">
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderFocusedBrushKey}}"/>
                         <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonFocusedBrushKey}}"/>
                     </Trigger>
-                    <DataTrigger Binding="{Binding IsSuggestionsPanelExpanded}" Value="True">
-                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderPressedBrushKey}}"/>
-                    </DataTrigger>
                 </Style.Triggers>
             </Style>
         </ResourceDictionary>
@@ -223,7 +224,7 @@
                                  Visibility="{Binding IsInProgress, Converter={StaticResource BooleanToHiddenVisibilityConverter}, Mode=OneWay}"
                                  Template="{DynamicResource {x:Static vsfx:VsResourceKeys.ProgressBarTemplateKey}}"
                                  Foreground="{StaticResource copilotBranding}"
-                                 Background="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarMenuBackgroundGradientBeginKey}}" />
+                                 Background="Transparent" />
                 </Border>
                 <Border x:Name="SuggestionsPanel"
                         x:Uid="SuggestionsPanel"
@@ -256,7 +257,7 @@
                                      Height="2"
                                      Template="{DynamicResource {x:Static vsfx:VsResourceKeys.ProgressBarTemplateKey}}"
                                      Foreground="{StaticResource copilotBranding}"
-                                     Background="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxPopupBackgroundGradientBrushKey}}" />
+                                     Background="Transparent" />
                             </StackPanel>
                             <ItemsPresenter x:Name="AltItemsPresenter"
                                     x:Uid="AltItemsPresenter"
