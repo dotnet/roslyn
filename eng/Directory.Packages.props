@@ -74,7 +74,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.LiveShare.WebEditors" Version="3.0.8" />
     <PackageVersion Include="Microsoft.VisualStudio.InteractiveWindow" Version="4.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.VsInteractiveWindow" Version="4.0.0" />
-    <PackageVersion Include="Microsoft.VisualStudio.Search" Version="17.8.35898-preview.2" />
+    <PackageVersion Include="Microsoft.VisualStudio.Search" Version="17.10.961-preview.2" />
     <PackageVersion Include="Microsoft.VisualStudio.WinForms.Interfaces" Version="17.0.0-previews-4-31709-430" />
     <PackageVersion Include="Microsoft.VisualStudio.Workspace.VSIntegration" Version="17.9.29-preview-0001" />
     <PackageVersion Include="VsWebSite.Interop" Version="8.0.50727" />
@@ -91,7 +91,7 @@
     <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.4.22" />
     <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.10.8-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="17.10.8-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="17.10.13-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="17.10.72-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="17.10.13-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="17.10.234-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="17.10.157-preview.1" />
@@ -103,8 +103,8 @@
     <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.10.3-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="17.10.234-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.9.102" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="17.10.13-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="17.10.13-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="17.10.72-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="17.10.72-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="17.10.13-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="17.10.13-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.10.12-preview" />

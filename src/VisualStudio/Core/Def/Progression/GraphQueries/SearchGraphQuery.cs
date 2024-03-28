@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
 internal sealed partial class SearchGraphQuery(
     string searchPattern,
-    NavigateToSearchScope searchScope,
+    NavigateToDocumentSupport searchScope,
     IAsynchronousOperationListener asyncListener) : IGraphQuery
 {
     public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
@@ -39,7 +39,7 @@ internal sealed partial class SearchGraphQuery(
             NavigateToUtilities.GetKindsProvided(solution),
             host);
 
-        await searcher.SearchAsync(searchCurrentDocument: false, searchScope, cancellationToken).ConfigureAwait(false);
+        await searcher.SearchAsync(NavigateToSearchScope.Solution, searchScope, cancellationToken).ConfigureAwait(false);
 
         return graphBuilder;
     }

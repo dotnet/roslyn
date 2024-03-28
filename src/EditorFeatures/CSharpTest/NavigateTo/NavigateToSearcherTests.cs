@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                 kinds: ImmutableHashSet<string>.Empty,
                 hostMock.Object);
 
-            await searcher.SearchAsync(searchCurrentDocument: false, CancellationToken.None);
+            await searcher.SearchAsync(NavigateToSearchScope.Solution, CancellationToken.None);
         }
 
         [Theory, CombinatorialData]
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                 kinds: ImmutableHashSet<string>.Empty,
                 hostMock.Object);
 
-            await searcher.SearchAsync(searchCurrentDocument: false, CancellationToken.None);
+            await searcher.SearchAsync(NavigateToSearchScope.Solution, CancellationToken.None);
         }
 
         [Theory, CombinatorialData]
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                 kinds: ImmutableHashSet<string>.Empty,
                 hostMock.Object);
 
-            await searcher.SearchAsync(searchCurrentDocument: false, CancellationToken.None);
+            await searcher.SearchAsync(NavigateToSearchScope.Solution, CancellationToken.None);
         }
 
         [Fact]
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                 kinds: ImmutableHashSet<string>.Empty,
                 hostMock.Object);
 
-            await searcher.SearchAsync(searchCurrentDocument: false, CancellationToken.None);
+            await searcher.SearchAsync(NavigateToSearchScope.Solution, CancellationToken.None);
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1933220")]
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
                 kinds: ImmutableHashSet<string>.Empty,
                 hostMock.Object);
 
-            await searcher.SearchAsync(searchCurrentDocument: false, CancellationToken.None);
+            await searcher.SearchAsync(NavigateToSearchScope.Solution, CancellationToken.None);
         }
 
         private class TestNavigateToSearchResult(EditorTestWorkspace workspace, TextSpan sourceSpan)
