@@ -1262,7 +1262,7 @@ namespace Microsoft.CodeAnalysis
 
                 // System_Reflection_MethodBase__GetMethodFromHandle
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)InternalSpecialType.System_Reflection_MethodBase,                                                           // DeclaringTypeId
+                (byte)InternalSpecialType.System_Reflection_MethodBase,                                                     // DeclaringTypeId
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)InternalSpecialType.System_Reflection_MethodBase, // Return Type
@@ -1270,7 +1270,7 @@ namespace Microsoft.CodeAnalysis
 
                 // System_Reflection_MethodBase__GetMethodFromHandle2
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)InternalSpecialType.System_Reflection_MethodBase,                                                           // DeclaringTypeId
+                (byte)InternalSpecialType.System_Reflection_MethodBase,                                                     // DeclaringTypeId
                 0,                                                                                                          // Arity
                     2,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)InternalSpecialType.System_Reflection_MethodBase, // Return Type
@@ -1279,26 +1279,34 @@ namespace Microsoft.CodeAnalysis
 
                 // System_Array__get_Length
                 (byte)MemberFlags.PropertyGet,                                                                              // Flags
-                (byte)SpecialType.System_Array,                                                                           // DeclaringTypeId
+                (byte)SpecialType.System_Array,                                                                             // DeclaringTypeId
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32, // Return Type
 
                 // System_Array__Empty
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)SpecialType.System_Array,                                                                           // DeclaringTypeId
+                (byte)SpecialType.System_Array,                                                                             // DeclaringTypeId
                 1,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericMethodParameter, 0, // Return Type
 
                 // System_Array__SetValue
                 (byte)MemberFlags.Method,                                                                                   // Flags
-                (byte)SpecialType.System_Array,                                                                           // DeclaringTypeId
+                (byte)SpecialType.System_Array,                                                                             // DeclaringTypeId
                 0,                                                                                                          // Arity
                     2,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                // System_Type__GetTypeFromHandle
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)InternalSpecialType.System_Type,                                                                      // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)InternalSpecialType.System_Type, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_RuntimeTypeHandle,
             };
 
             string[] allNames = new string[(int)SpecialMember.Count]
@@ -1458,6 +1466,7 @@ namespace Microsoft.CodeAnalysis
                 "get_Length",                               // System_Array__get_Length
                 "Empty",                                    // System_Array__Empty
                 "SetValue",                                 // System_Array__SetValue
+                "GetTypeFromHandle",                        // System_Type__GetTypeFromHandle
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

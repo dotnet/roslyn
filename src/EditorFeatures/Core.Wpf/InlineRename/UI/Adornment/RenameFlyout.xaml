@@ -52,7 +52,8 @@
                     x:Name="ToggleExpandButton"
                     Grid.Column="1"
                     Click="ToggleExpand"
-                    Background="Transparent">
+                    Background="Transparent"
+                    platformimaging:ImageThemingUtilities.ImageBackgroundColor="{Binding Path=Background, ElementName=Outline, Converter={StaticResource BrushToColorConverter}}" >
                     <Button.Style>
                         <Style TargetType="Button">
                             <Setter Property="Template">

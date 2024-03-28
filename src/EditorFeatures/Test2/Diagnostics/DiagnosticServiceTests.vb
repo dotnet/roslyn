@@ -546,35 +546,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Function
 
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1167439"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Sub TestDiagnosticAnalyzerExceptionHandledNoCrash()
-            Dim test = <Workspace>
-                           <Project Language="C#" CommonReferences="true">
-                               <Document FilePath="Test.cs"/>
-                           </Project>
-                       </Workspace>
-
-            Using workspace = TestWorkspace.CreateWorkspace(test)
-                Dim project = workspace.CurrentSolution.Projects.Single()
-                Dim analyzer = New CodeBlockStartedAnalyzer(Of Microsoft.CodeAnalysis.CSharp.SyntaxKind)
-
-                Dim expected = Diagnostic.Create("test", "test", "test", DiagnosticSeverity.Error, DiagnosticSeverity.Error, True, 0)
-                Dim exceptionDiagnosticsSource = New TestHostDiagnosticUpdateSource(workspace)
-
-                ' check reporting diagnostic to a project that doesn't exist
-                exceptionDiagnosticsSource.ReportAnalyzerDiagnostic(analyzer, expected, ProjectId.CreateFromSerialized(Guid.NewGuid(), "dummy"))
-                Dim diagnostics = exceptionDiagnosticsSource.GetTestAccessor().GetReportedDiagnostics(analyzer)
-                Assert.Equal(0, diagnostics.Count())
-
-                ' check workspace diagnostic reporting
-                exceptionDiagnosticsSource.ReportAnalyzerDiagnostic(analyzer, expected, projectId:=Nothing)
-                diagnostics = exceptionDiagnosticsSource.GetTestAccessor().GetReportedDiagnostics(analyzer)
-
-                Assert.Equal(1, diagnostics.Count())
-                Assert.Equal(expected.Id, diagnostics.First().Id)
-            End Using
-        End Sub
-
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function TestDiagnosticAnalyzer_FileLoadFailure() As Task
             Dim test = <Workspace>

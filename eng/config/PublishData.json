@@ -201,10 +201,10 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "rel/d17.10",
+      "vsBranch": "main",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.10 P2]"
+      "insertionTitlePrefix": "[d17.10 P3]"
     },
     "main": {
       "nugetKind": [
@@ -213,8 +213,8 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.10 P3]"
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[d17.11 P1]"
     },
     "features/vscode_net8": {
       "nugetKind": [

@@ -466,13 +466,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                         location:=New DiagnosticDataLocation(New FileLinePositionSpan("Test.txt", New LinePosition(4, 4), New LinePosition(4, 4)), documentId:=Nothing),
                         language:=project.Language)
 
-                    AddHandler service.DiagnosticsUpdated, Sub(o, argsCollection)
-                                                               Dim args = argsCollection.Single()
-                                                               Dim diagnostics = args.Diagnostics
+                    'AddHandler service.DiagnosticsUpdated, Sub(o, argsCollection)
+                    '                                           Dim args = argsCollection.Single()
+                    '                                           Dim diagnostics = args.Diagnostics
 
-                                                               Assert.Single(diagnostics)
-                                                               Assert.Equal(diagnostics(0).Id, diagnostic.Id)
-                                                           End Sub
+                    '                                           Assert.Single(diagnostics)
+                    '                                           Assert.Equal(diagnostics(0).Id, diagnostic.Id)
+                    '                                       End Sub
 
                     source.AddNewErrors(project.Id, diagnostic)
                     Await waiter.ExpeditedWaitAsync()

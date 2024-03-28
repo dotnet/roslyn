@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -188,7 +189,7 @@ internal partial class SolutionCompilationState
                 if (documentIdToIndex.TryGetValue(documentId, out var addOrUpdateIndex))
                 {
                     // a document whose content we fetched from the remote side.
-                    var generatedSource = generatedSources[addOrUpdateIndex];
+                    var (generatedSource, generationDateTime) = generatedSources[addOrUpdateIndex];
                     var sourceText = SourceText.From(
                         generatedSource, contentIdentity.EncodingName is null ? null : Encoding.GetEncoding(contentIdentity.EncodingName), contentIdentity.ChecksumAlgorithm);
 
@@ -200,7 +201,8 @@ internal partial class SolutionCompilationState
                         // Server provided us the checksum, so we just pass that along.  Note: it is critical that we do
                         // this as it may not be possible to reconstruct the same checksum the server produced due to
                         // the lossy nature of source texts.  See comment on GetOriginalSourceTextChecksum for more detail.
-                        contentIdentity.OriginalSourceTextContentHash);
+                        contentIdentity.OriginalSourceTextContentHash,
+                        generationDateTime);
                     Contract.ThrowIfTrue(generatedDocument.GetOriginalSourceTextContentHash() != contentIdentity.OriginalSourceTextContentHash, "Checksums must match!");
                     generatedDocumentsBuilder.Add(generatedDocument);
                 }
@@ -281,6 +283,9 @@ internal partial class SolutionCompilationState
             }
 
             using var generatedDocumentsBuilder = TemporaryArray<SourceGeneratedDocumentState>.Empty;
+
+            // Capture the date now.  We want all the generated files to use this date consistently.
+            var generationDateTime = DateTime.Now;
             foreach (var generatorResult in runResult.Results)
             {
                 if (IsGeneratorRunResultToIgnore(generatorResult))
@@ -302,10 +307,15 @@ internal partial class SolutionCompilationState
                             .WithText(generatedSource.SourceText)
                             .WithParseOptions(this.ProjectState.ParseOptions!);
 
-                        generatedDocumentsBuilder.Add(newDocument);
-
+                        // If changing the text/parse-options actually produced something new, then we can't use the
+                        // stale trees.  We also want to mark this point at the point when the document was generated.
                         if (newDocument != existing)
+                        {
                             compilationWithStaleGeneratedTrees = null;
+                            newDocument = newDocument.WithGenerationDateTime(generationDateTime);
+                        }
+
+                        generatedDocumentsBuilder.Add(newDocument);
                     }
                     else
                     {
@@ -325,7 +335,8 @@ internal partial class SolutionCompilationState
                                 generatedSource.SyntaxTree.Options,
                                 ProjectState.LanguageServices,
                                 // Compute the checksum on demand from the given source text.
-                                originalSourceTextChecksum: null));
+                                originalSourceTextChecksum: null,
+                                generationDateTime));
 
                         // The count of trees was the same, but something didn't match up. Since we're here, at least one tree
                         // was added, and an equal number must have been removed. Rather than trying to incrementally update
