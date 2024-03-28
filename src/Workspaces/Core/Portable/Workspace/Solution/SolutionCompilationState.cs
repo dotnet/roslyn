@@ -1164,8 +1164,8 @@ internal sealed partial class SolutionCompilationState
             {
                 // if the major version has changed then we also want to drop the generator driver so that we're rerun
                 // generators from scratch.
-                var dropGeneratorDriver = projectState.Attributes.SourceGeneratorExecutionVersion.MajorVersion != sourceGeneratorExecutionVersion.MajorVersion;
-                var newTracker = existingTracker.WithCreationPolicy(create: true, dropGeneratorDriver, cancellationToken);
+                var forceRegeneration = projectState.Attributes.SourceGeneratorExecutionVersion.MajorVersion != sourceGeneratorExecutionVersion.MajorVersion;
+                var newTracker = existingTracker.WithCreationPolicy(create: true, forceRegeneration, cancellationToken);
                 if (newTracker != existingTracker)
                     newIdToTrackerMapBuilder[projectId] = newTracker;
             }
@@ -1218,7 +1218,7 @@ internal sealed partial class SolutionCompilationState
 
             // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
             // perf hit on either of those at all for our clients.
-            var newTracker = oldTracker.WithCreationPolicy(create: false, dropGeneratorDriver: false, cancellationToken);
+            var newTracker = oldTracker.WithCreationPolicy(create: false, forceRegeneration: false, cancellationToken);
             if (oldTracker == newTracker)
                 continue;
 

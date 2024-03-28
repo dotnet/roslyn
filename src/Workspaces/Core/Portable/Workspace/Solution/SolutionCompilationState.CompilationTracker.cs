@@ -690,14 +690,14 @@ namespace Microsoft.CodeAnalysis
                 return finalState.HasSuccessfullyLoaded;
             }
 
-            public ICompilationTracker WithCreationPolicy(bool create, bool dropGeneratorDriver, CancellationToken cancellationToken)
+            public ICompilationTracker WithCreationPolicy(bool create, bool forceRegeneration, CancellationToken cancellationToken)
             {
                 return create
-                    ? WithCreateCreationPolicy(dropGeneratorDriver)
-                    : WithDoNotCreateCreationPolicy(dropGeneratorDriver, cancellationToken);
+                    ? WithCreateCreationPolicy(forceRegeneration)
+                    : WithDoNotCreateCreationPolicy(forceRegeneration, cancellationToken);
             }
 
-            public ICompilationTracker WithCreateCreationPolicy(bool dropGeneratorDriver)
+            public ICompilationTracker WithCreateCreationPolicy(bool forceRegeneration)
             {
                 var state = this.ReadState();
 
@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis
                     newState = new InProgressState(
                         desiredCreationPolicy,
                         inProgressState.LazyCompilationWithoutGeneratedDocuments,
-                        dropGeneratorDriver ? inProgressState.GeneratorInfo with { Driver = null } : inProgressState.GeneratorInfo,
+                        forceRegeneration ? inProgressState.GeneratorInfo with { Driver = null } : inProgressState.GeneratorInfo,
                         inProgressState.LazyStaleCompilationWithGeneratedDocuments,
                         inProgressState.PendingTranslationActions);
                 }
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis
                     newState = new InProgressState(
                         desiredCreationPolicy,
                         finalState.CompilationWithoutGeneratedDocuments,
-                        dropGeneratorDriver ? finalState.GeneratorInfo with { Driver = null } : finalState.GeneratorInfo,
+                        forceRegeneration ? finalState.GeneratorInfo with { Driver = null } : finalState.GeneratorInfo,
                         finalState.FinalCompilationWithGeneratedDocuments,
                         pendingTranslationActions: []);
                 }
@@ -747,11 +747,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             public ICompilationTracker WithDoNotCreateCreationPolicy(
-                bool dropGeneratorDriver, CancellationToken cancellationToken)
+                bool forceRegeneration, CancellationToken cancellationToken)
             {
                 // We do not expect this to ever be passed true.  This is for freezing generators, and no callers
-                // (currently) will ask to drop generators when they do that.
-                Contract.ThrowIfTrue(dropGeneratorDriver);
+                // (currently) will ask to drop drivers when they do that.
+                Contract.ThrowIfTrue(forceRegeneration);
 
                 var state = this.ReadState();
 

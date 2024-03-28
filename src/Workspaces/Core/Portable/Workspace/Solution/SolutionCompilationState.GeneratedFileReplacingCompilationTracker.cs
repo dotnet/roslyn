@@ -72,9 +72,9 @@ internal partial class SolutionCompilationState
             throw new NotImplementedException();
         }
 
-        public ICompilationTracker WithCreationPolicy(bool create, bool dropGeneratorDriver, CancellationToken cancellationToken)
+        public ICompilationTracker WithCreationPolicy(bool create, bool forceRegeneration, CancellationToken cancellationToken)
         {
-            var underlyingTracker = this.UnderlyingTracker.WithCreationPolicy(create, dropGeneratorDriver, cancellationToken);
+            var underlyingTracker = this.UnderlyingTracker.WithCreationPolicy(create, forceRegeneration, cancellationToken);
             return underlyingTracker == this.UnderlyingTracker
                 ? this
                 : new GeneratedFileReplacingCompilationTracker(underlyingTracker, _replacementDocumentStates);
