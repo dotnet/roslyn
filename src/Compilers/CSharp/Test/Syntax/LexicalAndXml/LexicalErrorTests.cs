@@ -572,6 +572,51 @@ public class MainClass
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 25));
         }
 
+        [Fact]
+        public void CS1035AtColonParsedAsComment_01()
+        {
+            var test = """
+                var x = @:;
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (1,9): error CS1056: Unexpected character '@'
+                // var x = @:;
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "@").WithArguments("@").WithLocation(1, 9),
+                // (1,12): error CS1733: Expected expression
+                // var x = @:;
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 12),
+                // (1,12): error CS1002: ; expected
+                // var x = @:;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 12));
+        }
+
+        [Fact]
+        public void CS1035AtColonParsedAsComment_02()
+        {
+            var test = """
+                @:<div>test</div>
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (1,1): error CS1056: Unexpected character '@'
+                // @:<div>test</div>
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "@").WithArguments("@").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void CS1035AtColonParsedAsComment_03()
+        {
+            var test = """
+                @: M() {}
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (1,1): error CS1056: Unexpected character '@'
+                // @: M() {}
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "@").WithArguments("@").WithLocation(1, 1));
+        }
+
         [Fact, WorkItem(526993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/526993")]
         public void CS1039ERR_UnterminatedStringLit()
         {
