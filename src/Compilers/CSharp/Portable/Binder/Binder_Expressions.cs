@@ -3339,7 +3339,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kind = result.ConversionForArg(arg);
                 BoundExpression argument = arguments[arg];
 
-                if (argument is not BoundArgListOperator && !argument.HasAnyErrors)
+                if (argument is BoundArgListOperator)
+                {
+                    Debug.Assert(kind.IsIdentity);
+                    Debug.Assert(!argument.NeedsToBeConverted());
+                    continue;
+                }
+                else if (!argument.HasAnyErrors)
                 {
                     var argRefKind = analyzedArguments.RefKind(arg);
 
@@ -3414,6 +3420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(result.ParamsElementTypeOpt.HasType);
                     Debug.Assert(result.ParamsElementTypeOpt.Type != (object)ErrorTypeSymbol.EmptyParamsCollectionElementTypeSentinel);
+                    Debug.Assert(argument.Kind is not (BoundKind.OutVariablePendingInference or BoundKind.OutDeconstructVarPendingInference or BoundKind.DiscardExpression));
 
                     if (!parameters[paramNum].Type.IsSZArray())
                     {
