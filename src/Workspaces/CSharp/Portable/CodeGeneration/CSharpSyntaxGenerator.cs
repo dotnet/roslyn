@@ -672,7 +672,9 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         => accessorList?.WithAccessors([.. accessorList.Accessors.Select(WithoutBody)]);
 
     private static AccessorDeclarationSyntax WithoutBody(AccessorDeclarationSyntax accessor)
-        => accessor.Body != null ? accessor.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)).WithBody(null) : accessor;
+        => accessor.Body != null ? accessor.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)).WithBody(null)
+            : accessor.ExpressionBody != null ? accessor.WithExpressionBody(null)
+            : accessor;
 
     private protected override SyntaxNode ClassDeclaration(
         bool isRecord,
@@ -800,7 +802,8 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
                     return ((MethodDeclarationSyntax)member)
                              .WithModifiers(default)
                              .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                             .WithBody(null);
+                             .WithBody(null)
+                             .WithExpressionBody(null);
 
                 case SyntaxKind.OperatorDeclaration:
                     var operatorDeclaration = (OperatorDeclarationSyntax)member;
