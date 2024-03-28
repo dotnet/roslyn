@@ -128,7 +128,6 @@ internal partial class SolutionCompilationState
             // know about but whose text contents are different.
             using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var documentsToAddOrUpdate);
             using var _2 = PooledDictionary<DocumentId, int>.GetInstance(out var documentIdToIndex);
-            using var _3 = PooledDictionary<DocumentId, DateTime>.GetInstance(out var updatedDateTimes);
 
             var infos = infosOpt.Value;
             foreach (var (documentIdentity, contentIdentity, generationDateTime) in infos)
@@ -142,9 +141,6 @@ internal partial class SolutionCompilationState
                 if (existingDocument?.Identity == documentIdentity &&
                     existingDocument.GetContentIdentity() == contentIdentity)
                 {
-                    if (existingDocument.GenerationDateTime != generationDateTime)
-                        updatedDateTimes.Add(documentId, generationDateTime);
-
                     continue;
                 }
 
@@ -157,7 +153,6 @@ internal partial class SolutionCompilationState
             // reuse the prior compilation.
             if (infos.Length == oldGeneratedDocuments.Count &&
                 documentsToAddOrUpdate.Count == 0 &&
-                updatedDateTimes.Count == 0 &&
                 compilationWithStaleGeneratedTrees != null &&
                 oldGeneratedDocuments.States.All(kvp => kvp.Value.ParseOptions.Equals(this.ProjectState.ParseOptions)))
             {
