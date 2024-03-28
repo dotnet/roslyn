@@ -441,14 +441,15 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 // is triggered and this will no-op.
                 var asyncToken = _fileManager._listener.BeginAsyncOperation($"{nameof(OpenSourceGeneratedFile)}.{nameof(OnWorkspaceChanged)}");
 
+                var cancellationToken = _cancellationTokenSource.Token;
                 Task.Run(async () =>
                 {
-                    if (await oldProject.GetDependentVersionAsync(_cancellationTokenSource.Token).ConfigureAwait(false) !=
-                        await newProject.GetDependentVersionAsync(_cancellationTokenSource.Token).ConfigureAwait(false))
+                    if (await oldProject.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false) !=
+                        await newProject.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false))
                     {
                         _batchingWorkQueue.AddWork();
                     }
-                }, _cancellationTokenSource.Token).CompletesAsyncOperation(asyncToken);
+                }, cancellationToken).CompletesAsyncOperation(asyncToken);
             }
         }
 
