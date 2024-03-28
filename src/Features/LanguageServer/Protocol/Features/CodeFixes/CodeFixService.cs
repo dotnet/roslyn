@@ -116,9 +116,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
             allDiagnostics = allDiagnostics.AddRange(copilotDiagnostics);
 
-            var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
-            allDiagnostics = allDiagnostics.AddRange(buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id));
-
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var spanToDiagnostics = ConvertToMap(text, allDiagnostics);
 
@@ -204,10 +201,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
             diagnostics = diagnostics.AddRange(copilotDiagnostics);
 
-            var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
-            var buildOnlyDiagnostics = buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id);
-
-            if (diagnostics.IsEmpty && buildOnlyDiagnostics.IsEmpty)
+            if (diagnostics.IsEmpty)
                 yield break;
 
             if (!diagnostics.IsEmpty)
@@ -231,7 +225,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (document.Project.Solution.WorkspaceKind != WorkspaceKind.Interactive && includeSuppressionFixes)
             {
                 // For build-only diagnostics, we support configuration/suppression fixes.
-                diagnostics = diagnostics.AddRange(buildOnlyDiagnostics);
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var spanToDiagnostics = ConvertToMap(text, diagnostics);
 
