@@ -3429,17 +3429,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                TypeWithAnnotations parameterTypeWithAnnotations = parameters[paramNum].TypeWithAnnotations;
-
-                BoundExpression coercedArgument = coerceArgument(in methodResult, receiver, parameters,argumentsForInterpolationConversion: arguments, argument, arg, parameterTypeWithAnnotations, diagnostics);
-
-                arguments[arg] = coercedArgument;
+                arguments[arg] = coerceArgument(in methodResult, receiver, parameters, argumentsForInterpolationConversion: arguments, argument, arg, parameters[paramNum].TypeWithAnnotations, diagnostics);
             }
 
             argsToParamsOpt = result.ArgsToParamsOpt;
 
             if (paramsArgsBuilder is not null)
             {
+                // Note, this call is going to free paramsArgsBuilder
                 createParamsCollection(node, in methodResult, receiver, parameters, analyzedArguments, firstParamsArgument, paramsArgsBuilder, ref argsToParamsOpt, diagnostics);
             }
 
@@ -3541,6 +3538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return paramsArgsBuilder;
             }
 
+            // Note, this function is going to free paramsArgsBuilder
             void createParamsCollection(
                 SyntaxNode node,
                 in MemberResolutionResult<TMember> methodResult,
@@ -3566,7 +3564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         paramsArgsBuilder[i] = coerceArgument(
                             in methodResult, receiver, parameters,
-                            argumentsForInterpolationConversion: null, // Do not use arguments for interpolations as param array elements
+                            argumentsForInterpolationConversion: null, // We do not use arguments for interpolations as param array elements
                             paramsArgsBuilder[i],
                             arg: firstParamsArgument + i,
                             paramsElementTypeOpt,
