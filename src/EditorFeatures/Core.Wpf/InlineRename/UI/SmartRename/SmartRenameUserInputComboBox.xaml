@@ -80,12 +80,15 @@
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="true">
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderHoverBrushKey}}"/>
-                        <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonHoverBrushKey}}"/>
+                        <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonFocusedBrushKey}}"/>
                     </Trigger>
                     <Trigger Property="IsKeyboardFocused" Value="true">
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderFocusedBrushKey}}"/>
                         <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonFocusedBrushKey}}"/>
                     </Trigger>
+                    <DataTrigger Binding="{Binding IsSuggestionsPanelExpanded}" Value="True">
+                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderPressedBrushKey}}"/>
+                    </DataTrigger>
                 </Style.Triggers>
             </Style>
         </ResourceDictionary>
@@ -166,6 +169,7 @@
                                 Grid.Column="1"
                                 Style="{StaticResource GetSuggestionButtonStyle}"
                                 ToolTip="{x:Static sr:SmartRenameViewModel.GetSuggestionsTooltip}"
+                                Click="GetSuggestionsButtonClick"
                                 Command="{Binding GetSuggestionsCommand}">
                     <Button.Content>
                         <Canvas Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -213,24 +217,26 @@
                         Visibility="{Binding IsUsingDropdown, Converter={StaticResource BooleanToCollapsedVisibilityConverter}, Mode=OneWay}">
                     <ProgressBar x:Name="ProgressBar"
                                  x:Uid="ProgressBar"
+                                 Height="2"
                                  Margin="{TemplateBinding BorderThickness}"
                                  IsIndeterminate="{Binding IsInProgress}"
                                  Visibility="{Binding IsInProgress, Converter={StaticResource BooleanToHiddenVisibilityConverter}, Mode=OneWay}"
+                                 Template="{DynamicResource {x:Static vsfx:VsResourceKeys.ProgressBarTemplateKey}}"
                                  Foreground="{StaticResource copilotBranding}"
                                  Background="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarMenuBackgroundGradientBeginKey}}" />
                 </Border>
-                <Border x:Name="panelBorder"
-                        x:Uid="panelBorder"
+                <Border x:Name="SuggestionsPanel"
+                        x:Uid="SuggestionsPanel"
                         Grid.Row="2"
                         Grid.Column="0"
                         Height="62"
-                        Visibility="{Binding IsUsingResultPanel, Converter={StaticResource BooleanToCollapsedVisibilityConverter}, Mode=OneWay}"
+                        Visibility="{Binding IsSuggestionsPanelExpanded, Converter={StaticResource BooleanToCollapsedVisibilityConverter}, Mode=OneWay}"
                         BorderBrush="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxPopupBorderBrushKey}}"
                         BorderThickness="1">
-                    <ScrollViewer x:Name="PanelScrollViewer"
-                        x:Uid="PanelScrollViewer">
-                        <Grid x:Name="panelGrid"
-                            x:Uid="panelGrid"
+                    <ScrollViewer x:Name="SuggestionsPanelScrollViewer"
+                        x:Uid="SuggestionsPanelScrollViewer">
+                        <Grid x:Name="SuggestionsPanelGrid"
+                            x:Uid="SuggestionsPanelGrid"
                             RenderOptions.ClearTypeHint="Enabled"
                             RenderOptions.BitmapScalingMode="{x:Static vsui:DpiHelper.BitmapScalingMode}"
                             Background="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxPopupBackgroundGradientBrushKey}}">
@@ -247,6 +253,8 @@
                                      x:Uid="PanelProgressBar"
                                      Margin="{TemplateBinding BorderThickness}"
                                      IsIndeterminate="{Binding IsInProgress}"
+                                     Height="2"
+                                     Template="{DynamicResource {x:Static vsfx:VsResourceKeys.ProgressBarTemplateKey}}"
                                      Foreground="{StaticResource copilotBranding}"
                                      Background="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxPopupBackgroundGradientBrushKey}}" />
                             </StackPanel>

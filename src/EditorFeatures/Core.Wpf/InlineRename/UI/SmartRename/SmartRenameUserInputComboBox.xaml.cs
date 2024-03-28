@@ -102,6 +102,22 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
         _dropDownPopup = (Popup)GetTemplateChild(DropDownPopup)!;
     }
 
+    private void GetSuggestionsButtonClick(object sender, RoutedEventArgs e)
+    {
+        if (_smartRenameViewModel.IsUsingResultPanel)
+        {
+            _smartRenameViewModel.IsSuggestionsPanelExpanded = !_smartRenameViewModel.IsSuggestionsPanelExpanded;
+            if (_smartRenameViewModel.IsSuggestionsPanelExpanded)
+            {
+                _smartRenameViewModel.GetSuggestionsCommand.Execute(null);
+            }
+        }
+        else
+        {
+            _smartRenameViewModel.GetSuggestionsCommand.Execute(null);
+        }
+    }
+
     private void ComboBox_Unloaded(object sender, RoutedEventArgs e)
     {
         _smartRenameViewModel.SuggestedNames.CollectionChanged -= SuggestedNames_CollectionChanged;
