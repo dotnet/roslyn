@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -43,7 +44,6 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
     private readonly IVsService<SVsInfoBarUIFactory, IVsInfoBarUIFactory> _vsInfoBarUIFactory;
     private readonly IVsService<SVsShell, IVsShell> _vsShell;
     private readonly IThreadingContext _threadingContext;
-    private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffinitizedObject;
     private readonly ITextDocumentFactoryService _textDocumentFactoryService;
     private readonly VisualStudioDocumentNavigationService _visualStudioDocumentNavigationService;
 
@@ -89,7 +89,6 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         _vsInfoBarUIFactory = vsInfoBarUIFactory;
         _vsShell = vsShell;
         _threadingContext = threadingContext;
-        _foregroundThreadAffinitizedObject = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
         _textDocumentFactoryService = textDocumentFactoryService;
         _temporaryDirectory = PathUtilities.EnsureTrailingSeparator(Path.Combine(Path.GetTempPath(), "VSGeneratedDocuments"));
         _visualStudioWorkspace = visualStudioWorkspace;
@@ -158,7 +157,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         string filePath,
         out SourceGeneratedDocumentIdentity identity)
     {
-        _foregroundThreadAffinitizedObject.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         identity = default;
 
@@ -188,7 +187,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 
     void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy)
     {
-        _foregroundThreadAffinitizedObject.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (TryGetGeneratedFileInformation(moniker, out var documentIdentity))
         {
@@ -216,7 +215,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 
     void IOpenTextBufferEventListener.OnCloseDocument(string moniker)
     {
-        _foregroundThreadAffinitizedObject.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (_openFiles.TryGetValue(moniker, out var openFile))
         {
