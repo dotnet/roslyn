@@ -20,47 +20,49 @@ public class PatternMatchingTests_ListPatterns : PatternMatchingTestBase
     [Fact]
     public void ListPattern()
     {
-        static string testMethod(string type) =>
-@"static bool Test(" + type + @" input)
-{
-    switch (input)
-    {
-        case []:
-        case [_]:
-          return true;
-        case [var first, ..var others, var last] when first == last:
-          return Test(others);
-        default:
-          return false;
-    }
-}";
-        var source = @"
-using System;
-public class X
-{
-    " + testMethod("Span<char>") + @"
-    " + testMethod("char[]") + @"
-    " + testMethod("string") + @"
-    static void Check(int num)
-    {
-        Console.Write(Test((string)num.ToString()) ? 1 : 0);
-        Console.Write(Test((char[])num.ToString().ToCharArray()) ? 1 : 0);
-        Console.Write(Test((Span<char>)num.ToString().ToCharArray()) ? 1 : 0);
-        Console.WriteLine();
-    }
-    public static void Main()
-    {
-        Check(1);
-        Check(11);
-        Check(12);
-        Check(123);
-        Check(121);
-        Check(1221);
-        Check(1222);
-    }
-}
-" + TestSources.GetSubArray;
-        var compilation = CreateCompilationWithIndexAndRangeAndSpan(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
+        static string testMethod(string type) => $$"""
+            static bool Test({{type}} input)
+            {
+                switch (input)
+                {
+                    case []:
+                    case [_]:
+                      return true;
+                    case [var first, ..var others, var last] when first == last:
+                      return Test(others);
+                    default:
+                      return false;
+                }
+            }
+            """;
+        var source = $$"""
+            using System;
+            public class X
+            {
+                {{testMethod("Span<char>")}}
+                {{testMethod("char[]")}}
+                {{testMethod("string")}}
+                static void Check(int num)
+                {
+                    Console.Write(Test((string)num.ToString()) ? 1 : 0);
+                    Console.Write(Test((char[])num.ToString().ToCharArray()) ? 1 : 0);
+                    Console.Write(Test((Span<char>)num.ToString().ToCharArray()) ? 1 : 0);
+                    Console.WriteLine();
+                }
+                public static void Main()
+                {
+                    Check(1);
+                    Check(11);
+                    Check(12);
+                    Check(123);
+                    Check(121);
+                    Check(1221);
+                    Check(1222);
+                }
+            }
+            """;
+
+        var compilation = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray }, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
         compilation.VerifyEmitDiagnostics();
         var expectedOutput = @"
 111
@@ -95,21 +97,21 @@ public class X
   IL_0018:  ldind.u2
   IL_0019:  stloc.0
   IL_001a:  ldloca.s   V_3
-  IL_001c:  ldc.i4.1
-  IL_001d:  ldloc.s    V_4
-  IL_001f:  ldc.i4.1
-  IL_0020:  sub
-  IL_0021:  ldc.i4.1
-  IL_0022:  sub
-  IL_0023:  call       ""System.Span<char> System.Span<char>.Slice(int, int)""
-  IL_0028:  stloc.1
-  IL_0029:  ldloca.s   V_3
-  IL_002b:  ldloc.s    V_4
-  IL_002d:  ldc.i4.1
-  IL_002e:  sub
-  IL_002f:  call       ""ref char System.Span<char>.this[int].get""
-  IL_0034:  ldind.u2
-  IL_0035:  stloc.2
+  IL_001c:  ldloc.s    V_4
+  IL_001e:  ldc.i4.1
+  IL_001f:  sub
+  IL_0020:  call       ""ref char System.Span<char>.this[int].get""
+  IL_0025:  ldind.u2
+  IL_0026:  stloc.2
+  IL_0027:  ldloca.s   V_3
+  IL_0029:  ldc.i4.1
+  IL_002a:  ldloc.s    V_4
+  IL_002c:  ldc.i4.1
+  IL_002d:  sub
+  IL_002e:  ldc.i4.1
+  IL_002f:  sub
+  IL_0030:  call       ""System.Span<char> System.Span<char>.Slice(int, int)""
+  IL_0035:  stloc.1
   IL_0036:  br.s       IL_003a
   IL_0038:  ldc.i4.1
   IL_0039:  ret
@@ -148,21 +150,21 @@ public class X
   IL_0011:  ldelem.u2
   IL_0012:  stloc.0
   IL_0013:  ldloc.3
-  IL_0014:  ldc.i4.1
-  IL_0015:  ldc.i4.0
-  IL_0016:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0014:  ldloc.s    V_4
+  IL_0016:  ldc.i4.1
+  IL_0017:  sub
+  IL_0018:  ldelem.u2
+  IL_0019:  stloc.2
+  IL_001a:  ldloc.3
   IL_001b:  ldc.i4.1
-  IL_001c:  ldc.i4.1
+  IL_001c:  ldc.i4.0
   IL_001d:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0022:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_0027:  call       ""char[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<char>(char[], System.Range)""
-  IL_002c:  stloc.1
-  IL_002d:  ldloc.3
-  IL_002e:  ldloc.s    V_4
-  IL_0030:  ldc.i4.1
-  IL_0031:  sub
-  IL_0032:  ldelem.u2
-  IL_0033:  stloc.2
+  IL_0022:  ldc.i4.1
+  IL_0023:  ldc.i4.1
+  IL_0024:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0029:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_002e:  call       ""char[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<char>(char[], System.Range)""
+  IL_0033:  stloc.1
   IL_0034:  br.s       IL_0038
   IL_0036:  ldc.i4.1
   IL_0037:  ret
@@ -200,20 +202,20 @@ public class X
   IL_0014:  callvirt   ""char string.this[int].get""
   IL_0019:  stloc.0
   IL_001a:  ldloc.3
-  IL_001b:  ldc.i4.1
-  IL_001c:  ldloc.s    V_4
-  IL_001e:  ldc.i4.1
-  IL_001f:  sub
-  IL_0020:  ldc.i4.1
-  IL_0021:  sub
-  IL_0022:  callvirt   ""string string.Substring(int, int)""
-  IL_0027:  stloc.1
-  IL_0028:  ldloc.3
-  IL_0029:  ldloc.s    V_4
+  IL_001b:  ldloc.s    V_4
+  IL_001d:  ldc.i4.1
+  IL_001e:  sub
+  IL_001f:  callvirt   ""char string.this[int].get""
+  IL_0024:  stloc.2
+  IL_0025:  ldloc.3
+  IL_0026:  ldc.i4.1
+  IL_0027:  ldloc.s    V_4
+  IL_0029:  ldc.i4.1
+  IL_002a:  sub
   IL_002b:  ldc.i4.1
   IL_002c:  sub
-  IL_002d:  callvirt   ""char string.this[int].get""
-  IL_0032:  stloc.2
+  IL_002d:  callvirt   ""string string.Substring(int, int)""
+  IL_0032:  stloc.1
   IL_0033:  br.s       IL_0037
   IL_0035:  ldc.i4.1
   IL_0036:  ret
@@ -8914,6 +8916,1143 @@ public static class Extension
             // (2,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 1000 }' is not covered.
             // _ = a switch { { Length: < 1000 } => 0 };
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 1000 }").WithLocation(2, 7));
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    [InlineData("var")]
+    [InlineData("string[]")]
+    public void SlicePattern_DeclarationPatternOfSameTypeInBetween_Array_CodeGen(string typeSpecifier)
+    {
+        var source = $$"""
+            class C
+            {
+                string[] M(string[] s)
+                {
+                    if (s is ["(", ..{{typeSpecifier}} between, ")"])
+                    {
+                        return between;
+                    }
+
+                    return null;
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan([source, TestSources.GetSubArray]);
+        comp.VerifyEmitDiagnostics();
+
+        CompileAndVerify(comp).VerifyIL("C.M", """
+            {
+              // Code size       73 (0x49)
+              .maxstack  4
+              .locals init (string[] V_0, //between
+                            int V_1)
+              IL_0000:  ldarg.1
+              IL_0001:  brfalse.s  IL_0047
+              IL_0003:  ldarg.1
+              IL_0004:  ldlen
+              IL_0005:  conv.i4
+              IL_0006:  stloc.1
+              IL_0007:  ldloc.1
+              IL_0008:  ldc.i4.2
+              IL_0009:  blt.s      IL_0047
+              IL_000b:  ldarg.1
+              IL_000c:  ldc.i4.0
+              IL_000d:  ldelem.ref
+              IL_000e:  ldstr      "("
+              IL_0013:  call       "bool string.op_Equality(string, string)"
+              IL_0018:  brfalse.s  IL_0047
+              IL_001a:  ldarg.1
+              IL_001b:  ldloc.1
+              IL_001c:  ldc.i4.1
+              IL_001d:  sub
+              IL_001e:  ldelem.ref
+              IL_001f:  ldstr      ")"
+              IL_0024:  call       "bool string.op_Equality(string, string)"
+              IL_0029:  brfalse.s  IL_0047
+              IL_002b:  ldarg.1
+              IL_002c:  ldc.i4.1
+              IL_002d:  ldc.i4.0
+              IL_002e:  newobj     "System.Index..ctor(int, bool)"
+              IL_0033:  ldc.i4.1
+              IL_0034:  ldc.i4.1
+              IL_0035:  newobj     "System.Index..ctor(int, bool)"
+              IL_003a:  newobj     "System.Range..ctor(System.Index, System.Index)"
+              IL_003f:  call       "string[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<string>(string[], System.Range)"
+              IL_0044:  stloc.0
+              IL_0045:  ldloc.0
+              IL_0046:  ret
+              IL_0047:  ldnull
+              IL_0048:  ret
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    public void SlicePattern_DeclarationPatternOfNarrowedTypeInBetween_Array_CodeGen()
+    {
+        var source = """
+            class C
+            {
+                string[] M(object[] s)
+                {
+                    if (s is ["(", ..string[] between, ")"])
+                    {
+                        return between;
+                    }
+
+                    return null;
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan([source, TestSources.GetSubArray]);
+        comp.VerifyEmitDiagnostics();
+
+        CompileAndVerify(comp).VerifyIL("C.M", """
+            {
+              // Code size      101 (0x65)
+              .maxstack  4
+              .locals init (string[] V_0, //between
+                            int V_1,
+                            string V_2,
+                            string V_3)
+              IL_0000:  ldarg.1
+              IL_0001:  brfalse.s  IL_0063
+              IL_0003:  ldarg.1
+              IL_0004:  ldlen
+              IL_0005:  conv.i4
+              IL_0006:  stloc.1
+              IL_0007:  ldloc.1
+              IL_0008:  ldc.i4.2
+              IL_0009:  blt.s      IL_0063
+              IL_000b:  ldarg.1
+              IL_000c:  ldc.i4.0
+              IL_000d:  ldelem.ref
+              IL_000e:  isinst     "string"
+              IL_0013:  stloc.2
+              IL_0014:  ldloc.2
+              IL_0015:  brfalse.s  IL_0063
+              IL_0017:  ldloc.2
+              IL_0018:  ldstr      "("
+              IL_001d:  call       "bool string.op_Equality(string, string)"
+              IL_0022:  brfalse.s  IL_0063
+              IL_0024:  ldarg.1
+              IL_0025:  ldc.i4.1
+              IL_0026:  ldc.i4.0
+              IL_0027:  newobj     "System.Index..ctor(int, bool)"
+              IL_002c:  ldc.i4.1
+              IL_002d:  ldc.i4.1
+              IL_002e:  newobj     "System.Index..ctor(int, bool)"
+              IL_0033:  newobj     "System.Range..ctor(System.Index, System.Index)"
+              IL_0038:  call       "object[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<object>(object[], System.Range)"
+              IL_003d:  isinst     "string[]"
+              IL_0042:  stloc.0
+              IL_0043:  ldloc.0
+              IL_0044:  brfalse.s  IL_0063
+              IL_0046:  ldarg.1
+              IL_0047:  ldloc.1
+              IL_0048:  ldc.i4.1
+              IL_0049:  sub
+              IL_004a:  ldelem.ref
+              IL_004b:  isinst     "string"
+              IL_0050:  stloc.3
+              IL_0051:  ldloc.3
+              IL_0052:  brfalse.s  IL_0063
+              IL_0054:  ldloc.3
+              IL_0055:  ldstr      ")"
+              IL_005a:  call       "bool string.op_Equality(string, string)"
+              IL_005f:  brfalse.s  IL_0063
+              IL_0061:  ldloc.0
+              IL_0062:  ret
+              IL_0063:  ldnull
+              IL_0064:  ret
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    [InlineData("var")]
+    [InlineData("string")]
+    public void SlicePattern_DeclarationPatternOfSameTypeInBetween_String_CodeGen(string typeSpecifier)
+    {
+        var source = $$"""
+            class C
+            {
+                string M(string s)
+                {
+                    if (s is ['(', ..{{typeSpecifier}} between, ')'])
+                    {
+                        return between;
+                    }
+
+                    return null;
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source);
+        comp.VerifyEmitDiagnostics();
+
+        CompileAndVerify(comp).VerifyIL("C.M", """
+            {
+              // Code size       55 (0x37)
+              .maxstack  4
+              .locals init (string V_0, //between
+                            int V_1)
+              IL_0000:  ldarg.1
+              IL_0001:  brfalse.s  IL_0035
+              IL_0003:  ldarg.1
+              IL_0004:  callvirt   "int string.Length.get"
+              IL_0009:  stloc.1
+              IL_000a:  ldloc.1
+              IL_000b:  ldc.i4.2
+              IL_000c:  blt.s      IL_0035
+              IL_000e:  ldarg.1
+              IL_000f:  ldc.i4.0
+              IL_0010:  callvirt   "char string.this[int].get"
+              IL_0015:  ldc.i4.s   40
+              IL_0017:  bne.un.s   IL_0035
+              IL_0019:  ldarg.1
+              IL_001a:  ldloc.1
+              IL_001b:  ldc.i4.1
+              IL_001c:  sub
+              IL_001d:  callvirt   "char string.this[int].get"
+              IL_0022:  ldc.i4.s   41
+              IL_0024:  bne.un.s   IL_0035
+              IL_0026:  ldarg.1
+              IL_0027:  ldc.i4.1
+              IL_0028:  ldloc.1
+              IL_0029:  ldc.i4.1
+              IL_002a:  sub
+              IL_002b:  ldc.i4.1
+              IL_002c:  sub
+              IL_002d:  callvirt   "string string.Substring(int, int)"
+              IL_0032:  stloc.0
+              IL_0033:  ldloc.0
+              IL_0034:  ret
+              IL_0035:  ldnull
+              IL_0036:  ret
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    [InlineData("var")]
+    [InlineData("ReadOnlySpan<string>")]
+    public void SlicePattern_DeclarationPatternOfSameTypeInBetween_ReadOnlySpan_CodeGen(string typeSpecifier)
+    {
+        var source = $$"""
+            using System;
+
+            class C
+            {
+                ReadOnlySpan<string> M(ReadOnlySpan<string> s)
+                {
+                    if (s is ["(", ..{{typeSpecifier}} between, ")"])
+                    {
+                        return between;
+                    }
+
+                    return default;
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan([source, TestSources.GetSubArray]);
+        comp.VerifyEmitDiagnostics();
+
+        CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyIL("C.M", """
+            {
+              // Code size       82 (0x52)
+              .maxstack  4
+              .locals init (System.ReadOnlySpan<string> V_0, //between
+                            int V_1,
+                            System.ReadOnlySpan<string> V_2)
+              IL_0000:  ldarga.s   V_1
+              IL_0002:  call       "int System.ReadOnlySpan<string>.Length.get"
+              IL_0007:  stloc.1
+              IL_0008:  ldloc.1
+              IL_0009:  ldc.i4.2
+              IL_000a:  blt.s      IL_0048
+              IL_000c:  ldarga.s   V_1
+              IL_000e:  ldc.i4.0
+              IL_000f:  call       "ref readonly string System.ReadOnlySpan<string>.this[int].get"
+              IL_0014:  ldind.ref
+              IL_0015:  ldstr      "("
+              IL_001a:  call       "bool string.op_Equality(string, string)"
+              IL_001f:  brfalse.s  IL_0048
+              IL_0021:  ldarga.s   V_1
+              IL_0023:  ldloc.1
+              IL_0024:  ldc.i4.1
+              IL_0025:  sub
+              IL_0026:  call       "ref readonly string System.ReadOnlySpan<string>.this[int].get"
+              IL_002b:  ldind.ref
+              IL_002c:  ldstr      ")"
+              IL_0031:  call       "bool string.op_Equality(string, string)"
+              IL_0036:  brfalse.s  IL_0048
+              IL_0038:  ldarga.s   V_1
+              IL_003a:  ldc.i4.1
+              IL_003b:  ldloc.1
+              IL_003c:  ldc.i4.1
+              IL_003d:  sub
+              IL_003e:  ldc.i4.1
+              IL_003f:  sub
+              IL_0040:  call       "System.ReadOnlySpan<string> System.ReadOnlySpan<string>.Slice(int, int)"
+              IL_0045:  stloc.0
+              IL_0046:  ldloc.0
+              IL_0047:  ret
+              IL_0048:  ldloca.s   V_2
+              IL_004a:  initobj    "System.ReadOnlySpan<string>"
+              IL_0050:  ldloc.2
+              IL_0051:  ret
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    public void SlicePattern_DeclarationPatternOfSameTypeInBetween_CustomTypeWithSideEffects()
+    {
+        var source = """
+            using System;
+
+            class C
+            {
+                public int Count
+                {
+                    get
+                    {
+                        Console.WriteLine("Count");
+                        return 2;
+                    }
+                }
+
+                public int this[int i]
+                {
+                    get
+                    {
+                        Console.WriteLine($"Indexer: {i}");
+                        return i == 0 ? 1 : 2;
+                    }
+                }
+
+                public int Slice(int i, int j)
+                {
+                    Console.WriteLine("Slice");
+                    return 1;
+                }
+            }
+
+            class Program
+            {
+                private static int Test1(C c)
+                {
+                    if (c is [1, ..var sliceVal, 2])
+                    {
+                        return sliceVal;
+                    }
+
+                    return 0;
+                }
+
+                private static int Test2(C c)
+                {
+                    if (c is [1, ..var sliceVal, 3])
+                    {
+                        return sliceVal;
+                    }
+            
+                    return 0;
+                }
+
+                static void Main()
+                {
+                    Console.WriteLine(Test1(new()));
+                    Console.WriteLine(Test2(new()));
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
+        comp.VerifyEmitDiagnostics();
+
+        var expectedOutput = """
+            Count
+            Indexer: 0
+            Indexer: 1
+            Slice
+            1
+            Count
+            Indexer: 0
+            Indexer: 1
+            0
+            """;
+
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyIL("Program.Test1", """
+            {
+              // Code size       53 (0x35)
+              .maxstack  4
+              .locals init (int V_0, //sliceVal
+                            int V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  brfalse.s  IL_0033
+              IL_0003:  ldarg.0
+              IL_0004:  callvirt   "int C.Count.get"
+              IL_0009:  stloc.1
+              IL_000a:  ldloc.1
+              IL_000b:  ldc.i4.2
+              IL_000c:  blt.s      IL_0033
+              IL_000e:  ldarg.0
+              IL_000f:  ldc.i4.0
+              IL_0010:  callvirt   "int C.this[int].get"
+              IL_0015:  ldc.i4.1
+              IL_0016:  bne.un.s   IL_0033
+              IL_0018:  ldarg.0
+              IL_0019:  ldloc.1
+              IL_001a:  ldc.i4.1
+              IL_001b:  sub
+              IL_001c:  callvirt   "int C.this[int].get"
+              IL_0021:  ldc.i4.2
+              IL_0022:  bne.un.s   IL_0033
+              IL_0024:  ldarg.0
+              IL_0025:  ldc.i4.1
+              IL_0026:  ldloc.1
+              IL_0027:  ldc.i4.1
+              IL_0028:  sub
+              IL_0029:  ldc.i4.1
+              IL_002a:  sub
+              IL_002b:  callvirt   "int C.Slice(int, int)"
+              IL_0030:  stloc.0
+              IL_0031:  ldloc.0
+              IL_0032:  ret
+              IL_0033:  ldc.i4.0
+              IL_0034:  ret
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    [InlineData("var")]
+    [InlineData("string[]")]
+    public void SlicePattern_FirstDeclarationPatternOfSameType_Array_CodeGen(string typeSpecifier)
+    {
+        var source = $$"""
+            class C
+            {
+                string[] M(string[] s)
+                {
+                    if (s is [..{{typeSpecifier}} start, ")"])
+                    {
+                        return start;
+                    }
+
+                    return null;
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan([source, TestSources.GetSubArray]);
+        comp.VerifyEmitDiagnostics();
+
+        CompileAndVerify(comp).VerifyIL("C.M", """
+            {
+              // Code size       58 (0x3a)
+              .maxstack  4
+              .locals init (string[] V_0, //start
+                            int V_1)
+              IL_0000:  ldarg.1
+              IL_0001:  brfalse.s  IL_0038
+              IL_0003:  ldarg.1
+              IL_0004:  ldlen
+              IL_0005:  conv.i4
+              IL_0006:  stloc.1
+              IL_0007:  ldloc.1
+              IL_0008:  ldc.i4.1
+              IL_0009:  blt.s      IL_0038
+              IL_000b:  ldarg.1
+              IL_000c:  ldloc.1
+              IL_000d:  ldc.i4.1
+              IL_000e:  sub
+              IL_000f:  ldelem.ref
+              IL_0010:  ldstr      ")"
+              IL_0015:  call       "bool string.op_Equality(string, string)"
+              IL_001a:  brfalse.s  IL_0038
+              IL_001c:  ldarg.1
+              IL_001d:  ldc.i4.0
+              IL_001e:  ldc.i4.0
+              IL_001f:  newobj     "System.Index..ctor(int, bool)"
+              IL_0024:  ldc.i4.1
+              IL_0025:  ldc.i4.1
+              IL_0026:  newobj     "System.Index..ctor(int, bool)"
+              IL_002b:  newobj     "System.Range..ctor(System.Index, System.Index)"
+              IL_0030:  call       "string[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<string>(string[], System.Range)"
+              IL_0035:  stloc.0
+              IL_0036:  ldloc.0
+              IL_0037:  ret
+              IL_0038:  ldnull
+              IL_0039:  ret
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    public void SlicePattern_FirstDeclarationPatternOfNarrowedType_Array_CodeGen()
+    {
+        var source = """
+            class C
+            {
+                string[] M(object[] s)
+                {
+                    if (s is [..string[] start, ")"])
+                    {
+                        return start;
+                    }
+
+                    return null;
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan([source, TestSources.GetSubArray]);
+        comp.VerifyEmitDiagnostics();
+
+        CompileAndVerify(comp).VerifyIL("C.M", """
+            {
+              // Code size       76 (0x4c)
+              .maxstack  4
+              .locals init (string[] V_0, //start
+                            int V_1,
+                            string V_2)
+              IL_0000:  ldarg.1
+              IL_0001:  brfalse.s  IL_004a
+              IL_0003:  ldarg.1
+              IL_0004:  ldlen
+              IL_0005:  conv.i4
+              IL_0006:  stloc.1
+              IL_0007:  ldloc.1
+              IL_0008:  ldc.i4.1
+              IL_0009:  blt.s      IL_004a
+              IL_000b:  ldarg.1
+              IL_000c:  ldc.i4.0
+              IL_000d:  ldc.i4.0
+              IL_000e:  newobj     "System.Index..ctor(int, bool)"
+              IL_0013:  ldc.i4.1
+              IL_0014:  ldc.i4.1
+              IL_0015:  newobj     "System.Index..ctor(int, bool)"
+              IL_001a:  newobj     "System.Range..ctor(System.Index, System.Index)"
+              IL_001f:  call       "object[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<object>(object[], System.Range)"
+              IL_0024:  isinst     "string[]"
+              IL_0029:  stloc.0
+              IL_002a:  ldloc.0
+              IL_002b:  brfalse.s  IL_004a
+              IL_002d:  ldarg.1
+              IL_002e:  ldloc.1
+              IL_002f:  ldc.i4.1
+              IL_0030:  sub
+              IL_0031:  ldelem.ref
+              IL_0032:  isinst     "string"
+              IL_0037:  stloc.2
+              IL_0038:  ldloc.2
+              IL_0039:  brfalse.s  IL_004a
+              IL_003b:  ldloc.2
+              IL_003c:  ldstr      ")"
+              IL_0041:  call       "bool string.op_Equality(string, string)"
+              IL_0046:  brfalse.s  IL_004a
+              IL_0048:  ldloc.0
+              IL_0049:  ret
+              IL_004a:  ldnull
+              IL_004b:  ret
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    [InlineData("var")]
+    [InlineData("string")]
+    public void SlicePattern_FirstDeclarationPatternOfSameType_String_CodeGen(string typeSpecifier)
+    {
+        var source = $$"""
+            class C
+            {
+                string M(string s)
+                {
+                    if (s is [..{{typeSpecifier}} start, ')'])
+                    {
+                        return start;
+                    }
+
+                    return null;
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source);
+        comp.VerifyEmitDiagnostics();
+
+        CompileAndVerify(comp).VerifyIL("C.M", """
+            {
+              // Code size       42 (0x2a)
+              .maxstack  4
+              .locals init (string V_0, //start
+                            int V_1)
+              IL_0000:  ldarg.1
+              IL_0001:  brfalse.s  IL_0028
+              IL_0003:  ldarg.1
+              IL_0004:  callvirt   "int string.Length.get"
+              IL_0009:  stloc.1
+              IL_000a:  ldloc.1
+              IL_000b:  ldc.i4.1
+              IL_000c:  blt.s      IL_0028
+              IL_000e:  ldarg.1
+              IL_000f:  ldloc.1
+              IL_0010:  ldc.i4.1
+              IL_0011:  sub
+              IL_0012:  callvirt   "char string.this[int].get"
+              IL_0017:  ldc.i4.s   41
+              IL_0019:  bne.un.s   IL_0028
+              IL_001b:  ldarg.1
+              IL_001c:  ldc.i4.0
+              IL_001d:  ldloc.1
+              IL_001e:  ldc.i4.1
+              IL_001f:  sub
+              IL_0020:  callvirt   "string string.Substring(int, int)"
+              IL_0025:  stloc.0
+              IL_0026:  ldloc.0
+              IL_0027:  ret
+              IL_0028:  ldnull
+              IL_0029:  ret
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    [InlineData("var")]
+    [InlineData("ReadOnlySpan<string>")]
+    public void SlicePattern_FirstDeclarationPatternOfSameType_ReadOnlySpan_CodeGen(string typeSpecifier)
+    {
+        var source = $$"""
+            using System;
+
+            class C
+            {
+                ReadOnlySpan<string> M(ReadOnlySpan<string> s)
+                {
+                    if (s is [..{{typeSpecifier}} start, ")"])
+                    {
+                        return start;
+                    }
+
+                    return default;
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan([source, TestSources.GetSubArray]);
+        comp.VerifyEmitDiagnostics();
+
+        CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyIL("C.M", """
+            {
+              // Code size       59 (0x3b)
+              .maxstack  4
+              .locals init (System.ReadOnlySpan<string> V_0, //start
+                            int V_1,
+                            System.ReadOnlySpan<string> V_2)
+              IL_0000:  ldarga.s   V_1
+              IL_0002:  call       "int System.ReadOnlySpan<string>.Length.get"
+              IL_0007:  stloc.1
+              IL_0008:  ldloc.1
+              IL_0009:  ldc.i4.1
+              IL_000a:  blt.s      IL_0031
+              IL_000c:  ldarga.s   V_1
+              IL_000e:  ldloc.1
+              IL_000f:  ldc.i4.1
+              IL_0010:  sub
+              IL_0011:  call       "ref readonly string System.ReadOnlySpan<string>.this[int].get"
+              IL_0016:  ldind.ref
+              IL_0017:  ldstr      ")"
+              IL_001c:  call       "bool string.op_Equality(string, string)"
+              IL_0021:  brfalse.s  IL_0031
+              IL_0023:  ldarga.s   V_1
+              IL_0025:  ldc.i4.0
+              IL_0026:  ldloc.1
+              IL_0027:  ldc.i4.1
+              IL_0028:  sub
+              IL_0029:  call       "System.ReadOnlySpan<string> System.ReadOnlySpan<string>.Slice(int, int)"
+              IL_002e:  stloc.0
+              IL_002f:  ldloc.0
+              IL_0030:  ret
+              IL_0031:  ldloca.s   V_2
+              IL_0033:  initobj    "System.ReadOnlySpan<string>"
+              IL_0039:  ldloc.2
+              IL_003a:  ret
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    public void SlicePattern_FirstDeclarationPatternOfSameType_CustomTypeWithSideEffects()
+    {
+        var source = """
+            using System;
+
+            class C
+            {
+                public int Count
+                {
+                    get
+                    {
+                        Console.WriteLine("Count");
+                        return 2;
+                    }
+                }
+
+                public int this[int i]
+                {
+                    get
+                    {
+                        Console.WriteLine($"Indexer: {i}");
+                        return i == 0 ? 1 : 2;
+                    }
+                }
+
+                public int Slice(int i, int j)
+                {
+                    Console.WriteLine("Slice");
+                    return 1;
+                }
+            }
+
+            class Program
+            {
+                private static int Test1(C c)
+                {
+                    if (c is [..var sliceVal, 2])
+                    {
+                        return sliceVal;
+                    }
+
+                    return 0;
+                }
+
+                private static int Test2(C c)
+                {
+                    if (c is [..var sliceVal, 3])
+                    {
+                        return sliceVal;
+                    }
+            
+                    return 0;
+                }
+
+                static void Main()
+                {
+                    Console.WriteLine(Test1(new()));
+                    Console.WriteLine(Test2(new()));
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
+        comp.VerifyEmitDiagnostics();
+
+        var expectedOutput = """
+            Count
+            Indexer: 1
+            Slice
+            1
+            Count
+            Indexer: 1
+            0
+            """;
+
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyIL("Program.Test1", """
+            {
+              // Code size       41 (0x29)
+              .maxstack  4
+              .locals init (int V_0, //sliceVal
+                            int V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  brfalse.s  IL_0027
+              IL_0003:  ldarg.0
+              IL_0004:  callvirt   "int C.Count.get"
+              IL_0009:  stloc.1
+              IL_000a:  ldloc.1
+              IL_000b:  ldc.i4.1
+              IL_000c:  blt.s      IL_0027
+              IL_000e:  ldarg.0
+              IL_000f:  ldloc.1
+              IL_0010:  ldc.i4.1
+              IL_0011:  sub
+              IL_0012:  callvirt   "int C.this[int].get"
+              IL_0017:  ldc.i4.2
+              IL_0018:  bne.un.s   IL_0027
+              IL_001a:  ldarg.0
+              IL_001b:  ldc.i4.0
+              IL_001c:  ldloc.1
+              IL_001d:  ldc.i4.1
+              IL_001e:  sub
+              IL_001f:  callvirt   "int C.Slice(int, int)"
+              IL_0024:  stloc.0
+              IL_0025:  ldloc.0
+              IL_0026:  ret
+              IL_0027:  ldc.i4.0
+              IL_0028:  ret
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    [InlineData("var")]
+    [InlineData("string[]")]
+    public void SlicePattern_LastDeclarationPatternOfSameType_Array_CodeGen(string typeSpecifier)
+    {
+        var source = $$"""
+            class C
+            {
+                string[] M(string[] s)
+                {
+                    if (s is ["(", ..{{typeSpecifier}} end])
+                    {
+                        return end;
+                    }
+
+                    return null;
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan([source, TestSources.GetSubArray]);
+        comp.VerifyEmitDiagnostics();
+
+        CompileAndVerify(comp).VerifyIL("C.M", """
+            {
+              // Code size       54 (0x36)
+              .maxstack  4
+              .locals init (string[] V_0) //end
+              IL_0000:  ldarg.1
+              IL_0001:  brfalse.s  IL_0034
+              IL_0003:  ldarg.1
+              IL_0004:  ldlen
+              IL_0005:  conv.i4
+              IL_0006:  ldc.i4.1
+              IL_0007:  blt.s      IL_0034
+              IL_0009:  ldarg.1
+              IL_000a:  ldc.i4.0
+              IL_000b:  ldelem.ref
+              IL_000c:  ldstr      "("
+              IL_0011:  call       "bool string.op_Equality(string, string)"
+              IL_0016:  brfalse.s  IL_0034
+              IL_0018:  ldarg.1
+              IL_0019:  ldc.i4.1
+              IL_001a:  ldc.i4.0
+              IL_001b:  newobj     "System.Index..ctor(int, bool)"
+              IL_0020:  ldc.i4.0
+              IL_0021:  ldc.i4.1
+              IL_0022:  newobj     "System.Index..ctor(int, bool)"
+              IL_0027:  newobj     "System.Range..ctor(System.Index, System.Index)"
+              IL_002c:  call       "string[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<string>(string[], System.Range)"
+              IL_0031:  stloc.0
+              IL_0032:  ldloc.0
+              IL_0033:  ret
+              IL_0034:  ldnull
+              IL_0035:  ret
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    public void SlicePattern_LastDeclarationPatternOfNarrowedType_Array_CodeGen()
+    {
+        var source = """
+            class C
+            {
+                string[] M(object[] s)
+                {
+                    if (s is ["(", ..string[] end])
+                    {
+                        return end;
+                    }
+
+                    return null;
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan([source, TestSources.GetSubArray]);
+        comp.VerifyEmitDiagnostics();
+
+        CompileAndVerify(comp).VerifyIL("C.M", """
+            {
+              // Code size       72 (0x48)
+              .maxstack  4
+              .locals init (string[] V_0, //end
+                            string V_1)
+              IL_0000:  ldarg.1
+              IL_0001:  brfalse.s  IL_0046
+              IL_0003:  ldarg.1
+              IL_0004:  ldlen
+              IL_0005:  conv.i4
+              IL_0006:  ldc.i4.1
+              IL_0007:  blt.s      IL_0046
+              IL_0009:  ldarg.1
+              IL_000a:  ldc.i4.0
+              IL_000b:  ldelem.ref
+              IL_000c:  isinst     "string"
+              IL_0011:  stloc.1
+              IL_0012:  ldloc.1
+              IL_0013:  brfalse.s  IL_0046
+              IL_0015:  ldloc.1
+              IL_0016:  ldstr      "("
+              IL_001b:  call       "bool string.op_Equality(string, string)"
+              IL_0020:  brfalse.s  IL_0046
+              IL_0022:  ldarg.1
+              IL_0023:  ldc.i4.1
+              IL_0024:  ldc.i4.0
+              IL_0025:  newobj     "System.Index..ctor(int, bool)"
+              IL_002a:  ldc.i4.0
+              IL_002b:  ldc.i4.1
+              IL_002c:  newobj     "System.Index..ctor(int, bool)"
+              IL_0031:  newobj     "System.Range..ctor(System.Index, System.Index)"
+              IL_0036:  call       "object[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<object>(object[], System.Range)"
+              IL_003b:  isinst     "string[]"
+              IL_0040:  stloc.0
+              IL_0041:  ldloc.0
+              IL_0042:  brfalse.s  IL_0046
+              IL_0044:  ldloc.0
+              IL_0045:  ret
+              IL_0046:  ldnull
+              IL_0047:  ret
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    [InlineData("var")]
+    [InlineData("string")]
+    public void SlicePattern_LastDeclarationPatternOfSameType_String_CodeGen(string typeSpecifier)
+    {
+        var source = $$"""
+            class C
+            {
+                string M(string s)
+                {
+                    if (s is ['(', ..{{typeSpecifier}} end])
+                    {
+                        return end;
+                    }
+
+                    return null;
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source);
+        comp.VerifyEmitDiagnostics();
+
+        CompileAndVerify(comp).VerifyIL("C.M", """
+            {
+              // Code size       40 (0x28)
+              .maxstack  4
+              .locals init (string V_0, //end
+                            int V_1)
+              IL_0000:  ldarg.1
+              IL_0001:  brfalse.s  IL_0026
+              IL_0003:  ldarg.1
+              IL_0004:  callvirt   "int string.Length.get"
+              IL_0009:  stloc.1
+              IL_000a:  ldloc.1
+              IL_000b:  ldc.i4.1
+              IL_000c:  blt.s      IL_0026
+              IL_000e:  ldarg.1
+              IL_000f:  ldc.i4.0
+              IL_0010:  callvirt   "char string.this[int].get"
+              IL_0015:  ldc.i4.s   40
+              IL_0017:  bne.un.s   IL_0026
+              IL_0019:  ldarg.1
+              IL_001a:  ldc.i4.1
+              IL_001b:  ldloc.1
+              IL_001c:  ldc.i4.1
+              IL_001d:  sub
+              IL_001e:  callvirt   "string string.Substring(int, int)"
+              IL_0023:  stloc.0
+              IL_0024:  ldloc.0
+              IL_0025:  ret
+              IL_0026:  ldnull
+              IL_0027:  ret
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    [InlineData("var")]
+    [InlineData("ReadOnlySpan<string>")]
+    public void SlicePattern_LastDeclarationPatternOfSameType_ReadOnlySpan_CodeGen(string typeSpecifier)
+    {
+        var source = $$"""
+            using System;
+
+            class C
+            {
+                ReadOnlySpan<string> M(ReadOnlySpan<string> s)
+                {
+                    if (s is ["(", ..{{typeSpecifier}} end])
+                    {
+                        return end;
+                    }
+
+                    return default;
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan([source, TestSources.GetSubArray]);
+        comp.VerifyEmitDiagnostics();
+
+        CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyIL("C.M", """
+            {
+              // Code size       57 (0x39)
+              .maxstack  4
+              .locals init (System.ReadOnlySpan<string> V_0, //end
+                            int V_1,
+                            System.ReadOnlySpan<string> V_2)
+              IL_0000:  ldarga.s   V_1
+              IL_0002:  call       "int System.ReadOnlySpan<string>.Length.get"
+              IL_0007:  stloc.1
+              IL_0008:  ldloc.1
+              IL_0009:  ldc.i4.1
+              IL_000a:  blt.s      IL_002f
+              IL_000c:  ldarga.s   V_1
+              IL_000e:  ldc.i4.0
+              IL_000f:  call       "ref readonly string System.ReadOnlySpan<string>.this[int].get"
+              IL_0014:  ldind.ref
+              IL_0015:  ldstr      "("
+              IL_001a:  call       "bool string.op_Equality(string, string)"
+              IL_001f:  brfalse.s  IL_002f
+              IL_0021:  ldarga.s   V_1
+              IL_0023:  ldc.i4.1
+              IL_0024:  ldloc.1
+              IL_0025:  ldc.i4.1
+              IL_0026:  sub
+              IL_0027:  call       "System.ReadOnlySpan<string> System.ReadOnlySpan<string>.Slice(int, int)"
+              IL_002c:  stloc.0
+              IL_002d:  ldloc.0
+              IL_002e:  ret
+              IL_002f:  ldloca.s   V_2
+              IL_0031:  initobj    "System.ReadOnlySpan<string>"
+              IL_0037:  ldloc.2
+              IL_0038:  ret
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60091")]
+    public void SlicePattern_LastDeclarationPatternOfSameType_CustomTypeWithSideEffects()
+    {
+        var source = """
+            using System;
+
+            class C
+            {
+                public int Count
+                {
+                    get
+                    {
+                        Console.WriteLine("Count");
+                        return 2;
+                    }
+                }
+
+                public int this[int i]
+                {
+                    get
+                    {
+                        Console.WriteLine($"Indexer: {i}");
+                        return i == 0 ? 1 : 2;
+                    }
+                }
+
+                public int Slice(int i, int j)
+                {
+                    Console.WriteLine("Slice");
+                    return 1;
+                }
+            }
+
+            class Program
+            {
+                private static int Test1(C c)
+                {
+                    if (c is [1, ..var sliceVal])
+                    {
+                        return sliceVal;
+                    }
+
+                    return 0;
+                }
+
+                private static int Test2(C c)
+                {
+                    if (c is [2, ..var sliceVal])
+                    {
+                        return sliceVal;
+                    }
+            
+                    return 0;
+                }
+
+                static void Main()
+                {
+                    Console.WriteLine(Test1(new()));
+                    Console.WriteLine(Test2(new()));
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
+        comp.VerifyEmitDiagnostics();
+
+        var expectedOutput = """
+            Count
+            Indexer: 0
+            Slice
+            1
+            Count
+            Indexer: 0
+            0
+            """;
+
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyIL("Program.Test1", """
+            {
+              // Code size       39 (0x27)
+              .maxstack  4
+              .locals init (int V_0, //sliceVal
+                            int V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  brfalse.s  IL_0025
+              IL_0003:  ldarg.0
+              IL_0004:  callvirt   "int C.Count.get"
+              IL_0009:  stloc.1
+              IL_000a:  ldloc.1
+              IL_000b:  ldc.i4.1
+              IL_000c:  blt.s      IL_0025
+              IL_000e:  ldarg.0
+              IL_000f:  ldc.i4.0
+              IL_0010:  callvirt   "int C.this[int].get"
+              IL_0015:  ldc.i4.1
+              IL_0016:  bne.un.s   IL_0025
+              IL_0018:  ldarg.0
+              IL_0019:  ldc.i4.1
+              IL_001a:  ldloc.1
+              IL_001b:  ldc.i4.1
+              IL_001c:  sub
+              IL_001d:  callvirt   "int C.Slice(int, int)"
+              IL_0022:  stloc.0
+              IL_0023:  ldloc.0
+              IL_0024:  ret
+              IL_0025:  ldc.i4.0
+              IL_0026:  ret
+            }
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71660")]
