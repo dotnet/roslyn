@@ -144,7 +144,7 @@
   <data name="Argument_AddingDuplicateWithKey" xml:space="preserve">
     <value>An item with the same key has already been added. Key: {0}</value>
   </data>
-  <data name="Argument_InvalidArrayType" xml:space="preserve">
+  <data name="Argument_IncompatibleArrayType" xml:space="preserve">
     <value>Target array type is not compatible with the type of items in the collection.</value>
   </data>
   <data name="Argument_InvalidOffLen" xml:space="preserve">
@@ -159,7 +159,7 @@
   <data name="ArgumentOutOfRange_Count" xml:space="preserve">
     <value>Count must be positive and count must refer to a location within the string/array/collection.</value>
   </data>
-  <data name="ArgumentOutOfRange_Index" xml:space="preserve">
+  <data name="ArgumentOutOfRange_IndexMustBeLess" xml:space="preserve">
     <value>Index was out of range. Must be non-negative and less than the size of the collection.</value>
   </data>
   <data name="ArgumentOutOfRange_ListInsert" xml:space="preserve">
@@ -203,5 +203,8 @@
   </data>
   <data name="CannotFindOldValue" xml:space="preserve">
     <value>Cannot find the old value</value>
+  </data>
+  <data name="ArgumentOutOfRange_IndexMustBeLessOrEqual" xml:space="preserve">
+    <value>Index was out of range. Must be non-negative and less than or equal to the size of the collection.</value>
   </data>
 </root>

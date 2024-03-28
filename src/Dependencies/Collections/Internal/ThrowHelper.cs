@@ -57,10 +57,17 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         }
 
         [DoesNotReturn]
-        internal static void ThrowArgumentOutOfRange_IndexException()
+        internal static void ThrowArgumentOutOfRange_IndexMustBeLessException()
         {
             throw GetArgumentOutOfRangeException(ExceptionArgument.index,
-                                                    ExceptionResource.ArgumentOutOfRange_Index);
+                                                    ExceptionResource.ArgumentOutOfRange_IndexMustBeLess);
+        }
+
+        [DoesNotReturn]
+        internal static void ThrowArgumentOutOfRange_IndexMustBeLessOrEqualException()
+        {
+            throw GetArgumentOutOfRangeException(ExceptionArgument.index,
+                                                    ExceptionResource.ArgumentOutOfRange_IndexMustBeLessOrEqual);
         }
 
         [DoesNotReturn]
@@ -84,10 +91,17 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         }
 
         [DoesNotReturn]
-        internal static void ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_Index()
+        internal static void ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_IndexMustBeLessOrEqual()
         {
             throw GetArgumentOutOfRangeException(ExceptionArgument.startIndex,
-                                                    ExceptionResource.ArgumentOutOfRange_Index);
+                                                    ExceptionResource.ArgumentOutOfRange_IndexMustBeLessOrEqual);
+        }
+
+        [DoesNotReturn]
+        internal static void ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_IndexMustBeLess()
+        {
+            throw GetArgumentOutOfRangeException(ExceptionArgument.startIndex,
+                                                    ExceptionResource.ArgumentOutOfRange_IndexMustBeLess);
         }
 
         [DoesNotReturn]
@@ -172,9 +186,9 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         }
 
         [DoesNotReturn]
-        internal static void ThrowArgumentException_Argument_InvalidArrayType()
+        internal static void ThrowArgumentException_Argument_IncompatibleArrayType()
         {
-            throw new ArgumentException(SR.Argument_InvalidArrayType);
+            throw new ArgumentException(SR.Argument_IncompatibleArrayType);
         }
 
         [DoesNotReturn]
@@ -283,8 +297,10 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         {
             switch (resource)
             {
-                case ExceptionResource.ArgumentOutOfRange_Index:
-                    return SR.ArgumentOutOfRange_Index;
+                case ExceptionResource.ArgumentOutOfRange_IndexMustBeLessOrEqual:
+                    return SR.ArgumentOutOfRange_IndexMustBeLessOrEqual;
+                case ExceptionResource.ArgumentOutOfRange_IndexMustBeLess:
+                    return SR.ArgumentOutOfRange_IndexMustBeLess;
                 case ExceptionResource.ArgumentOutOfRange_Count:
                     return SR.ArgumentOutOfRange_Count;
                 case ExceptionResource.Arg_ArrayPlusOffTooSmall:
@@ -347,7 +363,8 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
     //
     internal enum ExceptionResource
     {
-        ArgumentOutOfRange_Index,
+        ArgumentOutOfRange_IndexMustBeLessOrEqual,
+        ArgumentOutOfRange_IndexMustBeLess,
         ArgumentOutOfRange_Count,
         Arg_ArrayPlusOffTooSmall,
         Arg_RankMultiDimNotSupported,

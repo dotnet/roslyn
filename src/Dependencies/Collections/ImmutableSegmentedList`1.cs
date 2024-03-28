@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Collections
             // Following trick can reduce the number of range comparison operations by one
             if (unchecked((uint)index) >= (uint)self.Count)
             {
-                ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+                ThrowHelper.ThrowArgumentOutOfRange_IndexMustBeLessException();
             }
 
             return ref self._list._items[index];
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Collections
             var self = this;
 
             if (index < 0)
-                ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+                ThrowHelper.ThrowIndexArgumentOutOfRange_NeedNonNegNumException();
             if (count < 0 || count > self.Count)
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.count);
             if (index - count + 1 < 0)
