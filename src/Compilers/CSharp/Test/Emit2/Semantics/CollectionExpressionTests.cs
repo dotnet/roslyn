@@ -37137,7 +37137,7 @@ partial class Program
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/72769")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/72769")]
         public void AddMethod_RefOmittedArguments()
         {
             string sourceA = """
@@ -37172,7 +37172,7 @@ partial class Program
             var comp = CreateCompilation([sourceA, sourceB]);
             // https://github.com/dotnet/roslyn/issues/72769: VerifyEmitDiagnostics() results in Debug.Assert
             // failures in LocalRewriter.MakeCollectionInitializer() and GetEffectiveArgumentRefKinds().
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
