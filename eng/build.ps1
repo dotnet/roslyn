@@ -45,7 +45,6 @@ param (
   [switch]$warnAsError = $false,
   [switch]$sourceBuild = $false,
   [switch]$oop64bit = $true,
-  [switch]$oopCoreClr = $false,
   [switch]$lspEditor = $false,
 
   # official build settings
