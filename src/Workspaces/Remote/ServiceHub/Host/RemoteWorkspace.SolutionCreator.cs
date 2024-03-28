@@ -102,10 +102,8 @@ namespace Microsoft.CodeAnalysis.Remote
                             var documentStateChecksums = await _assetProvider.GetAssetAsync<DocumentStateChecksums>(
                                 assetHint: AssetHint.None, newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value.Checksums[i], cancellationToken).ConfigureAwait(false);
 
-                            var serializableSourceText = await _assetProvider.GetAssetAsync<SerializableSourceText>(assetHint: newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value.Ids[i], documentStateChecksums.Text, cancellationToken).ConfigureAwait(false);
-
                             var generationDateTime = newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentGenerationDateTimes[i];
-                            var text = await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                            var text = await _assetProvider.GetAssetAsync<SourceText>(assetHint: newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value.Ids[i], documentStateChecksums.Text, cancellationToken).ConfigureAwait(false);
                             frozenDocuments.Add((identity, generationDateTime, text));
                         }
 
@@ -573,9 +571,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // changed text
                 if (oldDocumentChecksums.Text != newDocumentChecksums.Text)
                 {
-                    var serializableSourceText = await _assetProvider.GetAssetAsync<SerializableSourceText>(
+                    var sourceText = await _assetProvider.GetAssetAsync<SourceText>(
                         assetHint: document.Id, newDocumentChecksums.Text, cancellationToken).ConfigureAwait(false);
-                    var sourceText = await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                     document = document.Kind switch
                     {

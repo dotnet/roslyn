@@ -500,7 +500,7 @@ internal sealed class DocumentStateChecksums(
 
         if (searchingChecksumsLeft.Remove(Text))
         {
-            result[Text] = await SerializableSourceText.FromTextDocumentStateAsync(state, cancellationToken).ConfigureAwait(false);
+            result[Text] = await state.GetTextAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

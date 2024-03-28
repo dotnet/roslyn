@@ -17,5 +17,4 @@ public interface ITemporaryStorageService : IWorkspaceService
 internal interface ITemporaryStorageServiceInternal : IWorkspaceService
 {
     ITemporaryStreamStorageInternal CreateTemporaryStreamStorage();
-    ITemporaryTextStorageInternal CreateTemporaryTextStorage();
 }

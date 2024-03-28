@@ -83,8 +83,8 @@ internal partial class SerializerService : ISerializerService
                 case WellKnownSynchronizationKind.AnalyzerReference:
                     return CreateChecksum((AnalyzerReference)value, cancellationToken);
 
-                case WellKnownSynchronizationKind.SerializableSourceText:
-                    return Checksum.Create(((SerializableSourceText)value).ContentHash);
+                case WellKnownSynchronizationKind.SourceText:
+                    return Checksum.Create(((SourceText)value).GetContentHash());
 
                 default:
                     // object that is not part of solution is not supported since we don't know what inputs are required to
@@ -141,8 +141,8 @@ internal partial class SerializerService : ISerializerService
                     SerializeAnalyzerReference((AnalyzerReference)value, writer, cancellationToken: cancellationToken);
                     return;
 
-                case WellKnownSynchronizationKind.SerializableSourceText:
-                    SerializeSourceText((SerializableSourceText)value, writer, context, cancellationToken);
+                case WellKnownSynchronizationKind.SourceText:
+                    SerializeSourceText((SourceText)value, writer, cancellationToken);
                     return;
 
                 case WellKnownSynchronizationKind.SolutionCompilationState:
@@ -195,7 +195,7 @@ internal partial class SerializerService : ISerializerService
                 WellKnownSynchronizationKind.ProjectReference => DeserializeProjectReference(reader, cancellationToken),
                 WellKnownSynchronizationKind.MetadataReference => DeserializeMetadataReference(reader, cancellationToken),
                 WellKnownSynchronizationKind.AnalyzerReference => DeserializeAnalyzerReference(reader, cancellationToken),
-                WellKnownSynchronizationKind.SerializableSourceText => SerializableSourceText.Deserialize(reader, _storageService, _textService, cancellationToken),
+                WellKnownSynchronizationKind.SourceText => DeserializeSourceText(reader, cancellationToken),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
         }

@@ -49,9 +49,6 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
     /// <seealso cref="_weakFileReference"/>
     private const long MultiFileBlockSize = SingleFileThreshold * 32;
 
-    private readonly IWorkspaceThreadingService? _workspaceThreadingService;
-    private readonly ITextFactoryService _textFactory;
-
     /// <summary>
     /// The synchronization object for accessing the memory mapped file related fields (indicated in the remarks
     /// of each field).
@@ -96,18 +93,9 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
     private long _offset;
 
     [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-    private TemporaryStorageService(IWorkspaceThreadingService? workspaceThreadingService, ITextFactoryService textFactory)
+    private TemporaryStorageService()
     {
-        _workspaceThreadingService = workspaceThreadingService;
-        _textFactory = textFactory;
     }
-
-    public ITemporaryTextStorageInternal CreateTemporaryTextStorage()
-        => new TemporaryTextStorage(this);
-
-    public TemporaryTextStorage AttachTemporaryTextStorage(
-        string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, ImmutableArray<byte> contentHash)
-        => new(this, storageName, offset, size, checksumAlgorithm, encoding, contentHash);
 
     ITemporaryStreamStorageInternal ITemporaryStorageServiceInternal.CreateTemporaryStreamStorage()
         => CreateTemporaryStreamStorage();
@@ -167,156 +155,6 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
 
     public static string CreateUniqueName(long size)
         => "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
-
-    public sealed class TemporaryTextStorage : ITemporaryTextStorageInternal, ITemporaryStorageWithName
-    {
-        private readonly TemporaryStorageService _service;
-        private SourceHashAlgorithm _checksumAlgorithm;
-        private Encoding? _encoding;
-        private ImmutableArray<byte> _contentHash;
-        private MemoryMappedInfo? _memoryMappedInfo;
-
-        public TemporaryTextStorage(TemporaryStorageService service)
-            => _service = service;
-
-        public TemporaryTextStorage(
-            TemporaryStorageService service,
-            string storageName,
-            long offset,
-            long size,
-            SourceHashAlgorithm checksumAlgorithm,
-            Encoding? encoding,
-            ImmutableArray<byte> contentHash)
-        {
-            _service = service;
-            _checksumAlgorithm = checksumAlgorithm;
-            _encoding = encoding;
-            _contentHash = contentHash;
-            _memoryMappedInfo = new MemoryMappedInfo(storageName, offset, size);
-        }
-
-        // TODO: cleanup https://github.com/dotnet/roslyn/issues/43037
-        // Offset, Size not accessed if Name is null
-        public string? Name => _memoryMappedInfo?.Name;
-        public long Offset => _memoryMappedInfo!.Offset;
-        public long Size => _memoryMappedInfo!.Size;
-
-        /// <summary>
-        /// Gets the value for the <see cref="SourceText.ChecksumAlgorithm"/> property for the <see cref="SourceText"/>
-        /// represented by this temporary storage.
-        /// </summary>
-        public SourceHashAlgorithm ChecksumAlgorithm => _checksumAlgorithm;
-
-        /// <summary>
-        /// Gets the value for the <see cref="SourceText.Encoding"/> property for the <see cref="SourceText"/>
-        /// represented by this temporary storage.
-        /// </summary>
-        public Encoding? Encoding => _encoding;
-
-        /// <summary>
-        /// Gets the checksum for the <see cref="SourceText"/> represented by this temporary storage. This is equivalent
-        /// to calling <see cref="SourceText.GetContentHash"/>.
-        /// </summary>
-        public ImmutableArray<byte> ContentHash => _contentHash;
-
-        public void Dispose()
-        {
-            // Destructors of SafeHandle and FileStream in MemoryMappedFile
-            // will eventually release resources if this Dispose is not called
-            // explicitly
-            _memoryMappedInfo?.Dispose();
-
-            _memoryMappedInfo = null;
-            _encoding = null;
-            _contentHash = default;
-        }
-
-        public SourceText ReadText(CancellationToken cancellationToken)
-        {
-            if (_memoryMappedInfo == null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_ReadText, cancellationToken))
-            {
-                using var stream = _memoryMappedInfo.CreateReadableStream();
-                using var reader = CreateTextReaderFromTemporaryStorage(stream);
-
-                // we pass in encoding we got from original source text even if it is null.
-                return _service._textFactory.CreateText(reader, _encoding, _checksumAlgorithm, cancellationToken);
-            }
-        }
-
-        public async Task<SourceText> ReadTextAsync(CancellationToken cancellationToken)
-        {
-            // There is a reason for implementing it like this: proper async implementation
-            // that reads the underlying memory mapped file stream in an asynchronous fashion
-            // doesn't actually work. Windows doesn't offer
-            // any non-blocking way to read from a memory mapped file; the underlying memcpy
-            // may block as the memory pages back in and that's something you have to live
-            // with. Therefore, any implementation that attempts to use async will still
-            // always be blocking at least one threadpool thread in the memcpy in the case
-            // of a page fault. Therefore, if we're going to be blocking a thread, we should
-            // just block one thread and do the whole thing at once vs. a fake "async"
-            // implementation which will continue to requeue work back to the thread pool.
-            if (_service._workspaceThreadingService is { IsOnMainThread: true })
-            {
-                await Task.Yield().ConfigureAwait(false);
-                cancellationToken.ThrowIfCancellationRequested();
-            }
-
-            return ReadText(cancellationToken);
-        }
-
-        public void WriteText(SourceText text, CancellationToken cancellationToken)
-        {
-            if (_memoryMappedInfo != null)
-            {
-                throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
-            }
-
-            using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteText, cancellationToken))
-            {
-                _checksumAlgorithm = text.ChecksumAlgorithm;
-                _encoding = text.Encoding;
-                _contentHash = text.GetContentHash();
-
-                // the method we use to get text out of SourceText uses Unicode (2bytes per char). 
-                var size = Encoding.Unicode.GetMaxByteCount(text.Length);
-                _memoryMappedInfo = _service.CreateTemporaryStorage(size);
-
-                // Write the source text out as Unicode. We expect that to be cheap.
-                using var stream = _memoryMappedInfo.CreateWritableStream();
-                using var writer = new StreamWriter(stream, Encoding.Unicode);
-
-                text.Write(writer, cancellationToken);
-            }
-        }
-
-        public async Task WriteTextAsync(SourceText text, CancellationToken cancellationToken)
-        {
-            // See commentary in ReadTextAsync for why this is implemented this way.
-            if (_service._workspaceThreadingService is { IsOnMainThread: true })
-            {
-                await Task.Yield().ConfigureAwait(false);
-                cancellationToken.ThrowIfCancellationRequested();
-            }
-
-            WriteText(text, cancellationToken);
-        }
-
-        private static unsafe TextReader CreateTextReaderFromTemporaryStorage(UnmanagedMemoryStream stream)
-        {
-            var src = (char*)stream.PositionPointer;
-
-            // BOM: Unicode, little endian
-            // Skip the BOM when creating the reader
-            Debug.Assert(*src == 0xFEFF);
-
-            return new DirectMemoryAccessStreamReader(src + 1, (int)stream.Length / sizeof(char) - 1);
-        }
-    }
 
     internal sealed class TemporaryStreamStorage : ITemporaryStreamStorageInternal, ITemporaryStorageWithName
     {

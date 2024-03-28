@@ -73,50 +73,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 expectedEncoding: Encoding.UTF8);
         }
 
-        [Fact]
-        public async Task TestCreateFromTemporaryStorage()
-        {
-            using var workspace = new AdhocWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
-
-            var temporaryStorageService = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
-
-            var text = SourceText.From("Hello, World!");
-
-            // Create a temporary storage location
-            using var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
-            // Write text into it
-            await temporaryStorage.WriteTextAsync(text);
-
-            // Read text back from it
-            var text2 = await temporaryStorage.ReadTextAsync();
-
-            Assert.NotSame(text, text2);
-            Assert.Equal(text.ToString(), text2.ToString());
-            Assert.Null(text2.Encoding);
-        }
-
-        [Fact]
-        public async Task TestCreateFromTemporaryStorageWithEncoding()
-        {
-            using var workspace = new AdhocWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
-
-            var temporaryStorageService = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
-
-            var text = SourceText.From("Hello, World!", Encoding.ASCII);
-
-            // Create a temporary storage location
-            using var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
-            // Write text into it
-            await temporaryStorage.WriteTextAsync(text);
-
-            // Read text back from it
-            var text2 = await temporaryStorage.ReadTextAsync();
-
-            Assert.NotSame(text, text2);
-            Assert.Equal(text.ToString(), text2.ToString());
-            Assert.Equal(text2.Encoding, Encoding.ASCII);
-        }
-
         private static void TestCreateTextInferredEncoding(ITextFactoryService textFactoryService, byte[] bytes, Encoding? defaultEncoding, Encoding expectedEncoding)
         {
             using var stream = new MemoryStream(bytes);

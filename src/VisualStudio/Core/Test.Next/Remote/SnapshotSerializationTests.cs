@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var serializer = document.Project.Solution.Services.GetService<ISerializerService>();
 
             var text = await document.GetTextAsync().ConfigureAwait(false);
-            var source = serializer.CreateChecksum(new SerializableSourceText(text, text.GetContentHash()), CancellationToken.None);
+            var source = serializer.CreateChecksum(text, CancellationToken.None);
             var metadata = serializer.CreateChecksum(new MissingMetadataReference(), CancellationToken.None);
             var analyzer = serializer.CreateChecksum(new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing"), new MissingAnalyzerLoader()), CancellationToken.None);
 
@@ -608,42 +608,40 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             // test with right serializable encoding
             var sourceText = SourceText.From("Hello", Encoding.UTF8);
-            var serializableSourceText = new SerializableSourceText(sourceText, sourceText.GetContentHash());
             using (var stream = SerializableBytes.CreateWritableStream())
             {
                 using var context = new SolutionReplicationContext();
 
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(serializableSourceText, objectWriter, context, CancellationToken.None);
+                    serializer.Serialize(sourceText, objectWriter, context, CancellationToken.None);
                 }
 
                 stream.Position = 0;
 
                 using var objectReader = ObjectReader.TryGetReader(stream);
 
-                var newText = (SerializableSourceText)serializer.Deserialize(serializableSourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
-                Assert.Equal(sourceText.ToString(), newText.GetText(CancellationToken.None).ToString());
+                var newText = (SourceText)serializer.Deserialize(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                Assert.Equal(sourceText.ToString(), newText.ToString());
             }
 
             // test with wrong encoding that doesn't support serialization
             sourceText = SourceText.From("Hello", new NotSerializableEncoding());
-            serializableSourceText = new SerializableSourceText(sourceText, sourceText.GetContentHash());
             using (var stream = SerializableBytes.CreateWritableStream())
             {
                 using var context = new SolutionReplicationContext();
 
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(serializableSourceText, objectWriter, context, CancellationToken.None);
+                    serializer.Serialize(sourceText, objectWriter, context, CancellationToken.None);
                 }
 
                 stream.Position = 0;
 
                 using var objectReader = ObjectReader.TryGetReader(stream);
 
-                var newText = (SerializableSourceText)serializer.Deserialize(serializableSourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
-                Assert.Equal(sourceText.ToString(), newText.GetText(CancellationToken.None).ToString());
+                var newText = (SourceText)serializer.Deserialize(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                Assert.Equal(sourceText.ToString(), newText.ToString());
             }
         }
 
