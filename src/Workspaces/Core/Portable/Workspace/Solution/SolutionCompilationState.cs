@@ -192,6 +192,38 @@ internal sealed partial class SolutionCompilationState
             projectIdToTrackerMap: newTrackerMap);
     }
 
+    private SolutionCompilationState ForceForkUsingTranslations(
+        SolutionState newSolutionState,
+        IEnumerable<TranslationAction> translationActions)
+    {
+        var projectIds = translationActions.SelectAsArray(a => a.NewProjectState.Id);
+        var newDependencyGraph = newSolutionState.GetProjectDependencyGraph();
+
+        var newTrackerMap = CreateCompilationTrackerMap(
+            projectIds,
+            newDependencyGraph,
+            static (trackerMap, translationActions) =>
+            {
+                foreach (var action in translationActions)
+                {
+                    var projectId = action.NewProjectState.Id;
+
+                    // If we have a tracker for this project, then fork it as well (along with the
+                    // translation action and store it in the tracker map.
+                    if (trackerMap.TryGetValue(projectId, out var tracker))
+                    {
+                        trackerMap[projectId] = tracker.Fork(action.NewProjectState, action);
+                    }
+                }
+            },
+            translationActions,
+            skipEmptyCallback: true);
+
+        return this.Branch(
+            newSolutionState,
+            projectIdToTrackerMap: newTrackerMap);
+    }
+
     /// <summary>
     /// Creates a mapping of <see cref="ProjectId"/> to <see cref="ICompilationTracker"/>
     /// </summary>
@@ -1372,7 +1404,7 @@ internal sealed partial class SolutionCompilationState
             currentState = currentState.AddDocumentsToMultipleProjects(
                 // Do a SelectAsArray here to ensure that we realize the array once, and as such only call things like
                 // ToImmutableAndFree once per ArrayBuilder.
-                missingDocumentStates.SelectAsArray(kvp => (kvp.Key, kvp.Value.ToImmutableAndFree())),
+                missingDocumentStates.SelectAsArray(kvp => new KeyValuePair<ProjectId, ImmutableArray<DocumentState>>(kvp.Key, kvp.Value.ToImmutableAndFree())),
                 static (oldProjectState, newDocumentStates) =>
                     new TranslationAction.AddDocumentsAction(oldProjectState, oldProjectState.AddDocuments(newDocumentStates), newDocumentStates));
 
@@ -1441,44 +1473,45 @@ internal sealed partial class SolutionCompilationState
         if (documentInfos.IsEmpty)
             return this;
 
-        // The documents might be contributing to multiple different projects; split them by project and then we'll
-        // process one project at a time.
-        return AddDocumentsToMultipleProjects(
-            documentInfos.GroupBy(d => d.Id.ProjectId).Select(g =>
+        var documentInfosByProjectId = documentInfos.ToMultiDictionary(
+            static d => d.Id.ProjectId,
+            d =>
             {
-                var projectId = g.Key;
+                var projectId = d.Id.ProjectId;
                 this.SolutionState.CheckContainsProject(projectId);
                 var projectState = this.SolutionState.GetRequiredProjectState(projectId);
-                return (projectId, newDocumentStates: g.SelectAsArray(di => createDocumentState(di, projectState)));
-            }),
+                return createDocumentState(d, projectState);
+            });
+
+        return AddDocumentsToMultipleProjects(
+            documentInfosByProjectId,
             addDocumentsToProjectState);
     }
 
     private SolutionCompilationState AddDocumentsToMultipleProjects<TDocumentState>(
-        IEnumerable<(ProjectId projectId, ImmutableArray<TDocumentState> newDocumentStates)> projectIdAndNewDocuments,
+        IEnumerable<KeyValuePair<ProjectId, ImmutableArray<TDocumentState>>> projectIdAndNewDocuments,
         Func<ProjectState, ImmutableArray<TDocumentState>, TranslationAction> addDocumentsToProjectState)
         where TDocumentState : TextDocumentState
     {
-        var newCompilationState = this;
+        using var _1 = ArrayBuilder<TranslationAction>.GetInstance(out var translationActions);
+        using var _2 = ArrayBuilder<TDocumentState>.GetInstance(out var allAddedDocumentStates);
 
         foreach (var (projectId, newDocumentStates) in projectIdAndNewDocuments)
         {
-            var oldProjectState = newCompilationState.SolutionState.GetRequiredProjectState(projectId);
+            var oldProjectState = this.SolutionState.GetRequiredProjectState(projectId);
             var compilationTranslationAction = addDocumentsToProjectState(oldProjectState, newDocumentStates);
-            var newProjectState = compilationTranslationAction.NewProjectState;
 
-            var stateChange = newCompilationState.SolutionState.ForkProject(
-                oldProjectState,
-                newProjectState,
-                // intentionally accessing this.Solution here not newSolutionState
-                newFilePathToDocumentIdsMap: this.SolutionState.CreateFilePathToDocumentIdsMapWithAddedDocuments(newDocumentStates));
-
-            newCompilationState = newCompilationState.ForkProject(
-                stateChange,
-                static (_, compilationTranslationAction) => compilationTranslationAction,
-                forkTracker: true,
-                arg: compilationTranslationAction);
+            allAddedDocumentStates.AddRange(newDocumentStates);
+            translationActions.Add(compilationTranslationAction);
         }
+
+        var newSolutionState = this.SolutionState.ForkProjects(
+            translationActions.Select(a => a.NewProjectState),
+            newFilePathToDocumentIdsMap: this.SolutionState.CreateFilePathToDocumentIdsMapWithAddedDocuments(allAddedDocumentStates));
+
+        var newCompilationState = ForceForkUsingTranslations(
+            newSolutionState,
+            translationActions);
 
         return newCompilationState;
     }
@@ -1496,43 +1529,43 @@ internal sealed partial class SolutionCompilationState
 
         // The documents might be contributing to multiple different projects; split them by project and then we'll process
         // project-at-a-time.
-        var documentIdsByProjectId = documentIds.ToLookup(id => id.ProjectId);
+        var documentIdsByProjectId = documentIds.ToMultiDictionary(id => id.ProjectId);
 
-        var newCompilationState = this;
+        using var _1 = ArrayBuilder<TranslationAction>.GetInstance(documentIdsByProjectId.Count, out var translationActions);
+        using var _2 = ArrayBuilder<T>.GetInstance(documentIds.Length, out var allRemovedDocumentStates);
 
-        foreach (var documentIdsInProject in documentIdsByProjectId)
+        foreach (var (projectId, documentIdsInProject) in documentIdsByProjectId)
         {
-            var oldProjectState = this.SolutionState.GetProjectState(documentIdsInProject.Key);
+            var oldProjectState = this.SolutionState.GetProjectState(projectId);
 
             if (oldProjectState == null)
             {
-                throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentIdsInProject.Key));
+                throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, projectId));
             }
 
-            using var _ = ArrayBuilder<T>.GetInstance(out var removedDocumentStates);
+            using var _3 = ArrayBuilder<T>.GetInstance(documentIdsInProject.Length, out var removedDocumentStates);
 
             foreach (var documentId in documentIdsInProject)
             {
-                removedDocumentStates.Add(getExistingTextDocumentState(oldProjectState, documentId));
+                var removedDocumentState = getExistingTextDocumentState(oldProjectState, documentId);
+                removedDocumentStates.Add(removedDocumentState);
+                allRemovedDocumentStates.Add(removedDocumentState);
             }
 
             var removedDocumentStatesForProject = removedDocumentStates.ToImmutable();
 
-            var compilationTranslationAction = removeDocumentsFromProjectState(oldProjectState, documentIdsInProject.ToImmutableArray(), removedDocumentStatesForProject);
-            var newProjectState = compilationTranslationAction.NewProjectState;
+            var compilationTranslationAction = removeDocumentsFromProjectState(oldProjectState, documentIdsInProject, removedDocumentStatesForProject);
 
-            var stateChange = newCompilationState.SolutionState.ForkProject(
-                oldProjectState,
-                newProjectState,
-                // Intentionally using this.Solution here and not newSolutionState
-                newFilePathToDocumentIdsMap: this.SolutionState.CreateFilePathToDocumentIdsMapWithRemovedDocuments(removedDocumentStatesForProject));
-
-            newCompilationState = newCompilationState.ForkProject(
-                stateChange,
-                static (_, compilationTranslationAction) => compilationTranslationAction,
-                forkTracker: true,
-                arg: compilationTranslationAction);
+            translationActions.Add(compilationTranslationAction);
         }
+
+        var newSolutionState = this.SolutionState.ForkProjects(
+            translationActions.Select(a => a.NewProjectState),
+            newFilePathToDocumentIdsMap: this.SolutionState.CreateFilePathToDocumentIdsMapWithRemovedDocuments(allRemovedDocumentStates));
+
+        var newCompilationState = ForceForkUsingTranslations(
+            newSolutionState,
+            translationActions);
 
         return newCompilationState;
     }

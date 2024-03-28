@@ -752,6 +752,21 @@ namespace Roslyn.Utilities
             return dictionary;
         }
 
+        internal static Dictionary<TKey, ImmutableArray<TValue>> ToMultiDictionary<TKey, TValue, TData>(this IEnumerable<TData> data, Func<TData, TKey> keySelector, Func<TData, TValue> valueSelector, IEqualityComparer<TKey>? comparer = null)
+            where TKey : notnull
+            where TValue : notnull
+        {
+            var dictionary = new Dictionary<TKey, ImmutableArray<TValue>>(comparer);
+            var groups = data.GroupBy(keySelector, comparer);
+            foreach (var grouping in groups)
+            {
+                var items = grouping.SelectAsArray(data => valueSelector(data));
+                dictionary.Add(grouping.Key, items);
+            }
+
+            return dictionary;
+        }
+
         /// <summary>
         /// Returns the only element of specified sequence if it has exactly one, and default(TSource) otherwise.
         /// Unlike <see cref="Enumerable.SingleOrDefault{TSource}(IEnumerable{TSource})"/> doesn't throw if there is more than one element in the sequence.

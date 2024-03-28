@@ -1176,6 +1176,30 @@ internal sealed partial class SolutionState
         return new(newSolutionState, oldProjectState, newProjectState);
     }
 
+    public SolutionState ForkProjects(
+        IEnumerable<ProjectState> newProjectStates,
+        ProjectDependencyGraph? newDependencyGraph = null,
+        FilePathToDocumentIdsMap? newFilePathToDocumentIdsMap = null)
+    {
+        var newStateMap = _projectIdToProjectStateMap;
+        foreach (var newProjectState in newProjectStates)
+        {
+            var projectId = newProjectState.Id;
+
+            Contract.ThrowIfFalse(_projectIdToProjectStateMap.ContainsKey(projectId));
+            newStateMap = newStateMap.SetItem(projectId, newProjectState);
+        }
+
+        newDependencyGraph ??= _dependencyGraph;
+
+        var newSolutionState = this.Branch(
+            idToProjectStateMap: newStateMap,
+            dependencyGraph: newDependencyGraph,
+            filePathToDocumentIdsMap: newFilePathToDocumentIdsMap ?? _filePathToDocumentIdsMap);
+
+        return newSolutionState;
+    }
+
     /// <summary>
     /// Gets the set of <see cref="DocumentId"/>s in this <see cref="Solution"/> with a
     /// <see cref="TextDocument.FilePath"/> that matches the given file path.
