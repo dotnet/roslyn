@@ -33,6 +33,8 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
+using InfoBarInfo = (ImageMoniker imageMoniker, string message);
+
 /// <summary>
 /// Provides the support for opening files pointing to source generated documents, and keeping the content updated accordingly.
 /// </summary>
@@ -265,7 +267,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         private VisualStudioInfoBar? _infoBar;
         private VisualStudioInfoBar.InfoBarMessage? _currentInfoBarMessage;
 
-        private (string message, ImageMoniker imageMoniker)? _infoToShow = null;
+        private InfoBarInfo? _infoToShow = null;
 
         public OpenSourceGeneratedFile(SourceGeneratedFileManager fileManager, ITextBuffer textBuffer, SourceGeneratedDocumentIdentity documentIdentity)
             : base(fileManager._threadingContext, assertIsForeground: true)
@@ -340,24 +342,21 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 
             // Locals correspond to the equivalently-named fields; we'll assign these and then assign to the fields while on the
             // UI thread to avoid any potential race where we update the InfoBar while this is running.
-            string? messageToShow;
-            ImageMoniker imageMonikerToShow;
+            InfoBarInfo infoToShow;
 
             if (project == null)
             {
-                messageToShow = ServicesVSResources.The_project_no_longer_exists;
-                imageMonikerToShow = KnownMonikers.StatusError;
+                infoToShow = (KnownMonikers.StatusError, ServicesVSResources.The_project_no_longer_exists);
             }
             else
             {
                 generatedDocument = await project.GetSourceGeneratedDocumentAsync(_documentIdentity.DocumentId, cancellationToken).ConfigureAwait(false);
                 if (generatedDocument != null)
                 {
-                    messageToShow = string.Format(
+                    infoToShow = (imageMoniker: default, string.Format(
                         ServicesVSResources.This_file_was_generated_by_0_at_1_and_cannot_be_edited,
                         GeneratorDisplayName,
-                        generatedDocument.GenerationDateTime.ToLocalTime());
-                    imageMonikerToShow = default;
+                        generatedDocument.GenerationDateTime.ToLocalTime()));
                     generatedSource = await generatedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 }
                 else
@@ -365,20 +364,18 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                     // The file isn't there anymore; do we still have the generator at all?
                     if (project.AnalyzerReferences.Any(a => a.FullPath == _documentIdentity.Generator.AssemblyPath))
                     {
-                        messageToShow = string.Format(ServicesVSResources.The_generator_0_that_generated_this_file_has_stopped_generating_this_file, GeneratorDisplayName);
-                        imageMonikerToShow = KnownMonikers.StatusError;
+                        infoToShow = (KnownMonikers.StatusError, string.Format(ServicesVSResources.The_generator_0_that_generated_this_file_has_stopped_generating_this_file, GeneratorDisplayName));
                     }
                     else
                     {
-                        messageToShow = string.Format(ServicesVSResources.The_generator_0_that_generated_this_file_has_been_removed_from_the_project, GeneratorDisplayName);
-                        imageMonikerToShow = KnownMonikers.StatusError;
+                        infoToShow = (KnownMonikers.StatusError, string.Format(ServicesVSResources.The_generator_0_that_generated_this_file_has_been_removed_from_the_project, GeneratorDisplayName));
                     }
                 }
             }
 
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            _infoToShow = (messageToShow, imageMonikerToShow);
+            _infoToShow = infoToShow;
 
             // Update the text if we have new text
             if (generatedSource != null)
@@ -432,7 +429,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             }
 
             // Update the InfoBar either way
-            await EnsureWindowFrameInfoBarUpdatedAsync().ConfigureAwait(true);
+            await EnsureWindowFrameInfoBarUpdatedAsync(cancellationToken).ConfigureAwait(true);
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
@@ -471,13 +468,12 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 
         internal async Task SetWindowFrameAsync(IVsWindowFrame windowFrame)
         {
-            await _fileManager._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var cancellationToken = _cancellationTokenSource.Token;
+            await _fileManager._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+            // Only need to do this once.  Can use the presence of the info bar to check this.
             if (_infoBar != null)
-            {
-                // We already have a window frame, and we don't expect to get a second one
                 return;
-            }
 
             _infoBar = new VisualStudioInfoBar(
                 this.ThreadingContext, _fileManager._vsInfoBarUIFactory, _fileManager._vsShell, _fileManager._listenerProvider, windowFrame);
@@ -487,32 +483,28 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             windowFrame.SetProperty((int)__VSFPROPID5.VSFPROPID_OverrideCaption, _documentIdentity.HintName + " " + ServicesVSResources.generated_suffix);
             windowFrame.SetProperty((int)__VSFPROPID5.VSFPROPID_OverrideToolTip, _documentIdentity.HintName + " " + string.Format(ServicesVSResources.generated_by_0_suffix, GeneratorDisplayName));
 
-            await EnsureWindowFrameInfoBarUpdatedAsync().ConfigureAwait(true);
+            await EnsureWindowFrameInfoBarUpdatedAsync(cancellationToken).ConfigureAwait(true);
         }
 
-        private async Task EnsureWindowFrameInfoBarUpdatedAsync()
+        private async Task EnsureWindowFrameInfoBarUpdatedAsync(CancellationToken cancellationToken)
         {
-            await _fileManager._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await _fileManager._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+            // If we don't have a frame, or even a message, we can't do anything yet.
             if (_infoToShow is null || _infoBar is null)
+                return;
+
+            // bail out if no change is needed
+            var (imageMoniker, message) = _infoToShow.Value;
+            if (_currentInfoBarMessage != null &&
+                _currentInfoBarMessage.Message == message &&
+                _currentInfoBarMessage.ImageMoniker.Equals(imageMoniker))
             {
-                // If we don't have a frame, or even a message, we can't do anything yet.
                 return;
             }
 
-            var (message, imageMoniker) = _infoToShow.Value;
-            if (_currentInfoBarMessage != null)
-            {
-                if (_currentInfoBarMessage.Message == message &&
-                    _currentInfoBarMessage.ImageMoniker.Equals(imageMoniker))
-                {
-                    // bail out if no change is needed
-                    return;
-                }
-
-                // Otherwise, remove the current message.
-                _currentInfoBarMessage.Remove();
-            }
+            // Remove the current message so it can be replaced with the new one.
+            _currentInfoBarMessage?.Remove();
 
             VisualStudioInfoBar.InfoBarMessage? infoBarMessage = null;
             InfoBarUI[] infoBarItems = [];
