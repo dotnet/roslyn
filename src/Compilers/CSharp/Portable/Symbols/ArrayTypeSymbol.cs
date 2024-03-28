@@ -112,14 +112,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var iListOfT = declaringAssembly.GetSpecialType(SpecialType.System_Collections_Generic_IList_T);
             if (!iListOfT.IsErrorType())
             {
-                constructedInterfaces.Add(new ConstructedNamedTypeSymbol(iListOfT, ImmutableArray.Create(elementTypeWithAnnotations)));
+                constructedInterfaces.Add(new ConstructedNamedTypeSymbol(iListOfT, OneOrMany.Create(elementTypeWithAnnotations)));
             }
 
             var iReadOnlyListOfT = declaringAssembly.GetSpecialType(SpecialType.System_Collections_Generic_IReadOnlyList_T);
 
             if (!iReadOnlyListOfT.IsErrorType())
             {
-                constructedInterfaces.Add(new ConstructedNamedTypeSymbol(iReadOnlyListOfT, ImmutableArray.Create(elementTypeWithAnnotations)));
+                constructedInterfaces.Add(new ConstructedNamedTypeSymbol(iReadOnlyListOfT, OneOrMany.Create(elementTypeWithAnnotations)));
             }
 
             return constructedInterfaces.ToImmutableAndFree();

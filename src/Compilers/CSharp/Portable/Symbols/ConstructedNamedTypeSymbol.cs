@@ -56,21 +56,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class ConstructedNamedTypeSymbol : SubstitutedNamedTypeSymbol
     {
-        private readonly ImmutableArray<TypeWithAnnotations> _typeArgumentsWithAnnotations;
+        private readonly OneOrMany<TypeWithAnnotations> _typeArgumentsWithAnnotations;
         private readonly NamedTypeSymbol _constructedFrom;
 
-        internal ConstructedNamedTypeSymbol(NamedTypeSymbol constructedFrom, ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations, bool unbound = false, TupleExtraData tupleData = null)
+        internal ConstructedNamedTypeSymbol(NamedTypeSymbol constructedFrom, OneOrMany<TypeWithAnnotations> typeArgumentsWithAnnotations, bool unbound = false, TupleExtraData tupleData = null)
             : base(newContainer: constructedFrom.ContainingSymbol,
-                   map: new TypeMap(constructedFrom.ContainingType, constructedFrom.OriginalDefinition.TypeParameters, typeArgumentsWithAnnotations),
+                   map: new TypeMap(constructedFrom.ContainingType, constructedFrom.OriginalDefinition.TypeParameters, typeArgumentsWithAnnotations.ToImmutable()),
                    originalDefinition: constructedFrom.OriginalDefinition,
                    constructedFrom: constructedFrom, unbound: unbound, tupleData: tupleData)
         {
             _typeArgumentsWithAnnotations = typeArgumentsWithAnnotations;
             _constructedFrom = constructedFrom;
 
-            Debug.Assert(constructedFrom.Arity == typeArgumentsWithAnnotations.Length);
+            Debug.Assert(constructedFrom.Arity == typeArgumentsWithAnnotations.Count);
             Debug.Assert(constructedFrom.Arity != 0);
         }
+
+        internal ConstructedNamedTypeSymbol(NamedTypeSymbol constructedFrom, ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations, bool unbound = false, TupleExtraData tupleData = null)
+            : this(constructedFrom, OneOrMany.Create(typeArgumentsWithAnnotations), unbound, tupleData) { }
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
@@ -89,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _typeArgumentsWithAnnotations;
+                return _typeArgumentsWithAnnotations.ToImmutable();
             }
         }
 
@@ -113,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
             if (ConstructedFrom.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
-                GetUnificationUseSiteDiagnosticRecursive(ref result, _typeArgumentsWithAnnotations, owner, ref checkedTypes))
+                GetUnificationUseSiteDiagnosticRecursive(ref result, _typeArgumentsWithAnnotations.ToImmutable(), owner, ref checkedTypes))
             {
                 return true;
             }
