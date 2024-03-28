@@ -156,6 +156,13 @@ internal partial class SolutionCompilationState
                 compilationWithStaleGeneratedTrees != null &&
                 oldGeneratedDocuments.States.All(kvp => kvp.Value.ParseOptions.Equals(this.ProjectState.ParseOptions)))
             {
+                // Even though non of the contents changed, it's possible that the timestamps on them did.
+                foreach (var (documentIdentity, _, generationDateTime) in infos)
+                {
+                    var documentId = documentIdentity.DocumentId;
+                    oldGeneratedDocuments = oldGeneratedDocuments.SetState(documentId, oldGeneratedDocuments.GetRequiredState(documentId).WithGenerationDateTime(generationDateTime));
+                }
+
                 // If there are no generated documents though, then just use the compilationWithoutGeneratedFiles so we
                 // only hold onto that single compilation from this point on.
                 return oldGeneratedDocuments.Count == 0
