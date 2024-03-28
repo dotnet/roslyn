@@ -625,10 +625,6 @@ function Deploy-VsixViaTool() {
   # Configure RemoteHostOptions.OOP64Bit for testing
   $oop64bitValue = [int]$oop64bit.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOP64Bit dword $oop64bitValue
-
-  # Configure RemoteHostOptions.OOPCoreClr for testing
-  $oopCoreClrValue = [int]$oopCoreClr.ToBool()
-  &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOPCoreClr dword $oopCoreClrValue
 }
 
 # Ensure that procdump is available on the machine.  Returns the path to the directory that contains
