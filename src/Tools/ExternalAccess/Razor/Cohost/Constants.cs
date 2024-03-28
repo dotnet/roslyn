@@ -9,6 +9,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
 internal static class Constants
 {
+    public const string RazorLanguageName = LanguageInfoProvider.RazorLanguageName;
+
     public const string RazorLSPContentType = "Razor";
 
     public const string RazorLanguageContract = ProtocolConstants.RazorCohostContract;

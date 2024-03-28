@@ -11,11 +11,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal class LanguageInfoProvider : ILanguageInfoProvider
     {
+        // Constant so that Razor can use it (exposed via EA) otherwise their endpoints won't get hit
+        public const string RazorLanguageName = "Razor";
+
         private static readonly LanguageInformation s_csharpLanguageInformation = new(LanguageNames.CSharp, ".csx");
         private static readonly LanguageInformation s_fsharpLanguageInformation = new(LanguageNames.FSharp, ".fsx");
         private static readonly LanguageInformation s_vbLanguageInformation = new(LanguageNames.VisualBasic, ".vbx");
         private static readonly LanguageInformation s_typeScriptLanguageInformation = new LanguageInformation(InternalLanguageNames.TypeScript, string.Empty);
-        private static readonly LanguageInformation s_razorLanguageInformation = new("Razor", string.Empty);
+        private static readonly LanguageInformation s_razorLanguageInformation = new(RazorLanguageName, string.Empty);
         private static readonly LanguageInformation s_xamlLanguageInformation = new("XAML", string.Empty);
 
         private static readonly Dictionary<string, LanguageInformation> s_extensionToLanguageInformation = new()
