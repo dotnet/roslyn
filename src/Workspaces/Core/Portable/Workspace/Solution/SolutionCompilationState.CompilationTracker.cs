@@ -532,8 +532,7 @@ namespace Microsoft.CodeAnalysis
                             }
                             else
                             {
-                                Contract.ThrowIfFalse(
-                                    creationPolicy.SkeletonReferenceCreationPolicy is SkeletonReferenceCreationPolicy.CreateIfAbsent or SkeletonReferenceCreationPolicy.DoNotCreate);
+                                Contract.ThrowIfFalse(creationPolicy.SkeletonReferenceCreationPolicy is SkeletonReferenceCreationPolicy.CreateIfAbsent or SkeletonReferenceCreationPolicy.DoNotCreate);
 
                                 // If not asked to explicit create an up to date skeleton, attempt to get a partial
                                 // reference, or fallback to the last successful reference for this project if we can
