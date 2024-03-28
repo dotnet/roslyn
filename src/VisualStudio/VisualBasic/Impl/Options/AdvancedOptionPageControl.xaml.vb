@@ -71,7 +71,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(at_the_end_of_the_line_of_code, InlineDiagnosticsOptionsStorage.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.VisualBasic)
             BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptionsStorage.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.VisualBasic)
             BindToOption(Run_code_analysis_in_separate_process, RemoteHostOptionsStorage.OOP64Bit)
-            BindToOption(Run_code_analysis_on_dotnet, RemoteHostOptionsStorage.OOPCoreClr)
 
             BindToOption(Enable_file_logging_for_diagnostics, VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics)
             BindToOption(Skip_analyzers_for_implicitly_triggered_builds, FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds)
@@ -241,14 +240,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             Collapse_imports_on_file_open.IsEnabled = False
             Collapse_sourcelink_embedded_decompiled_files_on_open.IsEnabled = False
             Collapse_metadata_signature_files_on_open.IsEnabled = False
-        End Sub
-
-        Private Sub Run_code_analysis_in_separate_process_Checked(sender As Object, e As RoutedEventArgs)
-            Run_code_analysis_on_dotnet.IsEnabled = True
-        End Sub
-
-        Private Sub Run_code_analysis_in_separate_process_Unchecked(sender As Object, e As RoutedEventArgs)
-            Run_code_analysis_on_dotnet.IsEnabled = False
         End Sub
     End Class
 End Namespace
