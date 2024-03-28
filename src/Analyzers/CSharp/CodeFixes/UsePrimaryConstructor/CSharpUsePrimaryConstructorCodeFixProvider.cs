@@ -271,18 +271,14 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
                 SimpleNameSyntax currentName)
             {
                 var symbol = semanticModel.GetSymbolInfo(originalName, cancellationToken).GetAnySymbol();
-                if (symbol is INamedTypeSymbol { ContainingType: { } containingType1 })
-                    return QualifyName(originalName, currentName, containingType1);
-
-                if (symbol is IMethodSymbol or IPropertySymbol or IEventSymbol or IFieldSymbol &&
-                    symbol is { ContainingType.OriginalDefinition: { } containingType2 } &&
-                    namedType.Equals(containingType2))
+                return symbol switch
                 {
-                    // reference to a member field an unqualified fashion.  Have to qualify this.
-                    return QualifyName(originalName, currentName, containingType2);
-                }
-
-                return currentName;
+                    INamedTypeSymbol { ContainingType: { } containingType } => QualifyName(originalName, currentName, containingType),
+                    IMethodSymbol or IPropertySymbol or IEventSymbol or IFieldSymbol =>
+                        symbol is { ContainingType.OriginalDefinition: { } containingType } &&
+                        namedType.Equals(containingType) ? QualifyName(originalName, currentName, containingType) : currentName,
+                    _ => currentName,
+                };
             }
 
             SyntaxNode QualifyName(
