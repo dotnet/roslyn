@@ -221,59 +221,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        '<Theory, CombinatorialData>
-        '<WorkItem("https://github.com/dotnet/roslyn/issues/47754")>
-        'Public Async Function TestExternalDiagnostics_CompilationEndAnalyzer(hasCompilationEndTag As Boolean) As Task
-        '    Using workspace = TestWorkspace.CreateCSharp(String.Empty, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
-        '        Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-        '        Dim analyzer = New CompilationEndAnalyzer(hasCompilationEndTag)
-        '        Dim compiler = DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp)
-
-        '        Dim analyzerReference = New AnalyzerImageReference(New DiagnosticAnalyzer() {compiler, analyzer}.ToImmutableArray())
-        '        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
-
-        '        Dim waiter = New AsynchronousOperationListener()
-
-        '        Dim project = workspace.CurrentSolution.Projects.First()
-
-        '        Dim service = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
-        '        Dim registration = service.CreateIncrementalAnalyzer(workspace)
-
-        '        Using source = New ExternalErrorDiagnosticUpdateSource(
-        '            workspace, service, workspace.GetService(Of IGlobalOperationNotificationService), waiter, CancellationToken.None)
-
-        '            Dim diagnostic = GetDiagnosticData(project.Id, id:=analyzer.SupportedDiagnostics(0).Id)
-        '            source.AddNewErrors(project.Id, diagnostic)
-
-        '            Dim buildDiagnosticCallbackSeen = False
-        '            AddHandler source.DiagnosticsUpdated, Sub(o, argsCollection)
-        '                                                      Dim args = argsCollection.Single()
-        '                                                      buildDiagnosticCallbackSeen = True
-
-        '                                                      Dim diagnostics = args.Diagnostics
-        '                                                      Assert.Equal(1, diagnostics.Length)
-        '                                                      Assert.Equal(diagnostics(0).Properties(WellKnownDiagnosticPropertyNames.Origin), WellKnownDiagnosticTags.Build)
-        '                                                  End Sub
-
-        '            source.OnSolutionBuildCompleted()
-
-        '            Await waiter.ExpeditedWaitAsync()
-
-        '            Assert.Equal(hasCompilationEndTag, buildDiagnosticCallbackSeen)
-
-        '            Dim buildOnlyDiagnosticService = workspace.Services.GetRequiredService(Of IBuildOnlyDiagnosticsService)
-        '            Dim buildOnlyDiagnostics = buildOnlyDiagnosticService.GetBuildOnlyDiagnostics(project.Id)
-        '            If (hasCompilationEndTag) Then
-        '                Assert.Equal(1, buildOnlyDiagnostics.Length)
-        '                Assert.Equal(buildOnlyDiagnostics(0).Properties(WellKnownDiagnosticPropertyNames.Origin), WellKnownDiagnosticTags.Build)
-        '            Else
-        '                Assert.Empty(buildOnlyDiagnostics)
-        '            End If
-
-        '        End Using
-        '    End Using
-        'End Function
-
         <Fact>
         Public Async Function TestExternalDiagnostics_CompilationAnalyzer() As Task
             Using workspace = TestWorkspace.CreateCSharp(String.Empty, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
