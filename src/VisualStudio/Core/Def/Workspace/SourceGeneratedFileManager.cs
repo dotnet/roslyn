@@ -427,7 +427,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             }
 
             // Update the InfoBar either way
-            await EnsureWindowFrameInfoBarUpdatedAsync().ConfigureAwait(true);
+            await EnsureWindowFrameInfoBarUpdatedAsync(cancellationToken).ConfigureAwait(true);
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
@@ -454,13 +454,12 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 
         internal async Task SetWindowFrameAsync(IVsWindowFrame windowFrame)
         {
-            await _fileManager._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var cancellationToken = _cancellationTokenSource.Token;
+            await _fileManager._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+            // Only need to do this once.  Can use the presence of the info bar to check this.
             if (_infoBar != null)
-            {
-                // We already have a window frame, and we don't expect to get a second one
                 return;
-            }
 
             _infoBar = new VisualStudioInfoBar(
                 this.ThreadingContext, _fileManager._vsInfoBarUIFactory, _fileManager._vsShell, _fileManager._listenerProvider, windowFrame);
@@ -470,12 +469,12 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             windowFrame.SetProperty((int)__VSFPROPID5.VSFPROPID_OverrideCaption, _documentIdentity.HintName + " " + ServicesVSResources.generated_suffix);
             windowFrame.SetProperty((int)__VSFPROPID5.VSFPROPID_OverrideToolTip, _documentIdentity.HintName + " " + string.Format(ServicesVSResources.generated_by_0_suffix, GeneratorDisplayName));
 
-            await EnsureWindowFrameInfoBarUpdatedAsync().ConfigureAwait(true);
+            await EnsureWindowFrameInfoBarUpdatedAsync(cancellationToken).ConfigureAwait(true);
         }
 
-        private async Task EnsureWindowFrameInfoBarUpdatedAsync()
+        private async Task EnsureWindowFrameInfoBarUpdatedAsync(CancellationToken cancellationToken)
         {
-            await _fileManager._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await _fileManager._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // If we don't have a frame, or even a message, we can't do anything yet.
             if (_infoToShow is null || _infoBar is null)
