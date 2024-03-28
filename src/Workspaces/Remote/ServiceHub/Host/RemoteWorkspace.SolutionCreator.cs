@@ -426,10 +426,10 @@ namespace Microsoft.CodeAnalysis.Remote
                     project = project.Solution.WithProjectChecksumAlgorithm(projectId, newProjectAttributes.ChecksumAlgorithm).GetRequiredProject(projectId);
                 }
 
-                if (project.State.ProjectInfo.Attributes.SourceGeneratorVersion != newProjectAttributes.SourceGeneratorVersion)
+                if (project.State.ProjectInfo.Attributes.SourceGeneratorExecutionVersion != newProjectAttributes.SourceGeneratorExecutionVersion)
                 {
                     project = project.Solution.WithSourceGeneratorVersions(
-                        FrozenDictionary.ToFrozenDictionary([new KeyValuePair<ProjectId, int>(projectId, newProjectAttributes.SourceGeneratorVersion)]), cancellationToken).GetRequiredProject(projectId);
+                        FrozenDictionary.ToFrozenDictionary([new KeyValuePair<ProjectId, SourceGeneratorExecutionVersion>(projectId, newProjectAttributes.SourceGeneratorExecutionVersion)]), cancellationToken).GetRequiredProject(projectId);
                 }
 
                 return project;

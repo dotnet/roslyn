@@ -441,7 +441,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             {
                 // Trivial check.  see if the SG version of these projects changed.  If so, we definitely want to update
                 // this generated file.
-                if (oldProject.SourceGeneratorVersion != newProject.SourceGeneratorVersion)
+                if (oldProject.SourceGeneratorExecutionVersion != newProject.SourceGeneratorExecutionVersion)
                 {
                     _batchingWorkQueue.AddWork();
                     return;

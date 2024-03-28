@@ -113,21 +113,21 @@ internal abstract partial class VisualStudioWorkspaceImpl
 
         return;
 
-        static FrozenDictionary<ProjectId, int> GetUpdatedSourceGeneratorVersions(Solution solution, ImmutableSegmentedList<ProjectId?>? projectIdSet)
+        static FrozenDictionary<ProjectId, SourceGeneratorExecutionVersion> GetUpdatedSourceGeneratorVersions(Solution solution, ImmutableSegmentedList<ProjectId?>? projectIdSet)
         {
             // If the entire solution needs to be regenerated, then take every project and increase its source generator version.
             if (projectIdSet is null)
             {
                 return solution.ProjectIds.ToFrozenDictionary(
                     p => solution.GetRequiredProject(p).Id,
-                    p => solution.GetRequiredProject(p).SourceGeneratorVersion + 1);
+                    p => solution.GetRequiredProject(p).SourceGeneratorExecutionVersion.IncrementMinorVersion());
             }
 
             // Otherwise, for all the projects involved in the save, update its source generator version.  Also do this
             // for all projects that transitively depend on that project, so that their generators will run as well when
             // next asked.
             var dependencyGraph = solution.GetProjectDependencyGraph();
-            using var _ = CodeAnalysis.PooledObjects.PooledDictionary<ProjectId, int>.GetInstance(out var result);
+            using var _ = CodeAnalysis.PooledObjects.PooledDictionary<ProjectId, SourceGeneratorExecutionVersion>.GetInstance(out var result);
 
             foreach (var projectId in projectIdSet.Value)
             {
@@ -137,10 +137,10 @@ internal abstract partial class VisualStudioWorkspaceImpl
                 var savedProject = solution.GetProject(projectId);
                 if (savedProject != null && !result.ContainsKey(projectId))
                 {
-                    result[projectId] = savedProject.SourceGeneratorVersion + 1;
+                    result[projectId] = savedProject.SourceGeneratorExecutionVersion.IncrementMinorVersion();
 
                     foreach (var transitiveProjectId in dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId))
-                        result[transitiveProjectId] = solution.GetRequiredProject(transitiveProjectId).SourceGeneratorVersion + 1;
+                        result[transitiveProjectId] = solution.GetRequiredProject(transitiveProjectId).SourceGeneratorExecutionVersion.IncrementMinorVersion();
                 }
             }
 
