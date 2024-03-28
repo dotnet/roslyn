@@ -512,34 +512,26 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             {
                 infoBarItems = [new InfoBarUI(ServicesVSResources.Rerun_generator, InfoBarUI.UIKind.Button, () =>
                 {
-                    var asyncToken = _fileManager._listener.BeginAsyncOperation($"{nameof(OpenSourceGeneratedFile)}.{nameof(OnWorkspaceChanged)}");
-                    OnRerunGeneratorClickedAsync(_infoBar, infoBarMessage).CompletesAsyncOperation(asyncToken);
+                    _fileManager._threadingContext.ThrowIfNotOnUIThread();
+                    Contract.ThrowIfNull(infoBarMessage);
+                    infoBarMessage.Remove();
+
+                    _currentInfoBarMessage = _fileManager._threadingContext.JoinableTaskFactory.Run(() =>
+                        _infoBar.ShowInfoBarMessageAsync(
+                            ServicesVSResources.Generator_running, isCloseButtonVisible: false, KnownMonikers.StatusInformation));
+
+                    // Force regeneration here.  Nothing has actually changed, so the incremental generator architecture
+                    // would normally just return the same values all over again.  By forcing things, we drop the
+                    // generator driver, which will force new files to actually be created.
+                    this.Workspace.EnqueueUpdateSourceGeneratorVersion(
+                        this._documentIdentity.DocumentId.ProjectId,
+                        forceRegeneration: true);
                 })];
             }
 
             infoBarMessage = await _infoBar.ShowInfoBarMessageAsync(
                 message, isCloseButtonVisible: false, imageMoniker, infoBarItems).ConfigureAwait(true);
             _currentInfoBarMessage = infoBarMessage;
-        }
-
-        private async Task OnRerunGeneratorClickedAsync(
-            VisualStudioInfoBar infoBar, VisualStudioInfoBar.InfoBarMessage? infoBarMessage)
-        {
-            await _fileManager._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-            Contract.ThrowIfNull(infoBarMessage);
-
-            infoBarMessage.Remove();
-
-            var asyncToken = _fileManager._listener.BeginAsyncOperation($"{nameof(OpenSourceGeneratedFile)}.{nameof(OnWorkspaceChanged)}");
-            _currentInfoBarMessage = await infoBar.ShowInfoBarMessageAsync(
-                ServicesVSResources.Generator_running, isCloseButtonVisible: false, KnownMonikers.StatusInformation).ConfigureAwait(true);
-
-            // Force regeneration here.  Nothing has actually changed, so the incremental generator architecture
-            // would normally just return the same values all over again.  By forcing things, we drop the
-            // generator driver, which will force new files to actually be created.
-            this.Workspace.EnqueueUpdateSourceGeneratorVersion(
-                this._documentIdentity.DocumentId.ProjectId,
-                forceRegeneration: true);
         }
 
         public Task<bool> NavigateToSpanAsync(TextSpan sourceSpan, CancellationToken cancellationToken)
