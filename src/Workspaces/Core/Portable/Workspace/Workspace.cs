@@ -240,22 +240,6 @@ public abstract partial class Workspace : IDisposable
 #pragma warning restore CA2012 // Use ValueTasks correctly
     }
 
-    internal ValueTask<(bool updated, Solution newSolution)> SetCurrentSolutionAsync(
-        Func<Solution, Solution> transformation,
-        Func<Solution, Solution, (WorkspaceChangeKind changeKind, ProjectId? projectId, DocumentId? documentId)> changeKind,
-        Action<Solution, Solution>? onBeforeUpdate,
-        Action<Solution, Solution>? onAfterUpdate,
-        CancellationToken cancellationToken)
-    {
-        return SetCurrentSolutionAsync(
-            useAsync: true,
-            transformation,
-            changeKind,
-            onBeforeUpdate,
-            onAfterUpdate,
-            cancellationToken);
-    }
-
     internal async ValueTask<(bool updated, Solution newSolution)> SetCurrentSolutionAsync(
         bool useAsync,
         Func<Solution, Solution> transformation,

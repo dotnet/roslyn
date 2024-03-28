@@ -44,6 +44,7 @@ public partial class Workspace
         await workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 
         await this.SetCurrentSolutionAsync(
+            useAsync: true,
             oldSolution =>
             {
                 var updates = GetUpdatedSourceGeneratorVersions(oldSolution, projectIds);
