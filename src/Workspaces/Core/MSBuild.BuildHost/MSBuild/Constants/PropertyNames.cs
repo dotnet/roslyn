@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public const string GenerateFullPaths = nameof(GenerateFullPaths);
         public const string HighEntropyVA = nameof(HighEntropyVA);
         public const string IntermediateAssembly = nameof(IntermediateAssembly);
+        public const string IntermediateOutputPath = nameof(IntermediateOutputPath);
         public const string KeyContainerName = nameof(KeyContainerName);
         public const string KeyOriginatorFile = nameof(KeyOriginatorFile);
         public const string LangVersion = nameof(LangVersion);

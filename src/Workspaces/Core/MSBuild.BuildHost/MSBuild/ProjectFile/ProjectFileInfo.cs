@@ -133,6 +133,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
         [DataMember(Order = 17)]
         public ImmutableArray<PackageReference> PackageReferences { get; }
 
+        [DataMember(Order = 18)]
+        public string? IntermediateOutputPath { get; }
+
         public override string ToString()
             => RoslynString.IsNullOrWhiteSpace(TargetFramework)
                 ? FilePath ?? string.Empty
@@ -145,6 +148,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string? outputFilePath,
             string? outputRefFilePath,
             string? intermediateOutputFilePath,
+            string? intermediateOutputPath,
             string? defaultNamespace,
             string? targetFramework,
             string? targetFrameworkIdentifier,
@@ -166,6 +170,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.OutputFilePath = outputFilePath;
             this.OutputRefFilePath = outputRefFilePath;
             this.IntermediateOutputFilePath = intermediateOutputFilePath;
+            this.IntermediateOutputPath = intermediateOutputPath;
             this.DefaultNamespace = defaultNamespace;
             this.TargetFramework = targetFramework;
             this.TargetFrameworkIdentifier = targetFrameworkIdentifier;
@@ -186,6 +191,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string? outputFilePath,
             string? outputRefFilePath,
             string? intermediateOutputFilePath,
+            string? intermediateOutputPath,
             string? defaultNamespace,
             string? targetFramework,
             string? targetFrameworkIdentifier,
@@ -205,6 +211,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 outputFilePath,
                 outputRefFilePath,
                 intermediateOutputFilePath,
+                intermediateOutputPath,
                 defaultNamespace,
                 targetFramework,
                 targetFrameworkIdentifier,
@@ -226,6 +233,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 outputFilePath: null,
                 outputRefFilePath: null,
                 intermediateOutputFilePath: null,
+                intermediateOutputPath: null,
                 defaultNamespace: null,
                 targetFramework: null,
                 targetFrameworkIdentifier: null,
