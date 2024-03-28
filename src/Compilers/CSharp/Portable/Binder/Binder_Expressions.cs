@@ -5933,7 +5933,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var d = BindingDiagnosticBag.GetInstance();
 
                 // This assert provides some validation that, if the real invocation binding succeeds, then the HasCollectionExpressionApplicableAddMethod helper succeeds as well.
-                Debug.Assert(collectionInitializerAddMethodBinder.HasCollectionExpressionApplicableAddMethod(elementInitializer, implicitReceiver.Type, boundElementInitializerExpressions[0].Type, addMethods: out _, d));
+                Debug.Assert(collectionInitializerAddMethodBinder.HasCollectionExpressionApplicableAddMethod(elementInitializer, implicitReceiver.Type, addMethods: out _, d));
 
                 d.Free();
             }
@@ -7919,7 +7919,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                       OverloadResolution.Options.IsFunctionPointerResolution |
                                       OverloadResolution.Options.InferWithDynamic |
                                       OverloadResolution.Options.IgnoreNormalFormIfHasValidParamsParameter |
-                                      OverloadResolution.Options.DynamicResolution)) == 0);
+                                      OverloadResolution.Options.DynamicResolution |
+                                      OverloadResolution.Options.DynamicConvertsToAnything)) == 0);
 
             var firstResult = new MethodGroupResolution();
             AnalyzedArguments actualArguments = null;
@@ -9980,7 +9981,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                       OverloadResolution.Options.IsFunctionPointerResolution |
                                       OverloadResolution.Options.InferWithDynamic |
                                       OverloadResolution.Options.IgnoreNormalFormIfHasValidParamsParameter |
-                                      OverloadResolution.Options.DynamicResolution)) == 0);
+                                      OverloadResolution.Options.DynamicResolution |
+                                      OverloadResolution.Options.DynamicConvertsToAnything)) == 0);
 
             var methods = node.Methods;
             if (methods.Length == 0)
