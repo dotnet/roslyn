@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 EditAndContinueTestHelpers.SetDocumentsState(debuggingSession, solution, initialState);
             }
 
-            debuggingSession.RestartEditSession(nonRemappableRegions ?? ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty, inBreakState: true, out _);
+            debuggingSession.RestartEditSession(nonRemappableRegions ?? ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty, inBreakState: true);
             return debuggingSession.EditSession;
         }
 

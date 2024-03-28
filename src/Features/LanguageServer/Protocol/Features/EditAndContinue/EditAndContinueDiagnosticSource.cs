@@ -20,16 +20,14 @@ internal sealed class EditAndContinueDiagnosticSource
         var services = designTimeSolution.Services;
 
         // avoid creating and synchronizing compile-time solution if Hot Reload/EnC session is not active
-        if (workspace.Services.HostServices is not IMefHostExportProvider mefServices ||
-            mefServices.GetExports<IEditAndContinueSessionTracker>().SingleOrDefault()?.Value is not { IsSessionActive: true } sessionStateTracker)
+        if (services.GetRequiredService<IEditAndContinueWorkspaceService>().SessionTracker is not { IsSessionActive: true } sessionStateTracker)
         {
             return [];
         }
 
         var applyDiagnostics = sessionStateTracker.ApplyChangesDiagnostics;
 
-        var designTimeSolution = designTimeDocument.Project.Solution;
-        var compileTimeSolution = workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(designTimeSolution);
+        var compileTimeSolution = services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(designTimeSolution);
 
         var compileTimeDocument = await CompileTimeSolutionProvider.TryGetCompileTimeDocumentAsync(designTimeDocument, compileTimeSolution, cancellationToken).ConfigureAwait(false);
         if (compileTimeDocument == null)
@@ -39,8 +37,8 @@ internal sealed class EditAndContinueDiagnosticSource
 
         // EnC services should never be called on a design-time solution.
 
-        var proxy = new RemoteEditAndContinueServiceProxy(workspace);
-        var spanLocator = workspace.Services.GetService<IActiveStatementSpanLocator>();
+        var proxy = new RemoteEditAndContinueServiceProxy(services);
+        var spanLocator = services.GetService<IActiveStatementSpanLocator>();
 
         var activeStatementSpanProvider = (spanLocator != null)
             ? new ActiveStatementSpanProvider((documentId, filePath, cancellationToken) => spanLocator.GetSpansAsync(compileTimeSolution, documentId, filePath, cancellationToken))

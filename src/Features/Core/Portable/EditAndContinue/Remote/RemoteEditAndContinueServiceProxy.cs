@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
@@ -21,17 +22,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// Encapsulates all RPC logic as well as dispatching to the local service if the remote service is disabled.
 /// THe facade is useful for targeted testing of serialization/deserialization of EnC service calls.
 /// </summary>
-internal readonly partial struct RemoteEditAndContinueServiceProxy(Workspace workspace)
+internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServices services)
 {
     [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteEditAndContinueService)), Shared]
-    internal sealed class CallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteEditAndContinueService.ICallback
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class CallbackDispatcher() : RemoteServiceCallbackDispatcher, IRemoteEditAndContinueService.ICallback
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CallbackDispatcher()
-        {
-        }
-
         public ValueTask<ImmutableArray<ActiveStatementSpan>> GetSpansAsync(RemoteServiceCallbackId callbackId, DocumentId? documentId, string filePath, CancellationToken cancellationToken)
             => ((ActiveStatementSpanProviderCallback)GetCallback(callbackId)).GetSpansAsync(documentId, filePath, cancellationToken);
 
@@ -117,10 +114,8 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(Workspace wor
         }
     }
 
-    public readonly Workspace Workspace = workspace;
-
     private IEditAndContinueService GetLocalService()
-        => Workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
+        => services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
     public async ValueTask<RemoteDebuggingSessionProxy?> StartDebuggingSessionAsync(
         Solution solution,
@@ -131,11 +126,11 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(Workspace wor
         bool reportDiagnostics,
         CancellationToken cancellationToken)
     {
-        var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
+        var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
         if (client == null)
         {
             var sessionId = await GetLocalService().StartDebuggingSessionAsync(solution, debuggerService, sourceTextProvider, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false);
-            return new RemoteDebuggingSessionProxy(Workspace, LocalConnection.Instance, sessionId);
+            return new RemoteDebuggingSessionProxy(solution.Services, LocalConnection.Instance, sessionId);
         }
 
         // need to keep the providers alive until the session ends:
@@ -149,7 +144,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(Workspace wor
 
         if (sessionIdOpt.HasValue)
         {
-            return new RemoteDebuggingSessionProxy(Workspace, connection, sessionIdOpt.Value);
+            return new RemoteDebuggingSessionProxy(solution.Services, connection, sessionIdOpt.Value);
         }
 
         connection.Dispose();
@@ -164,7 +159,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(Workspace wor
             return [];
         }
 
-        var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
+        var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
         if (client == null)
         {
             var diagnostics = await GetLocalService().GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
@@ -182,7 +177,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(Workspace wor
 
     public async ValueTask SetFileLoggingDirectoryAsync(string? logDirectory, CancellationToken cancellationToken)
     {
-        var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
+        var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
         if (client == null)
         {
             GetLocalService().SetFileLoggingDirectory(logDirectory);

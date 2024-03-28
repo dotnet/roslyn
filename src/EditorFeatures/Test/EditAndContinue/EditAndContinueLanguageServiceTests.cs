@@ -100,10 +100,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             // EnterBreakStateAsync
 
-            mockEncService.BreakStateOrCapabilitiesChangedImpl = (bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze) =>
+            mockEncService.BreakStateOrCapabilitiesChangedImpl = (bool? inBreakState) =>
             {
                 Assert.True(inBreakState);
-                documentsToReanalyze = [];
             };
 
             await localService.EnterBreakStateAsync(CancellationToken.None);
@@ -156,12 +155,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             {
                 // CommitUpdatesAsync
 
-                mockEncService.CommitSolutionUpdateImpl = (out ImmutableArray<DocumentId> documentsToReanalyze) =>
-                {
-                    documentsToReanalyze = ImmutableArray.Create(documentId);
-                };
-
+                var called = false;
+                mockEncService.CommitSolutionUpdateImpl = () => called = true;
                 await localService.CommitUpdatesAsync(CancellationToken.None);
+                Assert.True(called);
             }
             else
             {
@@ -176,11 +173,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             Assert.True(sessionState.IsSessionActive);
 
             // EndSessionAsync
-
-            mockEncService.EndDebuggingSessionImpl = (out ImmutableArray<DocumentId> documentsToReanalyze) =>
-            {
-                documentsToReanalyze = ImmutableArray.Create(documentId);
-            };
 
             await localService.EndSessionAsync(CancellationToken.None);
 

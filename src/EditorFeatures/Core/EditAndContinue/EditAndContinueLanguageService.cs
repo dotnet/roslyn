@@ -56,15 +56,13 @@ internal sealed class EditAndContinueLanguageService(
 
     public event Action<Solution>? SolutionCommitted;
 
-    public Lazy<IHostWorkspaceProvider> WorkspaceProvider => workspaceProvider;
-
     public void SetFileLoggingDirectory(string? logDirectory)
     {
         _ = Task.Run(async () =>
         {
             try
             {
-                var proxy = new RemoteEditAndContinueServiceProxy(workspaceProvider.Value.Workspace);
+                var proxy = new RemoteEditAndContinueServiceProxy(Services);
                 await proxy.SetFileLoggingDirectoryAsync(logDirectory, CancellationToken.None).ConfigureAwait(false);
             }
             catch
@@ -74,17 +72,20 @@ internal sealed class EditAndContinueLanguageService(
         });
     }
 
+    private SolutionServices Services
+        => workspaceProvider.Value.Workspace.Services.SolutionServices;
+
+    private Solution GetCurrentDesignTimeSolution()
+        => workspaceProvider.Value.Workspace.CurrentSolution;
+
     private Solution GetCurrentCompileTimeSolution(Solution? currentDesignTimeSolution = null)
-    {
-        var workspace = workspaceProvider.Value.Workspace;
-        return workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(currentDesignTimeSolution ?? workspace.CurrentSolution);
-    }
+        => Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(currentDesignTimeSolution ?? GetCurrentDesignTimeSolution());
 
     private RemoteDebuggingSessionProxy GetDebuggingSession()
         => _debuggingSession ?? throw new NoSessionException();
 
     private IActiveStatementTrackingService GetActiveStatementTrackingService()
-        => workspaceProvider.Value.Workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
+        => Services.GetRequiredService<IActiveStatementTrackingService>();
 
     internal void Disable(Exception e)
     {
@@ -120,14 +121,13 @@ internal sealed class EditAndContinueLanguageService(
             // so that we don't miss any pertinent workspace update events.
             sourceTextProvider.Activate();
 
-            var workspace = workspaceProvider.Value.Workspace;
-            var currentSolution = workspace.CurrentSolution;
+            var currentSolution = GetCurrentDesignTimeSolution();
             _committedDesignTimeSolution = currentSolution;
             var solution = GetCurrentCompileTimeSolution(currentSolution);
 
             sourceTextProvider.SetBaseline(currentSolution);
 
-            var proxy = new RemoteEditAndContinueServiceProxy(workspace);
+            var proxy = new RemoteEditAndContinueServiceProxy(Services);
 
             _debuggingSession = await proxy.StartDebuggingSessionAsync(
                 solution,
@@ -295,7 +295,7 @@ internal sealed class EditAndContinueLanguageService(
 
             Contract.ThrowIfNull(_committedDesignTimeSolution);
             var oldSolution = _committedDesignTimeSolution;
-            var newSolution = workspaceProvider.Value.Workspace.CurrentSolution;
+            var newSolution = GetCurrentDesignTimeSolution();
 
             return (sourceFilePath != null)
                 ? await EditSession.HasChangesAsync(oldSolution, newSolution, sourceFilePath, cancellationToken).ConfigureAwait(false)
@@ -314,8 +314,7 @@ internal sealed class EditAndContinueLanguageService(
             return new ManagedHotReloadUpdates([], []);
         }
 
-        var workspace = workspaceProvider.Value.Workspace;
-        var designTimeSolution = workspace.CurrentSolution;
+        var designTimeSolution = GetCurrentDesignTimeSolution();
         var solution = GetCurrentCompileTimeSolution(designTimeSolution);
         var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
         var (moduleUpdates, diagnosticData, rudeEdits, syntaxError) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
