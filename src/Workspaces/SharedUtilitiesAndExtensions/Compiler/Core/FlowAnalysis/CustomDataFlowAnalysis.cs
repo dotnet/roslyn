@@ -297,6 +297,10 @@ internal static class CustomDataFlowAnalysis<TBlockAnalysisData>
                                               dispatchedExceptionsFromRegions,
                                               cancellationToken);
             }
+            else
+            {
+                currentAnalysisData = mergedAnalysisData;
+            }
 
             if (!continueDispatchAfterFinally.TryGetValue(@finally, out var dispatch))
             {
@@ -331,6 +335,9 @@ internal static class CustomDataFlowAnalysis<TBlockAnalysisData>
                                 return;
                             }
 
+                            analyzer.SetCurrentAnalysisData(blocks[enclosing.NestedRegions[1].FirstBlockOrdinal],
+                                                            currentAnalysisData,
+                                                            cancellationToken);
                             break;
 
                         case ControlFlowRegionKind.TryAndCatch:
