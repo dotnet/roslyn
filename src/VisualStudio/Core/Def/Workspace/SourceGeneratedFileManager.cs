@@ -510,8 +510,34 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 _currentInfoBarMessage.Remove();
             }
 
-            _currentInfoBarMessage = _infoBar.ShowInfoBarMessageFromUIThread(
-                _infoToShow.Value.message, isCloseButtonVisible: false, _infoToShow.Value.imageMoniker);
+            VisualStudioInfoBar.InfoBarMessage? message = null;
+            InfoBarUI[] infoBarItems = [];
+
+            var options = this.Workspace.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
+            if (options.SourceGeneratorExecution != SourceGeneratorExecutionPreference.Automatic)
+            {
+                infoBarItems = [new InfoBarUI(ServicesVSResources.Rerun_generator, InfoBarUI.UIKind.Button, () =>
+                {
+                    _fileManager._threadingContext.ThrowIfNotOnUIThread();
+                    Contract.ThrowIfNull(message);
+
+                    message.Remove();
+
+                    _currentInfoBarMessage = _infoBar.ShowInfoBarMessageFromUIThread(
+                        ServicesVSResources.Generator_running, isCloseButtonVisible: false, KnownMonikers.StatusInformation);
+
+                    // Force regeneration here.  Nothing has actually changed, so the incremental generator architecture
+                    // would normally just return the same values all over again.  By forcing things, we drop the
+                    // generator driver, which will force new files to actually be created.
+                    this.Workspace.EnqueueUpdateSourceGeneratorVersion(
+                        this._documentIdentity.DocumentId.ProjectId,
+                        forceRegeneration: true);
+                })];
+            }
+
+            message = _infoBar.ShowInfoBarMessageFromUIThread(
+                _infoToShow.Value.message, isCloseButtonVisible: false, _infoToShow.Value.imageMoniker, infoBarItems);
+            _currentInfoBarMessage = message;
         }
 
         public Task<bool> NavigateToSpanAsync(TextSpan sourceSpan, CancellationToken cancellationToken)

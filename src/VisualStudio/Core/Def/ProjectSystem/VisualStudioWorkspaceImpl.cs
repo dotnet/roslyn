@@ -130,10 +130,10 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         ProjectSystemProjectFactory = new ProjectSystemProjectFactory(this, FileChangeWatcher, CheckForAddedFileBeingOpenMaybeAsync, RemoveProjectFromMaps);
 
         var listenerProvider = exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
-        _updateSourceGeneratorsQueue = new AsyncBatchingWorkQueue<ProjectId?>(
+        _updateSourceGeneratorsQueue = new AsyncBatchingWorkQueue<(ProjectId? projectId, bool forceRegeneration)>(
             DelayTimeSpan.Idle,
             ProcessUpdateSourceGeneratorRequestAsync,
-            EqualityComparer<ProjectId?>.Default,
+            EqualityComparer<(ProjectId? projectId, bool forceRegeneration)>.Default,
             listenerProvider.GetListener(FeatureAttribute.SourceGenerators),
             _threadingContext.DisposalToken);
 
