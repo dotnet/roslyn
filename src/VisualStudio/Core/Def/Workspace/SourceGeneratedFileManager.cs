@@ -60,7 +60,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
     /// Map of currently open generated files; the key is the generated full file path.
     /// </summary>
     private readonly Dictionary<string, OpenSourceGeneratedFile> _openFiles = [];
-    private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
+    private readonly VisualStudioWorkspace _visualStudioWorkspace;
 
     /// <summary>
     /// When we have to put a placeholder file on disk, we put it in a directory named by the GUID portion of the DocumentId.
@@ -82,7 +82,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         OpenTextBufferProvider openTextBufferProvider,
         IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
         ITextDocumentFactoryService textDocumentFactoryService,
-        VisualStudioWorkspaceImpl visualStudioWorkspace,
+        VisualStudioWorkspace visualStudioWorkspace,
         VisualStudioDocumentNavigationService visualStudioDocumentNavigationService,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
@@ -297,7 +297,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 _cancellationTokenSource.Token);
         }
 
-        private VisualStudioWorkspaceImpl Workspace => _fileManager._visualStudioWorkspace;
+        private Workspace Workspace => _fileManager._visualStudioWorkspace;
 
         private void DisconnectFromWorkspaceIfOpen()
         {
