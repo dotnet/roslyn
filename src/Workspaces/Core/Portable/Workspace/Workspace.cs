@@ -605,6 +605,7 @@ public abstract partial class Workspace : IDisposable
             disposableService.Dispose();
         }
 
+        // We're disposing this workspace.  Stop any work to update SG docs in the background.
         _updateSourceGeneratorsQueueTokenSource.Cancel();
     }
 
