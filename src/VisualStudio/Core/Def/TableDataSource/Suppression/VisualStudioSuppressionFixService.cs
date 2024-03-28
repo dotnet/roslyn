@@ -47,7 +47,9 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
     private readonly VisualStudioWorkspaceImpl _workspace;
     private readonly IAsynchronousOperationListener _listener;
     private readonly IDiagnosticAnalyzerService _diagnosticService;
+#if false
     private readonly ExternalErrorDiagnosticUpdateSource _buildErrorDiagnosticService;
+#endif
     private readonly ICodeFixService _codeFixService;
     private readonly IFixMultipleOccurrencesService _fixMultipleOccurencesService;
     private readonly ICodeActionEditHandlerService _editHandlerService;
@@ -77,7 +79,9 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
         _threadingContext = threadingContext;
         _workspace = workspace;
         _diagnosticService = diagnosticService;
+#if false
         _buildErrorDiagnosticService = workspace.ExternalErrorDiagnosticUpdateSource;
+#endif
         _codeFixService = codeFixService;
         _suppressionStateService = suppressionStateService;
         _editHandlerService = editHandlerService;
@@ -152,10 +156,11 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
         return p => projectHierarchy == null || p.Id == projectIdToMatch;
     }
 
-    private async Task<ImmutableArray<DiagnosticData>> GetAllBuildDiagnosticsAsync(Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
+    private Task<ImmutableArray<DiagnosticData>> GetAllBuildDiagnosticsAsync(Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
     {
         using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
 
+#if false
         var buildDiagnostics = _buildErrorDiagnosticService.GetBuildErrors().Where(d => d.ProjectId != null && d.Severity != DiagnosticSeverity.Hidden);
         var solution = _workspace.CurrentSolution;
         foreach (var diagnosticsByProject in buildDiagnostics.GroupBy(d => d.ProjectId))
@@ -198,8 +203,9 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
                 }
             }
         }
+#endif
 
-        return builder.ToImmutable();
+        return Task.FromResult(builder.ToImmutable());
     }
 
     private static string GetFixTitle(bool isAddSuppression)

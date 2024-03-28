@@ -64,7 +64,9 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
+#if false
         _visualStudioWorkspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
+#endif
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
         // Since we're on the UI thread here anyways, use that as an opportunity to grab the

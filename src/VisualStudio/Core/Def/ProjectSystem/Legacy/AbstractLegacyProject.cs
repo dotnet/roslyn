@@ -147,7 +147,9 @@ internal abstract partial class AbstractLegacyProject : ForegroundThreadAffiniti
         ConnectHierarchyEvents();
         RefreshBinOutputPath();
 
+#if false
         _externalErrorReporter = new ProjectExternalErrorReporter(ProjectSystemProject.Id, externalErrorReportingPrefix, language, workspaceImpl);
+#endif
         _batchScopeCreator = componentModel.GetService<SolutionEventsBatchScopeCreator>();
         _batchScopeCreator.StartTrackingProject(ProjectSystemProject, Hierarchy);
     }

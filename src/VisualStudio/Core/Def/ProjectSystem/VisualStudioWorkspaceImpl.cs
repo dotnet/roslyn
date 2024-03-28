@@ -105,9 +105,12 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     internal ProjectSystemProjectFactory ProjectSystemProjectFactory { get; }
 
     private readonly Lazy<IProjectCodeModelFactory> _projectCodeModelFactory;
-    private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
     private readonly IAsynchronousOperationListener _workspaceListener;
+
+#if false
+    private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
     private bool _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents;
+#endif
 
     public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider)
         : base(VisualStudioMefHostServices.Create(exportProvider))
@@ -131,6 +134,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider));
 
+#if false
         _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() =>
             new ExternalErrorDiagnosticUpdateSource(
                 this,
@@ -139,10 +143,12 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
                 exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
                 _threadingContext),
             isThreadSafe: true);
+#endif
 
         _workspaceListener = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
     }
 
+#if false
     internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource => _lazyExternalErrorDiagnosticUpdateSource.Value;
 
     internal void SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents()
@@ -185,6 +191,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents = true;
     }
+#endif
 
     public async Task InitializeUIAffinitizedServicesAsync(IAsyncServiceProvider asyncServiceProvider)
     {
@@ -1433,10 +1440,12 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             _textBufferFactoryService.TextBufferCreated -= AddTextBufferCloneServiceToBuffer;
             _projectionBufferFactoryService.ProjectionBufferCreated -= AddTextBufferCloneServiceToBuffer;
 
+#if false
             if (_lazyExternalErrorDiagnosticUpdateSource.IsValueCreated)
             {
                 _lazyExternalErrorDiagnosticUpdateSource.Value.Dispose();
             }
+#endif
         }
 
         base.Dispose(finalize);
