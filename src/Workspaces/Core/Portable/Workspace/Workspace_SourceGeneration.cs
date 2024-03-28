@@ -96,7 +96,7 @@ public partial class Workspace
                         continue;
 
                     var requestedProject = solution.GetProject(projectId);
-                    if (requestedProject != null && !result.ContainsKey(projectId))
+                    if (requestedProject != null)
                     {
                         result[projectId] = Increment(requestedProject.SourceGeneratorExecutionVersion, major);
 
