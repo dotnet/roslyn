@@ -19,6 +19,9 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
+#if NETCOREAPP
+using System.Runtime.Loader;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -1062,6 +1065,27 @@ return reply;
 
             Assert.True(exceptionThrown);
         }
+
+#if NETCOREAPP
+        [Fact, WorkItem(50719, "https://github.com/dotnet/roslyn/issues/50719")]
+        public async Task ReferenceAssemblyWithoutLocation()
+        {
+            var compilation = TestCompilationFactory.CreateCSharpCompilationWithCorlib(@"
+public class Globals
+{
+    public Globals(int x) => X = x;
+    public int X;
+}");
+            var assemblyBytes = compilation.EmitToStream();
+            var assembly = AssemblyLoadContext.Default.LoadFromStream(assemblyBytes);
+            Assert.Empty(assembly.Location);
+            var type = assembly.GetType("Globals");
+
+            var code = "X";
+            var result = await CSharpScript.EvaluateAsync(code, globals: Activator.CreateInstance(type, 42));
+            Assert.Equal(42, result);
+        }
+#endif
 
         private class StreamOffsetResolver : SourceReferenceResolver
         {
