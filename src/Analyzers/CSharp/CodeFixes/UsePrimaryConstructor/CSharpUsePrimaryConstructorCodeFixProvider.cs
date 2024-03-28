@@ -273,15 +273,15 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
                 var symbol = semanticModel.GetSymbolInfo(originalName, cancellationToken).GetAnySymbol();
                 return symbol switch
                 {
-                    INamedTypeSymbol { ContainingType: { } containingType } => QualifyName(originalName, currentName, containingType),
+                    INamedTypeSymbol { ContainingType: { } containingType } => CreateDottedName(originalName, currentName, containingType),
                     IMethodSymbol or IPropertySymbol or IEventSymbol or IFieldSymbol =>
                         symbol is { ContainingType.OriginalDefinition: { } containingType } &&
-                        namedType.Equals(containingType) ? QualifyName(originalName, currentName, containingType) : currentName,
+                        namedType.Equals(containingType) ? CreateDottedName(originalName, currentName, containingType) : currentName,
                     _ => currentName,
                 };
             }
 
-            SyntaxNode QualifyName(
+            SyntaxNode CreateDottedName(
                 SimpleNameSyntax originalName,
                 SimpleNameSyntax currentName,
                 INamedTypeSymbol containingType)
