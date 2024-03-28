@@ -66,8 +66,6 @@ internal partial class ProjectState
     /// </summary>
     private ImmutableDictionary<ISourceGenerator, AnalyzerReference>? _lazySourceGenerators;
 
-    private FrozenDictionary<string, OneOrMany<DocumentId>>? _filePathToDocumentIds;
-
     private ProjectState(
         ProjectInfo projectInfo,
         LanguageServices languageServices,
@@ -982,36 +980,8 @@ internal partial class ProjectState
 
     public void AddDocumentIdsWithFilePath(ref TemporaryArray<DocumentId> temporaryArray, string filePath)
     {
-        var filePathToDocumentIds = _filePathToDocumentIds ??= CreateFilePathToDocumentIds();
-        if (filePathToDocumentIds.TryGetValue(filePath, out var oneOrMany))
-        {
-            foreach (var value in oneOrMany)
-                temporaryArray.Add(value);
-        }
-    }
-
-    private FrozenDictionary<string, OneOrMany<DocumentId>> CreateFilePathToDocumentIds()
-    {
-        using var _ = PooledDictionary<string, OneOrMany<DocumentId>>.GetInstance(out var map);
-
-        AddStates(this.DocumentStates);
-        AddStates(this.AdditionalDocumentStates);
-        AddStates(this.AnalyzerConfigDocumentStates);
-
-        return map.ToFrozenDictionary();
-
-        void AddStates<TState>(TextDocumentStates<TState> states) where TState : TextDocumentState
-        {
-            foreach (var (documentId, state) in states.States)
-            {
-                var filePath = state.FilePath;
-                if (filePath is null)
-                    continue;
-
-                map[filePath] = map.TryGetValue(filePath, out var existingValue)
-                    ? existingValue.Add(documentId)
-                    : OneOrMany.Create(documentId);
-            }
-        }
+        this.DocumentStates.AddDocumentIdsWithFilePath(ref temporaryArray, filePath);
+        this.AdditionalDocumentStates.AddDocumentIdsWithFilePath(ref temporaryArray, filePath);
+        this.AnalyzerConfigDocumentStates.AddDocumentIdsWithFilePath(ref temporaryArray, filePath);
     }
 }
