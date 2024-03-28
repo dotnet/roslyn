@@ -767,6 +767,153 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
+        [Theory, CombinatorialData]
+        internal async Task TestSourceGenerationExecution_MinorVersionChange_NoActualChange(
+            SourceGeneratorExecutionPreference executionPreference)
+        {
+            using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
+
+            var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, executionPreference);
+
+            var callCount = 0;
+            var generator = new CallbackGenerator(
+                onInit: _ => { },
+                onExecute: _ => { },
+                computeSourceTexts: () =>
+                {
+                    callCount++;
+                    return ImmutableArray.Create(("hint", SourceText.From($"// generated document {callCount}", Encoding.UTF8)));
+                });
+
+            // want to access the true workspace solution (which will be a fork of the solution we're producing here).
+            DocumentId tempDocId;
+            {
+                var projectId = ProjectId.CreateNewId();
+                var analyzerReference = new TestGeneratorReference(generator);
+                var project = workspace.CurrentSolution
+                    .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
+                    .GetRequiredProject(projectId)
+                    .AddAnalyzerReference(analyzerReference);
+                var tempDoc = project.AddDocument("X.cs", SourceText.From("// "));
+                tempDocId = tempDoc.Id;
+
+                Assert.True(workspace.SetCurrentSolution(_ => tempDoc.Project.Solution, WorkspaceChangeKind.SolutionChanged));
+            }
+
+            {
+                using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+
+                var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+
+                var remoteProcessId = await client.TryInvokeAsync<IRemoteProcessTelemetryService, int>(
+                    (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, cancellationToken),
+                    CancellationToken.None).ConfigureAwait(false);
+
+                var solution = workspace.CurrentSolution;
+                await UpdatePrimaryWorkspace(client, solution);
+
+                var project = solution.Projects.Single();
+                var compilation = await project.GetCompilationAsync();
+
+                // Should call the generator the first time.
+                Assert.Equal(1, callCount);
+
+                workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
+                await workspace.GetTestAccessor().WaitUntilCurrentSourceGeneratorsBatchCompletesAsync();
+
+                solution = workspace.CurrentSolution;
+                project = solution.Projects.Single();
+
+                compilation = await project.GetCompilationAsync();
+
+                var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync();
+                Assert.Single(sourceGeneratedDocuments);
+
+                // In both cases, we only expect to be called once.  That's because there was no actual change to
+                // anything else in the compilation. So the generator driver should return only cached data.
+                Assert.Equal(1, callCount);
+                Assert.Equal("// generated document 1", sourceGeneratedDocuments.Single().GetTextSynchronously(CancellationToken.None).ToString());
+            }
+        }
+
+        [Theory, CombinatorialData]
+        internal async Task TestSourceGenerationExecution_MajorVersionChange_NoActualChange(
+            SourceGeneratorExecutionPreference executionPreference)
+        {
+            using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
+
+            var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, executionPreference);
+
+            var callCount = 0;
+            var generator = new CallbackGenerator(
+                onInit: _ => { },
+                onExecute: _ => { },
+                computeSourceTexts: () =>
+                {
+                    callCount++;
+                    return ImmutableArray.Create(("hint", SourceText.From($"// generated document {callCount}", Encoding.UTF8)));
+                });
+
+            // want to access the true workspace solution (which will be a fork of the solution we're producing here).
+            DocumentId tempDocId;
+            {
+                var projectId = ProjectId.CreateNewId();
+                var analyzerReference = new TestGeneratorReference(generator);
+                var project = workspace.CurrentSolution
+                    .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
+                    .GetRequiredProject(projectId)
+                    .AddAnalyzerReference(analyzerReference);
+                var tempDoc = project.AddDocument("X.cs", SourceText.From("// "));
+                tempDocId = tempDoc.Id;
+
+                Assert.True(workspace.SetCurrentSolution(_ => tempDoc.Project.Solution, WorkspaceChangeKind.SolutionChanged));
+            }
+
+            {
+                using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+
+                var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+
+                var remoteProcessId = await client.TryInvokeAsync<IRemoteProcessTelemetryService, int>(
+                    (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, cancellationToken),
+                    CancellationToken.None).ConfigureAwait(false);
+
+                var solution = workspace.CurrentSolution;
+                await UpdatePrimaryWorkspace(client, solution);
+
+                var project = solution.Projects.Single();
+                var compilation = await project.GetCompilationAsync();
+
+                // Should call the generator the first time.
+                Assert.Equal(1, callCount);
+
+                // Because we're forcing regeneration, in balanced mode we should now see two calls to the generator.
+                workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
+                await workspace.GetTestAccessor().WaitUntilCurrentSourceGeneratorsBatchCompletesAsync();
+
+                solution = workspace.CurrentSolution;
+                project = solution.Projects.Single();
+
+                compilation = await project.GetCompilationAsync();
+
+                var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync();
+                Assert.Single(sourceGeneratedDocuments);
+
+                if (executionPreference is SourceGeneratorExecutionPreference.Automatic)
+                {
+                    Assert.Equal(1, callCount);
+                    Assert.Equal("// generated document 1", sourceGeneratedDocuments.Single().GetTextSynchronously(CancellationToken.None).ToString());
+                }
+                else
+                {
+                    Assert.Equal(2, callCount);
+                    Assert.Equal("// generated document 2", sourceGeneratedDocuments.Single().GetTextSynchronously(CancellationToken.None).ToString());
+                }
+            }
+        }
+
         private static async Task<Solution> VerifyIncrementalUpdatesAsync(
             TestWorkspace localWorkspace,
             Workspace remoteWorkspace,
