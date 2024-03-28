@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -269,5 +270,10 @@ internal readonly struct TextDocumentStates<TState>
         var documentChecksumTasks = SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
         var documentChecksums = new ChecksumCollection(await documentChecksumTasks.WhenAll().ConfigureAwait(false));
         return new(documentChecksums, SelectAsArray(static s => s.Id));
+    }
+
+    public void AddDocumentIdsWithFilePath(ref TemporaryArray<DocumentId> temporaryArray, string filePath)
+    {
+
     }
 }
