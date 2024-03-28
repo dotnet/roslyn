@@ -168,6 +168,8 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         if (this.GenerationDateTime == generationDateTime)
             return this;
 
+        // Copy over all state as-is.  The generation time doesn't change any actual state (the same tree will be
+        // produced for example).
         return new(
             this.Identity,
             this.LanguageServices,
@@ -180,32 +182,6 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
             this.TreeSource!,
             this._lazyContentHash,
             generationDateTime);
-
-            #if false
-                private SourceGeneratedDocumentState(
-        SourceGeneratedDocumentIdentity documentIdentity,
-        LanguageServices languageServices,
-        IDocumentServiceProvider? documentServiceProvider,
-        DocumentInfo.DocumentAttributes attributes,
-        ParseOptions options,
-        ConstantTextAndVersionSource textSource,
-        SourceText text,
-        LoadTextOptions loadTextOptions,
-        AsyncLazy<TreeAndVersion> treeSource,
-        Lazy<Checksum> lazyContentHash,
-        DateTime generationDateTime)
-        : base(languageServices, documentServiceProvider, attributes, options, textSource, loadTextOptions, treeSource)
-    {
-#endif
-
-        //return Create(
-        //    Identity,
-        //    SourceText,
-        //    ParseOptions,
-        //    LanguageServices,
-        //    // We're just changing the date time only.  So the checksum will remain as is.
-        //    _lazyContentHash,
-        //    generationDateTime);
     }
 
     /// <summary>
