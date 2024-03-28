@@ -2781,6 +2781,45 @@ public class C
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65932")]
+        public void TestAddExpressionBodyMembersToInterface()
+        {
+            var method = (MethodDeclarationSyntax)Generator.MethodDeclaration("m");
+            method = method.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            method = method.WithExpressionBody(SyntaxFactory.ArrowExpressionClause((ExpressionSyntax)Generator.IdentifierName("x")));
+
+            VerifySyntax<InterfaceDeclarationSyntax>(Generator.AddMembers(Generator.InterfaceDeclaration("i"),
+                    [method]),
+                """
+                interface i
+                {
+                    void m();
+                }
+                """);
+
+            var getAccessor = (AccessorDeclarationSyntax)Generator.GetAccessorDeclaration();
+            getAccessor = getAccessor.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            getAccessor = getAccessor.WithExpressionBody(SyntaxFactory.ArrowExpressionClause((ExpressionSyntax)Generator.IdentifierName("x")));
+
+            var setAccessor = (AccessorDeclarationSyntax)Generator.SetAccessorDeclaration();
+            setAccessor = setAccessor.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            setAccessor = setAccessor.WithExpressionBody(SyntaxFactory.ArrowExpressionClause((ExpressionSyntax)Generator.InvocationExpression(Generator.IdentifierName("x"))));
+
+            var property = (PropertyDeclarationSyntax)
+                Generator.WithAccessorDeclarations(
+                    Generator.PropertyDeclaration("p", Generator.IdentifierName("x")),
+                    [getAccessor, setAccessor]);
+
+            VerifySyntax<InterfaceDeclarationSyntax>(Generator.AddMembers(Generator.InterfaceDeclaration("i"),
+                    [property]),
+                """
+                interface i
+                {
+                    x p { get; set; }
+                }
+                """);
+        }
+
         [Fact]
         public void TestRemoveMembers()
         {

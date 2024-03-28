@@ -67,7 +67,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptionsStorage.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.CSharp);
 
             BindToOption(Run_code_analysis_in_separate_process, RemoteHostOptionsStorage.OOP64Bit);
-            BindToOption(Run_code_analysis_on_dotnet, RemoteHostOptionsStorage.OOPCoreClr);
 
             BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, () =>
             {
@@ -277,16 +276,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             Collapse_usings_on_file_open.IsEnabled = false;
             Collapse_metadata_signature_files_on_open.IsEnabled = false;
             Collapse_sourcelink_embedded_decompiled_files_on_open.IsEnabled = false;
-        }
-
-        private void Run_code_analysis_in_separate_process_Checked(object sender, RoutedEventArgs e)
-        {
-            Run_code_analysis_on_dotnet.IsEnabled = true;
-        }
-
-        private void Run_code_analysis_in_separate_process_Unchecked(object sender, RoutedEventArgs e)
-        {
-            Run_code_analysis_on_dotnet.IsEnabled = false;
         }
     }
 }
