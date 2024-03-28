@@ -31,6 +31,8 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
+using InfoBarInfo = (ImageMoniker imageMoniker, string message);
+
 /// <summary>
 /// Provides the support for opening files pointing to source generated documents, and keeping the content updated accordingly.
 /// </summary>
@@ -264,7 +266,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         private VisualStudioInfoBar? _infoBar;
         private VisualStudioInfoBar.InfoBarMessage? _currentInfoBarMessage;
 
-        private (string message, ImageMoniker imageMoniker)? _infoToShow = null;
+        private InfoBarInfo? _infoToShow = null;
 
         public OpenSourceGeneratedFile(SourceGeneratedFileManager fileManager, ITextBuffer textBuffer, Workspace workspace, SourceGeneratedDocumentIdentity documentIdentity, IThreadingContext threadingContext)
             : base(threadingContext, assertIsForeground: true)
@@ -338,24 +340,21 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 
             // Locals correspond to the equivalently-named fields; we'll assign these and then assign to the fields while on the
             // UI thread to avoid any potential race where we update the InfoBar while this is running.
-            string? messageToShow;
-            ImageMoniker imageMonikerToShow;
+            InfoBarInfo infoToShow;
 
             if (project == null)
             {
-                messageToShow = ServicesVSResources.The_project_no_longer_exists;
-                imageMonikerToShow = KnownMonikers.StatusError;
+                infoToShow = (KnownMonikers.StatusError, ServicesVSResources.The_project_no_longer_exists);
             }
             else
             {
                 generatedDocument = await project.GetSourceGeneratedDocumentAsync(_documentIdentity.DocumentId, cancellationToken).ConfigureAwait(false);
                 if (generatedDocument != null)
                 {
-                    messageToShow = string.Format(
+                    infoToShow = (imageMoniker: default, string.Format(
                         ServicesVSResources.This_file_was_generated_by_0_at_1_and_cannot_be_edited,
                         GeneratorDisplayName,
-                        generatedDocument.GenerationDateTime.ToLocalTime());
-                    imageMonikerToShow = default;
+                        generatedDocument.GenerationDateTime.ToLocalTime()));
                     generatedSource = await generatedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 }
                 else
@@ -363,20 +362,18 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                     // The file isn't there anymore; do we still have the generator at all?
                     if (project.AnalyzerReferences.Any(a => a.FullPath == _documentIdentity.Generator.AssemblyPath))
                     {
-                        messageToShow = string.Format(ServicesVSResources.The_generator_0_that_generated_this_file_has_stopped_generating_this_file, GeneratorDisplayName);
-                        imageMonikerToShow = KnownMonikers.StatusError;
+                        infoToShow = (KnownMonikers.StatusError, string.Format(ServicesVSResources.The_generator_0_that_generated_this_file_has_stopped_generating_this_file, GeneratorDisplayName));
                     }
                     else
                     {
-                        messageToShow = string.Format(ServicesVSResources.The_generator_0_that_generated_this_file_has_been_removed_from_the_project, GeneratorDisplayName);
-                        imageMonikerToShow = KnownMonikers.StatusError;
+                        infoToShow = (KnownMonikers.StatusError, string.Format(ServicesVSResources.The_generator_0_that_generated_this_file_has_been_removed_from_the_project, GeneratorDisplayName));
                     }
                 }
             }
 
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            _infoToShow = (messageToShow, imageMonikerToShow);
+            _infoToShow = infoToShow;
 
             // Update the text if we have new text
             if (generatedSource != null)
@@ -486,7 +483,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 return;
             }
 
-            var (message, imageMoniker) = _infoToShow.Value;
+            var (imageMoniker, message) = _infoToShow.Value;
             if (_currentInfoBarMessage != null)
             {
                 if (_currentInfoBarMessage.Message == message &&
