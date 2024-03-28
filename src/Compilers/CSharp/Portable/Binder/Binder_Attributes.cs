@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    attributeArgumentBinder.BindDefaultArgumentsAndParamsCollection(
+                    attributeArgumentBinder.BindDefaultArguments(
                         node,
                         attributeConstructor.Parameters,
                         analyzedArguments.ConstructorArguments.Arguments,

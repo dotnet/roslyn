@@ -4993,7 +4993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     primaryConstructor.SetParametersPassedToTheBase(parametersPassedToBase);
                 }
 
-                BindDefaultArgumentsAndParamsCollection(nonNullSyntax, resultMember.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParamsOpt, out var defaultArguments, expanded, enableCallerInfo, diagnostics);
+                BindDefaultArguments(nonNullSyntax, resultMember.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParamsOpt, out var defaultArguments, expanded, enableCallerInfo, diagnostics);
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
                 var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
@@ -6715,7 +6715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 null;
 
             var expanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
-            BindDefaultArgumentsAndParamsCollection(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
+            BindDefaultArguments(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
 
             var arguments = analyzedArguments.Arguments.ToImmutable();
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();

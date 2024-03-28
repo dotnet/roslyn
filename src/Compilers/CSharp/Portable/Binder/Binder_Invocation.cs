@@ -1226,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
 
-            BindDefaultArgumentsAndParamsCollection(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
+            BindDefaultArguments(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, analyzedArguments.Names, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
 
             // Note: we specifically want to do final validation (7.6.5.1) without checking delegate compatibility (15.2),
             // so we're calling MethodGroupFinalValidation directly, rather than via MethodGroupConversionHasErrors.
@@ -1487,7 +1487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return parameter;
         }
 
-        internal void BindDefaultArgumentsAndParamsCollection(
+        internal void BindDefaultArguments(
             SyntaxNode node,
             ImmutableArray<ParameterSymbol> parameters,
             ArrayBuilder<BoundExpression> argumentsBuilder,
