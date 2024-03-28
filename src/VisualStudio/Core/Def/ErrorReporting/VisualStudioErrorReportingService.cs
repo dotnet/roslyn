@@ -29,15 +29,16 @@ internal partial class VisualStudioErrorReportingService : IErrorReportingServic
     public VisualStudioErrorReportingService(
         IThreadingContext threadingContext,
         IVsService<SVsActivityLog, IVsActivityLog> activityLog,
-        IAsynchronousOperationListenerProvider listenerProvider,
-        SVsServiceProvider serviceProvider)
+        IVsService<SVsInfoBarUIFactory, IVsInfoBarUIFactory> vsInfoBarUIFactory,
+        IVsService<SVsShell, IVsShell> vsShell,
+        IAsynchronousOperationListenerProvider listenerProvider)
     {
         _threadingContext = threadingContext;
         _activityLog = activityLog;
         _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
 
         // Attach this info bar to the global shell location for info-bars (independent of any particular window).
-        _infoBar = new VisualStudioInfoBar(threadingContext, serviceProvider, listenerProvider, windowFrame: null);
+        _infoBar = new VisualStudioInfoBar(threadingContext, vsInfoBarUIFactory, vsShell, listenerProvider, windowFrame: null);
     }
 
     public string HostDisplayName => "Visual Studio";

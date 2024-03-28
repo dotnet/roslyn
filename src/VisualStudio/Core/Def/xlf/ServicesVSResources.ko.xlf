@@ -1477,6 +1477,11 @@
         <target state="translated">이 파일을 생성한 생성기 '{0}'이(가) 이 파일 생성을 중지했습니다. 이 파일은 프로젝트에 더 이상 포함되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_project_no_longer_exists">
+        <source>The project no longer exists</source>
+        <target state="new">The project no longer exists</target>
+        <note />
+      </trans-unit>
       <trans-unit id="This_action_cannot_be_undone_Do_you_wish_to_continue">
         <source>This action cannot be undone. Do you wish to continue?</source>
         <target state="translated">이 작업은 실행 취소할 수 없습니다. 계속하시겠습니까?</target>

@@ -24,7 +24,6 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LicenseManagement.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -41,6 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 {
     private readonly SVsServiceProvider _serviceProvider;
+    private readonly IVsService<SVsInfoBarUIFactory, IVsInfoBarUIFactory> _vsInfoBarUIFactory;
+    private readonly IVsService<SVsShell, IVsShell> _vsShell;
     private readonly IThreadingContext _threadingContext;
     private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffinitizedObject;
     private readonly ITextDocumentFactoryService _textDocumentFactoryService;
@@ -74,6 +75,8 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public SourceGeneratedFileManager(
         SVsServiceProvider serviceProvider,
+        IVsService<SVsInfoBarUIFactory, IVsInfoBarUIFactory> vsInfoBarUIFactory,
+        IVsService<SVsShell, IVsShell> vsShell,
         IThreadingContext threadingContext,
         OpenTextBufferProvider openTextBufferProvider,
         IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
@@ -83,6 +86,8 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         IAsynchronousOperationListenerProvider listenerProvider)
     {
         _serviceProvider = serviceProvider;
+        _vsInfoBarUIFactory = vsInfoBarUIFactory;
+        _vsShell = vsShell;
         _threadingContext = threadingContext;
         _foregroundThreadAffinitizedObject = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
         _textDocumentFactoryService = textDocumentFactoryService;
@@ -207,7 +212,8 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
     {
         if (_openFiles.TryGetValue(moniker, out var openFile))
         {
-            openFile.SetWindowFrame(windowFrame);
+            var token = _listener.BeginAsyncOperation(nameof(IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame));
+            openFile.SetWindowFrameAsync(windowFrame).CompletesAsyncOperation(token);
         }
     }
 
@@ -337,24 +343,24 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 
             // Locals correspond to the equivalently-named fields; we'll assign these and then assign to the fields while on the
             // UI thread to avoid any potential race where we update the InfoBar while this is running.
-            string? windowFrameMessageToShow;
-            ImageMoniker windowFrameImageMonikerToShow;
+            string? messageToShow;
+            ImageMoniker imageMonikerToShow;
 
             if (project == null)
             {
-                windowFrameMessageToShow = "The project no longer exists.";
-                windowFrameImageMonikerToShow = KnownMonikers.StatusError;
+                messageToShow = ServicesVSResources.The_project_no_longer_exists;
+                imageMonikerToShow = KnownMonikers.StatusError;
             }
             else
             {
                 generatedDocument = await project.GetSourceGeneratedDocumentAsync(_documentIdentity.DocumentId, cancellationToken).ConfigureAwait(false);
                 if (generatedDocument != null)
                 {
-                    windowFrameMessageToShow = string.Format(
+                    messageToShow = string.Format(
                         ServicesVSResources.This_file_was_generated_by_0_at_1_and_cannot_be_edited,
                         GeneratorDisplayName,
                         generatedDocument.GenerationDateTime.ToLocalTime());
-                    windowFrameImageMonikerToShow = default;
+                    imageMonikerToShow = default;
                     generatedSource = await generatedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 }
                 else
@@ -362,20 +368,20 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                     // The file isn't there anymore; do we still have the generator at all?
                     if (project.AnalyzerReferences.Any(a => a.FullPath == _documentIdentity.Generator.AssemblyPath))
                     {
-                        windowFrameMessageToShow = string.Format(ServicesVSResources.The_generator_0_that_generated_this_file_has_stopped_generating_this_file, GeneratorDisplayName);
-                        windowFrameImageMonikerToShow = KnownMonikers.StatusError;
+                        messageToShow = string.Format(ServicesVSResources.The_generator_0_that_generated_this_file_has_stopped_generating_this_file, GeneratorDisplayName);
+                        imageMonikerToShow = KnownMonikers.StatusError;
                     }
                     else
                     {
-                        windowFrameMessageToShow = string.Format(ServicesVSResources.The_generator_0_that_generated_this_file_has_been_removed_from_the_project, GeneratorDisplayName);
-                        windowFrameImageMonikerToShow = KnownMonikers.StatusError;
+                        messageToShow = string.Format(ServicesVSResources.The_generator_0_that_generated_this_file_has_been_removed_from_the_project, GeneratorDisplayName);
+                        imageMonikerToShow = KnownMonikers.StatusError;
                     }
                 }
             }
 
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            _infoToShow = (windowFrameMessageToShow, windowFrameImageMonikerToShow);
+            _infoToShow = (messageToShow, imageMonikerToShow);
 
             // Update the text if we have new text
             if (generatedSource != null)
@@ -429,7 +435,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             }
 
             // Update the InfoBar either way
-            EnsureWindowFrameInfoBarUpdated();
+            await EnsureWindowFrameInfoBarUpdatedAsync().ConfigureAwait(true);
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
@@ -449,7 +455,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 
                 // We'll start this work asynchronously to figure out if we need to change; if the file is closed the cancellationToken
                 // is triggered and this will no-op.
-                var asyncToken = _fileManager._listener.BeginAsyncOperation(nameof(OpenSourceGeneratedFile) + "." + nameof(OnWorkspaceChanged));
+                var asyncToken = _fileManager._listener.BeginAsyncOperation($"{nameof(OpenSourceGeneratedFile)}.{nameof(OnWorkspaceChanged)}");
                 CheckDependentVersionsAsync().CompletesAsyncOperation(asyncToken);
             }
 
@@ -466,9 +472,9 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             }
         }
 
-        internal void SetWindowFrame(IVsWindowFrame windowFrame)
+        internal async Task SetWindowFrameAsync(IVsWindowFrame windowFrame)
         {
-            AssertIsForeground();
+            await _fileManager._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             if (_infoBar != null)
             {
@@ -477,19 +483,19 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             }
 
             _infoBar = new VisualStudioInfoBar(
-                this.ThreadingContext, _fileManager._serviceProvider, _fileManager._listenerProvider, windowFrame);
+                this.ThreadingContext, _fileManager._vsInfoBarUIFactory, _fileManager._vsShell, _fileManager._listenerProvider, windowFrame);
 
             // We'll override the window frame and never show it as dirty, even if there's an underlying edit
             windowFrame.SetProperty((int)__VSFPROPID2.VSFPROPID_OverrideDirtyState, false);
             windowFrame.SetProperty((int)__VSFPROPID5.VSFPROPID_OverrideCaption, _documentIdentity.HintName + " " + ServicesVSResources.generated_suffix);
             windowFrame.SetProperty((int)__VSFPROPID5.VSFPROPID_OverrideToolTip, _documentIdentity.HintName + " " + string.Format(ServicesVSResources.generated_by_0_suffix, GeneratorDisplayName));
 
-            EnsureWindowFrameInfoBarUpdated();
+            await EnsureWindowFrameInfoBarUpdatedAsync().ConfigureAwait(true);
         }
 
-        private void EnsureWindowFrameInfoBarUpdated()
+        private async Task EnsureWindowFrameInfoBarUpdatedAsync()
         {
-            AssertIsForeground();
+            await _fileManager._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             if (_infoToShow is null || _infoBar is null)
             {
@@ -497,10 +503,11 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 return;
             }
 
+            var (message, imageMoniker) = _infoToShow.Value;
             if (_currentInfoBarMessage != null)
             {
-                if (_currentInfoBarMessage.Message == _infoToShow.Value.message &&
-                    _currentInfoBarMessage.ImageMoniker.Equals(_infoToShow.Value.imageMoniker))
+                if (_currentInfoBarMessage.Message == message &&
+                    _currentInfoBarMessage.ImageMoniker.Equals(imageMoniker))
                 {
                     // bail out if no change is needed
                     return;
@@ -510,7 +517,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                 _currentInfoBarMessage.Remove();
             }
 
-            VisualStudioInfoBar.InfoBarMessage? message = null;
+            VisualStudioInfoBar.InfoBarMessage? infoBarMessage = null;
             InfoBarUI[] infoBarItems = [];
 
             var options = this.Workspace.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
@@ -518,26 +525,34 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             {
                 infoBarItems = [new InfoBarUI(ServicesVSResources.Rerun_generator, InfoBarUI.UIKind.Button, () =>
                 {
-                    _fileManager._threadingContext.ThrowIfNotOnUIThread();
-                    Contract.ThrowIfNull(message);
-
-                    message.Remove();
-
-                    _currentInfoBarMessage = _infoBar.ShowInfoBarMessageFromUIThread(
-                        ServicesVSResources.Generator_running, isCloseButtonVisible: false, KnownMonikers.StatusInformation);
-
-                    // Force regeneration here.  Nothing has actually changed, so the incremental generator architecture
-                    // would normally just return the same values all over again.  By forcing things, we drop the
-                    // generator driver, which will force new files to actually be created.
-                    this.Workspace.EnqueueUpdateSourceGeneratorVersion(
-                        this._documentIdentity.DocumentId.ProjectId,
-                        forceRegeneration: true);
+                    var asyncToken = _fileManager._listener.BeginAsyncOperation($"{nameof(OpenSourceGeneratedFile)}.{nameof(OnWorkspaceChanged)}");
+                    OnRerunGeneratorClickedAsync(_infoBar, infoBarMessage).CompletesAsyncOperation(asyncToken);
                 })];
             }
 
-            message = _infoBar.ShowInfoBarMessageFromUIThread(
-                _infoToShow.Value.message, isCloseButtonVisible: false, _infoToShow.Value.imageMoniker, infoBarItems);
-            _currentInfoBarMessage = message;
+            infoBarMessage = await _infoBar.ShowInfoBarMessageAsync(
+                message, isCloseButtonVisible: false, imageMoniker).ConfigureAwait(true);
+            _currentInfoBarMessage = infoBarMessage;
+        }
+
+        private async Task OnRerunGeneratorClickedAsync(
+            VisualStudioInfoBar infoBar, VisualStudioInfoBar.InfoBarMessage? infoBarMessage)
+        {
+            await _fileManager._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            Contract.ThrowIfNull(infoBarMessage);
+
+            infoBarMessage.Remove();
+
+            var asyncToken = _fileManager._listener.BeginAsyncOperation($"{nameof(OpenSourceGeneratedFile)}.{nameof(OnWorkspaceChanged)}");
+            _currentInfoBarMessage = await infoBar.ShowInfoBarMessageAsync(
+                ServicesVSResources.Generator_running, isCloseButtonVisible: false, KnownMonikers.StatusInformation).ConfigureAwait(true);
+
+            // Force regeneration here.  Nothing has actually changed, so the incremental generator architecture
+            // would normally just return the same values all over again.  By forcing things, we drop the
+            // generator driver, which will force new files to actually be created.
+            this.Workspace.EnqueueUpdateSourceGeneratorVersion(
+                this._documentIdentity.DocumentId.ProjectId,
+                forceRegeneration: true);
         }
 
         public Task<bool> NavigateToSpanAsync(TextSpan sourceSpan, CancellationToken cancellationToken)

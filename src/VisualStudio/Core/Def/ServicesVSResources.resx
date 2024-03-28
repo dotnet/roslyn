@@ -1921,4 +1921,7 @@ Additional information: {1}</value>
   <data name="Rerun_generator" xml:space="preserve">
     <value>Rerun generator</value>
   </data>
+  <data name="The_project_no_longer_exists" xml:space="preserve">
+    <value>The project no longer exists</value>
+  </data>
 </root>
