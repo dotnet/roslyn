@@ -3339,7 +3339,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kind = result.ConversionForArg(arg);
                 BoundExpression argument = arguments[arg];
 
-                if (argument is not BoundArgListOperator && !argument.HasAnyErrors)
+                if (argument is BoundArgListOperator)
+                {
+                    Debug.Assert(kind.IsIdentity);
+                    Debug.Assert(!argument.NeedsToBeConverted());
+                    continue;
+                }
+                else if (!argument.HasAnyErrors)
                 {
                     var argRefKind = analyzedArguments.RefKind(arg);
 
@@ -3407,34 +3413,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                TypeWithAnnotations parameterTypeWithAnnotations;
+                int paramNum = result.ParameterFromArgument(arg);
+
+                if (paramNum == parameters.Length - 1 && result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
+                {
+                    Debug.Assert(result.ParamsElementTypeOpt.HasType);
+                    Debug.Assert(result.ParamsElementTypeOpt.Type != (object)ErrorTypeSymbol.EmptyParamsCollectionElementTypeSentinel);
+                    Debug.Assert(argument.Kind is not (BoundKind.OutVariablePendingInference or BoundKind.OutDeconstructVarPendingInference or BoundKind.DiscardExpression));
+
+                    if (!parameters[paramNum].Type.IsSZArray())
+                    {
+                        // Conversions to elements of non-array param collections are applied in the process of collection construction
+                        continue;
+                    }
+
+                    parameterTypeWithAnnotations = result.ParamsElementTypeOpt;
+                }
+                else
+                {
+                    parameterTypeWithAnnotations = parameters[paramNum].TypeWithAnnotations;
+                }
+
                 if (kind.IsInterpolatedStringHandler)
                 {
                     Debug.Assert(argument is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
-                    TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
                     reportUnsafeIfNeeded(methodResult, diagnostics, argument, parameterTypeWithAnnotations);
                     arguments[arg] = BindInterpolatedStringHandlerInMemberCall(argument, parameterTypeWithAnnotations.Type, arguments, parameters, ref result, arg, receiver, diagnostics);
                 }
                 // https://github.com/dotnet/roslyn/issues/37119 : should we create an (Identity) conversion when the kind is Identity but the types differ?
                 else if (!kind.IsIdentity)
                 {
-                    TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
                     reportUnsafeIfNeeded(methodResult, diagnostics, argument, parameterTypeWithAnnotations);
 
                     arguments[arg] = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, parameterTypeWithAnnotations.Type, diagnostics);
                 }
                 else if (argument.Kind == BoundKind.OutVariablePendingInference)
                 {
-                    TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
                     arguments[arg] = ((OutVariablePendingInference)argument).SetInferredTypeWithAnnotations(parameterTypeWithAnnotations, diagnostics);
                 }
                 else if (argument.Kind == BoundKind.OutDeconstructVarPendingInference)
                 {
-                    TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
                     arguments[arg] = ((OutDeconstructVarPendingInference)argument).SetInferredTypeWithAnnotations(parameterTypeWithAnnotations, success: true);
                 }
                 else if (argument.Kind == BoundKind.DiscardExpression && !argument.HasExpressionType())
                 {
-                    TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
                     Debug.Assert(parameterTypeWithAnnotations.HasType);
                     arguments[arg] = ((BoundDiscardExpression)argument).SetInferredTypeWithAnnotations(parameterTypeWithAnnotations);
                 }
@@ -3443,7 +3466,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(kind.IsIdentity);
                     if (argument is BoundTupleLiteral)
                     {
-                        TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
                         // CreateConversion reports tuple literal name mismatches, and constructs the expected pattern of bound nodes.
                         arguments[arg] = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, parameterTypeWithAnnotations.Type, diagnostics);
                     }
@@ -3472,20 +3494,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return parameters[paramNum];
         }
 #nullable disable
-
-        private static TypeWithAnnotations GetCorrespondingParameterTypeWithAnnotations(ref MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, int arg)
-        {
-            int paramNum = result.ParameterFromArgument(arg);
-
-            if (paramNum == parameters.Length - 1 && result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
-            {
-                Debug.Assert(result.ParamsElementTypeOpt.HasType);
-                Debug.Assert(result.ParamsElementTypeOpt.Type != (object)ErrorTypeSymbol.EmptyParamsCollectionElementTypeSentinel);
-                return result.ParamsElementTypeOpt;
-            }
-
-            return parameters[paramNum].TypeWithAnnotations;
-        }
 
         private BoundExpression BindArrayCreationExpression(ArrayCreationExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {

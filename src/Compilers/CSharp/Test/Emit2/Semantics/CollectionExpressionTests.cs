@@ -4509,18 +4509,12 @@ static class Program
                 // (7,13): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         s = [default];
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default]").WithArguments("string", "Add").WithLocation(7, 13),
-                // (7,13): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         s = [default];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[default]").WithArguments("string").WithLocation(7, 13),
                 // (8,13): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         s = [null];
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[null]").WithArguments("string", "0").WithLocation(8, 13),
                 // (8,13): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         s = [null];
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[null]").WithArguments("string", "Add").WithLocation(8, 13),
-                // (8,13): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         s = [null];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[null]").WithArguments("string").WithLocation(8, 13),
                 // (8,14): error CS0037: Cannot convert null to 'char' because it is a non-nullable value type
                 //         s = [null];
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("char").WithLocation(8, 14),
@@ -4530,18 +4524,12 @@ static class Program
                 // (9,13): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         s = ['a'];
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "['a']").WithArguments("string", "Add").WithLocation(9, 13),
-                // (9,13): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         s = ['a'];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "['a']").WithArguments("string").WithLocation(9, 13),
                 // (10,13): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         s = [1];
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[1]").WithArguments("string", "0").WithLocation(10, 13),
                 // (10,13): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         s = [1];
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[1]").WithArguments("string", "Add").WithLocation(10, 13),
-                // (10,13): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         s = [1];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1]").WithArguments("string").WithLocation(10, 13),
                 // (10,14): error CS0029: Cannot implicitly convert type 'int' to 'char'
                 //         s = [1];
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "char").WithLocation(10, 14),
@@ -4550,10 +4538,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"[..""""]").WithArguments("string", "0").WithLocation(11, 13),
                 // (11,13): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         s = [..""];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[..""""]").WithArguments("string", "Add").WithLocation(11, 13),
-                // (11,13): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         s = [..""];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, @"[..""""]").WithArguments("string").WithLocation(11, 13));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[..""""]").WithArguments("string", "Add").WithLocation(11, 13));
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/pull/71492")]
@@ -4585,9 +4570,6 @@ static class Program
                     // (6,21): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                     //         _ = (string)[default];
                     Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default]").WithArguments("string", "Add").WithLocation(6, 21),
-                    // (6,21): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
-                    //         _ = (string)[default];
-                    Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[default]").WithArguments("string").WithLocation(6, 21),
                     // (6,22): error CS8716: There is no target type for the default literal.
                     //         _ = (string)[default];
                     Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 22),
@@ -4597,9 +4579,6 @@ static class Program
                     // (7,21): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                     //         _ = (string)[null];
                     Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[null]").WithArguments("string", "Add").WithLocation(7, 21),
-                    // (7,21): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
-                    //         _ = (string)[null];
-                    Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[null]").WithArguments("string").WithLocation(7, 21),
                     // (7,22): error CS0037: Cannot convert null to 'char' because it is a non-nullable value type
                     //         _ = (string)[null];
                     Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("char").WithLocation(7, 22),
@@ -4609,18 +4588,12 @@ static class Program
                     // (8,21): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                     //         _ = (string)['a'];
                     Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "['a']").WithArguments("string", "Add").WithLocation(8, 21),
-                    // (8,21): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
-                    //         _ = (string)['a'];
-                    Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "['a']").WithArguments("string").WithLocation(8, 21),
                     // (9,21): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                     //         _ = (string)[1];
                     Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[1]").WithArguments("string", "0").WithLocation(9, 21),
                     // (9,21): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                     //         _ = (string)[1];
                     Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[1]").WithArguments("string", "Add").WithLocation(9, 21),
-                    // (9,21): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
-                    //         _ = (string)[1];
-                    Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1]").WithArguments("string").WithLocation(9, 21),
                     // (9,22): error CS0029: Cannot implicitly convert type 'int' to 'char'
                     //         _ = (string)[1];
                     Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "char").WithLocation(9, 22),
@@ -4629,10 +4602,7 @@ static class Program
                     Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"[..""""]").WithArguments("string", "0").WithLocation(10, 21),
                     // (10,21): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                     //         _ = (string)[..""];
-                    Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[..""""]").WithArguments("string", "Add").WithLocation(10, 21),
-                    // (10,21): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
-                    //         _ = (string)[..""];
-                    Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, @"[..""""]").WithArguments("string").WithLocation(10, 21));
+                    Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[..""""]").WithArguments("string", "Add").WithLocation(10, 21));
         }
 
         [Fact]
@@ -5321,9 +5291,6 @@ static class Program
                 // 1.cs(2,5): error CS1061: 'S' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'S' could be found (are you missing a using directive or an assembly reference?)
                 // s = [1, 2];
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[1, 2]").WithArguments("S", "Add").WithLocation(2, 5),
-                // 1.cs(2,5): error CS9215: Collection expression type 'S' must have an instance or extension method 'Add' that can be called with a single argument.
-                // s = [1, 2];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, 2]").WithArguments("S").WithLocation(2, 5),
                 // 1.cs(3,9): error CS9212: Spread operator '..' cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
                 // s = [.. new object()];
                 Diagnostic(ErrorCode.ERR_SpreadMissingMember, "new object()").WithArguments("object", "GetEnumerator").WithLocation(3, 9));
@@ -5842,9 +5809,6 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (13,13): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'S<int>.Add(int, int)'
-                //         s = [1, ..s];
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[1, ..s]").WithArguments("y", "S<int>.Add(int, int)").WithLocation(13, 13),
                 // (13,13): error CS9215: Collection expression type 'S<int>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         s = [1, ..s];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, ..s]").WithArguments("S<int>").WithLocation(13, 13));
@@ -5874,9 +5838,6 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (15,13): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'S<int>.Add(int, int)'
-                //         s = [1, ..s];
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[1, ..s]").WithArguments("y", "S<int>.Add(int, int)").WithLocation(15, 13),
                 // (15,13): error CS9215: Collection expression type 'S<int>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         s = [1, ..s];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, ..s]").WithArguments("S<int>").WithLocation(15, 13));
@@ -5909,9 +5870,6 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (18,13): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'Extensions.Add<T>(S<T>, T, T)'
-                //         s = [1, ..s];
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[1, ..s]").WithArguments("y", "Extensions.Add<T>(S<T>, T, T)").WithLocation(18, 13),
                 // (18,13): error CS9215: Collection expression type 'S<int>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         s = [1, ..s];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, ..s]").WithArguments("S<int>").WithLocation(18, 13));
@@ -6233,10 +6191,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "['a']").WithArguments("string", "0").WithLocation(7, 13),
                 // (7,13): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         s = ['a'];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "['a']").WithArguments("string", "Add").WithLocation(7, 13),
-                // (7,13): error CS9215: Collection expression type 'string' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         s = ['a'];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "['a']").WithArguments("string").WithLocation(7, 13));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "['a']").WithArguments("string", "Add").WithLocation(7, 13));
         }
 
         [Fact]
@@ -6416,10 +6371,7 @@ static class Program
             comp.VerifyEmitDiagnostics(
                 // (16,31): error CS0122: 'MyCollection<int>.Add(int)' is inaccessible due to its protection level
                 //         MyCollection<int> y = [1, ..x];
-                Diagnostic(ErrorCode.ERR_BadAccess, "[1, ..x]").WithArguments("MyCollection<int>.Add(int)").WithLocation(16, 31),
-                // (16,31): error CS9215: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<int> y = [1, ..x];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, ..x]").WithArguments("MyCollection<int>").WithLocation(16, 31));
+                Diagnostic(ErrorCode.ERR_BadAccess, "[1, ..x]").WithArguments("MyCollection<int>.Add(int)").WithLocation(16, 31));
         }
 
         [Fact]
@@ -6457,10 +6409,7 @@ static class Program
             comp.VerifyEmitDiagnostics(
                 // (6,31): error CS1061: 'MyCollection<int>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<int>' could be found (are you missing a using directive or an assembly reference?)
                 //         MyCollection<int> y = [1, ..x];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[1, ..x]").WithArguments("MyCollection<int>", "Add").WithLocation(6, 31),
-                // (6,31): error CS9215: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<int> y = [1, ..x];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, ..x]").WithArguments("MyCollection<int>").WithLocation(6, 31));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[1, ..x]").WithArguments("MyCollection<int>", "Add").WithLocation(6, 31));
         }
 
         [Fact]
@@ -6521,10 +6470,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "1").WithArguments("MyCollection<object>.Add(out object)").WithLocation(13, 42),
                 // (15,34): error CS1954: The best overloaded method match 'MyCollection<object>.Add(out object)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
                 //         MyCollection<object> z = [..x, ..y, 3];
-                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[..x, ..y, 3]").WithArguments("MyCollection<object>.Add(out object)").WithLocation(15, 34),
-                // (15,34): error CS9215: Collection expression type 'MyCollection<object>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<object> z = [..x, ..y, 3];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[..x, ..y, 3]").WithArguments("MyCollection<object>").WithLocation(15, 34));
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[..x, ..y, 3]").WithArguments("MyCollection<object>.Add(out object)").WithLocation(15, 34));
         }
 
         [Fact]
@@ -6556,10 +6502,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "1").WithArguments("MyCollection<object>.Add(ref object)").WithLocation(13, 42),
                 // (15,34): error CS1954: The best overloaded method match 'MyCollection<object>.Add(ref object)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
                 //         MyCollection<object> z = [..x, ..y, 3];
-                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[..x, ..y, 3]").WithArguments("MyCollection<object>.Add(ref object)").WithLocation(15, 34),
-                // (15,34): error CS9215: Collection expression type 'MyCollection<object>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<object> z = [..x, ..y, 3];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[..x, ..y, 3]").WithArguments("MyCollection<object>").WithLocation(15, 34));
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[..x, ..y, 3]").WithArguments("MyCollection<object>.Add(ref object)").WithLocation(15, 34));
         }
 
         [Fact]
@@ -6698,10 +6641,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "1").WithArguments("Extensions.Add<T>(ref MyCollection<T>, out T)").WithLocation(16, 42),
                 // (18,34): error CS1954: The best overloaded method match 'Extensions.Add<T>(ref MyCollection<T>, out T)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
                 //         MyCollection<object> z = [..x, ..y, 3];
-                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[..x, ..y, 3]").WithArguments("Extensions.Add<T>(ref MyCollection<T>, out T)").WithLocation(18, 34),
-                // (18,34): error CS9215: Collection expression type 'MyCollection<object>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<object> z = [..x, ..y, 3];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[..x, ..y, 3]").WithArguments("MyCollection<object>").WithLocation(18, 34));
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[..x, ..y, 3]").WithArguments("Extensions.Add<T>(ref MyCollection<T>, out T)").WithLocation(18, 34));
         }
 
         [Fact]
@@ -6736,10 +6676,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "1").WithArguments("Extensions.Add<T>(ref MyCollection<T>, ref T)").WithLocation(16, 42),
                 // (18,34): error CS1954: The best overloaded method match 'Extensions.Add<T>(ref MyCollection<T>, ref T)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
                 //         MyCollection<object> z = [..x, ..y, 3];
-                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[..x, ..y, 3]").WithArguments("Extensions.Add<T>(ref MyCollection<T>, ref T)").WithLocation(18, 34),
-                // (18,34): error CS9215: Collection expression type 'MyCollection<object>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<object> z = [..x, ..y, 3];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[..x, ..y, 3]").WithArguments("MyCollection<object>").WithLocation(18, 34));
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[..x, ..y, 3]").WithArguments("Extensions.Add<T>(ref MyCollection<T>, ref T)").WithLocation(18, 34));
         }
 
         [Fact]
@@ -6888,18 +6825,12 @@ static class Program
                 // (18,13): error CS1954: The best overloaded method match 'Extensions.Add<T>(ref MyCollection<T>, ref string)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
                 //         x = ["2"];
                 Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, @"[""2""]").WithArguments("Extensions.Add<T>(ref MyCollection<T>, ref string)").WithLocation(18, 13),
-                // (18,13): error CS9215: Collection expression type 'MyCollection<string>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         x = ["2"];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, @"[""2""]").WithArguments("MyCollection<string>").WithLocation(18, 13),
                 // (20,21): error CS1954: The best overloaded method match 'Extensions.Add<int>(ref MyCollection<int>, ref string)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
                 //         y = new() { 3 };
                 Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "3").WithArguments("Extensions.Add<int>(ref MyCollection<int>, ref string)").WithLocation(20, 21),
                 // (21,13): error CS1954: The best overloaded method match 'Extensions.Add<T>(ref MyCollection<T>, ref string)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
                 //         y = [4];
-                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[4]").WithArguments("Extensions.Add<T>(ref MyCollection<T>, ref string)").WithLocation(21, 13),
-                // (21,13): error CS9215: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         y = [4];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[4]").WithArguments("MyCollection<int>").WithLocation(21, 13));
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[4]").WithArguments("Extensions.Add<T>(ref MyCollection<T>, ref string)").WithLocation(21, 13));
         }
 
         [Fact]
@@ -6927,10 +6858,7 @@ static class Program
             comp.VerifyEmitDiagnostics(
                 // (14,31): error CS1921: The best overloaded method match for 'MyCollection<int>.Add(int)' has wrong signature for the initializer element. The initializable Add must be an accessible instance method.
                 //         MyCollection<int> y = [1, ..x];
-                Diagnostic(ErrorCode.ERR_InitializerAddHasWrongSignature, "[1, ..x]").WithArguments("MyCollection<int>.Add(int)").WithLocation(14, 31),
-                // (14,31): error CS9215: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<int> y = [1, ..x];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, ..x]").WithArguments("MyCollection<int>").WithLocation(14, 31));
+                Diagnostic(ErrorCode.ERR_InitializerAddHasWrongSignature, "[1, ..x]").WithArguments("MyCollection<int>.Add(int)").WithLocation(14, 31));
         }
 
         [Fact]
@@ -8064,10 +7992,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "[1, 2]").WithArguments("A1", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 13),
                 // 0.cs(13,14): error CS0012: The type 'A2' is defined in an assembly that is not referenced. You must add a reference to assembly '6f8345f1-4f51-4a7a-a9f6-0597f76af3b9, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         y = [3, 4];
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "[3, 4]").WithArguments("A2", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(13, 13),
-                // 0.cs(13,13): error CS9215: Collection expression type 'B2' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         y = [3, 4];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[3, 4]").WithArguments("B2").WithLocation(13, 13));
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "[3, 4]").WithArguments("A2", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(13, 13));
         }
 
         [Fact]
@@ -8166,15 +8091,9 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,13): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'Dictionary<int, int>.Add(int, int)'
-                //         d = [default];
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[default]").WithArguments("value", "System.Collections.Generic.Dictionary<int, int>.Add(int, int)").WithLocation(7, 13),
                 // (7,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         d = [default];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[default]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(7, 13),
-                // (8,13): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'Dictionary<int, int>.Add(int, int)'
-                //         d = [new KeyValuePair<int, int>(1, 2)];
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[new KeyValuePair<int, int>(1, 2)]").WithArguments("value", "System.Collections.Generic.Dictionary<int, int>.Add(int, int)").WithLocation(8, 13),
                 // (8,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         d = [new KeyValuePair<int, int>(1, 2)];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[new KeyValuePair<int, int>(1, 2)]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(8, 13),
@@ -15173,9 +15092,6 @@ partial class Program
                 // (19,44): error CS1061: 'Container<string>.MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'Container<string>.MyCollection' could be found (are you missing a using directive or an assembly reference?)
                 //         Container<string>.MyCollection y = [null];
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[null]").WithArguments("Container<string>.MyCollection", "Add").WithLocation(19, 44),
-                // (19,44): error CS9215: Collection expression type 'Container<string>.MyCollection' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         Container<string>.MyCollection y = [null];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[null]").WithArguments("Container<string>.MyCollection").WithLocation(19, 44),
                 // (19,45): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //         Container<string>.MyCollection y = [null];
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(19, 45));
@@ -15688,10 +15604,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_AttrArgWithTypeVars, "typeof(MyCollectionBuilder)").WithArguments("Container<T>.MyCollectionBuilder").WithLocation(7, 24),
                 // (27,41): error CS1061: 'Container<int>.MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'Container<int>.MyCollection' could be found (are you missing a using directive or an assembly reference?)
                 //         Container<int>.MyCollection y = [default];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default]").WithArguments("Container<int>.MyCollection", "Add").WithLocation(27, 41),
-                // (27,41): error CS9215: Collection expression type 'Container<int>.MyCollection' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         Container<int>.MyCollection y = [default];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[default]").WithArguments("Container<int>.MyCollection").WithLocation(27, 41));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default]").WithArguments("Container<int>.MyCollection", "Add").WithLocation(27, 41));
         }
 
         [CombinatorialData]
@@ -16473,10 +16386,7 @@ partial class Program
             comp.VerifyEmitDiagnostics(
                 // (6,26): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
                 //         MyCollection y = [2];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[2]").WithArguments("MyCollection", "Add").WithLocation(6, 26),
-                // (6,26): error CS9215: Collection expression type 'MyCollection' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection y = [2];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[2]").WithArguments("MyCollection").WithLocation(6, 26));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[2]").WithArguments("MyCollection", "Add").WithLocation(6, 26));
         }
 
         [CombinatorialData]
@@ -16594,10 +16504,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[1, 2, 3]").WithLocation(6, 26),
                 // 1.cs(6,26): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
                 //         MyCollection y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[1, 2, 3]").WithArguments("MyCollection", "Add").WithLocation(6, 26),
-                // 1.cs(6,26): error CS9215: Collection expression type 'MyCollection' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection y = [1, 2, 3];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, 2, 3]").WithArguments("MyCollection").WithLocation(6, 26));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[1, 2, 3]").WithArguments("MyCollection", "Add").WithLocation(6, 26));
         }
 
         [Fact]
@@ -16668,10 +16575,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[1, 2, null]").WithLocation(6, 34),
                 // 1.cs(6,34): error CS1061: 'MyCollection<object>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<object>' could be found (are you missing a using directive or an assembly reference?)
                 //         MyCollection<object> y = [1, 2, null];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[1, 2, null]").WithArguments("MyCollection<object>", "Add").WithLocation(6, 34),
-                // 1.cs(6,34): error CS9215: Collection expression type 'MyCollection<object>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<object> y = [1, 2, null];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[1, 2, null]").WithArguments("MyCollection<object>").WithLocation(6, 34));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[1, 2, null]").WithArguments("MyCollection<object>", "Add").WithLocation(6, 34));
         }
 
         [Fact]
@@ -25224,11 +25128,6 @@ partial class Program
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (4,52): error CS7036: There is no argument given that corresponds to the required parameter 'value' of 'Dictionary<string, object>.Add(string, object)'
-                //     Dictionary<string, object> Config => /*<bind>*/[
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, @"[
-        .. GetConfig(),
-    ]").WithArguments("value", "System.Collections.Generic.Dictionary<string, object>.Add(string, object)").WithLocation(4, 52),
                 // (4,52): error CS9215: Collection expression type 'Dictionary<string, object>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //     Dictionary<string, object> Config => /*<bind>*/[
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, @"[
@@ -25777,10 +25676,7 @@ partial class Program
             comp.VerifyEmitDiagnostics(
                 // (5,26): error CS0118: 'Add' is a field but is used like a method
                 //         return /*<bind>*/[x, ..y]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadSKknown, "[x, ..y]").WithArguments("Add", "field", "method").WithLocation(5, 26),
-                // (5,26): error CS9215: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         return /*<bind>*/[x, ..y]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(5, 26));
+                Diagnostic(ErrorCode.ERR_BadSKknown, "[x, ..y]").WithArguments("Add", "field", "method").WithLocation(5, 26));
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
@@ -35084,10 +34980,7 @@ partial class Program
             comp.VerifyEmitDiagnostics(
                 // (7,34): error CS0122: 'MyCollection<object>.Add(int)' is inaccessible due to its protection level
                 //         MyCollection<object> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_BadAccess, "[x, ..y]").WithArguments("MyCollection<object>.Add(int)").WithLocation(7, 34),
-                // (7,34): error CS9215: Collection expression type 'MyCollection<object>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<object> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<object>").WithLocation(7, 34));
+                Diagnostic(ErrorCode.ERR_BadAccess, "[x, ..y]").WithArguments("MyCollection<object>.Add(int)").WithLocation(7, 34));
 
             string sourceB2 = """
                 partial class MyCollection<T>
@@ -35151,10 +35044,7 @@ partial class Program
             comp.VerifyEmitDiagnostics(
                 // (7,34): error CS1061: 'MyCollection<object>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<object>' could be found (are you missing a using directive or an assembly reference?)
                 //         MyCollection<object> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x, ..y]").WithArguments("MyCollection<object>", "Add").WithLocation(7, 34),
-                // (7,34): error CS9215: Collection expression type 'MyCollection<object>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<object> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<object>").WithLocation(7, 34));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x, ..y]").WithArguments("MyCollection<object>", "Add").WithLocation(7, 34));
         }
 
         [Fact]
@@ -35200,10 +35090,7 @@ partial class Program
             comp.VerifyEmitDiagnostics(
                 // (7,34): error CS0122: 'MyCollectionBase<object>.Add(object)' is inaccessible due to its protection level
                 //         MyCollection<object> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_BadAccess, "[x, ..y]").WithArguments("MyCollectionBase<object>.Add(object)").WithLocation(7, 34),
-                // (7,34): error CS9215: Collection expression type 'MyCollection<object>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<object> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<object>").WithLocation(7, 34));
+                Diagnostic(ErrorCode.ERR_BadAccess, "[x, ..y]").WithArguments("MyCollectionBase<object>.Add(object)").WithLocation(7, 34));
         }
 
         [Fact]
@@ -35334,10 +35221,7 @@ partial class Program
             comp.VerifyEmitDiagnostics(
                 // (15,32): error CS1954: The best overloaded method match 'MyCollection<int?>.Add(ref int?)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
                 //         MyCollection<int?> z = [x, ..y, null];
-                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[x, ..y, null]").WithArguments("MyCollection<int?>.Add(" + refKind + " int?)").WithLocation(15, 32),
-                // (15,32): error CS9215: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<int?> z = [x, ..y, null];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y, null]").WithArguments("MyCollection<int?>").WithLocation(15, 32));
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[x, ..y, null]").WithArguments("MyCollection<int?>.Add(" + refKind + " int?)").WithLocation(15, 32));
         }
 
         [Theory]
@@ -35446,10 +35330,7 @@ partial class Program
             comp.VerifyEmitDiagnostics(
                 // (19,32): error CS1954: The best overloaded method match 'Extensions.Add<T>(MyCollection<T>, ref T)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
                 //         MyCollection<int?> z = [x, ..y, null];
-                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[x, ..y, null]").WithArguments("Extensions.Add<T>(MyCollection<T>, " + refKind + " T)").WithLocation(19, 32),
-                // (19,32): error CS9215: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<int?> z = [x, ..y, null];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y, null]").WithArguments("MyCollection<int?>").WithLocation(19, 32));
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "[x, ..y, null]").WithArguments("Extensions.Add<T>(MyCollection<T>, " + refKind + " T)").WithLocation(19, 32));
         }
 
         [Theory]
@@ -35704,10 +35585,7 @@ partial class Program
             comp.VerifyEmitDiagnostics(
                 // (15,32): error CS1501: No overload for method 'Add' takes 1 arguments
                 //         MyCollection<int?> z = [x, ..y, null];
-                Diagnostic(ErrorCode.ERR_BadArgCount, "[x, ..y, null]").WithArguments("Add", "1").WithLocation(15, 32),
-                // (15,32): error CS9215: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<int?> z = [x, ..y, null];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y, null]").WithArguments("MyCollection<int?>").WithLocation(15, 32));
+                Diagnostic(ErrorCode.ERR_BadArgCount, "[x, ..y, null]").WithArguments("Add", "1").WithLocation(15, 32));
         }
 
         [Theory]
@@ -35768,9 +35646,6 @@ partial class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (19,32): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'MyCollection<int?>.Add(int?, int)'
-                //         MyCollection<int?> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[x, ..y]").WithArguments("x", "MyCollection<int?>.Add(int?, int)").WithLocation(19, 32),
                 // (19,32): error CS9215: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         MyCollection<int?> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<int?>").WithLocation(19, 32),
@@ -35842,9 +35717,6 @@ partial class Program
                     // (7,69): warning CS9200: A default value is specified for 'ref readonly' parameter 'y', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
                     //     public void Add(T t, ref readonly  int x, ref readonly  int y = 2) { _list.Add(t); }
                     Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "2").WithArguments("y").WithLocation(7, 69),
-                    // (15,32): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'MyCollection<int?>.Add(int?, ref readonly int, ref readonly int)'
-                    //         MyCollection<int?> z = [x, ..y, null];
-                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[x, ..y, null]").WithArguments("x", "MyCollection<int?>.Add(int?, ref readonly int, ref readonly int)").WithLocation(15, 32),
                     // (15,32): error CS9215: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
                     //         MyCollection<int?> z = [x, ..y, null];
                     Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y, null]").WithArguments("MyCollection<int?>").WithLocation(15, 32));
@@ -35852,9 +35724,6 @@ partial class Program
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (15,32): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'MyCollection<int?>.Add(int?, int, int)'
-                    //         MyCollection<int?> z = [x, ..y, null];
-                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[x, ..y, null]").WithArguments("x", "MyCollection<int?>.Add(int?, " + refKind + "int, " + refKind + "int)").WithLocation(15, 32),
                     // (15,32): error CS9215: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
                     //         MyCollection<int?> z = [x, ..y, null];
                     Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y, null]").WithArguments("MyCollection<int?>").WithLocation(15, 32));
@@ -35906,9 +35775,6 @@ partial class Program
                 """;
             var comp = CreateCompilation(sourceB, references: [refA]);
             comp.VerifyEmitDiagnostics(
-                // (7,31): error CS7036: There is no argument given that corresponds to the required parameter 'index' of 'MyCollection<int>.Add(int, ref int)'
-                //         MyCollection<int> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[x, ..y]").WithArguments("index", "MyCollection<int>.Add(int, " + (useOut ? "out" : "ref") + " int)").WithLocation(7, 31),
                 // (7,31): error CS9215: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         MyCollection<int> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(7, 31),
@@ -36075,9 +35941,6 @@ partial class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (19,32): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'MyCollection<int?>.Add(int?, int?[])'
-                //         MyCollection<int?> z = [x, ..y, null];
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[x, ..y, null]").WithArguments("y", "MyCollection<int?>.Add(int?, int?[])").WithLocation(19, 32),
                 // (19,32): error CS9215: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         MyCollection<int?> z = [x, ..y, null];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y, null]").WithArguments("MyCollection<int?>").WithLocation(19, 32));
@@ -36112,9 +35975,6 @@ partial class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (19,32): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'MyCollection<int?>.Add(int?, int?, params int?[])'
-                //         MyCollection<int?> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[x, ..y]").WithArguments("y", "MyCollection<int?>.Add(int?, int?, params int?[])").WithLocation(19, 32),
                 // (19,32): error CS9215: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         MyCollection<int?> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<int?>").WithLocation(19, 32),
@@ -36152,9 +36012,6 @@ partial class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (19,32): error CS7036: There is no argument given that corresponds to the required parameter 'z' of 'MyCollection<int?>.Add(int?, int?, int?[])'
-                //         MyCollection<int?> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[x, ..y]").WithArguments("z", "MyCollection<int?>.Add(int?, int?, int?[])").WithLocation(19, 32),
                 // (19,32): error CS9215: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         MyCollection<int?> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<int?>").WithLocation(19, 32),
@@ -36323,9 +36180,6 @@ partial class Program
                 """;
             var comp = CreateCompilation(sourceB, references: [refA]);
             comp.VerifyEmitDiagnostics(
-                // (7,31): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'MyCollection<int>.Add(int, params int)'
-                //         MyCollection<int> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[x, ..y]").WithArguments("y", "MyCollection<int>.Add(int, params int)").WithLocation(7, 31),
                 // (7,31): error CS9215: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         MyCollection<int> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(7, 31),
@@ -36451,9 +36305,6 @@ partial class Program
                 """;
             var comp = CreateCompilation(sourceB, references: [refA]);
             comp.VerifyEmitDiagnostics(
-                // (7,31): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'MyCollection<int>.Add(object, params object)'
-                //         MyCollection<int> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[x, ..y]").WithArguments("y", "MyCollection<int>.Add(object, params object)").WithLocation(7, 31),
                 // (7,31): error CS9215: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         MyCollection<int> z = [x, ..y];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(7, 31));
@@ -36489,10 +36340,7 @@ partial class Program
             comp.VerifyEmitDiagnostics(
                 // (19,32): error CS1501: No overload for method 'Add' takes 1 arguments
                 //         MyCollection<int?> z = [x, ..y, null];
-                Diagnostic(ErrorCode.ERR_BadArgCount, "[x, ..y, null]").WithArguments("Add", "1").WithLocation(19, 32),
-                // (19,32): error CS9215: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<int?> z = [x, ..y, null];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y, null]").WithArguments("MyCollection<int?>").WithLocation(19, 32));
+                Diagnostic(ErrorCode.ERR_BadArgCount, "[x, ..y, null]").WithArguments("Add", "1").WithLocation(19, 32));
         }
 
         [Theory]
@@ -36564,9 +36412,6 @@ partial class Program
                     // (11,110): warning CS9200: A default value is specified for 'ref readonly' parameter 'y', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
                     //     public static void Add<T>(this MyCollection<T> collection, T t, ref readonly int x, ref readonly int y = 2) { collection.__AddInternal(t); }
                     Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "2").WithArguments("y").WithLocation(11, 110),
-                    // (19,32): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Extensions.Add<T>(MyCollection<T>, T, ref readonly int, ref readonly int)'
-                    //         MyCollection<int?> z = [x, ..y, null];
-                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[x, ..y, null]").WithArguments("x", "Extensions.Add<T>(MyCollection<T>, T, ref readonly int, ref readonly int)").WithLocation(19, 32),
                     // (19,32): error CS9215: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
                     //         MyCollection<int?> z = [x, ..y, null];
                     Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y, null]").WithArguments("MyCollection<int?>").WithLocation(19, 32));
@@ -36574,9 +36419,6 @@ partial class Program
             else if (refKind == "in")
             {
                 comp.VerifyEmitDiagnostics(
-                    // (19,32): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Extensions.Add<T>(MyCollection<T>, T, in int, in int)'
-                    //         MyCollection<int?> z = [x, ..y, null];
-                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[x, ..y, null]").WithArguments("x", "Extensions.Add<T>(MyCollection<T>, T, in int, in int)").WithLocation(19, 32),
                     // (19,32): error CS9215: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
                     //         MyCollection<int?> z = [x, ..y, null];
                     Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y, null]").WithArguments("MyCollection<int?>").WithLocation(19, 32));
@@ -36584,9 +36426,6 @@ partial class Program
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (19,32): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Extensions.Add<T>(MyCollection<T>, T, int, int)'
-                    //         MyCollection<int?> z = [x, ..y, null];
-                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[x, ..y, null]").WithArguments("x", "Extensions.Add<T>(MyCollection<T>, T, int, int)").WithLocation(19, 32),
                     // (19,32): error CS9215: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
                     //         MyCollection<int?> z = [x, ..y, null];
                     Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y, null]").WithArguments("MyCollection<int?>").WithLocation(19, 32));
@@ -36856,10 +36695,7 @@ partial class Program
                         Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "Add").WithArguments("Add").WithLocation(12, 24),
                         // (20,31): error CS1061: 'MyCollection<int>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<int>' could be found (are you missing a using directive or an assembly reference?)
                         //         MyCollection<int> z = [x, ..y];
-                        Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x, ..y]").WithArguments("MyCollection<int>", "Add").WithLocation(20, 31),
-                        // (20,31): error CS9215: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                        //         MyCollection<int> z = [x, ..y];
-                        Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(20, 31));
+                        Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x, ..y]").WithArguments("MyCollection<int>", "Add").WithLocation(20, 31));
                     break;
                 case "ref":
                     comp.VerifyEmitDiagnostics(
@@ -36868,10 +36704,7 @@ partial class Program
                         Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "Add").WithArguments("Add").WithLocation(12, 24),
                         // (20,31): error CS1061: 'MyCollection<int>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<int>' could be found (are you missing a using directive or an assembly reference?)
                         //         MyCollection<int> z = [x, ..y];
-                        Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x, ..y]").WithArguments("MyCollection<int>", "Add").WithLocation(20, 31),
-                        // (20,31): error CS9215: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                        //         MyCollection<int> z = [x, ..y];
-                        Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(20, 31));
+                        Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x, ..y]").WithArguments("MyCollection<int>", "Add").WithLocation(20, 31));
                     break;
             }
         }
@@ -36933,10 +36766,7 @@ partial class Program
             comp.VerifyEmitDiagnostics(
                 // (7,31): error CS1061: 'MyCollection<int>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<int>' could be found (are you missing a using directive or an assembly reference?)
                 //         MyCollection<int> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x, ..y]").WithArguments("MyCollection<int>", "Add").WithLocation(7, 31),
-                // (7,31): error CS9215: Collection expression type 'MyCollection<int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<int> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<int>").WithLocation(7, 31));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x, ..y]").WithArguments("MyCollection<int>", "Add").WithLocation(7, 31));
         }
 
         [Fact]
@@ -37012,9 +36842,9 @@ partial class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                    // (19,32): error CS9215: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
-                    //         MyCollection<int?> z = [x, ..y];
-                    Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<int?>").WithLocation(19, 32),
+                // (19,32): error CS9215: Collection expression type 'MyCollection<int?>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         MyCollection<int?> z = [x, ..y];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<int?>").WithLocation(19, 32),
                 // (20,40): error CS1061: 'MyCollection<int?>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<int?>' could be found (are you missing a using directive or an assembly reference?)
                 //         MyCollection<int?> w = new() { x };
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "x").WithArguments("MyCollection<int?>", "Add").WithLocation(20, 40)
@@ -37333,10 +37163,7 @@ partial class Program
             comp.VerifyEmitDiagnostics(
                 // (7,34): error CS1061: 'MyCollection<object>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<object>' could be found (are you missing a using directive or an assembly reference?)
                 //         MyCollection<object> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x, ..y]").WithArguments("MyCollection<object>", "Add").WithLocation(7, 34),
-                // (7,34): error CS9215: Collection expression type 'MyCollection<object>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<object> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<object>").WithLocation(7, 34));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x, ..y]").WithArguments("MyCollection<object>", "Add").WithLocation(7, 34));
 
             CompileAndVerify([sourceA, sourceB, sourceC, s_collectionExtensions], expectedOutput: "[1, 2, 3], ");
         }
@@ -37379,10 +37206,7 @@ partial class Program
             comp.VerifyEmitDiagnostics(
                 // (7,34): error CS1921: The best overloaded method match for 'MyCollection<object>.Add(object)' has wrong signature for the initializer element. The initializable Add must be an accessible instance method.
                 //         MyCollection<object> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_InitializerAddHasWrongSignature, "[x, ..y]").WithArguments("MyCollection<object>.Add(object)").WithLocation(7, 34),
-                // (7,34): error CS9215: Collection expression type 'MyCollection<object>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollection<object> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollection<object>").WithLocation(7, 34));
+                Diagnostic(ErrorCode.ERR_InitializerAddHasWrongSignature, "[x, ..y]").WithArguments("MyCollection<object>.Add(object)").WithLocation(7, 34));
 
             CompileAndVerify([sourceA, sourceB, sourceC, s_collectionExtensions], expectedOutput: "[1, 2, 3], ");
         }
@@ -38142,10 +37966,7 @@ partial class Program
             comp.VerifyEmitDiagnostics(
                 // (7,35): error CS0012: The type 'MyCollectionA<>' is defined in an assembly that is not referenced. You must add a reference to assembly '41f5b758-1e64-4c10-88d8-6dd8029c374c, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         MyCollectionB<object> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "[x, ..y]").WithArguments("MyCollectionA<>", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 35),
-                // (7,35): error CS9215: Collection expression type 'MyCollectionB<object>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         MyCollectionB<object> z = [x, ..y];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x, ..y]").WithArguments("MyCollectionB<object>").WithLocation(7, 35));
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "[x, ..y]").WithArguments("MyCollectionA<>", $"{assemblyA}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 35));
         }
 
         [Fact]

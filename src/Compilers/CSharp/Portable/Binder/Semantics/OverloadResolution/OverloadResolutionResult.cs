@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Otherwise, if there is any such method that has a bad argument conversion or out/ref mismatch
             // then the first such method found is the best bad method.
 
-            if (HadBadArguments(diagnostics, binder, name, arguments, symbols, location, binder.Flags, isMethodGroupConversion))
+            if (HadBadArguments(diagnostics, binder, name, receiver, arguments, symbols, location, binder.Flags, isMethodGroupConversion))
             {
                 return;
             }
@@ -505,14 +505,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // but no argument was supplied for it then the first such method is 
                         // the best bad method.
                         case MemberResolutionKind.RequiredParameterMissing:
-                            if ((binder.Flags & BinderFlags.CollectionExpressionConversionValidation) != 0 && receiver is null)
+                            if ((binder.Flags & BinderFlags.CollectionExpressionConversionValidation) != 0)
                             {
-                                Debug.Assert(firstSupported.Member is MethodSymbol { MethodKind: MethodKind.Constructor });
-                                diagnostics.Add(
-                                    isParamsModifierValidation ?
-                                        ErrorCode.ERR_ParamsCollectionMissingConstructor :
-                                        ErrorCode.ERR_CollectionExpressionMissingConstructor,
-                                    location);
+                                if (receiver is null)
+                                {
+                                    Debug.Assert(firstSupported.Member is MethodSymbol { MethodKind: MethodKind.Constructor });
+                                    diagnostics.Add(
+                                        isParamsModifierValidation ?
+                                            ErrorCode.ERR_ParamsCollectionMissingConstructor :
+                                            ErrorCode.ERR_CollectionExpressionMissingConstructor,
+                                        location);
+                                }
+                                else
+                                {
+                                    Debug.Assert(firstSupported.Member is MethodSymbol { Name: "Add" });
+                                    diagnostics.Add(ErrorCode.ERR_CollectionExpressionMissingAdd, location, receiver.Type);
+                                }
                             }
                             else
                             {
@@ -1072,6 +1080,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             Binder binder,
             string name,
+            BoundExpression receiver,
             AnalyzedArguments arguments,
             ImmutableArray<Symbol> symbols,
             Location location,
@@ -1118,7 +1127,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (!flags.Includes(BinderFlags.CollectionExpressionConversionValidation))
+                if (flags.Includes(BinderFlags.CollectionExpressionConversionValidation))
+                {
+                    diagnostics.Add(ErrorCode.ERR_CollectionExpressionMissingAdd, location, receiver.Type);
+                }
+                else
                 {
                     //  The best overloaded Add method '{0}' for the collection initializer has some invalid arguments
                     diagnostics.Add(ErrorCode.ERR_BadArgTypesForCollectionAdd, location, symbols, method);
