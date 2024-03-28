@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -86,6 +87,14 @@ public abstract partial class Workspace : IDisposable
         var emptyOptions = new SolutionOptionSet(_legacyOptions);
 
         _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: SpecializedCollections.EmptyReadOnlyList<AnalyzerReference>());
+
+        _updateSourceGeneratorsQueue = new AsyncBatchingWorkQueue<(ProjectId? projectId, bool forceRegeneration)>(
+            // Idle processing speed
+            TimeSpan.FromMilliseconds(1500),
+            ProcessUpdateSourceGeneratorRequestAsync,
+            EqualityComparer<(ProjectId? projectId, bool forceRegeneration)>.Default,
+            listenerProvider.GetListener(),
+            _updateSourceGeneratorsQueueTokenSource.Token);
     }
 
     /// <summary>
@@ -611,6 +620,8 @@ public abstract partial class Workspace : IDisposable
         {
             disposableService.Dispose();
         }
+
+        _updateSourceGeneratorsQueueTokenSource.Cancel();
     }
 
     #region Host API
