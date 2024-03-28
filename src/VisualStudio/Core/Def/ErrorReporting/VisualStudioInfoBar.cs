@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -19,12 +20,14 @@ namespace Microsoft.CodeAnalysis.ErrorReporting;
 
 internal sealed class VisualStudioInfoBar(
     IThreadingContext threadingContext,
-    SVsServiceProvider serviceProvider,
+    IVsService<IVsInfoBarUIFactory> vsInfoBarUIFactory,
+    IVsService<IVsShell> vsShell,
     IAsynchronousOperationListenerProvider listenerProvider,
     IVsWindowFrame? windowFrame)
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
-    private readonly SVsServiceProvider _serviceProvider = serviceProvider;
+    private readonly IVsService<IVsInfoBarUIFactory> _vsInfoBarUIFactory = vsInfoBarUIFactory;
+    private readonly IVsService<IVsShell> _vsShell = vsShell;
     private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.InfoBar);
     private readonly IVsWindowFrame? _windowFrame = windowFrame;
 
@@ -53,26 +56,22 @@ internal sealed class VisualStudioInfoBar(
         {
             using var _ = _listener.BeginAsyncOperation(nameof(ShowInfoBarMessageFromAnyThread));
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
-            ShowInfoBarMessageFromUIThread(message, isCloseButtonVisible, imageMoniker, items);
+            await ShowInfoBarMessageAsync(message, isCloseButtonVisible, imageMoniker, items).ConfigureAwait(false);
         });
     }
 
-    public InfoBarMessage? ShowInfoBarMessageFromUIThread(
+    public async Task<InfoBarMessage?> ShowInfoBarMessageAsync(
         string message,
         bool isCloseButtonVisible,
         ImageMoniker imageMoniker,
         params InfoBarUI[] items)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
         // If we're already shown this same message to the user, then do not bother showing it
         // to them again.  It will just be noisy.
-        if (GetInfoBarHostObject() is not IVsInfoBarHost infoBarHost ||
-            _serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) is not IVsInfoBarUIFactory factory)
-        {
+        if (await GetInfoBarHostObjectAsync().ConfigureAwait(true) is not IVsInfoBarHost infoBarHost)
             return null;
-        }
 
         if (_currentlyShowingMessages.Contains(message))
             return null;
@@ -103,6 +102,7 @@ internal sealed class VisualStudioInfoBar(
             imageMoniker,
             isCloseButtonVisible);
 
+        var factory = await _vsInfoBarUIFactory.GetValueAsync().ConfigureAwait(true);
         var infoBarUI = factory.CreateInfoBar(infoBarModel);
         if (infoBarUI == null)
             return null;
@@ -134,14 +134,15 @@ internal sealed class VisualStudioInfoBar(
         return new InfoBarMessage(this, infoBarHost, message, imageMoniker, infoBarUI, infoBarCookie);
     }
 
-    private object? GetInfoBarHostObject()
+    private async Task<object?> GetInfoBarHostObjectAsync()
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
         if (_windowFrame != null)
             return ErrorHandler.Succeeded(_windowFrame.GetProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, out var windowInfoBarHostObject)) ? windowInfoBarHostObject : null;
 
-        return _serviceProvider.GetService(typeof(SVsShell)) is IVsShell shell && ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out var globalInfoBarHostObject))
+        var shell = await _vsShell.GetValueAsync().ConfigureAwait(true);
+        return ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out var globalInfoBarHostObject))
             ? globalInfoBarHostObject
             : null;
     }

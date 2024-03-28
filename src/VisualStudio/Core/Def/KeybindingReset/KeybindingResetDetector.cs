@@ -90,6 +90,8 @@ internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObjec
     public KeybindingResetDetector(
         IThreadingContext threadingContext,
         IGlobalOptionService globalOptions,
+        IVsService<SVsInfoBarUIFactory, IVsInfoBarUIFactory> vsInfoBarUIFactory,
+        IVsService<SVsShell, IVsShell> vsShell,
         SVsServiceProvider serviceProvider,
         IAsynchronousOperationListenerProvider listenerProvider)
         : base(threadingContext)
@@ -98,7 +100,7 @@ internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObjec
         _serviceProvider = serviceProvider;
 
         // Attach this info bar to the global shell location for info-bars (independent of any particular window).
-        _infoBar = new VisualStudioInfoBar(threadingContext, serviceProvider, listenerProvider, windowFrame: null);
+        _infoBar = new VisualStudioInfoBar(threadingContext, vsInfoBarUIFactory, vsShell, listenerProvider, windowFrame: null);
     }
 
     public Task InitializeAsync()
