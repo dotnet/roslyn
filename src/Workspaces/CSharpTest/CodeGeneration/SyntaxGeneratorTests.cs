@@ -2781,7 +2781,7 @@ public class C
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65932")]
         public void TestAddExpressionBodyMembersToInterface()
         {
             var method = (MethodDeclarationSyntax)Generator.MethodDeclaration("m");
