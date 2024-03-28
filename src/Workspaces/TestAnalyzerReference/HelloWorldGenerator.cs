@@ -55,7 +55,6 @@ namespace Microsoft.CodeAnalysis.TestSourceGenerator
                 }
                 """, encoding: Encoding.UTF8));
 
-
             context.AddSource($"{GeneratedFolderName}/{GeneratedFolderClassName}", $$"""
                 class {{GeneratedFolderClassName}} { }
                 """);
