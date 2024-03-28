@@ -1659,11 +1659,10 @@ public class C {
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M",
 @"{
-  // Code size       51 (0x33)
+  // Code size       45 (0x2d)
   .maxstack  2
-  .locals init (string V_0)
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_002f
+  IL_0001:  brfalse.s  IL_002b
   IL_0003:  ldarg.1
   IL_0004:  callvirt   ""string Person.Name.get""
   IL_0009:  ldstr      ""Bill""
@@ -1671,18 +1670,14 @@ public class C {
   IL_0013:  brtrue.s   IL_001f
   IL_0015:  ldarg.1
   IL_0016:  isinst     ""Student""
-  IL_001b:  brtrue.s   IL_0027
-  IL_001d:  br.s       IL_002f
+  IL_001b:  brtrue.s   IL_0025
+  IL_001d:  br.s       IL_002b
   IL_001f:  ldstr      ""Hey Bill!""
-  IL_0024:  stloc.0
-  IL_0025:  br.s       IL_0031
-  IL_0027:  ldstr      ""Hello student { name}!""
-  IL_002c:  stloc.0
-  IL_002d:  br.s       IL_0031
-  IL_002f:  ldnull
-  IL_0030:  stloc.0
-  IL_0031:  ldloc.0
-  IL_0032:  ret
+  IL_0024:  ret
+  IL_0025:  ldstr      ""Hello student { name}!""
+  IL_002a:  ret
+  IL_002b:  ldnull
+  IL_002c:  ret
 }");
         }
 
@@ -2450,57 +2445,52 @@ Closed Open -> Opened
   IL_003c:  ret
 }");
             compVerifier.VerifyIL("Door.ChangeState1",
-@"{
-  // Code size       71 (0x47)
+"""
+{
+  // Code size       61 (0x3d)
   .maxstack  2
   .locals init (Door.DoorState V_0,
-                Door.DoorState V_1,
-                Door.Action V_2)
+                Door.Action V_1)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.1
+  IL_0001:  stloc.0
   IL_0002:  ldarg.1
-  IL_0003:  stloc.2
-  IL_0004:  ldloc.1
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.0
   IL_0005:  switch    (
         IL_0018,
         IL_001e,
         IL_0027)
-  IL_0016:  br.s       IL_0043
-  IL_0018:  ldloc.2
+  IL_0016:  br.s       IL_003b
+  IL_0018:  ldloc.1
   IL_0019:  ldc.i4.1
   IL_001a:  beq.s      IL_002d
-  IL_001c:  br.s       IL_0043
-  IL_001e:  ldloc.2
-  IL_001f:  brfalse.s  IL_0031
-  IL_0021:  ldloc.2
+  IL_001c:  br.s       IL_003b
+  IL_001e:  ldloc.1
+  IL_001f:  brfalse.s  IL_002f
+  IL_0021:  ldloc.1
   IL_0022:  ldc.i4.2
-  IL_0023:  beq.s      IL_0035
-  IL_0025:  br.s       IL_0043
-  IL_0027:  ldloc.2
+  IL_0023:  beq.s      IL_0031
+  IL_0025:  br.s       IL_003b
+  IL_0027:  ldloc.1
   IL_0028:  ldc.i4.3
-  IL_0029:  beq.s      IL_003c
-  IL_002b:  br.s       IL_0043
+  IL_0029:  beq.s      IL_0036
+  IL_002b:  br.s       IL_003b
   IL_002d:  ldc.i4.1
-  IL_002e:  stloc.0
-  IL_002f:  br.s       IL_0045
-  IL_0031:  ldc.i4.0
-  IL_0032:  stloc.0
-  IL_0033:  br.s       IL_0045
-  IL_0035:  ldarg.2
-  IL_0036:  brfalse.s  IL_0043
-  IL_0038:  ldc.i4.2
-  IL_0039:  stloc.0
-  IL_003a:  br.s       IL_0045
-  IL_003c:  ldarg.2
-  IL_003d:  brfalse.s  IL_0043
-  IL_003f:  ldc.i4.1
-  IL_0040:  stloc.0
-  IL_0041:  br.s       IL_0045
-  IL_0043:  ldarg.0
-  IL_0044:  stloc.0
-  IL_0045:  ldloc.0
-  IL_0046:  ret
-}");
+  IL_002e:  ret
+  IL_002f:  ldc.i4.0
+  IL_0030:  ret
+  IL_0031:  ldarg.2
+  IL_0032:  brfalse.s  IL_003b
+  IL_0034:  ldc.i4.2
+  IL_0035:  ret
+  IL_0036:  ldarg.2
+  IL_0037:  brfalse.s  IL_003b
+  IL_0039:  ldc.i4.1
+  IL_003a:  ret
+  IL_003b:  ldarg.0
+  IL_003c:  ret
+}
+""");
         }
 
         [Fact]
@@ -2840,18 +2830,18 @@ False
             compilation.VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation, expectedOutput: "TrueFalse");
             compVerifier.VerifyIL("C.Equals(object)",
-@"{
-  // Code size       25 (0x19)
+"""
+{
+  // Code size       21 (0x15)
   .maxstack  2
   .locals init (C V_0, //x1
                 C V_1, //x2
-                C V_2, //x3
-                bool V_3)
+                C V_2) //x3
   IL_0000:  ldarg.1
-  IL_0001:  isinst     ""C""
+  IL_0001:  isinst     "C"
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0015
+  IL_0008:  brfalse.s  IL_0013
   IL_000a:  ldloc.0
   IL_000b:  stloc.1
   IL_000c:  ldloc.1
@@ -2859,13 +2849,11 @@ False
   IL_000e:  ldloc.2
   IL_000f:  ldnull
   IL_0010:  cgt.un
-  IL_0012:  stloc.3
-  IL_0013:  br.s       IL_0017
-  IL_0015:  ldc.i4.0
-  IL_0016:  stloc.3
-  IL_0017:  ldloc.3
-  IL_0018:  ret
-}");
+  IL_0012:  ret
+  IL_0013:  ldc.i4.0
+  IL_0014:  ret
+}
+""");
         }
 
         [Fact, WorkItem(26387, "https://github.com/dotnet/roslyn/issues/26387")]
@@ -3593,23 +3581,19 @@ public class Class1
                 {
                     compVerifier.VerifyIL("Class1.M",
 @"{
-  // Code size       26 (0x1a)
+  // Code size       22 (0x16)
   .maxstack  2
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
   IL_0001:  isinst     ""int""
-  IL_0006:  brfalse.s  IL_0016
+  IL_0006:  brfalse.s  IL_0014
   IL_0008:  ldarg.0
   IL_0009:  unbox.any  ""int""
   IL_000e:  ldc.i4.s   42
-  IL_0010:  bne.un.s   IL_0016
+  IL_0010:  bne.un.s   IL_0014
   IL_0012:  ldc.i4.1
-  IL_0013:  stloc.0
-  IL_0014:  br.s       IL_0018
-  IL_0016:  ldc.i4.0
-  IL_0017:  stloc.0
-  IL_0018:  ldloc.0
-  IL_0019:  ret
+  IL_0013:  ret
+  IL_0014:  ldc.i4.0
+  IL_0015:  ret
 }");
                 }
             }
@@ -4139,24 +4123,20 @@ public class C
   IL_000b:  ret
 }
 ");
-            compVerifier.VerifyIL("C.M3(string)", @"
+            compVerifier.VerifyIL("C.M3(string)", """
 {
-  // Code size       21 (0x15)
+  // Code size       17 (0x11)
   .maxstack  2
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldstr      ""Frog""
-  IL_0006:  call       ""bool string.op_Equality(string, string)""
-  IL_000b:  brfalse.s  IL_0011
+  IL_0001:  ldstr      "Frog"
+  IL_0006:  call       "bool string.op_Equality(string, string)"
+  IL_000b:  brfalse.s  IL_000f
   IL_000d:  ldc.i4.1
-  IL_000e:  stloc.0
-  IL_000f:  br.s       IL_0013
-  IL_0011:  ldc.i4.0
-  IL_0012:  stloc.0
-  IL_0013:  ldloc.0
-  IL_0014:  ret
+  IL_000e:  ret
+  IL_000f:  ldc.i4.0
+  IL_0010:  ret
 }
-");
+""");
         }
 
         [Fact, WorkItem(31494, "https://github.com/dotnet/roslyn/issues/31494")]
@@ -4173,9 +4153,8 @@ public class C
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M1(string)", @"
 {
-  // Code size       40 (0x28)
+  // Code size       34 (0x22)
   .maxstack  2
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldstr      ""Frog""
   IL_0006:  call       ""bool string.op_Equality(string, string)""
@@ -4183,18 +4162,14 @@ public class C
   IL_000d:  ldarg.0
   IL_000e:  ldstr      ""Newt""
   IL_0013:  call       ""bool string.op_Equality(string, string)""
-  IL_0018:  brtrue.s   IL_0020
-  IL_001a:  br.s       IL_0024
+  IL_0018:  brtrue.s   IL_001e
+  IL_001a:  br.s       IL_0020
   IL_001c:  ldc.i4.1
-  IL_001d:  stloc.0
-  IL_001e:  br.s       IL_0026
-  IL_0020:  ldc.i4.1
-  IL_0021:  stloc.0
-  IL_0022:  br.s       IL_0026
-  IL_0024:  ldc.i4.0
-  IL_0025:  stloc.0
-  IL_0026:  ldloc.0
-  IL_0027:  ret
+  IL_001d:  ret
+  IL_001e:  ldc.i4.1
+  IL_001f:  ret
+  IL_0020:  ldc.i4.0
+  IL_0021:  ret
 }
 ");
         }
@@ -4413,16 +4388,15 @@ toad";
                 {
                     compVerifier.VerifyIL("C.M(string)", @"
 {
-  // Code size       89 (0x59)
+  // Code size       85 (0x55)
   .maxstack  2
   .locals init (System.Exception V_0, //e
-                bool V_1,
-                string V_2)
+                string V_1)
   .try
   {
     IL_0000:  ldarg.0
     IL_0001:  call       ""void C.T(string)""
-    IL_0006:  leave.s    IL_0058
+    IL_0006:  leave.s    IL_0054
   }
   filter
   {
@@ -4431,46 +4405,42 @@ toad";
     IL_000e:  brtrue.s   IL_0014
     IL_0010:  pop
     IL_0011:  ldc.i4.0
-    IL_0012:  br.s       IL_0046
+    IL_0012:  br.s       IL_0042
     IL_0014:  stloc.0
     IL_0015:  ldloc.0
     IL_0016:  callvirt   ""string System.Exception.Message.get""
-    IL_001b:  stloc.2
-    IL_001c:  ldloc.2
+    IL_001b:  stloc.1
+    IL_001c:  ldloc.1
     IL_001d:  ldstr      ""frog""
     IL_0022:  call       ""bool string.op_Equality(string, string)""
     IL_0027:  brtrue.s   IL_0038
-    IL_0029:  ldloc.2
+    IL_0029:  ldloc.1
     IL_002a:  ldstr      ""toad""
     IL_002f:  call       ""bool string.op_Equality(string, string)""
-    IL_0034:  brtrue.s   IL_003c
-    IL_0036:  br.s       IL_0040
+    IL_0034:  brtrue.s   IL_003b
+    IL_0036:  br.s       IL_003e
     IL_0038:  ldc.i4.1
-    IL_0039:  stloc.1
-    IL_003a:  br.s       IL_0042
-    IL_003c:  ldc.i4.1
-    IL_003d:  stloc.1
-    IL_003e:  br.s       IL_0042
-    IL_0040:  ldc.i4.0
-    IL_0041:  stloc.1
-    IL_0042:  ldloc.1
-    IL_0043:  ldc.i4.0
-    IL_0044:  cgt.un
-    IL_0046:  endfilter
+    IL_0039:  br.s       IL_003f
+    IL_003b:  ldc.i4.1
+    IL_003c:  br.s       IL_003f
+    IL_003e:  ldc.i4.0
+    IL_003f:  ldc.i4.0
+    IL_0040:  cgt.un
+    IL_0042:  endfilter
   }  // end filter
   {  // handler
-    IL_0048:  pop
-    IL_0049:  ldloc.0
-    IL_004a:  callvirt   ""string System.Exception.Message.get""
-    IL_004f:  newobj     ""System.Exception..ctor(string)""
-    IL_0054:  throw
+    IL_0044:  pop
+    IL_0045:  ldloc.0
+    IL_0046:  callvirt   ""string System.Exception.Message.get""
+    IL_004b:  newobj     ""System.Exception..ctor(string)""
+    IL_0050:  throw
   }
   catch object
   {
-    IL_0055:  pop
-    IL_0056:  leave.s    IL_0058
+    IL_0051:  pop
+    IL_0052:  leave.s    IL_0054
   }
-  IL_0058:  ret
+  IL_0054:  ret
 }
 ");
                 }
@@ -4670,20 +4640,16 @@ unsafe class Program
 False");
             verifier.VerifyIL("Program.EqualNull",
 @"{
-  // Code size       13 (0xd)
+  // Code size        9 (0x9)
   .maxstack  2
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
   IL_0002:  conv.u
-  IL_0003:  bne.un.s   IL_0009
+  IL_0003:  bne.un.s   IL_0007
   IL_0005:  ldc.i4.1
-  IL_0006:  stloc.0
-  IL_0007:  br.s       IL_000b
-  IL_0009:  ldc.i4.0
-  IL_000a:  stloc.0
-  IL_000b:  ldloc.0
-  IL_000c:  ret
+  IL_0006:  ret
+  IL_0007:  ldc.i4.0
+  IL_0008:  ret
 }");
         }
 
@@ -4716,23 +4682,19 @@ unsafe class Program
 False");
             verifier.VerifyIL("Program.EqualNull",
 @"{
-  // Code size       21 (0x15)
+  // Code size       17 (0x11)
   .maxstack  2
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0011
+  IL_0001:  brfalse.s  IL_000f
   IL_0003:  ldarg.0
   IL_0004:  ldfld      ""char* C.P""
   IL_0009:  ldc.i4.0
   IL_000a:  conv.u
-  IL_000b:  bne.un.s   IL_0011
+  IL_000b:  bne.un.s   IL_000f
   IL_000d:  ldc.i4.1
-  IL_000e:  stloc.0
-  IL_000f:  br.s       IL_0013
-  IL_0011:  ldc.i4.0
-  IL_0012:  stloc.0
-  IL_0013:  ldloc.0
-  IL_0014:  ret
+  IL_000e:  ret
+  IL_000f:  ldc.i4.0
+  IL_0010:  ret
 }");
         }
 
@@ -6695,59 +6657,58 @@ class Obj
 
             verifier.VerifyIL("<top-level-statements-entry-point>", """
                 {
-                  // Code size      186 (0xba)
-                  .maxstack  4
+                  // Code size      185 (0xb9)
+                  .maxstack  3
                   .locals init (double V_0, //val
-                                string V_1)
+                                Obj V_1) //obj
                   IL_0000:  ldc.r8     0.1
                   IL_0009:  stloc.0
                   IL_000a:  newobj     "Obj..ctor()"
-                  IL_000f:  dup
-                  IL_0010:  call       "Obj Program.<<Main>$>g__ThrowWhenNull|0_0<Obj>(Obj)"
-                  IL_0015:  ldloc.0
-                  IL_0016:  ldc.r8     0
-                  IL_001f:  bne.un.s   IL_0029
-                  IL_0021:  ldstr      "green"
-                  IL_0026:  stloc.1
-                  IL_0027:  br.s       IL_002f
-                  IL_0029:  ldstr      "red"
-                  IL_002e:  stloc.1
-                  IL_002f:  ldflda     "Wrapper<string> Obj.Color"
-                  IL_0034:  ldloc.1
-                  IL_0035:  call       "void Wrapper<string>.Value.set"
-                  IL_003a:  dup
-                  IL_003b:  ldflda     "Wrapper<string> Obj.Color"
-                  IL_0040:  call       "string Wrapper<string>.Value.get"
-                  IL_0045:  dup
-                  IL_0046:  brtrue.s   IL_004e
-                  IL_0048:  pop
-                  IL_0049:  ldstr      "null"
-                  IL_004e:  ldstr      " should not be null"
-                  IL_0053:  call       "string string.Concat(string, string)"
-                  IL_0058:  call       "void System.Console.WriteLine(string)"
-                  IL_005d:  dup
-                  IL_005e:  call       "Obj Program.<<Main>$>g__ThrowWhenNull|0_0<Obj>(Obj)"
-                  IL_0063:  ldflda     "Wrapper<string> Obj.Color"
-                  IL_0068:  ldstr      "yikes"
-                  IL_006d:  call       "void Wrapper<string>.Value.set"
-                  IL_0072:  dup
-                  IL_0073:  ldflda     "Wrapper<string> Obj.Color"
-                  IL_0078:  call       "string Wrapper<string>.Value.get"
-                  IL_007d:  call       "void System.Console.WriteLine(string)"
-                  IL_0082:  dup
-                  IL_0083:  call       "Obj Program.<<Main>$>g__ThrowWhenNull|0_0<Obj>(Obj)"
-                  IL_0088:  ldflda     "Wrapper<string> Obj.Color"
-                  IL_008d:  ldloc.0
-                  IL_008e:  ldc.r8     0
-                  IL_0097:  beq.s      IL_00a0
-                  IL_0099:  ldstr      "red"
-                  IL_009e:  br.s       IL_00a5
-                  IL_00a0:  ldstr      "green"
-                  IL_00a5:  call       "void Wrapper<string>.Value.set"
-                  IL_00aa:  ldflda     "Wrapper<string> Obj.Color"
-                  IL_00af:  call       "string Wrapper<string>.Value.get"
-                  IL_00b4:  call       "void System.Console.WriteLine(string)"
-                  IL_00b9:  ret
+                  IL_000f:  stloc.1
+                  IL_0010:  ldloc.1
+                  IL_0011:  call       "Obj Program.<<Main>$>g__ThrowWhenNull|0_0<Obj>(Obj)"
+                  IL_0016:  ldflda     "Wrapper<string> Obj.Color"
+                  IL_001b:  ldloc.0
+                  IL_001c:  ldc.r8     0
+                  IL_0025:  bne.un.s   IL_002e
+                  IL_0027:  ldstr      "green"
+                  IL_002c:  br.s       IL_0033
+                  IL_002e:  ldstr      "red"
+                  IL_0033:  call       "void Wrapper<string>.Value.set"
+                  IL_0038:  ldloc.1
+                  IL_0039:  ldflda     "Wrapper<string> Obj.Color"
+                  IL_003e:  call       "string Wrapper<string>.Value.get"
+                  IL_0043:  dup
+                  IL_0044:  brtrue.s   IL_004c
+                  IL_0046:  pop
+                  IL_0047:  ldstr      "null"
+                  IL_004c:  ldstr      " should not be null"
+                  IL_0051:  call       "string string.Concat(string, string)"
+                  IL_0056:  call       "void System.Console.WriteLine(string)"
+                  IL_005b:  ldloc.1
+                  IL_005c:  call       "Obj Program.<<Main>$>g__ThrowWhenNull|0_0<Obj>(Obj)"
+                  IL_0061:  ldflda     "Wrapper<string> Obj.Color"
+                  IL_0066:  ldstr      "yikes"
+                  IL_006b:  call       "void Wrapper<string>.Value.set"
+                  IL_0070:  ldloc.1
+                  IL_0071:  ldflda     "Wrapper<string> Obj.Color"
+                  IL_0076:  call       "string Wrapper<string>.Value.get"
+                  IL_007b:  call       "void System.Console.WriteLine(string)"
+                  IL_0080:  ldloc.1
+                  IL_0081:  call       "Obj Program.<<Main>$>g__ThrowWhenNull|0_0<Obj>(Obj)"
+                  IL_0086:  ldflda     "Wrapper<string> Obj.Color"
+                  IL_008b:  ldloc.0
+                  IL_008c:  ldc.r8     0
+                  IL_0095:  beq.s      IL_009e
+                  IL_0097:  ldstr      "red"
+                  IL_009c:  br.s       IL_00a3
+                  IL_009e:  ldstr      "green"
+                  IL_00a3:  call       "void Wrapper<string>.Value.set"
+                  IL_00a8:  ldloc.1
+                  IL_00a9:  ldflda     "Wrapper<string> Obj.Color"
+                  IL_00ae:  call       "string Wrapper<string>.Value.get"
+                  IL_00b3:  call       "void System.Console.WriteLine(string)"
+                  IL_00b8:  ret
                 }
                 """);
         }

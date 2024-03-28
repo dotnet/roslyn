@@ -4346,39 +4346,32 @@ public class C
 
             verifier.VerifyIL("C.M", """
 {
-  // Code size       95 (0x5f)
+  // Code size       89 (0x59)
   .maxstack  2
-  .locals init (string V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldc.r8     -40
   IL_000a:  blt.s      IL_0032
   IL_000c:  ldarg.0
   IL_000d:  ldc.r8     -40
-  IL_0016:  blt.un.s   IL_0052
+  IL_0016:  blt.un.s   IL_004e
   IL_0018:  ldarg.0
   IL_0019:  ldc.r8     0
-  IL_0022:  blt.s      IL_003a
+  IL_0022:  blt.s      IL_0039
   IL_0024:  ldarg.0
   IL_0025:  ldc.r8     10
-  IL_002e:  blt.s      IL_0042
-  IL_0030:  br.s       IL_004a
+  IL_002e:  blt.s      IL_0040
+  IL_0030:  br.s       IL_0047
   IL_0032:  ldstr      "Too low"
-  IL_0037:  stloc.0
-  IL_0038:  br.s       IL_0058
-  IL_003a:  ldstr      "Low"
-  IL_003f:  stloc.0
-  IL_0040:  br.s       IL_0058
-  IL_0042:  ldstr      "Acceptable"
-  IL_0047:  stloc.0
-  IL_0048:  br.s       IL_0058
-  IL_004a:  ldstr      "High"
-  IL_004f:  stloc.0
-  IL_0050:  br.s       IL_0058
-  IL_0052:  ldstr      "NaN"
-  IL_0057:  stloc.0
-  IL_0058:  ldloc.0
-  IL_0059:  call       "void System.Console.Write(string)"
-  IL_005e:  ret
+  IL_0037:  br.s       IL_0053
+  IL_0039:  ldstr      "Low"
+  IL_003e:  br.s       IL_0053
+  IL_0040:  ldstr      "Acceptable"
+  IL_0045:  br.s       IL_0053
+  IL_0047:  ldstr      "High"
+  IL_004c:  br.s       IL_0053
+  IL_004e:  ldstr      "NaN"
+  IL_0053:  call       "void System.Console.Write(string)"
+  IL_0058:  ret
 }
 """);
         }
@@ -4428,39 +4421,32 @@ public class C
 
             verifier.VerifyIL("C.M", """
 {
-  // Code size       79 (0x4f)
+  // Code size       73 (0x49)
   .maxstack  2
-  .locals init (string V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldc.r4     -40
   IL_0006:  blt.s      IL_0022
   IL_0008:  ldarg.0
   IL_0009:  ldc.r4     -40
-  IL_000e:  blt.un.s   IL_0042
+  IL_000e:  blt.un.s   IL_003e
   IL_0010:  ldarg.0
   IL_0011:  ldc.r4     0
-  IL_0016:  blt.s      IL_002a
+  IL_0016:  blt.s      IL_0029
   IL_0018:  ldarg.0
   IL_0019:  ldc.r4     10
-  IL_001e:  blt.s      IL_0032
-  IL_0020:  br.s       IL_003a
+  IL_001e:  blt.s      IL_0030
+  IL_0020:  br.s       IL_0037
   IL_0022:  ldstr      "Too low"
-  IL_0027:  stloc.0
-  IL_0028:  br.s       IL_0048
-  IL_002a:  ldstr      "Low"
-  IL_002f:  stloc.0
-  IL_0030:  br.s       IL_0048
-  IL_0032:  ldstr      "Acceptable"
-  IL_0037:  stloc.0
-  IL_0038:  br.s       IL_0048
-  IL_003a:  ldstr      "High"
-  IL_003f:  stloc.0
-  IL_0040:  br.s       IL_0048
-  IL_0042:  ldstr      "NaN"
-  IL_0047:  stloc.0
-  IL_0048:  ldloc.0
-  IL_0049:  call       "void System.Console.Write(string)"
-  IL_004e:  ret
+  IL_0027:  br.s       IL_0043
+  IL_0029:  ldstr      "Low"
+  IL_002e:  br.s       IL_0043
+  IL_0030:  ldstr      "Acceptable"
+  IL_0035:  br.s       IL_0043
+  IL_0037:  ldstr      "High"
+  IL_003c:  br.s       IL_0043
+  IL_003e:  ldstr      "NaN"
+  IL_0043:  call       "void System.Console.Write(string)"
+  IL_0048:  ret
 }
 """);
         }
@@ -4510,39 +4496,32 @@ public class C
 
             verifier.VerifyIL("C.M", """
 {
-  // Code size       95 (0x5f)
+  // Code size       89 (0x59)
   .maxstack  2
-  .locals init (string V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldc.r8     10
   IL_000a:  bge.s      IL_0032
   IL_000c:  ldarg.0
   IL_000d:  ldc.r8     0
-  IL_0016:  bge.s      IL_003a
+  IL_0016:  bge.s      IL_0039
   IL_0018:  ldarg.0
   IL_0019:  ldc.r8     -40
-  IL_0022:  bge.s      IL_0042
+  IL_0022:  bge.s      IL_0040
   IL_0024:  ldarg.0
   IL_0025:  ldc.r8     -40
-  IL_002e:  blt.s      IL_004a
-  IL_0030:  br.s       IL_0052
+  IL_002e:  blt.s      IL_0047
+  IL_0030:  br.s       IL_004e
   IL_0032:  ldstr      "High"
-  IL_0037:  stloc.0
-  IL_0038:  br.s       IL_0058
-  IL_003a:  ldstr      "Acceptable"
-  IL_003f:  stloc.0
-  IL_0040:  br.s       IL_0058
-  IL_0042:  ldstr      "Low"
-  IL_0047:  stloc.0
-  IL_0048:  br.s       IL_0058
-  IL_004a:  ldstr      "Too low"
-  IL_004f:  stloc.0
-  IL_0050:  br.s       IL_0058
-  IL_0052:  ldstr      "NaN"
-  IL_0057:  stloc.0
-  IL_0058:  ldloc.0
-  IL_0059:  call       "void System.Console.Write(string)"
-  IL_005e:  ret
+  IL_0037:  br.s       IL_0053
+  IL_0039:  ldstr      "Acceptable"
+  IL_003e:  br.s       IL_0053
+  IL_0040:  ldstr      "Low"
+  IL_0045:  br.s       IL_0053
+  IL_0047:  ldstr      "Too low"
+  IL_004c:  br.s       IL_0053
+  IL_004e:  ldstr      "NaN"
+  IL_0053:  call       "void System.Console.Write(string)"
+  IL_0058:  ret
 }
 """);
         }
@@ -4592,39 +4571,32 @@ public class C
 
             verifier.VerifyIL("C.M", """
 {
-  // Code size       91 (0x5b)
+  // Code size       85 (0x55)
   .maxstack  2
-  .locals init (string V_0)
   IL_0000:  ldarg.0
   IL_0001:  call       "bool double.IsNaN(double)"
   IL_0006:  brtrue.s   IL_002e
   IL_0008:  ldarg.0
   IL_0009:  ldc.r8     -40
-  IL_0012:  blt.s      IL_0036
+  IL_0012:  blt.s      IL_0035
   IL_0014:  ldarg.0
   IL_0015:  ldc.r8     0
-  IL_001e:  blt.s      IL_003e
+  IL_001e:  blt.s      IL_003c
   IL_0020:  ldarg.0
   IL_0021:  ldc.r8     10
-  IL_002a:  blt.s      IL_0046
-  IL_002c:  br.s       IL_004e
+  IL_002a:  blt.s      IL_0043
+  IL_002c:  br.s       IL_004a
   IL_002e:  ldstr      "NaN"
-  IL_0033:  stloc.0
-  IL_0034:  br.s       IL_0054
-  IL_0036:  ldstr      "Too low"
-  IL_003b:  stloc.0
-  IL_003c:  br.s       IL_0054
-  IL_003e:  ldstr      "Low"
-  IL_0043:  stloc.0
-  IL_0044:  br.s       IL_0054
-  IL_0046:  ldstr      "Acceptable"
-  IL_004b:  stloc.0
-  IL_004c:  br.s       IL_0054
-  IL_004e:  ldstr      "High"
-  IL_0053:  stloc.0
-  IL_0054:  ldloc.0
-  IL_0055:  call       "void System.Console.Write(string)"
-  IL_005a:  ret
+  IL_0033:  br.s       IL_004f
+  IL_0035:  ldstr      "Too low"
+  IL_003a:  br.s       IL_004f
+  IL_003c:  ldstr      "Low"
+  IL_0041:  br.s       IL_004f
+  IL_0043:  ldstr      "Acceptable"
+  IL_0048:  br.s       IL_004f
+  IL_004a:  ldstr      "High"
+  IL_004f:  call       "void System.Console.Write(string)"
+  IL_0054:  ret
 }
 """);
         }
@@ -4674,39 +4646,32 @@ public class C
 
             verifier.VerifyIL("C.M", """
 {
-  // Code size       95 (0x5f)
+  // Code size       89 (0x59)
   .maxstack  2
-  .locals init (string V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldc.r8     -40
   IL_000a:  blt.s      IL_0032
   IL_000c:  ldarg.0
   IL_000d:  ldc.r8     -40
-  IL_0016:  blt.un.s   IL_0052
+  IL_0016:  blt.un.s   IL_004e
   IL_0018:  ldarg.0
   IL_0019:  ldc.r8     0
-  IL_0022:  blt.s      IL_003a
+  IL_0022:  blt.s      IL_0039
   IL_0024:  ldarg.0
   IL_0025:  ldc.r8     10
-  IL_002e:  blt.s      IL_0042
-  IL_0030:  br.s       IL_004a
+  IL_002e:  blt.s      IL_0040
+  IL_0030:  br.s       IL_0047
   IL_0032:  ldstr      "Too low"
-  IL_0037:  stloc.0
-  IL_0038:  br.s       IL_0058
-  IL_003a:  ldstr      "Low"
-  IL_003f:  stloc.0
-  IL_0040:  br.s       IL_0058
-  IL_0042:  ldstr      "Acceptable"
-  IL_0047:  stloc.0
-  IL_0048:  br.s       IL_0058
-  IL_004a:  ldstr      "High"
-  IL_004f:  stloc.0
-  IL_0050:  br.s       IL_0058
-  IL_0052:  ldstr      "NaN"
-  IL_0057:  stloc.0
-  IL_0058:  ldloc.0
-  IL_0059:  call       "void System.Console.Write(string)"
-  IL_005e:  ret
+  IL_0037:  br.s       IL_0053
+  IL_0039:  ldstr      "Low"
+  IL_003e:  br.s       IL_0053
+  IL_0040:  ldstr      "Acceptable"
+  IL_0045:  br.s       IL_0053
+  IL_0047:  ldstr      "High"
+  IL_004c:  br.s       IL_0053
+  IL_004e:  ldstr      "NaN"
+  IL_0053:  call       "void System.Console.Write(string)"
+  IL_0058:  ret
 }
 """);
         }
@@ -4760,50 +4725,42 @@ public class C
 
             verifier.VerifyIL("C.M", """
 {
-  // Code size      110 (0x6e)
+  // Code size      103 (0x67)
   .maxstack  2
   .locals init (bool V_0, //b
-                string V_1,
-                double V_2)
+                double V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldarg.0
-  IL_0003:  stloc.2
-  IL_0004:  ldloc.2
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.1
   IL_0005:  ldc.r8     -40
   IL_000e:  blt.s      IL_0036
-  IL_0010:  ldloc.2
+  IL_0010:  ldloc.1
   IL_0011:  ldc.r8     -40
-  IL_001a:  blt.un.s   IL_0056
-  IL_001c:  ldloc.2
+  IL_001a:  blt.un.s   IL_0052
+  IL_001c:  ldloc.1
   IL_001d:  ldc.r8     0
-  IL_0026:  blt.s      IL_003e
-  IL_0028:  ldloc.2
+  IL_0026:  blt.s      IL_003d
+  IL_0028:  ldloc.1
   IL_0029:  ldc.r8     10
-  IL_0032:  blt.s      IL_0046
-  IL_0034:  br.s       IL_004e
+  IL_0032:  blt.s      IL_0044
+  IL_0034:  br.s       IL_004b
   IL_0036:  ldstr      "Too low"
-  IL_003b:  stloc.1
-  IL_003c:  br.s       IL_0067
-  IL_003e:  ldstr      "Low"
-  IL_0043:  stloc.1
-  IL_0044:  br.s       IL_0067
-  IL_0046:  ldstr      "Acceptable"
-  IL_004b:  stloc.1
-  IL_004c:  br.s       IL_0067
-  IL_004e:  ldstr      "High"
-  IL_0053:  stloc.1
-  IL_0054:  br.s       IL_0067
-  IL_0056:  ldloc.0
-  IL_0057:  brfalse.s  IL_0061
-  IL_0059:  ldstr      "NaN"
-  IL_005e:  stloc.1
-  IL_005f:  br.s       IL_0067
-  IL_0061:  ldstr      "Other"
-  IL_0066:  stloc.1
-  IL_0067:  ldloc.1
-  IL_0068:  call       "void System.Console.Write(string)"
-  IL_006d:  ret
+  IL_003b:  br.s       IL_0061
+  IL_003d:  ldstr      "Low"
+  IL_0042:  br.s       IL_0061
+  IL_0044:  ldstr      "Acceptable"
+  IL_0049:  br.s       IL_0061
+  IL_004b:  ldstr      "High"
+  IL_0050:  br.s       IL_0061
+  IL_0052:  ldloc.0
+  IL_0053:  brfalse.s  IL_005c
+  IL_0055:  ldstr      "NaN"
+  IL_005a:  br.s       IL_0061
+  IL_005c:  ldstr      "Other"
+  IL_0061:  call       "void System.Console.Write(string)"
+  IL_0066:  ret
 }
 """);
         }

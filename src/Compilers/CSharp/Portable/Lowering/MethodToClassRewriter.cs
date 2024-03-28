@@ -124,6 +124,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return newLocals.ToImmutableAndFree();
         }
 
+        public override BoundNode VisitLoweredSwitchExpressionArm(BoundLoweredSwitchExpressionArm node)
+        {
+            return node.Update(
+                RewriteLocals(node.Locals),
+                VisitList(node.Statements),
+                (BoundExpression)Visit(node.Value));
+        }
+
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
         {
             if (!node.Locals.IsDefaultOrEmpty)

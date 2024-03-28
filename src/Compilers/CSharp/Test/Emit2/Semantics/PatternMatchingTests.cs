@@ -7444,10 +7444,9 @@ class C
 2
 3")
                 .VerifyIL("C.Test", @"
- {
-  // Code size       68 (0x44)
+{
+  // Code size       63 (0x3f)
   .maxstack  2
-  .locals init (int V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""int System.ReadOnlySpan<char>.Length.get""
   IL_0007:  brfalse.s  IL_002f
@@ -7455,27 +7454,22 @@ class C
   IL_000a:  ldstr      ""string 1""
   IL_000f:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0014:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0019:  brtrue.s   IL_0033
+  IL_0019:  brtrue.s   IL_0032
   IL_001b:  ldarg.0
   IL_001c:  ldstr      ""STRING 2""
   IL_0021:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0026:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_002b:  brtrue.s   IL_0037
-  IL_002d:  br.s       IL_003b
+  IL_002b:  brtrue.s   IL_0035
+  IL_002d:  br.s       IL_0038
   IL_002f:  ldc.i4.0
-  IL_0030:  stloc.0
-  IL_0031:  br.s       IL_003d
-  IL_0033:  ldc.i4.1
-  IL_0034:  stloc.0
-  IL_0035:  br.s       IL_003d
-  IL_0037:  ldc.i4.2
-  IL_0038:  stloc.0
-  IL_0039:  br.s       IL_003d
-  IL_003b:  ldc.i4.3
-  IL_003c:  stloc.0
-  IL_003d:  ldloc.0
-  IL_003e:  call       ""void System.Console.WriteLine(int)""
-  IL_0043:  ret
+  IL_0030:  br.s       IL_0039
+  IL_0032:  ldc.i4.1
+  IL_0033:  br.s       IL_0039
+  IL_0035:  ldc.i4.2
+  IL_0036:  br.s       IL_0039
+  IL_0038:  ldc.i4.3
+  IL_0039:  call       ""void System.Console.WriteLine(int)""
+  IL_003e:  ret
 }");
         }
 
@@ -7505,10 +7499,9 @@ class C
             CompileAndVerify(compilation, expectedOutput: @"2")
                 .VerifyIL("C.Main",
 @"{
-  // Code size       79 (0x4f)
+  // Code size       74 (0x4a)
   .maxstack  2
-  .locals init (System.ReadOnlySpan<char> V_0, //chars
-                int V_1)
+  .locals init (System.ReadOnlySpan<char> V_0) //chars
   IL_0000:  ldstr      ""string 2""
   IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
   IL_000a:  stloc.0
@@ -7519,27 +7512,22 @@ class C
   IL_0015:  ldstr      ""string 1""
   IL_001a:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_001f:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0024:  brtrue.s   IL_003e
+  IL_0024:  brtrue.s   IL_003d
   IL_0026:  ldloc.0
   IL_0027:  ldstr      ""string 2""
   IL_002c:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0031:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0036:  brtrue.s   IL_0042
-  IL_0038:  br.s       IL_0046
+  IL_0036:  brtrue.s   IL_0040
+  IL_0038:  br.s       IL_0043
   IL_003a:  ldc.i4.0
-  IL_003b:  stloc.1
-  IL_003c:  br.s       IL_0048
-  IL_003e:  ldc.i4.1
-  IL_003f:  stloc.1
-  IL_0040:  br.s       IL_0048
-  IL_0042:  ldc.i4.2
-  IL_0043:  stloc.1
-  IL_0044:  br.s       IL_0048
-  IL_0046:  ldc.i4.3
-  IL_0047:  stloc.1
-  IL_0048:  ldloc.1
-  IL_0049:  call       ""void System.Console.WriteLine(int)""
-  IL_004e:  ret
+  IL_003b:  br.s       IL_0044
+  IL_003d:  ldc.i4.1
+  IL_003e:  br.s       IL_0044
+  IL_0040:  ldc.i4.2
+  IL_0041:  br.s       IL_0044
+  IL_0043:  ldc.i4.3
+  IL_0044:  call       ""void System.Console.WriteLine(int)""
+  IL_0049:  ret
 }");
         }
 
@@ -7587,41 +7575,35 @@ class C
 3")
                 .VerifyIL("C.Test(ref S)",
 @"{
-  // Code size       75 (0x4b)
+  // Code size       70 (0x46)
   .maxstack  2
-  .locals init (int V_0,
-                System.ReadOnlySpan<char> V_1)
+  .locals init (System.ReadOnlySpan<char> V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""System.ReadOnlySpan<char> S.Chars""
-  IL_0006:  stloc.1
-  IL_0007:  ldloca.s   V_1
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
   IL_0009:  call       ""int System.ReadOnlySpan<char>.Length.get""
   IL_000e:  brfalse.s  IL_0036
-  IL_0010:  ldloc.1
+  IL_0010:  ldloc.0
   IL_0011:  ldstr      ""string 1""
   IL_0016:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_001b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0020:  brtrue.s   IL_003a
-  IL_0022:  ldloc.1
+  IL_0020:  brtrue.s   IL_0039
+  IL_0022:  ldloc.0
   IL_0023:  ldstr      ""string 2""
   IL_0028:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_002d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0032:  brtrue.s   IL_003e
-  IL_0034:  br.s       IL_0042
+  IL_0032:  brtrue.s   IL_003c
+  IL_0034:  br.s       IL_003f
   IL_0036:  ldc.i4.0
-  IL_0037:  stloc.0
-  IL_0038:  br.s       IL_0044
-  IL_003a:  ldc.i4.1
-  IL_003b:  stloc.0
-  IL_003c:  br.s       IL_0044
-  IL_003e:  ldc.i4.2
-  IL_003f:  stloc.0
-  IL_0040:  br.s       IL_0044
-  IL_0042:  ldc.i4.3
-  IL_0043:  stloc.0
-  IL_0044:  ldloc.0
-  IL_0045:  call       ""void System.Console.WriteLine(int)""
-  IL_004a:  ret
+  IL_0037:  br.s       IL_0040
+  IL_0039:  ldc.i4.1
+  IL_003a:  br.s       IL_0040
+  IL_003c:  ldc.i4.2
+  IL_003d:  br.s       IL_0040
+  IL_003f:  ldc.i4.3
+  IL_0040:  call       ""void System.Console.WriteLine(int)""
+  IL_0045:  ret
 }");
         }
 
@@ -7679,136 +7661,124 @@ class C
 9")
                 .VerifyIL("C.Test", @"
 {
-  // Code size      377 (0x179)
+  // Code size      363 (0x16b)
   .maxstack  2
-  .locals init (int V_0,
-                uint V_1)
+  .locals init (uint V_0)
   IL_0000:  ldarg.0
   IL_0001:  call       ""uint <PrivateImplementationDetails>.ComputeReadOnlySpanHash(System.ReadOnlySpan<char>)""
-  IL_0006:  stloc.1
-  IL_0007:  ldloc.1
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
   IL_0008:  ldc.i4     0x75b03721
   IL_000d:  bgt.un.s   IL_0047
-  IL_000f:  ldloc.1
+  IL_000f:  ldloc.0
   IL_0010:  ldc.i4     0x73b033fb
   IL_0015:  bgt.un.s   IL_002f
-  IL_0017:  ldloc.1
+  IL_0017:  ldloc.0
   IL_0018:  ldc.i4     0x6ab025d0
-  IL_001d:  beq        IL_0137
-  IL_0022:  ldloc.1
+  IL_001d:  beq        IL_0134
+  IL_0022:  ldloc.0
   IL_0023:  ldc.i4     0x73b033fb
   IL_0028:  beq.s      IL_009c
-  IL_002a:  br         IL_016f
-  IL_002f:  ldloc.1
+  IL_002a:  br         IL_0163
+  IL_002f:  ldloc.0
   IL_0030:  ldc.i4     0x74b0358e
   IL_0035:  beq.s      IL_00b6
-  IL_0037:  ldloc.1
+  IL_0037:  ldloc.0
   IL_0038:  ldc.i4     0x75b03721
   IL_003d:  beq        IL_00d0
-  IL_0042:  br         IL_016f
-  IL_0047:  ldloc.1
+  IL_0042:  br         IL_0163
+  IL_0047:  ldloc.0
   IL_0048:  ldc.i4     0x77b03a47
   IL_004d:  bgt.un.s   IL_006a
-  IL_004f:  ldloc.1
+  IL_004f:  ldloc.0
   IL_0050:  ldc.i4     0x76b038b4
-  IL_0055:  beq        IL_00e7
-  IL_005a:  ldloc.1
+  IL_0055:  beq        IL_00e4
+  IL_005a:  ldloc.0
   IL_005b:  ldc.i4     0x77b03a47
-  IL_0060:  beq        IL_00fb
-  IL_0065:  br         IL_016f
-  IL_006a:  ldloc.1
+  IL_0060:  beq        IL_00f8
+  IL_0065:  br         IL_0163
+  IL_006a:  ldloc.0
   IL_006b:  ldc.i4     0x78b03bda
-  IL_0070:  beq        IL_010f
-  IL_0075:  ldloc.1
+  IL_0070:  beq        IL_010c
+  IL_0075:  ldloc.0
   IL_0076:  ldc.i4     0x79b03d6d
-  IL_007b:  beq        IL_0123
-  IL_0080:  ldloc.1
+  IL_007b:  beq        IL_0120
+  IL_0080:  ldloc.0
   IL_0081:  ldc.i4     0x811c9dc5
-  IL_0086:  bne.un     IL_016f
+  IL_0086:  bne.un     IL_0163
   IL_008b:  ldarga.s   V_0
   IL_008d:  call       ""int System.ReadOnlySpan<char>.Length.get""
-  IL_0092:  brfalse    IL_014b
-  IL_0097:  br         IL_016f
+  IL_0092:  brfalse    IL_0148
+  IL_0097:  br         IL_0163
   IL_009c:  ldarg.0
   IL_009d:  ldstr      ""string 1""
   IL_00a2:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_00a7:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_00ac:  brtrue     IL_014f
-  IL_00b1:  br         IL_016f
+  IL_00ac:  brtrue     IL_014b
+  IL_00b1:  br         IL_0163
   IL_00b6:  ldarg.0
   IL_00b7:  ldstr      ""string 2""
   IL_00bc:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_00c1:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_00c6:  brtrue     IL_0153
-  IL_00cb:  br         IL_016f
+  IL_00c6:  brtrue     IL_014e
+  IL_00cb:  br         IL_0163
   IL_00d0:  ldarg.0
   IL_00d1:  ldstr      ""string 3""
   IL_00d6:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_00db:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_00e0:  brtrue.s   IL_0157
-  IL_00e2:  br         IL_016f
-  IL_00e7:  ldarg.0
-  IL_00e8:  ldstr      ""string 4""
-  IL_00ed:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_00f2:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_00f7:  brtrue.s   IL_015b
-  IL_00f9:  br.s       IL_016f
-  IL_00fb:  ldarg.0
-  IL_00fc:  ldstr      ""string 5""
-  IL_0101:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0106:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_010b:  brtrue.s   IL_015f
-  IL_010d:  br.s       IL_016f
-  IL_010f:  ldarg.0
-  IL_0110:  ldstr      ""string 6""
-  IL_0115:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_011a:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_011f:  brtrue.s   IL_0163
-  IL_0121:  br.s       IL_016f
-  IL_0123:  ldarg.0
-  IL_0124:  ldstr      ""string 7""
-  IL_0129:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_012e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0133:  brtrue.s   IL_0167
-  IL_0135:  br.s       IL_016f
-  IL_0137:  ldarg.0
-  IL_0138:  ldstr      ""string 8""
-  IL_013d:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0142:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0147:  brtrue.s   IL_016b
-  IL_0149:  br.s       IL_016f
-  IL_014b:  ldc.i4.0
-  IL_014c:  stloc.0
-  IL_014d:  br.s       IL_0172
-  IL_014f:  ldc.i4.1
-  IL_0150:  stloc.0
-  IL_0151:  br.s       IL_0172
-  IL_0153:  ldc.i4.2
-  IL_0154:  stloc.0
-  IL_0155:  br.s       IL_0172
-  IL_0157:  ldc.i4.3
-  IL_0158:  stloc.0
-  IL_0159:  br.s       IL_0172
-  IL_015b:  ldc.i4.4
-  IL_015c:  stloc.0
-  IL_015d:  br.s       IL_0172
-  IL_015f:  ldc.i4.5
-  IL_0160:  stloc.0
-  IL_0161:  br.s       IL_0172
-  IL_0163:  ldc.i4.6
-  IL_0164:  stloc.0
-  IL_0165:  br.s       IL_0172
-  IL_0167:  ldc.i4.7
-  IL_0168:  stloc.0
-  IL_0169:  br.s       IL_0172
-  IL_016b:  ldc.i4.8
-  IL_016c:  stloc.0
-  IL_016d:  br.s       IL_0172
-  IL_016f:  ldc.i4.s   9
-  IL_0171:  stloc.0
-  IL_0172:  ldloc.0
-  IL_0173:  call       ""void System.Console.WriteLine(int)""
-  IL_0178:  ret
+  IL_00e0:  brtrue.s   IL_0151
+  IL_00e2:  br.s       IL_0163
+  IL_00e4:  ldarg.0
+  IL_00e5:  ldstr      ""string 4""
+  IL_00ea:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00ef:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00f4:  brtrue.s   IL_0154
+  IL_00f6:  br.s       IL_0163
+  IL_00f8:  ldarg.0
+  IL_00f9:  ldstr      ""string 5""
+  IL_00fe:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0103:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0108:  brtrue.s   IL_0157
+  IL_010a:  br.s       IL_0163
+  IL_010c:  ldarg.0
+  IL_010d:  ldstr      ""string 6""
+  IL_0112:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0117:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_011c:  brtrue.s   IL_015a
+  IL_011e:  br.s       IL_0163
+  IL_0120:  ldarg.0
+  IL_0121:  ldstr      ""string 7""
+  IL_0126:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_012b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0130:  brtrue.s   IL_015d
+  IL_0132:  br.s       IL_0163
+  IL_0134:  ldarg.0
+  IL_0135:  ldstr      ""string 8""
+  IL_013a:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_013f:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0144:  brtrue.s   IL_0160
+  IL_0146:  br.s       IL_0163
+  IL_0148:  ldc.i4.0
+  IL_0149:  br.s       IL_0165
+  IL_014b:  ldc.i4.1
+  IL_014c:  br.s       IL_0165
+  IL_014e:  ldc.i4.2
+  IL_014f:  br.s       IL_0165
+  IL_0151:  ldc.i4.3
+  IL_0152:  br.s       IL_0165
+  IL_0154:  ldc.i4.4
+  IL_0155:  br.s       IL_0165
+  IL_0157:  ldc.i4.5
+  IL_0158:  br.s       IL_0165
+  IL_015a:  ldc.i4.6
+  IL_015b:  br.s       IL_0165
+  IL_015d:  ldc.i4.7
+  IL_015e:  br.s       IL_0165
+  IL_0160:  ldc.i4.8
+  IL_0161:  br.s       IL_0165
+  IL_0163:  ldc.i4.s   9
+  IL_0165:  call       ""void System.Console.WriteLine(int)""
+  IL_016a:  ret
 }");
 
             compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe);
@@ -7825,117 +7795,105 @@ class C
 9")
                 .VerifyIL("C.Test", @"
 {
-  // Code size      298 (0x12a)
+  // Code size      284 (0x11c)
   .maxstack  2
   .locals init (int V_0,
-                int V_1,
-                char V_2)
+                char V_1)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""int System.ReadOnlySpan<char>.Length.get""
-  IL_0007:  stloc.1
-  IL_0008:  ldloc.1
-  IL_0009:  brfalse    IL_00fc
-  IL_000e:  ldloc.1
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  brfalse    IL_00f9
+  IL_000e:  ldloc.0
   IL_000f:  ldc.i4.8
-  IL_0010:  bne.un     IL_0120
+  IL_0010:  bne.un     IL_0114
   IL_0015:  ldarga.s   V_0
   IL_0017:  ldc.i4.7
   IL_0018:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
   IL_001d:  ldind.u2
-  IL_001e:  stloc.2
-  IL_001f:  ldloc.2
+  IL_001e:  stloc.1
+  IL_001f:  ldloc.1
   IL_0020:  ldc.i4.s   49
   IL_0022:  sub
   IL_0023:  switch    (
         IL_004d,
         IL_0067,
         IL_0081,
-        IL_0098,
-        IL_00ac,
-        IL_00c0,
-        IL_00d4,
-        IL_00e8)
-  IL_0048:  br         IL_0120
+        IL_0095,
+        IL_00a9,
+        IL_00bd,
+        IL_00d1,
+        IL_00e5)
+  IL_0048:  br         IL_0114
   IL_004d:  ldarg.0
   IL_004e:  ldstr      ""string 1""
   IL_0053:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0058:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_005d:  brtrue     IL_0100
-  IL_0062:  br         IL_0120
+  IL_005d:  brtrue     IL_00fc
+  IL_0062:  br         IL_0114
   IL_0067:  ldarg.0
   IL_0068:  ldstr      ""string 2""
   IL_006d:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0072:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0077:  brtrue     IL_0104
-  IL_007c:  br         IL_0120
+  IL_0077:  brtrue     IL_00ff
+  IL_007c:  br         IL_0114
   IL_0081:  ldarg.0
   IL_0082:  ldstr      ""string 3""
   IL_0087:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_008c:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0091:  brtrue.s   IL_0108
-  IL_0093:  br         IL_0120
-  IL_0098:  ldarg.0
-  IL_0099:  ldstr      ""string 4""
-  IL_009e:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_00a3:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_00a8:  brtrue.s   IL_010c
-  IL_00aa:  br.s       IL_0120
-  IL_00ac:  ldarg.0
-  IL_00ad:  ldstr      ""string 5""
-  IL_00b2:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_00b7:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_00bc:  brtrue.s   IL_0110
-  IL_00be:  br.s       IL_0120
-  IL_00c0:  ldarg.0
-  IL_00c1:  ldstr      ""string 6""
-  IL_00c6:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_00cb:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_00d0:  brtrue.s   IL_0114
-  IL_00d2:  br.s       IL_0120
-  IL_00d4:  ldarg.0
-  IL_00d5:  ldstr      ""string 7""
-  IL_00da:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_00df:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_00e4:  brtrue.s   IL_0118
-  IL_00e6:  br.s       IL_0120
-  IL_00e8:  ldarg.0
-  IL_00e9:  ldstr      ""string 8""
-  IL_00ee:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_00f3:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_00f8:  brtrue.s   IL_011c
-  IL_00fa:  br.s       IL_0120
-  IL_00fc:  ldc.i4.0
-  IL_00fd:  stloc.0
-  IL_00fe:  br.s       IL_0123
-  IL_0100:  ldc.i4.1
-  IL_0101:  stloc.0
-  IL_0102:  br.s       IL_0123
-  IL_0104:  ldc.i4.2
-  IL_0105:  stloc.0
-  IL_0106:  br.s       IL_0123
-  IL_0108:  ldc.i4.3
-  IL_0109:  stloc.0
-  IL_010a:  br.s       IL_0123
-  IL_010c:  ldc.i4.4
-  IL_010d:  stloc.0
-  IL_010e:  br.s       IL_0123
-  IL_0110:  ldc.i4.5
-  IL_0111:  stloc.0
-  IL_0112:  br.s       IL_0123
-  IL_0114:  ldc.i4.6
-  IL_0115:  stloc.0
-  IL_0116:  br.s       IL_0123
-  IL_0118:  ldc.i4.7
-  IL_0119:  stloc.0
-  IL_011a:  br.s       IL_0123
-  IL_011c:  ldc.i4.8
-  IL_011d:  stloc.0
-  IL_011e:  br.s       IL_0123
-  IL_0120:  ldc.i4.s   9
-  IL_0122:  stloc.0
-  IL_0123:  ldloc.0
-  IL_0124:  call       ""void System.Console.WriteLine(int)""
-  IL_0129:  ret
+  IL_0091:  brtrue.s   IL_0102
+  IL_0093:  br.s       IL_0114
+  IL_0095:  ldarg.0
+  IL_0096:  ldstr      ""string 4""
+  IL_009b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00a0:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00a5:  brtrue.s   IL_0105
+  IL_00a7:  br.s       IL_0114
+  IL_00a9:  ldarg.0
+  IL_00aa:  ldstr      ""string 5""
+  IL_00af:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00b4:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00b9:  brtrue.s   IL_0108
+  IL_00bb:  br.s       IL_0114
+  IL_00bd:  ldarg.0
+  IL_00be:  ldstr      ""string 6""
+  IL_00c3:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00c8:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00cd:  brtrue.s   IL_010b
+  IL_00cf:  br.s       IL_0114
+  IL_00d1:  ldarg.0
+  IL_00d2:  ldstr      ""string 7""
+  IL_00d7:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00dc:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00e1:  brtrue.s   IL_010e
+  IL_00e3:  br.s       IL_0114
+  IL_00e5:  ldarg.0
+  IL_00e6:  ldstr      ""string 8""
+  IL_00eb:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00f0:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_00f5:  brtrue.s   IL_0111
+  IL_00f7:  br.s       IL_0114
+  IL_00f9:  ldc.i4.0
+  IL_00fa:  br.s       IL_0116
+  IL_00fc:  ldc.i4.1
+  IL_00fd:  br.s       IL_0116
+  IL_00ff:  ldc.i4.2
+  IL_0100:  br.s       IL_0116
+  IL_0102:  ldc.i4.3
+  IL_0103:  br.s       IL_0116
+  IL_0105:  ldc.i4.4
+  IL_0106:  br.s       IL_0116
+  IL_0108:  ldc.i4.5
+  IL_0109:  br.s       IL_0116
+  IL_010b:  ldc.i4.6
+  IL_010c:  br.s       IL_0116
+  IL_010e:  ldc.i4.7
+  IL_010f:  br.s       IL_0116
+  IL_0111:  ldc.i4.8
+  IL_0112:  br.s       IL_0116
+  IL_0114:  ldc.i4.s   9
+  IL_0116:  call       ""void System.Console.WriteLine(int)""
+  IL_011b:  ret
 }");
         }
 
@@ -8266,14 +8224,13 @@ class C
 3")
                 .VerifyIL("C.Test", @"
 {
-  // Code size       91 (0x5b)
+  // Code size       86 (0x56)
   .maxstack  3
-  .locals init (int V_0,
-                int V_1)
+  .locals init (int V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""int System.ReadOnlySpan<char>.Length.get""
-  IL_0007:  stloc.1
-  IL_0008:  ldloc.1
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
   IL_0009:  brfalse.s  IL_0046
   IL_000b:  ldarg.0
   IL_000c:  ldstr      ""string 1""
@@ -8281,37 +8238,32 @@ class C
   IL_0016:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
   IL_001b:  brfalse.s  IL_002e
   IL_001d:  ldarga.s   V_0
-  IL_001f:  ldloc.1
+  IL_001f:  ldloc.0
   IL_0020:  ldc.i4.1
   IL_0021:  sub
   IL_0022:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
   IL_0027:  ldind.u2
   IL_0028:  ldc.i4.s   49
-  IL_002a:  beq.s      IL_004a
-  IL_002c:  br.s       IL_0052
-  IL_002e:  ldloc.1
+  IL_002a:  beq.s      IL_0049
+  IL_002c:  br.s       IL_004f
+  IL_002e:  ldloc.0
   IL_002f:  ldc.i4.8
-  IL_0030:  bne.un.s   IL_0052
+  IL_0030:  bne.un.s   IL_004f
   IL_0032:  ldarg.0
   IL_0033:  ldstr      ""string 2""
   IL_0038:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_003d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0042:  brtrue.s   IL_004e
-  IL_0044:  br.s       IL_0052
+  IL_0042:  brtrue.s   IL_004c
+  IL_0044:  br.s       IL_004f
   IL_0046:  ldc.i4.0
-  IL_0047:  stloc.0
-  IL_0048:  br.s       IL_0054
-  IL_004a:  ldc.i4.1
-  IL_004b:  stloc.0
-  IL_004c:  br.s       IL_0054
-  IL_004e:  ldc.i4.2
-  IL_004f:  stloc.0
-  IL_0050:  br.s       IL_0054
-  IL_0052:  ldc.i4.3
-  IL_0053:  stloc.0
-  IL_0054:  ldloc.0
-  IL_0055:  call       ""void System.Console.WriteLine(int)""
-  IL_005a:  ret
+  IL_0047:  br.s       IL_0050
+  IL_0049:  ldc.i4.1
+  IL_004a:  br.s       IL_0050
+  IL_004c:  ldc.i4.2
+  IL_004d:  br.s       IL_0050
+  IL_004f:  ldc.i4.3
+  IL_0050:  call       ""void System.Console.WriteLine(int)""
+  IL_0055:  ret
 }");
         }
 
@@ -8657,21 +8609,17 @@ True
 False");
             verifier.VerifyIL("C.M",
 @"{
-  // Code size       26 (0x1a)
+  // Code size       22 (0x16)
   .maxstack  2
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldstr      """"
   IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0010:  brfalse.s  IL_0016
+  IL_0010:  brfalse.s  IL_0014
   IL_0012:  ldc.i4.1
-  IL_0013:  stloc.0
-  IL_0014:  br.s       IL_0018
-  IL_0016:  ldc.i4.0
-  IL_0017:  stloc.0
-  IL_0018:  ldloc.0
-  IL_0019:  ret
+  IL_0013:  ret
+  IL_0014:  ldc.i4.0
+  IL_0015:  ret
 }");
         }
 
@@ -9037,9 +8985,8 @@ class C
 3")
                 .VerifyIL("C.Test", @"
 {
-  // Code size       68 (0x44)
+  // Code size       63 (0x3f)
   .maxstack  2
-  .locals init (int V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""int System.Span<char>.Length.get""
   IL_0007:  brfalse.s  IL_002f
@@ -9047,27 +8994,22 @@ class C
   IL_000a:  ldstr      ""string 1""
   IL_000f:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0014:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0019:  brtrue.s   IL_0033
+  IL_0019:  brtrue.s   IL_0032
   IL_001b:  ldarg.0
   IL_001c:  ldstr      ""STRING 2""
   IL_0021:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0026:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_002b:  brtrue.s   IL_0037
-  IL_002d:  br.s       IL_003b
+  IL_002b:  brtrue.s   IL_0035
+  IL_002d:  br.s       IL_0038
   IL_002f:  ldc.i4.0
-  IL_0030:  stloc.0
-  IL_0031:  br.s       IL_003d
-  IL_0033:  ldc.i4.1
-  IL_0034:  stloc.0
-  IL_0035:  br.s       IL_003d
-  IL_0037:  ldc.i4.2
-  IL_0038:  stloc.0
-  IL_0039:  br.s       IL_003d
-  IL_003b:  ldc.i4.3
-  IL_003c:  stloc.0
-  IL_003d:  ldloc.0
-  IL_003e:  call       ""void System.Console.WriteLine(int)""
-  IL_0043:  ret
+  IL_0030:  br.s       IL_0039
+  IL_0032:  ldc.i4.1
+  IL_0033:  br.s       IL_0039
+  IL_0035:  ldc.i4.2
+  IL_0036:  br.s       IL_0039
+  IL_0038:  ldc.i4.3
+  IL_0039:  call       ""void System.Console.WriteLine(int)""
+  IL_003e:  ret
 }");
         }
 
@@ -9098,10 +9040,9 @@ class C
             CompileAndVerify(compilation, expectedOutput: @"2")
                 .VerifyIL("C.Main",
 @"{
-  // Code size       84 (0x54)
+  // Code size       79 (0x4f)
   .maxstack  2
-  .locals init (System.Span<char> V_0, //chars
-                int V_1)
+  .locals init (System.Span<char> V_0) //chars
   IL_0000:  ldstr      ""string 2""
   IL_0005:  call       ""char[] System.Linq.Enumerable.ToArray<char>(System.Collections.Generic.IEnumerable<char>)""
   IL_000a:  call       ""System.Span<char> System.Span<char>.op_Implicit(char[])""
@@ -9113,27 +9054,22 @@ class C
   IL_001a:  ldstr      ""string 1""
   IL_001f:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0024:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0029:  brtrue.s   IL_0043
+  IL_0029:  brtrue.s   IL_0042
   IL_002b:  ldloc.0
   IL_002c:  ldstr      ""string 2""
   IL_0031:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0036:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_003b:  brtrue.s   IL_0047
-  IL_003d:  br.s       IL_004b
+  IL_003b:  brtrue.s   IL_0045
+  IL_003d:  br.s       IL_0048
   IL_003f:  ldc.i4.0
-  IL_0040:  stloc.1
-  IL_0041:  br.s       IL_004d
-  IL_0043:  ldc.i4.1
-  IL_0044:  stloc.1
-  IL_0045:  br.s       IL_004d
-  IL_0047:  ldc.i4.2
-  IL_0048:  stloc.1
-  IL_0049:  br.s       IL_004d
-  IL_004b:  ldc.i4.3
-  IL_004c:  stloc.1
-  IL_004d:  ldloc.1
-  IL_004e:  call       ""void System.Console.WriteLine(int)""
-  IL_0053:  ret
+  IL_0040:  br.s       IL_0049
+  IL_0042:  ldc.i4.1
+  IL_0043:  br.s       IL_0049
+  IL_0045:  ldc.i4.2
+  IL_0046:  br.s       IL_0049
+  IL_0048:  ldc.i4.3
+  IL_0049:  call       ""void System.Console.WriteLine(int)""
+  IL_004e:  ret
 }");
         }
 
@@ -9182,41 +9118,35 @@ class C
 3")
                 .VerifyIL("C.Test(ref S)",
 @"{
-  // Code size       75 (0x4b)
+  // Code size       70 (0x46)
   .maxstack  2
-  .locals init (int V_0,
-                System.Span<char> V_1)
+  .locals init (System.Span<char> V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""System.Span<char> S.Chars""
-  IL_0006:  stloc.1
-  IL_0007:  ldloca.s   V_1
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
   IL_0009:  call       ""int System.Span<char>.Length.get""
   IL_000e:  brfalse.s  IL_0036
-  IL_0010:  ldloc.1
+  IL_0010:  ldloc.0
   IL_0011:  ldstr      ""string 1""
   IL_0016:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_001b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0020:  brtrue.s   IL_003a
-  IL_0022:  ldloc.1
+  IL_0020:  brtrue.s   IL_0039
+  IL_0022:  ldloc.0
   IL_0023:  ldstr      ""string 2""
   IL_0028:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_002d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0032:  brtrue.s   IL_003e
-  IL_0034:  br.s       IL_0042
+  IL_0032:  brtrue.s   IL_003c
+  IL_0034:  br.s       IL_003f
   IL_0036:  ldc.i4.0
-  IL_0037:  stloc.0
-  IL_0038:  br.s       IL_0044
-  IL_003a:  ldc.i4.1
-  IL_003b:  stloc.0
-  IL_003c:  br.s       IL_0044
-  IL_003e:  ldc.i4.2
-  IL_003f:  stloc.0
-  IL_0040:  br.s       IL_0044
-  IL_0042:  ldc.i4.3
-  IL_0043:  stloc.0
-  IL_0044:  ldloc.0
-  IL_0045:  call       ""void System.Console.WriteLine(int)""
-  IL_004a:  ret
+  IL_0037:  br.s       IL_0040
+  IL_0039:  ldc.i4.1
+  IL_003a:  br.s       IL_0040
+  IL_003c:  ldc.i4.2
+  IL_003d:  br.s       IL_0040
+  IL_003f:  ldc.i4.3
+  IL_0040:  call       ""void System.Console.WriteLine(int)""
+  IL_0045:  ret
 }");
         }
 
@@ -9276,136 +9206,124 @@ class C
 9")
                 .VerifyIL("C.Test", @"
 {
-  // Code size      377 (0x179)
+  // Code size      363 (0x16b)
   .maxstack  2
-  .locals init (int V_0,
-                uint V_1)
+  .locals init (uint V_0)
   IL_0000:  ldarg.0
   IL_0001:  call       ""uint <PrivateImplementationDetails>.ComputeSpanHash(System.Span<char>)""
-  IL_0006:  stloc.1
-  IL_0007:  ldloc.1
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
   IL_0008:  ldc.i4     0x75b03721
   IL_000d:  bgt.un.s   IL_0047
-  IL_000f:  ldloc.1
+  IL_000f:  ldloc.0
   IL_0010:  ldc.i4     0x73b033fb
   IL_0015:  bgt.un.s   IL_002f
-  IL_0017:  ldloc.1
+  IL_0017:  ldloc.0
   IL_0018:  ldc.i4     0x6ab025d0
-  IL_001d:  beq        IL_0137
-  IL_0022:  ldloc.1
+  IL_001d:  beq        IL_0134
+  IL_0022:  ldloc.0
   IL_0023:  ldc.i4     0x73b033fb
   IL_0028:  beq.s      IL_009c
-  IL_002a:  br         IL_016f
-  IL_002f:  ldloc.1
+  IL_002a:  br         IL_0163
+  IL_002f:  ldloc.0
   IL_0030:  ldc.i4     0x74b0358e
   IL_0035:  beq.s      IL_00b6
-  IL_0037:  ldloc.1
+  IL_0037:  ldloc.0
   IL_0038:  ldc.i4     0x75b03721
   IL_003d:  beq        IL_00d0
-  IL_0042:  br         IL_016f
-  IL_0047:  ldloc.1
+  IL_0042:  br         IL_0163
+  IL_0047:  ldloc.0
   IL_0048:  ldc.i4     0x77b03a47
   IL_004d:  bgt.un.s   IL_006a
-  IL_004f:  ldloc.1
+  IL_004f:  ldloc.0
   IL_0050:  ldc.i4     0x76b038b4
-  IL_0055:  beq        IL_00e7
-  IL_005a:  ldloc.1
+  IL_0055:  beq        IL_00e4
+  IL_005a:  ldloc.0
   IL_005b:  ldc.i4     0x77b03a47
-  IL_0060:  beq        IL_00fb
-  IL_0065:  br         IL_016f
-  IL_006a:  ldloc.1
+  IL_0060:  beq        IL_00f8
+  IL_0065:  br         IL_0163
+  IL_006a:  ldloc.0
   IL_006b:  ldc.i4     0x78b03bda
-  IL_0070:  beq        IL_010f
-  IL_0075:  ldloc.1
+  IL_0070:  beq        IL_010c
+  IL_0075:  ldloc.0
   IL_0076:  ldc.i4     0x79b03d6d
-  IL_007b:  beq        IL_0123
-  IL_0080:  ldloc.1
+  IL_007b:  beq        IL_0120
+  IL_0080:  ldloc.0
   IL_0081:  ldc.i4     0x811c9dc5
-  IL_0086:  bne.un     IL_016f
+  IL_0086:  bne.un     IL_0163
   IL_008b:  ldarga.s   V_0
   IL_008d:  call       ""int System.Span<char>.Length.get""
-  IL_0092:  brfalse    IL_014b
-  IL_0097:  br         IL_016f
+  IL_0092:  brfalse    IL_0148
+  IL_0097:  br         IL_0163
   IL_009c:  ldarg.0
   IL_009d:  ldstr      ""string 1""
   IL_00a2:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_00a7:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_00ac:  brtrue     IL_014f
-  IL_00b1:  br         IL_016f
+  IL_00ac:  brtrue     IL_014b
+  IL_00b1:  br         IL_0163
   IL_00b6:  ldarg.0
   IL_00b7:  ldstr      ""string 2""
   IL_00bc:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_00c1:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_00c6:  brtrue     IL_0153
-  IL_00cb:  br         IL_016f
+  IL_00c6:  brtrue     IL_014e
+  IL_00cb:  br         IL_0163
   IL_00d0:  ldarg.0
   IL_00d1:  ldstr      ""string 3""
   IL_00d6:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_00db:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_00e0:  brtrue.s   IL_0157
-  IL_00e2:  br         IL_016f
-  IL_00e7:  ldarg.0
-  IL_00e8:  ldstr      ""string 4""
-  IL_00ed:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_00f2:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_00f7:  brtrue.s   IL_015b
-  IL_00f9:  br.s       IL_016f
-  IL_00fb:  ldarg.0
-  IL_00fc:  ldstr      ""string 5""
-  IL_0101:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0106:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_010b:  brtrue.s   IL_015f
-  IL_010d:  br.s       IL_016f
-  IL_010f:  ldarg.0
-  IL_0110:  ldstr      ""string 6""
-  IL_0115:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_011a:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_011f:  brtrue.s   IL_0163
-  IL_0121:  br.s       IL_016f
-  IL_0123:  ldarg.0
-  IL_0124:  ldstr      ""string 7""
-  IL_0129:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_012e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0133:  brtrue.s   IL_0167
-  IL_0135:  br.s       IL_016f
-  IL_0137:  ldarg.0
-  IL_0138:  ldstr      ""string 8""
-  IL_013d:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0142:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0147:  brtrue.s   IL_016b
-  IL_0149:  br.s       IL_016f
-  IL_014b:  ldc.i4.0
-  IL_014c:  stloc.0
-  IL_014d:  br.s       IL_0172
-  IL_014f:  ldc.i4.1
-  IL_0150:  stloc.0
-  IL_0151:  br.s       IL_0172
-  IL_0153:  ldc.i4.2
-  IL_0154:  stloc.0
-  IL_0155:  br.s       IL_0172
-  IL_0157:  ldc.i4.3
-  IL_0158:  stloc.0
-  IL_0159:  br.s       IL_0172
-  IL_015b:  ldc.i4.4
-  IL_015c:  stloc.0
-  IL_015d:  br.s       IL_0172
-  IL_015f:  ldc.i4.5
-  IL_0160:  stloc.0
-  IL_0161:  br.s       IL_0172
-  IL_0163:  ldc.i4.6
-  IL_0164:  stloc.0
-  IL_0165:  br.s       IL_0172
-  IL_0167:  ldc.i4.7
-  IL_0168:  stloc.0
-  IL_0169:  br.s       IL_0172
-  IL_016b:  ldc.i4.8
-  IL_016c:  stloc.0
-  IL_016d:  br.s       IL_0172
-  IL_016f:  ldc.i4.s   9
-  IL_0171:  stloc.0
-  IL_0172:  ldloc.0
-  IL_0173:  call       ""void System.Console.WriteLine(int)""
-  IL_0178:  ret
+  IL_00e0:  brtrue.s   IL_0151
+  IL_00e2:  br.s       IL_0163
+  IL_00e4:  ldarg.0
+  IL_00e5:  ldstr      ""string 4""
+  IL_00ea:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00ef:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00f4:  brtrue.s   IL_0154
+  IL_00f6:  br.s       IL_0163
+  IL_00f8:  ldarg.0
+  IL_00f9:  ldstr      ""string 5""
+  IL_00fe:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0103:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0108:  brtrue.s   IL_0157
+  IL_010a:  br.s       IL_0163
+  IL_010c:  ldarg.0
+  IL_010d:  ldstr      ""string 6""
+  IL_0112:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0117:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_011c:  brtrue.s   IL_015a
+  IL_011e:  br.s       IL_0163
+  IL_0120:  ldarg.0
+  IL_0121:  ldstr      ""string 7""
+  IL_0126:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_012b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0130:  brtrue.s   IL_015d
+  IL_0132:  br.s       IL_0163
+  IL_0134:  ldarg.0
+  IL_0135:  ldstr      ""string 8""
+  IL_013a:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_013f:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0144:  brtrue.s   IL_0160
+  IL_0146:  br.s       IL_0163
+  IL_0148:  ldc.i4.0
+  IL_0149:  br.s       IL_0165
+  IL_014b:  ldc.i4.1
+  IL_014c:  br.s       IL_0165
+  IL_014e:  ldc.i4.2
+  IL_014f:  br.s       IL_0165
+  IL_0151:  ldc.i4.3
+  IL_0152:  br.s       IL_0165
+  IL_0154:  ldc.i4.4
+  IL_0155:  br.s       IL_0165
+  IL_0157:  ldc.i4.5
+  IL_0158:  br.s       IL_0165
+  IL_015a:  ldc.i4.6
+  IL_015b:  br.s       IL_0165
+  IL_015d:  ldc.i4.7
+  IL_015e:  br.s       IL_0165
+  IL_0160:  ldc.i4.8
+  IL_0161:  br.s       IL_0165
+  IL_0163:  ldc.i4.s   9
+  IL_0165:  call       ""void System.Console.WriteLine(int)""
+  IL_016a:  ret
 }");
 
             compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe);
@@ -9422,117 +9340,105 @@ class C
 9")
                 .VerifyIL("C.Test", @"
 {
-  // Code size      298 (0x12a)
+  // Code size      284 (0x11c)
   .maxstack  2
   .locals init (int V_0,
-                int V_1,
-                char V_2)
+                char V_1)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""int System.Span<char>.Length.get""
-  IL_0007:  stloc.1
-  IL_0008:  ldloc.1
-  IL_0009:  brfalse    IL_00fc
-  IL_000e:  ldloc.1
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  brfalse    IL_00f9
+  IL_000e:  ldloc.0
   IL_000f:  ldc.i4.8
-  IL_0010:  bne.un     IL_0120
+  IL_0010:  bne.un     IL_0114
   IL_0015:  ldarga.s   V_0
   IL_0017:  ldc.i4.7
   IL_0018:  call       ""ref char System.Span<char>.this[int].get""
   IL_001d:  ldind.u2
-  IL_001e:  stloc.2
-  IL_001f:  ldloc.2
+  IL_001e:  stloc.1
+  IL_001f:  ldloc.1
   IL_0020:  ldc.i4.s   49
   IL_0022:  sub
   IL_0023:  switch    (
         IL_004d,
         IL_0067,
         IL_0081,
-        IL_0098,
-        IL_00ac,
-        IL_00c0,
-        IL_00d4,
-        IL_00e8)
-  IL_0048:  br         IL_0120
+        IL_0095,
+        IL_00a9,
+        IL_00bd,
+        IL_00d1,
+        IL_00e5)
+  IL_0048:  br         IL_0114
   IL_004d:  ldarg.0
   IL_004e:  ldstr      ""string 1""
   IL_0053:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0058:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_005d:  brtrue     IL_0100
-  IL_0062:  br         IL_0120
+  IL_005d:  brtrue     IL_00fc
+  IL_0062:  br         IL_0114
   IL_0067:  ldarg.0
   IL_0068:  ldstr      ""string 2""
   IL_006d:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0072:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0077:  brtrue     IL_0104
-  IL_007c:  br         IL_0120
+  IL_0077:  brtrue     IL_00ff
+  IL_007c:  br         IL_0114
   IL_0081:  ldarg.0
   IL_0082:  ldstr      ""string 3""
   IL_0087:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_008c:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0091:  brtrue.s   IL_0108
-  IL_0093:  br         IL_0120
-  IL_0098:  ldarg.0
-  IL_0099:  ldstr      ""string 4""
-  IL_009e:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_00a3:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_00a8:  brtrue.s   IL_010c
-  IL_00aa:  br.s       IL_0120
-  IL_00ac:  ldarg.0
-  IL_00ad:  ldstr      ""string 5""
-  IL_00b2:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_00b7:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_00bc:  brtrue.s   IL_0110
-  IL_00be:  br.s       IL_0120
-  IL_00c0:  ldarg.0
-  IL_00c1:  ldstr      ""string 6""
-  IL_00c6:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_00cb:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_00d0:  brtrue.s   IL_0114
-  IL_00d2:  br.s       IL_0120
-  IL_00d4:  ldarg.0
-  IL_00d5:  ldstr      ""string 7""
-  IL_00da:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_00df:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_00e4:  brtrue.s   IL_0118
-  IL_00e6:  br.s       IL_0120
-  IL_00e8:  ldarg.0
-  IL_00e9:  ldstr      ""string 8""
-  IL_00ee:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_00f3:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_00f8:  brtrue.s   IL_011c
-  IL_00fa:  br.s       IL_0120
-  IL_00fc:  ldc.i4.0
-  IL_00fd:  stloc.0
-  IL_00fe:  br.s       IL_0123
-  IL_0100:  ldc.i4.1
-  IL_0101:  stloc.0
-  IL_0102:  br.s       IL_0123
-  IL_0104:  ldc.i4.2
-  IL_0105:  stloc.0
-  IL_0106:  br.s       IL_0123
-  IL_0108:  ldc.i4.3
-  IL_0109:  stloc.0
-  IL_010a:  br.s       IL_0123
-  IL_010c:  ldc.i4.4
-  IL_010d:  stloc.0
-  IL_010e:  br.s       IL_0123
-  IL_0110:  ldc.i4.5
-  IL_0111:  stloc.0
-  IL_0112:  br.s       IL_0123
-  IL_0114:  ldc.i4.6
-  IL_0115:  stloc.0
-  IL_0116:  br.s       IL_0123
-  IL_0118:  ldc.i4.7
-  IL_0119:  stloc.0
-  IL_011a:  br.s       IL_0123
-  IL_011c:  ldc.i4.8
-  IL_011d:  stloc.0
-  IL_011e:  br.s       IL_0123
-  IL_0120:  ldc.i4.s   9
-  IL_0122:  stloc.0
-  IL_0123:  ldloc.0
-  IL_0124:  call       ""void System.Console.WriteLine(int)""
-  IL_0129:  ret
+  IL_0091:  brtrue.s   IL_0102
+  IL_0093:  br.s       IL_0114
+  IL_0095:  ldarg.0
+  IL_0096:  ldstr      ""string 4""
+  IL_009b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00a0:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00a5:  brtrue.s   IL_0105
+  IL_00a7:  br.s       IL_0114
+  IL_00a9:  ldarg.0
+  IL_00aa:  ldstr      ""string 5""
+  IL_00af:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00b4:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00b9:  brtrue.s   IL_0108
+  IL_00bb:  br.s       IL_0114
+  IL_00bd:  ldarg.0
+  IL_00be:  ldstr      ""string 6""
+  IL_00c3:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00c8:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00cd:  brtrue.s   IL_010b
+  IL_00cf:  br.s       IL_0114
+  IL_00d1:  ldarg.0
+  IL_00d2:  ldstr      ""string 7""
+  IL_00d7:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00dc:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00e1:  brtrue.s   IL_010e
+  IL_00e3:  br.s       IL_0114
+  IL_00e5:  ldarg.0
+  IL_00e6:  ldstr      ""string 8""
+  IL_00eb:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_00f0:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_00f5:  brtrue.s   IL_0111
+  IL_00f7:  br.s       IL_0114
+  IL_00f9:  ldc.i4.0
+  IL_00fa:  br.s       IL_0116
+  IL_00fc:  ldc.i4.1
+  IL_00fd:  br.s       IL_0116
+  IL_00ff:  ldc.i4.2
+  IL_0100:  br.s       IL_0116
+  IL_0102:  ldc.i4.3
+  IL_0103:  br.s       IL_0116
+  IL_0105:  ldc.i4.4
+  IL_0106:  br.s       IL_0116
+  IL_0108:  ldc.i4.5
+  IL_0109:  br.s       IL_0116
+  IL_010b:  ldc.i4.6
+  IL_010c:  br.s       IL_0116
+  IL_010e:  ldc.i4.7
+  IL_010f:  br.s       IL_0116
+  IL_0111:  ldc.i4.8
+  IL_0112:  br.s       IL_0116
+  IL_0114:  ldc.i4.s   9
+  IL_0116:  call       ""void System.Console.WriteLine(int)""
+  IL_011b:  ret
 }");
         }
 
@@ -9865,14 +9771,13 @@ class C
 3")
                 .VerifyIL("C.Test", @"
 {
-  // Code size       91 (0x5b)
+  // Code size       86 (0x56)
   .maxstack  3
-  .locals init (int V_0,
-                int V_1)
+  .locals init (int V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""int System.Span<char>.Length.get""
-  IL_0007:  stloc.1
-  IL_0008:  ldloc.1
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
   IL_0009:  brfalse.s  IL_0046
   IL_000b:  ldarg.0
   IL_000c:  ldstr      ""string 1""
@@ -9880,37 +9785,32 @@ class C
   IL_0016:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
   IL_001b:  brfalse.s  IL_002e
   IL_001d:  ldarga.s   V_0
-  IL_001f:  ldloc.1
+  IL_001f:  ldloc.0
   IL_0020:  ldc.i4.1
   IL_0021:  sub
   IL_0022:  call       ""ref char System.Span<char>.this[int].get""
   IL_0027:  ldind.u2
   IL_0028:  ldc.i4.s   49
-  IL_002a:  beq.s      IL_004a
-  IL_002c:  br.s       IL_0052
-  IL_002e:  ldloc.1
+  IL_002a:  beq.s      IL_0049
+  IL_002c:  br.s       IL_004f
+  IL_002e:  ldloc.0
   IL_002f:  ldc.i4.8
-  IL_0030:  bne.un.s   IL_0052
+  IL_0030:  bne.un.s   IL_004f
   IL_0032:  ldarg.0
   IL_0033:  ldstr      ""string 2""
   IL_0038:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_003d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0042:  brtrue.s   IL_004e
-  IL_0044:  br.s       IL_0052
+  IL_0042:  brtrue.s   IL_004c
+  IL_0044:  br.s       IL_004f
   IL_0046:  ldc.i4.0
-  IL_0047:  stloc.0
-  IL_0048:  br.s       IL_0054
-  IL_004a:  ldc.i4.1
-  IL_004b:  stloc.0
-  IL_004c:  br.s       IL_0054
-  IL_004e:  ldc.i4.2
-  IL_004f:  stloc.0
-  IL_0050:  br.s       IL_0054
-  IL_0052:  ldc.i4.3
-  IL_0053:  stloc.0
-  IL_0054:  ldloc.0
-  IL_0055:  call       ""void System.Console.WriteLine(int)""
-  IL_005a:  ret
+  IL_0047:  br.s       IL_0050
+  IL_0049:  ldc.i4.1
+  IL_004a:  br.s       IL_0050
+  IL_004c:  ldc.i4.2
+  IL_004d:  br.s       IL_0050
+  IL_004f:  ldc.i4.3
+  IL_0050:  call       ""void System.Console.WriteLine(int)""
+  IL_0055:  ret
 }");
         }
 
@@ -10257,21 +10157,17 @@ True
 False");
             verifier.VerifyIL("C.M",
 @"{
-  // Code size       26 (0x1a)
+  // Code size       22 (0x16)
   .maxstack  2
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldstr      """"
   IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0010:  brfalse.s  IL_0016
+  IL_0010:  brfalse.s  IL_0014
   IL_0012:  ldc.i4.1
-  IL_0013:  stloc.0
-  IL_0014:  br.s       IL_0018
-  IL_0016:  ldc.i4.0
-  IL_0017:  stloc.0
-  IL_0018:  ldloc.0
-  IL_0019:  ret
+  IL_0013:  ret
+  IL_0014:  ldc.i4.0
+  IL_0015:  ret
 }");
         }
 
@@ -11005,9 +10901,8 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "(3, 6)");
             verifier.VerifyIL("Program.F1",
 @"{
-  // Code size      160 (0xa0)
+  // Code size      144 (0x90)
   .maxstack  2
-  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldstr      ""1""
   IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
@@ -11017,64 +10912,54 @@ class Program
   IL_0013:  ldstr      ""2""
   IL_0018:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_001d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0022:  brtrue.s   IL_0084
+  IL_0022:  brtrue.s   IL_0082
   IL_0024:  ldarg.0
   IL_0025:  ldstr      ""3""
   IL_002a:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_002f:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0034:  brtrue.s   IL_0088
+  IL_0034:  brtrue.s   IL_0084
   IL_0036:  ldarg.0
   IL_0037:  ldstr      ""4""
   IL_003c:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0041:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0046:  brtrue.s   IL_008c
+  IL_0046:  brtrue.s   IL_0086
   IL_0048:  ldarg.0
   IL_0049:  ldstr      ""5""
   IL_004e:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0053:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0058:  brtrue.s   IL_0090
+  IL_0058:  brtrue.s   IL_0088
   IL_005a:  ldarg.0
   IL_005b:  ldstr      ""6""
   IL_0060:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0065:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_006a:  brtrue.s   IL_0094
+  IL_006a:  brtrue.s   IL_008a
   IL_006c:  ldarg.0
   IL_006d:  ldstr      ""7""
   IL_0072:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0077:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_007c:  brtrue.s   IL_0098
-  IL_007e:  br.s       IL_009c
+  IL_007c:  brtrue.s   IL_008c
+  IL_007e:  br.s       IL_008e
   IL_0080:  ldc.i4.1
-  IL_0081:  stloc.0
-  IL_0082:  br.s       IL_009e
-  IL_0084:  ldc.i4.2
-  IL_0085:  stloc.0
-  IL_0086:  br.s       IL_009e
-  IL_0088:  ldc.i4.3
-  IL_0089:  stloc.0
-  IL_008a:  br.s       IL_009e
-  IL_008c:  ldc.i4.4
-  IL_008d:  stloc.0
-  IL_008e:  br.s       IL_009e
-  IL_0090:  ldc.i4.5
-  IL_0091:  stloc.0
-  IL_0092:  br.s       IL_009e
-  IL_0094:  ldc.i4.6
-  IL_0095:  stloc.0
-  IL_0096:  br.s       IL_009e
-  IL_0098:  ldc.i4.7
-  IL_0099:  stloc.0
-  IL_009a:  br.s       IL_009e
-  IL_009c:  ldc.i4.0
-  IL_009d:  stloc.0
-  IL_009e:  ldloc.0
-  IL_009f:  ret
+  IL_0081:  ret
+  IL_0082:  ldc.i4.2
+  IL_0083:  ret
+  IL_0084:  ldc.i4.3
+  IL_0085:  ret
+  IL_0086:  ldc.i4.4
+  IL_0087:  ret
+  IL_0088:  ldc.i4.5
+  IL_0089:  ret
+  IL_008a:  ldc.i4.6
+  IL_008b:  ret
+  IL_008c:  ldc.i4.7
+  IL_008d:  ret
+  IL_008e:  ldc.i4.0
+  IL_008f:  ret
 }");
             verifier.VerifyIL("Program.F2",
 @"{
-  // Code size      160 (0xa0)
+  // Code size      144 (0x90)
   .maxstack  2
-  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldstr      ""1""
   IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
@@ -11084,58 +10969,49 @@ class Program
   IL_0013:  ldstr      ""2""
   IL_0018:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_001d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0022:  brtrue.s   IL_0084
+  IL_0022:  brtrue.s   IL_0082
   IL_0024:  ldarg.0
   IL_0025:  ldstr      ""3""
   IL_002a:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_002f:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0034:  brtrue.s   IL_0088
+  IL_0034:  brtrue.s   IL_0084
   IL_0036:  ldarg.0
   IL_0037:  ldstr      ""4""
   IL_003c:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0041:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0046:  brtrue.s   IL_008c
+  IL_0046:  brtrue.s   IL_0086
   IL_0048:  ldarg.0
   IL_0049:  ldstr      ""5""
   IL_004e:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0053:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0058:  brtrue.s   IL_0090
+  IL_0058:  brtrue.s   IL_0088
   IL_005a:  ldarg.0
   IL_005b:  ldstr      ""6""
   IL_0060:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0065:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_006a:  brtrue.s   IL_0094
+  IL_006a:  brtrue.s   IL_008a
   IL_006c:  ldarg.0
   IL_006d:  ldstr      ""7""
   IL_0072:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0077:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_007c:  brtrue.s   IL_0098
-  IL_007e:  br.s       IL_009c
+  IL_007c:  brtrue.s   IL_008c
+  IL_007e:  br.s       IL_008e
   IL_0080:  ldc.i4.1
-  IL_0081:  stloc.0
-  IL_0082:  br.s       IL_009e
-  IL_0084:  ldc.i4.2
-  IL_0085:  stloc.0
-  IL_0086:  br.s       IL_009e
-  IL_0088:  ldc.i4.3
-  IL_0089:  stloc.0
-  IL_008a:  br.s       IL_009e
-  IL_008c:  ldc.i4.4
-  IL_008d:  stloc.0
-  IL_008e:  br.s       IL_009e
-  IL_0090:  ldc.i4.5
-  IL_0091:  stloc.0
-  IL_0092:  br.s       IL_009e
-  IL_0094:  ldc.i4.6
-  IL_0095:  stloc.0
-  IL_0096:  br.s       IL_009e
-  IL_0098:  ldc.i4.7
-  IL_0099:  stloc.0
-  IL_009a:  br.s       IL_009e
-  IL_009c:  ldc.i4.0
-  IL_009d:  stloc.0
-  IL_009e:  ldloc.0
-  IL_009f:  ret
+  IL_0081:  ret
+  IL_0082:  ldc.i4.2
+  IL_0083:  ret
+  IL_0084:  ldc.i4.3
+  IL_0085:  ret
+  IL_0086:  ldc.i4.4
+  IL_0087:  ret
+  IL_0088:  ldc.i4.5
+  IL_0089:  ret
+  IL_008a:  ldc.i4.6
+  IL_008b:  ret
+  IL_008c:  ldc.i4.7
+  IL_008d:  ret
+  IL_008e:  ldc.i4.0
+  IL_008f:  ret
 }");
         }
 
@@ -11183,9 +11059,8 @@ class Program
 2");
             verifier.VerifyIL("Program.F1",
 @"{
-  // Code size       81 (0x51)
+  // Code size       75 (0x4b)
   .maxstack  2
-  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldstr      ""str""
   IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
@@ -11194,42 +11069,37 @@ class Program
   IL_0012:  ldarga.s   V_0
   IL_0014:  call       ""int System.ReadOnlySpan<char>.Length.get""
   IL_0019:  ldc.i4.3
-  IL_001a:  bne.un.s   IL_004d
+  IL_001a:  bne.un.s   IL_0049
   IL_001c:  ldarga.s   V_0
   IL_001e:  ldc.i4.0
   IL_001f:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
   IL_0024:  ldind.u2
   IL_0025:  ldc.i4.s   115
-  IL_0027:  bne.un.s   IL_004d
+  IL_0027:  bne.un.s   IL_0049
   IL_0029:  ldarga.s   V_0
   IL_002b:  ldc.i4.1
   IL_002c:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
   IL_0031:  ldind.u2
   IL_0032:  ldc.i4.s   116
-  IL_0034:  bne.un.s   IL_004d
+  IL_0034:  bne.un.s   IL_0049
   IL_0036:  ldarga.s   V_0
   IL_0038:  ldc.i4.2
   IL_0039:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
   IL_003e:  ldind.u2
   IL_003f:  ldc.i4.s   114
-  IL_0041:  beq.s      IL_0049
-  IL_0043:  br.s       IL_004d
+  IL_0041:  beq.s      IL_0047
+  IL_0043:  br.s       IL_0049
   IL_0045:  ldc.i4.1
-  IL_0046:  stloc.0
-  IL_0047:  br.s       IL_004f
-  IL_0049:  ldc.i4.2
-  IL_004a:  stloc.0
-  IL_004b:  br.s       IL_004f
-  IL_004d:  ldc.i4.0
-  IL_004e:  stloc.0
-  IL_004f:  ldloc.0
-  IL_0050:  ret
+  IL_0046:  ret
+  IL_0047:  ldc.i4.2
+  IL_0048:  ret
+  IL_0049:  ldc.i4.0
+  IL_004a:  ret
 }");
             verifier.VerifyIL("Program.F2",
 @"{
-  // Code size       81 (0x51)
+  // Code size       75 (0x4b)
   .maxstack  2
-  .locals init (int V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""int System.Span<char>.Length.get""
   IL_0007:  ldc.i4.3
@@ -11256,18 +11126,14 @@ class Program
   IL_0032:  ldstr      ""str""
   IL_0037:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_003c:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0041:  brtrue.s   IL_0049
-  IL_0043:  br.s       IL_004d
+  IL_0041:  brtrue.s   IL_0047
+  IL_0043:  br.s       IL_0049
   IL_0045:  ldc.i4.2
-  IL_0046:  stloc.0
-  IL_0047:  br.s       IL_004f
-  IL_0049:  ldc.i4.1
-  IL_004a:  stloc.0
-  IL_004b:  br.s       IL_004f
-  IL_004d:  ldc.i4.0
-  IL_004e:  stloc.0
-  IL_004f:  ldloc.0
-  IL_0050:  ret
+  IL_0046:  ret
+  IL_0047:  ldc.i4.1
+  IL_0048:  ret
+  IL_0049:  ldc.i4.0
+  IL_004a:  ret
 }");
         }
 
@@ -11532,13 +11398,10 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""6"" startColumn=""9"" endLine=""10"" endColumn=""11"" document=""1"" />
-        <entry offset=""0xf"" startLine=""8"" startColumn=""22"" endLine=""8"" endColumn=""36"" document=""1"" />
-        <entry offset=""0x22"" startLine=""9"" startColumn=""18"" endLine=""9"" endColumn=""30"" document=""1"" />
-        <entry offset=""0x28"" hidden=""true"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x2a"">
-        <scope startOffset=""0xf"" endOffset=""0x22"">
-          <local name=""i"" il_index=""0"" il_start=""0xf"" il_end=""0x22"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x26"">
+        <scope startOffset=""0xf"" endOffset=""0x1f"">
+          <local name=""i"" il_index=""0"" il_start=""0xf"" il_end=""0x1f"" attributes=""0"" />
         </scope>
       </scope>
     </method>

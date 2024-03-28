@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected BoundDecisionDag ShareTempsIfPossibleAndEvaluateInput(
                 BoundDecisionDag decisionDag,
                 BoundExpression loweredSwitchGoverningExpression,
-                ArrayBuilder<BoundStatement> result,
+                Action<BoundExpression> addCode,
                 out BoundExpression savedInputExpression)
             {
                 // Note that a when-clause can contain an assignment to a
@@ -352,14 +352,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (canShareTemps)
                 {
-                    decisionDag = ShareTempsAndEvaluateInput(loweredSwitchGoverningExpression, decisionDag, expr => result.Add(_factory.ExpressionStatement(expr)), out savedInputExpression);
+                    decisionDag = ShareTempsAndEvaluateInput(loweredSwitchGoverningExpression, decisionDag, addCode, out savedInputExpression);
                 }
                 else
                 {
                     // assign the input expression to its temp.
                     BoundExpression inputTemp = _tempAllocator.GetTemp(BoundDagTemp.ForOriginalInput(loweredSwitchGoverningExpression));
                     Debug.Assert(inputTemp != loweredSwitchGoverningExpression);
-                    result.Add(_factory.Assignment(inputTemp, loweredSwitchGoverningExpression));
+                    addCode(_factory.AssignmentExpression(inputTemp, loweredSwitchGoverningExpression));
                     savedInputExpression = inputTemp;
                 }
 

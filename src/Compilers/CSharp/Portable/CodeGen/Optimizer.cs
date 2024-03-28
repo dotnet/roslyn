@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return VisitSideEffect(node);
         }
 
-        public ImmutableArray<BoundStatement> VisitSideEffects(ImmutableArray<BoundStatement> statements)
+        public ImmutableArray<T> VisitSideEffects<T>(ImmutableArray<T> statements) where T : BoundNode
         {
 #if DEBUG
             int prevStack = _expectedStackDepth;
@@ -1467,6 +1467,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return node.Update(boundExpression, node.Cases, node.DefaultLabel, node.LengthBasedStringSwitchDataOpt);
         }
 
+#if DEBUG
+        public override BoundNode VisitLoweredSwitchExpression(BoundLoweredSwitchExpression node)
+        {
+            return node.Update(
+                VisitSideEffects(node.Statements),
+                VisitSideEffects(node.SwitchArms),
+                VisitType(node.Type));
+        }
+#endif
+
+        public override BoundNode VisitLoweredSwitchExpressionArm(BoundLoweredSwitchExpressionArm node)
+        {
+            var statements = VisitSideEffects(node.Statements);
+            var value = VisitExpression(node.Value, ExprContext.Value);
+            PopEvalStack();
+            _counter++;
+            EnsureOnlyEvalStack();
+            return node.Update(node.Locals, statements, value);
+        }
+
         public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
         {
             var statements = VisitSideEffects(node.Statements);
@@ -2299,6 +2319,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 #nullable disable
+
+        public override BoundNode VisitLoweredSwitchExpressionArm(BoundLoweredSwitchExpressionArm switchArm)
+        {
+            var result = base.VisitLoweredSwitchExpressionArm(switchArm);
+            _nodeCounter++;
+            return result;
+        }
 
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
         {

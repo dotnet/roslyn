@@ -240,34 +240,29 @@ Prop2
             var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             verifier.VerifyIL("C.Test", @"
 {
-  // Code size       50 (0x32)
+  // Code size       46 (0x2e)
   .maxstack  1
-  .locals init (int V_0,
-                C V_1)
+  .locals init (C V_0)
   IL_0000:  ldstr      ""Test""
   IL_0005:  call       ""void System.Console.WriteLine(string)""
   IL_000a:  ldarg.0
-  IL_000b:  brfalse.s  IL_0029
+  IL_000b:  brfalse.s  IL_0027
   IL_000d:  ldarg.0
   IL_000e:  callvirt   ""C C.Prop1.get""
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.1
+  IL_0013:  stloc.0
+  IL_0014:  ldloc.0
   IL_0015:  brfalse.s  IL_0021
-  IL_0017:  ldloc.1
+  IL_0017:  ldloc.0
   IL_0018:  callvirt   ""C C.Prop2.get""
-  IL_001d:  brfalse.s  IL_0025
-  IL_001f:  br.s       IL_0029
+  IL_001d:  brfalse.s  IL_0024
+  IL_001f:  br.s       IL_0027
   IL_0021:  ldc.i4.1
-  IL_0022:  stloc.0
-  IL_0023:  br.s       IL_002b
-  IL_0025:  ldc.i4.2
-  IL_0026:  stloc.0
-  IL_0027:  br.s       IL_002b
-  IL_0029:  ldc.i4.m1
-  IL_002a:  stloc.0
-  IL_002b:  ldloc.0
-  IL_002c:  call       ""void System.Console.WriteLine(int)""
-  IL_0031:  ret
+  IL_0022:  br.s       IL_0028
+  IL_0024:  ldc.i4.2
+  IL_0025:  br.s       IL_0028
+  IL_0027:  ldc.i4.m1
+  IL_0028:  call       ""void System.Console.WriteLine(int)""
+  IL_002d:  ret
 }");
         }
 

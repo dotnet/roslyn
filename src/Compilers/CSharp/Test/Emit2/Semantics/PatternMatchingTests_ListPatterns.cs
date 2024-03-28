@@ -7414,27 +7414,19 @@ class C
         var verifier = CompileAndVerify(comp);
         string expectedIl = @"
 {
-  // Code size       26 (0x1a)
+  // Code size       16 (0x10)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""int System.Span<int>.Length.get""
   IL_0007:  stloc.0
   IL_0008:  ldloc.0
-  IL_0009:  brfalse.s  IL_0011
+  IL_0009:  brfalse.s  IL_000f
   IL_000b:  ldloc.0
   IL_000c:  ldc.i4.1
-  IL_000d:  beq.s      IL_0014
-  IL_000f:  br.s       IL_0017
-  IL_0011:  ldc.i4.1
-  IL_0012:  pop
-  IL_0013:  ret
-  IL_0014:  ldc.i4.2
-  IL_0015:  pop
-  IL_0016:  ret
-  IL_0017:  ldc.i4.3
-  IL_0018:  pop
-  IL_0019:  ret
+  IL_000d:  pop
+  IL_000e:  pop
+  IL_000f:  ret
 }
 ";
         verifier.VerifyIL("C.Test1", expectedIl);

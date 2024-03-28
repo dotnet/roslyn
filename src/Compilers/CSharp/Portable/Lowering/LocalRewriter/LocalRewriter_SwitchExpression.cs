@@ -16,35 +16,44 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
-            // The switch expression is lowered to an expression that involves the use of side-effects
-            // such as jumps and labels, therefore it is represented by a BoundSpillSequence and
-            // the resulting nodes will need to be "spilled" to move such statements to the top
-            // level (i.e. into the enclosing statement list).
-            this._needsSpilling = true;
             return SwitchExpressionLocalRewriter.Rewrite(this, node);
         }
 
         private sealed class SwitchExpressionLocalRewriter : BaseSwitchLocalRewriter
         {
-            private SwitchExpressionLocalRewriter(BoundConvertedSwitchExpression node, LocalRewriter localRewriter)
+            private SwitchExpressionLocalRewriter(BoundConvertedSwitchExpression node, LocalRewriter localRewriter, bool generateInstrumentation)
                 : base(node.Syntax, localRewriter, node.SwitchArms.SelectAsArray(arm => arm.Syntax),
-                      generateInstrumentation: !node.WasCompilerGenerated && localRewriter.Instrument)
+                      generateInstrumentation: generateInstrumentation)
             {
             }
 
             public static BoundExpression Rewrite(LocalRewriter localRewriter, BoundConvertedSwitchExpression node)
             {
-                var rewriter = new SwitchExpressionLocalRewriter(node, localRewriter);
-                BoundExpression result = rewriter.LowerSwitchExpression(node);
-                rewriter.Free();
-                return result;
+                var generateInstrumentation = !node.WasCompilerGenerated && localRewriter.Instrument;
+                // When compiling for Debug (not Release), we produce the most detailed sequence points.
+                var produceDetailedSequencePoints = generateInstrumentation && localRewriter._compilation.Options.OptimizationLevel != OptimizationLevel.Release;
+
+                if (produceDetailedSequencePoints)
+                {
+                    localRewriter._needsSpilling = true;
+                    var rewriter = new SwitchExpressionLocalRewriter(node, localRewriter, generateInstrumentation: true);
+                    BoundExpression result = rewriter.LowerSwitchExpressionForDebug(node);
+                    rewriter.Free();
+                    return result;
+                }
+                else
+                {
+                    var rewriter = new SwitchExpressionLocalRewriter(node, localRewriter, generateInstrumentation: false);
+                    BoundExpression result = rewriter.LowerSwitchExpressionForRelease(node);
+                    rewriter.Free();
+                    return result;
+                }
             }
 
-            private BoundExpression LowerSwitchExpression(BoundConvertedSwitchExpression node)
+            private BoundExpression LowerSwitchExpressionForDebug(BoundConvertedSwitchExpression node)
             {
-                // When compiling for Debug (not Release), we produce the most detailed sequence points.
-                var produceDetailedSequencePoints =
-                    GenerateInstrumentation && _localRewriter._compilation.Options.OptimizationLevel != OptimizationLevel.Release;
+                const bool produceDetailedSequencePoints = true;
+
                 _factory.Syntax = node.Syntax;
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
                 var outerVariables = ArrayBuilder<LocalSymbol>.GetInstance();
@@ -52,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(
                     node.GetDecisionDagForLowering(_factory.Compilation, out LabelSymbol? defaultLabel),
-                    loweredSwitchGoverningExpression, result, out BoundExpression savedInputExpression);
+                    loweredSwitchGoverningExpression, expr => result.Add(_factory.ExpressionStatement(expr)), out BoundExpression savedInputExpression);
 
                 Debug.Assert(savedInputExpression != null);
 
@@ -123,16 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result.Add(_factory.Label(defaultLabel));
                     if (produceDetailedSequencePoints)
                         result.Add(new BoundRestorePreviousSequencePoint(node.Syntax, restorePointForSwitchBody));
-                    var objectType = _factory.SpecialType(SpecialType.System_Object);
-                    var throwCall =
-                        (implicitConversionExists(savedInputExpression, objectType) &&
-                                _factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject, isOptional: true) is MethodSymbol)
-                            ? ConstructThrowSwitchExpressionExceptionHelperCall(_factory, _factory.Convert(objectType, savedInputExpression)) :
-                        (_factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor, isOptional: true) is MethodSymbol)
-                            ? ConstructThrowSwitchExpressionExceptionParameterlessHelperCall(_factory) :
-                        ConstructThrowInvalidOperationExceptionHelperCall(_factory);
-
-                    result.Add(throwCall);
+                    BoundExpression throwCall = ConstructThrowHelperCall(savedInputExpression);
+                    result.Add(_factory.HiddenSequencePoint(_factory.ExpressionStatement(throwCall)));
                 }
 
                 if (GenerateInstrumentation)
@@ -144,6 +145,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outerVariables.Add(resultTemp);
                 outerVariables.AddRange(_tempAllocator.AllTemps());
                 return _factory.SpillSequence(outerVariables.ToImmutableAndFree(), result.ToImmutableAndFree(), _factory.Local(resultTemp));
+            }
+
+            private BoundExpression ConstructThrowHelperCall(BoundExpression savedInputExpression)
+            {
+                var objectType = _factory.SpecialType(SpecialType.System_Object);
+                if (implicitConversionExists(savedInputExpression, objectType) &&
+                    _factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject, isOptional: true) is MethodSymbol)
+                {
+                    return ConstructThrowSwitchExpressionExceptionHelperCall(_factory, _factory.Convert(objectType, savedInputExpression));
+                }
+                else if (_factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor, isOptional: true) is MethodSymbol)
+                {
+                    return ConstructThrowSwitchExpressionExceptionParameterlessHelperCall(_factory);
+                }
+                else
+                {
+                    return ConstructThrowInvalidOperationExceptionHelperCall(_factory);
+                }
 
                 bool implicitConversionExists(BoundExpression expression, TypeSymbol type)
                 {
@@ -153,7 +172,69 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private static BoundStatement ConstructThrowSwitchExpressionExceptionHelperCall(SyntheticBoundNodeFactory factory, BoundExpression unmatchedValue)
+            private BoundExpression LowerSwitchExpressionForRelease(BoundConvertedSwitchExpression node)
+            {
+                var outerVariables = ArrayBuilder<LocalSymbol>.GetInstance();
+                var loweredSwitchGoverningExpression = _localRewriter.VisitExpression(node.Expression);
+                var sideEffectsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+
+                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(
+                    node.GetDecisionDagForLowering(_factory.Compilation, out LabelSymbol? defaultLabel),
+                    loweredSwitchGoverningExpression, sideEffectsBuilder.Add, out BoundExpression savedInputExpression);
+
+                Debug.Assert(savedInputExpression != null);
+
+                // lower the decision dag.
+                (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =
+                    LowerDecisionDag(decisionDag);
+
+                if (_whenNodeIdentifierLocal is not null)
+                {
+                    outerVariables.Add(_whenNodeIdentifierLocal);
+                }
+
+                // Lower each switch expression arm
+                var switchArmsBuilder = ArrayBuilder<BoundLoweredSwitchExpressionArm>.GetInstance(node.SwitchArms.Length + (defaultLabel is null ? 0 : 1));
+                foreach (BoundSwitchExpressionArm arm in node.SwitchArms)
+                {
+                    _factory.Syntax = arm.Syntax;
+                    ImmutableArray<BoundStatement> statements = switchSections[arm.Syntax];
+                    BoundExpression loweredValue = _localRewriter.VisitExpression(arm.Value);
+
+                    // Lifetime of these locals is expanded to the entire switch body, as it is possible to
+                    // share them as temps in the decision dag.
+                    outerVariables.AddRange(arm.Locals);
+                    switchArmsBuilder.Add(new BoundLoweredSwitchExpressionArm(
+                        arm.Syntax, arm.Locals, statements.Add(_factory.Label(arm.Label)), loweredValue));
+                }
+
+                _factory.Syntax = node.Syntax;
+                if (defaultLabel is not null)
+                {
+                    BoundExpression throwCall = ConstructThrowHelperCall(savedInputExpression);
+                    BoundStatement labelStatement = _factory.Label(defaultLabel);
+                    switchArmsBuilder.Add(new BoundLoweredSwitchExpressionArm(
+                        syntax: node.Syntax,
+                        locals: ImmutableArray<LocalSymbol>.Empty,
+                        statements: ImmutableArray.Create(labelStatement),
+                        value: _factory.Sequence(
+                            locals: ImmutableArray<LocalSymbol>.Empty,
+                            sideEffects: ImmutableArray.Create(throwCall),
+                            result: _factory.Default(node.Type))));
+                }
+
+                outerVariables.AddRange(_tempAllocator.AllTemps());
+                return _factory.Sequence(
+                    outerVariables.ToImmutableAndFree(),
+                    sideEffectsBuilder.ToImmutableAndFree(),
+                    new BoundLoweredSwitchExpression(
+                        syntax: node.Syntax,
+                        statements: loweredDag,
+                        switchArmsBuilder.ToImmutableAndFree(),
+                        type: node.Type));
+            }
+
+            private static BoundExpression ConstructThrowSwitchExpressionExceptionHelperCall(SyntheticBoundNodeFactory factory, BoundExpression unmatchedValue)
             {
                 Debug.Assert(factory.ModuleBuilderOpt is not null);
                 var module = factory.ModuleBuilderOpt;
@@ -161,14 +242,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var diagnostics = factory.Diagnostics.DiagnosticBag;
                 Debug.Assert(diagnostics is not null);
                 var throwSwitchExpressionExceptionMethod = module.EnsureThrowSwitchExpressionExceptionExists(diagnosticSyntax, factory, diagnostics);
-                var call = factory.Call(
+                return factory.Call(
                     receiver: null,
                     throwSwitchExpressionExceptionMethod,
                     arg0: unmatchedValue);
-                return factory.HiddenSequencePoint(factory.ExpressionStatement(call));
             }
 
-            private static BoundStatement ConstructThrowSwitchExpressionExceptionParameterlessHelperCall(SyntheticBoundNodeFactory factory)
+            private static BoundExpression ConstructThrowSwitchExpressionExceptionParameterlessHelperCall(SyntheticBoundNodeFactory factory)
             {
                 Debug.Assert(factory.ModuleBuilderOpt is not null);
                 var module = factory.ModuleBuilderOpt!;
@@ -176,13 +256,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var diagnostics = factory.Diagnostics.DiagnosticBag;
                 Debug.Assert(diagnostics is not null);
                 var throwSwitchExpressionExceptionMethod = module.EnsureThrowSwitchExpressionExceptionParameterlessExists(diagnosticSyntax, factory, diagnostics);
-                var call = factory.Call(
+                return factory.Call(
                     receiver: null,
                     throwSwitchExpressionExceptionMethod);
-                return factory.HiddenSequencePoint(factory.ExpressionStatement(call));
             }
 
-            private static BoundStatement ConstructThrowInvalidOperationExceptionHelperCall(SyntheticBoundNodeFactory factory)
+            private static BoundExpression ConstructThrowInvalidOperationExceptionHelperCall(SyntheticBoundNodeFactory factory)
             {
                 Debug.Assert(factory.ModuleBuilderOpt is not null);
                 var module = factory.ModuleBuilderOpt!;
@@ -190,10 +269,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var diagnostics = factory.Diagnostics.DiagnosticBag;
                 Debug.Assert(diagnostics is not null);
                 var throwMethod = module.EnsureThrowInvalidOperationExceptionExists(diagnosticSyntax, factory, diagnostics);
-                var call = factory.Call(
+                return factory.Call(
                     receiver: null,
                     throwMethod);
-                return factory.HiddenSequencePoint(factory.ExpressionStatement(call));
             }
         }
     }

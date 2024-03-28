@@ -3903,9 +3903,12 @@ public ref struct S
                 Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "F").WithArguments("S").WithLocation(9, 17)
                 );
             CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics().VerifyEmitDiagnostics(
-                // (9,17): error CS4013: Instance of type 'S' cannot be used inside a nested function, query expression, iterator block or async method
-                //             Q { F: { P1: true } } when await c => r, // error: cached Q.F is alive
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "F").WithArguments("S").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"o switch
+        {
+            Q { F: { P1: true } } when await c => r, // error: cached Q.F is alive
+            Q { F: { P2: true } } => 2,
+            _ => 3,
+        }").WithArguments("S").WithLocation(7, 16)
                 );
         }
 
