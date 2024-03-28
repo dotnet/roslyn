@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
@@ -1605,6 +1606,15 @@ public partial class Solution
         ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)> documents)
     {
         var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments(documents);
+        return newCompilationState != _compilationState
+            ? new Solution(newCompilationState)
+            : this;
+    }
+
+    internal Solution WithSourceGeneratorVersions(
+        FrozenDictionary<ProjectId, SourceGeneratorExecutionVersion> projectIdToSourceGeneratorExecutionVersion, CancellationToken cancellationToken)
+    {
+        var newCompilationState = _compilationState.WithSourceGeneratorVersions(projectIdToSourceGeneratorExecutionVersion, cancellationToken);
         return newCompilationState != _compilationState
             ? new Solution(newCompilationState)
             : this;

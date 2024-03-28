@@ -109,7 +109,20 @@ internal sealed class VisualStudioSettingsOptionPersister
 
         var underlyingType = Nullable.GetUnderlyingType(storageType);
         if (underlyingType?.IsEnum == true)
-            return manager.TryGetValue(storageKey, out int? value) == GetValueResult.Success ? (value.HasValue ? Enum.ToObject(underlyingType, value.Value) : null) : default(Optional<object?>);
+        {
+            if (manager.TryGetValue(storageKey, out int? nullableValue) == GetValueResult.Success)
+            {
+                return nullableValue.HasValue ? Enum.ToObject(underlyingType, nullableValue.Value) : null;
+            }
+            else if (manager.TryGetValue(storageKey, out int value) == GetValueResult.Success)
+            {
+                return Enum.ToObject(underlyingType, value);
+            }
+            else
+            {
+                return default;
+            }
+        }
 
         if (storageType == typeof(NamingStylePreferences))
         {

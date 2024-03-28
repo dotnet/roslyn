@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -1136,6 +1137,53 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithOptions(options));
     }
 
+    public SolutionCompilationState WithSourceGeneratorVersions(
+        FrozenDictionary<ProjectId, SourceGeneratorExecutionVersion> projectIdToSourceGeneratorExecutionVersion, CancellationToken cancellationToken)
+    {
+        var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
+        var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
+        var changed = false;
+
+        foreach (var (projectId, sourceGeneratorExecutionVersion) in projectIdToSourceGeneratorExecutionVersion)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var projectState = newIdToProjectStateMapBuilder[projectId];
+
+            // Nothing to do if already at this version.
+            if (projectState.Attributes.SourceGeneratorExecutionVersion == sourceGeneratorExecutionVersion)
+                continue;
+
+            changed = true;
+            newIdToProjectStateMapBuilder[projectId] = projectState.WithSourceGeneratorExecutionVersion(sourceGeneratorExecutionVersion);
+
+            // If we do already have a compilation tracker for this project, then let the tracker know that the source
+            // generator version has changed. We do this by telling it that it should now create SG docs and skeleton
+            // references if they're out of date.
+            if (_projectIdToTrackerMap.TryGetValue(projectId, out var existingTracker))
+            {
+                // if the major version has changed then we also want to drop the generator driver so that we're rerun
+                // generators from scratch.
+                var forceRegeneration = projectState.Attributes.SourceGeneratorExecutionVersion.MajorVersion != sourceGeneratorExecutionVersion.MajorVersion;
+                var newTracker = existingTracker.WithCreationPolicy(create: true, forceRegeneration, cancellationToken);
+                if (newTracker != existingTracker)
+                    newIdToTrackerMapBuilder[projectId] = newTracker;
+            }
+        }
+
+        if (!changed)
+            return this;
+
+        // Fork the solution state to have the updated project states.  Note: this doesn't change the dependency graph,
+        // or filename map, so we don't need to recompute either of those.
+        var newSolutionState = this.SolutionState.Branch(
+            idToProjectStateMap: newIdToProjectStateMapBuilder.ToImmutable());
+
+        return this.Branch(
+            newSolutionState,
+            newIdToTrackerMapBuilder.ToImmutable());
+    }
+
     public SolutionCompilationState WithFrozenPartialCompilations(CancellationToken cancellationToken)
         => _cachedFrozenSnapshot.GetValue(cancellationToken);
 
@@ -1167,7 +1215,10 @@ internal sealed partial class SolutionCompilationState
                 continue;
 
             var oldTracker = GetCompilationTracker(projectId);
-            var newTracker = oldTracker.FreezePartialState(cancellationToken);
+
+            // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
+            // perf hit on either of those at all for our clients.
+            var newTracker = oldTracker.WithCreationPolicy(create: false, forceRegeneration: false, cancellationToken);
             if (oldTracker == newTracker)
                 continue;
 
