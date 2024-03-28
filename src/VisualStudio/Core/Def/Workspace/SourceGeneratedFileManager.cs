@@ -477,25 +477,21 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         {
             await _fileManager._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
+            // If we don't have a frame, or even a message, we can't do anything yet.
             if (_infoToShow is null || _infoBar is null)
+                return;
+
+            // bail out if no change is needed
+            var (imageMoniker, message) = _infoToShow.Value;
+            if (_currentInfoBarMessage != null &&
+                _currentInfoBarMessage.Message == message &&
+                _currentInfoBarMessage.ImageMoniker.Equals(imageMoniker))
             {
-                // If we don't have a frame, or even a message, we can't do anything yet.
                 return;
             }
 
-            var (imageMoniker, message) = _infoToShow.Value;
-            if (_currentInfoBarMessage != null)
-            {
-                if (_currentInfoBarMessage.Message == message &&
-                    _currentInfoBarMessage.ImageMoniker.Equals(imageMoniker))
-                {
-                    // bail out if no change is needed
-                    return;
-                }
-
-                // Otherwise, remove the current message.
-                _currentInfoBarMessage.Remove();
-            }
+            // Remove the current message so it can be replaced with the new one.
+            _currentInfoBarMessage?.Remove();
 
             _currentInfoBarMessage = await _infoBar.ShowInfoBarMessageAsync(
                 message, isCloseButtonVisible: false, imageMoniker).ConfigureAwait(true);
