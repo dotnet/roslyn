@@ -99,9 +99,9 @@
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="8.0.0-beta.24176.8">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="8.0.0-beta.24177.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>48e9e0d2164de0535446809364724da8962123a6</Sha>
+      <Sha>b17b2a1bb7da23253043dee059f374b00f3e321a</Sha>
       <SourceBuild RepoName="arcade" ManagedOnly="true" />
     </Dependency>
     <Dependency Name="Microsoft.DotNet.XliffTasks" Version="9.0.0-beta.23613.3">
@@ -127,9 +127,9 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>5d10d428050c0d6afef30a072c4ae68776621877</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="8.0.0-beta.24176.8">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="8.0.0-beta.24177.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>48e9e0d2164de0535446809364724da8962123a6</Sha>
+      <Sha>b17b2a1bb7da23253043dee059f374b00f3e321a</Sha>
     </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0-preview.23468.1">
       <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
