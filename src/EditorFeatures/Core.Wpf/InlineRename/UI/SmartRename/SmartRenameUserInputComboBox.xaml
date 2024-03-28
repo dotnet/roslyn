@@ -69,8 +69,8 @@
             </Style>
 
             <Style x:Key="GetSuggestionButtonStyle" BasedOn="{StaticResource {x:Static vsfx:VsResourceKeys.ButtonStyleKey}}" TargetType="Button">
-                <Setter Property="Padding" Value="5,5,2,1"/>
-                <Setter Property="Margin" Value="3,1,1,1"/>
+                <Setter Property="Padding" Value="5,4,2,0"/>
+                <Setter Property="Margin" Value="3,0,1,0"/>
                 <Setter Property="MinHeight" Value="0"/>
                 <Setter Property="MinWidth" Value="0"/>
                 <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderBrushKey}}"/>
@@ -230,6 +230,7 @@
                         x:Uid="SuggestionsPanel"
                         Grid.Row="2"
                         Grid.Column="0"
+                        Grid.ColumnSpan="2"
                         Margin="1 0"
                         Height="62"
                         Visibility="{Binding IsSuggestionsPanelExpanded, Converter={StaticResource BooleanToCollapsedVisibilityConverter}, Mode=OneWay}"
