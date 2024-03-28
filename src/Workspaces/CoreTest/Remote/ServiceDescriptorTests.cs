@@ -363,20 +363,16 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [MemberData(nameof(AllServiceDescriptors))]
         internal void GetFeatureDisplayName(
             Type serviceInterface,
-            ServiceDescriptor descriptor64,
-            ServiceDescriptor descriptor64ServerGC,
             ServiceDescriptor descriptorCoreClr64,
             ServiceDescriptor descriptorCoreClr64ServerGC)
         {
             Assert.NotNull(serviceInterface);
 
-            var expectedName = descriptor64.GetFeatureDisplayName();
+            var expectedName = descriptorCoreClr64.GetFeatureDisplayName();
 
             // The service name couldn't be found. It may need to be added to RemoteWorkspacesResources.resx as FeatureName_{name}
             Assert.False(string.IsNullOrEmpty(expectedName), $"Service name for '{serviceInterface.GetType()}' not available.");
 
-            Assert.Equal(expectedName, descriptor64ServerGC.GetFeatureDisplayName());
-            Assert.Equal(expectedName, descriptorCoreClr64.GetFeatureDisplayName());
             Assert.Equal(expectedName, descriptorCoreClr64ServerGC.GetFeatureDisplayName());
         }
 
