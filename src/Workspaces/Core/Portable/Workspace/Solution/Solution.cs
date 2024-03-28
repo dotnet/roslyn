@@ -1611,9 +1611,10 @@ public partial class Solution
             : this;
     }
 
-    internal Solution WithSourceGeneratorVersions(FrozenDictionary<ProjectId, int> projectIdToSourceGeneratorVersion, CancellationToken cancellationToken)
+    internal Solution WithSourceGeneratorVersions(
+        FrozenDictionary<ProjectId, SourceGeneratorExecutionVersion> projectIdToSourceGeneratorExecutionVersion, CancellationToken cancellationToken)
     {
-        var newCompilationState = _compilationState.WithSourceGeneratorVersions(projectIdToSourceGeneratorVersion, cancellationToken);
+        var newCompilationState = _compilationState.WithSourceGeneratorVersions(projectIdToSourceGeneratorExecutionVersion, cancellationToken);
         return newCompilationState != _compilationState
             ? new Solution(newCompilationState)
             : this;

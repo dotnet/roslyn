@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -386,8 +388,8 @@ public sealed class ProjectInfo
     internal ProjectInfo WithTelemetryId(Guid telemetryId)
         => With(attributes: Attributes.With(telemetryId: telemetryId));
 
-    internal ProjectInfo WithSourceGeneratorVersion(int sourceGeneratorVersion)
-        => With(attributes: Attributes.With(sourceGeneratorVersion: sourceGeneratorVersion));
+    internal ProjectInfo WithSourceGeneratorExecutionVersion(SourceGeneratorExecutionVersion sourceGeneratorExecutionVersion)
+        => With(attributes: Attributes.With(sourceGeneratorExecutionVersion: sourceGeneratorExecutionVersion));
 
     internal string GetDebuggerDisplay()
         => nameof(ProjectInfo) + " " + Name + (!string.IsNullOrWhiteSpace(FilePath) ? " " + FilePath : "");
@@ -412,7 +414,7 @@ public sealed class ProjectInfo
         bool isSubmission = false,
         bool hasAllInformation = true,
         bool runAnalyzers = true,
-        int sourceGeneratorVersion = 0)
+        SourceGeneratorExecutionVersion sourceGeneratorExecutionVersion = default)
     {
         /// <summary>
         /// Matches names like: Microsoft.CodeAnalysis.Features (netcoreapp3.1)
@@ -512,8 +514,8 @@ public sealed class ProjectInfo
                 return match.Success ? (match.Groups["name"].Value, match.Groups["flavor"].Value) : default;
             }, this);
 
-        /// <inheritdoc cref="Project.SourceGeneratorVersion"/>
-        public int SourceGeneratorVersion { get; } = sourceGeneratorVersion;
+        /// <inheritdoc cref="Project.SourceGeneratorExecutionVersion"/>
+        public SourceGeneratorExecutionVersion SourceGeneratorExecutionVersion { get; } = sourceGeneratorExecutionVersion;
 
         public ProjectAttributes With(
             VersionStamp? version = null,
@@ -530,7 +532,7 @@ public sealed class ProjectInfo
             Optional<bool> hasAllInformation = default,
             Optional<bool> runAnalyzers = default,
             Optional<Guid> telemetryId = default,
-            Optional<int> sourceGeneratorVersion = default)
+            Optional<SourceGeneratorExecutionVersion> sourceGeneratorExecutionVersion = default)
         {
             var newVersion = version ?? Version;
             var newName = name ?? Name;
@@ -546,7 +548,7 @@ public sealed class ProjectInfo
             var newHasAllInformation = hasAllInformation.HasValue ? hasAllInformation.Value : HasAllInformation;
             var newRunAnalyzers = runAnalyzers.HasValue ? runAnalyzers.Value : RunAnalyzers;
             var newTelemetryId = telemetryId.HasValue ? telemetryId.Value : TelemetryId;
-            var newSourceGeneratorVersion = sourceGeneratorVersion.HasValue ? sourceGeneratorVersion.Value : SourceGeneratorVersion;
+            var newSourceGeneratorVersion = sourceGeneratorExecutionVersion.HasValue ? sourceGeneratorExecutionVersion.Value : SourceGeneratorExecutionVersion;
 
             if (newVersion == Version &&
                 newName == Name &&
@@ -562,7 +564,7 @@ public sealed class ProjectInfo
                 newHasAllInformation == HasAllInformation &&
                 newRunAnalyzers == RunAnalyzers &&
                 newTelemetryId == TelemetryId &&
-                newSourceGeneratorVersion == SourceGeneratorVersion)
+                newSourceGeneratorVersion == SourceGeneratorExecutionVersion)
             {
                 return this;
             }
@@ -606,7 +608,7 @@ public sealed class ProjectInfo
             writer.WriteBoolean(HasAllInformation);
             writer.WriteBoolean(RunAnalyzers);
             writer.WriteGuid(TelemetryId);
-            writer.WriteInt32(SourceGeneratorVersion);
+            this.SourceGeneratorExecutionVersion.WriteTo(writer);
 
             // TODO: once CompilationOptions, ParseOptions, ProjectReference, MetadataReference, AnalyzerReference supports
             //       serialization, we should include those here as well.
@@ -630,7 +632,7 @@ public sealed class ProjectInfo
             var hasAllInformation = reader.ReadBoolean();
             var runAnalyzers = reader.ReadBoolean();
             var telemetryId = reader.ReadGuid();
-            var sourceGeneratorVersion = reader.ReadInt32();
+            var sourceGeneratorExecutionVersion = SourceGeneratorExecutionVersion.ReadFrom(reader);
 
             return new ProjectAttributes(
                 projectId,
@@ -648,10 +650,42 @@ public sealed class ProjectInfo
                 isSubmission: isSubmission,
                 hasAllInformation: hasAllInformation,
                 runAnalyzers: runAnalyzers,
-                sourceGeneratorVersion: sourceGeneratorVersion);
+                sourceGeneratorExecutionVersion: sourceGeneratorExecutionVersion);
         }
 
         public Checksum Checksum
             => _lazyChecksum.Initialize(static @this => Checksum.Create(@this, static (@this, writer) => @this.WriteTo(writer)), this);
     }
+}
+
+/// <summary>
+/// Represents the version of source generator execution that a project is at. Source generator results are kept around
+/// as long as this version stays the same and we are in <see cref="SourceGeneratorExecutionPreference.Balanced"/>
+/// mode. This has no effect when in <see cref="SourceGeneratorExecutionPreference.Automatic"/> mode (as we always rerun
+/// generators on any change). This should effectively be used as a monotonically increasing value.
+/// </summary>
+/// <param name="MajorVersion">Controls the major version of source generation execution.  When this changes the
+/// generator driver should be dropped and all generation should be rerun.</param>
+/// <param name="MinorVersion">Controls the minor version of source generation execution.  When this changes the
+/// generator driver can be reused and should incrementally determine what the new generated documents should be.
+/// </param>
+[DataContract]
+internal readonly record struct SourceGeneratorExecutionVersion(
+    [property: DataMember(Order = 0)] int MajorVersion,
+    [property: DataMember(Order = 1)] int MinorVersion)
+{
+    public SourceGeneratorExecutionVersion IncrementMajorVersion()
+        => new(MajorVersion + 1, MinorVersion: 0);
+
+    public SourceGeneratorExecutionVersion IncrementMinorVersion()
+        => new(MajorVersion, MinorVersion + 1);
+
+    public void WriteTo(ObjectWriter writer)
+    {
+        writer.WriteInt32(MajorVersion);
+        writer.WriteInt32(MinorVersion);
+    }
+
+    public static SourceGeneratorExecutionVersion ReadFrom(ObjectReader reader)
+        => new(reader.ReadInt32(), reader.ReadInt32());
 }

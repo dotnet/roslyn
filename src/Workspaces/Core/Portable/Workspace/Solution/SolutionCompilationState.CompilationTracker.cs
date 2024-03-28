@@ -690,14 +690,14 @@ namespace Microsoft.CodeAnalysis
                 return finalState.HasSuccessfullyLoaded;
             }
 
-            public ICompilationTracker WithCreationPolicy(bool create, CancellationToken cancellationToken)
+            public ICompilationTracker WithCreationPolicy(bool create, bool dropGeneratorDriver, CancellationToken cancellationToken)
             {
                 return create
-                    ? WithCreateCreationPolicy()
-                    : WithDoNotCreateCreationPolicy(cancellationToken);
+                    ? WithCreateCreationPolicy(dropGeneratorDriver)
+                    : WithDoNotCreateCreationPolicy(dropGeneratorDriver, cancellationToken);
             }
 
-            public ICompilationTracker WithCreateCreationPolicy()
+            public ICompilationTracker WithCreateCreationPolicy(bool dropGeneratorDriver)
             {
                 var state = this.ReadState();
 
@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis
                     newState = new InProgressState(
                         desiredCreationPolicy,
                         inProgressState.LazyCompilationWithoutGeneratedDocuments,
-                        inProgressState.GeneratorInfo,
+                        dropGeneratorDriver ? inProgressState.GeneratorInfo with { Driver = null } : inProgressState.GeneratorInfo,
                         inProgressState.LazyStaleCompilationWithGeneratedDocuments,
                         inProgressState.PendingTranslationActions);
                 }
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis
                     newState = new InProgressState(
                         desiredCreationPolicy,
                         finalState.CompilationWithoutGeneratedDocuments,
-                        finalState.GeneratorInfo,
+                        dropGeneratorDriver ? finalState.GeneratorInfo with { Driver = null } : finalState.GeneratorInfo,
                         finalState.FinalCompilationWithGeneratedDocuments,
                         pendingTranslationActions: []);
                 }
@@ -746,8 +746,13 @@ namespace Microsoft.CodeAnalysis
                     skeletonReferenceCacheToClone: _skeletonReferenceCache);
             }
 
-            public ICompilationTracker WithDoNotCreateCreationPolicy(CancellationToken cancellationToken)
+            public ICompilationTracker WithDoNotCreateCreationPolicy(
+                bool dropGeneratorDriver, CancellationToken cancellationToken)
             {
+                // We do not expect this to ever be passed true.  This is for freezing generators, and no callers
+                // (currently) will ask to drop generators when they do that.
+                Contract.ThrowIfTrue(dropGeneratorDriver);
+
                 var state = this.ReadState();
 
                 // We're freezing the solution for features where latency performance is paramount.  Do not run SGs or

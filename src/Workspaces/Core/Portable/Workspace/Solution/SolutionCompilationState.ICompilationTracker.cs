@@ -41,7 +41,7 @@ internal partial class SolutionCompilationState
         /// cref="CreationPolicy.Create"/> and <see langword="false"/> will set it to <see
         /// cref="CreationPolicy.DoNotCreate"/>.
         /// </summary>
-        ICompilationTracker WithCreationPolicy(bool create, CancellationToken cancellationToken);
+        ICompilationTracker WithCreationPolicy(bool create, bool dropGeneratorDriver, CancellationToken cancellationToken);
 
         Task<VersionStamp> GetDependentVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
         Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
