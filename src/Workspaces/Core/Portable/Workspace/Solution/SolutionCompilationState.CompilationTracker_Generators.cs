@@ -130,7 +130,7 @@ internal partial class SolutionCompilationState
             using var _2 = PooledDictionary<DocumentId, int>.GetInstance(out var documentIdToIndex);
 
             var infos = infosOpt.Value;
-            foreach (var (documentIdentity, contentIdentity, generationDateTime) in infos)
+            foreach (var (documentIdentity, contentIdentity, _) in infos)
             {
                 var documentId = documentIdentity.DocumentId;
                 Contract.ThrowIfFalse(documentId.IsSourceGenerated);
