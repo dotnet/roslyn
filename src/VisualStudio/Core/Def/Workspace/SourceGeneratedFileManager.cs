@@ -518,7 +518,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             }
 
             infoBarMessage = await _infoBar.ShowInfoBarMessageAsync(
-                message, isCloseButtonVisible: false, imageMoniker).ConfigureAwait(true);
+                message, isCloseButtonVisible: false, imageMoniker, infoBarItems).ConfigureAwait(true);
             _currentInfoBarMessage = infoBarMessage;
         }
 
