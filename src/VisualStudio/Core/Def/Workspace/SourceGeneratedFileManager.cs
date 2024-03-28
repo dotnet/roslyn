@@ -211,10 +211,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
     void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame)
     {
         if (_openFiles.TryGetValue(moniker, out var openFile))
-        {
-            var token = _listener.BeginAsyncOperation(nameof(IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame));
-            openFile.SetWindowFrameAsync(windowFrame).CompletesAsyncOperation(token);
-        }
+            _threadingContext.JoinableTaskFactory.Run(() => openFile.SetWindowFrameAsync(windowFrame));
     }
 
     void IOpenTextBufferEventListener.OnCloseDocument(string moniker)
