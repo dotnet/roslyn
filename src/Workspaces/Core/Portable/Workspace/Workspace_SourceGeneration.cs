@@ -124,10 +124,10 @@ public partial class Workspace
         }
     }
 
-    internal TestAccessor GetTestAccessor()
+    internal WorkspaceTestAccessor GetWorkspaceTestAccessor()
         => new(this);
 
-    internal readonly struct TestAccessor(Workspace workspace)
+    internal readonly struct WorkspaceTestAccessor(Workspace workspace)
     {
         public Task WaitUntilCurrentSourceGeneratorsBatchCompletesAsync()
             => workspace._updateSourceGeneratorsQueue.WaitUntilCurrentBatchCompletesAsync();
