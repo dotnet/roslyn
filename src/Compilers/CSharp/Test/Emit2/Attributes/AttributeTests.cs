@@ -651,7 +651,8 @@ class Program
             Assert.True(attributeData.HasErrors);
             Assert.Equal("AAttribute..ctor(params System.Int32[] args)", attributeData.AttributeConstructor.ToTestDisplayString());
             Assert.Equal(1, attributeData.AttributeConstructor.ParameterCount);
-            Assert.Equal(new object[] { 1, 2, 3 }, attributeData.ConstructorArguments.Select(arg => arg.Value));
+            Assert.Equal(TypedConstantKind.Array, attributeData.ConstructorArguments.Single().Kind);
+            Assert.Equal(new object[] { 1, 2, 3 }, attributeData.ConstructorArguments.Single().Values.Select(arg => arg.Value));
             // `SourceAttributeData.GetAttributeArgumentSyntax` asserts in debug mode when the attributeData has errors, so we don't test it here.
         }
 
@@ -1025,12 +1026,14 @@ class Program { }
             Assert.Equal(3, arguments0.Length);
             Assert.Equal(true, arguments0[0].Value);
             Assert.Equal(1, arguments0[1].Value);
+            Assert.Equal(TypedConstantKind.Array, arguments0[2].Kind);
             Assert.Empty(arguments0[2].Values);
 
             var arguments1 = attrs[1].ConstructorArguments.ToArray();
             Assert.Equal(3, arguments1.Length);
             Assert.Equal(true, arguments1[0].Value);
             Assert.Equal(1, arguments1[1].Value);
+            Assert.Equal(TypedConstantKind.Array, arguments1[2].Kind);
             Assert.Equal("a", arguments1[2].Values.Single().Value);
         }
 

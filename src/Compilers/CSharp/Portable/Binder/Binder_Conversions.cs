@@ -1063,6 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out ImmutableArray<MethodSymbol> addMethods)
             {
                 Debug.Assert(methodGroup.ReceiverOpt is not null);
+                Debug.Assert(methodGroup.ReceiverOpt.Type is not null);
 
                 bool result;
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = addMethodBinder.GetNewCompoundUseSiteInfo(diagnostics);
@@ -1129,6 +1130,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 addMethods = filterOutBadGenericMethods(addMethodBinder, syntax, methodGroup, analyzedArguments, resolution, finalApplicableCandidates, ref useSiteInfo);
                                 result = !addMethods.IsEmpty;
+
+                                if (!result)
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_CollectionExpressionMissingAdd, syntax, methodGroup.ReceiverOpt.Type);
+                                }
                             }
                         }
                         else
@@ -1550,7 +1556,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (elements.Length > 0 &&
                         !HasCollectionExpressionApplicableAddMethod(node.Syntax, targetType, addMethods: out _, diagnostics))
                     {
-                        Error(diagnostics, ErrorCode.ERR_CollectionExpressionMissingAdd, node.Syntax, targetType);
                         reportedErrors = true;
                     }
                 }

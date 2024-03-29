@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder attributeArgumentBinder = this.WithAdditionalFlags(BinderFlags.AttributeArgument);
             AnalyzedAttributeArguments analyzedArguments = attributeArgumentBinder.BindAttributeArguments(argumentListOpt, attributeTypeForBinding, diagnostics);
 
-            ImmutableArray<int> argsToParamsOpt = default;
+            ImmutableArray<int> argsToParamsOpt;
             bool expanded = false;
             BitVector defaultArguments = default;
             MethodSymbol? attributeConstructor = null;
@@ -191,6 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundConstructorArguments = analyzedArguments.ConstructorArguments.Arguments.SelectAsArray(
                     static (arg, attributeArgumentBinder) => attributeArgumentBinder.BindToTypeForErrorRecovery(arg),
                     attributeArgumentBinder);
+                argsToParamsOpt = default;
             }
             else
             {
@@ -210,12 +211,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (memberResolutionResult.IsNotNull)
                 {
-                    this.CheckAndCoerceArguments<MethodSymbol>(memberResolutionResult, analyzedArguments.ConstructorArguments, diagnostics, receiver: null, invokedAsExtensionMethod: false);
+                    this.CheckAndCoerceArguments<MethodSymbol>(node, memberResolutionResult, analyzedArguments.ConstructorArguments, diagnostics, receiver: null, invokedAsExtensionMethod: false, out argsToParamsOpt);
+                }
+                else
+                {
+                    argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
                 }
 
                 attributeConstructor = memberResolutionResult.Member;
                 expanded = memberResolutionResult.Resolution == MemberResolutionKind.ApplicableInExpandedForm;
-                argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
 
                 if (!found)
                 {
@@ -229,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    attributeArgumentBinder.BindDefaultArgumentsAndParamsCollection(
+                    attributeArgumentBinder.BindDefaultArguments(
                         node,
                         attributeConstructor.Parameters,
                         analyzedArguments.ConstructorArguments.Arguments,
