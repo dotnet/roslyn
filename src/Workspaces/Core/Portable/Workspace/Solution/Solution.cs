@@ -1544,7 +1544,7 @@ public partial class Solution
     /// file in the result).
     /// </summary>
     /// <param name="relatedProjectIdHint">A hint on the first project to search when looking for related
-    /// documents</param>
+    /// documents.  Must not be the project that <paramref name="documentId"/> is from.</param>
     internal DocumentId? GetFirstRelatedDocumentId(DocumentId documentId, ProjectId? relatedProjectIdHint)
         => this.SolutionState.GetFirstRelatedDocumentId(documentId, relatedProjectIdHint);
 
