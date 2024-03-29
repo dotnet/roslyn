@@ -7089,20 +7089,19 @@ done:;
                             using var _ = GetDisposableResetPoint(resetOnDispose: true);
                             this.EatToken();
 
-                            // If token after identifier starts an expression it is probably an error case, e.g. missing a `,` in a pattern
-                            if (CanStartExpression())
-                            {
-                                return true;
-                            }
+                            var currentTokenKind = this.CurrentToken.Kind;
 
                             // These token either 100% end a pattern or start a new one (again, in cases with missing `,` and so on).
                             // Note, that some cases of 'token starts a new pattern' are handled by condition above,
                             // e.g. starting of type patterns
-                            return this.CurrentToken.Kind is SyntaxKind.OpenParenToken or SyntaxKind.CloseParenToken
-                                                          or SyntaxKind.OpenBraceToken or SyntaxKind.CloseBraceToken
-                                                          or SyntaxKind.OpenBracketToken or SyntaxKind.CloseBracketToken
-                                                          or SyntaxKind.CommaToken
-                                                          or SyntaxKind.EndOfFileToken;
+                            return SyntaxFacts.IsLiteral(currentTokenKind) ||
+                                   SyntaxFacts.IsPredefinedType(currentTokenKind) ||
+                                   currentTokenKind is SyntaxKind.OpenParenToken or SyntaxKind.CloseParenToken
+                                                    or SyntaxKind.OpenBraceToken or SyntaxKind.CloseBraceToken
+                                                    or SyntaxKind.OpenBracketToken or SyntaxKind.CloseBracketToken
+                                                    or SyntaxKind.CommaToken
+                                                    or SyntaxKind.IdentifierToken
+                                                    or SyntaxKind.EndOfFileToken;
                         }
 
                         // If nothing from above worked permit the nullable qualifier
