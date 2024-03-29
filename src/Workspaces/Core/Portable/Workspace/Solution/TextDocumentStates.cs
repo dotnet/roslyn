@@ -192,6 +192,7 @@ internal sealed class TextDocumentStates<TState>
         foreach (var (id, state) in _map)
         {
             var newState = transformation(state, arg);
+            // Update states is only called for changing the checksum algorithm or parse options.  So the file path should never change.
             Debug.Assert(newState.FilePath == state.FilePath);
             builder[id] = newState;
         }
