@@ -318,8 +318,9 @@ internal sealed class TextDocumentStates<TState>
         // Lazily initialize the file path map if not computed.
         _filePathToDocumentIds ??= ComputeFilePathToDocumentIds();
 
+        // Safe to call .First here as the values in the _filePathToDocumentIds dictionary will never empty.
         return _filePathToDocumentIds.TryGetValue(filePath, out var oneOrMany)
-            ? oneOrMany.FirstOrDefault()
+            ? oneOrMany.First()
             : null;
     }
 
