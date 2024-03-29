@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -106,6 +107,10 @@ internal static class UseCollectionExpressionHelpers
         {
             return false;
         }
+
+        var operation = semanticModel.GetOperation(topMostExpression, cancellationToken);
+        if (operation?.Parent is IAssignmentOperation { Type.TypeKind: TypeKind.Dynamic })
+            return false;
 
         // HACK: Workaround lack of compiler information for collection expression conversions with casts.
         // Specifically, hardcode in knowledge that a cast to a constructible collection type of the empty collection
