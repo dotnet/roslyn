@@ -188,17 +188,22 @@ internal sealed class TextDocumentStates<TState>
     public TextDocumentStates<TState> UpdateStates<TArg>(Func<TState, TArg, TState> transformation, TArg arg)
     {
         var builder = _map.ToBuilder();
-
+        var filePathsChanged = false;
         foreach (var (id, state) in _map)
         {
             var newState = transformation(state, arg);
-            // Update states is only called for changing the checksum algorithm or parse options.  So the file path should never change.
-            Debug.Assert(newState.FilePath == state.FilePath);
+
+            // Track if the file path changed when updating any of the state values.
+            filePathsChanged = filePathsChanged || newState.FilePath != state.FilePath;
+
             builder[id] = newState;
         }
 
-        // Update states is only called for changing the checksum algorithm or parse options.  So we can preserve the filePath mapping.
-        return new(_ids, builder.ToImmutable(), _filePathToDocumentIds);
+        // If any file paths changed, don't pass along our computed map.  We'll recompute it on demand when needed.
+        var filePaths = filePathsChanged
+            ? null
+            : _filePathToDocumentIds;
+        return new(_ids, builder.ToImmutable(), filePaths);
     }
 
     /// <summary>
