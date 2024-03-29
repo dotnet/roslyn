@@ -3504,7 +3504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return coercedArgument;
             }
 
-            ArrayBuilder<BoundExpression> collectParamsArgs(
+            static ArrayBuilder<BoundExpression> collectParamsArgs(
                 in MemberResolutionResult<TMember> methodResult,
                 ImmutableArray<ParameterSymbol> parameters,
                 ArrayBuilder<BoundExpression> arguments,
@@ -9815,9 +9815,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
                 PropertySymbol property = resolutionResult.Member;
 
-                var isExpanded = resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
-                ImmutableArray<int> argsToParams;
-
                 ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: receiver != null && receiver.Kind == BoundKind.BaseReference);
 
                 // Make sure that the result of overload resolution is valid.
@@ -9825,6 +9822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 receiver = ReplaceTypeOrValueReceiver(receiver, property.IsStatic, diagnostics);
 
+                ImmutableArray<int> argsToParams;
                 this.CheckAndCoerceArguments<PropertySymbol>(syntax, resolutionResult, analyzedArguments, diagnostics, receiver, invokedAsExtensionMethod: false, out argsToParams);
 
                 if (!gotError && receiver != null && receiver.Kind == BoundKind.ThisReference && receiver.WasCompilerGenerated)
@@ -9844,7 +9842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arguments,
                     argumentNames,
                     argumentRefKinds,
-                    isExpanded,
+                    expanded: resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
                     argsToParams,
                     defaultArguments: default,
                     property.Type,
