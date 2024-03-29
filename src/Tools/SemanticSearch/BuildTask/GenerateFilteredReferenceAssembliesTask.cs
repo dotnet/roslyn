@@ -35,6 +35,13 @@ internal enum SymbolKindFlags
     Field = 1 << 3,
 }
 
+/// <summary>
+/// The task transforms given assemblies by changing the visibility of members defined in these assemblies
+/// based on filter patterns specified in the corresponding <see cref="ApiSets"/>.
+/// <see cref="ApiSets"/> are text files whose file names (without extension) match the file names of <see cref="References"/>.
+/// Each API set specifies a list of patterns that define which members should be included or excluded from the output assembly.
+/// All excluded members are made internal or private.
+/// </summary>
 public sealed class GenerateFilteredReferenceAssembliesTask : Task
 {
     private static readonly Regex s_lineSyntax = new("""
@@ -354,13 +361,12 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
             {
                 var typeDef = metadataReader.GetTypeDefinition(handle);
 
+                // reduce visibility so that the type is not visible outside the assembly:
                 var oldVisibility = typeDef.Attributes & TypeAttributes.VisibilityMask;
                 var newVisibility = oldVisibility switch
                 {
                     TypeAttributes.Public => TypeAttributes.NotPublic,
-                    TypeAttributes.NestedPublic => TypeAttributes.NestedAssembly,
-                    TypeAttributes.NestedFamily => TypeAttributes.NestedPrivate,
-                    TypeAttributes.NestedFamORAssem => TypeAttributes.NestedAssembly,
+                    TypeAttributes.NestedPublic or TypeAttributes.NestedFamily or TypeAttributes.NestedFamORAssem => TypeAttributes.NestedAssembly,
                     _ => oldVisibility
                 };
 
@@ -395,6 +401,7 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
             {
                 var def = metadataReader.GetMethodDefinition(handle);
 
+                // reduce visibility so that the method is not visible outside the assembly:
                 var oldVisibility = def.Attributes & MethodAttributes.MemberAccessMask;
                 var newVisibility = MethodAttributes.Private;
                 if (oldVisibility == newVisibility)
@@ -428,6 +435,7 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
             {
                 var def = metadataReader.GetFieldDefinition(handle);
 
+                // reduce visibility so that the field is not visible outside the assembly:
                 var oldVisibility = def.Attributes & FieldAttributes.FieldAccessMask;
                 var newVisibility = FieldAttributes.Private;
                 if (oldVisibility == newVisibility)
