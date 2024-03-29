@@ -1312,6 +1312,11 @@
         <target state="translated">완성 목록 표시</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
+        <source>Show guides for comments and preprocessor regions</source>
+        <target state="new">Show guides for comments and preprocessor regions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">
         <source>Show hints for everything else</source>
         <target state="translated">다른 모든 항목에 대한 힌트 표시</target>

@@ -181,6 +181,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_declaration_level_constructs}" />
                     <CheckBox x:Name="Show_guides_for_code_level_constructs"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_code_level_constructs}" />
+                    <CheckBox x:Name="Show_guides_for_comments_and_preprocessor_regions"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_comments_and_preprocessor_regions}" />
                 </StackPanel>
             </GroupBox>
             
