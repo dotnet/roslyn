@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="CodeAction_0_did_not_produce_a_changed_solution">
         <source>CodeAction '{0}' did not produce a changed solution</source>
-        <target state="new">CodeAction '{0}' did not produce a changed solution</target>
+        <target state="translated">L'elemento CodeAction '{0}' non ha generato una soluzione modificata</target>
         <note>"CodeAction" is a specific type, and {0} represents the title shown by the action.</note>
       </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
