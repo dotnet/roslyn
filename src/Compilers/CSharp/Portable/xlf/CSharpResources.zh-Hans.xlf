@@ -269,7 +269,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLock">
         <source>A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</source>
-        <target state="new">A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</target>
+        <target state="translated">类型“System.Threading.Lock”的值的 lock 语句不能用于异步方法或异步 lambda 表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefUsing">
@@ -444,12 +444,12 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingAdd">
         <source>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</source>
-        <target state="new">Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</target>
+        <target state="translated">集合表达式类型必须具有适用的实例或扩展方法“Add”，可以使用迭代类型“{0}”的参数调用该实例或扩展方法。最佳重载方法是“{1}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingConstructor">
         <source>Collection expression type must have an applicable constructor that can be called with no arguments.</source>
-        <target state="new">Collection expression type must have an applicable constructor that can be called with no arguments.</target>
+        <target state="translated">集合表达式类型必须具有可在不带参数的情况下调用的适用构造函数。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
@@ -459,7 +459,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetNoElementType">
         <source>Collection expression target '{0}' has no element type.</source>
-        <target state="new">Collection expression target '{0}' has no element type.</target>
+        <target state="translated">集合表达式目标“{0}”没有元素类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
@@ -2244,7 +2244,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitIndexerInitializer">
         <source>implicit indexer initializer</source>
-        <target state="new">implicit indexer initializer</target>
+        <target state="translated">隐式索引器初始值设定项</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
@@ -2299,7 +2299,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLockObject">
         <source>Lock object</source>
-        <target state="new">Lock object</target>
+        <target state="translated">锁定对象</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
@@ -2364,7 +2364,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
         <source>string escape character</source>
-        <target state="new">string escape character</target>
+        <target state="translated">字符串转义字符</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStructFieldInitializers">
@@ -2644,12 +2644,12 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <target state="translated">转换为不同类型的类型“System.Threading.Lock”的值将在“lock”语句中使用可能意外的基于监视器的锁定。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock_Title">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <target state="translated">转换为不同类型的类型“System.Threading.Lock”的值将在“lock”语句中使用可能意外的基于监视器的锁定。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -10958,7 +10958,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
         <source>Cannot specify a default value for a parameter collection</source>
-        <target state="needs-review-translation">无法为参数数组指定默认值</target>
+        <target state="new">Cannot specify a default value for a parameter collection</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">
