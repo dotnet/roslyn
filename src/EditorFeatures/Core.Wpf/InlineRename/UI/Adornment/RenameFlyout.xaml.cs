@@ -209,9 +209,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         if (_viewModel.SmartRenameViewModel is not null && _viewModel.SmartRenameViewModel.GetSuggestionsCommand.CanExecute(null))
                         {
                             // If smart rename can use automatic behavior, enable it
-                            if (!_viewModel.SmartRenameViewModel.IsUsingDropdown && _viewModel.SmartRenameViewModel.IsSuggestionsPanelCollapsed)
+                            if (!_viewModel.SmartRenameViewModel.IsUsingDropdown)
                             {
-                                _viewModel.SmartRenameViewModel.IsSuggestionsPanelCollapsed = false;
+                                _viewModel.SmartRenameViewModel.IsSuggestionsPanelCollapsed = !_viewModel.SmartRenameViewModel.IsSuggestionsPanelCollapsed;
                             }
                             _viewModel.SmartRenameViewModel.GetSuggestionsCommand.Execute(null);
                         }
