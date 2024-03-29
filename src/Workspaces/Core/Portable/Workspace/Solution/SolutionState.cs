@@ -1184,8 +1184,10 @@ internal sealed partial class SolutionState
         return Branch(analyzerReferences: analyzerReferences);
     }
 
-    public DocumentId? GetFirstRelatedDocumentId(DocumentId documentId)
+    public DocumentId? GetFirstRelatedDocumentId(DocumentId documentId, ProjectId? relatedProjectIdHint)
     {
+        Contract.ThrowIfTrue(documentId.ProjectId == relatedProjectIdHint);
+
         var projectState = this.GetProjectState(documentId.ProjectId);
         if (projectState is null)
             return null;
@@ -1211,11 +1213,20 @@ internal sealed partial class SolutionState
             return null;
         }
 
+        var relatedProject = relatedProjectIdHint is null ? null : this.ProjectStates[relatedProjectIdHint];
+        Contract.ThrowIfTrue(relatedProject == projectState);
+        if (relatedProject != null)
+        {
+            var siblingDocumentId = relatedProject.GetFirstDocumentIdWithFilePath(filePath);
+            if (siblingDocumentId is not null)
+                return siblingDocumentId;
+        }
+
         // Wasn't in cache, do the linear search.
         foreach (var (_, siblingProjectState) in this.ProjectStates)
         {
             // Don't want to search the same project that document already came from
-            if (siblingProjectState == projectState)
+            if (siblingProjectState == projectState || siblingProjectState == relatedProject)
                 continue;
 
             var siblingDocumentId = siblingProjectState.GetFirstDocumentIdWithFilePath(filePath);

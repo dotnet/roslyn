@@ -1543,8 +1543,10 @@ public partial class Solution
     /// return <paramref name="documentId"/> (unlike <see cref="GetRelatedDocumentIds"/> which includes the original
     /// file in the result).
     /// </summary>
-    internal DocumentId? GetFirstRelatedDocumentId(DocumentId documentId)
-        => this.SolutionState.GetFirstRelatedDocumentId(documentId);
+    /// <param name="relatedProjectIdHint">A hint on the first project to search when looking for related
+    /// documents</param>
+    internal DocumentId? GetFirstRelatedDocumentId(DocumentId documentId, ProjectId? relatedProjectIdHint)
+        => this.SolutionState.GetFirstRelatedDocumentId(documentId, relatedProjectIdHint);
 
     internal Solution WithNewWorkspace(string? workspaceKind, int workspaceVersion, SolutionServices services)
     {
