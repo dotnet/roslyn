@@ -3515,24 +3515,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var paramsArgsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
                 int paramsIndex = parameters.Length - 1;
 
-                Debug.Assert(arguments[arg].Kind is not
-                    (BoundKind.OutVariablePendingInference or BoundKind.OutDeconstructVarPendingInference or BoundKind.DiscardExpression or BoundKind.ArgListOperator));
-
-                // Conversions to elements of collection are applied in the process of collection construction
-                paramsArgsBuilder.Add(arguments[arg]);
-
-                while (arg + 1 < arguments.Count)
+                while (true)
                 {
-                    if (result.ParameterFromArgument(arg + 1) != paramsIndex)
+                    Debug.Assert(arguments[arg].Kind is not
+                        (BoundKind.OutVariablePendingInference or BoundKind.OutDeconstructVarPendingInference or BoundKind.DiscardExpression or BoundKind.ArgListOperator));
+
+                    // Conversions to elements of collection are applied in the process of collection construction
+                    paramsArgsBuilder.Add(arguments[arg]);
+
+                    if (arg + 1 == arguments.Count || result.ParameterFromArgument(arg + 1) != paramsIndex)
                     {
                         break;
                     }
 
                     arg++;
-                    Debug.Assert(arguments[arg].Kind is not
-                        (BoundKind.OutVariablePendingInference or BoundKind.OutDeconstructVarPendingInference or BoundKind.DiscardExpression or BoundKind.ArgListOperator));
-
-                    paramsArgsBuilder.Add(arguments[arg]);
                 }
 
                 return paramsArgsBuilder;
