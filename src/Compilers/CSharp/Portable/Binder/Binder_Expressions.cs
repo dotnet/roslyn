@@ -2046,7 +2046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    Debug.Assert(parameter.Type.IsRefLikeType);
+                                    Debug.Assert(parameter.Type.IsRefLikeType); // PROTOTYPE(RefStructInterfaces): adjust?
                                     Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUseRefLike, node, parameter.Name);
                                 }
                             }
@@ -2069,7 +2069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     }
                                     else
                                     {
-                                        Debug.Assert(parameter.Type.IsRefLikeType);
+                                        Debug.Assert(parameter.Type.IsRefLikeType); // PROTOTYPE(RefStructInterfaces): adjust?
                                         Error(diagnostics, ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike, node, parameter.Name);
                                     }
                                 }

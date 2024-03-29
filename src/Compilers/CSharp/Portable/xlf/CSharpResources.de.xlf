@@ -187,6 +187,11 @@
         <target state="translated">Ein Parameter eines unären Operators muss der enthaltende Typ sein oder sein zugehöriger Typparameter, der darauf beschränkt ist.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAllowByRefLikeEnumerator">
+        <source>foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</source>
+        <target state="new">foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadArgExtraRefLangVersion">
         <source>Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.</source>
         <target state="translated">Das Argument "{0}" darf nicht mit dem Schlüsselwort "ref" in der Sprachversion {1} übergeben werden. Um ref-Argumente an in-Parameter zu übergeben, führen Sie ein Upgrade auf die Sprachversion {2} oder höher durch.</target>
@@ -10640,8 +10645,8 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</source>
-        <target state="translated">Die foreach-Anweisung kann nicht für Enumeratoren vom Typ "{0}" in asynchronen oder Iteratormethoden verwendet werden, weil "{0}" eine Referenzstruktur ist.</target>
+        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
+        <target state="needs-review-translation">Die foreach-Anweisung kann nicht für Enumeratoren vom Typ "{0}" in asynchronen oder Iteratormethoden verwendet werden, weil "{0}" eine Referenzstruktur ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync">

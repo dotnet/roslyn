@@ -4037,7 +4037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitBox(TypeSymbol type, SyntaxNode syntaxNode)
         {
-            Debug.Assert(!type.IsRefLikeType);
+            Debug.Assert(!type.IsRefLikeType); // PROTOTYPE(RefStructInterfaces): adjust?
 
             _builder.EmitOpCode(ILOpCode.Box);
             EmitSymbolToken(type, syntaxNode);

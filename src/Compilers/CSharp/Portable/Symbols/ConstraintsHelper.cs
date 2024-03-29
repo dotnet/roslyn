@@ -1341,7 +1341,8 @@ hasRelatedInterfaces:
                     return true;
                 }
 
-                if (typeArgument.Type.IsRefLikeType && conversions.ImplementsVarianceCompatibleInterface(typeArgument.Type, constraintType.Type, ref useSiteInfo))
+                if (typeArgument.Type is NamedTypeSymbol { IsRefLikeType: true } refLike &&
+                    conversions.ImplementsVarianceCompatibleInterface(refLike, constraintType.Type, ref useSiteInfo))
                 {
                     return true;
                 }

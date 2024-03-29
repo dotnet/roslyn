@@ -852,14 +852,34 @@ public class Program
 
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.ReleaseExe);
 
-            // PROTOTYPE(RefStructInterfaces): We probably should be able to succeed for this scenario? 
-            //var verifier = CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
-            //verifier.VerifyIL("Program.Main",@"");
-            comp.VerifyDiagnostics(
-                // (8,16): error CS1674: 'Program.S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
-                //         using (new S1())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new S1()").WithArguments("Program.S1").WithLocation(8, 16)
-                );
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Main",
+@"
+{
+  // Code size       37 (0x25)
+  .maxstack  1
+  .locals init (Program.S1 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""Program.S1""
+  .try
+  {
+    IL_0008:  ldc.i4.1
+    IL_0009:  call       ""void System.Console.Write(int)""
+    IL_000e:  leave.s    IL_001e
+  }
+  finally
+  {
+    IL_0010:  ldloca.s   V_0
+    IL_0012:  constrained. ""Program.S1""
+    IL_0018:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_001d:  endfinally
+  }
+  IL_001e:  ldc.i4.3
+  IL_001f:  call       ""void System.Console.Write(int)""
+  IL_0024:  ret
+}
+");
         }
 
         [Fact]
@@ -970,7 +990,7 @@ class C1
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (15,9): error CS8344: foreach statement cannot operate on enumerators of type 'C1.S1' in async or iterator methods because 'C1.S1' is a ref struct.
+                // (15,9): error CS8344: foreach statement cannot operate on enumerators of type 'C1.S1' in async or iterator methods because 'C1.S1' is a ref struct or a type parameter that allows ref struct.
                 //         foreach (var i in obj)
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C1.S1").WithLocation(15, 9)
             );
@@ -1042,7 +1062,7 @@ class C1
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (33,9): error CS8344: foreach statement cannot operate on enumerators of type 'C1.S1' in async or iterator methods because 'C1.S1' is a ref struct.
+                // (33,9): error CS8344: foreach statement cannot operate on enumerators of type 'C1.S1' in async or iterator methods because 'C1.S1' is a ref struct or a type parameter that allows ref struct.
                 //         foreach (var i in new C1())
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C1.S1").WithLocation(33, 9)
             );

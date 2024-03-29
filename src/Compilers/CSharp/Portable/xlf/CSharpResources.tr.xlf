@@ -187,6 +187,11 @@
         <target state="translated">Birli işlecin parametresi, içeren tür veya tür parametresi ile kısıtlanmış olmalıdır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAllowByRefLikeEnumerator">
+        <source>foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</source>
+        <target state="new">foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadArgExtraRefLangVersion">
         <source>Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.</source>
         <target state="translated">{0} bağımsız değişkeni, {1} dil sürümündeki 'ref' anahtar sözcüğüyle geçirilemez. 'ref' bağımsız değişkenlerini 'in' parametrelerine geçirmek için{2} dil sürümüne yükseltin.</target>
@@ -10640,8 +10645,8 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</source>
-        <target state="translated">'{0}' bir başvuru yapısı olduğundan foreach deyimi, async veya iterator metotlarındaki '{0}' türü numaralandırıcılar üzerinde çalışamaz.</target>
+        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
+        <target state="needs-review-translation">'{0}' bir başvuru yapısı olduğundan foreach deyimi, async veya iterator metotlarındaki '{0}' türü numaralandırıcılar üzerinde çalışamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync">

@@ -1468,8 +1468,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CodeAnalysis.WellKnownMember.System_Reflection_FieldInfo__GetFieldFromHandle2);
         }
 
-        public BoundExpression Convert(TypeSymbol type, BoundExpression arg)
+        public BoundExpression Convert(TypeSymbol type, BoundExpression arg, bool allowBoxingByRefLikeTypeParametersToObject = false)
         {
+            Debug.Assert(!allowBoxingByRefLikeTypeParametersToObject || type.IsObjectType());
+
             if (TypeSymbol.Equals(type, arg.Type, TypeCompareKind.ConsiderEverything2))
             {
                 return arg;
@@ -1482,6 +1484,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 #endif 
             Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(arg, type, isChecked: false, ref useSiteInfo);
+
+            if (allowBoxingByRefLikeTypeParametersToObject && !c.Exists &&
+                arg.Type is TypeParameterSymbol { AllowByRefLike: true } && type.IsObjectType())
+            {
+                c = Conversion.Boxing;
+            }
+
             Debug.Assert(c.Exists);
             // The use-site diagnostics should be reported earlier, and we shouldn't get to lowering if they're errors.
             Debug.Assert(!useSiteInfo.HasErrors);

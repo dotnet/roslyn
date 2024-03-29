@@ -69,12 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!IsPartial)
-            {
-                LazyAsyncMethodChecks(CancellationToken.None);
-                Debug.Assert(state.HasComplete(CompletionPart.FinishAsyncMethodChecks));
-            }
-
             // The runtime will not treat this method as an override or implementation of another
             // method unless both the signatures and the custom modifiers match.  Hence, in the
             // case of overrides and *explicit* implementations, we need to copy the custom modifiers

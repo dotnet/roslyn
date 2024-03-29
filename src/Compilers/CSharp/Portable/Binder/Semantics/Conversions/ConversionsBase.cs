@@ -2848,6 +2848,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false; // Not a reference conversion.
             }
 
+            // PROTOTYPE(RefStructInterfaces): Check for AllowByRefLike?
+
             // The following implicit conversions exist for a given type parameter T:
             //
             // * From T to its effective base class C.
@@ -2902,6 +2904,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasImplicitEffectiveInterfaceSetConversion(TypeParameterSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            return HasVarianceCompatibleInterfaceInEffectiveInterfaceSet(source, destination, ref useSiteInfo);
+        }
+
+        private bool HasVarianceCompatibleInterfaceInEffectiveInterfaceSet(TypeParameterSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
             if (!destination.IsInterfaceType())
             {
                 return false;
@@ -2925,7 +2932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImplementsVarianceCompatibleInterface(derivedType, baseType, ref useSiteInfo);
         }
 
-        internal bool ImplementsVarianceCompatibleInterface(TypeSymbol derivedType, TypeSymbol baseType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private bool ImplementsVarianceCompatibleInterface(TypeSymbol derivedType, TypeSymbol baseType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert((object)derivedType != null);
             Debug.Assert((object)baseType != null);
@@ -2949,6 +2956,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        internal bool ImplementsVarianceCompatibleInterface(NamedTypeSymbol derivedType, TypeSymbol baseType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            return ImplementsVarianceCompatibleInterface((TypeSymbol)derivedType, baseType, ref useSiteInfo);
+        }
+
+        internal bool HasImplicitConversionToOrImplementsVarianceCompatibleInterface(TypeSymbol typeToCheck, NamedTypeSymbol targetInterfaceType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(targetInterfaceType.IsErrorType() || targetInterfaceType.IsInterface);
+
+            return ClassifyImplicitConversionFromType(typeToCheck, targetInterfaceType, ref useSiteInfo).IsImplicit ||
+                   IsRefLikeOrAllowsByRefLikeImplementingVarianceCompatibleInterface(typeToCheck, targetInterfaceType, ref useSiteInfo);
+        }
+
+        private bool IsRefLikeOrAllowsByRefLikeImplementingVarianceCompatibleInterface(TypeSymbol typeToCheck, NamedTypeSymbol targetInterfaceType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            if (typeToCheck is TypeParameterSymbol typeParameter)
+            {
+                return typeParameter.AllowByRefLike && HasVarianceCompatibleInterfaceInEffectiveInterfaceSet(typeParameter, targetInterfaceType, ref useSiteInfo);
+            }
+            else if (typeToCheck.IsRefLikeType)
+            {
+                return ImplementsVarianceCompatibleInterface(typeToCheck, targetInterfaceType, ref useSiteInfo);
+            }
+
+            return false;
+        }
+
+        internal bool HasImplicitConversionToOrImplementsVarianceCompatibleInterface(BoundExpression expressionToCheck, NamedTypeSymbol targetInterfaceType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(targetInterfaceType.IsErrorType() || targetInterfaceType.IsInterface);
+
+            return ClassifyImplicitConversionFromExpression(expressionToCheck, targetInterfaceType, ref useSiteInfo).IsImplicit ||
+                   (expressionToCheck.Type is TypeSymbol typeToCheck && IsRefLikeOrAllowsByRefLikeImplementingVarianceCompatibleInterface(typeToCheck, targetInterfaceType, ref useSiteInfo));
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -3154,6 +3196,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (source.IsReferenceType)
             {
                 return false; // Not a boxing conversion; both source and destination are references.
+            }
+
+            if (source.AllowByRefLike)
+            {
+                return false;
             }
 
             // The following implicit conversions exist for a given type parameter T:

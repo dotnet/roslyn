@@ -187,6 +187,11 @@
         <target state="translated">O parâmetro de um operador unário deve ser do tipo recipiente ou seu parâmetro de tipo restrito a ele.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAllowByRefLikeEnumerator">
+        <source>foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</source>
+        <target state="new">foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadArgExtraRefLangVersion">
         <source>Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.</source>
         <target state="translated">O argumento {0} não pode ser passado com o palavra-chave 'ref' na versão {1} da linguagem. Para passar argumentos 'ref' para parâmetros 'in', atualize para a versão {2} ou superior da linguagem.</target>
@@ -10640,8 +10645,8 @@ Forneça ao compilador alguma forma de diferenciar os métodos. Por exemplo, voc
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</source>
-        <target state="translated">a instrução foreach não pode operar em enumeradores do tipo '{0}' em métodos assíncronos ou iteradores porque '{0}' é uma struct de referência.</target>
+        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
+        <target state="needs-review-translation">a instrução foreach não pode operar em enumeradores do tipo '{0}' em métodos assíncronos ou iteradores porque '{0}' é uma struct de referência.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync">
