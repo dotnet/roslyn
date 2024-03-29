@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
 
             // Confirm the files have been linked by file path. This isn't the core part of this test but without it
             // nothing else will work.
-            Assert.Equal(documentIds, workspace.CurrentSolution.GetDocumentIdsWithFilePath(FilePath));
+            AssertEx.SetEqual(documentIds, workspace.CurrentSolution.GetDocumentIdsWithFilePath(FilePath));
             Assert.Equal(new[] { documentIds.Last() }, workspace.CurrentSolution.GetDocument(documentIds.First()).GetLinkedDocumentIds());
 
             // Now the core test: first, if we make a modified version of the source text, and attempt to get the document for it,
