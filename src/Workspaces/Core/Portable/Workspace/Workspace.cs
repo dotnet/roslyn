@@ -324,15 +324,15 @@ public abstract partial class Workspace : IDisposable
             // to be recreated for each document.
             var relatedDocumentId = solution.GetFirstRelatedDocumentId(addedDocumentId, relatedProjectIdHint);
 
-            // Should never return a file as its own related document
-            Contract.ThrowIfTrue(relatedDocumentId == addedDocumentId);
-
             // Couldn't find a related document.  Keep the same solution, and keep track of the best related project we
             // found while processing this project.
             if (relatedDocumentId is null)
                 return (solution, relatedProjectIdHint);
 
             var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
+
+            // Should never return a file as its own related document
+            Contract.ThrowIfTrue(relatedDocumentId == addedDocumentId);
 
             // Related document must come from a distinct project.
             Contract.ThrowIfTrue(relatedDocumentId.ProjectId == addedDocumentId.ProjectId);
