@@ -72,7 +72,13 @@ internal class ServiceBrokerFactory
 
         foreach (var onInitialized in _onServiceBrokerInitialized)
         {
-            onInitialized.OnServiceBrokerInitialized(_container.GetFullAccessServiceBroker());
+            try
+            {
+                onInitialized.OnServiceBrokerInitialized(_container.GetFullAccessServiceBroker());
+            }
+            catch (Exception)
+            {
+            }
         }
     }
 
