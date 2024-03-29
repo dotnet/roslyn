@@ -184,7 +184,9 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
     private void InnerTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
     {
         Assumes.NotNull(_dropDownPopup);
-        if ((e.Key is Key.Escape or Key.Space or Key.Enter) && _dropDownPopup.IsOpen)
+        if ((e.Key is Key.Escape or Key.Space or Key.Enter)
+            && (_dropDownPopup.IsOpen // Handle these keystrokes when dropdown is present
+            || _smartRenameViewModel.IsUsingResultPanel && this.TextSelectionLength < this.Text.Length)) // Or when panel is present and text is not yet selected
         {
             _dropDownPopup.IsOpen = false;
             SelectAllText();
