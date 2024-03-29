@@ -6916,20 +6916,20 @@ done:
             FirstElementOfPossibleTupleLiteral,
         }
 
-        private TypeSyntax ParseType(ParseTypeMode mode = ParseTypeMode.Normal)
+        private TypeSyntax ParseType(ParseTypeMode mode = ParseTypeMode.Normal, bool whenIsKeyword = false)
         {
             if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
                 return _syntaxFactory.RefType(
                     this.EatToken(),
                     this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword ? this.EatToken() : null,
-                    ParseTypeCore(ParseTypeMode.AfterRef));
+                    ParseTypeCore(ParseTypeMode.AfterRef, whenIsKeyword));
             }
 
-            return ParseTypeCore(mode);
+            return ParseTypeCore(mode, whenIsKeyword);
         }
 
-        private TypeSyntax ParseTypeCore(ParseTypeMode mode)
+        private TypeSyntax ParseTypeCore(ParseTypeMode mode, bool whenIsKeyword)
         {
             NameOptions nameOptions;
             switch (mode)
@@ -6970,7 +6970,7 @@ done:
                 {
                     case SyntaxKind.QuestionToken when canBeNullableType():
                         {
-                            var question = EatNullableQualifierIfApplicable(mode);
+                            var question = EatNullableQualifierIfApplicable(mode, whenIsKeyword);
                             if (question != null)
                             {
                                 type = _syntaxFactory.NullableType(type, question);
@@ -7043,7 +7043,7 @@ done:;
             return type;
         }
 
-        private SyntaxToken EatNullableQualifierIfApplicable(ParseTypeMode mode)
+        private SyntaxToken EatNullableQualifierIfApplicable(ParseTypeMode mode, bool whenIsKeyword)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
             using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
@@ -7065,12 +7065,49 @@ done:;
                     case ParseTypeMode.AfterIs:
                     case ParseTypeMode.DefinitePattern:
                     case ParseTypeMode.AsExpression:
-                        // These contexts might be a type that is at the end of an expression. In these contexts we only
-                        // permit the nullable qualifier if it is followed by a token that could not start an
-                        // expression, because for backward compatibility we want to consider a `?` token as part of the
-                        // `?:` operator if possible.
-                        //
-                        // Similarly, if we have `T?[]` we do want to treat that as an array of nullables (following
+                        // These contexts might be a type that is at the end of an expression.
+                        // For backward compatibility we want to consider a `?` token as part of the `?:` operator if possible.
+                        // However, if current token is an identifier, it might be beneficial to allow `?`
+                        // and treat this identifier as a designation. Nullable types in patterns are semantically invalid,
+                        // so we will get a nice error about that during binding.
+                        if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                        {
+                            // Given that we are deciding whether we take `?:` operator or not while looking at state after `?`,
+                            // our focus is on `:` token as well. But `:` have special meaning in context of switch statements
+                            // and expressions (since `:` in switch expressions is recovered to `=>`). So consider the following case:
+                            // `case T? t:`. On its own `T ? t :` can be treated as a conditional expression with condition `T`,
+                            // 'whenTrue' `t` and 'whenFalse' not yet parsed. But it is way better to take `:` as case label end and
+                            // thus parse label condition as a declaration pattern `T? t`. `whenIsKeyword` flag can conveniently tell
+                            // whether we are in a 'top-level' state of a label, so if condition get parenthesized like `case (a ? b : c):`
+                            // we don't take the first `:` as label end and parse label condition as a parenthesized conditional expression
+                            if ((_termState.HasFlag(TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement) ||
+                                 _termState.HasFlag(TerminatorState.IsPatternInSwitchExpressionArm)) && whenIsKeyword)
+                            {
+                                return true;
+                            }
+
+                            using var _ = GetDisposableResetPoint(resetOnDispose: true);
+                            this.EatToken();
+
+                            // If token after identifier starts an expression it is probably an error case, e.g. missing a `,` in a pattern
+                            if (CanStartExpression())
+                            {
+                                return true;
+                            }
+
+                            // These token either 100% end a pattern or start a new one (again, in cases with missing `,` and so on).
+                            // Note, that some cases of 'token starts a new pattern' are handled by condition above,
+                            // e.g. starting of type patterns
+                            return this.CurrentToken.Kind is SyntaxKind.OpenParenToken or SyntaxKind.CloseParenToken
+                                                          or SyntaxKind.OpenBraceToken or SyntaxKind.CloseBraceToken
+                                                          or SyntaxKind.OpenBracketToken or SyntaxKind.CloseBracketToken
+                                                          or SyntaxKind.CommaToken
+                                                          or SyntaxKind.EndOfFileToken;
+                        }
+
+                        // If nothing from above worked permit the nullable qualifier
+                        // if it is followed by a token that could not start an expression
+                        // If we have `T?[]` we do want to treat that as an array of nullables (following
                         // existing parsing), not a conditional that returns a list.
                         return !CanStartExpression() || this.CurrentToken.Kind is SyntaxKind.OpenBracketToken;
                     case ParseTypeMode.NewExpression:

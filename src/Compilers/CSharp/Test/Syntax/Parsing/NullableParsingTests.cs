@@ -681,13 +681,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void DeclarationPattern_NullableType()
         {
-            UsingStatement("switch (e) { case T? t: break; }",
-                // (1,25): error CS1525: Invalid expression term 'break'
-                // switch (e) { case T? t: break; }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "break").WithArguments("break").WithLocation(1, 25),
-                // (1,25): error CS1003: Syntax error, ':' expected
-                // switch (e) { case T? t: break; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "break").WithArguments(":").WithLocation(1, 25));
+            UsingStatement("switch (e) { case T? t: break; }");
+
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -700,27 +695,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.SwitchSection);
                 {
-                    N(SyntaxKind.CaseSwitchLabel);
+                    N(SyntaxKind.CasePatternSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.ConditionalExpression);
+                        N(SyntaxKind.DeclarationPattern);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.NullableType);
                             {
-                                N(SyntaxKind.IdentifierToken, "T");
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "T");
+                                }
+                                N(SyntaxKind.QuestionToken);
                             }
-                            N(SyntaxKind.QuestionToken);
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.SingleVariableDesignation);
                             {
                                 N(SyntaxKind.IdentifierToken, "t");
                             }
-                            N(SyntaxKind.ColonToken);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
                         }
-                        M(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ColonToken);
                     }
                     N(SyntaxKind.BreakStatement);
                     {
@@ -813,29 +806,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,9): error CS0103: The name 'e' does not exist in the current context
                 // switch (e) { case T[]? t: break; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "e").WithArguments("e").WithLocation(1, 9),
-                // (1,19): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "T[]").WithArguments("type pattern", "9.0").WithLocation(1, 19),
                 // (1,19): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
                 // switch (e) { case T[]? t: break; }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(1, 19),
-                // (1,22): error CS1003: Syntax error, ':' expected
+                // (1,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":").WithLocation(1, 22),
-                // (1,22): error CS1513: } expected
-                // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "?").WithLocation(1, 22),
-                // (1,24): warning CS0164: This label has not been referenced
-                // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "t").WithLocation(1, 24));
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(1, 22));
 
-            UsingStatement(test, options: TestOptions.Regular8,
-                // (1,22): error CS1003: Syntax error, ':' expected
-                // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":").WithLocation(1, 22),
-                // (1,22): error CS1513: } expected
-                // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "?").WithLocation(1, 22));
+            UsingStatement(test, options: TestOptions.Regular8);
+
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -851,36 +830,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.CasePatternSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.TypePattern);
+                        N(SyntaxKind.DeclarationPattern);
                         {
-                            N(SyntaxKind.ArrayType);
+                            N(SyntaxKind.NullableType);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.ArrayType);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "T");
-                                }
-                                N(SyntaxKind.ArrayRankSpecifier);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                        N(SyntaxKind.IdentifierToken, "T");
                                     }
-                                    N(SyntaxKind.CloseBracketToken);
+                                    N(SyntaxKind.ArrayRankSpecifier);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.OmittedArraySizeExpression);
+                                        {
+                                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
                                 }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "t");
                             }
                         }
-                        M(SyntaxKind.ColonToken);
-                    }
-                    N(SyntaxKind.LabeledStatement);
-                    {
-                        N(SyntaxKind.IdentifierToken, "t");
                         N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.BreakStatement);
-                        {
-                            N(SyntaxKind.BreakKeyword);
-                            N(SyntaxKind.SemicolonToken);
-                        }
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
@@ -1768,6 +1750,380 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         {
                             N(SyntaxKind.OmittedArraySizeExpressionToken);
                         }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void DisjunctivePattern_NullableType1()
+        {
+            UsingExpression("x is int? or string?");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.OrPattern);
+                {
+                    N(SyntaxKind.TypePattern);
+                    {
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                    }
+                    N(SyntaxKind.OrKeyword);
+                    N(SyntaxKind.TypePattern);
+                    {
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.StringKeyword);
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void DisjunctivePattern_NullableType2()
+        {
+            UsingExpression("x is int? i or string? s");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.OrPattern);
+                {
+                    N(SyntaxKind.DeclarationPattern);
+                    {
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "i");
+                        }
+                    }
+                    N(SyntaxKind.OrKeyword);
+                    N(SyntaxKind.DeclarationPattern);
+                    {
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.StringKeyword);
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "s");
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void ConjunctivePattern_NullableType1()
+        {
+            UsingExpression("x is Type? and { }");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.AndPattern);
+                {
+                    N(SyntaxKind.TypePattern);
+                    {
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                    }
+                    N(SyntaxKind.AndKeyword);
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PropertyPatternClause);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void ConjunctivePattern_NullableType2()
+        {
+            UsingExpression("x is Type? t and { }");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.AndPattern);
+                {
+                    N(SyntaxKind.DeclarationPattern);
+                    {
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "t");
+                        }
+                    }
+                    N(SyntaxKind.AndKeyword);
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PropertyPatternClause);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void ConjunctivePattern_NullableType3()
+        {
+            UsingExpression("x is Type? and (1, 2)");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.AndPattern);
+                {
+                    N(SyntaxKind.TypePattern);
+                    {
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                    }
+                    N(SyntaxKind.AndKeyword);
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PositionalPatternClause);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "2");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void ConjunctivePattern_NullableType4()
+        {
+            UsingExpression("x is Type? t and (1, 2)");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.AndPattern);
+                {
+                    N(SyntaxKind.DeclarationPattern);
+                    {
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "t");
+                        }
+                    }
+                    N(SyntaxKind.AndKeyword);
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PositionalPatternClause);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "2");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void ConjunctivePattern_NullableType5()
+        {
+            UsingExpression("x is Type? and []");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.AndPattern);
+                {
+                    N(SyntaxKind.TypePattern);
+                    {
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                    }
+                    N(SyntaxKind.AndKeyword);
+                    N(SyntaxKind.ListPattern);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void ConjunctivePattern_NullableType6()
+        {
+            UsingExpression("x is Type? t and []");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.AndPattern);
+                {
+                    N(SyntaxKind.DeclarationPattern);
+                    {
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "t");
+                        }
+                    }
+                    N(SyntaxKind.AndKeyword);
+                    N(SyntaxKind.ListPattern);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
                         N(SyntaxKind.CloseBracketToken);
                     }
                 }

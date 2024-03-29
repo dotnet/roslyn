@@ -5,6 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -134,44 +135,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
         public void NullableTypeTest_03()
         {
-            UsingStatement("if (e is int? x) {}",
-                // (1,16): error CS1003: Syntax error, ':' expected
-                // if (e is int? x) {}
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(1, 16),
-                // (1,16): error CS1525: Invalid expression term ')'
-                // if (e is int? x) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 16)
-                );
+            UsingStatement("if (e is int? x) {}");
+
             N(SyntaxKind.IfStatement);
             {
                 N(SyntaxKind.IfKeyword);
                 N(SyntaxKind.OpenParenToken);
-                N(SyntaxKind.ConditionalExpression);
+                N(SyntaxKind.IsPatternExpression);
                 {
-                    N(SyntaxKind.IsExpression);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "e");
-                        }
-                        N(SyntaxKind.IsKeyword);
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.IntKeyword);
-                        }
-                    }
-                    N(SyntaxKind.QuestionToken);
                     N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.IdentifierToken, "e");
                     }
-                    M(SyntaxKind.ColonToken);
-                    M(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.DeclarationPattern);
                     {
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
                     }
                 }
                 N(SyntaxKind.CloseParenToken);

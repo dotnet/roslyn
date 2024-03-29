@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             TypeSyntax? type = null;
             if (LooksLikeTypeOfPattern())
             {
-                type = this.ParseType(afterIs ? ParseTypeMode.AfterIs : ParseTypeMode.DefinitePattern);
+                type = this.ParseType(afterIs ? ParseTypeMode.AfterIs : ParseTypeMode.DefinitePattern, whenIsKeyword);
                 if (type.IsMissing || !CanTokenFollowTypeInPattern(precedence))
                 {
                     // either it is not shaped like a type, or it is a constant expression.
