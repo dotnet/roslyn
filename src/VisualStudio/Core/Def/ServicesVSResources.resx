@@ -1897,4 +1897,10 @@ Additional information: {1}</value>
   <data name="AssemblyNameAndVersionDisplay" xml:space="preserve">
     <value>{0} ({1})</value>
   </data>
+  <data name="The_project_no_longer_exists" xml:space="preserve">
+    <value>The project no longer exists</value>
+  </data>
+  <data name="Show_guides_for_comments_and_preprocessor_regions" xml:space="preserve">
+    <value>Show guides for comments and preprocessor regions</value>
+  </data>
 </root>

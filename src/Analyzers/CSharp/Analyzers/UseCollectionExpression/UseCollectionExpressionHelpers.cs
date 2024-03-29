@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -209,7 +210,16 @@ internal static class UseCollectionExpressionHelpers
             // `IEnumerable<object> obj = Array.Empty<object>();` or
             // `IEnumerable<string> obj = new[] { "" };`
             if (IsWellKnownCollectionInterface(convertedType) && type.AllInterfaces.Contains(convertedType))
+            {
+                // The observable collections are known to have significantly different behavior than List<T>.  So
+                // disallow converting those types to ensure semantics are preserved.  We do this even though
+                // allowSemanticsChange is true because this will basically be certain to break semantics, as opposed to
+                // the more common case where semantics may change slightly, but likely not in a way that breaks code.
+                if (type.Name is nameof(ObservableCollection<int>) or nameof(ReadOnlyObservableCollection<int>))
+                    return false;
+
                 return true;
+            }
 
             // Implicit reference array conversion is acceptable if the user is ok with semantics changing.  For example:
             //

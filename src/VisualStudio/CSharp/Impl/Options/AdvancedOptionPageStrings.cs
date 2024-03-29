@@ -261,6 +261,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Show_guides_for_code_level_constructs
             => ServicesVSResources.Show_guides_for_code_level_constructs;
 
+        public static string Option_Show_guides_for_comments_and_preprocessor_regions
+            => ServicesVSResources.Show_guides_for_comments_and_preprocessor_regions;
+
         public static string Option_Fading
             => ServicesVSResources.Fading;
 

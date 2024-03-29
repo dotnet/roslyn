@@ -1312,6 +1312,11 @@
         <target state="translated">入力候補一覧の表示</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
+        <source>Show guides for comments and preprocessor regions</source>
+        <target state="new">Show guides for comments and preprocessor regions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">
         <source>Show hints for everything else</source>
         <target state="translated">その他すべてのヒントを表示する</target>
@@ -1435,6 +1440,11 @@
       <trans-unit id="The_generator_0_that_generated_this_file_has_stopped_generating_this_file">
         <source>The generator '{0}' that generated this file has stopped generating this file; this file is no longer being included in your project.</source>
         <target state="translated">このファイルの生成元であるジェネレーター '{0}' で、このファイルの生成が停止しました。このファイルはもうプロジェクトに含まれていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_project_no_longer_exists">
+        <source>The project no longer exists</source>
+        <target state="new">The project no longer exists</target>
         <note />
       </trans-unit>
       <trans-unit id="This_action_cannot_be_undone_Do_you_wish_to_continue">

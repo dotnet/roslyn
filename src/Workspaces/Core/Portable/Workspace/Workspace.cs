@@ -312,6 +312,12 @@ public abstract partial class Workspace : IDisposable
             var relatedDocumentIds = solution.GetRelatedDocumentIds(addedDocumentId);
             foreach (var relatedDocumentId in relatedDocumentIds)
             {
+                // GetRelatedDocumentIds includes the document id passed in.  Skip that if it's the first id we get back.
+                if (relatedDocumentId == addedDocumentId)
+                    continue;
+
+                // Copy over the contents of our linked file over to the added file.  Immediately return at that point,
+                // there's no point looking at any further related documents.
                 var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
                 return solution.WithDocumentContentsFrom(addedDocumentId, relatedDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
             }

@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
         public async Task CSharpOutliningTagger(
             bool collapseRegionsWhenCollapsingToDefinitions,
             bool showBlockStructureGuidesForDeclarationLevelConstructs,
-            bool showBlockStructureGuidesForCodeLevelConstructs)
+            bool showBlockStructureGuidesForCodeLevelConstructs,
+            bool showBlockStructureGuidesForCommentsAndPreprocessorRegions)
         {
             var code =
 @"using System;
@@ -59,6 +60,7 @@ namespace MyNamespace
             globalOptions.SetGlobalOption(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, collapseRegionsWhenCollapsingToDefinitions);
             globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForDeclarationLevelConstructs);
             globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp, showBlockStructureGuidesForCodeLevelConstructs);
+            globalOptions.SetGlobalOption(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, LanguageNames.CSharp, showBlockStructureGuidesForCommentsAndPreprocessorRegions);
 
             var tags = await GetTagsFromWorkspaceAsync(workspace);
 
@@ -74,7 +76,7 @@ namespace MyNamespace
                 {
                     Assert.Equal(collapseRegionsWhenCollapsingToDefinitions, regionTag.IsImplementation);
                     Assert.Equal(14, GetCollapsedHintLineCount(regionTag));
-                    Assert.Equal(PredefinedStructureTagTypes.Nonstructural, regionTag.Type);
+                    Assert.Equal(showBlockStructureGuidesForCommentsAndPreprocessorRegions ? PredefinedStructureTagTypes.PreprocessorRegion : PredefinedStructureTagTypes.Nonstructural, regionTag.Type);
                     Assert.Equal("#region MyRegion", GetHeaderText(regionTag));
                 },
                 classTag =>
