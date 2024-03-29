@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask SynchronizePrimaryWorkspaceAsync(Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken)
+        public ValueTask SynchronizePrimaryWorkspaceAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var workspace = GetWorkspace();
                     var assetProvider = workspace.CreateAssetProvider(solutionChecksum, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
-                    await workspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
+                    await workspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
