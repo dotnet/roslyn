@@ -1473,18 +1473,25 @@ internal sealed partial class SolutionCompilationState
         if (documentInfos.IsEmpty)
             return this;
 
-        var documentInfosByProjectId = documentInfos.ToMultiDictionary(
-            static d => d.Id.ProjectId,
-            d =>
+        using var _1 = PooledDictionary<ProjectId, ArrayBuilder<TDocumentState>>.GetInstance(out var documentStatesByProjectId);
+
+        AddToMultiDictionary(
+            documentInfos,
+            keySelector: static documentInfo => documentInfo.Id.ProjectId,
+            valueSelector: documentInfo =>
             {
-                var projectId = d.Id.ProjectId;
+                var projectId = documentInfo.Id.ProjectId;
+
                 this.SolutionState.CheckContainsProject(projectId);
                 var projectState = this.SolutionState.GetRequiredProjectState(projectId);
-                return createDocumentState(d, projectState);
-            });
+                return createDocumentState(documentInfo, projectState);
+            },
+            documentStatesByProjectId);
 
         return AddDocumentsToMultipleProjects(
-            documentInfosByProjectId,
+            // Do a SelectAsArray here to ensure that we realize the array once, and as such only call things like
+            // ToImmutableAndFree once per ArrayBuilder.
+            documentStatesByProjectId.SelectAsArray(kvp => new KeyValuePair<ProjectId, ImmutableArray<TDocumentState>>(kvp.Key, kvp.Value.ToImmutableAndFree())),
             addDocumentsToProjectState);
     }
 
@@ -1527,14 +1534,19 @@ internal sealed partial class SolutionCompilationState
             return this;
         }
 
-        // The documents might be contributing to multiple different projects; split them by project and then we'll process
-        // project-at-a-time.
-        var documentIdsByProjectId = documentIds.ToMultiDictionary(id => id.ProjectId);
+        // The documents might be contributing to multiple different projects; split them by project
+        using var _1 = PooledDictionary<ProjectId, ArrayBuilder<DocumentId>>.GetInstance(out var documentIdsByProjectId);
 
-        using var _1 = ArrayBuilder<TranslationAction>.GetInstance(documentIdsByProjectId.Count, out var translationActions);
-        using var _2 = ArrayBuilder<T>.GetInstance(documentIds.Length, out var allRemovedDocumentStates);
+        AddToMultiDictionary(
+            documentIds,
+            keySelector: static documentId => documentId.ProjectId,
+            valueSelector: static documentId => documentId,
+            documentIdsByProjectId);
 
-        foreach (var (projectId, documentIdsInProject) in documentIdsByProjectId)
+        using var _2 = ArrayBuilder<TranslationAction>.GetInstance(documentIdsByProjectId.Count, out var translationActions);
+        using var _3 = ArrayBuilder<T>.GetInstance(documentIds.Length, out var allRemovedDocumentStates);
+
+        foreach (var (projectId, documentIdsInProjectBuilder) in documentIdsByProjectId)
         {
             var oldProjectState = this.SolutionState.GetProjectState(projectId);
 
@@ -1543,7 +1555,8 @@ internal sealed partial class SolutionCompilationState
                 throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, projectId));
             }
 
-            using var _3 = ArrayBuilder<T>.GetInstance(documentIdsInProject.Length, out var removedDocumentStates);
+            var documentIdsInProject = documentIdsInProjectBuilder.ToImmutableAndFree();
+            using var _4 = ArrayBuilder<T>.GetInstance(documentIdsInProject.Length, out var removedDocumentStates);
 
             foreach (var documentId in documentIdsInProject)
             {
@@ -1559,6 +1572,9 @@ internal sealed partial class SolutionCompilationState
             translationActions.Add(compilationTranslationAction);
         }
 
+        // Explicitly clear out the documentIdsByProjectId dictionary as it's values have been freed back to the pool
+        documentIdsByProjectId.Clear();
+
         var newSolutionState = this.SolutionState.ForkProjects(
             translationActions.Select(a => a.NewProjectState),
             newFilePathToDocumentIdsMap: this.SolutionState.CreateFilePathToDocumentIdsMapWithRemovedDocuments(allRemovedDocumentStates));
@@ -1568,6 +1584,39 @@ internal sealed partial class SolutionCompilationState
             translationActions);
 
         return newCompilationState;
+    }
+
+    private static void AddToMultiDictionary<TKey, TValue, TData>(
+            ImmutableArray<TData> data,
+            Func<TData, TKey> keySelector,
+            Func<TData, TValue> valueSelector,
+            Dictionary<TKey, ArrayBuilder<TValue>> valuesByKey)
+            where TKey : notnull
+    {
+        // Collect the counts so we can preallocate the correct amount for each key.
+        using var _1 = PooledDictionary<TKey, int>.GetInstance(out var countsForKeys);
+        foreach (var d in data)
+        {
+            var key = keySelector(d);
+            if (!countsForKeys.TryGetValue(key, out var count))
+                countsForKeys[key] = 1;
+            else
+                countsForKeys[key] = count + 1;
+        }
+
+        foreach (var d in data)
+        {
+            var key = keySelector(d);
+            if (!valuesByKey.TryGetValue(key, out var valuesBuilder))
+            {
+                var countForKey = countsForKeys[key];
+                valuesBuilder = ArrayBuilder<TValue>.GetInstance(countForKey);
+                valuesByKey.Add(key, valuesBuilder);
+            }
+
+            var value = valueSelector(d);
+            valuesBuilder.Add(value);
+        }
     }
 
     /// <inheritdoc cref="Solution.WithCachedSourceGeneratorState(ProjectId, Project)"/>
