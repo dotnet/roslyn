@@ -7100,7 +7100,6 @@ done:;
                                                     or SyntaxKind.OpenBraceToken or SyntaxKind.CloseBraceToken
                                                     or SyntaxKind.OpenBracketToken or SyntaxKind.CloseBracketToken
                                                     or SyntaxKind.CommaToken
-                                                    or SyntaxKind.IdentifierToken
                                                     or SyntaxKind.EndOfFileToken;
                         }
 
