@@ -1437,6 +1437,11 @@
         <target state="translated">產生此檔案的產生器 '{0}' 已停止產生此檔案; 此檔案已不再包含在您的專案中。</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_project_no_longer_exists">
+        <source>The project no longer exists</source>
+        <target state="new">The project no longer exists</target>
+        <note />
+      </trans-unit>
       <trans-unit id="This_action_cannot_be_undone_Do_you_wish_to_continue">
         <source>This action cannot be undone. Do you wish to continue?</source>
         <target state="translated">此動作無法復原。要繼續嗎?</target>
