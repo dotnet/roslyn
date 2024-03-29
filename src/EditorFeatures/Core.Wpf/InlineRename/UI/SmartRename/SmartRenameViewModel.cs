@@ -89,7 +89,15 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
         get => IsUsingResultPanel && !IsSuggestionsPanelCollapsed;
     }
 
-    public static string GetSuggestionsTooltip => EditorFeaturesWpfResources.Get_AI_suggestions;
+    public string GetSuggestionsTooltip
+        => IsUsingDropdown
+        ? EditorFeaturesWpfResources.Get_AI_suggestions
+        : EditorFeaturesWpfResources.Toggle_AI_suggestions;
+
+    public string SubmitTextOverride
+        => IsUsingDropdown
+        ? EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion
+        : EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview;
 
     public ICommand GetSuggestionsCommand { get; }
 

@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public string PreviewChanges => EditorFeaturesResources.Preview_changes1;
         public string SubmitText
             => _viewModel.SmartRenameViewModel is not null
-            ? EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion
+            ? _viewModel.SmartRenameViewModel.SubmitTextOverride
             : EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview;
 #pragma warning restore CA1822 // Mark members as static
 

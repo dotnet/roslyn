@@ -169,7 +169,7 @@
                                 Grid.Row="0"
                                 Grid.Column="1"
                                 Style="{StaticResource GetSuggestionButtonStyle}"
-                                ToolTip="{x:Static sr:SmartRenameViewModel.GetSuggestionsTooltip}"
+                                ToolTip="{Binding GetSuggestionsTooltip}"
                                 Click="GetSuggestionsButtonClick"
                                 Command="{Binding GetSuggestionsCommand}">
                     <Button.Content>
