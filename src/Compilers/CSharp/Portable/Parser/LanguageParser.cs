@@ -7096,9 +7096,10 @@ done:;
                             // e.g. starting of type patterns
                             return SyntaxFacts.IsLiteral(currentTokenKind) ||
                                    SyntaxFacts.IsPredefinedType(currentTokenKind) ||
-                                   currentTokenKind is SyntaxKind.OpenParenToken or SyntaxKind.CloseParenToken
-                                                    or SyntaxKind.OpenBraceToken or SyntaxKind.CloseBraceToken
-                                                    or SyntaxKind.OpenBracketToken or SyntaxKind.CloseBracketToken
+                                   currentTokenKind is SyntaxKind.CloseParenToken
+                                                    or SyntaxKind.OpenBraceToken
+                                                    or SyntaxKind.CloseBraceToken
+                                                    or SyntaxKind.CloseBracketToken
                                                     or SyntaxKind.CommaToken
                                                     or SyntaxKind.EndOfFileToken;
                         }

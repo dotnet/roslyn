@@ -1932,60 +1932,118 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
-        public void ConjunctivePattern_NullableType3()
+        public void ConjunctivePattern_ConditionalExpressionInsteadOfNullableType3()
         {
-            UsingExpression("x is Type? and (1, 2)");
+            UsingExpression("x is Type? and (1, 2)",
+                // (1,22): error CS1003: Syntax error, ':' expected
+                // x is Type? and (1, 2)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 22),
+                // (1,22): error CS1733: Expected expression
+                // x is Type? and (1, 2)
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 22));
 
-            N(SyntaxKind.IsPatternExpression);
+            N(SyntaxKind.ConditionalExpression);
             {
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.IsExpression);
                 {
-                    N(SyntaxKind.IdentifierToken, "x");
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Type");
+                    }
                 }
-                N(SyntaxKind.IsKeyword);
-                N(SyntaxKind.AndPattern);
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.InvocationExpression);
                 {
-                    N(SyntaxKind.TypePattern);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.NullableType);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Type");
-                            }
-                            N(SyntaxKind.QuestionToken);
-                        }
+                        N(SyntaxKind.IdentifierToken, "and");
                     }
-                    N(SyntaxKind.AndKeyword);
-                    N(SyntaxKind.RecursivePattern);
+                    N(SyntaxKind.ArgumentList);
                     {
-                        N(SyntaxKind.PositionalPatternClause);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Argument);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.Subpattern);
+                            N(SyntaxKind.NumericLiteralExpression);
                             {
-                                N(SyntaxKind.ConstantPattern);
-                                {
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "1");
-                                    }
-                                }
+                                N(SyntaxKind.NumericLiteralToken, "1");
                             }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Subpattern);
-                            {
-                                N(SyntaxKind.ConstantPattern);
-                                {
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "2");
-                                    }
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
                         }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "2");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
+                }
+                M(SyntaxKind.ColonToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void ConjunctivePattern_ConditionalExpressionInsteadOfNullableType3_2()
+        {
+            UsingExpression("x is Type ? f(1, 2) : 0");
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Type");
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "f");
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "1");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "2");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
                 }
             }
             EOF();
@@ -2056,36 +2114,105 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
-        public void ConjunctivePattern_NullableType5()
+        public void ConjunctivePattern_ConditionalExpressionInsteadOfNullableType5()
         {
-            UsingExpression("x is Type? and []");
+            UsingExpression("x is Type? and []",
+                // (1,17): error CS0443: Syntax error; value expected
+                // x is Type? and []
+                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 17),
+                // (1,18): error CS1003: Syntax error, ':' expected
+                // x is Type? and []
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 18),
+                // (1,18): error CS1733: Expected expression
+                // x is Type? and []
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 18));
 
-            N(SyntaxKind.IsPatternExpression);
+            N(SyntaxKind.ConditionalExpression);
             {
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.IsExpression);
                 {
-                    N(SyntaxKind.IdentifierToken, "x");
-                }
-                N(SyntaxKind.IsKeyword);
-                N(SyntaxKind.AndPattern);
-                {
-                    N(SyntaxKind.TypePattern);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.NullableType);
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Type");
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.ElementAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "and");
+                    }
+                    N(SyntaxKind.BracketedArgumentList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        M(SyntaxKind.Argument);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+                M(SyntaxKind.ColonToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void ConjunctivePattern_ConditionalExpressionInsteadOfNullableType5_2()
+        {
+            UsingExpression("x is Type ? dict[key] : default");
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Type");
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.ElementAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "dict");
+                    }
+                    N(SyntaxKind.BracketedArgumentList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Argument);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.IdentifierToken, "key");
                             }
-                            N(SyntaxKind.QuestionToken);
                         }
-                    }
-                    N(SyntaxKind.AndKeyword);
-                    N(SyntaxKind.ListPattern);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
                         N(SyntaxKind.CloseBracketToken);
                     }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.DefaultLiteralExpression);
+                {
+                    N(SyntaxKind.DefaultKeyword);
                 }
             }
             EOF();
