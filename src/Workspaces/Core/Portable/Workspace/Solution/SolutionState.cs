@@ -1225,7 +1225,7 @@ internal sealed partial class SolutionState
         // Wasn't in cache, do the linear search.
         foreach (var (_, siblingProjectState) in this.ProjectStates)
         {
-            // Don't want to search the same project that document already came from
+            // Don't want to search the same project that document already came from, or from the related-project we had a hint for.
             if (siblingProjectState == projectState || siblingProjectState == relatedProject)
                 continue;
 
