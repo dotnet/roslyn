@@ -21,6 +21,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts
         /// <param name="serviceBroker">Service broker</param>
         /// <param name="token">Cancellation token</param>
         /// <returns></returns>
-        public Task InitializeAsync(IServiceBroker serviceBroker, CancellationToken token);
+        Task InitializeAsync(IServiceBroker serviceBroker, CancellationToken token);
     }
 }
