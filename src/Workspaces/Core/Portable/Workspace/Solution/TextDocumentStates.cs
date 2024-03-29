@@ -147,7 +147,6 @@ internal sealed class TextDocumentStates<TState>
     }
 
     public TextDocumentStates<TState> AddRange(ImmutableArray<TState> states)
-        // TODO: we could more efficiently generate the new filePathToDocumentIds here.
         => new(_ids.AddRange(states.Select(state => state.Id)),
                _map.AddRange(states.Select(state => KeyValuePairUtil.Create(state.Id, state))),
                filePathToDocumentIds: null);
@@ -170,8 +169,6 @@ internal sealed class TextDocumentStates<TState>
         }
 
         IEnumerable<DocumentId> enumerableIds = ids;
-
-        // TODO: we could more efficiently generate the new filePathToDocumentIds here.
         return new(_ids.RemoveRange(enumerableIds), _map.RemoveRange(enumerableIds), filePathToDocumentIds: null);
     }
 
