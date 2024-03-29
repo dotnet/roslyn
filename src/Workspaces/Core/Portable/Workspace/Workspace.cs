@@ -309,14 +309,18 @@ public abstract partial class Workspace : IDisposable
 
         static Solution UpdateAddedDocumentToExistingContentsInSolution(Solution solution, DocumentId addedDocumentId)
         {
-            var relatedDocumentIds = solution.GetRelatedDocumentIds(addedDocumentId);
-            foreach (var relatedDocumentId in relatedDocumentIds)
-            {
-                var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
-                return solution.WithDocumentContentsFrom(addedDocumentId, relatedDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
-            }
+            // Look for a related document we can create our contents from.  We only have to look for a single related
+            // doc as we'll be done once we update our contents to theirs.  Note: GetFirstRelatedDocumentId will also
+            // not search the project that addedDocumentId came from.  So this will help ensure we don't repeatedly add
+            // documents to a project, then look for related docs *within that project*, forcing the file-path map in it
+            // to be recreated for each document.
+            var relatedDocumentId = solution.GetFirstRelatedDocumentId(addedDocumentId);
+            Contract.ThrowIfTrue(relatedDocumentId == addedDocumentId);
+            if (relatedDocumentId is null)
+                return solution;
 
-            return solution;
+            var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
+            return solution.WithDocumentContentsFrom(addedDocumentId, relatedDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
         }
 
         static Solution UpdateExistingDocumentsToChangedDocumentContents(Solution solution, DocumentId changedDocumentId, HashSet<DocumentId> processedDocuments)
@@ -329,6 +333,9 @@ public abstract partial class Workspace : IDisposable
                 var relatedDocumentIds = solution.GetRelatedDocumentIds(changedDocumentId);
                 foreach (var relatedDocumentId in relatedDocumentIds)
                 {
+                    if (relatedDocumentId == changedDocumentId)
+                        continue;
+
                     if (processedDocuments.Add(relatedDocumentId))
                         solution = solution.WithDocumentContentsFrom(relatedDocumentId, changedDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
                 }

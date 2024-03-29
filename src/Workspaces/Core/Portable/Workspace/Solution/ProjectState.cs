@@ -984,4 +984,11 @@ internal partial class ProjectState
         this.AdditionalDocumentStates.AddDocumentIdsWithFilePath(ref temporaryArray, filePath);
         this.AnalyzerConfigDocumentStates.AddDocumentIdsWithFilePath(ref temporaryArray, filePath);
     }
+
+    public DocumentId? GetFirstDocumentIdWithFilePath(string filePath)
+    {
+        return this.DocumentStates.GetFirstDocumentIdWithFilePath(filePath) ??
+            this.AdditionalDocumentStates.GetFirstDocumentIdWithFilePath(filePath) ??
+            this.AnalyzerConfigDocumentStates.GetFirstDocumentIdWithFilePath(filePath);
+    }
 }

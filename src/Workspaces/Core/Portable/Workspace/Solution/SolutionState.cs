@@ -1184,6 +1184,34 @@ internal sealed partial class SolutionState
         return Branch(analyzerReferences: analyzerReferences);
     }
 
+    public DocumentId? GetFirstRelatedDocumentId(DocumentId documentId)
+    {
+        var projectState = this.GetProjectState(documentId.ProjectId);
+        if (projectState is null)
+            return null;
+
+        var documentState = projectState.DocumentStates.GetState(documentId);
+        if (documentState is null)
+            return null;
+
+        var filePath = documentState.FilePath;
+        if (string.IsNullOrEmpty(filePath))
+            return null;
+
+        foreach (var (_, siblingProjectState) in this.ProjectStates)
+        {
+            // Don't want to search the same project that document already came from
+            if (siblingProjectState == projectState)
+                continue;
+
+            var siblingDocumentId = siblingProjectState.GetFirstDocumentIdWithFilePath(filePath);
+            if (siblingDocumentId is not null)
+                return siblingDocumentId;
+        }
+
+        return null;
+    }
+
     public ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)
     {
         var projectState = this.GetProjectState(documentId.ProjectId);

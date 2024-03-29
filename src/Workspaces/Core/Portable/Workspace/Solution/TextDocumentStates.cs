@@ -305,6 +305,16 @@ internal sealed class TextDocumentStates<TState>
         }
     }
 
+    public DocumentId? GetFirstDocumentIdWithFilePath(string filePath)
+    {
+        // Lazily initialize the file path map if not computed.
+        _filePathToDocumentIds ??= ComputeFilePathToDocumentIds();
+
+        return _filePathToDocumentIds.TryGetValue(filePath, out var oneOrMany)
+            ? oneOrMany.FirstOrDefault()
+            : null;
+    }
+
     private FrozenDictionary<string, OneOrMany<DocumentId>> ComputeFilePathToDocumentIds()
     {
         using var _ = PooledDictionary<string, OneOrMany<DocumentId>>.GetInstance(out var result);
