@@ -251,7 +251,7 @@
                                 <TextBlock x:Name="PanelLabel"
                                            x:Uid="PanelLabel"
                                            Padding="2"
-                                           Text="Generating suggestions..." />
+                                           Text="{Binding GeneratingSuggestionsLabel}" />
                                 <ProgressBar x:Name="PanelProgressBar"
                                      x:Uid="PanelProgressBar"
                                      Margin="{TemplateBinding BorderThickness}"
