@@ -312,6 +312,9 @@ public abstract partial class Workspace : IDisposable
             var relatedDocumentIds = solution.GetRelatedDocumentIds(addedDocumentId);
             foreach (var relatedDocumentId in relatedDocumentIds)
             {
+                if (relatedDocumentId == addedDocumentId)
+                    continue;
+
                 var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
                 return solution.WithDocumentContentsFrom(addedDocumentId, relatedDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
             }
