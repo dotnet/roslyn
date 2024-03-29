@@ -85,7 +85,6 @@ stages:
     configuration: Debug
     testRuns:
       - oop64bit: true
-        oopCoreClr: true
         lspEditor: false
         runName: VS_Integration_CoreHost_Debug
 
@@ -98,6 +97,5 @@ stages:
       configuration: Release
       testRuns:
         - oop64bit: true
-          oopCoreClr: true
           lspEditor: false
           runName: VS_Integration_CoreHost_Release
