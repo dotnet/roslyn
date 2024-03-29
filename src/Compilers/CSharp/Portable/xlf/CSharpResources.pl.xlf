@@ -443,8 +443,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingAdd">
-        <source>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</source>
-        <target state="translated">Typ wyrażenia kolekcji musi mieć odpowiednie wystąpienie lub metodę rozszerzenia " Dodaj ", którą można wywołać z argumentem typu iteracji „{0}”. Najlepszą metodą przeciążenia jest „{1}”.</target>
+        <source>Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</source>
+        <target state="new">Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingConstructor">

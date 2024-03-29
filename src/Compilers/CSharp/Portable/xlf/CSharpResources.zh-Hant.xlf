@@ -443,8 +443,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingAdd">
-        <source>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</source>
-        <target state="translated">集合運算式型別必須有適用的執行個體或延伸模組方法 'Add'，可以使用反覆運算型別 '{0}' 的引數來呼叫。最佳多載方法為 '{1}'。</target>
+        <source>Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</source>
+        <target state="new">Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingConstructor">
