@@ -1437,6 +1437,11 @@
         <target state="translated">生成此文件的生成器“{0}”已停止生成此文件；项目中不再包含此文件。</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_project_no_longer_exists">
+        <source>The project no longer exists</source>
+        <target state="new">The project no longer exists</target>
+        <note />
+      </trans-unit>
       <trans-unit id="This_action_cannot_be_undone_Do_you_wish_to_continue">
         <source>This action cannot be undone. Do you wish to continue?</source>
         <target state="translated">此操作无法撤消。是否要继续?</target>

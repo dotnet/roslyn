@@ -130,7 +130,7 @@ internal partial class SolutionCompilationState
             using var _2 = PooledDictionary<DocumentId, int>.GetInstance(out var documentIdToIndex);
 
             var infos = infosOpt.Value;
-            foreach (var (documentIdentity, contentIdentity) in infos)
+            foreach (var (documentIdentity, contentIdentity, _) in infos)
             {
                 var documentId = documentIdentity.DocumentId;
                 Contract.ThrowIfFalse(documentId.IsSourceGenerated);
@@ -156,6 +156,13 @@ internal partial class SolutionCompilationState
                 compilationWithStaleGeneratedTrees != null &&
                 oldGeneratedDocuments.States.All(kvp => kvp.Value.ParseOptions.Equals(this.ProjectState.ParseOptions)))
             {
+                // Even though non of the contents changed, it's possible that the timestamps on them did.
+                foreach (var (documentIdentity, _, generationDateTime) in infos)
+                {
+                    var documentId = documentIdentity.DocumentId;
+                    oldGeneratedDocuments = oldGeneratedDocuments.SetState(documentId, oldGeneratedDocuments.GetRequiredState(documentId).WithGenerationDateTime(generationDateTime));
+                }
+
                 // If there are no generated documents though, then just use the compilationWithoutGeneratedFiles so we
                 // only hold onto that single compilation from this point on.
                 return oldGeneratedDocuments.Count == 0
@@ -181,7 +188,7 @@ internal partial class SolutionCompilationState
             // Now go through and produce the new document states, using what we have already if it is unchanged, or
             // what we have retrieved for anything new/changed.
             using var generatedDocumentsBuilder = TemporaryArray<SourceGeneratedDocumentState>.Empty;
-            foreach (var (documentIdentity, contentIdentity) in infos)
+            foreach (var (documentIdentity, contentIdentity, generationDateTime) in infos)
             {
                 var documentId = documentIdentity.DocumentId;
                 Contract.ThrowIfFalse(documentId.IsSourceGenerated);
@@ -189,7 +196,7 @@ internal partial class SolutionCompilationState
                 if (documentIdToIndex.TryGetValue(documentId, out var addOrUpdateIndex))
                 {
                     // a document whose content we fetched from the remote side.
-                    var (generatedSource, generationDateTime) = generatedSources[addOrUpdateIndex];
+                    var generatedSource = generatedSources[addOrUpdateIndex];
                     var sourceText = SourceText.From(
                         generatedSource, contentIdentity.EncodingName is null ? null : Encoding.GetEncoding(contentIdentity.EncodingName), contentIdentity.ChecksumAlgorithm);
 
@@ -215,7 +222,9 @@ internal partial class SolutionCompilationState
 
                     // ParseOptions may have changed between last generation and this one.  Ensure that they are
                     // properly propagated to the generated doc.
-                    generatedDocumentsBuilder.Add(existingDocument.WithParseOptions(this.ProjectState.ParseOptions!));
+                    generatedDocumentsBuilder.Add(existingDocument
+                        .WithParseOptions(this.ProjectState.ParseOptions!)
+                        .WithGenerationDateTime(generationDateTime));
                 }
             }
 
