@@ -1198,6 +1198,20 @@ internal sealed partial class SolutionState
         if (string.IsNullOrEmpty(filePath))
             return null;
 
+        // Do a quick check if the full info for that path has already been computed and cached.
+        var fileMap = _lazyFilePathToRelatedDocumentIds;
+        if (fileMap != null && fileMap.TryGetValue(filePath, out var relatedDocumentIds))
+        {
+            foreach (var relatedDocumentId in relatedDocumentIds)
+            {
+                if (relatedDocumentId != documentId)
+                    return relatedDocumentId;
+            }
+
+            return null;
+        }
+
+        // Wasn't in cache, do the linear search.
         foreach (var (_, siblingProjectState) in this.ProjectStates)
         {
             // Don't want to search the same project that document already came from
