@@ -32,6 +32,11 @@
         <target state="translated">在交互窗口中执行所选内容。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generating_suggestions">
+        <source>Generating suggestions...</source>
+        <target state="new">Generating suggestions...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Get_AI_suggestions">
         <source>Get AI-powered rename suggestions (Ctrl+Space)</source>
         <target state="translated">获取 AI 支持的重命名建议(Ctrl+空格键)</target>

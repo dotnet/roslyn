@@ -32,6 +32,11 @@
         <target state="translated">正在於互動視窗中執行選取範圍。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generating_suggestions">
+        <source>Generating suggestions...</source>
+        <target state="new">Generating suggestions...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Get_AI_suggestions">
         <source>Get AI-powered rename suggestions (Ctrl+Space)</source>
         <target state="translated">取得 AI 支援的重新命名建議 (Ctrl+Space)</target>

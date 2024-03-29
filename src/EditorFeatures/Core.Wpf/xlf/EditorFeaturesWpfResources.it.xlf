@@ -32,6 +32,11 @@
         <target state="translated">Esecuzione della selezione nella finestra interattiva.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generating_suggestions">
+        <source>Generating suggestions...</source>
+        <target state="new">Generating suggestions...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Get_AI_suggestions">
         <source>Get AI-powered rename suggestions (Ctrl+Space)</source>
         <target state="translated">Ottieni suggerimenti di ridenominazione basati sull'intelligenza artificiale (CTRL+BARRA SPAZIATRICE)</target>

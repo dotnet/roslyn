@@ -32,6 +32,11 @@
         <target state="translated">Die Auswahl wird im Interactive-Fenster ausgeführt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generating_suggestions">
+        <source>Generating suggestions...</source>
+        <target state="new">Generating suggestions...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Get_AI_suggestions">
         <source>Get AI-powered rename suggestions (Ctrl+Space)</source>
         <target state="translated">KI-gestützte Umbenennungsvorschläge abrufen (STRG+LEERTASTE)</target>
