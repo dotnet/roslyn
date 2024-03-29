@@ -1312,6 +1312,11 @@
         <target state="translated">Zobrazit seznam pro doplňování</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
+        <source>Show guides for comments and preprocessor regions</source>
+        <target state="new">Show guides for comments and preprocessor regions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">
         <source>Show hints for everything else</source>
         <target state="translated">Zobrazit nápovědy pro všechno ostatní</target>
