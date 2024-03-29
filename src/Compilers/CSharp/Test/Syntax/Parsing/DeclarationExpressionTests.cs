@@ -177,6 +177,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             EOF();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void NullableTypeTest_03_2()
+        {
+            UsingStatement("if (e is int ? x : y) {}");
+
+            N(SyntaxKind.IfStatement);
+            {
+                N(SyntaxKind.IfKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.ConditionalExpression);
+                {
+                    N(SyntaxKind.IsExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
         [Fact]
         public void NullableTypeTest_04()
         {
