@@ -9,7 +9,7 @@ using System.Windows.Data;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Converters;
 
-internal class NullableBoolOptionConverter(Func<bool> onNullValue) : IValueConverter
+internal sealed class NullableBoolOptionConverter(Func<bool> onNullValue) : IValueConverter
 {
     public object Convert(object? value, Type targetType, object parameter, CultureInfo culture)
         => value switch
