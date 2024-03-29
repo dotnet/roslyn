@@ -16,11 +16,12 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 
-internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
+internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
 {
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
     private readonly ISmartRenameSessionWrapper _smartRenameSession;
@@ -124,6 +125,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
         var getSuggestionsAutomatically = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
         IsUsingResultPanel = getSuggestionsAutomatically;
         IsUsingDropdown = !IsUsingResultPanel;
+        SetupTelemetry();
         if (IsUsingResultPanel && IsSuggestionsPanelExpanded)
         {
             OnGetSuggestionsCommandExecute();
@@ -142,6 +144,11 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
         {
             var listener = _listenerProvider.GetListener(FeatureAttribute.SmartRename);
             var listenerToken = listener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
+            if (IsUsingDropdown && _suggestionsDropdownTelemetry is not null)
+            {
+                _suggestionsDropdownTelemetry.DropdownButtonClickTimes += 1;
+            }
+
             _getSuggestionsTask = _smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
         }
     }
@@ -198,12 +205,14 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
         _cancellationTokenSource.Cancel();
         // It's needed by editor-side telemetry.
         _smartRenameSession.OnCancel();
+        PostTelemetry(isCommit: false);
     }
 
     public void Commit(string finalIdentifierName)
     {
         // It's needed by editor-side telemetry.
         _smartRenameSession.OnSuccess(finalIdentifierName);
+        PostTelemetry(isCommit: true);
     }
 
     public void Dispose()
