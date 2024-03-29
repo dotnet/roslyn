@@ -5614,4 +5614,66 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72701")]
+    public async Task TestNotWithObservableCollection1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.ObjectModel;
+
+                class C
+                {
+                    void M()
+                    {
+                        IList<string> strings = new ObservableCollection<string>();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72701")]
+    public async Task TestNotWithObservableCollection2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.ObjectModel;
+
+                class C
+                {
+                    void M()
+                    {
+                        ObservableCollection<string> strings = [|new|] ObservableCollection<string>();
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.ObjectModel;
+
+                class C
+                {
+                    void M()
+                    {
+                        ObservableCollection<string> strings = [];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }
