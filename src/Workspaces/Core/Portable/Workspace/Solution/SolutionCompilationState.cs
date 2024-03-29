@@ -1478,14 +1478,15 @@ internal sealed partial class SolutionCompilationState
         AddToMultiDictionary(
             documentInfos,
             keySelector: static documentInfo => documentInfo.Id.ProjectId,
-            valueSelector: documentInfo =>
+            valueSelector: static (documentInfo, arg) =>
             {
                 var projectId = documentInfo.Id.ProjectId;
 
-                this.SolutionState.CheckContainsProject(projectId);
-                var projectState = this.SolutionState.GetRequiredProjectState(projectId);
-                return createDocumentState(documentInfo, projectState);
+                arg.self.SolutionState.CheckContainsProject(projectId);
+                var projectState = arg.self.SolutionState.GetRequiredProjectState(projectId);
+                return arg.createDocumentState(documentInfo, projectState);
             },
+            arg: (self: this, createDocumentState),
             documentStatesByProjectId);
 
         return AddDocumentsToMultipleProjects(
@@ -1540,7 +1541,8 @@ internal sealed partial class SolutionCompilationState
         AddToMultiDictionary(
             documentIds,
             keySelector: static documentId => documentId.ProjectId,
-            valueSelector: static documentId => documentId,
+            valueSelector: static (documentId, _) => documentId,
+            default(VoidResult),
             documentIdsByProjectId);
 
         using var _2 = ArrayBuilder<TranslationAction>.GetInstance(documentIdsByProjectId.Count, out var translationActions);
@@ -1586,11 +1588,12 @@ internal sealed partial class SolutionCompilationState
         return newCompilationState;
     }
 
-    private static void AddToMultiDictionary<TKey, TValue, TData>(
-            ImmutableArray<TData> data,
-            Func<TData, TKey> keySelector,
-            Func<TData, TValue> valueSelector,
-            Dictionary<TKey, ArrayBuilder<TValue>> valuesByKey)
+    private static void AddToMultiDictionary<TKey, TValue, TData, TArg>(
+        ImmutableArray<TData> data,
+        Func<TData, TKey> keySelector,
+        Func<TData, TArg, TValue> valueSelector,
+        TArg arg,
+        Dictionary<TKey, ArrayBuilder<TValue>> valuesByKey)
             where TKey : notnull
     {
         // Collect the counts so we can preallocate the correct amount for each key.
@@ -1598,10 +1601,7 @@ internal sealed partial class SolutionCompilationState
         foreach (var d in data)
         {
             var key = keySelector(d);
-            if (!countsForKeys.TryGetValue(key, out var count))
-                countsForKeys[key] = 1;
-            else
-                countsForKeys[key] = count + 1;
+            countsForKeys[key] = countsForKeys.TryGetValue(key, out var count) ? count + 1 : 1;
         }
 
         foreach (var d in data)
@@ -1614,7 +1614,7 @@ internal sealed partial class SolutionCompilationState
                 valuesByKey.Add(key, valuesBuilder);
             }
 
-            var value = valueSelector(d);
+            var value = valueSelector(d, arg);
             valuesBuilder.Add(value);
         }
     }
