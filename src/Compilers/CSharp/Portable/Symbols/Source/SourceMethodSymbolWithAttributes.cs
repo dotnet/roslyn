@@ -5,11 +5,13 @@
 #nullable disable
 
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -942,25 +944,78 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void DecodeInterceptsLocationAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
-            Debug.Assert(arguments.AttributeSyntaxOpt is object);
             Debug.Assert(!arguments.Attribute.HasErrors);
-            var attributeData = arguments.Attribute;
-            var attributeArguments = attributeData.CommonConstructorArguments;
-            if (attributeArguments is not [
+            var constructorArguments = arguments.Attribute.CommonConstructorArguments;
+            if (constructorArguments is [
                 { Type.SpecialType: SpecialType.System_String },
                 { Kind: not TypedConstantKind.Array, Value: int lineNumberOneBased },
                 { Kind: not TypedConstantKind.Array, Value: int characterNumberOneBased }])
             {
-                // Since the attribute does not have errors (asserted above), it should be guaranteed that we have the above arguments.
-                throw ExceptionUtilities.Unreachable();
+                DecodeInterceptsLocationAttributeExperimentalCompat(arguments, attributeFilePath: (string?)constructorArguments[0].Value, lineNumberOneBased, characterNumberOneBased);
+            }
+            else
+            {
+                Debug.Assert(arguments.Attribute.AttributeConstructor.Parameters is [{ Type.SpecialType: SpecialType.System_Int32 }, { Type.SpecialType: SpecialType.System_String }]);
+                DecodeInterceptsLocationChecksumBased(arguments, version: (int)constructorArguments[0].Value!, data: (string?)constructorArguments[1].Value);
+            }
+        }
+
+        private void DecodeInterceptsLocationChecksumBased(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, int version, string? data)
+        {
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+            if (version != 1)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationUnsupportedVersion, arguments.Attribute.GetAttributeArgumentLocation(parameterIndex: 0));
+                return;
             }
 
-            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+            if (data is null)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, arguments.Attribute.GetAttributeArgumentLocation(parameterIndex: 1));
+                return;
+            }
+
+            byte[] bytes;
+            try
+            {
+                bytes = Convert.FromBase64String(data);
+            }
+            catch (FormatException)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, arguments.Attribute.GetAttributeArgumentLocation(parameterIndex: 1));
+                return;
+            }
+
+            // format:
+            // - 16 bytes of hash (xxHash128)
+            // - int32 line number (little endian)
+            // - int32 character number (little endian)
+            // - utf-8 display filename
+            const int minLength = 16 + 4 + 4;
+            if (bytes.Length < minLength)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, arguments.Attribute.GetAttributeArgumentLocation(parameterIndex: 1));
+                return;
+            }
+
+            var hash = bytes.AsMemory(start: 0, length: 16);
+            var lineNumberOneBased = BinaryPrimitives.ReadInt32LittleEndian(bytes.AsSpan(start: 16));
+            var characterNumberOneBased = BinaryPrimitives.ReadInt32LittleEndian(bytes.AsSpan(start: 20));
+
+            string displayFileName;
+            try
+            {
+                displayFileName = Encoding.UTF8.GetString(bytes, index: 24, count: bytes.Length - minLength);
+            }
+            catch (ArgumentException)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, arguments.Attribute.GetAttributeArgumentLocation(parameterIndex: 1));
+                return;
+            }
+
             var attributeSyntax = arguments.AttributeSyntaxOpt;
+            Debug.Assert(attributeSyntax is object);
             var attributeLocation = attributeSyntax.Location;
-            const int filePathParameterIndex = 0;
-            const int lineNumberParameterIndex = 1;
-            const int characterNumberParameterIndex = 2;
 
             var interceptorsNamespaces = ((CSharpParseOptions)attributeSyntax.SyntaxTree.Options).InterceptorsPreviewNamespaces;
             var thisNamespaceNames = getNamespaceNames();
@@ -973,7 +1028,178 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             thisNamespaceNames.Free();
 
-            var attributeFilePath = (string?)attributeArguments[0].Value;
+            var attributeData = arguments.Attribute;
+
+            if (ContainingType.IsGenericType)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorContainingTypeCannotBeGeneric, attributeLocation, this);
+                return;
+            }
+
+            if (MethodKind != MethodKind.Ordinary)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorMethodMustBeOrdinary, attributeLocation);
+                return;
+            }
+
+            Debug.Assert(_lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed);
+            var unmanagedCallersOnly = this.GetUnmanagedCallersOnlyAttributeData(forceComplete: false);
+            if (unmanagedCallersOnly != null)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorCannotUseUnmanagedCallersOnly, attributeLocation);
+                return;
+            }
+
+            var matchingTrees = DeclaringCompilation.GetSyntaxTreesByContentHash(hash);
+            if (matchingTrees.Count > 1)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDuplicateFile, attributeData.GetAttributeArgumentLocation(1), displayFileName);
+                return;
+            }
+
+            if (matchingTrees.Count == 0)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationFileNotFound, attributeData.GetAttributeArgumentLocation(1), displayFileName);
+                return;
+            }
+
+            Debug.Assert(matchingTrees.Count == 1);
+            SyntaxTree? matchingTree = matchingTrees[0];
+            // Internally, line and character numbers are 0-indexed, but when they appear in code or diagnostic messages, they are 1-indexed.
+            int lineNumberZeroBased = lineNumberOneBased - 1;
+            int characterNumberZeroBased = characterNumberOneBased - 1;
+
+            if (lineNumberZeroBased < 0 || characterNumberZeroBased < 0)
+            {
+                var location = attributeData.GetAttributeArgumentLocation(1);
+                diagnostics.Add(ErrorCode.ERR_InterceptorLineCharacterMustBePositive, location);
+                return;
+            }
+
+            var referencedLines = matchingTree.GetText().Lines;
+            var referencedLineCount = referencedLines.Count;
+
+            if (lineNumberZeroBased >= referencedLineCount)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorLineOutOfRange, attributeData.GetAttributeArgumentLocation(1), referencedLineCount, lineNumberOneBased);
+                return;
+            }
+
+            var line = referencedLines[lineNumberZeroBased];
+            var lineLength = line.End - line.Start;
+            if (characterNumberZeroBased >= lineLength)
+            {
+                diagnostics.Add(ErrorCode.ERR_InterceptorCharacterOutOfRange, attributeData.GetAttributeArgumentLocation(1), lineLength, characterNumberOneBased);
+                return;
+            }
+
+            var referencedPosition = line.Start + characterNumberZeroBased;
+            var root = matchingTree.GetRoot();
+            var referencedToken = root.FindToken(referencedPosition);
+            switch (referencedToken)
+            {
+                case { Parent: SimpleNameSyntax { Parent: MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax } memberAccess } rhs } when memberAccess.Name == rhs:
+                case { Parent: SimpleNameSyntax { Parent: InvocationExpressionSyntax invocation } simpleName } when invocation.Expression == simpleName:
+                    // happy case
+                    break;
+                case { Parent: SimpleNameSyntax { Parent: not MemberAccessExpressionSyntax } }:
+                case { Parent: SimpleNameSyntax { Parent: MemberAccessExpressionSyntax memberAccess } rhs } when memberAccess.Name == rhs:
+                    // NB: there are all sorts of places "simple names" can appear in syntax. With these checks we are trying to
+                    // minimize confusion about why the name being used is not *interceptable*, but it's done on a best-effort basis.
+                    diagnostics.Add(ErrorCode.ERR_InterceptorNameNotInvoked, attributeLocation, referencedToken.Text);
+                    return;
+                default:
+                    diagnostics.Add(ErrorCode.ERR_InterceptorPositionBadToken, attributeLocation, referencedToken.Text);
+                    return;
+            }
+
+            // Did they actually refer to the start of the token, not the middle, or in trivia?
+            if (referencedPosition != referencedToken.Span.Start)
+            {
+                var linePositionZeroBased = referencedToken.GetLocation().GetLineSpan().StartLinePosition;
+                diagnostics.Add(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, attributeLocation, referencedToken.Text, linePositionZeroBased.Line + 1, linePositionZeroBased.Character + 1);
+                return;
+            }
+
+            DeclaringCompilation.AddInterception(matchingTree.FilePath, lineNumberZeroBased, characterNumberZeroBased, attributeLocation, this);
+
+            // Caller must free the returned builder.
+            ArrayBuilder<string> getNamespaceNames()
+            {
+                var namespaceNames = ArrayBuilder<string>.GetInstance();
+                for (var containingNamespace = ContainingNamespace; containingNamespace?.IsGlobalNamespace == false; containingNamespace = containingNamespace.ContainingNamespace)
+                    namespaceNames.Add(containingNamespace.Name);
+                // order outermost->innermost
+                // e.g. for method MyApp.Generated.Interceptors.MyInterceptor(): ["MyApp", "Generated", "Interceptors"]
+                namespaceNames.ReverseContents();
+                return namespaceNames;
+            }
+
+            static bool isDeclaredInNamespace(ArrayBuilder<string> thisNamespaceNames, ImmutableArray<string> namespaceSegments)
+            {
+                Debug.Assert(namespaceSegments.Length > 0);
+                if (namespaceSegments is ["global"])
+                {
+                    return true;
+                }
+
+                if (namespaceSegments.Length > thisNamespaceNames.Count)
+                {
+                    // the enabled NS has more components than interceptor's NS, so it will never match.
+                    return false;
+                }
+
+                for (var i = 0; i < namespaceSegments.Length; i++)
+                {
+                    if (namespaceSegments[i] != thisNamespaceNames[i])
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            static void reportFeatureNotEnabled(BindingDiagnosticBag diagnostics, AttributeSyntax attributeSyntax, ArrayBuilder<string> namespaceNames)
+            {
+                if (namespaceNames.Count == 0)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterceptorGlobalNamespace, attributeSyntax);
+                }
+                else
+                {
+                    var recommendedProperty = $"<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);{string.Join(".", namespaceNames)}</InterceptorsPreviewNamespaces>";
+                    diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeSyntax, recommendedProperty);
+                }
+            }
+        }
+
+        // https://github.com/dotnet/roslyn/issues/72265: Remove support for path-based interceptors prior to stable release.
+        private void DecodeInterceptsLocationAttributeExperimentalCompat(
+            DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments,
+            string? attributeFilePath,
+            int lineNumberOneBased,
+            int characterNumberOneBased)
+        {
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+            var attributeSyntax = arguments.AttributeSyntaxOpt;
+            Debug.Assert(attributeSyntax is object);
+            var attributeLocation = attributeSyntax.Location;
+            int filePathParameterIndex = 0;
+            int lineNumberParameterIndex = 1;
+            int characterNumberParameterIndex = 2;
+
+            var interceptorsNamespaces = ((CSharpParseOptions)attributeSyntax.SyntaxTree.Options).InterceptorsPreviewNamespaces;
+            var thisNamespaceNames = getNamespaceNames();
+            var foundAnyMatch = interceptorsNamespaces.Any(ns => isDeclaredInNamespace(thisNamespaceNames, ns));
+            if (!foundAnyMatch)
+            {
+                reportFeatureNotEnabled(diagnostics, attributeSyntax, thisNamespaceNames);
+                thisNamespaceNames.Free();
+                return;
+            }
+            thisNamespaceNames.Free();
+
+            var attributeData = arguments.Attribute;
             if (attributeFilePath is null)
             {
                 diagnostics.Add(ErrorCode.ERR_InterceptorFilePathCannotBeNull, attributeData.GetAttributeArgumentLocation(filePathParameterIndex));

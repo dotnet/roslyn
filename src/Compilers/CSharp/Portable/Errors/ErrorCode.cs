@@ -2302,6 +2302,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_NoModifiersOnUsing = 9229,
 
+        ERR_InterceptsLocationDataInvalidFormat = 9230,
+        ERR_InterceptsLocationUnsupportedVersion = 9231,
+        ERR_InterceptsLocationDuplicateFile = 9232,
+        ERR_InterceptsLocationFileNotFound = 9233,
+
         #endregion
 
         // Note: you will need to do the following after adding warnings:

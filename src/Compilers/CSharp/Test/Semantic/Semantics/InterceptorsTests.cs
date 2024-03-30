@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -21,15 +22,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
 public class InterceptorsTests : CSharpTestBase
 {
-    private static readonly (string, string) s_attributesSource = ("""
+    private static readonly (string text, string path) s_attributesSource = ("""
         namespace System.Runtime.CompilerServices;
 
         [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
         public sealed class InterceptsLocationAttribute : Attribute
         {
-            public InterceptsLocationAttribute(string filePath, int line, int character)
-            {
-            }
+            public InterceptsLocationAttribute(string filePath, int line, int character) { }
+            public InterceptsLocationAttribute(int version, string data) { }
         }
         """, "attributes.cs");
 
@@ -6421,5 +6421,274 @@ partial struct CustomHandler
             Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, @"InterceptsLocation(""Program.cs"", 1, 3)").WithArguments("<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Interceptors</InterceptorsPreviewNamespaces>").WithLocation(8, 10));
 
         Assert.Null(model.GetInterceptorMethod(call));
+    }
+
+    [Fact]
+    public void Checksum_01()
+    {
+        var source = CSharpTestSource.Parse("""
+            class C
+            {
+                static void M() => throw null!;
+
+                static void Main()
+                {
+                    M();
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+
+            static class Interceptors
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1() => Console.Write(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)], expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+
+        // again, but using the accessors for specifically retrieving the individual attribute arguments
+        interceptors = CSharpTestSource.Parse($$"""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            static class Interceptors
+            {
+                [InterceptsLocation({{locationSpecifier!.Version}}, "{{locationSpecifier.Data}}")]
+                public static void M1() => Console.Write(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        verifier = CompileAndVerify([source, interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)], expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Checksum_02()
+    {
+        var tree = CSharpTestSource.Parse("""
+            class C
+            {
+                static void M() => throw null!;
+
+                static void Main()
+                {
+                    M();
+                }
+            }
+            """.NormalizeLineEndings(), "path/to/Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(tree);
+        var model = comp.GetSemanticModel(tree);
+        var node = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        // Verify behaviors of the public APIs.
+        Assert.Equal("path/to/Program.cs(7,9)", locationSpecifier.GetDisplayLocation());
+        Assert.Equal(1, locationSpecifier.Version);
+        Assert.Equal(locationSpecifier, locationSpecifier);
+
+        Assert.NotSame(locationSpecifier, model.GetInterceptableLocation(node));
+        Assert.Equal(locationSpecifier, model.GetInterceptableLocation(node));
+        Assert.Equal(locationSpecifier.GetHashCode(), model.GetInterceptableLocation(node)!.GetHashCode());
+
+        // If Data changes it might be the case that 'SourceText.GetContentHash()' has changed algorithms.
+        // In this case we need to adjust the SourceMethodSymbolWithAttributes.DecodeInterceptsLocationAttribute impl to remain compatible with v1 and consider introducing a v2 which uses the new content hash algorithm.
+        AssertEx.Equal("jB4qgCy292LkEGCwmD+R6AcAAAAJAAAAUHJvZ3JhbS5jcw==", locationSpecifier.Data);
+        AssertEx.Equal("""[global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, "jB4qgCy292LkEGCwmD+R6AcAAAAJAAAAUHJvZ3JhbS5jcw==")]""", locationSpecifier.GetInterceptsLocationAttributeSyntax());
+    }
+
+    [Fact]
+    public void Checksum_03()
+    {
+        // Invalid base64
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            static class Interceptors
+            {
+                [InterceptsLocation(1, "jB4qgCy292LkEGCwmD+R6AcAAAAJAAAAUHJvZ3JhbS5jcw===")]
+                public static void M1() => Console.Write(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation([interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
+        comp.VerifyEmitDiagnostics(
+            // Interceptors.cs(6,28): error CS9229: The data argument to InterceptsLocationAttribute is not in the correct format.
+            //     [InterceptsLocation(1, "jB4qgCy292LkEGCwmD+R6AcAAAAJAAAAUHJvZ3JhbS5jcw===")]
+            Diagnostic(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, @"""jB4qgCy292LkEGCwmD+R6AcAAAAJAAAAUHJvZ3JhbS5jcw===""").WithLocation(6, 28));
+    }
+
+    [Fact]
+    public void Checksum_04()
+    {
+        // Test invalid UTF-8 encoded to base64
+
+        var builder = new BlobBuilder();
+        // all zeros checksum and zero line and column numbers (which are also invalid, but won't be foudn with this particular test)
+        builder.WriteBytes(value: 0, byteCount: 12);
+
+        // write invalid utf-8
+        builder.WriteByte(0xc0);
+
+        var base64 = Convert.ToBase64String(builder.ToArray());
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            static class Interceptors
+            {
+                [InterceptsLocation(1, "{{base64}}")]
+                public static void M1() => Console.Write(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation([interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
+        comp.VerifyEmitDiagnostics(
+            // Interceptors.cs(6,28): error CS9229: The data argument to InterceptsLocationAttribute is not in the correct format.
+            //     [InterceptsLocation(1, "AAAAAAAAAAAAAAAAwA==")]
+            Diagnostic(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, @"""AAAAAAAAAAAAAAAAwA==""").WithLocation(6, 28));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("AA==")]
+    public void Checksum_05(string data)
+    {
+        // Test data value too small
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            static class Interceptors
+            {
+                [InterceptsLocation(1, "{{data}}")]
+                public static void M1() => Console.Write(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation([interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
+        comp.VerifyEmitDiagnostics(
+            // Interceptors.cs(6,28): error CS9229: The data argument to InterceptsLocationAttribute is not in the correct format.
+            //     [InterceptsLocation(1, "{data}")]
+            Diagnostic(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, $@"""{data}""").WithLocation(6, 28));
+    }
+
+    [Fact]
+    public void Checksum_06()
+    {
+        // Null data
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            static class Interceptors
+            {
+                [InterceptsLocation(1, null)]
+                public static void M1() => Console.Write(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation([interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
+        comp.VerifyEmitDiagnostics(
+            // Interceptors.cs(6,28): error CS9229: The data argument to InterceptsLocationAttribute is not in the correct format.
+            //     [InterceptsLocation(1, null)]
+            Diagnostic(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, "null").WithLocation(6, 28));
+    }
+
+    [Fact]
+    public void Checksum_07()
+    {
+        // File not found
+
+        var source = CSharpTestSource.Parse("""
+            class C
+            {
+                static void M() => throw null!;
+
+                static void Main()
+                {
+                    M();
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            static class Interceptors
+            {
+                [InterceptsLocation({{locationSpecifier.Version}}, "{{locationSpecifier.Data}}")]
+                public static void M1() => Console.Write(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var comp1 = CreateCompilation([interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
+        comp1.VerifyEmitDiagnostics(
+            // Interceptors.cs(6,28): error CS9232: Cannot intercept a call in file 'Program.cs' because a matching file was not found in the compilation.
+            //     [InterceptsLocation(1, "jB4qgCy292LkEGCwmD+R6AcAAAAJAAAAUHJvZ3JhbS5jcw==")]
+            Diagnostic(ErrorCode.ERR_InterceptsLocationFileNotFound, @"""jB4qgCy292LkEGCwmD+R6AcAAAAJAAAAUHJvZ3JhbS5jcw==""").WithArguments("Program.cs").WithLocation(6, 28));
+    }
+
+    [Fact]
+    public void Checksum_08()
+    {
+        // Duplicate file
+
+        var source = """
+            class C
+            {
+                static void M() => throw null!;
+
+                static void Main()
+                {
+                    M();
+                }
+            }
+            """;
+        var sourceTree1 = CSharpTestSource.Parse(source, path: "Program1.cs", options: RegularWithInterceptors);
+
+        var comp = CreateCompilation(sourceTree1);
+        var model = comp.GetSemanticModel(sourceTree1);
+        var node = sourceTree1.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            static class Interceptors
+            {
+                [InterceptsLocation({{locationSpecifier.Version}}, "{{locationSpecifier.Data}}")]
+                public static void M1() => Console.Write(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var comp1 = CreateCompilation([
+            sourceTree1,
+            CSharpTestSource.Parse(source, path: "Program2.cs", options: RegularWithInterceptors),
+            interceptors,
+            CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
+        comp1.GetDiagnostics().Where(d => d.Location.SourceTree == interceptors).Verify(
+            // Interceptors.cs(6,28): error CS9231: Cannot intercept a call in file 'Program1.cs' because it is duplicated elsewhere in the compilation.
+            //     [InterceptsLocation(1, "{data}")]
+            Diagnostic(ErrorCode.ERR_InterceptsLocationDuplicateFile, $@"""{locationSpecifier.Data}""").WithArguments("Program1.cs").WithLocation(6, 28));
     }
 }

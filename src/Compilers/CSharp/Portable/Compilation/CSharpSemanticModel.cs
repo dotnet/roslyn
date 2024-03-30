@@ -5214,6 +5214,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
+
+#pragma warning disable RSEXPERIMENTAL002 // Internal usage of experimental API
+        public InterceptableLocation? GetInterceptableLocation(InvocationExpressionSyntax node)
+        {
+            CheckSyntaxNode(node);
+            if (node.GetInterceptableNameSyntax() is not { } nameSyntax)
+            {
+                return null;
+            }
+
+            var tree = node.SyntaxTree;
+            var text = tree.GetText();
+            var path = tree.FilePath;
+            var checksum = text.GetContentHash();
+
+            var lineSpan = nameSyntax.Location.GetLineSpan().Span.Start;
+            var lineNumberOneIndexed = lineSpan.Line + 1;
+            var characterNumberOneIndexed = lineSpan.Character + 1;
+
+            return new InterceptableLocation1(checksum, path, lineNumberOneIndexed, characterNumberOneIndexed);
+        }
 #nullable disable
 
         protected static SynthesizedPrimaryConstructor TryGetSynthesizedPrimaryConstructor(TypeDeclarationSyntax node, NamedTypeSymbol type)

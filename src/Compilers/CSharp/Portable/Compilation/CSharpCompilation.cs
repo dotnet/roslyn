@@ -160,7 +160,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableSegmentedDictionary<string, OneOrMany<SyntaxTree>> _mappedPathToSyntaxTree;
 
         /// <summary>Lazily caches SyntaxTrees by their path. Used to look up the syntax tree referenced by an interceptor.</summary>
+        /// <remarks>Must be removed prior to interceptors stable release.</remarks>
         private ImmutableSegmentedDictionary<string, OneOrMany<SyntaxTree>> _pathToSyntaxTree;
+
+        /// <summary>Lazily caches SyntaxTrees by their xxHash128 checksum. Used to look up the syntax tree referenced by an interceptor.</summary>
+        private ImmutableSegmentedDictionary<ReadOnlyMemory<byte>, OneOrMany<SyntaxTree>> _contentHashToSyntaxTree;
 
         public override string Language
         {
@@ -1070,6 +1074,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var path = resolver?.NormalizePath(tree.FilePath, baseFilePath: null) ?? tree.FilePath;
                     builder[path] = builder.ContainsKey(path) ? builder[path].Add(tree) : OneOrMany.Create(tree);
+                }
+                return builder.ToImmutable();
+            }
+        }
+
+        private class ContentHashComparer : IEqualityComparer<ReadOnlyMemory<byte>>
+        {
+            public bool Equals(ReadOnlyMemory<byte> x, ReadOnlyMemory<byte> y)
+            {
+                return x.Span.SequenceEqual(y.Span);
+            }
+
+            public int GetHashCode(ReadOnlyMemory<byte> obj)
+            {
+                return Hash.GetFNVHashCode(obj.Span, out _);
+            }
+
+            public static ContentHashComparer Instance { get; } = new ContentHashComparer();
+        }
+
+        internal OneOrMany<SyntaxTree> GetSyntaxTreesByContentHash(ReadOnlyMemory<byte> contentHash)
+        {
+            var contentHashToSyntaxTree = _contentHashToSyntaxTree;
+            if (contentHashToSyntaxTree.IsDefault)
+            {
+                RoslynImmutableInterlocked.InterlockedInitialize(ref _contentHashToSyntaxTree, computeHashToSyntaxTree());
+                contentHashToSyntaxTree = _contentHashToSyntaxTree;
+            }
+
+            return contentHashToSyntaxTree.TryGetValue(contentHash, out var value) ? value : OneOrMany<SyntaxTree>.Empty;
+
+            ImmutableSegmentedDictionary<ReadOnlyMemory<byte>, OneOrMany<SyntaxTree>> computeHashToSyntaxTree()
+            {
+                var builder = ImmutableSegmentedDictionary.CreateBuilder<ReadOnlyMemory<byte>, OneOrMany<SyntaxTree>>(ContentHashComparer.Instance);
+                foreach (var tree in SyntaxTrees)
+                {
+                    var text = tree.GetText();
+                    var hash = text.GetContentHash().AsMemory();
+                    builder[hash] = builder.ContainsKey(hash) ? builder[hash].Add(tree) : OneOrMany.Create(tree);
                 }
                 return builder.ToImmutable();
             }

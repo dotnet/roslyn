@@ -2431,6 +2431,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ParamsCollectionExtensionAddMethod:
                 case ErrorCode.ERR_ParamsCollectionMissingConstructor:
                 case ErrorCode.ERR_NoModifiersOnUsing:
+                case ErrorCode.ERR_InterceptsLocationDataInvalidFormat:
+                case ErrorCode.ERR_InterceptsLocationUnsupportedVersion:
+                case ErrorCode.ERR_InterceptsLocationDuplicateFile:
+                case ErrorCode.ERR_InterceptsLocationFileNotFound:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
