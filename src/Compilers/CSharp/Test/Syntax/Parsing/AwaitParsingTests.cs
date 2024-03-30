@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -1145,6 +1146,197 @@ async () => {
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void AwaitInConditionalExpressionAfterPattern1()
+        {
+            UsingExpression("x is int ? await y : z");
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.AwaitExpression);
+                {
+                    N(SyntaxKind.AwaitKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "z");
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void AwaitInConditionalExpressionAfterPattern2()
+        {
+            UsingExpression("x is int ? await this.SomeMethodAsync() : z");
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.AwaitExpression);
+                {
+                    N(SyntaxKind.AwaitKeyword);
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.ThisExpression);
+                            {
+                                N(SyntaxKind.ThisKeyword);
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "SomeMethodAsync");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "z");
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void AwaitInConditionalExpressionAfterPattern3()
+        {
+            UsingExpression("x is int ? await base.SomeMethodAsync() : z");
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.AwaitExpression);
+                {
+                    N(SyntaxKind.AwaitKeyword);
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.BaseExpression);
+                            {
+                                N(SyntaxKind.BaseKeyword);
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "SomeMethodAsync");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "z");
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void AwaitInConditionalExpressionAfterPattern4()
+        {
+            UsingExpression("x is int ? await (myTask) : z");
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "await");
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "myTask");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "z");
+                }
+            }
+            EOF();
         }
 
         #region AwaitExpressionInSyncContext

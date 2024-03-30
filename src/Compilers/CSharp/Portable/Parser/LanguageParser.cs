@@ -7069,7 +7069,7 @@ done:;
                         // For backward compatibility we want to consider a `?` token as part of the `?:` operator if possible.
                         // However, if current token is an identifier, it might be beneficial to allow `?`
                         // and treat this identifier as a designation. Nullable types in patterns are semantically invalid,
-                        // so we will get a nice error about that during binding.
+                        // so we will get a nice error about that during binding
                         if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
                         {
                             // Given that we are deciding whether we take `?:` operator or not while looking at state after `?`,
@@ -7086,11 +7086,19 @@ done:;
                                 return true;
                             }
 
+                            // Special case for `await`: if current token is an `await` identifier and the next token
+                            // can start an expression, prefer parsing conditional expression
+                            // rather than having `await` as a pattern designation
+                            if (this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword)
+                            {
+                                using var _ = GetDisposableResetPoint(resetOnDispose: true);
+                                this.EatToken();
+                                return !CanStartExpression();
+                            }
+
                             var nextTokenKind = PeekToken(1).Kind;
 
-                            // These token either 100% end a pattern or start a new one (again, in cases with missing `,` and so on).
-                            // Note, that some cases of 'token starts a new pattern' are handled by condition above,
-                            // e.g. starting of type patterns
+                            // These token either 100% end a pattern or start a new one
                             return SyntaxFacts.IsLiteral(nextTokenKind) ||
                                    SyntaxFacts.IsPredefinedType(nextTokenKind) ||
                                    nextTokenKind is SyntaxKind.CloseParenToken
