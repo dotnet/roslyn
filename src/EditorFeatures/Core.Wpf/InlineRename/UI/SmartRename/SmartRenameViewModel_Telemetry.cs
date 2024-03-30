@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Editor.InlineRename;
+using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
 using Roslyn.Utilities;
@@ -51,6 +52,7 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
                     m["UseSuggestionsPanel"] = true;
                     m[nameof(SuggestionsPanelTelemetry.CollapseSuggestionsPanelWhenRenameStarts)] = _suggestionsPanelTelemetry.CollapseSuggestionsPanelWhenRenameStarts;
                     m["CollapseSuggestionsPanelWhenRenameEnds"] = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
+                    m["smartRenameSessionInProgress"] = _smartRenameSession.IsInProgress;
                 }));
             }
             else
@@ -61,6 +63,7 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
                     m[nameof(isCommit)] = isCommit;
                     m["UseDropDown"] = true;
                     m[nameof(SuggestionsDropdownTelemetry.DropdownButtonClickTimes)] = _suggestionsDropdownTelemetry.DropdownButtonClickTimes;
+                    m["smartRenameSessionInProgress"] = _smartRenameSession.IsInProgress;
                 }));
             }
         }
