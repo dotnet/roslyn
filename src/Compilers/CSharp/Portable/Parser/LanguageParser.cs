@@ -7086,22 +7086,19 @@ done:;
                                 return true;
                             }
 
-                            using var _ = GetDisposableResetPoint(resetOnDispose: true);
-                            this.EatToken();
-
-                            var currentTokenKind = this.CurrentToken.Kind;
+                            var nextTokenKind = PeekToken(1).Kind;
 
                             // These token either 100% end a pattern or start a new one (again, in cases with missing `,` and so on).
                             // Note, that some cases of 'token starts a new pattern' are handled by condition above,
                             // e.g. starting of type patterns
-                            return SyntaxFacts.IsLiteral(currentTokenKind) ||
-                                   SyntaxFacts.IsPredefinedType(currentTokenKind) ||
-                                   currentTokenKind is SyntaxKind.CloseParenToken
-                                                    or SyntaxKind.OpenBraceToken
-                                                    or SyntaxKind.CloseBraceToken
-                                                    or SyntaxKind.CloseBracketToken
-                                                    or SyntaxKind.CommaToken
-                                                    or SyntaxKind.EndOfFileToken;
+                            return SyntaxFacts.IsLiteral(nextTokenKind) ||
+                                   SyntaxFacts.IsPredefinedType(nextTokenKind) ||
+                                   nextTokenKind is SyntaxKind.CloseParenToken
+                                                 or SyntaxKind.OpenBraceToken
+                                                 or SyntaxKind.CloseBraceToken
+                                                 or SyntaxKind.CloseBracketToken
+                                                 or SyntaxKind.CommaToken
+                                                 or SyntaxKind.EndOfFileToken;
                         }
 
                         // If nothing from above worked permit the nullable qualifier
