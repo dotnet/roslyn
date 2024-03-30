@@ -4,11 +4,7 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2721,16 +2717,9 @@ public class C {
                 // (13,31): error CS1525: Invalid expression term ';'
                 //         var t = o is string? _;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(13, 31),
-                // (16,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                // (16,23): error CS8116: It is not legal to use nullable type 'string?' in a pattern; use the underlying type 'string' instead.
                 //         var t = o is (string? _);
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(string? _)").WithArguments("object", "2").WithLocation(16, 22),
-                // (16,29): error CS1003: Syntax error, ',' expected
-                //         var t = o is (string? _);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(",").WithLocation(16, 29),
-                // (16,31): error CS1003: Syntax error, ',' expected
-                //         var t = o is (string? _);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "_").WithArguments(",").WithLocation(16, 31)
-                );
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "string?").WithArguments("string").WithLocation(16, 23));
         }
 
         [Fact]
