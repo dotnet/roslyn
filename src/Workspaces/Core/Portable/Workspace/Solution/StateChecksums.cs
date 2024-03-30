@@ -116,12 +116,12 @@ internal sealed class SolutionCompilationStateChecksums
         if (searchingChecksumsLeft.Remove(Checksum))
             result[Checksum] = this;
 
-        if (compilationState.FrozenSourceGeneratedDocumentStates.HasValue)
+        if (compilationState.FrozenSourceGeneratedDocumentStates != null)
         {
             Contract.ThrowIfFalse(FrozenSourceGeneratedDocumentIdentities.HasValue);
 
             // This could either be the checksum for the text (which we'll use our regular helper for first)...
-            await ChecksumCollection.FindAsync(compilationState.FrozenSourceGeneratedDocumentStates.Value, assetHint.DocumentId, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            await ChecksumCollection.FindAsync(compilationState.FrozenSourceGeneratedDocumentStates, assetHint.DocumentId, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
 
             // ... or one of the identities. In this case, we'll use the fact that there's a 1:1 correspondence between the
             // two collections we hold onto.
@@ -131,7 +131,7 @@ internal sealed class SolutionCompilationStateChecksums
                 if (searchingChecksumsLeft.Remove(identityChecksum))
                 {
                     var id = FrozenSourceGeneratedDocuments!.Value.Ids[i];
-                    Contract.ThrowIfFalse(compilationState.FrozenSourceGeneratedDocumentStates.Value.TryGetState(id, out var state));
+                    Contract.ThrowIfFalse(compilationState.FrozenSourceGeneratedDocumentStates.TryGetState(id, out var state));
                     result[identityChecksum] = state.Identity;
                 }
             }

@@ -17,7 +17,7 @@ internal interface IEditAndContinueAnalyzer : ILanguageService
         Project baseProject,
         AsyncLazy<ActiveStatementsMap> lazyBaseActiveStatements,
         Document document,
-        ImmutableArray<LinePositionSpan> newActiveStatementSpans,
+        ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans,
         AsyncLazy<EditAndContinueCapabilities> lazyCapabilities,
         CancellationToken cancellationToken);
 

@@ -48,7 +48,7 @@ internal sealed class ClassificationTypeDefinitions
     #region User Types - Classes
     [Export]
     [Name(ClassificationTypeNames.ClassName)]
-    [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+    [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
     internal readonly ClassificationTypeDefinition UserTypeClassesTypeDefinition;
     #endregion
     #region User Types - Records
@@ -66,37 +66,37 @@ internal sealed class ClassificationTypeDefinitions
     #region User Types - Delegates 
     [Export]
     [Name(ClassificationTypeNames.DelegateName)]
-    [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+    [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
     internal readonly ClassificationTypeDefinition UserTypeDelegatesTypeDefinition;
     #endregion
     #region User Types - Enums 
     [Export]
     [Name(ClassificationTypeNames.EnumName)]
-    [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+    [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
     internal readonly ClassificationTypeDefinition UserTypeEnumsTypeDefinition;
     #endregion
     #region User Types - Interfaces 
     [Export]
     [Name(ClassificationTypeNames.InterfaceName)]
-    [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+    [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
     internal readonly ClassificationTypeDefinition UserTypeInterfacesTypeDefinition;
     #endregion
     #region User Types - Modules 
     [Export]
     [Name(ClassificationTypeNames.ModuleName)]
-    [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+    [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
     internal readonly ClassificationTypeDefinition UserTypeModulesTypeDefinition;
     #endregion
     #region User Types - Structures 
     [Export]
     [Name(ClassificationTypeNames.StructName)]
-    [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+    [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
     internal readonly ClassificationTypeDefinition UserTypeStructuresTypeDefinition;
     #endregion
     #region User Types - Type Parameters 
     [Export]
     [Name(ClassificationTypeNames.TypeParameterName)]
-    [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+    [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
     internal readonly ClassificationTypeDefinition UserTypeTypeParametersTypeDefinition;
     #endregion
 
@@ -421,6 +421,13 @@ internal sealed class ClassificationTypeDefinitions
     [Name(ClassificationTypeNames.ReassignedVariable)]
     [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
     internal readonly ClassificationTypeDefinition ReassignedVariableTypeDefinition;
+    #endregion
+
+    #region Obsolete Symbol
+    [Export]
+    [Name(ClassificationTypeNames.ObsoleteSymbol)]
+    [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+    internal readonly ClassificationTypeDefinition ObsoleteSymbolTypeDefinition;
     #endregion
 
     #region Static Symbol

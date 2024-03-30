@@ -53,13 +53,7 @@
                     </StackPanel>
 
                     <CheckBox x:Name="Run_code_analysis_in_separate_process"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}"
-                              Checked="Run_code_analysis_in_separate_process_Checked"
-                              Unchecked="Run_code_analysis_in_separate_process_Unchecked"/>
-                    <StackPanel Margin="15, 0, 0, 0">
-                        <CheckBox x:Name="Run_code_analysis_on_dotnet"
-                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_on_dotnet}" />
-                    </StackPanel>
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}" />
 
                     <CheckBox x:Name="Analyze_source_generated_files"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_analyze_source_generated_files}" />
@@ -175,6 +169,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_declaration_level_constructs}" />
                     <CheckBox x:Name="Show_guides_for_code_level_constructs"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_code_level_constructs}" />
+                    <CheckBox x:Name="Show_guides_for_comments_and_preprocessor_regions"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_comments_and_preprocessor_regions}" />
                 </StackPanel>
             </GroupBox>
             
@@ -205,6 +201,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
                     <CheckBox x:Name="Underline_reassigned_variables"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Underline_reassigned_variables}" />
+                    <CheckBox x:Name="Strike_out_obsolete_symbols"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Strike_out_obsolete_symbols}" />
                     <CheckBox x:Name="Enable_all_features_in_opened_files_from_source_generators"
                               Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
                 </StackPanel>

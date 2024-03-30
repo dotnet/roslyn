@@ -520,7 +520,7 @@ class Example
                     },
                     ExpectedDiagnostics =
                     {
-                        // /0/Test3.cs(7,10): error CS8618: Non-nullable field 'value' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                        // /0/Test3.cs(7,10): error CS8618: Non-nullable field 'value' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                         DiagnosticResult.CompilerError("CS8618").WithSpan("/0/Test3.cs", 7, 10, 7, 15).WithSpan("/0/Test3.cs", 7, 10, 7, 15).WithArguments("field", "value"),
                     },
                 },

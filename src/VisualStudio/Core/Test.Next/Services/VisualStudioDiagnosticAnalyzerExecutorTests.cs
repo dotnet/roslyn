@@ -314,17 +314,5 @@ End Class";
                 });
             }
         }
-
-        private class MyUpdateSource : AbstractHostDiagnosticUpdateSource
-        {
-            private readonly Workspace _workspace;
-
-            public MyUpdateSource(Workspace workspace)
-            {
-                _workspace = workspace;
-            }
-
-            public override Workspace Workspace => _workspace;
-        }
     }
 }

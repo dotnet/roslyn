@@ -78,9 +78,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_run_code_analysis_in_separate_process
             => ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart;
 
-        public static string Option_run_code_analysis_on_dotnet
-            => ServicesVSResources.Run_code_analysis_on_latest_dotnet_requires_restart;
-
         public static string Option_analyze_source_generated_files
             => ServicesVSResources.Analyze_source_generated_files;
 
@@ -149,6 +146,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Underline_reassigned_variables
             => ServicesVSResources.Underline_reassigned_variables;
+
+        public static string Option_Strike_out_obsolete_symbols
+            => ServicesVSResources.Strike_out_obsolete_symbols;
 
         public static string Option_DontPutOutOrRefOnStruct
             => CSharpVSResources.Don_t_put_ref_or_out_on_custom_struct;
@@ -260,6 +260,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Show_guides_for_code_level_constructs
             => ServicesVSResources.Show_guides_for_code_level_constructs;
+
+        public static string Option_Show_guides_for_comments_and_preprocessor_regions
+            => ServicesVSResources.Show_guides_for_comments_and_preprocessor_regions;
 
         public static string Option_Fading
             => ServicesVSResources.Fading;

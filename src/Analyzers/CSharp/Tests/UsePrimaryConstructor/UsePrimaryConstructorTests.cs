@@ -4028,4 +4028,47 @@ public partial class UsePrimaryConstructorTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72784")]
+    public async Task TestQualifyNestedEnum()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class MyClass
+                {
+                    public [|MyClass|](EnumInClass.MyEnum myEnum = EnumInClass.MyEnum.Default)
+                    {
+                        this.MyEnum = myEnum;
+                    }
+
+                    public EnumInClass.MyEnum MyEnum { get; set; }
+                }
+
+                public class EnumInClass
+                {
+                    public enum MyEnum
+                    {
+                        Default
+                    }
+                }
+                """,
+            FixedCode = """
+                public class MyClass(EnumInClass.MyEnum myEnum = EnumInClass.MyEnum.Default)
+                {
+                    public EnumInClass.MyEnum MyEnum { get; set; } = myEnum;
+                }
+                
+                public class EnumInClass
+                {
+                    public enum MyEnum
+                    {
+                        Default
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }
