@@ -4773,28 +4773,27 @@ public class Program5815
     private static object M() => null;
 }";
             var compilation = CreateCompilation(program).VerifyDiagnostics(
-                // (9,32): error CS1525: Invalid expression term 'break'
-                //             case Color? Color2:
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("break").WithLocation(9, 32),
-                // (9,32): error CS1003: Syntax error, ':' expected
-                //             case Color? Color2:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(9, 32),
                 // (8,18): error CS0118: 'Color' is a variable but is used like a type
                 //             case Color Color:
                 Diagnostic(ErrorCode.ERR_BadSKknown, "Color").WithArguments("Color", "variable", "type").WithLocation(8, 18),
-                // (9,25): error CS0103: The name 'Color2' does not exist in the current context
+                // (9,18): error CS0118: 'Color' is a variable but is used like a type
                 //             case Color? Color2:
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Color2").WithArguments("Color2").WithLocation(9, 25)
-                );
+                Diagnostic(ErrorCode.ERR_BadSKknown, "Color").WithArguments("Color", "variable", "type").WithLocation(9, 18),
+                // (9,18): error CS8116: It is not legal to use nullable type 'Color?' in a pattern; use the underlying type 'Color' instead.
+                //             case Color? Color2:
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "Color?").WithArguments("Color").WithLocation(9, 18));
+
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var colorDecl = GetPatternDeclarations(tree, "Color").ToArray();
             var colorRef = GetReferences(tree, "Color").ToArray();
+
             Assert.Equal(1, colorDecl.Length);
             Assert.Equal(2, colorRef.Length);
+
             Assert.Null(model.GetSymbolInfo(colorRef[0]).Symbol);
-            VerifyModelForDeclarationOrVarSimplePattern(model, colorDecl[0], colorRef[1]);
+            Assert.Null(model.GetSymbolInfo(colorRef[1]).Symbol);
         }
 
         [Fact, WorkItem(16559, "https://github.com/dotnet/roslyn/issues/16559")]
