@@ -7098,6 +7098,7 @@ done:;
                                                  or SyntaxKind.CloseBraceToken
                                                  or SyntaxKind.CloseBracketToken
                                                  or SyntaxKind.CommaToken
+                                                 or SyntaxKind.SemicolonToken
                                                  or SyntaxKind.EndOfFileToken;
                         }
 
