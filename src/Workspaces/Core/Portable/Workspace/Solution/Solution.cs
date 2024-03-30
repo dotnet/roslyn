@@ -1536,9 +1536,17 @@ public partial class Solution
     }
 
     internal ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)
-    {
-        return this.SolutionState.GetRelatedDocumentIds(documentId);
-    }
+        => this.SolutionState.GetRelatedDocumentIds(documentId);
+
+    /// <summary>
+    /// Returns one of any of the related documents of <paramref name="documentId"/>.  Importantly, this will never
+    /// return <paramref name="documentId"/> (unlike <see cref="GetRelatedDocumentIds"/> which includes the original
+    /// file in the result).
+    /// </summary>
+    /// <param name="relatedProjectIdHint">A hint on the first project to search when looking for related
+    /// documents.  Must not be the project that <paramref name="documentId"/> is from.</param>
+    internal DocumentId? GetFirstRelatedDocumentId(DocumentId documentId, ProjectId? relatedProjectIdHint)
+        => this.SolutionState.GetFirstRelatedDocumentId(documentId, relatedProjectIdHint);
 
     internal Solution WithNewWorkspace(string? workspaceKind, int workspaceVersion, SolutionServices services)
     {
