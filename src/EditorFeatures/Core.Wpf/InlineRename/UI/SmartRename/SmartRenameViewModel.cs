@@ -99,7 +99,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         ? EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion
         : EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview;
 
-    public string GeneratingSuggestionsLabel => EditorFeaturesWpfResources.Generating_suggestions;
+    public static string GeneratingSuggestionsLabel => EditorFeaturesWpfResources.Generating_suggestions;
 
     public ICommand GetSuggestionsCommand { get; }
 
