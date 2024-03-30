@@ -129,8 +129,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         ProjectSystemProjectFactory = new ProjectSystemProjectFactory(this, FileChangeWatcher, CheckForAddedFileBeingOpenMaybeAsync, RemoveProjectFromMaps);
 
-        var listenerProvider = exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
-
         _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider));
 
         _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() =>
@@ -138,7 +136,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
                 this,
                 exportProvider.GetExportedValue<IDiagnosticAnalyzerService>(),
                 exportProvider.GetExportedValue<IGlobalOperationNotificationService>(),
-                listenerProvider,
+                exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
                 _threadingContext),
             isThreadSafe: true);
 
@@ -154,12 +152,16 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         _foregroundObject.AssertIsForeground();
 
         if (_isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents)
+        {
             return;
+        }
 
         // TODO: https://github.com/dotnet/roslyn/issues/36065
         // UIContextImpl requires IVsMonitorSelection service:
         if (ServiceProvider.GlobalProvider.GetService(typeof(IVsMonitorSelection)) == null)
+        {
             return;
+        }
 
         // This pattern ensures that we are called whenever the build starts/completes even if it is already in progress.
         KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>
