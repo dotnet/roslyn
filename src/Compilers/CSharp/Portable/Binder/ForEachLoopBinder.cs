@@ -1070,7 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol collectionType = (NamedTypeSymbol)builder.CollectionType;
 
-            if (unwrappedCollectionExprType.IsRefLikeType)
+            if (unwrappedCollectionExprType.IsRefLikeType || unwrappedCollectionExprType is TypeParameterSymbol { AllowByRefLike: true })
             {
                 builder.CollectionType = unwrappedCollectionExprType;
             }
