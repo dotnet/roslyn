@@ -368,7 +368,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     {
         var solution = inProgressState.Solution;
         var cancellationToken = inProgressState.CancellationToken;
-        var (allLiveErrors, pendingLiveErrorsToSync) = inProgressState.GetLiveErrors();
+        var allLiveErrors = inProgressState.GetLiveErrors();
 
         // Raise events for build only errors
         using var argsBuilder = TemporaryArray<DiagnosticsUpdatedArgs>.Empty;
@@ -436,7 +436,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 
         _taskQueue.ScheduleTask("Project New Errors", () =>
         {
-            ReportPreviousProjectErrorsIfRequired(projectId, state);
             state.AddError(projectId, diagnostic);
             return Task.CompletedTask;
         }, state.CancellationToken);
@@ -451,7 +450,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 
         _taskQueue.ScheduleTask("Document New Errors", () =>
         {
-            ReportPreviousProjectErrorsIfRequired(documentId.ProjectId, state);
             state.AddError(documentId, diagnostic);
             return Task.CompletedTask;
         }, state.CancellationToken);
@@ -468,36 +466,12 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 
         _taskQueue.ScheduleTask("Project New Errors", () =>
         {
-            ReportPreviousProjectErrorsIfRequired(projectId, state);
-
             foreach (var kv in documentErrorMap)
                 state.AddErrors(kv.Key, kv.Value);
 
             state.AddErrors(projectId, projectErrors);
             return Task.CompletedTask;
         }, state.CancellationToken);
-    }
-
-    /// <summary>
-    /// This method is invoked from all <see cref="M:AddNewErrors"/> overloads before it adds the new errors to the in progress state.
-    /// It checks if build reported errors for a different project then the previous callback to report errors.
-    /// This provides a good checkpoint to de-dupe build and live errors for lastProjectId and
-    /// raise diagnostic updated events for that project.
-    /// This ensures that error list keeps getting refreshed while a build is in progress, as opposed to doing all the work
-    /// and a single refresh when the build completes.
-    /// </summary>
-    private static void ReportPreviousProjectErrorsIfRequired(ProjectId projectId, InProgressState state)
-    {
-        if (state.TryGetLastProjectWithReportedErrors() is ProjectId lastProjectId &&
-            lastProjectId != projectId)
-        {
-            state.MarkLiveErrorsReported(projectId);
-        }
-    }
-
-    private static void SetLiveErrorsForProject(ProjectId projectId, InProgressState state)
-    {
-        state.MarkLiveErrorsReported(projectId);
     }
 
     private CancellationToken GetApplicableCancellationToken(InProgressState? state)
@@ -642,11 +616,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         private readonly HashSet<ProjectId> _projectsWithErrorsCleared = [];
 
         /// <summary>
-        /// Set of projects for which we have reported all intellisense/live diagnostics.
-        /// </summary>
-        private readonly HashSet<ProjectId> _projectsWithAllLiveErrorsReported = [];
-
-        /// <summary>
         /// Set of projects which have at least one project or document diagnostic in
         /// <see cref="_projectMap"/> and/or <see cref="_documentMap"/>.
         /// </summary>
@@ -738,30 +707,21 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         public bool WereProjectErrorsCleared(ProjectId projectId)
             => _projectsWithErrorsCleared.Contains(projectId);
 
-        public void MarkLiveErrorsReported(ProjectId projectId)
-            => _projectsWithAllLiveErrorsReported.Add(projectId);
-
         public ProjectId? TryGetLastProjectWithReportedErrors()
             => _lastProjectWithReportedErrors;
 
-        public (ImmutableArray<DiagnosticData> allLiveErrors, ProjectErrorMap pendingLiveErrorsToSync) GetLiveErrors()
+        public ImmutableArray<DiagnosticData> GetLiveErrors()
         {
             var allLiveErrorsBuilder = ImmutableArray.CreateBuilder<DiagnosticData>();
-            var pendingLiveErrorsToSyncBuilder = ImmutableDictionary.CreateBuilder<ProjectId, ImmutableArray<DiagnosticData>>();
             foreach (var projectId in GetProjectsWithErrors())
             {
                 CancellationToken.ThrowIfCancellationRequested();
 
                 var errors = GetLiveErrorsForProject(projectId);
                 allLiveErrorsBuilder.AddRange(errors);
-
-                if (!_projectsWithAllLiveErrorsReported.Contains(projectId))
-                {
-                    pendingLiveErrorsToSyncBuilder.Add(projectId, errors);
-                }
             }
 
-            return (allLiveErrorsBuilder.ToImmutable(), pendingLiveErrorsToSyncBuilder.ToImmutable());
+            return allLiveErrorsBuilder.ToImmutable();
 
             // Local functions.
             IEnumerable<ProjectId> GetProjectsWithErrors()
@@ -939,9 +899,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
             {
                 RoslynDebug.Assert(key is DocumentId or ProjectId);
                 var projectId = (key is DocumentId documentId) ? documentId.ProjectId : (ProjectId)(object)key;
-
-                // New errors reported for project, need to refresh live errors.
-                _projectsWithAllLiveErrorsReported.Remove(projectId);
 
                 if (!_projectsWithErrors.Add(projectId))
                 {
