@@ -81,8 +81,6 @@ The "version 1" data encoding is a base64-encoded string consisting of the follo
 
 #### Position
 
-Line and column numbers in the "version 1" data encoding are 1-indexed to match existing places where source locations are displayed to the user. For example, in `Diagnostic.ToString`.
-
 The location of the call is the location of the simple name syntax which denotes the interceptable method. For example, in `app.MapGet(...)`, the name syntax for `MapGet` would be considered the location of the call. For a static method call like `System.Console.WriteLine(...)`, the name syntax for `WriteLine` is the location of the call. If we allow intercepting calls to property accessors in the future (e.g `obj.Property`), we would also be able to use the name syntax in this way.
 
 #### Attribute creation
