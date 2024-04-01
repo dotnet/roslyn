@@ -2,10 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
@@ -31,6 +36,8 @@ internal partial class SolutionCompilationState
         (LanguageNames.CSharp, new(), (static rs => ComputeSourceGenerators(rs, LanguageNames.CSharp))),
         (LanguageNames.VisualBasic, new(), (static rs => ComputeSourceGenerators(rs, LanguageNames.VisualBasic))),
     ];
+
+    private static ConditionalWeakTable<ProjectState, AsyncLazy<bool>> s_hasSourceGeneratorsMap = new();
 
     private static SourceGeneratorMap ComputeSourceGenerators(IReadOnlyList<AnalyzerReference> analyzerReferences, string language)
     {
@@ -76,5 +83,36 @@ internal partial class SolutionCompilationState
 
         var tuple = tupleOpt.Value;
         return tuple.referencesToGenerators.GetValue(projectState.AnalyzerReferences, tuple.callback);
+    }
+
+    private static async Task<bool> HasSourceGeneratorsAsync(ProjectState projectState, CancellationToken cancellationToken)
+    {
+        if (!s_hasSourceGeneratorsMap.TryGetValue(projectState, out var lazy))
+        {
+            lazy = GetLazySlow(projectState);
+        }
+
+        return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+        static AsyncLazy<bool> GetLazySlow(ProjectState projectState)
+        {
+            return s_hasSourceGeneratorsMap.GetValue(
+                projectState,
+                static projectState => AsyncLazy.Create(cancellationToken => ComputeHasSourceGeneratorsAsync(projectState, cancellationToken)));
+        }
+
+        static async Task<bool> ComputeHasSourceGeneratorsAsync(
+            ProjectState projectState, CancellationToken cancellationToken)
+        {
+            var client = await RemoteHostClient.TryGetClientAsync(projectState.LanguageServices.SolutionServices, cancellationToken).ConfigureAwait(false);
+            if (client is null)
+            {
+                return GetSourceGenerators(projectState).Any();
+            }
+            else
+            {
+
+            }
+        }
     }
 }
