@@ -1644,10 +1644,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Otherwise, returns an instance which can be used to intercept the call denoted by <paramref name="node"/>.
         /// </summary>
         [Experimental(RoslynExperiments.Interceptors, UrlFormat = RoslynExperiments.Interceptors_Url)]
-        public static InterceptableLocation? GetInterceptableLocation(this SemanticModel? semanticModel, InvocationExpressionSyntax node)
+        public static InterceptableLocation? GetInterceptableLocation(this SemanticModel? semanticModel, InvocationExpressionSyntax node, CancellationToken cancellationToken = default)
         {
             var csModel = semanticModel as CSharpSemanticModel;
-            return csModel?.GetInterceptableLocation(node);
+            return csModel?.GetInterceptableLocation(node, cancellationToken);
         }
 
         /// <summary>

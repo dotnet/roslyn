@@ -5216,7 +5216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #pragma warning disable RSEXPERIMENTAL002 // Internal usage of experimental API
-        public InterceptableLocation? GetInterceptableLocation(InvocationExpressionSyntax node)
+        public InterceptableLocation? GetInterceptableLocation(InvocationExpressionSyntax node, CancellationToken cancellationToken)
         {
             CheckSyntaxNode(node);
             if (node.GetInterceptableNameSyntax() is not { } nameSyntax)
@@ -5225,7 +5225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var tree = node.SyntaxTree;
-            var text = tree.GetText();
+            var text = tree.GetText(cancellationToken);
             var path = tree.FilePath;
             var checksum = text.GetContentHash();
 
