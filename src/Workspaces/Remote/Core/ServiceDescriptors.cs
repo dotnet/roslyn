@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 throw ExceptionUtilities.UnexpectedValue(serviceType);
             }
 
-            var (descriptorCoreClr64, descriptorCoreClr64ServerGC) = _descriptors[serviceType];
+            var (descriptorCoreClr64, descriptorCoreClr64ServerGC) = descriptor;
             return (configuration & RemoteProcessConfiguration.ServerGC) switch
             {
                 0 => descriptorCoreClr64,
