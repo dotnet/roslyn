@@ -491,7 +491,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         if (state.TryGetLastProjectWithReportedErrors() is ProjectId lastProjectId &&
             lastProjectId != projectId)
         {
-            SetLiveErrorsForProject(lastProjectId, state);
+            state.MarkLiveErrorsReported(projectId);
         }
     }
 
