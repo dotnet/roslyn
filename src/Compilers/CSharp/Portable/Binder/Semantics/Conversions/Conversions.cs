@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                MethodGroupResolution resolution = _binder.ResolveMethodGroup(source, analyzedArguments: null, ref useSiteInfo, options: OverloadResolution.Options.IsMethodGroupConversion);
+                MethodGroupResolution resolution = _binder.ResolveMethodGroup(source, analyzedArguments: null, ref useSiteInfo, options: OverloadResolution.Options.None);
                 if (resolution.IsExtensionMember(out Symbol? extensionMember) && extensionMember is not NamedTypeSymbol)
                 {
                     var nestedConversion = ClassifyConversionFromExpressionType(extensionMember.GetTypeOrReturnType().Type, destination, isChecked: false, ref useSiteInfo);
