@@ -49,12 +49,18 @@ internal partial class SolutionCompilationState
         return new(generators.ToImmutableAndClear(), generatorToAnalyzerReference.ToImmutable());
     }
 
+    /// <summary>
+    /// This method should only be called in a .net core host like our out of process server.
+    /// </summary>
     private static ImmutableArray<ISourceGenerator> GetSourceGenerators(ProjectState projectState)
     {
         var map = GetSourceGeneratorMap(projectState);
         return map is null ? [] : map.SourceGenerators;
     }
 
+    /// <summary>
+    /// This method should only be called in a .net core host like our out of process server.
+    /// </summary>
     private static AnalyzerReference GetAnalyzerReference(ProjectState projectState, ISourceGenerator sourceGenerator)
     {
         var map = GetSourceGeneratorMap(projectState);
