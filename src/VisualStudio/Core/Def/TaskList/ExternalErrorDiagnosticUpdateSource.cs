@@ -622,11 +622,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         private readonly HashSet<ProjectId> _projectsWithErrors = [];
 
         /// <summary>
-        /// Last project for which build reported an error through one of the <see cref="M:AddError"/> methods.
-        /// </summary>
-        private ProjectId? _lastProjectWithReportedErrors;
-
-        /// <summary>
         /// Counter to help order the diagnostics in error list based on the order in which they were reported during build.
         /// </summary>
         private int _incrementDoNotAccessDirectly;
@@ -706,9 +701,6 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 
         public bool WereProjectErrorsCleared(ProjectId projectId)
             => _projectsWithErrorsCleared.Contains(projectId);
-
-        public ProjectId? TryGetLastProjectWithReportedErrors()
-            => _lastProjectWithReportedErrors;
 
         public ImmutableArray<DiagnosticData> GetLiveErrors()
         {
@@ -901,13 +893,8 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 var projectId = (key is DocumentId documentId) ? documentId.ProjectId : (ProjectId)(object)key;
 
                 if (!_projectsWithErrors.Add(projectId))
-                {
                     return;
-                }
 
-                // this will make build only error list to be updated per project rather than per solution.
-                // basically this will make errors up to last project to show up in error list
-                _lastProjectWithReportedErrors = projectId;
                 _owner.OnBuildProgressChanged(this, BuildProgress.Updated);
             }
         }
