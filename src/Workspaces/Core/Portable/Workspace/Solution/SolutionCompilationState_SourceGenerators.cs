@@ -50,28 +50,25 @@ internal partial class SolutionCompilationState
     }
 
     private static ImmutableArray<ISourceGenerator> GetSourceGenerators(ProjectState projectState)
-        => GetSourceGenerators(projectState.Language, projectState.AnalyzerReferences);
-
-    private static ImmutableArray<ISourceGenerator> GetSourceGenerators(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
     {
-        var map = GetSourceGeneratorMap(language, analyzerReferences);
+        var map = GetSourceGeneratorMap(projectState);
         return map is null ? [] : map.SourceGenerators;
     }
 
     private static AnalyzerReference GetAnalyzerReference(ProjectState projectState, ISourceGenerator sourceGenerator)
     {
-        var map = GetSourceGeneratorMap(projectState.Language, projectState.AnalyzerReferences);
+        var map = GetSourceGeneratorMap(projectState);
         Contract.ThrowIfNull(map);
         return map.SourceGeneratorToAnalyzerReference[sourceGenerator];
     }
 
-    private static SourceGeneratorMap? GetSourceGeneratorMap(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
+    private static SourceGeneratorMap? GetSourceGeneratorMap(ProjectState projectState)
     {
-        var tupleOpt = s_languageToAnalyzerReferencesToSourceGeneratorsMap.FirstOrNull(static (t, language) => t.language == language, language);
+        var tupleOpt = s_languageToAnalyzerReferencesToSourceGeneratorsMap.FirstOrNull(static (t, language) => t.language == language, projectState.Language);
         if (tupleOpt is null)
             return null;
 
         var tuple = tupleOpt.Value;
-        return tuple.referencesToGenerators.GetValue(analyzerReferences, tuple.callback);
+        return tuple.referencesToGenerators.GetValue(projectState.AnalyzerReferences, tuple.callback);
     }
 }
