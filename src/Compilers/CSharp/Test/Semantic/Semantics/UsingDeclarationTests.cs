@@ -867,10 +867,7 @@ class C
 ";
             var expected = new[]
             {
-                // 0.cs(8,9): error CS8370: Feature 'pattern-based disposal' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         await using IAsyncDisposable x = null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await using IAsyncDisposable x = null;").WithArguments("pattern-based disposal", "8.0").WithLocation(8, 9),
-                // 0.cs(8,15): error CS8370: Feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (8,15): error CS8652: The feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         await using IAsyncDisposable x = null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "using").WithArguments("using declarations", "8.0").WithLocation(8, 15)
             };
