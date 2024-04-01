@@ -2547,9 +2547,9 @@ public class InterceptorsTests : CSharpTestBase
             // Program.cs(8,39): error CS0103: The name 'ERROR' does not exist in the current context
             //     [InterceptsLocation("Program.cs", ERROR, 1)]
             Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(8, 39),
-            // Program.cs(9,6): error CS7036: There is no argument given that corresponds to the required parameter 'filePath' of 'InterceptsLocationAttribute.InterceptsLocationAttribute(string, int, int)'
+            // Program.cs(9,6): error CS1729: 'InterceptsLocationAttribute' does not contain a constructor that takes 0 arguments
             //     [InterceptsLocation()]
-            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "InterceptsLocation()").WithArguments("filePath", "System.Runtime.CompilerServices.InterceptsLocationAttribute.InterceptsLocationAttribute(string, int, int)").WithLocation(9, 6)
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, "InterceptsLocation()").WithArguments("System.Runtime.CompilerServices.InterceptsLocationAttribute", "0").WithLocation(9, 6)
             );
     }
 
@@ -6643,8 +6643,8 @@ partial struct CustomHandler
         var comp1 = CreateCompilation([interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
         comp1.VerifyEmitDiagnostics(
             // Interceptors.cs(6,28): error CS9232: Cannot intercept a call in file 'Program.cs' because a matching file was not found in the compilation.
-            //     [InterceptsLocation(1, "jB4qgCy292LkEGCwmD+R6AcAAAAJAAAAUHJvZ3JhbS5jcw==")]
-            Diagnostic(ErrorCode.ERR_InterceptsLocationFileNotFound, @"""jB4qgCy292LkEGCwmD+R6AcAAAAJAAAAUHJvZ3JhbS5jcw==""").WithArguments("Program.cs").WithLocation(6, 28));
+            //     [InterceptsLocation(1, "{locationSpecifier.Data}")]
+            Diagnostic(ErrorCode.ERR_InterceptsLocationFileNotFound, $@"""{locationSpecifier.Data}""").WithArguments("Program.cs").WithLocation(6, 28));
     }
 
     [Fact]
