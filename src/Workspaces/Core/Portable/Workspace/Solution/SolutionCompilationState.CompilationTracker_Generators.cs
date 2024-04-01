@@ -57,8 +57,8 @@ internal partial class SolutionCompilationState
                 if (result.HasValue)
                 {
                     // Since we ran the SG work out of process, we could not have created or modified the driver passed in.
-                    // So just pass what we got in right back out.
-                    return (result.Value.compilationWithGeneratedFiles, new(result.Value.generatedDocuments, generatorInfo.Driver));
+                    // Just return `null` for the driver as there's nothing to track for it on the host side.
+                    return (result.Value.compilationWithGeneratedFiles, new(result.Value.generatedDocuments, Driver: null));
                 }
 
                 // If that failed (OOP crash, or we are the OOP process ourselves), then generate the SG docs locally.
