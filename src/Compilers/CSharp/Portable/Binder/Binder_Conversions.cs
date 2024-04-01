@@ -505,6 +505,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression GetExtensionMemberAccess(SyntaxNode syntax, BoundExpression? receiver, Symbol extensionMember, BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(extensionMember.Kind != SymbolKind.Method);
+            receiver = ReplaceTypeOrValueReceiver(receiver, useType: extensionMember.IsStatic || extensionMember.Kind == SymbolKind.NamedType, diagnostics);
+
+            // Events are handled later.
+            // Properties are handled in BindPropertyAccess
+            Debug.Assert(receiver?.Kind != BoundKind.BaseReference);
+            if (extensionMember.Kind is not (SymbolKind.Event or SymbolKind.Property))
+            {
+                ReportDiagnosticsIfObsolete(diagnostics, extensionMember, syntax, hasBaseReceiver: false);
+            }
+
             switch (extensionMember)
             {
                 case PropertySymbol propertySymbol:

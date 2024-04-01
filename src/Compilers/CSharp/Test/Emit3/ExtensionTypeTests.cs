@@ -1477,6 +1477,92 @@ public {{staticKeyword}}{{keyword}} extension R1 for C
     }
 
     [Fact]
+    public void Members_ExtensionMethod_DisallowedInExtensionTypes_Invocation()
+    {
+        var src = """
+new object().M();
+object.M();
+
+new object().M(null);
+object.M(null);
+
+implicit extension E for object
+{
+    public static string M(this object o) => throw null;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,14): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'E.M(object)'
+            // new object().M();
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "E.M(object)").WithLocation(1, 14),
+            // (2,8): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'E.M(object)'
+            // object.M();
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "E.M(object)").WithLocation(2, 8),
+            // (4,1): error CS0176: Member 'E.M(object)' cannot be accessed with an instance reference; qualify it with a type name instead
+            // new object().M(null);
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new object().M").WithArguments("E.M(object)").WithLocation(4, 1),
+            // (9,26): error CS9321: Extension methods are not allowed in extension types.
+            //     public static string M(this object o) => throw null;
+            Diagnostic(ErrorCode.ERR_ExtensionMethodInExtension, "M").WithLocation(9, 26));
+    }
+
+    [Fact]
+    public void Members_ExtensionMethod_DisallowedInExtensionTypes_InferredVariable_Static()
+    {
+        var src = """
+var x = object.M;
+
+implicit extension E for object
+{
+    public static string M(this object o) => throw null;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (5,26): error CS9321: Extension methods are not allowed in extension types.
+            //     public static string M(this object o) => throw null;
+            Diagnostic(ErrorCode.ERR_ExtensionMethodInExtension, "M").WithLocation(5, 26));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Equal("System.String E.M(this System.Object o)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+        var x = GetSyntax<VariableDeclaratorSyntax>(tree, "x = object.M");
+        Assert.Equal("System.Func<System.Object, System.String> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+    }
+
+    [Fact]
+    public void Members_ExtensionMethod_DisallowedInExtensionTypes_InferredVariable_Instance()
+    {
+        var src = """
+var x = new object().M;
+
+implicit extension E for object
+{
+    public static string M(this object o) => throw null;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,9): error CS0176: Member 'E.M(object)' cannot be accessed with an instance reference; qualify it with a type name instead
+            // var x = new object().M;
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new object().M").WithArguments("E.M(object)").WithLocation(1, 9),
+            // (5,26): error CS9321: Extension methods are not allowed in extension types.
+            //     public static string M(this object o) => throw null;
+            Diagnostic(ErrorCode.ERR_ExtensionMethodInExtension, "M").WithLocation(5, 26));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+
+        var x = GetSyntax<VariableDeclaratorSyntax>(tree, "x = new object().M");
+        Assert.Equal("System.Func<System.Object, System.String> x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+    }
+
+    [Fact]
     public void Members_ExtensionMethod_StaticExtension_StaticMethod_InThisParameter()
     {
         var src = """
@@ -9778,7 +9864,6 @@ explicit extension E for object : Base
     public class Member { }
     public class HidingMember { }
 }
-
 """;
         // PROTOTYPE should warn for hiding
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
@@ -11961,6 +12046,32 @@ implicit extension E for object
     }
 
     [Fact]
+    public void ExtensionMemberLookup_MatchingTypeParameter()
+    {
+        var src = """
+C.StaticType.M();
+
+class C { }
+
+implicit extension E<T> for T where T : C
+{
+    public static class StaticType
+    {
+        public static void M() { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify)
+           .VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.StaticType");
+        Assert.Equal("E<C>.StaticType", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
     public void DynamicArgument()
     {
         // No extension members in dynamic invocation
@@ -12989,17 +13100,16 @@ implicit extension E for C
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (5,13): error CS0176: Member 'E.Property' cannot be accessed with an instance reference; qualify it with a type name instead
-            //         _ = C.Property;
-            Diagnostic(ErrorCode.ERR_ObjectProhibited, "C.Property").WithArguments("E.Property").WithLocation(5, 13)
-            );
+        comp.VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Property");
-        Assert.Null(model.GetSymbolInfo(property).Symbol);
+        Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(property));
+
+        var receiver = property.Expression;
+        Assert.Equal("C", model.GetSymbolInfo(receiver).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -20822,6 +20932,9 @@ System.Action m = object.Method; // 5
 
 object.Method(); // 6
 
+object.Event += null; // 7
+object.Event -= null; // 8
+
 implicit extension E for object
 {
     [System.Obsolete("Property is obsolete", true)]
@@ -20835,10 +20948,11 @@ implicit extension E for object
 
     [System.Obsolete("Method is obsolete", true)]
     public static void Method() => throw null;
+
+    [System.Obsolete("Event is obsolete", true)]
+    public static event System.Action Event { add { throw null; } remove { throw null; } }
 }
 """;
-        // PROTOTYPE missing diagnostics on Field
-        // PROTOTYPE add event
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyDiagnostics(
             // (1,9): error CS0619: 'E.Property' is obsolete: 'Property is obsolete'
@@ -20850,12 +20964,21 @@ implicit extension E for object
             // (3,20): error CS0619: 'E.Property2' is obsolete: 'Property2 is obsolete'
             // System.Action p2 = object.Property2; // 3
             Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Property2").WithArguments("E.Property2", "Property2 is obsolete").WithLocation(3, 20),
+            // (5,9): error CS0619: 'E.Field' is obsolete: 'Field is obsolete'
+            // int f = object.Field; // 4
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Field").WithArguments("E.Field", "Field is obsolete").WithLocation(5, 9),
             // (7,19): error CS0619: 'E.Method()' is obsolete: 'Method is obsolete'
             // System.Action m = object.Method; // 5
             Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Method").WithArguments("E.Method()", "Method is obsolete").WithLocation(7, 19),
             // (9,1): error CS0619: 'E.Method()' is obsolete: 'Method is obsolete'
             // object.Method(); // 6
-            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Method()").WithArguments("E.Method()", "Method is obsolete").WithLocation(9, 1)
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Method()").WithArguments("E.Method()", "Method is obsolete").WithLocation(9, 1),
+            // (11,1): error CS0619: 'E.Event' is obsolete: 'Event is obsolete'
+            // object.Event += null; // 7
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Event").WithArguments("E.Event", "Event is obsolete").WithLocation(11, 1),
+            // (12,1): error CS0619: 'E.Event' is obsolete: 'Event is obsolete'
+            // object.Event -= null; // 8
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Event").WithArguments("E.Event", "Event is obsolete").WithLocation(12, 1)
             );
     }
 
@@ -31311,5 +31434,743 @@ public implicit extension EDerived for Derived
             // (12,13): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             //         i = d[1];
             Diagnostic(ErrorCode.ERR_NoTypeDef, "d[1]").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(12, 13));
+    }
+
+    [Fact]
+    public void Obsolete_Property_Static()
+    {
+        var src = """
+object.Property1 = 1;
+_ = object.Property1;
+new object().Property2 = 1;
+_ = new object().Property2;
+
+implicit extension E for object
+{
+    [System.Obsolete("error", true)]
+    public static int Property1 { get => throw null; set => throw null; }
+
+    [System.Obsolete("error", true)]
+    public int Property2 { get => throw null; set => throw null; }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0619: 'E.Property1' is obsolete: 'error'
+            // object.Property1 = 1;
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Property1").WithArguments("E.Property1", "error").WithLocation(1, 1),
+            // (2,5): error CS0619: 'E.Property1' is obsolete: 'error'
+            // _ = object.Property1;
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Property1").WithArguments("E.Property1", "error").WithLocation(2, 5),
+            // (3,1): error CS0619: 'E.Property2' is obsolete: 'error'
+            // new object().Property2 = 1;
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new object().Property2").WithArguments("E.Property2", "error").WithLocation(3, 1),
+            // (4,5): error CS0619: 'E.Property2' is obsolete: 'error'
+            // _ = new object().Property2;
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new object().Property2").WithArguments("E.Property2", "error").WithLocation(4, 5));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Property_OnBase()
+    {
+        var src = """
+class C
+{
+    public void M()
+    {
+        base.Property1 = 1;
+        _ = base.Property1;
+        base.Property2 = 1;
+        _ = base.Property2;
+    }
+}
+
+implicit extension E for object
+{
+    public static int Property1 { get => throw null; set => throw null; }
+    public int Property2 { get => throw null; set => throw null; }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (5,14): error CS0117: 'object' does not contain a definition for 'Property1'
+            //         base.Property1 = 1;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property1").WithArguments("object", "Property1").WithLocation(5, 14),
+            // (6,18): error CS0117: 'object' does not contain a definition for 'Property1'
+            //         _ = base.Property1;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property1").WithArguments("object", "Property1").WithLocation(6, 18),
+            // (7,14): error CS0117: 'object' does not contain a definition for 'Property2'
+            //         base.Property2 = 1;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property2").WithArguments("object", "Property2").WithLocation(7, 14),
+            // (8,18): error CS0117: 'object' does not contain a definition for 'Property2'
+            //         _ = base.Property2;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Property2").WithArguments("object", "Property2").WithLocation(8, 18));
+    }
+
+    [Fact]
+    public void Obsolete_Field_Static()
+    {
+        var src = """
+object.Field = 1;
+_ = object.Field;
+
+C.Field = 1;
+_ = C.Field;
+
+implicit extension E for object
+{
+    [System.Obsolete("error", true)]
+    public static int Field = 0;
+}
+
+static class C
+{
+    [System.Obsolete("error", true)]
+    public static int Field = 0;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0619: 'E.Field' is obsolete: 'error'
+            // object.Field = 1;
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Field").WithArguments("E.Field", "error").WithLocation(1, 1),
+            // (2,5): error CS0619: 'E.Field' is obsolete: 'error'
+            // _ = object.Field;
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Field").WithArguments("E.Field", "error").WithLocation(2, 5),
+            // (4,1): error CS0619: 'C.Field' is obsolete: 'error'
+            // C.Field = 1;
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C.Field").WithArguments("C.Field", "error").WithLocation(4, 1),
+            // (5,5): error CS0619: 'C.Field' is obsolete: 'error'
+            // _ = C.Field;
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "C.Field").WithArguments("C.Field", "error").WithLocation(5, 5));
+    }
+
+    [Fact]
+    public void Obsolete_Event_Static()
+    {
+        var src = """
+object.Event += null;
+object.Event -= null;
+
+implicit extension E for object
+{
+    [System.Obsolete("error", true)]
+    public static event System.Action Event { add { throw null; } remove { throw null; } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0619: 'E.Event' is obsolete: 'error'
+            // object.Event += null;
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Event").WithArguments("E.Event", "error").WithLocation(1, 1),
+            // (2,1): error CS0619: 'E.Event' is obsolete: 'error'
+            // object.Event -= null;
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Event").WithArguments("E.Event", "error").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void Obsolete_Event_Instance()
+    {
+        var src = """
+new object().Event += null;
+new object().Event -= null;
+
+implicit extension E for object
+{
+    [System.Obsolete("error", true)]
+    public event System.Action Event { add { throw null; } remove { throw null; } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0619: 'E.Event' is obsolete: 'error'
+            // new object().Event += null;
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new object().Event").WithArguments("E.Event", "error").WithLocation(1, 1),
+            // (2,1): error CS0619: 'E.Event' is obsolete: 'error'
+            // new object().Event -= null;
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new object().Event").WithArguments("E.Event", "error").WithLocation(2, 1));
+    }
+
+    [Fact]
+    public void TypeOrInstanceReceiver_Property_Static()
+    {
+        var src = """
+C.M(null);
+
+public class C
+{
+    public static void M(C C)
+    {
+        C.Property = 1;
+        _ = C.Property;
+    }
+}
+
+implicit extension E for object
+{
+    public static int Property { get { System.Console.Write("get "); return 42; } set { System.Console.Write("set "); } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.Property").First();
+        Assert.Equal("System.Int32 E.Property { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        Assert.Equal("C", model.GetSymbolInfo(memberAccess1.Expression).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.Property").Last();
+        Assert.Equal("System.Int32 E.Property { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        Assert.Equal("C", model.GetSymbolInfo(memberAccess2.Expression).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void TypeOrInstanceReceiver_Property_Instance()
+    {
+        var src = """
+C.M(new C());
+
+public class C
+{
+    public static void M(C C)
+    {
+        C.Property = 1;
+        _ = C.Property;
+    }
+}
+
+implicit extension E for object
+{
+    public int Property { get { System.Console.Write("get "); return 42; } set { System.Console.Write("set "); } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        // PROTOTYPE(instance) execute once instance scenarios are implemented
+        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.Property").First();
+        Assert.Equal("System.Int32 E.Property { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        Assert.Equal("C C", model.GetSymbolInfo(memberAccess1.Expression).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.Property").Last();
+        Assert.Equal("System.Int32 E.Property { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        Assert.Equal("C C", model.GetSymbolInfo(memberAccess2.Expression).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void TypeOrInstanceReceiver_Indexer_Instance()
+    {
+        var src = """
+C.M(new C());
+
+public class C
+{
+    public static void M(C C)
+    {
+        C[42] = 1;
+        _ = C[43];
+    }
+}
+
+implicit extension E for object
+{
+    public int this[int i] { get { System.Console.Write("get "); return 42; } set { System.Console.Write("set "); } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        // PROTOTYPE(instance) execute once instance scenarios are implemented
+        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntax<ElementAccessExpressionSyntax>(tree, "C[42]");
+        Assert.Equal("System.Int32 E.this[System.Int32 i] { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+        Assert.Equal("C C", model.GetSymbolInfo(memberAccess1.Expression).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntax<ElementAccessExpressionSyntax>(tree, "C[43]");
+        Assert.Equal("System.Int32 E.this[System.Int32 i] { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        Assert.Equal("C C", model.GetSymbolInfo(memberAccess2.Expression).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void TypeOrInstanceReceiver_NamedType()
+    {
+        var src = """
+object.Nested.M();
+
+implicit extension E for object
+{
+    public class Nested { public static void M() { System.Console.Write("ran"); } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("ran"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Nested");
+        Assert.Equal("E.Nested", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void LiteralReceiver_Property_Integer_Get()
+    {
+        var src = """
+_ = 1.Property;
+
+implicit extension E for int
+{
+    public int Property { get { System.Console.Write("get"); return 42; } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        // PROTOTYPE(instance) execute once instance scenarios are implemented
+        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "1.Property");
+        Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void LiteralReceiver_Property_Integer_Set()
+    {
+        var src = """
+1.Property = 1;
+
+implicit extension E for int
+{
+    public int Property { set => throw null; }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // 1.Property = 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "1.Property").WithLocation(1, 1));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "1.Property");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["System.Int32 E.Property { set; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(CandidateReason.NotAVariable, model.GetSymbolInfo(memberAccess).CandidateReason);
+    }
+
+    [Fact]
+    public void LiteralReceiver_Property_Integer_ForLong()
+    {
+        var src = """
+1.Property = 42;
+_ = 2.Property;
+
+implicit extension E for long
+{
+    public int Property { get { System.Console.Write("get "); return 42; } set { System.Console.Write("set "); }  }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,3): error CS1061: 'int' does not contain a definition for 'Property' and no accessible extension method 'Property' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // 1.Property = 42;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Property").WithArguments("int", "Property").WithLocation(1, 3),
+            // (2,7): error CS1061: 'int' does not contain a definition for 'Property' and no accessible extension method 'Property' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // _ = 2.Property;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Property").WithArguments("int", "Property").WithLocation(2, 7));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "1.Property");
+        Assert.Null(model.GetSymbolInfo(memberAccess1).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(memberAccess1).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess1).CandidateReason);
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "2.Property");
+        Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess2).CandidateReason);
+    }
+
+    [Fact]
+    public void LiteralReceiver_Property_String()
+    {
+        var src = """
+"".Property = 42;
+_ = "".Property;
+
+implicit extension E for string
+{
+    public int Property { get { System.Console.Write("get "); return 42; } set { System.Console.Write("set "); }  }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        // PROTOTYPE(instance) execute once instance scenarios are implemented
+        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "\"\".Property").First();
+        Assert.Equal("System.Int32 E.Property { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "\"\".Property").Last();
+        Assert.Equal("System.Int32 E.Property { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void SwitchReceiver_Property_String()
+    {
+        var src = """
+bool b = true;
+(b switch { true => "", _ => "" }).Property = 42;
+_ = (b switch { true => "", _ => "" }).Property;
+
+implicit extension E for string
+{
+    public int Property { get { System.Console.Write("get "); return 42; } set { System.Console.Write("set "); }  }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        // PROTOTYPE(instance) execute once instance scenarios are implemented
+        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, """(b switch { true => "", _ => "" }).Property""").First();
+        Assert.Equal("System.Int32 E.Property { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, """(b switch { true => "", _ => "" }).Property""").Last();
+        Assert.Equal("System.Int32 E.Property { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void SwitchReceiver_Index_String()
+    {
+        var src = """
+bool b = true;
+(b switch { true => "", _ => "" })[""] = 42;
+_ = (b switch { true => "", _ => "" })[""];
+
+implicit extension E for string
+{
+    public int this[string s] { get { System.Console.Write("get "); return 42; } set { System.Console.Write("set "); }  }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        // PROTOTYPE(instance) execute once instance scenarios are implemented
+        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<ElementAccessExpressionSyntax>(tree, """(b switch { true => "", _ => "" })[""]""").First();
+        Assert.Equal("System.Int32 E.this[System.String s] { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntaxes<ElementAccessExpressionSyntax>(tree, """(b switch { true => "", _ => "" })[""]""").Last();
+        Assert.Equal("System.Int32 E.this[System.String s] { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ConditionalReceiver_Property_String()
+    {
+        var src = """
+bool b = true;
+(b ? "" : null).Property = 42;
+_ = (b ? "" : null).Property;
+
+implicit extension E for string
+{
+    public int Property { get { System.Console.Write("get "); return 42; } set { System.Console.Write("set "); }  }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        // PROTOTYPE(instance) execute once instance scenarios are implemented
+        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, """(b ? "" : null).Property""").First();
+        Assert.Equal("System.Int32 E.Property { get; set; }", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, """(b ? "" : null).Property""").Last();
+        Assert.Equal("System.Int32 E.Property { get; set; }", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void LiteralReceiver_Property_Null()
+    {
+        var src = """
+null.Property = 1;
+_ = null.Property;
+
+implicit extension E for object
+{
+    public int Property { get => throw null; set => throw null; }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0023: Operator '.' cannot be applied to operand of type '<null>'
+            // null.Property = 1;
+            Diagnostic(ErrorCode.ERR_BadUnaryOp, "null.Property").WithArguments(".", "<null>").WithLocation(1, 1),
+            // (2,5): error CS0023: Operator '.' cannot be applied to operand of type '<null>'
+            // _ = null.Property;
+            Diagnostic(ErrorCode.ERR_BadUnaryOp, "null.Property").WithArguments(".", "<null>").WithLocation(2, 5));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "null.Property").First();
+        Assert.Null(model.GetSymbolInfo(memberAccess1).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(memberAccess1).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess1).CandidateReason);
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "null.Property").Last();
+        Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess2).CandidateReason);
+    }
+
+    [Fact]
+    public void LiteralReceiver_Property_Default()
+    {
+        var src = """
+default.Property = 1;
+_ = default.Property;
+
+implicit extension E for object
+{
+    public int Property { get => throw null; set => throw null; }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS8716: There is no target type for the default literal.
+            // default.Property = 1;
+            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(1, 1),
+            // (2,5): error CS8716: There is no target type for the default literal.
+            // _ = default.Property;
+            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(2, 5));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "default.Property").First();
+        Assert.Null(model.GetSymbolInfo(memberAccess1).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(memberAccess1).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess1).CandidateReason);
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "default.Property").Last();
+        Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess2).CandidateReason);
+    }
+
+    [Fact]
+    public void LiteralReceiver_Property_Tuple_Get()
+    {
+        var src = """
+_ = (1, 2).Property;
+
+implicit extension E for (int, int)
+{
+    public int Property { get { System.Console.Write("get "); return 42; } }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        // PROTOTYPE(instance) execute once instance scenarios are implemented
+        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "(1, 2).Property");
+        Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void LiteralReceiver_Property_Tuple_Set()
+    {
+        var src = """
+(1, 2).Property = 1;
+
+implicit extension E for (int, int)
+{
+    public int Property { set => throw null; }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // (1, 2).Property = 1;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "(1, 2).Property").WithLocation(1, 1));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "(1, 2).Property");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["System.Int32 E.Property { set; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(CandidateReason.NotAVariable, model.GetSymbolInfo(memberAccess).CandidateReason);
+    }
+
+    [Fact]
+    public void LiteralReceiver_Property_Tuple_Default()
+    {
+        var src = """
+(default, default).Property = 1;
+_ = (default, default).Property;
+
+implicit extension E for (object, object)
+{
+    public int Property { get => throw null; set => throw null; }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,2): error CS8716: There is no target type for the default literal.
+            // (default, default).Property = 1;
+            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(1, 2),
+            // (1,11): error CS8716: There is no target type for the default literal.
+            // (default, default).Property = 1;
+            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(1, 11),
+            // (2,6): error CS8716: There is no target type for the default literal.
+            // _ = (default, default).Property;
+            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(2, 6),
+            // (2,15): error CS8716: There is no target type for the default literal.
+            // _ = (default, default).Property;
+            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(2, 15));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "(default, default).Property").First();
+        Assert.Null(model.GetSymbolInfo(memberAccess1).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(memberAccess1).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess1).CandidateReason);
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "(default, default).Property").Last();
+        Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess2).CandidateReason);
+    }
+
+    [Fact]
+    public void LiteralReceiver_Property_Tuple_Integer_ForLong()
+    {
+        var src = """
+(1, 1).Property = 1;
+_ = (2, 2).Property;
+
+implicit extension E for (long, long)
+{
+    public int Property { get => throw null; set => throw null; }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS1061: '(int, int)' does not contain a definition for 'Property' and no accessible extension method 'Property' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
+            // (1, 1).Property = 1;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Property").WithArguments("(int, int)", "Property").WithLocation(1, 8),
+            // (2,12): error CS1061: '(int, int)' does not contain a definition for 'Property' and no accessible extension method 'Property' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
+            // _ = (2, 2).Property;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Property").WithArguments("(int, int)", "Property").WithLocation(2, 12));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "(1, 1).Property");
+        Assert.Null(model.GetSymbolInfo(memberAccess1).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(memberAccess1).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess1).CandidateReason);
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "(2, 2).Property");
+        Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess2).CandidateReason);
+    }
+
+    [Fact]
+    public void ConditionalReceiver_MethodGroup_InferredVariable()
+    {
+        var src = """
+bool b = true;
+var x = (b ? "" : null).Member;
+x();
+
+implicit extension E for string
+{
+    public void Member() { System.Console.Write("ran"); }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        // PROTOTYPE(instance) execute once instance scenarios are implemented
+        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("set get"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, """(b ? "" : null).Member""");
+        Assert.Equal("void E.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+
+        var x = GetSyntax<VariableDeclaratorSyntax>(tree, """x = (b ? "" : null).Member""");
+        Assert.Equal("System.Action x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ConditionalReceiver_Type_MemberAccess()
+    {
+        var src = """
+bool b = true;
+(b ? "" : null).Nested.M();
+
+implicit extension E for string
+{
+    class Nested
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,17): error CS1061: 'string' does not contain a definition for 'Nested' and no accessible extension method 'Nested' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // (b ? "" : null).Nested.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Nested").WithArguments("string", "Nested").WithLocation(2, 17));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, """(b ? "" : null).Nested""");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess).CandidateReason);
+    }
+
+    [Fact]
+    public void ConditionalReceiver_Property_MemberAccess()
+    {
+        var src = """
+bool b = true;
+System.Console.Write((b ? "" : null).Property.ToString());
+
+implicit extension E for string
+{
+    public int Property => 42;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+        // PROTOTYPE(instance) execute once instance scenarios are implemented
+        //CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, """(b ? "" : null).Property""");
+        Assert.Equal("System.Int32 E.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 }

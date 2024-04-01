@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1959,6 +1960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expression.GetLocation();
         }
 
+#nullable enable
         /// <summary>
         /// Replace a BoundTypeOrValueExpression with a BoundExpression for either a type (if useType is true)
         /// or a value (if useType is false).  Any other node is bound to its natural type.
@@ -1967,9 +1969,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Call this once overload resolution has succeeded on the method group of which the BoundTypeOrValueExpression
         /// is the receiver.  Generally, useType will be true if the chosen method is static and false otherwise.
         /// </remarks>
-        private BoundExpression ReplaceTypeOrValueReceiver(BoundExpression receiver, bool useType, BindingDiagnosticBag diagnostics)
+        [return: NotNullIfNotNull(nameof(receiver))]
+        private BoundExpression? ReplaceTypeOrValueReceiver(BoundExpression? receiver, bool useType, BindingDiagnosticBag diagnostics)
         {
-            if ((object)receiver == null)
+            if (receiver is null)
             {
                 return null;
             }
@@ -2013,6 +2016,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindToNaturalType(receiver, diagnostics);
             }
         }
+#nullable disable
 
         private static BoundExpression GetValueExpressionIfTypeOrValueReceiver(BoundExpression receiver)
         {
