@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -14,7 +15,9 @@ using AnalyzerReferencesToSourceGenerators = ConditionalWeakTable<IReadOnlyList<
 
 internal partial class SolutionCompilationState
 {
-    internal sealed record SourceGeneratorMap(ImmutableArray<ISourceGenerator> SourceGenerators, ImmutableDictionary<ISourceGenerator, AnalyzerReference> SourceGeneratorToAnalyzerReference)
+    internal sealed record SourceGeneratorMap(
+        ImmutableArray<ISourceGenerator> SourceGenerators,
+        ImmutableDictionary<ISourceGenerator, AnalyzerReference> SourceGeneratorToAnalyzerReference);
 
     /// <summary>
     /// Cached mapping from language (only C#/VB since those are the only languages that support analyzers) to the lists
@@ -23,11 +26,11 @@ internal partial class SolutionCompilationState
     /// of things so that we don't cause source generators to be loaded (and fixed) within VS (which is .net framework
     /// only).
     /// </summary>
-    private static readonly Dictionary<string, (AnalyzerReferencesToSourceGenerators map, AnalyzerReferencesToSourceGenerators.CreateValueCallback callback)> s_languageToAnalyzerReferencesToSourceGeneratorsMap = new()
-    {
-        { LanguageNames.CSharp, (new(), (static rs => ComputeSourceGenerators(rs, LanguageNames.CSharp))) },
-        { LanguageNames.VisualBasic, (new(), (static rs => ComputeSourceGenerators(rs, LanguageNames.VisualBasic))) },
-    };
+    private static readonly ImmutableArray<(string language, AnalyzerReferencesToSourceGenerators referencesToGenerators, AnalyzerReferencesToSourceGenerators.CreateValueCallback callback)> s_languageToAnalyzerReferencesToSourceGeneratorsMap =
+    [
+        (LanguageNames.CSharp, new(), (static rs => ComputeSourceGenerators(rs, LanguageNames.CSharp))),
+        (LanguageNames.VisualBasic, new(), (static rs => ComputeSourceGenerators(rs, LanguageNames.VisualBasic))),
+    ];
 
     private static SourceGeneratorMap ComputeSourceGenerators(IReadOnlyList<AnalyzerReference> analyzerReferences, string language)
     {
@@ -51,10 +54,12 @@ internal partial class SolutionCompilationState
 
     private static ImmutableArray<ISourceGenerator> GetSourceGenerators(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
     {
-        if (!s_languageToAnalyzerReferencesToSourceGeneratorsMap.TryGetValue(language, out var tuple))
+        var tupleOpt = s_languageToAnalyzerReferencesToSourceGeneratorsMap.FirstOrNull(static (t, language) => t.language == language, language);
+        if (tupleOpt is null)
             return [];
 
-        var map = tuple.map.GetValue(analyzerReferences, tuple.callback);
+        var tuple = tupleOpt.Value;
+        var map = tuple.referencesToGenerators.GetValue(analyzerReferences, tuple.callback);
         return map.SourceGenerators;
     }
 }
