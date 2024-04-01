@@ -87,7 +87,7 @@ The location of the call is the location of the simple name syntax which denotes
 
 #### Attribute creation
 
-Roslyn provides a convenience API, `GetInterceptableLocation(this SemanticModel, InvocationExpressionSyntax)` for inserting `[InterceptsLocation]` into generated source code. We recommend that source generators depend on this API in order to intercept calls.
+Roslyn provides a convenience API, `GetInterceptableLocation(this SemanticModel, InvocationExpressionSyntax, CancellationToken)` for inserting `[InterceptsLocation]` into generated source code. We recommend that source generators depend on this API in order to intercept calls.
 
 ### Non-invocation method usages
 
