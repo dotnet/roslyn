@@ -54,12 +54,24 @@ internal partial class SolutionCompilationState
 
     private static ImmutableArray<ISourceGenerator> GetSourceGenerators(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
     {
+        var map = GetSourceGeneratorMap(language, analyzerReferences);
+        return map is null ? [] : map.SourceGenerators;
+    }
+
+    private static AnalyzerReference GetAnalyzerReference(ProjectState projectState, ISourceGenerator sourceGenerator)
+    {
+        var map = GetSourceGeneratorMap(projectState.Language, projectState.AnalyzerReferences);
+        Contract.ThrowIfNull(map);
+        return map.SourceGeneratorToAnalyzerReference[sourceGenerator];
+    }
+
+    private static SourceGeneratorMap? GetSourceGeneratorMap(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
+    {
         var tupleOpt = s_languageToAnalyzerReferencesToSourceGeneratorsMap.FirstOrNull(static (t, language) => t.language == language, language);
         if (tupleOpt is null)
-            return [];
+            return null;
 
         var tuple = tupleOpt.Value;
-        var map = tuple.referencesToGenerators.GetValue(analyzerReferences, tuple.callback);
-        return map.SourceGenerators;
+        return tuple.referencesToGenerators.GetValue(analyzerReferences, tuple.callback);
     }
 }
