@@ -46,13 +46,6 @@ internal partial class SolutionCompilationState
                 return (compilationWithGeneratedFiles, generatorInfo.Documents, generatorInfo.Driver);
             }
 
-            if (!this.ProjectState.SourceGenerators.Any())
-            {
-                // We don't have any source generators.  Trivially bail out.
-                var compilationWithGeneratedFiles = compilationWithoutGeneratedFiles;
-                return (compilationWithGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState>.Empty, generatorInfo.Driver);
-            }
-
             return await ComputeNewGeneratorInfoAsync(
                 compilationState,
                 compilationWithoutGeneratedFiles,
@@ -124,12 +117,17 @@ internal partial class SolutionCompilationState
             if (!infosOpt.HasValue)
                 return null;
 
+            var infos = infosOpt.Value;
+
+            // If there are no generated documents, bail out immediately.
+            if (infos.Length == 0)
+                return (compilationWithoutGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState>.Empty);
+
             // Next, figure out what is different locally.  Specifically, what documents we don't know about, or we
             // know about but whose text contents are different.
             using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var documentsToAddOrUpdate);
             using var _2 = PooledDictionary<DocumentId, int>.GetInstance(out var documentIdToIndex);
 
-            var infos = infosOpt.Value;
             foreach (var (documentIdentity, contentIdentity, _) in infos)
             {
                 var documentId = documentIdentity.DocumentId;
@@ -243,6 +241,10 @@ internal partial class SolutionCompilationState
             Compilation? compilationWithStaleGeneratedTrees,
             CancellationToken cancellationToken)
         {
+            // If we don't have any source generators.  Trivially bail out.
+            if (!this.ProjectState.SourceGenerators.Any())
+                return (compilationWithoutGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState>.Empty, generatorDriver);
+
             // If we don't already have an existing generator driver, create one from scratch
             generatorDriver ??= CreateGeneratorDriver(this.ProjectState);
 
