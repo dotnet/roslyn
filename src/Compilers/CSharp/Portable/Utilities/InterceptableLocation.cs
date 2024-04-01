@@ -28,6 +28,9 @@ public abstract class InterceptableLocation
     /// </summary>
     public abstract string Data { get; }
 
+    /// <summary>
+    /// Gets a human-readable representation of the location, suitable for including in comments in generated code.
+    /// </summary>
     public abstract string GetDisplayLocation();
 }
 
@@ -39,13 +42,15 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
 {
     private readonly ImmutableArray<byte> _checksum;
     private readonly string _path;
+    private readonly int _position;
     private readonly int _lineNumberOneIndexed;
     private readonly int _characterNumberOneIndexed;
 
-    internal InterceptableLocation1(ImmutableArray<byte> checksum, string path, int lineNumberOneIndexed, int characterNumberOneIndexed)
+    internal InterceptableLocation1(ImmutableArray<byte> checksum, string path, int position, int lineNumberOneIndexed, int characterNumberOneIndexed)
     {
         _checksum = checksum;
         _path = path;
+        _position = position;
         _lineNumberOneIndexed = lineNumberOneIndexed;
         _characterNumberOneIndexed = characterNumberOneIndexed;
     }
@@ -68,8 +73,7 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
 
             var builder = new BlobBuilder();
             builder.WriteBytes(_checksum, start: 0, 16);
-            builder.WriteInt32(_lineNumberOneIndexed);
-            builder.WriteInt32(_characterNumberOneIndexed);
+            builder.WriteInt32(_position);
 
             var displayFileName = Path.GetFileName(_path);
             builder.WriteUTF8(displayFileName);
@@ -88,6 +92,7 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
         return obj is InterceptableLocation1 other
             && _checksum.SequenceEqual(other._checksum)
             && _path == other._path
+            && _position == other._position
             && _lineNumberOneIndexed == other._lineNumberOneIndexed
             && _characterNumberOneIndexed == other._characterNumberOneIndexed;
     }
@@ -99,7 +104,9 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
            Hash.Combine(
                _path.GetHashCode(),
                Hash.Combine(
-                   _lineNumberOneIndexed,
-                   _characterNumberOneIndexed)));
+                   _position,
+                   Hash.Combine(
+                       _lineNumberOneIndexed,
+                       _characterNumberOneIndexed))));
     }
 }

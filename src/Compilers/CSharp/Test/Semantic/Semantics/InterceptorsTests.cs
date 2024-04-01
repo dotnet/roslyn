@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -34,6 +35,8 @@ public class InterceptorsTests : CSharpTestBase
         """, "attributes.cs");
 
     private static readonly CSharpParseOptions RegularWithInterceptors = TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "global");
+
+    private static readonly SyntaxTree s_attributesTree = CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors);
 
     [Fact]
     public void FeatureFlag()
@@ -3024,6 +3027,109 @@ public class InterceptorsTests : CSharpTestBase
             //     [InterceptsLocation("Program.cs", 0, 0)] // 6
             Diagnostic(ErrorCode.ERR_InterceptorLineCharacterMustBePositive, "0").WithLocation(22, 39)
             );
+    }
+
+    [Fact]
+    public void InterceptsLocationBadPosition_Checksum_01()
+    {
+        var sourceTree = CSharpTestSource.Parse("""
+            using System.Runtime.CompilerServices;
+            using System;
+
+            interface I1 { }
+            class C : I1 { }
+
+            static class Program
+            {
+
+                public static I1 InterceptableMethod(this I1 i1, string param) { Console.Write("interceptable " + param); return i1; }
+
+                public static void Main()
+                {
+                    var c = new C();
+                    c.InterceptableMethod("call site");
+                }
+            }
+            """, options: RegularWithInterceptors);
+
+        // test unexpected position within interceptable name token
+        var interceptableName = sourceTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Last().GetInterceptableNameSyntax();
+        var position = interceptableName.Position + 1;
+
+        var builder = new BlobBuilder();
+        builder.WriteBytes(sourceTree.GetText().GetContentHash());
+        builder.WriteInt32(position);
+        builder.WriteUTF8("Error");
+
+        var base64 = Convert.ToBase64String(builder.ToArray());
+
+        var interceptorTree = CSharpTestSource.Parse($$"""
+            using System.Runtime.CompilerServices;
+            using System;
+            
+            static class D
+            {
+                [InterceptsLocation(1, "{{base64}}")]
+                public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
+            }
+            """, options: RegularWithInterceptors);
+        var comp = CreateCompilation([sourceTree, interceptorTree, s_attributesTree]);
+        comp.VerifyEmitDiagnostics(
+            // (6,6): error CS9234: The data argument to InterceptsLocationAttribute refers to an invalid position in file 'Error'.
+            //     [InterceptsLocation(1, "{base64}")]
+            Diagnostic(ErrorCode.ERR_InterceptsLocationDataInvalidPosition, $@"InterceptsLocation(1, ""{base64}"")").WithArguments("Error").WithLocation(6, 6)
+        );
+    }
+
+    [Fact]
+    public void InterceptsLocationBadPosition_Checksum_02()
+    {
+        var sourceTree = CSharpTestSource.Parse("""
+            using System.Runtime.CompilerServices;
+            using System;
+
+            interface I1 { }
+            class C : I1 { }
+
+            static class Program
+            {
+
+                public static I1 InterceptableMethod(this I1 i1, string param) { Console.Write("interceptable " + param); return i1; }
+
+                public static void Main()
+                {
+                    var c = new C();
+                    c.InterceptableMethod("call site");
+                }
+            }
+            """, options: RegularWithInterceptors);
+
+        // test position past end of the file
+        var position = 99999;
+
+        var builder = new BlobBuilder();
+        builder.WriteBytes(sourceTree.GetText().GetContentHash());
+        builder.WriteInt32(position);
+        builder.WriteUTF8("Error");
+
+        var base64 = Convert.ToBase64String(builder.ToArray());
+
+        var interceptorTree = CSharpTestSource.Parse($$"""
+            using System.Runtime.CompilerServices;
+            using System;
+
+            static class D
+            {
+                [InterceptsLocation(1, "{{base64}}")]
+                public static I1 Interceptor1(this I1 i1, string param) { Console.Write("interceptor " + param); return i1; }
+            }
+            """, options: RegularWithInterceptors);
+        var comp = CreateCompilation([sourceTree, interceptorTree, s_attributesTree]);
+        comp.VerifyEmitDiagnostics(
+            // (6,6): error CS9234: The data argument to InterceptsLocationAttribute refers to an invalid position in file 'Error'.
+            //     [InterceptsLocation(1, "{base64}")]
+            Diagnostic(ErrorCode.ERR_InterceptsLocationDataInvalidPosition, $@"InterceptsLocation(1, ""{base64}"")").WithArguments("Error").WithLocation(6, 6)
+        );
     }
 
     [Fact]
@@ -6423,6 +6529,9 @@ partial struct CustomHandler
         Assert.Null(model.GetInterceptorMethod(call));
     }
 
+    // https://github.com/dotnet/roslyn/issues/72265
+    // As part of the work to drop support for file path based interceptors, a significant number of existing tests here will need to be ported to checksum-based.
+
     [Fact]
     public void Checksum_01()
     {
@@ -6503,8 +6612,8 @@ partial struct CustomHandler
 
         // If Data changes it might be the case that 'SourceText.GetContentHash()' has changed algorithms.
         // In this case we need to adjust the SourceMethodSymbolWithAttributes.DecodeInterceptsLocationAttribute impl to remain compatible with v1 and consider introducing a v2 which uses the new content hash algorithm.
-        AssertEx.Equal("jB4qgCy292LkEGCwmD+R6AcAAAAJAAAAUHJvZ3JhbS5jcw==", locationSpecifier.Data);
-        AssertEx.Equal("""[global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, "jB4qgCy292LkEGCwmD+R6AcAAAAJAAAAUHJvZ3JhbS5jcw==")]""", locationSpecifier.GetInterceptsLocationAttributeSyntax());
+        AssertEx.Equal("jB4qgCy292LkEGCwmD+R6FIAAABQcm9ncmFtLmNz", locationSpecifier.Data);
+        AssertEx.Equal("""[global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, "jB4qgCy292LkEGCwmD+R6FIAAABQcm9ncmFtLmNz")]""", locationSpecifier.GetInterceptsLocationAttributeSyntax());
     }
 
     [Fact]
@@ -6535,8 +6644,8 @@ partial struct CustomHandler
         // Test invalid UTF-8 encoded to base64
 
         var builder = new BlobBuilder();
-        // all zeros checksum and zero line and column numbers (which are also invalid, but won't be foudn with this particular test)
-        builder.WriteBytes(value: 0, byteCount: 12);
+        // all zeros checksum and zero position
+        builder.WriteBytes(value: 0, byteCount: 20);
 
         // write invalid utf-8
         builder.WriteByte(0xc0);

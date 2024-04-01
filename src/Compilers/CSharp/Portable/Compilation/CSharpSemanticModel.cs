@@ -5207,7 +5207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CheckSyntaxNode(node);
 
-            if (node.GetInterceptableNameSyntax() is { } nameSyntax && Compilation.TryGetInterceptor(nameSyntax.GetLocation()) is (_, MethodSymbol interceptor))
+            if (node.GetInterceptableNameSyntax() is { } nameSyntax && Compilation.TryGetInterceptor(nameSyntax) is (_, MethodSymbol interceptor))
             {
                 return interceptor.GetPublicSymbol();
             }
@@ -5233,7 +5233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lineNumberOneIndexed = lineSpan.Line + 1;
             var characterNumberOneIndexed = lineSpan.Character + 1;
 
-            return new InterceptableLocation1(checksum, path, lineNumberOneIndexed, characterNumberOneIndexed);
+            return new InterceptableLocation1(checksum, path, nameSyntax.Position, lineNumberOneIndexed, characterNumberOneIndexed);
         }
 #nullable disable
 

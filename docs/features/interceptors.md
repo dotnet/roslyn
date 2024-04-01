@@ -76,8 +76,7 @@ The arguments to `[InterceptsLocation]` are:
 
 The "version 1" data encoding is a base64-encoded string consisting of the following data:
 - 16 byte xxHash128 content checksum of the file containing the intercepted call.
-- int32 in little-endian format for the one-based line number of the call in syntax.
-- int32 in little-endian format for the one-based column number of the call in syntax.
+- int32 in little-endian format for the position (i.e. `SyntaxNode.Position`) of the call in syntax.
 - utf-8 string data containing a display file name, used for error reporting.
 
 #### Position

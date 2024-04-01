@@ -2435,6 +2435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptsLocationUnsupportedVersion:
                 case ErrorCode.ERR_InterceptsLocationDuplicateFile:
                 case ErrorCode.ERR_InterceptsLocationFileNotFound:
+                case ErrorCode.ERR_InterceptsLocationDataInvalidPosition:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

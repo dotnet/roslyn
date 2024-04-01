@@ -987,25 +987,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // format:
-            // - 16 bytes of hash (xxHash128)
-            // - int32 line number (little endian)
-            // - int32 character number (little endian)
+            // - 16 bytes of target file content hash (xxHash128)
+            // - int32 position (little endian)
             // - utf-8 display filename
-            const int minLength = 16 + 4 + 4;
+            const int hashIndex = 0;
+            const int hashSize = 16;
+            const int positionIndex = hashIndex + hashSize;
+            const int positionSize = sizeof(int);
+            const int displayNameIndex = positionIndex + positionSize;
+            const int minLength = displayNameIndex;
+
             if (bytes.Length < minLength)
             {
                 diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, arguments.Attribute.GetAttributeArgumentLocation(parameterIndex: 1));
                 return;
             }
 
-            var hash = bytes.AsMemory(start: 0, length: 16);
-            var lineNumberOneBased = BinaryPrimitives.ReadInt32LittleEndian(bytes.AsSpan(start: 16));
-            var characterNumberOneBased = BinaryPrimitives.ReadInt32LittleEndian(bytes.AsSpan(start: 20));
+            var hash = bytes.AsMemory(start: hashIndex, length: hashSize);
+            var position = BinaryPrimitives.ReadInt32LittleEndian(bytes.AsSpan(start: positionIndex));
 
             string displayFileName;
             try
             {
-                displayFileName = Encoding.UTF8.GetString(bytes, index: 24, count: bytes.Length - minLength);
+                displayFileName = Encoding.UTF8.GetString(bytes, index: displayNameIndex, count: bytes.Length - displayNameIndex);
             }
             catch (ArgumentException)
             {
@@ -1065,37 +1069,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(matchingTrees.Count == 1);
             SyntaxTree? matchingTree = matchingTrees[0];
-            // Internally, line and character numbers are 0-indexed, but when they appear in code or diagnostic messages, they are 1-indexed.
-            int lineNumberZeroBased = lineNumberOneBased - 1;
-            int characterNumberZeroBased = characterNumberOneBased - 1;
 
-            if (lineNumberZeroBased < 0 || characterNumberZeroBased < 0)
+            var root = matchingTree.GetRoot();
+            if (position > root.EndPosition)
             {
-                var location = attributeData.GetAttributeArgumentLocation(1);
-                diagnostics.Add(ErrorCode.ERR_InterceptorLineCharacterMustBePositive, location);
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidPosition, attributeLocation, displayFileName);
                 return;
             }
 
             var referencedLines = matchingTree.GetText().Lines;
             var referencedLineCount = referencedLines.Count;
-
-            if (lineNumberZeroBased >= referencedLineCount)
-            {
-                diagnostics.Add(ErrorCode.ERR_InterceptorLineOutOfRange, attributeData.GetAttributeArgumentLocation(1), referencedLineCount, lineNumberOneBased);
-                return;
-            }
-
-            var line = referencedLines[lineNumberZeroBased];
-            var lineLength = line.End - line.Start;
-            if (characterNumberZeroBased >= lineLength)
-            {
-                diagnostics.Add(ErrorCode.ERR_InterceptorCharacterOutOfRange, attributeData.GetAttributeArgumentLocation(1), lineLength, characterNumberOneBased);
-                return;
-            }
-
-            var referencedPosition = line.Start + characterNumberZeroBased;
-            var root = matchingTree.GetRoot();
-            var referencedToken = root.FindToken(referencedPosition);
+            var referencedToken = root.FindToken(position);
             switch (referencedToken)
             {
                 case { Parent: SimpleNameSyntax { Parent: MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax } memberAccess } rhs } when memberAccess.Name == rhs:
@@ -1113,15 +1097,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return;
             }
 
-            // Did they actually refer to the start of the token, not the middle, or in trivia?
-            if (referencedPosition != referencedToken.Span.Start)
+            if (position != referencedToken.Position)
             {
-                var linePositionZeroBased = referencedToken.GetLocation().GetLineSpan().StartLinePosition;
-                diagnostics.Add(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, attributeLocation, referencedToken.Text, linePositionZeroBased.Line + 1, linePositionZeroBased.Character + 1);
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidPosition, attributeLocation, displayFileName);
                 return;
             }
 
-            DeclaringCompilation.AddInterception(matchingTree.FilePath, lineNumberZeroBased, characterNumberZeroBased, attributeLocation, this);
+            DeclaringCompilation.AddInterception(matchingTree.FilePath, position, attributeLocation, this);
 
             // Caller must free the returned builder.
             ArrayBuilder<string> getNamespaceNames()
@@ -1326,14 +1308,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Did they actually refer to the start of the token, not the middle, or in trivia?
-            if (referencedPosition != referencedToken.Span.Start)
+            // NB: here we don't want the provided position to refer to the start of token's leading trivia, in the checksum-based way we *do* want it to refer to the start of leading trivia (i.e. the Position)
+            if (referencedPosition != referencedToken.SpanStart)
             {
                 var linePositionZeroBased = referencedToken.GetLocation().GetLineSpan().StartLinePosition;
                 diagnostics.Add(ErrorCode.ERR_InterceptorMustReferToStartOfTokenPosition, attributeLocation, referencedToken.Text, linePositionZeroBased.Line + 1, linePositionZeroBased.Character + 1);
                 return;
             }
 
-            DeclaringCompilation.AddInterception(matchingTree.FilePath, lineNumberZeroBased, characterNumberZeroBased, attributeLocation, this);
+            DeclaringCompilation.AddInterception(matchingTree.FilePath, referencedToken.Position, attributeLocation, this);
 
             // Caller must free the returned builder.
             ArrayBuilder<string> getNamespaceNames()

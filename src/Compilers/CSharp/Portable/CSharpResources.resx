@@ -7917,4 +7917,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InterceptsLocationFileNotFound" xml:space="preserve">
     <value>Cannot intercept a call in file '{0}' because a matching file was not found in the compilation.</value>
   </data>
+  <data name="ERR_InterceptsLocationDataInvalidPosition" xml:space="preserve">
+    <value>The data argument to InterceptsLocationAttribute refers to an invalid position in file '{0}'.</value>
+  </data>
 </root>

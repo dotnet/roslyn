@@ -2306,6 +2306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptsLocationUnsupportedVersion = 9231,
         ERR_InterceptsLocationDuplicateFile = 9232,
         ERR_InterceptsLocationFileNotFound = 9233,
+        ERR_InterceptsLocationDataInvalidPosition = 9234,
 
         #endregion
 

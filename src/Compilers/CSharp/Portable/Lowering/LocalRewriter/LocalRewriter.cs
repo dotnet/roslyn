@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(!nameofOperator.WasCompilerGenerated);
                 var nameofIdentiferSyntax = (IdentifierNameSyntax)((InvocationExpressionSyntax)nameofOperator.Syntax).Expression;
-                if (this._compilation.TryGetInterceptor(nameofIdentiferSyntax.Location) is not null)
+                if (this._compilation.TryGetInterceptor(nameofIdentiferSyntax) is not null)
                 {
                     this._diagnostics.Add(ErrorCode.ERR_InterceptorCannotInterceptNameof, nameofIdentiferSyntax.Location);
                 }
