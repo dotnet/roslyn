@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -112,6 +113,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     includeSuppressedDiagnostics: false, priorityProvider, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
             }
 
+            var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
+            allDiagnostics = allDiagnostics.AddRange(copilotDiagnostics);
+
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
             allDiagnostics = allDiagnostics.AddRange(buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id));
 
@@ -197,6 +201,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     addOperationScope, DiagnosticKind.All, isExplicit: true, cancellationToken).ConfigureAwait(false);
             }
 
+            var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
+            diagnostics = diagnostics.AddRange(copilotDiagnostics);
+
             var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
             var buildOnlyDiagnostics = buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id);
 
@@ -239,6 +246,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     }
                 }
             }
+        }
+
+        private static async Task<ImmutableArray<DiagnosticData>> GetCopilotDiagnosticsAsync(
+            TextDocument document,
+            TextSpan range,
+            CodeActionRequestPriority? priority,
+            CancellationToken cancellationToken)
+        {
+            if (priority is null or CodeActionRequestPriority.Low)
+                return await document.GetCachedCopilotDiagnosticsAsync(range, cancellationToken).ConfigureAwait(false);
+
+            return [];
         }
 
         private static SortedDictionary<TextSpan, List<DiagnosticData>> ConvertToMap(
@@ -746,8 +765,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var extensionManager = textDocument.Project.Solution.Services.GetRequiredService<IExtensionManager>();
             var fixes = await extensionManager.PerformFunctionAsync(fixer,
-                 () => getFixes(diagnostics),
-                defaultValue: []).ConfigureAwait(false);
+                _ => getFixes(diagnostics),
+                defaultValue: [], cancellationToken).ConfigureAwait(false);
 
             if (fixes.IsDefaultOrEmpty)
                 return null;

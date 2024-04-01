@@ -846,13 +846,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundGetType
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, sourceType As BoundTypeExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, sourceType As BoundTypeExpression, getTypeFromHandle As MethodSymbol, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.GetType, syntax, type, hasErrors OrElse sourceType.NonNullAndHasErrors())
 
             Debug.Assert(sourceType IsNot Nothing, "Field 'sourceType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._SourceType = sourceType
+            Me._GetTypeFromHandle = getTypeFromHandle
         End Sub
 
 
@@ -863,14 +864,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly _GetTypeFromHandle As MethodSymbol
+        Public ReadOnly Property GetTypeFromHandle As MethodSymbol
+            Get
+                Return _GetTypeFromHandle
+            End Get
+        End Property
+
         <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitGetType(Me)
         End Function
 
-        Public Function Update(sourceType As BoundTypeExpression, type As TypeSymbol) As BoundGetType
-            If sourceType IsNot Me.SourceType OrElse type IsNot Me.Type Then
-                Dim result = New BoundGetType(Me.Syntax, sourceType, type, Me.HasErrors)
+        Public Function Update(sourceType As BoundTypeExpression, getTypeFromHandle As MethodSymbol, type As TypeSymbol) As BoundGetType
+            If sourceType IsNot Me.SourceType OrElse getTypeFromHandle IsNot Me.GetTypeFromHandle OrElse type IsNot Me.Type Then
+                Dim result = New BoundGetType(Me.Syntax, sourceType, getTypeFromHandle, type, Me.HasErrors)
                 result.CopyAttributes(Me)
                 Return result
             End If
@@ -925,22 +933,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundMethodInfo
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol, hasErrors As Boolean)
+        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, getMethodFromHandle As MethodSymbol, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.MethodInfo, syntax, type, hasErrors)
 
             Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(getMethodFromHandle IsNot Nothing, "Field 'getMethodFromHandle' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Method = method
+            Me._GetMethodFromHandle = getMethodFromHandle
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol)
+        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, getMethodFromHandle As MethodSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.MethodInfo, syntax, type)
 
             Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(getMethodFromHandle IsNot Nothing, "Field 'getMethodFromHandle' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Method = method
+            Me._GetMethodFromHandle = getMethodFromHandle
         End Sub
 
 
@@ -951,14 +963,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly _GetMethodFromHandle As MethodSymbol
+        Public ReadOnly Property GetMethodFromHandle As MethodSymbol
+            Get
+                Return _GetMethodFromHandle
+            End Get
+        End Property
+
         <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitMethodInfo(Me)
         End Function
 
-        Public Function Update(method As MethodSymbol, type As TypeSymbol) As BoundMethodInfo
-            If method IsNot Me.Method OrElse type IsNot Me.Type Then
-                Dim result = New BoundMethodInfo(Me.Syntax, method, type, Me.HasErrors)
+        Public Function Update(method As MethodSymbol, getMethodFromHandle As MethodSymbol, type As TypeSymbol) As BoundMethodInfo
+            If method IsNot Me.Method OrElse getMethodFromHandle IsNot Me.GetMethodFromHandle OrElse type IsNot Me.Type Then
+                Dim result = New BoundMethodInfo(Me.Syntax, method, getMethodFromHandle, type, Me.HasErrors)
                 result.CopyAttributes(Me)
                 Return result
             End If
@@ -12114,7 +12133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitGetType(node As BoundGetType) As BoundNode
             Dim sourceType As BoundTypeExpression = DirectCast(Me.Visit(node.SourceType), BoundTypeExpression)
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(sourceType, type)
+            Return node.Update(sourceType, node.GetTypeFromHandle, type)
         End Function
 
         Public Overrides Function VisitFieldInfo(node As BoundFieldInfo) As BoundNode
@@ -12124,7 +12143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitMethodInfo(node As BoundMethodInfo) As BoundNode
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(node.Method, type)
+            Return node.Update(node.Method, node.GetMethodFromHandle, type)
         End Function
 
         Public Overrides Function VisitTypeExpression(node As BoundTypeExpression) As BoundNode
@@ -13230,6 +13249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitGetType(node As BoundGetType, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("[getType]", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("sourceType", Nothing, new TreeDumperNode() {Visit(node.SourceType, Nothing)}),
+                New TreeDumperNode("getTypeFromHandle", node.GetTypeFromHandle, Nothing),
                 New TreeDumperNode("type", node.Type, Nothing)
             })
         End Function
@@ -13244,6 +13264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitMethodInfo(node As BoundMethodInfo, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("methodInfo", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("method", node.Method, Nothing),
+                New TreeDumperNode("getMethodFromHandle", node.GetMethodFromHandle, Nothing),
                 New TreeDumperNode("type", node.Type, Nothing)
             })
         End Function

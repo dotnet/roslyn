@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? clearCall = null;
             if (kind == EventAssignmentKind.Assignment)
             {
-                MethodSymbol clearMethod;
+                MethodSymbol? clearMethod;
                 if (TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Runtime_InteropServices_WindowsRuntime_WindowsRuntimeMarshal__RemoveAllEventHandlers, out clearMethod))
                 {
                     clearCall = MakeCall(
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression marshalCall;
 
-            MethodSymbol marshalMethod;
+            MethodSymbol? marshalMethod;
             if (TryGetWellKnownTypeMember(syntax, helper, out marshalMethod))
             {
                 marshalMethod = marshalMethod.Construct(eventType);
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression getOrCreateCall;
 
-            MethodSymbol getOrCreateMethod;
+            MethodSymbol? getOrCreateMethod;
             if (TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__GetOrCreateEventRegistrationTokenTable, out getOrCreateMethod))
             {
                 getOrCreateMethod = getOrCreateMethod.AsMember(fieldType);
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 getOrCreateCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create<BoundExpression>(fieldAccess), ErrorTypeSymbol.UnknownResultType);
             }
 
-            PropertySymbol invocationListProperty;
+            PropertySymbol? invocationListProperty;
             if (TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__InvocationList, out invocationListProperty))
             {
                 MethodSymbol invocationListAccessor = invocationListProperty.GetMethod;
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)addRemove != null)
                 {
-                    BoundExpression eventInfo = _factory.New(ctor, _factory.Typeof(node.Event.ContainingType), _factory.Literal(node.Event.MetadataName));
+                    BoundExpression eventInfo = _factory.New(ctor, _factory.Typeof(node.Event.ContainingType, ctor.Parameters[0].Type), _factory.Literal(node.Event.MetadataName));
                     result = _factory.Call(eventInfo, addRemove,
                                           _factory.Convert(addRemove.Parameters[0].Type, rewrittenReceiver),
                                           _factory.Convert(addRemove.Parameters[1].Type, rewrittenArgument));

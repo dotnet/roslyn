@@ -4306,6 +4306,119 @@ public static class Extensions
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
+        [Theory, CombinatorialData]
+        public void TestGetEnumeratorPatternViaInExtensionOnAssignableVariable_OptionalParameter(
+            [CombinatorialValues("ref", "in", "ref readonly", "")] string modifier)
+        {
+            var source = $$"""
+                using System;
+                public struct C
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        foreach (var i in c)
+                        {
+                            Console.Write(i);
+                        }
+                    }
+                    public struct Enumerator
+                    {
+                        public int Current { get; private set; }
+                        public bool MoveNext() => Current++ != 3;
+                    }
+                }
+                public static class Extensions
+                {
+                    public static C.Enumerator GetEnumerator(this in C self, {{modifier}} int x = 9)
+                    {
+                        Console.Write(x);
+                        return new C.Enumerator();
+                    }
+                }
+                """;
+            if (modifier == "ref")
+            {
+                CreateCompilation(source).VerifyDiagnostics(
+                    // (7,27): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Extensions.GetEnumerator(in C, ref int)'
+                    //         foreach (var i in c)
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c").WithArguments("x", "Extensions.GetEnumerator(in C, ref int)").WithLocation(7, 27),
+                    // (7,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+                    //         foreach (var i in c)
+                    Diagnostic(ErrorCode.ERR_ForEachMissingMember, "c").WithArguments("C", "GetEnumerator").WithLocation(7, 27),
+                    // (20,62): error CS1741: A ref or out parameter cannot have a default value
+                    //     public static C.Enumerator GetEnumerator(this in C self, ref int x = 9)
+                    Diagnostic(ErrorCode.ERR_RefOutDefaultValue, "ref").WithLocation(20, 62));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(source, expectedOutput: "9123");
+                if (modifier == "ref readonly")
+                {
+                    verifier.VerifyDiagnostics(
+                        // (20,83): warning CS9200: A default value is specified for 'ref readonly' parameter 'x', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+                        //     public static C.Enumerator GetEnumerator(this in C self, ref readonly int x = 9)
+                        Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "9").WithArguments("x").WithLocation(20, 83));
+                }
+                else
+                {
+                    verifier.VerifyDiagnostics();
+                }
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public void TestDisposePattern_OptionalParameter(
+            [CombinatorialValues("ref", "in", "ref readonly", "")] string modifier)
+        {
+            var source = $$"""
+                using System;
+                public struct C
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        foreach (var i in c)
+                        {
+                            Console.Write(i);
+                        }
+                    }
+                    public Enumerator GetEnumerator()
+                    {
+                        return new Enumerator();
+                    }
+                    public ref struct Enumerator
+                    {
+                        public int Current { get; private set; }
+                        public bool MoveNext() => Current++ != 3;
+                        public void Dispose({{modifier}} int x = 5) { Console.Write(x); }
+                    }
+                }
+                """;
+            if (modifier == "ref")
+            {
+                CreateCompilation(source).VerifyDiagnostics(
+                    // (20,29): error CS1741: A ref or out parameter cannot have a default value
+                    //         public void Dispose(ref int x = 5) { Console.Write(x); }
+                    Diagnostic(ErrorCode.ERR_RefOutDefaultValue, "ref").WithLocation(20, 29));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(source, expectedOutput: "1235", verify: Verification.FailsILVerify);
+                if (modifier == "ref readonly")
+                {
+                    verifier.VerifyDiagnostics(
+                        // (20,50): warning CS9200: A default value is specified for 'ref readonly' parameter 'x', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+                        //         public void Dispose(ref readonly int x = 5) { Console.Write(x); }
+                        Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "5").WithArguments("x").WithLocation(20, 50));
+                }
+                else
+                {
+                    verifier.VerifyDiagnostics();
+                }
+            }
+        }
+
         [Fact]
         public void TestGetEnumeratorPatternViaExtensionsCSharp8()
         {

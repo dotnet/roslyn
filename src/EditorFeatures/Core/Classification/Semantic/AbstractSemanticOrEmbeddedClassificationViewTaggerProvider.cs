@@ -59,17 +59,12 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
 
         // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing and also the
         // SemanticChange notification. 
-        // 
-        // Note: because we use frozen-partial documents for semantic classification, we may end up with incomplete
-        // semantics (esp. during solution load).  Because of this, we also register to hear when the full
-        // compilation is available so that reclassify and bring ourselves up to date.
-        return new CompilationAvailableTaggerEventSource(
-            subjectBuffer,
-            AsyncListener,
+        return TaggerEventSources.Compose(
             TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
             TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
             TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-            TaggerEventSources.OnGlobalOptionChanged(_globalOptions, ClassificationOptionsStorage.ClassifyReassignedVariables));
+            TaggerEventSources.OnGlobalOptionChanged(_globalOptions, ClassificationOptionsStorage.ClassifyReassignedVariables),
+            TaggerEventSources.OnGlobalOptionChanged(_globalOptions, ClassificationOptionsStorage.ClassifyObsoleteSymbols));
     }
 
     protected sealed override Task ProduceTagsAsync(

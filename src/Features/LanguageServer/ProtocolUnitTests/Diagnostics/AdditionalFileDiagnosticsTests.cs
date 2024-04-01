@@ -47,10 +47,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
-        Assert.Null(results2[0].Diagnostics);
-        Assert.Null(results2[1].Diagnostics);
-        Assert.Equal(results[1].ResultId, results2[1].ResultId);
-        Assert.Null(results2[2].Diagnostics);
+        Assert.Empty(results2);
     }
 
     [Theory, CombinatorialData]
@@ -121,8 +118,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
-        Assert.Equal(results[1].ResultId, results2[1].ResultId);
-        Assert.Equal(results[4].ResultId, results2[4].ResultId);
+        Assert.Empty(results2);
     }
 
     protected override TestComposition Composition => base.Composition.AddParts(typeof(MockAdditionalFileDiagnosticAnalyzer));

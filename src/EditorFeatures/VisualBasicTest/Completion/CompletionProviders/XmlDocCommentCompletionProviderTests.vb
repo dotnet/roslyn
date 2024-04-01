@@ -847,7 +847,9 @@ Class C
     End Sub
 End Class
 "
-            Await VerifyItemsExistAsync(text, "Nothing", "True", "False", "Await")
+            For Each keywordKind In SyntaxFacts.GetKeywordKinds()
+                Await VerifyItemExistsAsync(text, SyntaxFacts.GetText(keywordKind), glyph:=Glyph.Keyword)
+            Next
         End Function
 
         <Fact>

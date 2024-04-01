@@ -60,6 +60,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
             Descriptor,
             memberAccess.Name.Identifier.GetLocation(),
             option.Notification,
+            context.Options,
             additionalLocations: locations,
             properties));
 
@@ -73,6 +74,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
             NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+            context.Options,
             additionalLocations: locations,
             additionalUnnecessaryLocations: additionalUnnecessaryLocations,
             properties));

@@ -9,18 +9,17 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue
-{
-    internal interface IEditAndContinueAnalyzer : ILanguageService
-    {
-        Task<DocumentAnalysisResults> AnalyzeDocumentAsync(
-            Project baseProject,
-            AsyncLazy<ActiveStatementsMap> lazyBaseActiveStatements,
-            Document document,
-            ImmutableArray<LinePositionSpan> newActiveStatementSpans,
-            AsyncLazy<EditAndContinueCapabilities> lazyCapabilities,
-            CancellationToken cancellationToken);
+namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-        ActiveStatementExceptionRegions GetExceptionRegions(SyntaxNode syntaxRoot, TextSpan unmappedActiveStatementSpan, bool isNonLeaf, CancellationToken cancellationToken);
-    }
+internal interface IEditAndContinueAnalyzer : ILanguageService
+{
+    Task<DocumentAnalysisResults> AnalyzeDocumentAsync(
+        Project baseProject,
+        AsyncLazy<ActiveStatementsMap> lazyBaseActiveStatements,
+        Document document,
+        ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans,
+        AsyncLazy<EditAndContinueCapabilities> lazyCapabilities,
+        CancellationToken cancellationToken);
+
+    ActiveStatementExceptionRegions GetExceptionRegions(SyntaxNode syntaxRoot, TextSpan unmappedActiveStatementSpan, bool isNonLeaf, CancellationToken cancellationToken);
 }

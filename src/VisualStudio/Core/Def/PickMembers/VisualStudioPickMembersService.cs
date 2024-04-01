@@ -11,43 +11,42 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.VisualStudio.Language.Intellisense;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers;
+
+[ExportWorkspaceService(typeof(IPickMembersService), ServiceLayer.Host), Shared]
+internal class VisualStudioPickMembersService : IPickMembersService
 {
-    [ExportWorkspaceService(typeof(IPickMembersService), ServiceLayer.Host), Shared]
-    internal class VisualStudioPickMembersService : IPickMembersService
+    private readonly IGlyphService _glyphService;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VisualStudioPickMembersService(IGlyphService glyphService)
+        => _glyphService = glyphService;
+
+    public PickMembersResult PickMembers(
+        string title,
+        ImmutableArray<ISymbol> members,
+        ImmutableArray<PickMembersOption> options,
+        bool selectAll)
     {
-        private readonly IGlyphService _glyphService;
+        options = options.NullToEmpty();
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioPickMembersService(IGlyphService glyphService)
-            => _glyphService = glyphService;
+        var viewModel = new PickMembersDialogViewModel(_glyphService, members, options, selectAll);
+        var dialog = new PickMembersDialog(viewModel, title);
+        var result = dialog.ShowModal();
 
-        public PickMembersResult PickMembers(
-            string title,
-            ImmutableArray<ISymbol> members,
-            ImmutableArray<PickMembersOption> options,
-            bool selectAll)
+        if (result == true)
         {
-            options = options.NullToEmpty();
-
-            var viewModel = new PickMembersDialogViewModel(_glyphService, members, options, selectAll);
-            var dialog = new PickMembersDialog(viewModel, title);
-            var result = dialog.ShowModal();
-
-            if (result == true)
-            {
-                return new PickMembersResult(
-                    viewModel.MemberContainers.Where(c => c.IsChecked)
-                                              .Select(c => c.Symbol)
-                                              .ToImmutableArray(),
-                    options,
-                    viewModel.SelectedAll);
-            }
-            else
-            {
-                return PickMembersResult.Canceled;
-            }
+            return new PickMembersResult(
+                viewModel.MemberContainers.Where(c => c.IsChecked)
+                                          .Select(c => c.Symbol)
+                                          .ToImmutableArray(),
+                options,
+                viewModel.SelectedAll);
+        }
+        else
+        {
+            return PickMembersResult.Canceled;
         }
     }
 }

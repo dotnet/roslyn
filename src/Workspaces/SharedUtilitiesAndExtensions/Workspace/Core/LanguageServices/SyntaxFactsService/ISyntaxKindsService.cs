@@ -4,13 +4,12 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.LanguageService
+namespace Microsoft.CodeAnalysis.LanguageService;
+
+/// <summary>
+/// Provides a uniform view of SyntaxKinds over C# and VB for constructs they have
+/// in common.
+/// </summary>
+internal partial interface ISyntaxKindsService : ISyntaxKinds, ILanguageService
 {
-    /// <summary>
-    /// Provides a uniform view of SyntaxKinds over C# and VB for constructs they have
-    /// in common.
-    /// </summary>
-    internal partial interface ISyntaxKindsService : ISyntaxKinds, ILanguageService
-    {
-    }
 }

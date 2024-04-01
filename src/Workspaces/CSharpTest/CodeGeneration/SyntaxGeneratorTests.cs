@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -2736,6 +2737,7 @@ public class C
             AssertMemberNamesEqual("m", Generator.AddMembers(Generator.ClassDeclaration("d"), [Generator.MethodDeclaration("m")]));
             AssertMemberNamesEqual("m", Generator.AddMembers(Generator.StructDeclaration("s"), [Generator.MethodDeclaration("m")]));
             AssertMemberNamesEqual("m", Generator.AddMembers(Generator.InterfaceDeclaration("i"), [Generator.MethodDeclaration("m")]));
+            AssertMemberNamesEqual("", Generator.AddMembers(Generator.InterfaceDeclaration("i"), [Generator.OperatorDeclaration(OperatorKind.Addition)]));
             AssertMemberNamesEqual("v", Generator.AddMembers(Generator.EnumDeclaration("e"), [Generator.EnumMember("v")]));
             AssertMemberNamesEqual("n2", Generator.AddMembers(Generator.NamespaceDeclaration("n"), [Generator.NamespaceDeclaration("n2")]));
             AssertMemberNamesEqual("n", Generator.AddMembers(Generator.CompilationUnit(), [Generator.NamespaceDeclaration("n")]));
@@ -2746,6 +2748,76 @@ public class C
             AssertMemberNamesEqual(new[] { "v", "v2" }, Generator.AddMembers(Generator.EnumDeclaration("i", members: [Generator.EnumMember("v")]), [Generator.EnumMember("v2")]));
             AssertMemberNamesEqual(new[] { "n1", "n2" }, Generator.AddMembers(Generator.NamespaceDeclaration("n", [Generator.NamespaceDeclaration("n1")]), [Generator.NamespaceDeclaration("n2")]));
             AssertMemberNamesEqual(new[] { "n1", "n2" }, Generator.AddMembers(Generator.CompilationUnit(declarations: [Generator.NamespaceDeclaration("n1")]), [Generator.NamespaceDeclaration("n2")]));
+        }
+
+        [Fact]
+        public void TestAddOperatorMembersToInterface()
+        {
+            VerifySyntax<InterfaceDeclarationSyntax>(Generator.AddMembers(Generator.InterfaceDeclaration("i"),
+                    [Generator.OperatorDeclaration(OperatorKind.Addition)]),
+                """
+                interface i
+                {
+                    static void operator +();
+                }
+                """);
+
+            VerifySyntax<InterfaceDeclarationSyntax>(Generator.AddMembers(Generator.InterfaceDeclaration("i"),
+                    [Generator.OperatorDeclaration(OperatorKind.Addition, modifiers: DeclarationModifiers.Abstract)]),
+                """
+                interface i
+                {
+                    static abstract void operator +();
+                }
+                """);
+
+            VerifySyntax<InterfaceDeclarationSyntax>(Generator.AddMembers(Generator.InterfaceDeclaration("i"),
+                    [Generator.OperatorDeclaration(OperatorKind.Addition, modifiers: DeclarationModifiers.Virtual)]),
+                """
+                interface i
+                {
+                    static virtual void operator +();
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65932")]
+        public void TestAddExpressionBodyMembersToInterface()
+        {
+            var method = (MethodDeclarationSyntax)Generator.MethodDeclaration("m");
+            method = method.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            method = method.WithExpressionBody(SyntaxFactory.ArrowExpressionClause((ExpressionSyntax)Generator.IdentifierName("x")));
+
+            VerifySyntax<InterfaceDeclarationSyntax>(Generator.AddMembers(Generator.InterfaceDeclaration("i"),
+                    [method]),
+                """
+                interface i
+                {
+                    void m();
+                }
+                """);
+
+            var getAccessor = (AccessorDeclarationSyntax)Generator.GetAccessorDeclaration();
+            getAccessor = getAccessor.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            getAccessor = getAccessor.WithExpressionBody(SyntaxFactory.ArrowExpressionClause((ExpressionSyntax)Generator.IdentifierName("x")));
+
+            var setAccessor = (AccessorDeclarationSyntax)Generator.SetAccessorDeclaration();
+            setAccessor = setAccessor.WithBody(null).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            setAccessor = setAccessor.WithExpressionBody(SyntaxFactory.ArrowExpressionClause((ExpressionSyntax)Generator.InvocationExpression(Generator.IdentifierName("x"))));
+
+            var property = (PropertyDeclarationSyntax)
+                Generator.WithAccessorDeclarations(
+                    Generator.PropertyDeclaration("p", Generator.IdentifierName("x")),
+                    [getAccessor, setAccessor]);
+
+            VerifySyntax<InterfaceDeclarationSyntax>(Generator.AddMembers(Generator.InterfaceDeclaration("i"),
+                    [property]),
+                """
+                interface i
+                {
+                    x p { get; set; }
+                }
+                """);
         }
 
         [Fact]

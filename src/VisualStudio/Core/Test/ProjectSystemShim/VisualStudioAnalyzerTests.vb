@@ -21,55 +21,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.Diagnostics)>
     Public Class VisualStudioAnalyzerTests
-        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
-            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
-            .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
+        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures
 
         <WpfFact>
         Public Sub GetReferenceCalledMultipleTimes()
             Using workspace = New TestWorkspace(composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
-                Dim lazyWorkspace = New Lazy(Of VisualStudioWorkspace)(
-                                    Function()
-                                        Return Nothing
-                                    End Function)
-
-                Dim registrationService = Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
-                Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(lazyWorkspace, registrationService)
-
-                Using tempRoot = New TempRoot(), analyzer = New ProjectAnalyzerReference(tempRoot.CreateFile().Path, hostDiagnosticUpdateSource, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
+                Using tempRoot = New TempRoot(), analyzer = New ProjectAnalyzerReference(tempRoot.CreateFile().Path, HostDiagnosticUpdateSource.Instance, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
                     Dim reference1 = analyzer.GetReference()
                     Dim reference2 = analyzer.GetReference()
 
                     Assert.True(Object.ReferenceEquals(reference1, reference2))
                 End Using
-            End Using
-        End Sub
-
-        <WpfFact>
-        Public Sub AnalyzerErrorsAreUpdated()
-            Using workspace = New TestWorkspace(composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
-                Dim lazyWorkspace = New Lazy(Of VisualStudioWorkspace)(
-                                        Function()
-                                            Return Nothing
-                                        End Function)
-
-                Dim file = Path.GetTempFileName()
-
-                Dim registrationService = Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
-                Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(lazyWorkspace, registrationService)
-
-                Dim eventHandler = New EventHandlers(file)
-                AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
-
-                Using analyzer = New ProjectAnalyzerReference(file, hostDiagnosticUpdateSource, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
-                    Dim reference = analyzer.GetReference()
-                    reference.GetAnalyzers(LanguageNames.VisualBasic)
-
-                    RemoveHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
-                    AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf EventHandlers.DiagnosticRemovedTest
-                End Using
-
-                IO.File.Delete(file)
             End Using
         End Sub
 

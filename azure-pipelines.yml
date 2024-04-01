@@ -35,6 +35,11 @@ variables:
   - name: HelixApiAccessToken
     value: ''
 
+  - name: Codeql.Enabled
+    value: false
+  - name: Codeql.SkipTaskAutoInjection
+    value: true
+
   # Set pool / queue name variables depending on which instance we're running in.
   - name: PoolName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -50,9 +55,9 @@ variables:
 
   - name: UbuntuQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: Build.Ubuntu.1804.Amd64.Open
+      value: Build.Ubuntu.2004.Amd64.Open
     ${{ else }}:
-      value: Build.Ubuntu.1804.Amd64
+      value: Build.Ubuntu.2004.Amd64
 
   - name: WindowsQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -74,9 +79,9 @@ variables:
 
   - name: HelixUbuntuQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: Ubuntu.1804.Amd64.Open
+      value: Ubuntu.2004.Amd64.Open
     ${{ else }}:
-      value: Ubuntu.1804.Amd64
+      value: Ubuntu.2004.Amd64
 
   - name: HelixMacOsQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -143,15 +148,15 @@ stages:
   # Like template `eng/common/templates/jobs/source-build.yml`
   - job: Source_Build_Managed
     displayName: Source-Build (Managed)
-    container: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8
+    container: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream9
     pool:
       ${{ if eq(variables['System.TeamProject'], 'public') }}:
         name: $[replace(replace(eq(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'true'), True, 'NetCore-Svc-Public' ), False, 'NetCore-Public')]
-        demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
+        demands: ImageOverride -equals Build.Ubuntu.2204.Amd64.Open
 
       ${{ if eq(variables['System.TeamProject'], 'internal') }}:
         name: $[replace(replace(eq(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'true'), True, 'NetCore1ESPool-Svc-Internal'), False, 'NetCore1ESPool-Internal')]
-        demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
+        demands: ImageOverride -equals Build.Ubuntu.2204.Amd64
     workspace:
       clean: all
     steps:
@@ -159,7 +164,7 @@ stages:
       parameters:
         platform:
           name: 'Managed'
-          container: 'mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8'
+          container: 'mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream9'
 
 - stage: Windows_Debug_Desktop
   dependsOn: Windows_Debug_Build
@@ -339,17 +344,17 @@ stages:
 
   # https://github.com/dotnet/runtime/issues/97186
   # Disabled until runtime can track down the crash
-  # - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-  #   - template: eng/pipelines/test-unix-job.yml
-  #     parameters:
-  #       testRunName: 'Test macOS Debug'
-  #       jobName: Test_macOS_Debug
-  #       testArtifactName: Transport_Artifacts_Unix_Debug
-  #       configuration: Debug
-  #       testArguments: --testCoreClr 
-  #       helixQueueName: $(HelixMacOsQueueName)
-  #       helixApiAccessToken: $(HelixApiAccessToken)
-  #       poolParameters: ${{ parameters.ubuntuPool }}
+  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+    - template: eng/pipelines/test-unix-job.yml
+      parameters:
+        testRunName: 'Test macOS Debug'
+        jobName: Test_macOS_Debug
+        testArtifactName: Transport_Artifacts_Unix_Debug
+        configuration: Debug
+        testArguments: --testCoreClr 
+        helixQueueName: $(HelixMacOsQueueName)
+        helixApiAccessToken: $(HelixApiAccessToken)
+        poolParameters: ${{ parameters.ubuntuPool }}
 
 - stage: Correctness
   dependsOn: []
@@ -380,31 +385,22 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
-      - task: PowerShell@2
+      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -restore -binaryLogName Restore.binlog 
         displayName: Restore
-        inputs:
-          filePath: eng/build.ps1
-          arguments: -configuration Release -prepareMachine -ci -restore -binaryLogName Restore.binlog 
 
-      - task: PowerShell@2
+      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLogName Build.binlog
         displayName: Build
-        inputs:
-          filePath: eng/build.ps1
-          arguments: -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLogName Build.binlog
 
       - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.sln
         displayName: Validate Build Artifacts
 
-      - script: eng/validate-rules-missing-documentation.cmd -ci
+      - powershell: eng/validate-rules-missing-documentation.ps1 -ci
         displayName: Validate rules missing documentation
 
-      - pwsh: |
-          ./eng/generate-compiler-code.ps1 -test -configuration Release
+      - powershell: eng/generate-compiler-code.ps1 -test -configuration Release
         displayName: Generate Syntax Files
-        condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
 
-      - pwsh: |
-          ./eng/validate-code-formatting.ps1 -rootDirectory $(Build.SourcesDirectory)\src -includeDirectories Compilers\CSharp\Portable\Generated\, Compilers\VisualBasic\Portable\Generated\, ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\
+      - powershell: eng/validate-code-formatting.ps1 -ci -rootDirectory $(Build.SourcesDirectory)\src -includeDirectories Compilers\CSharp\Portable\Generated\, Compilers\VisualBasic\Portable\Generated\, ExpressionEvaluator\VisualBasic\Source\ResultProvider\Generated\ 
         displayName: Validate Generated Syntax Files
         condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
 
@@ -422,13 +418,15 @@ stages:
       - template: eng/pipelines/variables-build.yml
         parameters:
           configuration: Debug
+      - name: bootstrapDir
+        value: $(Build.SourcesDirectory)/artifacts/bootstrap/determinism
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
-      - script: eng/make-bootstrap.cmd -name determinism
+      - powershell: eng/make-bootstrap.ps1 -output $(bootstrapDir) -ci
         displayName: Build Bootstrap Compiler
 
-      - script: eng/test-determinism.cmd -configuration Debug -bootstrapDir $(Build.SourcesDirectory)/artifacts/bootstrap/determinism
+      - powershell: eng/test-determinism.ps1 -configuration Debug -bootstrapDir $(bootstrapDir) -ci
         displayName: Build - Validate determinism
 
       - template: eng/pipelines/publish-logs.yml
@@ -470,7 +468,7 @@ stages:
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
 
-      - pwsh: eng/todo-check.ps1
+      - powershell: eng/todo-check.ps1
         displayName: Validate TODO/PROTOTYPE comments are not present
 
   - job: Correctness_Rebuild

@@ -349,6 +349,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, CancellationToken, ValueTask<TResult>> selector, CancellationToken cancellationToken)
         {
+            if (array.IsEmpty)
+                return ImmutableArray<TResult>.Empty;
+
             var builder = ArrayBuilder<TResult>.GetInstance(array.Length);
 
             foreach (var item in array)
@@ -364,6 +367,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TArg, TResult>(this ImmutableArray<TItem> array, Func<TItem, TArg, CancellationToken, ValueTask<TResult>> selector, TArg arg, CancellationToken cancellationToken)
         {
+            if (array.IsEmpty)
+                return ImmutableArray<TResult>.Empty;
+
             var builder = ArrayBuilder<TResult>.GetInstance(array.Length);
 
             foreach (var item in array)
@@ -628,6 +634,32 @@ namespace Microsoft.CodeAnalysis
             }
 
             return default;
+        }
+
+        public static TValue? Single<TValue, TArg>(this ImmutableArray<TValue> array, Func<TValue, TArg, bool> predicate, TArg arg)
+        {
+            var hasValue = false;
+            TValue? value = default;
+            foreach (var item in array)
+            {
+                if (predicate(item, arg))
+                {
+                    if (hasValue)
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+
+                    value = item;
+                    hasValue = true;
+                }
+            }
+
+            if (!hasValue)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            return value;
         }
 
         /// <summary>
