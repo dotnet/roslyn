@@ -4137,7 +4137,7 @@ class C { }
                     transform: (GeneratorSyntaxContext context, CancellationToken token) =>
                     {
                         var model = context.SemanticModel;
-                        var locationSpecifier = model.GetInterceptableLocation((InvocationExpressionSyntax)context.Node);
+                        var locationSpecifier = model.GetInterceptableLocation((InvocationExpressionSyntax)context.Node, token);
                         if (locationSpecifier is null)
                         {
                             return null; // generator wants to intercept call, but host thinks call is not interceptable. bug.
