@@ -444,7 +444,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingAdd">
         <source>Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</source>
-        <target state="new">Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</target>
+        <target state="translated">컬렉션 식 형식 '{0}'에는 단일 인수로 호출할 수 있는 인스턴스 또는 확장 메서드 'Add'가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingConstructor">
