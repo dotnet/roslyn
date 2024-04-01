@@ -642,7 +642,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         private static ImmutableHashSet<string> GetOrCreateDiagnosticIds(
             ProjectId projectId,
             Dictionary<ProjectId, ImmutableHashSet<string>> diagnosticIdMap,
-            Func<ImmutableHashSet<string>> computeDiagosticIds)
+            Func<ImmutableHashSet<string>> computeDiagnosticIds)
         {
             lock (diagnosticIdMap)
             {
@@ -652,7 +652,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 }
             }
 
-            var computedIds = computeDiagosticIds();
+            var computedIds = computeDiagnosticIds();
 
             lock (diagnosticIdMap)
             {
