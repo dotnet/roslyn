@@ -3053,7 +3053,7 @@ public class InterceptorsTests : CSharpTestBase
             """, options: RegularWithInterceptors);
 
         // test unexpected position within interceptable name token
-        var interceptableName = sourceTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Last().GetInterceptableNameSyntax();
+        var interceptableName = sourceTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Last().GetInterceptableNameSyntax()!;
         var position = interceptableName.Position + 1;
 
         var builder = new BlobBuilder();
