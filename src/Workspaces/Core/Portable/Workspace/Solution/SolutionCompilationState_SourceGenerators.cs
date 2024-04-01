@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -85,21 +86,13 @@ internal partial class SolutionCompilationState
         return tuple.referencesToGenerators.GetValue(projectState.AnalyzerReferences, tuple.callback);
     }
 
-    private static async Task<bool> HasSourceGeneratorsAsync(ProjectState projectState, CancellationToken cancellationToken)
+    public static async Task<bool> HasSourceGeneratorsAsync(ProjectState projectState, CancellationToken cancellationToken)
     {
-        if (!s_hasSourceGeneratorsMap.TryGetValue(projectState, out var lazy))
-        {
-            lazy = GetLazySlow(projectState);
-        }
+        var lazy = s_hasSourceGeneratorsMap.GetValue(
+            projectState,
+            static projectState => AsyncLazy.Create(cancellationToken => ComputeHasSourceGeneratorsAsync(projectState, cancellationToken)));
 
         return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
-
-        static AsyncLazy<bool> GetLazySlow(ProjectState projectState)
-        {
-            return s_hasSourceGeneratorsMap.GetValue(
-                projectState,
-                static projectState => AsyncLazy.Create(cancellationToken => ComputeHasSourceGeneratorsAsync(projectState, cancellationToken)));
-        }
 
         static async Task<bool> ComputeHasSourceGeneratorsAsync(
             ProjectState projectState, CancellationToken cancellationToken)
@@ -107,12 +100,13 @@ internal partial class SolutionCompilationState
             var client = await RemoteHostClient.TryGetClientAsync(projectState.LanguageServices.SolutionServices, cancellationToken).ConfigureAwait(false);
             if (client is null)
             {
+                // In proc, just load the generators and see if we have any.
                 return GetSourceGenerators(projectState).Any();
             }
-            else
-            {
 
-            }
+            // Out of process, call to the remote to figure this out.
+            await client.TryInvokeAsync<IRemoteSourceGenerationService>(
+                )
         }
     }
 }
