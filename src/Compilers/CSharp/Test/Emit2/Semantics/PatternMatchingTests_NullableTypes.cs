@@ -146,6 +146,8 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
     public void PatternsInSwitchStatement()
     {
         var source = """
+            using System.Threading.Tasks;
+
             #nullable enable
 
             class C
@@ -157,13 +159,23 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
                     {
                         case int?:
                             break;
+                        case Task?:
+                            break;
                         case int? i1:
+                            break;
+                        case Task? t1:
                             break;
                         case int? when x > 0:
                             break;
+                        case Task? when x > 0:
+                            break;
                         case int? i2 when x > 0:
                             break;
+                        case Task? t2 when x > 0:
+                            break;
                         case (int? when) when x > 0:
+                            break;
+                        case (Task? when) when x > 0:
                             break;
                     }
                 }
@@ -172,27 +184,44 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (10,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
-            //             case int?:
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(10, 18),
             // (12,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
-            //             case int? i1:
+            //             case int?:
             Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(12, 18),
-            // (14,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
-            //             case int? when x > 0:
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(14, 18),
+            // (14,18): error CS8116: It is not legal to use nullable type 'Task?' in a pattern; use the underlying type 'Task' instead.
+            //             case Task?:
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task?").WithArguments("System.Threading.Tasks.Task").WithLocation(14, 18),
             // (16,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
-            //             case int? i2 when x > 0:
+            //             case int? i1:
             Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(16, 18),
-            // (18,19): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+            // (18,18): error CS8116: It is not legal to use nullable type 'Task?' in a pattern; use the underlying type 'Task' instead.
+            //             case Task? t1:
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task?").WithArguments("System.Threading.Tasks.Task").WithLocation(18, 18),
+            // (20,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+            //             case int? when x > 0:
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(20, 18),
+            // (22,18): error CS8116: It is not legal to use nullable type 'Task?' in a pattern; use the underlying type 'Task' instead.
+            //             case Task? when x > 0:
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task?").WithArguments("System.Threading.Tasks.Task").WithLocation(22, 18),
+            // (24,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+            //             case int? i2 when x > 0:
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(24, 18),
+            // (26,18): error CS8116: It is not legal to use nullable type 'Task?' in a pattern; use the underlying type 'Task' instead.
+            //             case Task? t2 when x > 0:
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task?").WithArguments("System.Threading.Tasks.Task").WithLocation(26, 18),
+            // (28,19): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
             //             case (int? when) when x > 0:
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(18, 19));
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(28, 19),
+            // (30,19): error CS8116: It is not legal to use nullable type 'Task?' in a pattern; use the underlying type 'Task' instead.
+            //             case (Task? when) when x > 0:
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task?").WithArguments("System.Threading.Tasks.Task").WithLocation(30, 19));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
     public void PatternsInSwitchStatement_Arrays()
     {
         var source = """
+            using System.Threading.Tasks;
+
             #nullable enable
 
             class C
@@ -204,13 +233,23 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
                     {
                         case int[]?:
                             break;
+                        case Task[]?:
+                            break;
                         case int[]? i1:
+                            break;
+                        case Task[]? t1:
                             break;
                         case int[]? when x > 0:
                             break;
+                        case Task[]? when x > 0:
+                            break;
                         case int[]? i2 when x > 0:
                             break;
+                        case Task[]? t2 when x > 0:
+                            break;
                         case (int[]? when) when x > 0:
+                            break;
+                        case (Task[]? when) when x > 0:
                             break;
                     }
                 }
@@ -219,27 +258,44 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (10,18): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
-            //             case int[]?:
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(10, 18),
             // (12,18): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
-            //             case int[]? i1:
+            //             case int[]?:
             Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(12, 18),
-            // (14,18): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
-            //             case int[]? when x > 0:
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(14, 18),
+            // (14,18): error CS8116: It is not legal to use nullable type 'Task[]?' in a pattern; use the underlying type 'Task[]' instead.
+            //             case Task[]?:
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task[]?").WithArguments("System.Threading.Tasks.Task[]").WithLocation(14, 18),
             // (16,18): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
-            //             case int[]? i2 when x > 0:
+            //             case int[]? i1:
             Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(16, 18),
-            // (18,19): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
+            // (18,18): error CS8116: It is not legal to use nullable type 'Task[]?' in a pattern; use the underlying type 'Task[]' instead.
+            //             case Task[]? t1:
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task[]?").WithArguments("System.Threading.Tasks.Task[]").WithLocation(18, 18),
+            // (20,18): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
+            //             case int[]? when x > 0:
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(20, 18),
+            // (22,18): error CS8116: It is not legal to use nullable type 'Task[]?' in a pattern; use the underlying type 'Task[]' instead.
+            //             case Task[]? when x > 0:
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task[]?").WithArguments("System.Threading.Tasks.Task[]").WithLocation(22, 18),
+            // (24,18): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
+            //             case int[]? i2 when x > 0:
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(24, 18),
+            // (26,18): error CS8116: It is not legal to use nullable type 'Task[]?' in a pattern; use the underlying type 'Task[]' instead.
+            //             case Task[]? t2 when x > 0:
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task[]?").WithArguments("System.Threading.Tasks.Task[]").WithLocation(26, 18),
+            // (28,19): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
             //             case (int[]? when) when x > 0:
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(18, 19));
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(28, 19),
+            // (30,19): error CS8116: It is not legal to use nullable type 'Task[]?' in a pattern; use the underlying type 'Task[]' instead.
+            //             case (Task[]? when) when x > 0:
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task[]?").WithArguments("System.Threading.Tasks.Task[]").WithLocation(30, 19));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
     public void PatternsInSwitchExpression()
     {
         var source = """
+            using System.Threading.Tasks;
+
             #nullable enable
 
             class C
@@ -250,10 +306,15 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
                     _ = obj switch
                     {
                         int? => 1,
-                        int? i1 => 2,
-                        int? when x > 0 => 3,
-                        int? i2 when x > 0 => 4,
-                        (int? when) when x > 0 => 5
+                        Task? => 2,
+                        int? i1 => 3,
+                        Task? t1 => 4,
+                        int? when x > 0 => 5,
+                        Task? when x > 0 => 6,
+                        int? i2 when x > 0 => 7,
+                        Task? t2 when x > 0 => 8,
+                        (int? when) when x > 0 => 9,
+                        (Task? when) when x > 0 => 10
                     };
                 }
             }
@@ -261,27 +322,44 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (10,13): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
-            //             int? => 1,
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(10, 13),
-            // (11,13): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
-            //             int? i1 => 2,
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(11, 13),
             // (12,13): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
-            //             int? when x > 0 => 3,
+            //             int? => 1,
             Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(12, 13),
-            // (13,13): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
-            //             int? i2 when x > 0 => 4,
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(13, 13),
-            // (14,14): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
-            //             (int? when) when x > 0 => 5
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(14, 14));
+            // (13,13): error CS8116: It is not legal to use nullable type 'Task?' in a pattern; use the underlying type 'Task' instead.
+            //             Task? => 2,
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task?").WithArguments("System.Threading.Tasks.Task").WithLocation(13, 13),
+            // (14,13): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+            //             int? i1 => 3,
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(14, 13),
+            // (15,13): error CS8116: It is not legal to use nullable type 'Task?' in a pattern; use the underlying type 'Task' instead.
+            //             Task? t1 => 4,
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task?").WithArguments("System.Threading.Tasks.Task").WithLocation(15, 13),
+            // (16,13): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+            //             int? when x > 0 => 5,
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(16, 13),
+            // (17,13): error CS8116: It is not legal to use nullable type 'Task?' in a pattern; use the underlying type 'Task' instead.
+            //             Task? when x > 0 => 6,
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task?").WithArguments("System.Threading.Tasks.Task").WithLocation(17, 13),
+            // (18,13): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+            //             int? i2 when x > 0 => 7,
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(18, 13),
+            // (19,13): error CS8116: It is not legal to use nullable type 'Task?' in a pattern; use the underlying type 'Task' instead.
+            //             Task? t2 when x > 0 => 8,
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task?").WithArguments("System.Threading.Tasks.Task").WithLocation(19, 13),
+            // (20,14): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+            //             (int? when) when x > 0 => 9,
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(20, 14),
+            // (21,14): error CS8116: It is not legal to use nullable type 'Task?' in a pattern; use the underlying type 'Task' instead.
+            //             (Task? when) when x > 0 => 10
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task?").WithArguments("System.Threading.Tasks.Task").WithLocation(21, 14));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
     public void PatternsInSwitchExpression_Arrays()
     {
         var source = """
+            using System.Threading.Tasks;
+
             #nullable enable
 
             class C
@@ -292,10 +370,15 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
                     _ = obj switch
                     {
                         int[]? => 1,
-                        int[]? i1 => 2,
-                        int[]? when x > 0 => 3,
-                        int[]? i2 when x > 0 => 4,
-                        (int[]? when) when x > 0 => 5
+                        Task[]? => 2,
+                        int[]? i1 => 3,
+                        Task[]? t1 => 4,
+                        int[]? when x > 0 => 5,
+                        Task[]? when x > 0 => 6,
+                        int[]? i2 when x > 0 => 7,
+                        Task[]? t2 when x > 0 => 8,
+                        (int[]? when) when x > 0 => 9,
+                        (Task[]? when) when x > 0 => 10
                     };
                 }
             }
@@ -303,21 +386,36 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (10,13): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
-            //             int[]? => 1,
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(10, 13),
-            // (11,13): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
-            //             int[]? i1 => 2,
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(11, 13),
             // (12,13): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
-            //             int[]? when x > 0 => 3,
+            //             int[]? => 1,
             Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(12, 13),
-            // (13,13): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
-            //             int[]? i2 when x > 0 => 4,
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(13, 13),
-            // (14,14): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
-            //             (int[]? when) when x > 0 => 5
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(14, 14));
+            // (13,13): error CS8116: It is not legal to use nullable type 'Task[]?' in a pattern; use the underlying type 'Task[]' instead.
+            //             Task[]? => 2,
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task[]?").WithArguments("System.Threading.Tasks.Task[]").WithLocation(13, 13),
+            // (14,13): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
+            //             int[]? i1 => 3,
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(14, 13),
+            // (15,13): error CS8116: It is not legal to use nullable type 'Task[]?' in a pattern; use the underlying type 'Task[]' instead.
+            //             Task[]? t1 => 4,
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task[]?").WithArguments("System.Threading.Tasks.Task[]").WithLocation(15, 13),
+            // (16,13): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
+            //             int[]? when x > 0 => 5,
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(16, 13),
+            // (17,13): error CS8116: It is not legal to use nullable type 'Task[]?' in a pattern; use the underlying type 'Task[]' instead.
+            //             Task[]? when x > 0 => 6,
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task[]?").WithArguments("System.Threading.Tasks.Task[]").WithLocation(17, 13),
+            // (18,13): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
+            //             int[]? i2 when x > 0 => 7,
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(18, 13),
+            // (19,13): error CS8116: It is not legal to use nullable type 'Task[]?' in a pattern; use the underlying type 'Task[]' instead.
+            //             Task[]? t2 when x > 0 => 8,
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task[]?").WithArguments("System.Threading.Tasks.Task[]").WithLocation(19, 13),
+            // (20,14): error CS8116: It is not legal to use nullable type 'int[]?' in a pattern; use the underlying type 'int[]' instead.
+            //             (int[]? when) when x > 0 => 9,
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "int[]?").WithArguments("int[]").WithLocation(20, 14),
+            // (21,14): error CS8116: It is not legal to use nullable type 'Task[]?' in a pattern; use the underlying type 'Task[]' instead.
+            //             (Task[]? when) when x > 0 => 10
+            Diagnostic(ErrorCode.ERR_PatternNullableType, "Task[]?").WithArguments("System.Threading.Tasks.Task[]").WithLocation(21, 14));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
@@ -460,7 +558,7 @@ public class PatternMatchingTests_NullableTypes : PatternMatchingTestBase
 
             class C
             {
-                void M(string s)
+                void M2(string s)
                 {
                     if (s is [.. string?]) { }
                     if (s is [.. string? slice1]) { }
