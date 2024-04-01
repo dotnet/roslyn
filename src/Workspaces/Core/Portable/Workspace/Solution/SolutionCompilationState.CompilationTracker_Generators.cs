@@ -241,7 +241,10 @@ internal partial class SolutionCompilationState
             Compilation? compilationWithStaleGeneratedTrees,
             CancellationToken cancellationToken)
         {
-            // If we don't have any source generators.  Trivially bail out.
+            // If we don't have any source generators.  Trivially bail out.  Note: this check is intentionally don't in
+            // the "InCurrentProcess" call so that it will normally run only in the OOP process, thus ensuring that we
+            // get accurate information about what SourceGenerators we actually have (say, in case they they are rebuilt
+            // by the user while VS is running).
             if (!this.ProjectState.SourceGenerators.Any())
                 return (compilationWithoutGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState>.Empty, generatorDriver);
 
