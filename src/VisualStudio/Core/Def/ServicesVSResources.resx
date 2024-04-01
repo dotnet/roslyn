@@ -863,7 +863,7 @@ Additional information: {1}</value>
     <value>Search found no results: no C# or Visual Basic projects are opened</value>
   </data>
   <data name="Search_cancelled" xml:space="preserve">
-    <value>Search cancelled</value>
+    <value>Search canceled</value>
   </data>
   <data name="Sync_Class_View" xml:space="preserve">
     <value>Sync Class View</value>
