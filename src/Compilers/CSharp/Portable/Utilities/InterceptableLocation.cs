@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers.Binary;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -48,6 +49,11 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
 
     internal InterceptableLocation1(ImmutableArray<byte> checksum, string path, int position, int lineNumberOneIndexed, int characterNumberOneIndexed)
     {
+        if (checksum.Length != 16)
+        {
+            throw new ArgumentException(message: "checksum must be exactly 16 bytes in length", paramName: nameof(checksum));
+        }
+
         _checksum = checksum;
         _path = path;
         _position = position;
@@ -66,11 +72,6 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
     {
         get
         {
-            if (_checksum.Length != 16)
-            {
-                throw new InvalidOperationException();
-            }
-
             var builder = new BlobBuilder();
             builder.WriteBytes(_checksum, start: 0, 16);
             builder.WriteInt32(_position);
@@ -100,7 +101,7 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
     public override int GetHashCode()
     {
         return Hash.Combine(
-           Hash.GetFNVHashCode(_checksum),
+           BinaryPrimitives.ReadInt32LittleEndian(_checksum.AsSpan()),
            Hash.Combine(
                _path.GetHashCode(),
                Hash.Combine(

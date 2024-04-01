@@ -1080,21 +1080,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private class ContentHashComparer : IEqualityComparer<ReadOnlyMemory<byte>>
-        {
-            public bool Equals(ReadOnlyMemory<byte> x, ReadOnlyMemory<byte> y)
-            {
-                return x.Span.SequenceEqual(y.Span);
-            }
-
-            public int GetHashCode(ReadOnlyMemory<byte> obj)
-            {
-                return BinaryPrimitives.ReadInt32LittleEndian(obj.Span);
-            }
-
-            public static ContentHashComparer Instance { get; } = new ContentHashComparer();
-        }
-
         internal OneOrMany<SyntaxTree> GetSyntaxTreesByContentHash(ReadOnlyMemory<byte> contentHash)
         {
             var contentHashToSyntaxTree = _contentHashToSyntaxTree;
