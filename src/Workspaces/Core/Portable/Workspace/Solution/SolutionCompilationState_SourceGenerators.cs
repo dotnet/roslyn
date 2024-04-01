@@ -38,7 +38,11 @@ internal partial class SolutionCompilationState
         (LanguageNames.VisualBasic, new(), (static rs => ComputeSourceGenerators(rs, LanguageNames.VisualBasic))),
     ];
 
-    private static ConditionalWeakTable<ProjectState, AsyncLazy<bool>> s_hasSourceGeneratorsMap = new();
+    /// <summary>
+    /// Cached information about if a project has source generators or not.  This instance should be locked when
+    /// accessing this data.
+    /// </summary>
+    private readonly Dictionary<ProjectId, AsyncLazy<bool>> _hasSourceGeneratorsMap = [];
 
     private static SourceGeneratorMap ComputeSourceGenerators(IReadOnlyList<AnalyzerReference> analyzerReferences, string language)
     {
@@ -86,27 +90,41 @@ internal partial class SolutionCompilationState
         return tuple.referencesToGenerators.GetValue(projectState.AnalyzerReferences, tuple.callback);
     }
 
-    public static async Task<bool> HasSourceGeneratorsAsync(ProjectState projectState, CancellationToken cancellationToken)
+    public async Task<bool> HasSourceGeneratorsAsync(ProjectId projectId, CancellationToken cancellationToken)
     {
-        var lazy = s_hasSourceGeneratorsMap.GetValue(
-            projectState,
-            static projectState => AsyncLazy.Create(cancellationToken => ComputeHasSourceGeneratorsAsync(projectState, cancellationToken)));
+        AsyncLazy<bool>? lazy;
+        lock (_hasSourceGeneratorsMap)
+        {
+            if (!_hasSourceGeneratorsMap.TryGetValue(projectId, out lazy))
+            {
+                lazy = GetLazy();
+                _hasSourceGeneratorsMap.Add(projectId, lazy);
+            }
+        }
 
         return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-        static async Task<bool> ComputeHasSourceGeneratorsAsync(
-            ProjectState projectState, CancellationToken cancellationToken)
+        AsyncLazy<bool> GetLazy()
+            => AsyncLazy.Create(cancellationToken => ComputeHasSourceGeneratorsAsync(projectId, cancellationToken));
+
+        async Task<bool> ComputeHasSourceGeneratorsAsync(
+            ProjectId projectId, CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(projectState.LanguageServices.SolutionServices, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(this.Services, cancellationToken).ConfigureAwait(false);
             if (client is null)
             {
                 // In proc, just load the generators and see if we have any.
+                var projectState = this.SolutionState.GetRequiredProjectState(projectId);
                 return GetSourceGenerators(projectState).Any();
             }
 
             // Out of process, call to the remote to figure this out.
-            await client.TryInvokeAsync<IRemoteSourceGenerationService>(
-                )
+            var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, bool>(
+                this,
+                projectId,
+                (service, solution, cancellationToken) => service.HasGeneratorsAsync(solution, projectId, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+            return result.HasValue && result.Value;
         }
     }
 }

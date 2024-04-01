@@ -151,6 +151,17 @@ internal abstract class RemoteHostClient : IDisposable
         return await connection.TryInvokeAsync(project, invocation, cancellationToken).ConfigureAwait(false);
     }
 
+    public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
+        SolutionCompilationState compilationState,
+        ProjectId projectId,
+        Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation,
+        CancellationToken cancellationToken)
+        where TService : class
+    {
+        using var connection = CreateConnection<TService>(callbackTarget: null);
+        return await connection.TryInvokeAsync(compilationState, projectId, invocation, cancellationToken).ConfigureAwait(false);
+    }
+
     /// <summary>
     /// Equivalent to <see cref="TryInvokeAsync{TService}(Solution, Func{TService, Checksum, CancellationToken, ValueTask}, CancellationToken)"/>
     /// except that only the project (and its dependent projects) will be sync'ed to the remote host before executing.

@@ -774,10 +774,8 @@ namespace Microsoft.CodeAnalysis
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 // If we don't have any generators, then we know we have no generated files, so we can skip the computation entirely.
-                if (!GetSourceGenerators(this.ProjectState).Any())
-                {
+                if (!await compilationState.HasSourceGeneratorsAsync(this.ProjectState.Id, cancellationToken).ConfigureAwait(false))
                     return TextDocumentStates<SourceGeneratedDocumentState>.Empty;
-                }
 
                 var finalState = await GetOrBuildFinalStateAsync(
                     compilationState, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -787,10 +785,8 @@ namespace Microsoft.CodeAnalysis
             public async ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                if (!GetSourceGenerators(this.ProjectState).Any())
-                {
+                if (!await compilationState.HasSourceGeneratorsAsync(this.ProjectState.Id, cancellationToken).ConfigureAwait(false))
                     return [];
-                }
 
                 var finalState = await GetOrBuildFinalStateAsync(
                     compilationState, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -816,10 +812,8 @@ namespace Microsoft.CodeAnalysis
 
             public async ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                if (!GetSourceGenerators(this.ProjectState).Any())
-                {
+                if (!await compilationState.HasSourceGeneratorsAsync(this.ProjectState.Id, cancellationToken).ConfigureAwait(false))
                     return null;
-                }
 
                 var finalState = await GetOrBuildFinalStateAsync(
                     compilationState, cancellationToken).ConfigureAwait(false);
