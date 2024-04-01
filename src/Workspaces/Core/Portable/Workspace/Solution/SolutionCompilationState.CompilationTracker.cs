@@ -569,16 +569,13 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // We will finalize the compilation by adding full contents here.
-                    var (compilationWithGeneratedDocuments, generatedDocuments, generatorDriver) = await AddExistingOrComputeNewGeneratorInfoAsync(
+                    var (compilationWithGeneratedDocuments, nextGeneratorInfo) = await AddExistingOrComputeNewGeneratorInfoAsync(
                         creationPolicy,
                         compilationState,
                         compilationWithoutGeneratedDocuments,
                         generatorInfo,
                         staleCompilationWithGeneratedDocuments,
                         cancellationToken).ConfigureAwait(false);
-
-                    // After producing the sg documents, we must always be in the final state for the generator data.
-                    var nextGeneratorInfo = new CompilationTrackerGeneratorInfo(generatedDocuments, generatorDriver);
 
                     var finalState = FinalCompilationTrackerState.Create(
                         creationPolicy,

@@ -27,7 +27,7 @@ internal partial class SolutionCompilationState
 {
     private partial class CompilationTracker : ICompilationTracker
     {
-        private async Task<(Compilation compilationWithGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments, GeneratorDriver? generatorDriver)> AddExistingOrComputeNewGeneratorInfoAsync(
+        private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo nextGeneratorInfo)> AddExistingOrComputeNewGeneratorInfoAsync(
             CreationPolicy creationPolicy,
             SolutionCompilationState compilationState,
             Compilation compilationWithoutGeneratedFiles,
@@ -43,54 +43,35 @@ internal partial class SolutionCompilationState
                     static (state, cancellationToken) => state.GetSyntaxTreeAsync(cancellationToken), cancellationToken).ConfigureAwait(false);
 
                 var compilationWithGeneratedFiles = compilationWithoutGeneratedFiles.AddSyntaxTrees(generatedSyntaxTrees);
-                return (compilationWithGeneratedFiles, generatorInfo.Documents, generatorInfo.Driver);
-            }
 
-            if (!this.ProjectState.SourceGenerators.Any())
+                // Return the old generator info as is.
+                return (compilationWithGeneratedFiles, generatorInfo);
+            }
+            else
             {
-                // We don't have any source generators.  Trivially bail out.
-                var compilationWithGeneratedFiles = compilationWithoutGeneratedFiles;
-                return (compilationWithGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState>.Empty, generatorInfo.Driver);
+                // First try to compute the SG docs in the remote process (if we're the host process), syncing the results
+                // back over to us to ensure that both processes are in total agreement about the SG docs and their
+                // contents.
+                var result = await TryComputeNewGeneratorInfoInRemoteProcessAsync(
+                    compilationState, compilationWithoutGeneratedFiles, generatorInfo.Documents, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
+                if (result.HasValue)
+                {
+                    // Since we ran the SG work out of process, we could not have created or modified the driver passed in.
+                    // So just pass what we got in right back out.
+                    return (result.Value.compilationWithGeneratedFiles, new(result.Value.generatedDocuments, generatorInfo.Driver));
+                }
+
+                // If that failed (OOP crash, or we are the OOP process ourselves), then generate the SG docs locally.
+                var telemetryCollector = compilationState.SolutionState.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
+                var (compilationWithGeneratedFiles, nextGeneratedDocuments, nextGeneratorDriver) = await ComputeNewGeneratorInfoInCurrentProcessAsync(
+                    telemetryCollector,
+                    compilationWithoutGeneratedFiles,
+                    generatorInfo.Documents,
+                    generatorInfo.Driver,
+                    compilationWithStaleGeneratedTrees,
+                    cancellationToken).ConfigureAwait(false);
+                return (compilationWithGeneratedFiles, new(nextGeneratedDocuments, nextGeneratorDriver));
             }
-
-            return await ComputeNewGeneratorInfoAsync(
-                compilationState,
-                compilationWithoutGeneratedFiles,
-                generatorInfo.Documents,
-                generatorInfo.Driver,
-                compilationWithStaleGeneratedTrees,
-                cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<(Compilation compilationWithGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments, GeneratorDriver? generatorDriver)> ComputeNewGeneratorInfoAsync(
-            SolutionCompilationState compilationState,
-            Compilation compilationWithoutGeneratedFiles,
-            TextDocumentStates<SourceGeneratedDocumentState> oldGeneratedDocuments,
-            GeneratorDriver? oldGeneratorDriver,
-            Compilation? compilationWithStaleGeneratedTrees,
-            CancellationToken cancellationToken)
-        {
-            // First try to compute the SG docs in the remote process (if we're the host process), syncing the results
-            // back over to us to ensure that both processes are in total agreement about the SG docs and their
-            // contents.
-            var result = await TryComputeNewGeneratorInfoInRemoteProcessAsync(
-                compilationState, compilationWithoutGeneratedFiles, oldGeneratedDocuments, compilationWithStaleGeneratedTrees, cancellationToken).ConfigureAwait(false);
-            if (result.HasValue)
-            {
-                // Since we ran the SG work out of process, we could not have created or modified the driver passed in.
-                // So just pass what we got in right back out.
-                return (result.Value.compilationWithGeneratedFiles, result.Value.generatedDocuments, oldGeneratorDriver);
-            }
-
-            // If that failed (OOP crash, or we are the OOP process ourselves), then generate the SG docs locally.
-            var telemetryCollector = compilationState.SolutionState.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
-            return await ComputeNewGeneratorInfoInCurrentProcessAsync(
-                telemetryCollector,
-                compilationWithoutGeneratedFiles,
-                oldGeneratedDocuments,
-                oldGeneratorDriver,
-                compilationWithStaleGeneratedTrees,
-                cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<(Compilation compilationWithGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments)?> TryComputeNewGeneratorInfoInRemoteProcessAsync(
@@ -124,12 +105,17 @@ internal partial class SolutionCompilationState
             if (!infosOpt.HasValue)
                 return null;
 
+            var infos = infosOpt.Value;
+
+            // If there are no generated documents, bail out immediately.
+            if (infos.Length == 0)
+                return (compilationWithoutGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState>.Empty);
+
             // Next, figure out what is different locally.  Specifically, what documents we don't know about, or we
             // know about but whose text contents are different.
             using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var documentsToAddOrUpdate);
             using var _2 = PooledDictionary<DocumentId, int>.GetInstance(out var documentIdToIndex);
 
-            var infos = infosOpt.Value;
             foreach (var (documentIdentity, contentIdentity, _) in infos)
             {
                 var documentId = documentIdentity.DocumentId;
@@ -243,6 +229,13 @@ internal partial class SolutionCompilationState
             Compilation? compilationWithStaleGeneratedTrees,
             CancellationToken cancellationToken)
         {
+            // If we don't have any source generators.  Trivially bail out.  Note: this check is intentionally don't in
+            // the "InCurrentProcess" call so that it will normally run only in the OOP process, thus ensuring that we
+            // get accurate information about what SourceGenerators we actually have (say, in case they they are rebuilt
+            // by the user while VS is running).
+            if (!this.ProjectState.SourceGenerators.Any())
+                return (compilationWithoutGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState>.Empty, generatorDriver);
+
             // If we don't already have an existing generator driver, create one from scratch
             generatorDriver ??= CreateGeneratorDriver(this.ProjectState);
 
