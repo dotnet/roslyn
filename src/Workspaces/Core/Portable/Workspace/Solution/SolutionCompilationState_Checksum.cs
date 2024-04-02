@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -167,6 +168,10 @@ internal partial class SolutionCompilationState
 
             foreach (var projectId in sortedProjectIds)
             {
+                var projectState = @this.SolutionState.GetRequiredProjectState(projectId);
+                if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
+                    continue;
+
                 checksums.Add(projectId.Checksum);
                 checksums.Add(Checksum.Create(@this.SourceGeneratorExecutionVersionMap[projectId], static (w, v) => v.WriteTo(w)));
             }

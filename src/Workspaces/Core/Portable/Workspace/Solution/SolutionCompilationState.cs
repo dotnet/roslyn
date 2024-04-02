@@ -110,7 +110,7 @@ internal sealed partial class SolutionCompilationState
         Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
 
         // Solution and SG version maps must correspond to the same set of projets.
-        Contract.ThrowIfFalse(this.SolutionState.ProjectIds.SetEquals(_sourceGeneratorExecutionVersionMap.ProjectIds));
+        Contract.ThrowIfFalse(this.SolutionState.ProjectIds.SetEquals(_sourceGeneratorExecutionVersionMap.proj));
     }
 
     private SolutionCompilationState Branch(
