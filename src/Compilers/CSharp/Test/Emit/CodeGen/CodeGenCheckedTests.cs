@@ -2851,39 +2851,31 @@ public static class C
 
             verifier.VerifyIL("C.AddInSwitchExpression", @"
 {
-  // Code size       13 (0xd)
+  // Code size        9 (0x9)
   .maxstack  2
-  .locals init (int V_0)
   IL_0000:  ldarg.2
-  IL_0001:  brfalse.s  IL_0009
+  IL_0001:  brfalse.s  IL_0007
   IL_0003:  ldarg.0
   IL_0004:  ldarg.1
   IL_0005:  add.ovf
-  IL_0006:  stloc.0
-  IL_0007:  br.s       IL_000b
-  IL_0009:  ldnull
-  IL_000a:  throw
-  IL_000b:  ldloc.0
-  IL_000c:  ret
+  IL_0006:  ret
+  IL_0007:  ldnull
+  IL_0008:  throw
 }
 ");
 
             verifier.VerifyIL("C.AddInSwitchExpression2", @"
 {
-  // Code size       13 (0xd)
+  // Code size        9 (0x9)
   .maxstack  2
-  .locals init (int V_0)
   IL_0000:  ldarg.2
-  IL_0001:  brfalse.s  IL_0009
+  IL_0001:  brfalse.s  IL_0007
   IL_0003:  ldarg.0
   IL_0004:  ldarg.1
   IL_0005:  add.ovf
-  IL_0006:  stloc.0
-  IL_0007:  br.s       IL_000b
-  IL_0009:  ldnull
-  IL_000a:  throw
-  IL_000b:  ldloc.0
-  IL_000c:  ret
+  IL_0006:  ret
+  IL_0007:  ldnull
+  IL_0008:  throw
 }
 ");
 

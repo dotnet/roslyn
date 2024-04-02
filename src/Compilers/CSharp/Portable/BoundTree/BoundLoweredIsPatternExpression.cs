@@ -14,3 +14,12 @@ partial class BoundLoweredIsPatternExpression
         Debug.Assert(this.Statements is [.., BoundGotoStatement or BoundSwitchDispatch]);
     }
 }
+
+partial class BoundLoweredSwitchExpression
+{
+    private partial void Validate()
+    {
+        Debug.Assert(this.Statements is [.., BoundGotoStatement or BoundSwitchDispatch]);
+        Debug.Assert(!this.SwitchArms.IsEmpty);
+    }
+}

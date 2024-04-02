@@ -12338,33 +12338,26 @@ static void M(string s) => System.Console.WriteLine(s);
 ";
 
             var verifier = CompileAndVerifyFunctionPointers(code, expectedOutput: "true");
-            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
-  // Code size       36 (0x24)
+  // Code size       31 (0x1f)
   .maxstack  2
-  .locals init (delegate*<string, void> V_0, //ptr
-                delegate*<string, void> V_1,
-                string V_2,
-                delegate*<string, void> V_3)
-  IL_0000:  ldftn      ""void Program.<<Main>$>g__M|0_0(string)""
-  IL_0006:  stloc.0
-  IL_0007:  ldc.i4.1
-  IL_0008:  ldloc.0
-  IL_0009:  stloc.1
-  IL_000a:  brfalse.s  IL_0014
-  IL_000c:  ldstr      ""true""
-  IL_0011:  stloc.2
-  IL_0012:  br.s       IL_001a
-  IL_0014:  ldstr      ""false""
-  IL_0019:  stloc.2
-  IL_001a:  ldloc.1
-  IL_001b:  stloc.3
-  IL_001c:  ldloc.2
-  IL_001d:  ldloc.3
-  IL_001e:  calli      ""delegate*<string, void>""
-  IL_0023:  ret
+  .locals init (bool V_0, //b
+                delegate*<string, void> V_1)
+  IL_0000:  ldftn      "void Program.<<Main>$>g__M|0_0(string)"
+  IL_0006:  ldc.i4.1
+  IL_0007:  stloc.0
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.0
+  IL_000a:  brfalse.s  IL_0013
+  IL_000c:  ldstr      "true"
+  IL_0011:  br.s       IL_0018
+  IL_0013:  ldstr      "false"
+  IL_0018:  ldloc.1
+  IL_0019:  calli      "delegate*<string, void>"
+  IL_001e:  ret
 }
-");
+""");
         }
 
         [Fact, WorkItem(55394, "https://github.com/dotnet/roslyn/issues/55394")]
@@ -12386,29 +12379,25 @@ static void M2(string s) => throw null;
             var verifier = CompileAndVerifyFunctionPointers(code, expectedOutput: "true");
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       37 (0x25)
+  // Code size       34 (0x22)
   .maxstack  2
   .locals init (delegate*<string, void> V_0, //ptr1
                 delegate*<string, void> V_1, //ptr2
-                delegate*<string, void> V_2,
-                delegate*<string, void> V_3)
+                delegate*<string, void> V_2)
   IL_0000:  ldftn      ""void Program.<<Main>$>g__M1|0_0(string)""
   IL_0006:  stloc.0
   IL_0007:  ldftn      ""void Program.<<Main>$>g__M2|0_1(string)""
   IL_000d:  stloc.1
   IL_000e:  ldc.i4.1
-  IL_000f:  brfalse.s  IL_0015
+  IL_000f:  brfalse.s  IL_0014
   IL_0011:  ldloc.0
-  IL_0012:  stloc.2
-  IL_0013:  br.s       IL_0017
-  IL_0015:  ldloc.1
-  IL_0016:  stloc.2
-  IL_0017:  ldloc.2
-  IL_0018:  stloc.3
-  IL_0019:  ldstr      ""true""
-  IL_001e:  ldloc.3
-  IL_001f:  calli      ""delegate*<string, void>""
-  IL_0024:  ret
+  IL_0012:  br.s       IL_0015
+  IL_0014:  ldloc.1
+  IL_0015:  stloc.2
+  IL_0016:  ldstr      ""true""
+  IL_001b:  ldloc.2
+  IL_001c:  calli      ""delegate*<string, void>""
+  IL_0021:  ret
 }
 ");
         }
@@ -12432,29 +12421,25 @@ static void M2(object s) => throw null;
             var verifier = CompileAndVerifyFunctionPointers(code, expectedOutput: "true");
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       37 (0x25)
+  // Code size       34 (0x22)
   .maxstack  2
   .locals init (delegate*<string, void> V_0, //ptr1
                 delegate*<object, void> V_1, //ptr2
-                delegate*<string, void> V_2,
-                delegate*<string, void> V_3)
+                delegate*<string, void> V_2)
   IL_0000:  ldftn      ""void Program.<<Main>$>g__M1|0_0(string)""
   IL_0006:  stloc.0
   IL_0007:  ldftn      ""void Program.<<Main>$>g__M2|0_1(object)""
   IL_000d:  stloc.1
   IL_000e:  ldc.i4.1
-  IL_000f:  brfalse.s  IL_0015
+  IL_000f:  brfalse.s  IL_0014
   IL_0011:  ldloc.0
-  IL_0012:  stloc.2
-  IL_0013:  br.s       IL_0017
-  IL_0015:  ldloc.1
-  IL_0016:  stloc.2
-  IL_0017:  ldloc.2
-  IL_0018:  stloc.3
-  IL_0019:  ldstr      ""true""
-  IL_001e:  ldloc.3
-  IL_001f:  calli      ""delegate*<string, void>""
-  IL_0024:  ret
+  IL_0012:  br.s       IL_0015
+  IL_0014:  ldloc.1
+  IL_0015:  stloc.2
+  IL_0016:  ldstr      ""true""
+  IL_001b:  ldloc.2
+  IL_001c:  calli      ""delegate*<string, void>""
+  IL_0021:  ret
 }
 ");
         }
@@ -12478,14 +12463,12 @@ static void M2(string s) => throw null;
             var verifier = CompileAndVerifyFunctionPointers(code, expectedOutput: "true");
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       57 (0x39)
+  // Code size       46 (0x2e)
   .maxstack  2
   .locals init (delegate*<string, void> V_0, //ptr1
                 delegate*<string, void> V_1, //ptr2
                 bool V_2, //b
-                delegate*<string, void> V_3,
-                string V_4,
-                delegate*<string, void> V_5)
+                delegate*<string, void> V_3)
   IL_0000:  ldftn      ""void Program.<<Main>$>g__M1|0_0(string)""
   IL_0006:  stloc.0
   IL_0007:  ldftn      ""void Program.<<Main>$>g__M2|0_1(string)""
@@ -12493,25 +12476,19 @@ static void M2(string s) => throw null;
   IL_000e:  ldc.i4.1
   IL_000f:  stloc.2
   IL_0010:  ldloc.2
-  IL_0011:  brfalse.s  IL_0017
+  IL_0011:  brfalse.s  IL_0016
   IL_0013:  ldloc.0
-  IL_0014:  stloc.3
-  IL_0015:  br.s       IL_0019
-  IL_0017:  ldloc.1
-  IL_0018:  stloc.3
-  IL_0019:  ldloc.3
-  IL_001a:  ldloc.2
-  IL_001b:  brfalse.s  IL_0026
-  IL_001d:  ldstr      ""true""
-  IL_0022:  stloc.s    V_4
-  IL_0024:  br.s       IL_002d
-  IL_0026:  ldstr      ""false""
-  IL_002b:  stloc.s    V_4
-  IL_002d:  stloc.s    V_5
-  IL_002f:  ldloc.s    V_4
-  IL_0031:  ldloc.s    V_5
-  IL_0033:  calli      ""delegate*<string, void>""
-  IL_0038:  ret
+  IL_0014:  br.s       IL_0017
+  IL_0016:  ldloc.1
+  IL_0017:  stloc.3
+  IL_0018:  ldloc.2
+  IL_0019:  brfalse.s  IL_0022
+  IL_001b:  ldstr      ""true""
+  IL_0020:  br.s       IL_0027
+  IL_0022:  ldstr      ""false""
+  IL_0027:  ldloc.3
+  IL_0028:  calli      ""delegate*<string, void>""
+  IL_002d:  ret
 }
 ");
         }

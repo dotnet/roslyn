@@ -149,6 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         SwitchExpressionArm,
         UnconvertedSwitchExpression,
         ConvertedSwitchExpression,
+        LoweredSwitchExpression,
+        LoweredSwitchExpressionArm,
         DecisionDag,
         EvaluationDecisionDagNode,
         TestDecisionDagNode,
@@ -4969,6 +4971,77 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundLoweredSwitchExpression : BoundExpression
+    {
+        public BoundLoweredSwitchExpression(SyntaxNode syntax, ImmutableArray<BoundStatement> statements, ImmutableArray<BoundLoweredSwitchExpressionArm> switchArms, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.LoweredSwitchExpression, syntax, type, hasErrors || statements.HasErrors() || switchArms.HasErrors())
+        {
+
+            RoslynDebug.Assert(!statements.IsDefault, "Field 'statements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(!switchArms.IsDefault, "Field 'switchArms' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Statements = statements;
+            this.SwitchArms = switchArms;
+            Validate();
+        }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
+
+        public new TypeSymbol Type => base.Type!;
+        public ImmutableArray<BoundStatement> Statements { get; }
+        public ImmutableArray<BoundLoweredSwitchExpressionArm> SwitchArms { get; }
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitLoweredSwitchExpression(this);
+
+        public BoundLoweredSwitchExpression Update(ImmutableArray<BoundStatement> statements, ImmutableArray<BoundLoweredSwitchExpressionArm> switchArms, TypeSymbol type)
+        {
+            if (statements != this.Statements || switchArms != this.SwitchArms || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundLoweredSwitchExpression(this.Syntax, statements, switchArms, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundLoweredSwitchExpressionArm : BoundNode
+    {
+        public BoundLoweredSwitchExpressionArm(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements, BoundExpression value, bool hasErrors = false)
+            : base(BoundKind.LoweredSwitchExpressionArm, syntax, hasErrors || statements.HasErrors() || value.HasErrors())
+        {
+
+            RoslynDebug.Assert(!locals.IsDefault, "Field 'locals' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(!statements.IsDefault, "Field 'statements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(value is object, "Field 'value' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Locals = locals;
+            this.Statements = statements;
+            this.Value = value;
+        }
+
+        public ImmutableArray<LocalSymbol> Locals { get; }
+        public ImmutableArray<BoundStatement> Statements { get; }
+        public BoundExpression Value { get; }
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitLoweredSwitchExpressionArm(this);
+
+        public BoundLoweredSwitchExpressionArm Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements, BoundExpression value)
+        {
+            if (locals != this.Locals || statements != this.Statements || value != this.Value)
+            {
+                var result = new BoundLoweredSwitchExpressionArm(this.Syntax, locals, statements, value, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal sealed partial class BoundDecisionDag : BoundNode
     {
         public BoundDecisionDag(SyntaxNode syntax, BoundDecisionDagNode rootNode, bool hasErrors = false)
@@ -9093,6 +9166,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitUnconvertedSwitchExpression((BoundUnconvertedSwitchExpression)node, arg);
                 case BoundKind.ConvertedSwitchExpression:
                     return VisitConvertedSwitchExpression((BoundConvertedSwitchExpression)node, arg);
+                case BoundKind.LoweredSwitchExpression:
+                    return VisitLoweredSwitchExpression((BoundLoweredSwitchExpression)node, arg);
+                case BoundKind.LoweredSwitchExpressionArm:
+                    return VisitLoweredSwitchExpressionArm((BoundLoweredSwitchExpressionArm)node, arg);
                 case BoundKind.DecisionDag:
                     return VisitDecisionDag((BoundDecisionDag)node, arg);
                 case BoundKind.EvaluationDecisionDagNode:
@@ -9436,6 +9513,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitSwitchExpressionArm(BoundSwitchExpressionArm node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitLoweredSwitchExpression(BoundLoweredSwitchExpression node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitLoweredSwitchExpressionArm(BoundLoweredSwitchExpressionArm node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDecisionDag(BoundDecisionDag node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitEvaluationDecisionDagNode(BoundEvaluationDecisionDagNode node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitTestDecisionDagNode(BoundTestDecisionDagNode node, A arg) => this.DefaultVisit(node, arg);
@@ -9672,6 +9751,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitLoweredSwitchExpression(BoundLoweredSwitchExpression node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitLoweredSwitchExpressionArm(BoundLoweredSwitchExpressionArm node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDecisionDag(BoundDecisionDag node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitEvaluationDecisionDagNode(BoundEvaluationDecisionDagNode node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitTestDecisionDagNode(BoundTestDecisionDagNode node) => this.DefaultVisit(node);
@@ -10279,6 +10360,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.Expression);
             this.VisitList(node.SwitchArms);
+            return null;
+        }
+        public override BoundNode? VisitLoweredSwitchExpression(BoundLoweredSwitchExpression node)
+        {
+            this.VisitList(node.Statements);
+            this.VisitList(node.SwitchArms);
+            return null;
+        }
+        public override BoundNode? VisitLoweredSwitchExpressionArm(BoundLoweredSwitchExpressionArm node)
+        {
+            this.VisitList(node.Statements);
+            this.Visit(node.Value);
             return null;
         }
         public override BoundNode? VisitDecisionDag(BoundDecisionDag node)
@@ -11539,6 +11632,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? naturalTypeOpt = this.VisitType(node.NaturalTypeOpt);
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(naturalTypeOpt, node.WasTargetTyped, expression, switchArms, reachabilityDecisionDag, node.DefaultLabel, node.ReportedNotExhaustive, type);
+        }
+        public override BoundNode? VisitLoweredSwitchExpression(BoundLoweredSwitchExpression node)
+        {
+            ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
+            ImmutableArray<BoundLoweredSwitchExpressionArm> switchArms = this.VisitList(node.SwitchArms);
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(statements, switchArms, type);
+        }
+        public override BoundNode? VisitLoweredSwitchExpressionArm(BoundLoweredSwitchExpressionArm node)
+        {
+            ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
+            BoundExpression value = (BoundExpression)this.Visit(node.Value);
+            return node.Update(node.Locals, statements, value);
         }
         public override BoundNode? VisitDecisionDag(BoundDecisionDag node)
         {
@@ -13657,6 +13763,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 updatedNode = node.Update(naturalTypeOpt, node.WasTargetTyped, expression, switchArms, reachabilityDecisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.Type);
             }
             return updatedNode;
+        }
+
+        public override BoundNode? VisitLoweredSwitchExpression(BoundLoweredSwitchExpression node)
+        {
+            ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
+            ImmutableArray<BoundLoweredSwitchExpressionArm> switchArms = this.VisitList(node.SwitchArms);
+            BoundLoweredSwitchExpression updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(statements, switchArms, infoAndType.Type!);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(statements, switchArms, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitLoweredSwitchExpressionArm(BoundLoweredSwitchExpressionArm node)
+        {
+            ImmutableArray<LocalSymbol> locals = GetUpdatedArray(node, node.Locals);
+            ImmutableArray<BoundStatement> statements = this.VisitList(node.Statements);
+            BoundExpression value = (BoundExpression)this.Visit(node.Value);
+            return node.Update(locals, statements, value);
         }
 
         public override BoundNode? VisitDagDeconstructEvaluation(BoundDagDeconstructEvaluation node)
@@ -16094,6 +16226,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("reportedNotExhaustive", node.ReportedNotExhaustive, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitLoweredSwitchExpression(BoundLoweredSwitchExpression node, object? arg) => new TreeDumperNode("loweredSwitchExpression", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null)),
+            new TreeDumperNode("switchArms", null, from x in node.SwitchArms select Visit(x, null)),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitLoweredSwitchExpressionArm(BoundLoweredSwitchExpressionArm node, object? arg) => new TreeDumperNode("loweredSwitchExpressionArm", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("locals", node.Locals, null),
+            new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null)),
+            new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );

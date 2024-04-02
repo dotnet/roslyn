@@ -821,7 +821,16 @@ oneMoreTime:
 
             _builder.OpenLocalScope();
 
-            foreach (var local in block.Locals)
+            DefineScopeLocals(block.Locals);
+
+            EmitStatements(block.Statements);
+
+            _builder.CloseLocalScope();
+        }
+
+        private void DefineScopeLocals(ImmutableArray<LocalSymbol> locals)
+        {
+            foreach (var local in locals)
             {
                 Debug.Assert(local.Name != null);
                 Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
@@ -831,10 +840,6 @@ oneMoreTime:
                     _builder.AddLocalToScope(_builder.LocalSlotManager.GetLocal(local));
                 }
             }
-
-            EmitStatements(block.Statements);
-
-            _builder.CloseLocalScope();
         }
 
         private void EmitStateMachineScope(BoundStateMachineScope scope)

@@ -718,6 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(builder.Value is null);
                 locals = locals.AddRange(builder.GetLocals());
                 exceptionFilterPrologueOpt = new BoundStatementList(node.Syntax, builder.GetStatements());
+                builder.Free();
             }
 
             BoundBlock body = (BoundBlock)this.Visit(node.Body);
@@ -736,6 +737,72 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion
 
         #region Expression Visitors
+
+        public override BoundNode VisitLoweredSwitchExpressionArm(BoundLoweredSwitchExpressionArm node)
+        {
+            var statements = VisitList(node.Statements);
+            BoundSpillSequenceBuilder valueBuilder = null;
+            var value = VisitExpression(ref valueBuilder, node.Value);
+            if (valueBuilder is null && statements == node.Statements)
+            {
+                return node.Update(node.Locals, statements, value);
+            }
+
+            var builder = new BoundSpillSequenceBuilder(node.Syntax);
+            builder.AddStatements(statements);
+            builder.Include(valueBuilder);
+            return builder.Update(value);
+        }
+
+        public override BoundNode VisitLoweredSwitchExpression(BoundLoweredSwitchExpression node)
+        {
+            var statements = VisitList(node.Statements);
+            Debug.Assert(statements == node.Statements);
+
+            var switchArms = ImmutableArray<BoundNode>.CastUp(node.SwitchArms);
+            var rewrittenArms = VisitList(switchArms);
+            if (rewrittenArms == switchArms)
+            {
+                return node;
+            }
+
+            Debug.Assert(rewrittenArms.Length == switchArms.Length);
+            int count = rewrittenArms.Length;
+
+            _F.Syntax = node.Syntax;
+            var tmp = _F.SynthesizedLocal(node.Type, kind: SynthesizedLocalKind.Spill, syntax: _F.Syntax);
+            var switchBuilder = new BoundSpillSequenceBuilder(node.Syntax);
+            var switchArmsBuilder = ArrayBuilder<BoundLoweredSwitchExpressionArm>.GetInstance(count);
+
+            for (int i = 0; i < count; i++)
+            {
+                switch (rewrittenArms[i])
+                {
+                    case BoundLoweredSwitchExpressionArm visitedArm:
+                        switchArmsBuilder.Add(visitedArm.Update(
+                            visitedArm.Locals, visitedArm.Statements,
+                            _F.AssignmentExpression(_F.Local(tmp), visitedArm.Value)));
+                        break;
+
+                    case BoundSpillSequenceBuilder newBuilder:
+                        var switchArm = node.SwitchArms[i];
+                        switchBuilder.AddLocals(newBuilder.GetLocals());
+                        switchArmsBuilder.Add(switchArm.Update(
+                            switchArm.Locals, newBuilder.GetStatements(),
+                            _F.AssignmentExpression(_F.Local(tmp), newBuilder.Value)));
+                        newBuilder.Free();
+                        break;
+
+                    case var v:
+                        throw ExceptionUtilities.UnexpectedValue(v);
+                }
+            }
+
+            var newNode = node.Update(statements, switchArmsBuilder.ToImmutableAndFree(), node.Type);
+            switchBuilder.AddStatement(_F.ExpressionStatement(newNode));
+            switchBuilder.AddLocal(tmp);
+            return switchBuilder.Update(_F.Local(tmp));
+        }
 
 #if DEBUG
         public override BoundNode VisitLoweredIsPatternExpression(BoundLoweredIsPatternExpression node)
