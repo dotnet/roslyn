@@ -173,7 +173,7 @@ internal partial class SolutionCompilationState
                     continue;
 
                 checksums.Add(projectId.Checksum);
-                checksums.Add(Checksum.Create(@this.SourceGeneratorExecutionVersionMap[projectId], static (w, v) => v.WriteTo(w)));
+                checksums.Add(Checksum.Create(@this.SourceGeneratorExecutionVersionMap[projectId], static (v, w) => v.WriteTo(w)));
             }
 
             return Checksum.Create(checksums);
