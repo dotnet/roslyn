@@ -624,4 +624,5 @@ internal enum FunctionId
 
     // 800-850 for Copilot performance logging.
     Copilot_Suggestion_Dismissed = 800,
+    Copilot_Rename = 851
 }

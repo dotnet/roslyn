@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Otherwise, if there is any such method that has a bad argument conversion or out/ref mismatch
             // then the first such method found is the best bad method.
 
-            if (HadBadArguments(diagnostics, binder, name, arguments, symbols, location, binder.Flags, isMethodGroupConversion))
+            if (HadBadArguments(diagnostics, binder, name, receiver, arguments, symbols, location, binder.Flags, isMethodGroupConversion))
             {
                 return;
             }
@@ -519,8 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 else
                                 {
                                     Debug.Assert(firstSupported.Member is MethodSymbol { Name: "Add" });
-                                    int argumentOffset = arguments.IsExtensionMethodInvocation ? 1 : 0;
-                                    diagnostics.Add(ErrorCode.ERR_CollectionExpressionMissingAdd, location, arguments.Arguments[argumentOffset].Type, firstSupported.Member);
+                                    diagnostics.Add(ErrorCode.ERR_CollectionExpressionMissingAdd, location, receiver.Type);
                                 }
                             }
                             else
@@ -1081,6 +1080,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             Binder binder,
             string name,
+            BoundExpression receiver,
             AnalyzedArguments arguments,
             ImmutableArray<Symbol> symbols,
             Location location,
@@ -1129,8 +1129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (flags.Includes(BinderFlags.CollectionExpressionConversionValidation))
                 {
-                    Debug.Assert(arguments.Arguments.Count == argumentOffset + 1);
-                    diagnostics.Add(ErrorCode.ERR_CollectionExpressionMissingAdd, location, arguments.Arguments[argumentOffset].Type, method);
+                    diagnostics.Add(ErrorCode.ERR_CollectionExpressionMissingAdd, location, receiver.Type);
                 }
                 else
                 {

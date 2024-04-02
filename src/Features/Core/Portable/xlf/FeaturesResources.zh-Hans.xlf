@@ -322,7 +322,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Built_in_Copilot_analysis">
         <source>Built-in Copilot analysis</source>
-        <target state="new">Built-in Copilot analysis</target>
+        <target state="translated">内置 Copilot 分析</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
@@ -657,7 +657,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Dismiss">
         <source>Dismiss</source>
-        <target state="new">Dismiss</target>
+        <target state="translated">消除</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -2053,7 +2053,7 @@ Two or more character ranges can be concatenated. For example, to specify the ra
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_long">
         <source>The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
-        <target state="translated">正则表达式构造 \P{name} 匹配不属于 Unicode 通用类别或命名块的任何字符，其中 "name" 是类别缩写或命名块名称。</target>
+        <target state="translated">正则表达式构造 \P{ name } 匹配不属于 Unicode 通用类别或命名块的任何字符，其中 "name" 是类别缩写或命名块名称。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_short">
@@ -2345,7 +2345,7 @@ There is an ambiguity between octal escape codes (such as \16) and \number backr
       </trans-unit>
       <trans-unit id="Regex_unicode_category_long">
         <source>The regular expression construct \p{ name } matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
-        <target state="translated">正则表达式构造 \p{name} 匹配属于 Unicode 通用类别或命名块的任何字符，其中 "name" 是类别缩写或命名块名称。</target>
+        <target state="translated">正则表达式构造 \p{ name } 匹配属于 Unicode 通用类别或命名块的任何字符，其中 "name" 是类别缩写或命名块名称。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_category_short">

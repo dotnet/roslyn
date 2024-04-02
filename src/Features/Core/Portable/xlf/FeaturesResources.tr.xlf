@@ -322,7 +322,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Built_in_Copilot_analysis">
         <source>Built-in Copilot analysis</source>
-        <target state="new">Built-in Copilot analysis</target>
+        <target state="translated">Yerleşik Copilot analizi</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
@@ -657,7 +657,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Dismiss">
         <source>Dismiss</source>
-        <target state="new">Dismiss</target>
+        <target state="translated">Kapat</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">

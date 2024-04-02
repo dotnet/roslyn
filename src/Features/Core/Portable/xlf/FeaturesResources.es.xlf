@@ -322,7 +322,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Built_in_Copilot_analysis">
         <source>Built-in Copilot analysis</source>
-        <target state="new">Built-in Copilot analysis</target>
+        <target state="translated">Análisis integrado de Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
@@ -372,7 +372,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
         <source>TODO</source>
-        <target state="new">TODO</target>
+        <target state="translated">TODO</target>
         <note>"TODO" is an indication that there is work still to be done.</note>
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterOmitValue">
@@ -657,7 +657,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Dismiss">
         <source>Dismiss</source>
-        <target state="new">Dismiss</target>
+        <target state="translated">Descartar</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
