@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72821")]
         public async Task TestNotAfterLocalFunction()
         {
             await VerifyAbsenceAsync(
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72821")]
         public async Task TestAfterGenericLocalFunction()
         {
             await VerifyKeywordAsync(
@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72821")]
         public async Task TestAfterFirstValidConstraintInGenericLocalFunction()
         {
             await VerifyKeywordAsync(

@@ -78,12 +78,9 @@ internal class WhereKeywordRecommender : AbstractSyntacticSingleKeywordRecommend
                     return true;
                 }
             }
-            else if (tokenParent.IsParentKind<LocalFunctionStatementSyntax>(SyntaxKind.LocalFunctionStatement, out var localFunctionDeclaration))
+            else if (tokenParent.Parent is LocalFunctionStatementSyntax { TypeParameterList.Parameters.Count: > 0 })
             {
-                if (localFunctionDeclaration is { TypeParameterList.Parameters.Count: > 0 })
-                {
-                    return true;
-                }
+                return true;
             }
         }
 
