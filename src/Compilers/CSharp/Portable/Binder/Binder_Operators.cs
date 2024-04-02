@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(left.Kind != BoundKind.EventAccess || hasError);
 
             var leftPlaceholder = new BoundValuePlaceholder(left.Syntax, leftType).MakeCompilerGenerated();
-            var leftConversion = CreateConversion(node, leftPlaceholder, best.LeftConversion, isCast: false, conversionGroupOpt: null, best.Signature.LeftType, diagnostics);
+            var leftConversion = CreateConversion(node.Left, leftPlaceholder, best.LeftConversion, isCast: false, conversionGroupOpt: null, best.Signature.LeftType, diagnostics);
 
             return new BoundCompoundAssignmentOperator(node, bestSignature, left, rightConverted,
                 leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, originalUserDefinedOperators, leftType, hasError);
@@ -637,8 +637,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)signature.LeftType != null);
                 Debug.Assert((object)signature.RightType != null);
 
-                resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, diagnostics);
-                resultRight = CreateConversion(right, best.RightConversion, signature.RightType, diagnostics);
+                // If this is an object equality operator, we will suppress Lock conversion warnings.
+                var needsFilterDiagnostics =
+                    resultOperatorKind is BinaryOperatorKind.ObjectEqual or BinaryOperatorKind.ObjectNotEqual &&
+                    diagnostics.AccumulatesDiagnostics;
+                var conversionDiagnostics = needsFilterDiagnostics ? BindingDiagnosticBag.GetInstance(template: diagnostics) : diagnostics;
+
+                resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, conversionDiagnostics);
+                resultRight = CreateConversion(right, best.RightConversion, signature.RightType, conversionDiagnostics);
+
+                if (needsFilterDiagnostics)
+                {
+                    Debug.Assert(conversionDiagnostics != diagnostics);
+                    diagnostics.AddDependencies(conversionDiagnostics);
+
+                    var sourceBag = conversionDiagnostics.DiagnosticBag;
+                    Debug.Assert(sourceBag is not null);
+
+                    if (!sourceBag.IsEmptyWithoutResolution)
+                    {
+                        foreach (var diagnostic in sourceBag.AsEnumerableWithoutResolution())
+                        {
+                            var code = diagnostic is DiagnosticWithInfo { HasLazyInfo: true, LazyInfo.Code: var lazyCode } ? lazyCode : diagnostic.Code;
+                            if ((ErrorCode)code is not ErrorCode.WRN_ConvertingLock)
+                            {
+                                diagnostics.Add(diagnostic);
+                            }
+                        }
+                    }
+
+                    conversionDiagnostics.Free();
+                }
+
                 resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType, diagnostics);
             }
             else

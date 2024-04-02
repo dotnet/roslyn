@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+using System.Runtime.Loader;
+using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 
@@ -19,6 +22,19 @@ internal sealed class LanguageServerTestComposition
     private static string GetDevKitExtensionPath()
         => Path.Combine(AppContext.BaseDirectory, DevKitExtensionSubdirectory, DevKitAssemblyFileName);
 
-    public static Task<ExportProvider> CreateExportProviderAsync(ILoggerFactory loggerFactory, bool includeDevKitComponents)
-        => ExportProviderBuilder.CreateExportProviderAsync(extensionAssemblyPaths: includeDevKitComponents ? new[] { GetDevKitExtensionPath() } : Array.Empty<string>(), sharedDependenciesPath: null, loggerFactory);
+    public static Task<ExportProvider> CreateExportProviderAsync(ILoggerFactory loggerFactory, bool includeDevKitComponents, out ServerConfiguration serverConfiguration)
+    {
+        var devKitDependencyPath = includeDevKitComponents ? GetDevKitExtensionPath() : null;
+        serverConfiguration = new ServerConfiguration(LaunchDebugger: false,
+            MinimumLogLevel: LogLevel.Trace,
+            StarredCompletionsPath: null,
+            TelemetryLevel: null,
+            SessionId: null,
+            ExtensionAssemblyPaths: [],
+            DevKitDependencyPath: devKitDependencyPath,
+            RazorSourceGenerator: null,
+            ExtensionLogDirectory: string.Empty);
+        var extensionAssemblyManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
+        return ExportProviderBuilder.CreateExportProviderAsync(extensionAssemblyManager, devKitDependencyPath, loggerFactory: loggerFactory);
+    }
 }

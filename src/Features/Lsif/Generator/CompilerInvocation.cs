@@ -188,15 +188,13 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             public string ProjectFilePath { get; set; }
 
-            public List<PathMapping> PathMappings { get; set; } = new List<PathMapping>();
+            public List<PathMapping> PathMappings { get; set; } = [];
 
             public sealed class PathMapping
             {
                 public string From { get; set; }
                 public string To { get; set; }
             }
-
-#nullable disable
         }
     }
 }

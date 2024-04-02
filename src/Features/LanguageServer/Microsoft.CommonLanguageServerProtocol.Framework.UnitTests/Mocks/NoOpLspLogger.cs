@@ -3,36 +3,38 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
-public class NoOpLspLogger : ILspLogger
+internal sealed class NoOpLspLogger : AbstractLspLogger, ILspLogger
 {
     public static NoOpLspLogger Instance = new();
 
-    public void LogError(string message, params object[] @params)
+    public override void LogDebug(string message, params object[] @params)
     {
     }
 
-    public void LogException(Exception exception, string? message = null, params object[] @params)
+    public override void LogError(string message, params object[] @params)
     {
     }
 
-    public void LogInformation(string message, params object[] @params)
+    public override void LogException(Exception exception, string? message = null, params object[] @params)
     {
     }
 
-    public void LogStartContext(string context, params object[] @params)
+    public override void LogInformation(string message, params object[] @params)
     {
     }
 
-    public void LogEndContext(string context, params object[] @params)
+    public override void LogStartContext(string context, params object[] @params)
     {
     }
 
-    public void LogWarning(string message, params object[] @params)
+    public override void LogEndContext(string context, params object[] @params)
+    {
+    }
+
+    public override void LogWarning(string message, params object[] @params)
     {
     }
 }

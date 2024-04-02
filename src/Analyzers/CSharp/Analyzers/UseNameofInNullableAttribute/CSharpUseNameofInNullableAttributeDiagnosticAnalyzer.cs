@@ -51,6 +51,9 @@ internal sealed class CSharpUseNameofInAttributeDiagnosticAnalyzer : AbstractBui
 
     private void AnalyzeAttribute(SyntaxNodeAnalysisContext context)
     {
+        if (ShouldSkipAnalysis(context, notification: null))
+            return;
+
         var cancellationToken = context.CancellationToken;
         var attribute = (AttributeSyntax)context.Node;
         var semanticModel = context.SemanticModel;
@@ -103,7 +106,8 @@ internal sealed class CSharpUseNameofInAttributeDiagnosticAnalyzer : AbstractBui
                 context.ReportDiagnostic(DiagnosticHelper.Create(
                     this.Descriptor,
                     argument.Expression.GetLocation(),
-                    ReportDiagnostic.Info,
+                    NotificationOption2.Suggestion,
+                    context.Options,
                     additionalLocations: null,
                     ImmutableDictionary<string, string?>.Empty.Add(NameKey, stringValue)));
             }

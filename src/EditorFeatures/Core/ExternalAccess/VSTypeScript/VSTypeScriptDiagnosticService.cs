@@ -3,55 +3,39 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Composition;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
+
+[Export(typeof(IVSTypeScriptDiagnosticService)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VSTypeScriptDiagnosticService() : IVSTypeScriptDiagnosticService
 {
-    [Export(typeof(IVSTypeScriptDiagnosticService)), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class VSTypeScriptDiagnosticService(IDiagnosticService service, IGlobalOptionService globalOptions) : IVSTypeScriptDiagnosticService
+    public Task<ImmutableArray<VSTypeScriptDiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
     {
-        private readonly IDiagnosticService _service = service;
-        private readonly IGlobalOptionService _globalOptions = globalOptions;
+        // This type is only for push diagnostics, which is now no longer how any of our diagnostic systems work. So
+        // this just returns nothing.
+        return SpecializedTasks.EmptyImmutableArray<VSTypeScriptDiagnosticData>();
+    }
 
-        public async Task<ImmutableArray<VSTypeScriptDiagnosticData>> GetPushDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+    [Obsolete]
+    public IDisposable RegisterDiagnosticsUpdatedEventHandler(Action<VSTypeScriptDiagnosticsUpdatedArgsWrapper> action)
+        => new EventHandlerWrapper();
+
+    public IDisposable RegisterDiagnosticsUpdatedEventHandler(Action<ImmutableArray<VSTypeScriptDiagnosticsUpdatedArgsWrapper>> action)
+        => new EventHandlerWrapper();
+
+    private sealed class EventHandlerWrapper : IDisposable
+    {
+        public void Dispose()
         {
-            // this is the TS entrypoint to get push diagnostics.  Only return diagnostics if we're actually in push-mode.
-            var diagnosticMode = _globalOptions.GetDiagnosticMode();
-            if (diagnosticMode != DiagnosticMode.SolutionCrawlerPush)
-                return ImmutableArray<VSTypeScriptDiagnosticData>.Empty;
-
-            var result = await _service.GetDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-            return result.SelectAsArray(data => new VSTypeScriptDiagnosticData(data));
-        }
-
-        public IDisposable RegisterDiagnosticsUpdatedEventHandler(Action<VSTypeScriptDiagnosticsUpdatedArgsWrapper> action)
-            => new EventHandlerWrapper(_service, action);
-
-        private sealed class EventHandlerWrapper : IDisposable
-        {
-            private readonly IDiagnosticService _service;
-            private readonly EventHandler<DiagnosticsUpdatedArgs> _handler;
-
-            internal EventHandlerWrapper(IDiagnosticService service, Action<VSTypeScriptDiagnosticsUpdatedArgsWrapper> action)
-            {
-                _service = service;
-                _handler = (sender, args) => action(new VSTypeScriptDiagnosticsUpdatedArgsWrapper(args));
-                _service.DiagnosticsUpdated += _handler;
-            }
-
-            public void Dispose()
-            {
-                _service.DiagnosticsUpdated -= _handler;
-            }
         }
     }
 }

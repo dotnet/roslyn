@@ -36,11 +36,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return CType(m_UnderlyingMethod.Arity, UShort)
             End Get
         End Property
-        Private ReadOnly Property IMethodReferenceIsGeneric As Boolean Implements Cci.IMethodReference.IsGeneric
-            Get
-                Return m_UnderlyingMethod.IsGenericMethod
-            End Get
-        End Property
 
         Private ReadOnly Property IMethodReferenceParameterCount As UShort Implements Cci.IMethodReference.ParameterCount
             Get

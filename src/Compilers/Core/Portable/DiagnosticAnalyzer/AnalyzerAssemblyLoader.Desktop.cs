@@ -5,6 +5,7 @@
 #if !NETCOREAPP
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -29,6 +30,28 @@ namespace Microsoft.CodeAnalysis
 
         internal AnalyzerAssemblyLoader()
         {
+        }
+
+        public bool IsHostAssembly(Assembly assembly)
+        {
+            // When an assembly is loaded from the GAC then the load result would be the same if 
+            // this ran on command line compiler. So there is no consistency issue here, this 
+            // is just runtime rules expressing themselves.
+            if (assembly.GlobalAssemblyCache)
+            {
+                return true;
+            }
+
+            // When an assembly is loaded from the compiler directory then this means it's assembly
+            // binding redirects taking over. For example it's moving from an older version of System.Memory
+            // to the one shipping in the compiler. This is not a consistency issue.
+            var compilerDirectory = Path.GetDirectoryName(typeof(AnalyzerAssemblyLoader).Assembly.Location);
+            if (PathUtilities.Comparer.Equals(compilerDirectory, Path.GetDirectoryName(assembly.Location)))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private partial Assembly? Load(AssemblyName assemblyName, string assemblyOriginalPath)
@@ -77,11 +100,30 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
+                const string resourcesExtension = ".resources";
                 var assemblyName = new AssemblyName(args.Name);
-                string? bestPath = GetBestPath(assemblyName);
-                if (bestPath is not null)
+                var simpleName = assemblyName.Name;
+                var isSatelliteAssembly =
+                    assemblyName.CultureInfo is not null &&
+                    simpleName.EndsWith(resourcesExtension, StringComparison.Ordinal);
+
+                if (isSatelliteAssembly)
                 {
-                    return Assembly.LoadFrom(bestPath);
+                    // Satellite assemblies should get the best path information using the
+                    // non-resource part of the assembly name. Once the path information is obtained
+                    // GetSatelliteInfoForPath will translate to the resource assembly path.
+                    assemblyName.Name = simpleName[..^resourcesExtension.Length];
+                }
+
+                var (originalPath, realPath) = GetBestPath(assemblyName);
+                if (isSatelliteAssembly && originalPath is not null)
+                {
+                    realPath = GetRealSatelliteLoadPath(originalPath, assemblyName.CultureInfo);
+                }
+
+                if (realPath is not null)
+                {
+                    return Assembly.LoadFrom(realPath);
                 }
 
                 return null;

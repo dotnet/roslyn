@@ -1,0 +1,119 @@
+parameters:
+  - name: poolName
+    type: string
+  - name: queueName
+    type: string
+  - name: configuration
+    type: string
+    default: 'Debug'
+    values: [ 'Debug', 'Release' ] 
+  - name: timeout
+    type: number
+  - name: testRuns
+    type: object
+    default:
+      - oop64bit: true
+        lspEditor: false
+        runName: 64
+  
+
+stages:
+- stage: Windows_${{ parameters.configuration }}_Build
+  dependsOn: []
+  jobs:
+  - template: build-windows-job.yml
+    parameters:
+      jobName: Build_Windows_${{ parameters.configuration }}
+      testArtifactName: Transport_Artifacts_Windows_${{ parameters.configuration }}
+      configuration: ${{ parameters.configuration }}
+      poolParameters: 
+        name: ${{ parameters.poolName }}
+        demands: ImageOverride -equals ${{ parameters.queueName }}
+      restoreArguments: -msbuildEngine vs
+      buildArguments: -msbuildEngine vs /p:Projects='"$(Build.Repository.LocalPath)\src\VisualStudio\IntegrationTest\IntegrationTestBuildProject.csproj"'
+
+- stage: ${{ parameters.configuration }}_Integration
+  dependsOn: Windows_${{ parameters.configuration }}_Build
+  variables:
+  - name: XUNIT_LOGS
+    value: $(Build.SourcesDirectory)\artifacts\log\${{ parameters.configuration }}
+  jobs:
+  - ${{ each testParameters in parameters.testRuns }}:
+    - job: ${{ testParameters.runName }}
+      timeoutInMinutes: ${{ parameters.timeout }}
+      pool:
+        name: ${{ parameters.poolName }}
+        demands: ImageOverride -equals ${{ parameters.queueName }}
+      steps:
+      - checkout: none
+      - task: DownloadPipelineArtifact@2
+        displayName: Download Test Payload
+        inputs:
+          artifact: Transport_Artifacts_Windows_${{ parameters.configuration }}
+          path: '$(Build.SourcesDirectory)'
+
+      - task: BatchScript@1
+        displayName: Rehydrate RunTests
+        inputs:
+          filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net8.0/rehydrate.cmd
+        env:
+          HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+      
+      # This is a temporary step until the actual test run moves to helix (then we would need to rehydrate the tests there instead)
+      - task: BatchScript@1
+        displayName: Rehydrate Microsoft.VisualStudio.LanguageServices.New.IntegrationTests
+        inputs:
+          filename: ./artifacts/bin/Microsoft.VisualStudio.LanguageServices.New.IntegrationTests/${{ parameters.configuration }}/net472/rehydrate.cmd
+        env:
+          HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+
+      # This is a temporary step until the actual test run moves to helix (then we would need to rehydrate the tests there instead)
+      - task: BatchScript@1
+        displayName: Rehydrate Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests (net8.0)
+        inputs:
+          filename: ./artifacts\bin\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests/${{ parameters.configuration }}/net8.0/rehydrate.cmd
+        env:
+          HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+
+      # This is a temporary step until the actual test run moves to helix (then we would need to rehydrate the tests there instead)
+      - task: BatchScript@1
+        displayName: Rehydrate Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests (net472)
+        inputs:
+          filename: ./artifacts\bin\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests/${{ parameters.configuration }}/net472/rehydrate.cmd
+        env:
+          HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+
+      - task: PowerShell@2
+        displayName: Run Integration Tests
+        inputs:
+          filePath: eng/build.ps1
+          arguments: -ci -prepareMachine -testVsi -configuration ${{ parameters.configuration }} -oop64bit:$${{ testParameters.oop64bit }} -collectDumps -lspEditor:$${{ testParameters.lspEditor }}
+
+      # These are temporary publishing steps - once the tests run on helix, the artifacts will be attached to the helix payload.
+      - task: PublishTestResults@2
+        displayName: Publish xUnit Test Results
+        inputs:
+          testRunner: XUnit
+          testResultsFiles: $(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}\*.xml
+          mergeTestResults: true
+          testRunTitle: '$(System.JobAttempt)-Integration ${{ parameters.configuration }} OOP64_${{ testParameters.oop64bit }}'
+        condition: always()
+
+      # Dumps from test timeouts or crashes get published to the test results directory by dotnet test, so make sure to publish any here.
+      - task: PublishBuildArtifacts@1
+        displayName: Publish Test Results Directory
+        inputs:
+          PathtoPublish: '$(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}'
+          ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} OOP64_${{ testParameters.oop64bit }} LspEditor_${{ testParameters.lspEditor }} $(Build.BuildNumber)'
+          publishLocation: Container
+        continueOnError: true
+        condition: not(succeeded())
+    
+      - task: PublishBuildArtifacts@1
+        displayName: Publish Logs
+        inputs:
+          PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\${{ parameters.configuration }}'
+          ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} OOP64_${{ testParameters.oop64bit }} LspEditor_${{ testParameters.lspEditor }} $(Build.BuildNumber)'
+          publishLocation: Container
+        continueOnError: true
+        condition: not(succeeded())

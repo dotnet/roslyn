@@ -128,7 +128,7 @@ End Class",
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539727")>
         Public Sub DeletesSelectedText()
-            Using workspace = TestWorkspace.CreateVisualBasic("Interface IGoo ~~")
+            Using workspace = EditorTestWorkspace.CreateVisualBasic("Interface IGoo ~~")
                 Dim textView = workspace.Documents.Single().GetTextView()
                 Dim subjectBuffer = workspace.Documents.First().GetTextBuffer()
 

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
     {
         private static async Task TestAsync(string markup, string expectedName, int expectedLineOffset, CSharpParseOptions parseOptions = null)
         {
-            using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions);
+            using var workspace = EditorTestWorkspace.CreateCSharp(markup, parseOptions);
 
             var testDocument = workspace.Documents.Single();
             var position = testDocument.CursorPosition.Value;
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
                         }
                     }
                 }
-                """, "N1.M1()", 1); // Old implementation displayed "N1.?.M1", but we don't see a class declaration in the syntax tree...
+                """, "N1.?.M1()", 1);
         }
 
         [Fact]

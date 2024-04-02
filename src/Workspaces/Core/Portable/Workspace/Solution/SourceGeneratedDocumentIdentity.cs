@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Runtime.Serialization;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -15,15 +16,13 @@ namespace Microsoft.CodeAnalysis;
 /// A small struct that holds the values that define the identity of a source generated document, and don't change
 /// as new generations happen. This is mostly for convenience as we are reguarly working with this combination of values.
 /// </summary>
-internal readonly record struct SourceGeneratedDocumentIdentity
-    : IObjectWritable, IEquatable<SourceGeneratedDocumentIdentity>
+[DataContract]
+internal readonly record struct SourceGeneratedDocumentIdentity : IEquatable<SourceGeneratedDocumentIdentity>
 {
-    public bool ShouldReuseInSerialization => true;
-
-    public readonly DocumentId DocumentId;
-    public readonly string HintName;
-    public readonly SourceGeneratorIdentity Generator;
-    public readonly string FilePath;
+    [DataMember(Order = 0)] public DocumentId DocumentId { get; }
+    [DataMember(Order = 1)] public string HintName { get; }
+    [DataMember(Order = 2)] public SourceGeneratorIdentity Generator { get; }
+    [DataMember(Order = 3)] public string FilePath { get; }
 
     public SourceGeneratedDocumentIdentity(DocumentId documentId, string hintName, SourceGeneratorIdentity generator, string filePath)
     {
@@ -36,11 +35,12 @@ internal readonly record struct SourceGeneratedDocumentIdentity
 
     public static SourceGeneratedDocumentIdentity Generate(ProjectId projectId, string hintName, ISourceGenerator generator, string filePath, AnalyzerReference analyzerReference)
     {
-        // We want the DocumentId generated for a generated output to be stable between Compilations; this is so features that track
-        // a document by DocumentId can find it after some change has happened that requires generators to run again.
-        // To achieve this we'll just do a crytographic hash of the generator name and hint name; the choice of a cryptographic hash
-        // as opposed to a more generic string hash is we actually want to ensure we don't have collisions.
-        var generatorIdentity = new SourceGeneratorIdentity(generator, analyzerReference);
+        // We want the DocumentId generated for a generated output to be stable between Compilations; this is so
+        // features that track a document by DocumentId can find it after some change has happened that requires
+        // generators to run again. To achieve this we'll just do a crytographic hash of the generator name and hint
+        // name; the choice of a cryptographic hash as opposed to a more generic string hash is we actually want to
+        // ensure we don't have collisions.
+        var generatorIdentity = SourceGeneratorIdentity.Create(generator, analyzerReference);
 
         // Combine the strings together; we'll use Encoding.Unicode since that'll match the underlying format; this can be made much
         // faster once we're on .NET Core since we could directly treat the strings as ReadOnlySpan<char>.
@@ -89,23 +89,21 @@ internal readonly record struct SourceGeneratedDocumentIdentity
     {
         var documentId = DocumentId.ReadFrom(reader);
 
-        var hintName = reader.ReadString();
-        var generatorAssemblyName = reader.ReadString();
+        var hintName = reader.ReadRequiredString();
+        var generatorAssemblyName = reader.ReadRequiredString();
         var generatorAssemblyPath = reader.ReadString();
-        var generatorAssemblyVersion = Version.Parse(reader.ReadString());
-        var generatorTypeName = reader.ReadString();
-        var filePath = reader.ReadString();
+        var generatorAssemblyVersion = Version.Parse(reader.ReadRequiredString());
+        var generatorTypeName = reader.ReadRequiredString();
+        var filePath = reader.ReadRequiredString();
 
         return new SourceGeneratedDocumentIdentity(
             documentId,
             hintName,
-            new SourceGeneratorIdentity
-            {
-                AssemblyName = generatorAssemblyName,
-                AssemblyPath = generatorAssemblyPath,
-                AssemblyVersion = generatorAssemblyVersion,
-                TypeName = generatorTypeName
-            },
+            new SourceGeneratorIdentity(
+                generatorAssemblyName,
+                generatorAssemblyPath,
+                generatorAssemblyVersion,
+                generatorTypeName),
             filePath);
     }
 }

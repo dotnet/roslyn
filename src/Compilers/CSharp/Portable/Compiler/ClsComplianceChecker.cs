@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var peModule = (Symbols.Metadata.PE.PEModuleSymbol)module;
                     foreach (CSharpAttributeData assemblyLevelAttribute in peModule.GetAssemblyAttributes())
                     {
-                        if (assemblyLevelAttribute.IsTargetAttribute(peModule, AttributeDescription.CLSCompliantAttribute))
+                        if (assemblyLevelAttribute.IsTargetAttribute(AttributeDescription.CLSCompliantAttribute))
                         {
                             sawClsCompliantAttribute = true;
                             break;
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (CSharpAttributeData attribute in symbol.GetAttributes())
             {
-                if (attribute.IsTargetAttribute(symbol, AttributeDescription.CLSCompliantAttribute))
+                if (attribute.IsTargetAttribute(AttributeDescription.CLSCompliantAttribute))
                 {
                     Location attributeLocation;
                     if (TryGetAttributeWarningLocation(attribute, out attributeLocation))
@@ -692,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = startPos; i < parameters.Length; i++)
             {
                 Location attributeLocation;
-                if (TryGetClsComplianceAttributeLocation(parameters[i].GetAttributes(), parameters[i], out attributeLocation))
+                if (TryGetClsComplianceAttributeLocation(parameters[i].GetAttributes(), out attributeLocation))
                 {
                     this.AddDiagnostic(ErrorCode.WRN_CLS_MeaninglessOnParam, attributeLocation);
                 }
@@ -702,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CheckForMeaninglessOnReturn(MethodSymbol method)
         {
             Location attributeLocation;
-            if (TryGetClsComplianceAttributeLocation(method.GetReturnTypeAttributes(), method, out attributeLocation))
+            if (TryGetClsComplianceAttributeLocation(method.GetReturnTypeAttributes(), out attributeLocation))
             {
                 this.AddDiagnostic(ErrorCode.WRN_CLS_MeaninglessOnReturn, attributeLocation);
             }
@@ -763,11 +763,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool TryGetClsComplianceAttributeLocation(ImmutableArray<CSharpAttributeData> attributes, Symbol targetSymbol, out Location attributeLocation)
+        private bool TryGetClsComplianceAttributeLocation(ImmutableArray<CSharpAttributeData> attributes, out Location attributeLocation)
         {
             foreach (CSharpAttributeData data in attributes)
             {
-                if (data.IsTargetAttribute(targetSymbol, AttributeDescription.CLSCompliantAttribute))
+                if (data.IsTargetAttribute(AttributeDescription.CLSCompliantAttribute))
                 {
                     if (TryGetAttributeWarningLocation(data, out attributeLocation))
                     {
@@ -1187,7 +1187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (CSharpAttributeData data in symbol.GetAttributes())
             {
                 // Check signature before HasErrors to avoid realizing symbols for other attributes.
-                if (data.IsTargetAttribute(symbol, AttributeDescription.CLSCompliantAttribute))
+                if (data.IsTargetAttribute(AttributeDescription.CLSCompliantAttribute))
                 {
                     NamedTypeSymbol attributeClass = data.AttributeClass;
                     if ((object)attributeClass != null)

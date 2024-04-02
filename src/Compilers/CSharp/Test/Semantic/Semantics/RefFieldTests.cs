@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class RefFieldTests : CSharpTestBase
     {
-        private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
+        internal static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
 
         [CombinatorialData]
         [Theory]
@@ -11186,7 +11186,7 @@ static class Extensions
                 //     static void F2(params scoped object[] args) { }
                 Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "params scoped object[] args").WithLocation(4, 20));
 
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "scoped params System.Object[] args", RefKind.None, ScopedKind.ScopedValue);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "params scoped System.Object[] args", RefKind.None, ScopedKind.ScopedValue);
         }
 
         [Theory]
@@ -11562,7 +11562,7 @@ public class A
             Assert.Equal(expectedScope, parameter.EffectiveScope);
             Assert.Equal(expectedHasUnscopedRefAttribute, parameter.HasUnscopedRefAttribute);
 
-            var attribute = parameter.GetAttributes().FirstOrDefault(a => a.GetTargetAttributeSignatureIndex(parameter, AttributeDescription.ScopedRefAttribute) != -1);
+            var attribute = parameter.GetAttributes().FirstOrDefault(a => a.GetTargetAttributeSignatureIndex(AttributeDescription.ScopedRefAttribute) != -1);
             Assert.Null(attribute);
 
             VerifyParameterSymbol(parameter.GetPublicSymbol(), expectedDisplayString, expectedRefKind, expectedScope);

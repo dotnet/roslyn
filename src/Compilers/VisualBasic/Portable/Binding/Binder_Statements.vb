@@ -412,6 +412,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 statements.Add(New BoundReturnStatement(methodBlock.EndBlockStatement, Nothing, Nothing, Nothing))
             End If
 
+            ' Inject implicit base constructor call, if appropriate
+            If Not methodSymbol.IsImplicitlyDeclared AndAlso methodSymbol.MethodKind = MethodKind.Constructor Then
+                Dim referencedConstructor As MethodSymbol = Nothing
+                Dim injectDefaultConstructorCall As Boolean = False
+
+                MethodCompiler.GetExplicitlyOrImplicitlyReferencedConstructor(methodSymbol, statements(0), Me,
+                                                                              diagnostics, referencedConstructor, injectDefaultConstructorCall)
+
+                ' If we didn't find explicitly referenced constructor, use implicitly generated call
+                If injectDefaultConstructorCall Then
+                    If referencedConstructor IsNot Nothing Then
+                        Dim initializer As BoundExpressionStatement = MethodCompiler.BindDefaultConstructorInitializer(methodSymbol, referencedConstructor, diagnostics, Me)
+                        Debug.Assert(initializer.Expression.Kind = BoundKind.Call OrElse
+                                     (initializer.HasErrors AndAlso
+                                      (Not diagnostics.AccumulatesDiagnostics OrElse diagnostics.HasAnyResolvedErrors)))
+                        statements.Insert(0, initializer)
+                    Else
+                        Debug.Assert(Not diagnostics.AccumulatesDiagnostics OrElse diagnostics.HasAnyResolvedErrors OrElse If(methodSymbol.ContainingType.BaseTypeNoUseSiteDiagnostics?.IsErrorType(), False))
+                        ' Insert statement with an error to prevent more attempts to inject the initializer which will cause duplicate diagnostics
+                        statements.Insert(0,
+                                          New BoundExpressionStatement(methodSymbol.Syntax,
+                                                                       New BoundBadExpression(methodSymbol.Syntax, LookupResultKind.OverloadResolutionFailure,
+                                                                                              ImmutableArray(Of Symbol).Empty,
+                                                                                              ImmutableArray(Of BoundExpression).Empty,
+                                                                                              ErrorTypeSymbol.UnknownResultType, hasErrors:=True).
+                                                                       MakeCompilerGenerated()).
+                                          MakeCompilerGenerated())
+                    End If
+                End If
+            End If
+
             Return New BoundBlock(methodBlock, If(methodBlock IsNot Nothing, methodBlock.Statements, Nothing), locals, statements.ToImmutableAndFree())
         End Function
 
@@ -4700,6 +4731,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportDiagnostic(diagnostics,
                                      lockExpression.Syntax,
                                      ErrorFactory.ErrorInfo(ERRID.ERR_SyncLockRequiresReferenceType1, lockExpressionType))
+                ElseIf lockExpressionType.IsWellKnownTypeLock() Then
+                    ReportDiagnostic(diagnostics, lockExpression.Syntax, ERRID.ERR_LockTypeUnsupported)
                 End If
             End If
 

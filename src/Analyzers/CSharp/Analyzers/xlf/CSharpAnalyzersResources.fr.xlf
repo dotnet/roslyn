@@ -172,11 +172,6 @@
         <target state="translated">Supprimer la directive nullable redondante</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_suppression_operators">
-        <source>Remove suppression operators</source>
-        <target state="translated">Supprimer les opérateurs de suppression</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
         <target state="translated">Supprimer l’expression lambda inutile</target>
@@ -457,9 +452,9 @@
         <target state="translated">L'expression 'new' peut être simplifiée</target>
         <note />
       </trans-unit>
-      <trans-unit id="typeof_can_be_converted_ to_nameof">
-        <source>'typeof' can be converted  to 'nameof'</source>
-        <target state="translated">'typeof' peut être converti en 'nameof'</target>
+      <trans-unit id="typeof_can_be_converted_to_nameof">
+        <source>'typeof' can be converted to 'nameof'</source>
+        <target state="translated">« typeof » peut être converti en « nameof »</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">

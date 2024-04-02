@@ -84,6 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool HasImportedFromTypeLibAttribute => false;
+
+        internal override bool HasPrimaryInteropAssemblyAttribute => false;
+
         public override int GetHashCode()
         {
             return identity.GetHashCode();
@@ -175,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable disable
 
-        internal override NamedTypeSymbol GetDeclaredSpecialType(SpecialType type)
+        internal override NamedTypeSymbol GetDeclaredSpecialType(ExtendedSpecialType type)
         {
             throw ExceptionUtilities.Unreachable();
         }
@@ -214,5 +218,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         internal sealed override ObsoleteAttributeData? ObsoleteAttributeData => null;
+
+        internal override bool GetGuidString(out string? guidString)
+        {
+            guidString = null;
+            return false;
+        }
     }
 }

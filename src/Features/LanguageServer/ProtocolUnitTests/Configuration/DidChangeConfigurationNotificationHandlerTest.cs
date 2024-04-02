@@ -4,16 +4,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Newtonsoft.Json.Linq;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -145,13 +144,13 @@ public class A { }";
                 "code_lens.dotnet_enable_references_code_lens",
                 "code_lens.dotnet_enable_tests_code_lens",
                 "projects.dotnet_binary_log_path",
-                "projects.dotnet_load_in_process",
+                "projects.dotnet_enable_automatic_restore"
             }.OrderBy(name => name);
 
             Assert.Equal(expectedNames, actualNames);
         }
 
-        private static void VerifyValuesInServer(TestWorkspace workspace, List<string> expectedValues)
+        private static void VerifyValuesInServer(EditorTestWorkspace workspace, List<string> expectedValues)
         {
             var globalOptionService = workspace.GetService<IGlobalOptionService>();
             var supportedOptions = DidChangeConfigurationNotificationHandler.SupportedOptions;
@@ -182,8 +181,8 @@ public class A { }";
         private class ClientCallbackTarget
         {
             public bool WorkspaceDidChangeConfigurationRegistered { get; private set; } = false;
-            public List<ConfigurationItem> ReceivedConfigurationItems { get; } = new();
-            public List<string> MockClientSideValues { get; } = new();
+            public List<ConfigurationItem> ReceivedConfigurationItems { get; } = [];
+            public List<string> MockClientSideValues { get; } = [];
             public bool ReceivedWorkspaceConfigurationRequest { get; private set; } = false;
 
             [JsonRpcMethod(Methods.ClientRegisterCapabilityName, UseSingleObjectParameterDeserialization = true)]

@@ -4,15 +4,12 @@
 
 using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -20,66 +17,72 @@ namespace Microsoft.CodeAnalysis.Remote
     /// <summary>
     /// Provides solution assets present locally (in the current process) to a remote process where the solution is being replicated to.
     /// </summary>
-    internal sealed class SolutionAssetProvider : ISolutionAssetProvider
+    internal sealed class SolutionAssetProvider(SolutionServices services) : ISolutionAssetProvider
     {
         public const string ServiceName = "SolutionAssetProvider";
 
         internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceDescriptors.ComponentName, ServiceName, suffix: "", ServiceDescriptors.GetFeatureDisplayName);
 
-        private readonly SolutionServices _services;
+        private readonly SolutionServices _services = services;
 
-        public SolutionAssetProvider(SolutionServices services)
+        public ValueTask WriteAssetsAsync(
+            PipeWriter pipeWriter,
+            Checksum solutionChecksum,
+            AssetHint assetHint,
+            ReadOnlyMemory<Checksum> checksums,
+            CancellationToken cancellationToken)
         {
-            _services = services;
+            // Suppress ExecutionContext flow for asynchronous operations operate on the pipe. In addition to avoiding
+            // ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone data set by
+            // CallContext.LogicalSetData at each yielding await in the task tree.
+            //
+            // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on the
+            // same thread where SuppressFlow was originally run.
+            using var _ = FlowControlHelper.TrySuppressFlow();
+            return WriteAssetsSuppressedFlowAsync(pipeWriter, solutionChecksum, assetHint, checksums, cancellationToken);
+
+            async ValueTask WriteAssetsSuppressedFlowAsync(PipeWriter pipeWriter, Checksum solutionChecksum, AssetHint assetHint, ReadOnlyMemory<Checksum> checksums, CancellationToken cancellationToken)
+            {
+                // The responsibility is on us (as per the requirements of RemoteCallback.InvokeAsync) to Complete the
+                // pipewriter.  This will signal to streamjsonrpc that the writer passed into it is complete, which will
+                // allow the calling side know to stop reading results.
+                Exception? exception = null;
+                try
+                {
+                    await WriteAssetsWorkerAsync(pipeWriter, solutionChecksum, assetHint, checksums, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex) when ((exception = ex) == null)
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+                finally
+                {
+                    await pipeWriter.CompleteAsync(exception).ConfigureAwait(false);
+                }
+            }
         }
 
-        public async ValueTask GetAssetsAsync(PipeWriter pipeWriter, Checksum solutionChecksum, Checksum[] checksums, CancellationToken cancellationToken)
-        {
-            // The responsibility is on us (as per the requirements of RemoteCallback.InvokeAsync) to Complete the
-            // pipewriter.  This will signal to streamjsonrpc that the writer passed into it is complete, which will
-            // allow the calling side know to stop reading results.
-            Exception? exception = null;
-            try
-            {
-                await GetAssetsWorkerAsync(pipeWriter, solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex) when ((exception = ex) == null)
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-            finally
-            {
-                await pipeWriter.CompleteAsync(exception).ConfigureAwait(false);
-            }
-        }
-
-        private async ValueTask GetAssetsWorkerAsync(PipeWriter pipeWriter, Checksum solutionChecksum, Checksum[] checksums, CancellationToken cancellationToken)
+        private async ValueTask WriteAssetsWorkerAsync(
+            PipeWriter pipeWriter,
+            Checksum solutionChecksum,
+            AssetHint assetHint,
+            ReadOnlyMemory<Checksum> checksums,
+            CancellationToken cancellationToken)
         {
             var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             var serializer = _services.GetRequiredService<ISerializerService>();
             var scope = assetStorage.GetScope(solutionChecksum);
 
-            SolutionAsset? singleAsset = null;
-            IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap = null;
+            using var _ = Creator.CreateResultMap(out var resultMap);
 
-            if (checksums.Length == 1)
-            {
-                singleAsset = await scope.GetAssetAsync(checksums[0], cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                assetMap = await scope.GetAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
-            }
+            await scope.AddAssetsAsync(assetHint, checksums, resultMap, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
             using var stream = new PipeWriterStream(pipeWriter);
             await RemoteHostAssetSerialization.WriteDataAsync(
-                stream, singleAsset, assetMap, serializer, scope.ReplicationContext,
+                stream, resultMap, serializer, scope.ReplicationContext,
                 solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
-
-            // Ensure any last data written into the stream makes it into the pipe.
-            await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -93,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <remarks>
         /// Note: this stream does not have to <see cref="PipeWriter.Complete"/> the underlying <see cref="_writer"/> it
         /// is holding onto (including within <see cref="Flush"/>, <see cref="FlushAsync"/>, or <see cref="Dispose"/>).
-        /// Responsibility for that is solely in the hands of <see cref="GetAssetsAsync"/>.
+        /// Responsibility for that is solely in the hands of <see cref="WriteAssetsAsync"/>.
         /// </remarks>
         private class PipeWriterStream : Stream, IDisposableObservable
         {
@@ -148,9 +151,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 Requires.NotNull(buffer, nameof(buffer));
                 Verify.NotDisposed(this);
 
+#if NET
+                _writer.Write(buffer.AsSpan(offset, count));
+#else
                 var span = _writer.GetSpan(count);
                 buffer.AsSpan(offset, count).CopyTo(span);
                 _writer.Advance(count);
+#endif
             }
 
             public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
@@ -168,14 +175,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 _writer.Advance(1);
             }
 
-#if !NETSTANDARD
+#if NET
 
             public override void Write(ReadOnlySpan<byte> buffer)
             {
                 Verify.NotDisposed(this);
-                var span = _writer.GetSpan(buffer.Length);
-                buffer.CopyTo(span);
-                _writer.Advance(buffer.Length);
+                _writer.Write(buffer);
             }
 
             public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken)
@@ -202,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
                 => throw this.ThrowDisposedOr(new NotSupportedException());
 
-#if !NETSTANDARD
+#if NET
 
             public override int Read(Span<byte> buffer)
                 => throw this.ThrowDisposedOr(new NotSupportedException());

@@ -11,29 +11,28 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Organizing.Organizers;
 
-namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
-{
-    [ExportSyntaxNodeOrganizer(LanguageNames.CSharp), Shared]
-    internal class OperatorDeclarationOrganizer : AbstractSyntaxNodeOrganizer<OperatorDeclarationSyntax>
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public OperatorDeclarationOrganizer()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers;
 
-        protected override OperatorDeclarationSyntax Organize(
-            OperatorDeclarationSyntax syntax,
-            CancellationToken cancellationToken)
-        {
-            return syntax.Update(syntax.AttributeLists,
-                ModifiersOrganizer.Organize(syntax.Modifiers),
-                syntax.ReturnType,
-                syntax.OperatorKeyword,
-                syntax.OperatorToken,
-                syntax.ParameterList,
-                syntax.Body,
-                syntax.SemicolonToken);
-        }
+[ExportSyntaxNodeOrganizer(LanguageNames.CSharp), Shared]
+internal class OperatorDeclarationOrganizer : AbstractSyntaxNodeOrganizer<OperatorDeclarationSyntax>
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public OperatorDeclarationOrganizer()
+    {
+    }
+
+    protected override OperatorDeclarationSyntax Organize(
+        OperatorDeclarationSyntax syntax,
+        CancellationToken cancellationToken)
+    {
+        return syntax.Update(syntax.AttributeLists,
+            ModifiersOrganizer.Organize(syntax.Modifiers),
+            syntax.ReturnType,
+            syntax.OperatorKeyword,
+            syntax.OperatorToken,
+            syntax.ParameterList,
+            syntax.Body,
+            syntax.SemicolonToken);
     }
 }

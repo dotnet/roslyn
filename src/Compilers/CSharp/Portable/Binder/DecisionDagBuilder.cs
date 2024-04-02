@@ -679,10 +679,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundRelationalPattern rel,
             out BoundDagTemp output)
         {
-            Debug.Assert(rel.Value.Type is not null);
+            var type = rel.Value.Type ?? input.Type;
+            Debug.Assert(type is { });
             // check if the test is always true or always false
             var tests = ArrayBuilder<Tests>.GetInstance(2);
-            output = MakeConvertToType(input, rel.Syntax, rel.Value.Type, isExplicitTest: false, tests);
+            output = MakeConvertToType(input, rel.Syntax, type, isExplicitTest: false, tests);
             var fac = ValueSetFactory.ForInput(output);
             var values = fac?.Related(rel.Relation.Operator(), rel.ConstantValue);
             if (values?.IsEmpty == true)
@@ -1691,7 +1692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         builder.Append(" BIND[");
                         builder.Append(string.Join("; ", bindings));
-                        builder.Append("]");
+                        builder.Append(']');
                     }
 
                     if (cd.WhenClause is { })

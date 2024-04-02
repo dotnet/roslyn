@@ -5692,4 +5692,16 @@
   <data name="ERR_SymbolDefinedInAssembly" xml:space="preserve">
     <value>'{0}' is defined in assembly '{1}'.</value>
   </data>
+  <data name="ERR_InvalidExperimentalDiagID" xml:space="preserve">
+    <value>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</value>
+  </data>
+  <data name="ERR_LockTypeUnsupported" xml:space="preserve">
+    <value>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</value>
+  </data>
+  <data name="WRN_ConvertingLock" xml:space="preserve">
+    <value>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</value>
+  </data>
+  <data name="WRN_ConvertingLock_Title" xml:space="preserve">
+    <value>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</value>
+  </data>
 </root>

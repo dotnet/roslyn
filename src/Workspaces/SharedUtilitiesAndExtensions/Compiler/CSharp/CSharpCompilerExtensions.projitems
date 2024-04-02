@@ -34,6 +34,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ILocalSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\LanguageVersionExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberAccessExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberDeclarationSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberDeclarationSyntaxExtensions.DeclarationFinder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberDeclarationSyntaxExtensions.LocalDeclarationMap.cs" />
@@ -124,7 +125,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpCompilerExtensionsResources.resx" GenerateSource="true" Link="CSharpCompilerExtensionsResources.resx" />
-    <None Include="$(MSBuildThisFileDirectory)CSharpCompilerExtensionsResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)CSharpCompilerExtensionsResources.resx">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />

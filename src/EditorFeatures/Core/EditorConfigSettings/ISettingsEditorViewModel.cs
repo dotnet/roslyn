@@ -6,11 +6,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+internal interface ISettingsEditorViewModel
 {
-    internal interface ISettingsEditorViewModel
-    {
-        void NotifyOfUpdate();
-        Task<SourceText> UpdateEditorConfigAsync(SourceText sourceText);
-    }
+    void NotifyOfUpdate();
+    Task<SourceText> UpdateEditorConfigAsync(SourceText sourceText);
 }

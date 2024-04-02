@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
+using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -65,20 +66,21 @@ End Class", HangMitigatingCancellationToken);
 
         public virtual async Task MetadataReference()
         {
-            await TestServices.SolutionExplorer.AddDllReferenceAsync("TestProj", typeof(System.Windows.Point).Assembly.Location, HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, HangMitigatingCancellationToken);
+            var reference = "WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35";
+            await TestServices.SolutionExplorer.AddMetadataReferenceAsync(reference, "TestProj", HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
 
             await TestServices.Editor.SetTextAsync("class C { System.Windows.Point p; }", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("Point", charsOffset: 0, HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentTokenTypeAsync("struct name", HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.RemoveDllReferenceAsync("TestProj", typeof(System.Windows.Point).Assembly.GetName().Name, HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
 
             await TestServices.EditorVerifier.CurrentTokenTypeAsync("identifier", HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/72018")]
         public async Task ProjectReference()
         {
             await InitializeWithDefaultSolution();
@@ -86,19 +88,19 @@ End Class", HangMitigatingCancellationToken);
             var project = ProjectName;
             await TestServices.SolutionExplorer.AddProjectAsync(csProj2, projectTemplate: _defaultProjectTemplate, languageName: _defaultlanguageName, HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddProjectReferenceAsync(projectName: csProj2, project, HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.AddFileAsync(project, "Program.cs", open: true, contents: "public class Class1 { }", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddFileAsync(csProj2, "Program.cs", open: true, contents: "public class Class2 { Class1 c; }", cancellationToken: HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.OpenFileAsync(csProj2, "Program.cs", HangMitigatingCancellationToken);
 
             await TestServices.Editor.PlaceCaretAsync("Class1", charsOffset: 0, HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentTokenTypeAsync("class name", HangMitigatingCancellationToken);
 
             await TestServices.SolutionExplorer.RemoveProjectReferenceAsync(csProj2, projectReferenceName: project, HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentTokenTypeAsync("identifier", HangMitigatingCancellationToken);
         }
 
@@ -109,7 +111,7 @@ End Class", HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.AddProjectAsync(ProjectName, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic, HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
             await TestServices.Workspace.SetFullSolutionAnalysisAsync(true, HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
 
             await TestServices.Editor.SetTextAsync(@"Module Program
     Sub Main()
@@ -143,7 +145,7 @@ End Module", HangMitigatingCancellationToken);
             Assert.Equal(ProjectName, (await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken))!.Project.Name);
 
             await TestServices.SolutionExplorer.RenameFileAsync(ProjectName, "BeforeRename.cs", "AfterRename.cs", HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace }, HangMitigatingCancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
 
             // ...and after.
             Assert.Equal(ProjectName, (await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken))!.Project.Name);

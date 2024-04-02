@@ -384,6 +384,11 @@ Friend Class MockNamedTypeSymbol
             Return False
         End Get
     End Property
+
+    Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+        guidString = Nothing
+        Return False
+    End Function
 End Class
 
 Friend Class MockMethodSymbol
@@ -795,7 +800,7 @@ Friend Class MockAssemblySymbol
         End Get
     End Property
 
-    Friend Overrides Function GetDeclaredSpecialType(type As SpecialType) As NamedTypeSymbol
+    Friend Overrides Function GetDeclaredSpecialType(type As ExtendedSpecialType) As NamedTypeSymbol
         Throw New NotImplementedException()
     End Function
 
@@ -808,6 +813,18 @@ Friend Class MockAssemblySymbol
     Public Overrides ReadOnly Property NamespaceNames As ICollection(Of String)
         Get
             Return SpecializedCollections.EmptyCollection(Of String)()
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
+        Get
+            Return False
         End Get
     End Property
 
@@ -874,5 +891,10 @@ Friend Class MockAssemblySymbol
             Return Nothing
         End Get
     End Property
+
+    Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+        guidString = Nothing
+        Return False
+    End Function
 
 End Class

@@ -99,8 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.Equal(0, previewWorkspace.CurrentSolution.Projects.First().DocumentIds.Count);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923121")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923121")]
         public void TestPreviewOpenCloseFile()
         {
             using var previewWorkspace = new PreviewWorkspace();
@@ -124,103 +123,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         public async Task TestPreviewServices()
         {
             using var previewWorkspace = new PreviewWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
-            var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
-            var registrationService = Assert.IsType<SolutionCrawlerRegistrationService>(service);
-            Assert.False(registrationService.Register(previewWorkspace));
-
             var persistentService = previewWorkspace.Services.SolutionServices.GetPersistentStorageService();
 
             await using var storage = await persistentService.GetStorageAsync(SolutionKey.ToSolutionKey(previewWorkspace.CurrentSolution), CancellationToken.None);
             Assert.IsType<NoOpPersistentStorage>(storage);
         }
 
-        [WpfFact]
-        public async Task TestPreviewDiagnosticTagger()
-        {
-            using var workspace = TestWorkspace.CreateCSharp("class { }", composition: EditorTestCompositions.EditorFeatures);
-            using var previewWorkspace = new PreviewWorkspace(workspace.CurrentSolution);
-
-            // preview workspace and owner of the solution now share solution and its underlying text buffer
-            var hostDocument = workspace.Projects.First().Documents.First();
-
-            previewWorkspace.TryApplyChanges(previewWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
-
-            // enable preview diagnostics
-            previewWorkspace.EnableSolutionCrawler();
-
-            var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
-            const string AnalyzerCount = "Analyzer Count: ";
-            Assert.Equal(AnalyzerCount + 1, AnalyzerCount + diagnosticsAndErrorsSpans.Item1.Length);
-
-            const string SquigglesCount = "Squiggles Count: ";
-            Assert.Equal(SquigglesCount + 1, SquigglesCount + diagnosticsAndErrorsSpans.Item2.Length);
-        }
-
-        [WpfFact]
-        public async Task TestPreviewDiagnosticTaggerInPreviewPane()
-        {
-            // TODO: WPF required due to https://github.com/dotnet/roslyn/issues/46153
-            using var workspace = TestWorkspace.CreateCSharp("class { }", composition: EditorTestCompositions.EditorFeaturesWpf);
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
-
-            var hostDocument = workspace.Projects.First().Documents.First();
-
-            // make a change to remove squiggle
-            var oldDocument = workspace.CurrentSolution.GetRequiredDocument(hostDocument.Id);
-            var oldText = oldDocument.GetTextAsync().Result;
-
-            var newDocument = oldDocument.WithText(oldText.WithChanges(new TextChange(new TextSpan(0, oldText.Length), "class C { }")));
-
-            // create a diff view
-            WpfTestRunner.RequireWpfFact($"{nameof(TestPreviewDiagnosticTaggerInPreviewPane)} creates a {nameof(DifferenceViewerPreview)}");
-
-            var previewFactoryService = (PreviewFactoryService)workspace.ExportProvider.GetExportedValue<IPreviewFactoryService>();
-            using var diffView = await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None);
-            AssertEx.NotNull(diffView);
-
-            var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-
-            var provider = workspace.ExportProvider.GetExportedValues<ITaggerProvider>().OfType<DiagnosticsSquiggleTaggerProvider>().Single();
-
-            // set up tagger for both buffers
-            var leftBuffer = diffView.Viewer.LeftView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-            var rightBuffer = diffView.Viewer.RightView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-
-            var leftDocument = leftBuffer.GetRelatedDocuments().Single();
-            var rightDocument = rightBuffer.GetRelatedDocuments().Single();
-
-            // Diagnostic analyzer service, which provides pull capabilities (and not to be confused with
-            // IDiagnosticService, which is push), doesn't normally register for test workspace.  So do it explicitly.
-            var diagnosticAnalyzer = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
-            var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticAnalyzer;
-            incrementalAnalyzer.CreateIncrementalAnalyzer(leftDocument.Project.Solution.Workspace);
-            incrementalAnalyzer.CreateIncrementalAnalyzer(rightDocument.Project.Solution.Workspace);
-
-            var leftTagger = provider.CreateTagger<IErrorTag>(leftBuffer);
-            var rightTagger = provider.CreateTagger<IErrorTag>(rightBuffer);
-            Contract.ThrowIfNull(leftTagger);
-            Contract.ThrowIfNull(rightTagger);
-
-            using var leftDisposable = leftTagger as IDisposable;
-            using var rightDisposable = rightTagger as IDisposable;
-
-            // wait for diagnostics and taggers
-            await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(workspace, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles);
-
-            // check left buffer
-            var leftSnapshot = leftBuffer.CurrentSnapshot;
-            var leftSpans = leftTagger.GetTags(leftSnapshot.GetSnapshotSpanCollection()).ToList();
-            Assert.Equal(1, leftSpans.Count);
-
-            // check right buffer
-            var rightSnapshot = rightBuffer.CurrentSnapshot;
-            var rightSpans = rightTagger.GetTags(rightSnapshot.GetSnapshotSpanCollection()).ToList();
-            Assert.Equal(0, rightSpans.Count);
-        }
-
-        [WorkItem("https://github.com/dotnet/roslyn/issues/28639")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28639")]
         public void TestPreviewWorkspaceDoesNotLeakSolution()
         {
             // Verify that analyzer execution doesn't leak solution instances from the preview workspace.
@@ -243,8 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             solutionObjectReference.AssertReleased();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/pull/67142")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/67142")]
         public void TestPreviewWorkspaceDoesNotLeakItself()
         {
             var composition = EditorTestCompositions.EditorFeatures;

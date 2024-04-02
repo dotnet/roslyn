@@ -10,277 +10,277 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExtractMethod
+namespace Microsoft.CodeAnalysis.ExtractMethod;
+
+internal abstract partial class AbstractSyntaxTriviaService
 {
-    internal abstract partial class AbstractSyntaxTriviaService
+    private class Result : ITriviaSavedResult
     {
-        private class Result : ITriviaSavedResult
+        private static readonly AnnotationResolver s_defaultAnnotationResolver = ResolveAnnotation;
+        private static readonly TriviaResolver s_defaultTriviaResolver = ResolveTrivia;
+
+        private readonly SyntaxNode _root;
+        private readonly int _endOfLineKind;
+
+        private readonly Dictionary<TriviaLocation, SyntaxAnnotation> _annotations;
+        private readonly Dictionary<TriviaLocation, IEnumerable<SyntaxTrivia>> _triviaList;
+
+        public Result(
+            SyntaxNode root,
+            int endOfLineKind,
+            Dictionary<TriviaLocation, SyntaxAnnotation> annotations,
+            Dictionary<TriviaLocation, IEnumerable<SyntaxTrivia>> triviaList)
         {
-            private static readonly AnnotationResolver s_defaultAnnotationResolver = ResolveAnnotation;
-            private static readonly TriviaResolver s_defaultTriviaResolver = ResolveTrivia;
+            Contract.ThrowIfNull(root);
+            Contract.ThrowIfNull(annotations);
+            Contract.ThrowIfNull(triviaList);
 
-            private readonly SyntaxNode _root;
-            private readonly int _endOfLineKind;
+            _root = root;
+            _endOfLineKind = endOfLineKind;
 
-            private readonly Dictionary<TriviaLocation, SyntaxAnnotation> _annotations;
-            private readonly Dictionary<TriviaLocation, IEnumerable<SyntaxTrivia>> _triviaList;
+            _annotations = annotations;
+            _triviaList = triviaList;
+        }
 
-            public Result(
-                SyntaxNode root,
-                int endOfLineKind,
-                Dictionary<TriviaLocation, SyntaxAnnotation> annotations,
-                Dictionary<TriviaLocation, IEnumerable<SyntaxTrivia>> triviaList)
+        public SyntaxNode Root => _root;
+
+        public SyntaxNode RestoreTrivia(
+            SyntaxNode root,
+            AnnotationResolver annotationResolver = null,
+            TriviaResolver triviaResolver = null)
+        {
+            var tokens = RecoverTokensAtEdges(root, annotationResolver);
+            var map = CreateOldToNewTokensMap(tokens, triviaResolver);
+
+            return root.ReplaceTokens(map.Keys, (o, n) => map[o]);
+        }
+
+        private static Dictionary<SyntaxToken, SyntaxToken> CreateOldToNewTokensMap(
+            Dictionary<TriviaLocation, PreviousNextTokenPair> tokenPairs,
+            Dictionary<TriviaLocation, LeadingTrailingTriviaPair> triviaPairs)
+        {
+            var map = new Dictionary<SyntaxToken, SyntaxToken>();
+            foreach (var pair in CreateUniqueTokenTriviaPairs(tokenPairs, triviaPairs))
             {
-                Contract.ThrowIfNull(root);
-                Contract.ThrowIfNull(annotations);
-                Contract.ThrowIfNull(triviaList);
+                var localCopy = pair;
+                var previousToken = map.GetOrAdd(localCopy.Item1.PreviousToken, _ => localCopy.Item1.PreviousToken);
+                map[localCopy.Item1.PreviousToken] = previousToken.WithTrailingTrivia(localCopy.Item2.TrailingTrivia);
 
-                _root = root;
-                _endOfLineKind = endOfLineKind;
-
-                _annotations = annotations;
-                _triviaList = triviaList;
+                var nextToken = map.GetOrAdd(localCopy.Item1.NextToken, _ => localCopy.Item1.NextToken);
+                map[localCopy.Item1.NextToken] = nextToken.WithLeadingTrivia(localCopy.Item2.LeadingTrivia);
             }
 
-            public SyntaxNode Root => _root;
+            return map;
+        }
 
-            public SyntaxNode RestoreTrivia(
-                SyntaxNode root,
-                AnnotationResolver annotationResolver = null,
-                TriviaResolver triviaResolver = null)
+        private LeadingTrailingTriviaPair GetTrailingAndLeadingTrivia(IEnumerable<SyntaxTrivia> trivia)
+        {
+            var list = trivia.ToList();
+
+            // there are some noisy trivia
+            var index = GetFirstEndOfLineIndex(list);
+
+            return new LeadingTrailingTriviaPair
             {
-                var tokens = RecoverTokensAtEdges(root, annotationResolver);
-                var map = CreateOldToNewTokensMap(tokens, triviaResolver);
+                TrailingTrivia = CreateTriviaListFromTo(list, 0, index),
+                LeadingTrivia = CreateTriviaListFromTo(list, index + 1, list.Count - 1)
+            };
+        }
 
-                return root.ReplaceTokens(map.Keys, (o, n) => map[o]);
-            }
-
-            private static Dictionary<SyntaxToken, SyntaxToken> CreateOldToNewTokensMap(
-                Dictionary<TriviaLocation, PreviousNextTokenPair> tokenPairs,
-                Dictionary<TriviaLocation, LeadingTrailingTriviaPair> triviaPairs)
+        private int GetFirstEndOfLineIndex(List<SyntaxTrivia> list)
+        {
+            for (var i = 0; i < list.Count; i++)
             {
-                var map = new Dictionary<SyntaxToken, SyntaxToken>();
-                foreach (var pair in CreateUniqueTokenTriviaPairs(tokenPairs, triviaPairs))
+                if (list[i].RawKind == _endOfLineKind)
                 {
-                    var localCopy = pair;
-                    var previousToken = map.GetOrAdd(localCopy.Item1.PreviousToken, _ => localCopy.Item1.PreviousToken);
-                    map[localCopy.Item1.PreviousToken] = previousToken.WithTrailingTrivia(localCopy.Item2.TrailingTrivia);
-
-                    var nextToken = map.GetOrAdd(localCopy.Item1.NextToken, _ => localCopy.Item1.NextToken);
-                    map[localCopy.Item1.NextToken] = nextToken.WithLeadingTrivia(localCopy.Item2.LeadingTrivia);
+                    return i;
                 }
-
-                return map;
             }
 
-            private LeadingTrailingTriviaPair GetTrailingAndLeadingTrivia(IEnumerable<SyntaxTrivia> trivia)
-            {
-                var list = trivia.ToList();
+            return list.Count - 1;
+        }
 
-                // there are some noisy trivia
-                var index = GetFirstEndOfLineIndex(list);
+        private Dictionary<TriviaLocation, SyntaxToken> RecoverTokensAtEdges(
+            SyntaxNode root,
+            AnnotationResolver annotationResolver)
+        {
+            var resolver = annotationResolver ?? s_defaultAnnotationResolver;
 
-                return new LeadingTrailingTriviaPair
-                {
-                    TrailingTrivia = CreateTriviaListFromTo(list, 0, index),
-                    LeadingTrivia = CreateTriviaListFromTo(list, index + 1, list.Count - 1)
-                };
-            }
+            var tokens = Enumerable.Range((int)TriviaLocation.BeforeBeginningOfSpan, TriviaLocationsCount)
+                                   .Cast<TriviaLocation>()
+                                   .ToDictionary(
+                                        location => location,
+                                        location => resolver(root, location, _annotations[location]));
 
-            private int GetFirstEndOfLineIndex(List<SyntaxTrivia> list)
-            {
-                for (var i = 0; i < list.Count; i++)
-                {
-                    if (list[i].RawKind == _endOfLineKind)
-                    {
-                        return i;
-                    }
-                }
+            Contract.ThrowIfFalse(
+                tokens[TriviaLocation.AfterBeginningOfSpan].RawKind == 0 /* don't care */ ||
+                tokens[TriviaLocation.BeforeEndOfSpan].RawKind == 0 /* don't care */  ||
+                tokens[TriviaLocation.AfterBeginningOfSpan] == tokens[TriviaLocation.BeforeEndOfSpan] ||
+                tokens[TriviaLocation.AfterBeginningOfSpan].GetPreviousToken(includeZeroWidth: true) == tokens[TriviaLocation.BeforeEndOfSpan] ||
+                tokens[TriviaLocation.AfterBeginningOfSpan].Span.End <= tokens[TriviaLocation.BeforeEndOfSpan].SpanStart);
 
-                return list.Count - 1;
-            }
+            return tokens;
+        }
 
-            private Dictionary<TriviaLocation, SyntaxToken> RecoverTokensAtEdges(
-                SyntaxNode root,
-                AnnotationResolver annotationResolver)
-            {
-                var resolver = annotationResolver ?? s_defaultAnnotationResolver;
+        private Dictionary<SyntaxToken, SyntaxToken> CreateOldToNewTokensMap(
+            Dictionary<TriviaLocation, SyntaxToken> tokens,
+            TriviaResolver triviaResolver)
+        {
+            var tokenPairs = CreatePreviousNextTokenPairs(tokens);
+            var tokenToLeadingTrailingTriviaMap = CreateTokenLeadingTrailingTriviaMap(tokens);
 
-                var tokens = Enumerable.Range((int)TriviaLocation.BeforeBeginningOfSpan, TriviaLocationsCount)
-                                       .Cast<TriviaLocation>()
-                                       .ToDictionary(
+            var resolver = triviaResolver ?? s_defaultTriviaResolver;
+
+            var triviaPairs = Enumerable.Range((int)TriviaLocation.BeforeBeginningOfSpan, TriviaLocationsCount)
+                                        .Cast<TriviaLocation>()
+                                        .ToDictionary(
                                             location => location,
-                                            location => resolver(root, location, _annotations[location]));
+                                            location => CreateTriviaPairs(
+                                                            tokenPairs[location],
+                                                            resolver(location, tokenPairs[location], tokenToLeadingTrailingTriviaMap)));
 
-                Contract.ThrowIfFalse(
-                    tokens[TriviaLocation.AfterBeginningOfSpan].RawKind == 0 /* don't care */ ||
-                    tokens[TriviaLocation.BeforeEndOfSpan].RawKind == 0 /* don't care */  ||
-                    tokens[TriviaLocation.AfterBeginningOfSpan] == tokens[TriviaLocation.BeforeEndOfSpan] ||
-                    tokens[TriviaLocation.AfterBeginningOfSpan].GetPreviousToken(includeZeroWidth: true) == tokens[TriviaLocation.BeforeEndOfSpan] ||
-                    tokens[TriviaLocation.AfterBeginningOfSpan].Span.End <= tokens[TriviaLocation.BeforeEndOfSpan].SpanStart);
+            return CreateOldToNewTokensMap(tokenPairs, triviaPairs);
+        }
 
-                return tokens;
+        private LeadingTrailingTriviaPair CreateTriviaPairs(
+            PreviousNextTokenPair tokenPair,
+            IEnumerable<SyntaxTrivia> trivia)
+        {
+            // beginning of the tree
+            if (tokenPair.PreviousToken.RawKind == 0)
+            {
+                return new LeadingTrailingTriviaPair { TrailingTrivia = SpecializedCollections.EmptyEnumerable<SyntaxTrivia>(), LeadingTrivia = trivia };
             }
 
-            private Dictionary<SyntaxToken, SyntaxToken> CreateOldToNewTokensMap(
-                Dictionary<TriviaLocation, SyntaxToken> tokens,
-                TriviaResolver triviaResolver)
+            return GetTrailingAndLeadingTrivia(trivia);
+        }
+
+        private static IEnumerable<(PreviousNextTokenPair, LeadingTrailingTriviaPair)> CreateUniqueTokenTriviaPairs(
+            Dictionary<TriviaLocation, PreviousNextTokenPair> tokenPairs,
+            Dictionary<TriviaLocation, LeadingTrailingTriviaPair> triviaPairs)
+        {
+            // if there are dup, duplicated one will be ignored.
+            var set = new HashSet<PreviousNextTokenPair>();
+            for (var i = (int)TriviaLocation.BeforeBeginningOfSpan; i <= (int)TriviaLocation.AfterEndOfSpan; i++)
             {
-                var tokenPairs = CreatePreviousNextTokenPairs(tokens);
-                var tokenToLeadingTrailingTriviaMap = CreateTokenLeadingTrailingTriviaMap(tokens);
-
-                var resolver = triviaResolver ?? s_defaultTriviaResolver;
-
-                var triviaPairs = Enumerable.Range((int)TriviaLocation.BeforeBeginningOfSpan, TriviaLocationsCount)
-                                            .Cast<TriviaLocation>()
-                                            .ToDictionary(
-                                                location => location,
-                                                location => CreateTriviaPairs(
-                                                                tokenPairs[location],
-                                                                resolver(location, tokenPairs[location], tokenToLeadingTrailingTriviaMap)));
-
-                return CreateOldToNewTokensMap(tokenPairs, triviaPairs);
-            }
-
-            private LeadingTrailingTriviaPair CreateTriviaPairs(
-                PreviousNextTokenPair tokenPair,
-                IEnumerable<SyntaxTrivia> trivia)
-            {
-                // beginning of the tree
-                if (tokenPair.PreviousToken.RawKind == 0)
+                var location = (TriviaLocation)i;
+                var key = tokenPairs[location];
+                if (set.Contains(key))
                 {
-                    return new LeadingTrailingTriviaPair { TrailingTrivia = SpecializedCollections.EmptyEnumerable<SyntaxTrivia>(), LeadingTrivia = trivia };
+                    continue;
                 }
 
-                return GetTrailingAndLeadingTrivia(trivia);
+                yield return (key, triviaPairs[location]);
+                set.Add(key);
             }
+        }
 
-            private static IEnumerable<Tuple<PreviousNextTokenPair, LeadingTrailingTriviaPair>> CreateUniqueTokenTriviaPairs(
-                Dictionary<TriviaLocation, PreviousNextTokenPair> tokenPairs,
-                Dictionary<TriviaLocation, LeadingTrailingTriviaPair> triviaPairs)
+        private Dictionary<SyntaxToken, LeadingTrailingTriviaPair> CreateTokenLeadingTrailingTriviaMap(
+            Dictionary<TriviaLocation, SyntaxToken> tokens)
+        {
+            var tuple = default(LeadingTrailingTriviaPair);
+            var map = new Dictionary<SyntaxToken, LeadingTrailingTriviaPair>();
+
+            tuple = map.GetOrAdd(tokens[TriviaLocation.BeforeBeginningOfSpan], _ => default);
+            map[tokens[TriviaLocation.BeforeBeginningOfSpan]] = new LeadingTrailingTriviaPair
             {
-                // if there are dup, duplicated one will be ignored.
-                var set = new HashSet<PreviousNextTokenPair>();
-                for (var i = (int)TriviaLocation.BeforeBeginningOfSpan; i <= (int)TriviaLocation.AfterEndOfSpan; i++)
-                {
-                    var location = (TriviaLocation)i;
-                    var key = tokenPairs[location];
-                    if (set.Contains(key))
-                    {
-                        continue;
-                    }
+                LeadingTrivia = tuple.LeadingTrivia,
+                TrailingTrivia = _triviaList[TriviaLocation.BeforeBeginningOfSpan]
+            };
 
-                    yield return Tuple.Create(key, triviaPairs[location]);
-                    set.Add(key);
-                }
-            }
-
-            private Dictionary<SyntaxToken, LeadingTrailingTriviaPair> CreateTokenLeadingTrailingTriviaMap(
-                Dictionary<TriviaLocation, SyntaxToken> tokens)
+            tuple = map.GetOrAdd(tokens[TriviaLocation.AfterBeginningOfSpan], _ => default);
+            map[tokens[TriviaLocation.AfterBeginningOfSpan]] = new LeadingTrailingTriviaPair
             {
-                var tuple = default(LeadingTrailingTriviaPair);
-                var map = new Dictionary<SyntaxToken, LeadingTrailingTriviaPair>();
+                LeadingTrivia = _triviaList[TriviaLocation.AfterBeginningOfSpan],
+                TrailingTrivia = tuple.TrailingTrivia
+            };
 
-                tuple = map.GetOrAdd(tokens[TriviaLocation.BeforeBeginningOfSpan], _ => default);
-                map[tokens[TriviaLocation.BeforeBeginningOfSpan]] = new LeadingTrailingTriviaPair
-                {
-                    LeadingTrivia = tuple.LeadingTrivia,
-                    TrailingTrivia = _triviaList[TriviaLocation.BeforeBeginningOfSpan]
-                };
-
-                tuple = map.GetOrAdd(tokens[TriviaLocation.AfterBeginningOfSpan], _ => default);
-                map[tokens[TriviaLocation.AfterBeginningOfSpan]] = new LeadingTrailingTriviaPair
-                {
-                    LeadingTrivia = _triviaList[TriviaLocation.AfterBeginningOfSpan],
-                    TrailingTrivia = tuple.TrailingTrivia
-                };
-
-                tuple = map.GetOrAdd(tokens[TriviaLocation.BeforeEndOfSpan], _ => default);
-                map[tokens[TriviaLocation.BeforeEndOfSpan]] = new LeadingTrailingTriviaPair
-                {
-                    LeadingTrivia = tuple.LeadingTrivia,
-                    TrailingTrivia = _triviaList[TriviaLocation.BeforeEndOfSpan]
-                };
-
-                tuple = map.GetOrAdd(tokens[TriviaLocation.AfterEndOfSpan], _ => default);
-                map[tokens[TriviaLocation.AfterEndOfSpan]] = new LeadingTrailingTriviaPair
-                {
-                    LeadingTrivia = _triviaList[TriviaLocation.AfterEndOfSpan],
-                    TrailingTrivia = tuple.TrailingTrivia
-                };
-
-                return map;
-            }
-
-            private static Dictionary<TriviaLocation, PreviousNextTokenPair> CreatePreviousNextTokenPairs(
-                Dictionary<TriviaLocation, SyntaxToken> tokens)
+            tuple = map.GetOrAdd(tokens[TriviaLocation.BeforeEndOfSpan], _ => default);
+            map[tokens[TriviaLocation.BeforeEndOfSpan]] = new LeadingTrailingTriviaPair
             {
-                var tokenPairs = new Dictionary<TriviaLocation, PreviousNextTokenPair>();
+                LeadingTrivia = tuple.LeadingTrivia,
+                TrailingTrivia = _triviaList[TriviaLocation.BeforeEndOfSpan]
+            };
 
-                tokenPairs[TriviaLocation.BeforeBeginningOfSpan] = new PreviousNextTokenPair
+            tuple = map.GetOrAdd(tokens[TriviaLocation.AfterEndOfSpan], _ => default);
+            map[tokens[TriviaLocation.AfterEndOfSpan]] = new LeadingTrailingTriviaPair
+            {
+                LeadingTrivia = _triviaList[TriviaLocation.AfterEndOfSpan],
+                TrailingTrivia = tuple.TrailingTrivia
+            };
+
+            return map;
+        }
+
+        private static Dictionary<TriviaLocation, PreviousNextTokenPair> CreatePreviousNextTokenPairs(
+            Dictionary<TriviaLocation, SyntaxToken> tokens)
+        {
+            var tokenPairs = new Dictionary<TriviaLocation, PreviousNextTokenPair>
+            {
+                [TriviaLocation.BeforeBeginningOfSpan] = new PreviousNextTokenPair
                 {
                     PreviousToken = tokens[TriviaLocation.BeforeBeginningOfSpan],
                     NextToken = tokens[TriviaLocation.BeforeBeginningOfSpan].GetNextToken(includeZeroWidth: true)
-                };
+                },
 
-                tokenPairs[TriviaLocation.AfterBeginningOfSpan] = new PreviousNextTokenPair
+                [TriviaLocation.AfterBeginningOfSpan] = new PreviousNextTokenPair
                 {
                     PreviousToken = tokens[TriviaLocation.AfterBeginningOfSpan].GetPreviousToken(includeZeroWidth: true),
                     NextToken = tokens[TriviaLocation.AfterBeginningOfSpan]
-                };
+                },
 
-                tokenPairs[TriviaLocation.BeforeEndOfSpan] = new PreviousNextTokenPair
+                [TriviaLocation.BeforeEndOfSpan] = new PreviousNextTokenPair
                 {
                     PreviousToken = tokens[TriviaLocation.BeforeEndOfSpan],
                     NextToken = tokens[TriviaLocation.BeforeEndOfSpan].GetNextToken(includeZeroWidth: true)
-                };
+                },
 
-                tokenPairs[TriviaLocation.AfterEndOfSpan] = new PreviousNextTokenPair
+                [TriviaLocation.AfterEndOfSpan] = new PreviousNextTokenPair
                 {
                     PreviousToken = tokens[TriviaLocation.AfterEndOfSpan].GetPreviousToken(includeZeroWidth: true),
                     NextToken = tokens[TriviaLocation.AfterEndOfSpan]
-                };
-
-                return tokenPairs;
-            }
-
-            private static IEnumerable<SyntaxTrivia> CreateTriviaListFromTo(
-                List<SyntaxTrivia> list,
-                int startIndex,
-                int endIndex)
-            {
-                if (startIndex > endIndex)
-                {
-                    yield break;
                 }
+            };
 
-                for (var i = startIndex; i <= endIndex; i++)
-                {
-                    yield return list[i];
-                }
-            }
+            return tokenPairs;
+        }
 
-            private static SyntaxToken ResolveAnnotation(
-                SyntaxNode root,
-                TriviaLocation location,
-                SyntaxAnnotation annotation)
+        private static IEnumerable<SyntaxTrivia> CreateTriviaListFromTo(
+            List<SyntaxTrivia> list,
+            int startIndex,
+            int endIndex)
+        {
+            if (startIndex > endIndex)
             {
-                return root.GetAnnotatedNodesAndTokens(annotation).FirstOrDefault().AsToken();
+                yield break;
             }
 
-            private static IEnumerable<SyntaxTrivia> ResolveTrivia(
-                TriviaLocation location,
-                PreviousNextTokenPair tokenPair,
-                Dictionary<SyntaxToken, LeadingTrailingTriviaPair> triviaMap)
+            for (var i = startIndex; i <= endIndex; i++)
             {
-                triviaMap.TryGetValue(tokenPair.PreviousToken, out var previousTriviaPair);
-                var trailingTrivia = previousTriviaPair.TrailingTrivia ?? SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
-
-                triviaMap.TryGetValue(tokenPair.NextToken, out var nextTriviaPair);
-                var leadingTrivia = nextTriviaPair.LeadingTrivia ?? SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
-
-                return tokenPair.PreviousToken.TrailingTrivia.Concat(trailingTrivia).Concat(leadingTrivia).Concat(tokenPair.NextToken.LeadingTrivia);
+                yield return list[i];
             }
+        }
+
+        private static SyntaxToken ResolveAnnotation(
+            SyntaxNode root,
+            TriviaLocation location,
+            SyntaxAnnotation annotation)
+        {
+            return root.GetAnnotatedNodesAndTokens(annotation).FirstOrDefault().AsToken();
+        }
+
+        private static IEnumerable<SyntaxTrivia> ResolveTrivia(
+            TriviaLocation location,
+            PreviousNextTokenPair tokenPair,
+            Dictionary<SyntaxToken, LeadingTrailingTriviaPair> triviaMap)
+        {
+            triviaMap.TryGetValue(tokenPair.PreviousToken, out var previousTriviaPair);
+            var trailingTrivia = previousTriviaPair.TrailingTrivia ?? SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
+
+            triviaMap.TryGetValue(tokenPair.NextToken, out var nextTriviaPair);
+            var leadingTrivia = nextTriviaPair.LeadingTrivia ?? SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
+
+            return tokenPair.PreviousToken.TrailingTrivia.Concat(trailingTrivia).Concat(leadingTrivia).Concat(tokenPair.NextToken.LeadingTrivia);
         }
     }
 }

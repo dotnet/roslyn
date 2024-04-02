@@ -5,14 +5,15 @@
 using System;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Extensions
+namespace Microsoft.CodeAnalysis.Extensions;
+
+internal interface IExtensionManager : IWorkspaceService
 {
-    internal interface IExtensionManager : IWorkspaceService
-    {
-        bool IsDisabled(object provider);
+    bool IsDisabled(object provider);
 
-        bool CanHandleException(object provider, Exception exception);
-
-        void HandleException(object provider, Exception exception);
-    }
+    /// <summary>
+    /// Returns <see langword="true"/> to make it easy to use in an exception filter.  Note: will be called with any
+    /// exception, so this should not do anything in the case of <see cref="OperationCanceledException"/>.
+    /// </summary>
+    bool HandleException(object provider, Exception exception);
 }

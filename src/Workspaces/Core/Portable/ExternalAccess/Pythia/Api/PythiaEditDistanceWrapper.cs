@@ -5,16 +5,15 @@
 using System;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api;
+
+internal readonly struct PythiaEditDistanceWrapper(string str) : IDisposable
 {
-    internal readonly struct PythiaEditDistanceWrapper(string str) : IDisposable
-    {
-        private readonly EditDistance _underlyingObject = new EditDistance(str);
+    private readonly EditDistance _underlyingObject = new EditDistance(str);
 
-        public double GetEditDistance(string target)
-            => _underlyingObject.GetEditDistance(target);
+    public double GetEditDistance(string target)
+        => _underlyingObject.GetEditDistance(target);
 
-        public void Dispose()
-            => _underlyingObject.Dispose();
-    }
+    public void Dispose()
+        => _underlyingObject.Dispose();
 }

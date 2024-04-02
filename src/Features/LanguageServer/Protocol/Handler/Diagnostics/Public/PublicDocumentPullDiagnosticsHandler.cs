@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
@@ -49,30 +49,31 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : AbstractDoc
 
     protected override string? GetDiagnosticSourceIdentifier(DocumentDiagnosticParams diagnosticsParams) => diagnosticsParams.Identifier;
 
-    protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
-    {
-        return ConvertTags(diagnosticData, potentialDuplicate: false);
-    }
+    protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource)
+        => ConvertTags(diagnosticData, isLiveSource, potentialDuplicate: false);
 
-    protected override DocumentDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
-        => new DocumentDiagnosticPartialReport(new RelatedFullDocumentDiagnosticReport
+    protected override DocumentDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, Roslyn.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
+        => new(new RelatedFullDocumentDiagnosticReport
         {
             ResultId = resultId,
             Items = diagnostics,
         });
 
     protected override DocumentDiagnosticPartialReport CreateRemovedReport(TextDocumentIdentifier identifier)
-        => new DocumentDiagnosticPartialReport(new RelatedFullDocumentDiagnosticReport
+        => new(new RelatedFullDocumentDiagnosticReport
         {
             ResultId = null,
-            Items = Array.Empty<VisualStudio.LanguageServer.Protocol.Diagnostic>(),
+            Items = [],
         });
 
-    protected override DocumentDiagnosticPartialReport CreateUnchangedReport(TextDocumentIdentifier identifier, string resultId)
-        => new DocumentDiagnosticPartialReport(new RelatedUnchangedDocumentDiagnosticReport
+    protected override bool TryCreateUnchangedReport(TextDocumentIdentifier identifier, string resultId, out DocumentDiagnosticPartialReport report)
+    {
+        report = new RelatedUnchangedDocumentDiagnosticReport
         {
             ResultId = resultId
-        });
+        };
+        return true;
+    }
 
     protected override DocumentDiagnosticReport? CreateReturn(BufferedProgress<DocumentDiagnosticPartialReport> progress)
     {

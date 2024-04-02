@@ -5,13 +5,21 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Preview
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
     Public Class PreviewTests
         Inherits AbstractVisualBasicCodeActionTest
+
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf _
+            .AddParts(
+                GetType(MockPreviewPaneService))
 
         Private Const s_addedDocumentName As String = "AddedDocument"
         Private Const s_addedDocumentText As String = "Class C1 : End Class"
@@ -20,7 +28,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
         Private Shared ReadOnly s_addedProjectId As ProjectId = ProjectId.CreateNewId()
         Private Const s_changedDocumentText As String = "Class C : End Class"
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function GetComposition() As TestComposition
+            Return s_composition
+        End Function
+
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New MyCodeRefactoringProvider()
         End Function
 
@@ -31,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 Return Task.CompletedTask
             End Function
 
-            Private Class TestCodeAction : Inherits CodeAction
+            Private NotInheritable Class TestCodeAction : Inherits CodeAction
                 Private ReadOnly _oldDocument As Document
 
                 Public Sub New(oldDocument As Document)
@@ -44,7 +56,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                     End Get
                 End Property
 
-                Protected Overrides Function GetChangedSolutionAsync(cancellationToken As CancellationToken) As Task(Of Solution)
+                Protected Overrides Function GetChangedSolutionAsync(
+                        progress As IProgress(Of CodeAnalysisProgress),
+                        cancellationToken As CancellationToken) As Task(Of Solution)
                     Dim solution = _oldDocument.Project.Solution
 
                     ' Add a document - This will result in IWpfTextView previews.
@@ -68,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 
         Private Async Function GetMainDocumentAndPreviewsAsync(
                 parameters As TestParameters,
-                workspace As TestWorkspace) As Task(Of (document As Document, previews As SolutionPreviewResult))
+                workspace As EditorTestWorkspace) As Task(Of (document As Document, previews As SolutionPreviewResult))
             Dim document = GetDocument(workspace)
             Dim provider = CreateCodeRefactoringProvider(workspace, parameters)
             Dim span = document.GetSyntaxRootAsync().Result.Span
@@ -82,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             Return (document, previews)
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/14421")>
+        <WpfFact>
         Public Async Function TestPickTheRightPreview_NoPreference() As Task
             Dim parameters As New TestParameters()
             Using workspace = CreateWorkspaceFromOptions("Class D : End Class", parameters)

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol state,
             FieldSymbol current,
             FieldSymbol? instanceIdField,
-            Roslyn.Utilities.IReadOnlySet<Symbol> hoistedVariables,
+            IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
@@ -146,15 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 newBody = F.Fault((BoundBlock)newBody, faultBlock);
             }
 
-            newBody = F.SequencePoint(body.Syntax, HandleReturn(newBody));
-
-            if (instrumentation != null)
-            {
-                newBody = F.Block(
-                    ImmutableArray.Create(instrumentation.Local),
-                    instrumentation.Prologue,
-                    F.Try(F.Block(newBody), ImmutableArray<BoundCatchBlock>.Empty, F.Block(instrumentation.Epilogue)));
-            }
+            newBody = F.Instrument(F.SequencePoint(body.Syntax, HandleReturn(newBody)), instrumentation);
 
             F.CloseMethod(newBody);
 
@@ -464,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntax = statement.Syntax;
 
-            if (slotAllocatorOpt?.TryGetPreviousStateMachineState(syntax, awaitId: default, out var finalizeState) != true)
+            if (slotAllocator?.TryGetPreviousStateMachineState(syntax, awaitId: default, out var finalizeState) != true)
             {
                 finalizeState = _nextFinalizeState--;
             }

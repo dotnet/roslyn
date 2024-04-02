@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -70,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol state,
             FieldSymbol builder,
             FieldSymbol? instanceIdField,
-            Roslyn.Utilities.IReadOnlySet<Symbol> hoistedVariables,
+            IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
@@ -109,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!_awaiterFields.TryGetValue(awaiterType, out result))
             {
                 int slotIndex;
-                if (slotAllocatorOpt == null || !slotAllocatorOpt.TryGetPreviousAwaiterSlotIndex(F.ModuleBuilderOpt.Translate(awaiterType, F.Syntax, F.Diagnostics.DiagnosticBag), F.Diagnostics.DiagnosticBag, out slotIndex))
+                if (slotAllocator == null || !slotAllocator.TryGetPreviousAwaiterSlotIndex(F.ModuleBuilderOpt.Translate(awaiterType, F.Syntax, F.Diagnostics.DiagnosticBag), F.Diagnostics.DiagnosticBag, out slotIndex))
                 {
                     slotIndex = _nextAwaiterId++;
                 }
@@ -203,13 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 newBody = MakeStateMachineScope(rootScopeHoistedLocals, newBody);
             }
 
-            if (instrumentation != null)
-            {
-                newBody = F.Block(
-                    ImmutableArray.Create(instrumentation.Local),
-                    instrumentation.Prologue,
-                    F.Try(F.Block(newBody), ImmutableArray<BoundCatchBlock>.Empty, F.Block(instrumentation.Epilogue)));
-            }
+            newBody = F.Instrument(newBody, instrumentation);
 
             F.CloseMethod(newBody);
         }

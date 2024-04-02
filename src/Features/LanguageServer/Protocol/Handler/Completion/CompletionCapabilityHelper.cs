@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         public bool SupportSnippets { get; }
         public bool SupportsMarkdownDocumentation { get; }
         public ISet<CompletionItemKind> SupportedItemKinds { get; }
+        public ISet<CompletionItemTag> SupportedItemTags { get; }
 
         public CompletionCapabilityHelper(ClientCapabilities clientCapabilities)
         {
@@ -42,6 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             SupportCompletionListData = _completionSetting?.CompletionListSetting?.ItemDefaults?.Contains(DataPropertyName) == true;
             SupportDefaultCommitCharacters = _completionSetting?.CompletionListSetting?.ItemDefaults?.Contains(CommitCharactersPropertyName) == true;
             SupportedItemKinds = _completionSetting?.CompletionItemKind?.ValueSet?.ToSet() ?? SpecializedCollections.EmptySet<CompletionItemKind>();
+            SupportedItemTags = _completionSetting?.CompletionItem?.TagSupport?.ValueSet?.ToSet() ?? SpecializedCollections.EmptySet<CompletionItemTag>();
 
             // internal VS LSP
             if (clientCapabilities.HasVisualStudioLspCapability())

@@ -10,174 +10,50 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
+
+internal abstract class AbstractUnitTestingDocumentDifferenceService : IUnitTestingDocumentDifferenceService
 {
-    internal abstract class AbstractUnitTestingDocumentDifferenceService : IUnitTestingDocumentDifferenceService
+    public UnitTestingDocumentDifferenceResult? GetDifference(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
     {
-        public UnitTestingDocumentDifferenceResult? GetDifference(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        try
         {
-            try
+            var syntaxFactsService = newDocument.Project.Services.GetService<ISyntaxFactsService>();
+            if (syntaxFactsService == null)
             {
-                var syntaxFactsService = newDocument.Project.Services.GetService<ISyntaxFactsService>();
-                if (syntaxFactsService == null)
-                {
-                    // somehow, we can't get the service. without it, there is nothing we can do.
-                    return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.DocumentChanged);
-                }
-                // this is based on the implementation detail where opened documents use strong references
-                // to tree and text rather than recoverable versions.
-                if (!oldDocument.TryGetText(out var oldText) ||
-                    !newDocument.TryGetText(out var newText))
-                {
-                    // no cheap way to determine top level changes. assumes top level has changed
-                    return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.DocumentChanged);
-                }
-                // quick check whether two tree versions are same
-                if (oldDocument.TryGetSyntaxVersion(out var oldVersion) &&
-                    newDocument.TryGetSyntaxVersion(out var newVersion) &&
-                    oldVersion.Equals(newVersion))
-                {
-                    // nothing has changed. don't do anything.
-                    // this could happen if a document is opened/closed without any buffer change
-                    return null;
-                }
-
-                var range = newText.GetEncompassingTextChangeRange(oldText);
-                if (range == default)
-                {
-                    // nothing has changed. don't do anything
-                    return null;
-                }
-
-#if false // Not used in unit testing crawling
-                var incrementalParsingCandidate = range.NewLength != newText.Length;
-                // see whether we can get it without explicit parsing
-                if (!oldDocument.TryGetSyntaxRoot(out var oldRoot) ||
-                    !newDocument.TryGetSyntaxRoot(out var newRoot))
-                {
-                    if (!incrementalParsingCandidate)
-                    {
-                        // no cheap way to determine top level changes. assumes top level has changed
-                        return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.DocumentChanged);
-                    }
-
-                    // explicitly parse them
-                    oldRoot = await oldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-                    Contract.ThrowIfNull(oldRoot);
-                    Contract.ThrowIfNull(newRoot);
-                }
-
-                // at this point, we must have these version already calculated
-                if (!oldDocument.TryGetTopLevelChangeTextVersion(out var oldTopLevelChangeVersion) ||
-                    !newDocument.TryGetTopLevelChangeTextVersion(out var newTopLevelChangeVersion))
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
-
-                // quicker common case
-                if (incrementalParsingCandidate)
-                {
-                    if (oldTopLevelChangeVersion.Equals(newTopLevelChangeVersion))
-                    {
-                        return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.SyntaxChanged, GetChangedMember(syntaxFactsService, oldRoot, newRoot, range));
-                    }
-
-                    return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.DocumentChanged, GetBestGuessChangedMember(syntaxFactsService, oldRoot, newRoot, range));
-                }
-
-                if (oldTopLevelChangeVersion.Equals(newTopLevelChangeVersion))
-                {
-                    return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.SyntaxChanged);
-                }
-#endif
-
+                // somehow, we can't get the service. without it, there is nothing we can do.
                 return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.DocumentChanged);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            // this is based on the implementation detail where opened documents use strong references
+            // to tree and text rather than recoverable versions.
+            if (!oldDocument.TryGetText(out var oldText) ||
+                !newDocument.TryGetText(out var newText))
             {
-                throw ExceptionUtilities.Unreachable();
+                // no cheap way to determine top level changes. assumes top level has changed
+                return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.DocumentChanged);
             }
-        }
+            // quick check whether two tree versions are same
+            if (oldDocument.TryGetSyntaxVersion(out var oldVersion) &&
+                newDocument.TryGetSyntaxVersion(out var newVersion) &&
+                oldVersion.Equals(newVersion))
+            {
+                // nothing has changed. don't do anything.
+                // this could happen if a document is opened/closed without any buffer change
+                return null;
+            }
 
-#if false // Not used in unit testing crawling
-        private static SyntaxNode? GetChangedMember(
-            ISyntaxFactsService syntaxFactsService, SyntaxNode oldRoot, SyntaxNode newRoot, TextChangeRange range)
+            var range = newText.GetEncompassingTextChangeRange(oldText);
+            if (range == default)
+            {
+                // nothing has changed. don't do anything
+                return null;
+            }
+
+            return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.DocumentChanged);
+        }
+        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
         {
-            // if either old or new tree contains skipped text, re-analyze whole document
-            if (oldRoot.ContainsSkippedText || newRoot.ContainsSkippedText)
-            {
-                return null;
-            }
-
-            var oldMember = syntaxFactsService.GetContainingMemberDeclaration(oldRoot, range.Span.Start);
-            var newMember = syntaxFactsService.GetContainingMemberDeclaration(newRoot, range.Span.Start);
-
-            // reached the top (compilation unit)
-            if (oldMember == null || newMember == null)
-            {
-                return null;
-            }
-
-            // member doesn't contain the change
-            if (!syntaxFactsService.ContainsInMemberBody(oldMember, range.Span))
-            {
-                return null;
-            }
-
-            // member signature has changed
-            if (!oldMember.IsEquivalentTo(newMember, topLevel: true))
-            {
-                return null;
-            }
-
-            // looks like inside of the body has changed
-            return newMember;
+            throw ExceptionUtilities.Unreachable();
         }
-
-        private static SyntaxNode? GetBestGuessChangedMember(
-            ISyntaxFactsService syntaxFactsService, SyntaxNode oldRoot, SyntaxNode newRoot, TextChangeRange range)
-        {
-            // if either old or new tree contains skipped text, re-analyze whole document
-            if (oldRoot.ContainsSkippedText || newRoot.ContainsSkippedText)
-            {
-                return null;
-            }
-
-            // there was top level changes, so we can't use equivalent to see whether two members are same.
-            // so, we use some simple text based heuristic to find a member that has changed.
-            //
-            // if we have a differ that do diff on member level or a way to track member between incremental parsing, then
-            // that would be preferable. but currently we don't have such thing.
-
-            // get top level elements at the position where change has happened
-            var oldMember = syntaxFactsService.GetContainingMemberDeclaration(oldRoot, range.Span.Start);
-            var newMember = syntaxFactsService.GetContainingMemberDeclaration(newRoot, range.Span.Start);
-
-            // reached the top (compilation unit)
-            if (oldMember == null || newMember == null)
-            {
-                return null;
-            }
-
-            // if old member was empty, just use new member
-            if (oldMember.Span.IsEmpty)
-            {
-                return newMember;
-            }
-
-            // looks like change doesn't belong to existing member
-            if (!oldMember.Span.Contains(range.Span))
-            {
-                return null;
-            }
-
-            // change happened inside of the old member, check whether new member seems just delta of that change
-            var lengthDelta = range.NewLength - range.Span.Length;
-
-            return (oldMember.Span.Length + lengthDelta) == newMember.Span.Length ? newMember : null;
-        }
-#endif
     }
 }

@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
 
-            if (attribute.IsTargetAttribute(this, AttributeDescription.FixedBufferAttribute))
+            if (attribute.IsTargetAttribute(AttributeDescription.FixedBufferAttribute))
             {
                 // error CS8362: Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on property
                 ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_DoNotUseFixedBufferAttrOnProperty, arguments.AttributeSyntaxOpt.Name.Location);

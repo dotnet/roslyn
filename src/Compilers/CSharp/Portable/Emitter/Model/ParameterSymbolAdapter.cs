@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.IParameterTypeInformation,
         Cci.IParameterDefinition
     {
+        bool Cci.IDefinition.IsEncDeleted
+            => false;
+
         ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.CustomModifiers
         {
             get

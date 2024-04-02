@@ -3641,9 +3641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 SyntaxFactory.TriviaList(
                                     SyntaxFactory.Trivia(
                                         SyntaxFactory.SkippedTokensTrivia()
-                                        .WithTokens(
-                                            SyntaxFactory.TokenList(
-                                                SyntaxFactory.Literal(@"""a\b"""))))),
+                                        .WithTokens([SyntaxFactory.Literal(@"""a\b""")]))),
                                 SyntaxKind.EndOfDirectiveToken,
                                 default(SyntaxTriviaList))))), """
                 #line 1 "\"a\\b\""
@@ -5957,6 +5955,29 @@ $"  ///  </summary>{Environment.NewLine}" +
                   }
                 }
                 """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70135")]
+        [InlineData("if (\"\" is var I)")]
+        [InlineData("if ('' is var I)")]
+        [InlineData("if ('x' is var I)")]
+        public void TestNormalizeParseStatementLiteralCharacter(string expression)
+        {
+            var syntaxNode = SyntaxFactory.ParseStatement(expression).NormalizeWhitespace();
+            Assert.Equal(expression, syntaxNode.ToFullString());
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70135")]
+        [InlineData("1 is var i")]
+        [InlineData("@\"\" is var s")]
+        [InlineData("\"\"\"a\"\"\" is var s")]
+        [InlineData("$@\"\" is var s")]
+        [InlineData("$\"\"\"a\"\"\" is var s")]
+        [InlineData("\"\"u8 is var s")]
+        public void TestNormalizeParseExpressionLiteralCharacter(string expression)
+        {
+            var syntaxNode = SyntaxFactory.ParseExpression(expression).NormalizeWhitespace();
+            Assert.Equal(expression, syntaxNode.ToFullString());
         }
     }
 }

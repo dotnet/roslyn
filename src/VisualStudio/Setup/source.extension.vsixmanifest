@@ -8,7 +8,7 @@
     <License>EULA.rtf</License>
     <AllowClientRole>true</AllowClientRole>
   </Metadata>
-  <Installation Experimental="true">
+  <Installation Experimental="true" ExtensionType="VSSDK+VisualStudio.Extensibility">
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[17.0,]">
       <ProductArchitecture>amd64</ProductArchitecture>
     </InstallationTarget>
@@ -60,7 +60,9 @@
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="XamlVisualStudio" Path="|XamlVisualStudio|" />
     <Asset Type="Microsoft.VisualStudio.CodeLensComponent" d:Source="File" Path="Microsoft.VisualStudio.LanguageServices.CodeLens.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.ExternalAccess.Apex.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.ExternalAccess.Copilot.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.ExternalAccess.Debugger.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.ExternalAccess.FSharp.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.ExternalAccess.Razor.dll" />

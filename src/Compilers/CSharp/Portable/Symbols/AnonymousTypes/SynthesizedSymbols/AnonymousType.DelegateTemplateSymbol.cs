@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var constructor = new SynthesizedDelegateConstructor(this, objectType, intPtrType);
                 // https://github.com/dotnet/roslyn/issues/56808: Synthesized delegates should include BeginInvoke() and EndInvoke().
                 var invokeMethod = createInvokeMethod(this, refKinds, voidReturnTypeOpt);
-                _members = ImmutableArray.Create<Symbol>(constructor, invokeMethod);
+                _members = CreateMembers(constructor, invokeMethod);
 
                 static SynthesizedDelegateInvokeMethod createInvokeMethod(AnonymousDelegateTemplateSymbol containingType, RefKindVector refKinds, TypeSymbol? voidReturnTypeOpt)
                 {
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var constructor = new SynthesizedDelegateConstructor(this, manager.System_Object, manager.System_IntPtr);
                 // https://github.com/dotnet/roslyn/issues/56808: Synthesized delegates should include BeginInvoke() and EndInvoke().
                 var invokeMethod = createInvokeMethod(this, typeDescr.Fields);
-                _members = ImmutableArray.Create<Symbol>(constructor, invokeMethod);
+                _members = CreateMembers(constructor, invokeMethod);
 
                 static SynthesizedDelegateInvokeMethod createInvokeMethod(
                     AnonymousDelegateTemplateSymbol containingType,
@@ -128,6 +128,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // Replace `T` with `T[]` for params array.
                         if (field.IsParams)
                         {
+                            Debug.Assert(field.Type.IsSZArray());
+                            Debug.Assert(i == parameterCount - 1);
                             type = TypeWithAnnotations.Create(ArrayTypeSymbol.CreateSZArray(containingType.ContainingAssembly, type));
                         }
 
@@ -179,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var constructor = new SynthesizedDelegateConstructor(this, manager.System_Object, manager.System_IntPtr);
                 // https://github.com/dotnet/roslyn/issues/56808: Synthesized delegates should include BeginInvoke() and EndInvoke().
                 var invokeMethod = createInvokeMethod(this, typeDescr.Fields, typeMap);
-                _members = ImmutableArray.Create<Symbol>(constructor, invokeMethod);
+                _members = CreateMembers(constructor, invokeMethod);
 
                 static SynthesizedDelegateInvokeMethod createInvokeMethod(
                     AnonymousDelegateTemplateSymbol containingType,
@@ -204,6 +206,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return method;
                 }
             }
+
+            private static ImmutableArray<Symbol> CreateMembers(MethodSymbol constructor, MethodSymbol invokeMethod)
+                => ImmutableArray.Create<Symbol>(constructor, invokeMethod);
+
+            public new MethodSymbol DelegateInvokeMethod
+                => (MethodSymbol)_members[1];
 
             // AnonymousTypeOrDelegateComparer should not be calling this property for delegate
             // types since AnonymousTypeOrDelegateComparer is only used during emit and we

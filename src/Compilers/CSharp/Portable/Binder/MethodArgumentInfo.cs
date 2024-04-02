@@ -12,17 +12,29 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Information about the arguments of a call that can turned into a BoundCall later without recalculating
     /// default arguments.
     /// </summary>
-    internal sealed record MethodArgumentInfo(
-        MethodSymbol Method,
-        ImmutableArray<BoundExpression> Arguments,
-        ImmutableArray<int> ArgsToParamsOpt,
-        BitVector DefaultArguments,
-        bool Expanded)
+    internal sealed class MethodArgumentInfo
     {
+        public readonly MethodSymbol Method;
+        public readonly ImmutableArray<BoundExpression> Arguments;
+        public readonly BitVector DefaultArguments;
+        public readonly bool Expanded;
+
+        public MethodArgumentInfo(
+            MethodSymbol method,
+            ImmutableArray<BoundExpression> arguments,
+            BitVector defaultArguments,
+            bool expanded)
+        {
+            this.Method = method;
+            this.Arguments = arguments;
+            this.DefaultArguments = defaultArguments;
+            this.Expanded = expanded;
+        }
+
         public static MethodArgumentInfo CreateParameterlessMethod(MethodSymbol method)
         {
             Debug.Assert(method.ParameterCount == 0);
-            return new MethodArgumentInfo(method, Arguments: ImmutableArray<BoundExpression>.Empty, ArgsToParamsOpt: default, DefaultArguments: default, Expanded: false);
+            return new MethodArgumentInfo(method, arguments: ImmutableArray<BoundExpression>.Empty, defaultArguments: default, expanded: false);
         }
     }
 }

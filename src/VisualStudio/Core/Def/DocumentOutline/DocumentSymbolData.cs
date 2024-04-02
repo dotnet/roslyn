@@ -6,19 +6,18 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline
-{
-    using SymbolKind = LanguageServer.Protocol.SymbolKind;
+namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 
-    /// <summary>
-    /// Represents the immutable symbol returned from the LSP request to get document symbols, but mapped into
-    /// editor/text-snapshot concepts.
-    /// </summary>
-    internal sealed record DocumentSymbolData(
-        string Name,
-        SymbolKind SymbolKind,
-        Glyph Glyph,
-        SnapshotSpan RangeSpan,
-        SnapshotSpan SelectionRangeSpan,
-        ImmutableArray<DocumentSymbolData> Children);
-}
+using SymbolKind = Roslyn.LanguageServer.Protocol.SymbolKind;
+
+/// <summary>
+/// Represents the immutable symbol returned from the LSP request to get document symbols, but mapped into
+/// editor/text-snapshot concepts.
+/// </summary>
+internal sealed record DocumentSymbolData(
+    string Name,
+    SymbolKind SymbolKind,
+    Glyph Glyph,
+    SnapshotSpan RangeSpan,
+    SnapshotSpan SelectionRangeSpan,
+    ImmutableArray<DocumentSymbolData> Children);

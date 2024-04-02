@@ -4,53 +4,44 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+
+internal sealed class ScopedKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.ScopedKeyword)
 {
-    internal class ScopedKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        public ScopedKeywordRecommender()
-            : base(SyntaxKind.ScopedKeyword)
+        var syntaxTree = context.SyntaxTree;
+        return
+            syntaxTree.IsParameterModifierContext(position, context.LeftToken, includeOperators: true, out _, out _) ||
+            syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken) ||
+            syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
+            IsValidScopedLocalContext(context);
+    }
+
+    private static bool IsValidScopedLocalContext(CSharpSyntaxContext context)
+    {
+        // scoped ref var x ...
+        if (context.IsStatementContext || context.IsGlobalStatementContext)
         {
+            return true;
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        var token = context.TargetToken;
+        switch (token.Kind())
         {
-            var syntaxTree = context.SyntaxTree;
-            return
-                syntaxTree.IsParameterModifierContext(position, context.LeftToken, includeOperators: true, out _, out _) ||
-                syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken) ||
-                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
-                IsValidScopedLocalContext(context);
+            // for (scoped ref var x ...
+            // foreach (scoped ...
+            case SyntaxKind.OpenParenToken:
+                var previous = token.GetPreviousToken(includeSkipped: true);
+                return previous.Kind() is SyntaxKind.ForKeyword or SyntaxKind.ForEachKeyword;
+
+            // M(out scoped ..)
+            case SyntaxKind.OutKeyword:
+                return token.Parent is ArgumentSyntax;
         }
 
-        private static bool IsValidScopedLocalContext(CSharpSyntaxContext context)
-        {
-            // scoped ref var x ...
-            if (context.IsStatementContext || context.IsGlobalStatementContext)
-            {
-                return true;
-            }
-
-            var token = context.TargetToken;
-            switch (token.Kind())
-            {
-                // for (scoped ref var x ...
-                // foreach (scoped ...
-                case SyntaxKind.OpenParenToken:
-                    var previous = token.GetPreviousToken(includeSkipped: true);
-                    return previous.Kind() is SyntaxKind.ForKeyword or SyntaxKind.ForEachKeyword;
-
-                // M(out scoped ..)
-                case SyntaxKind.OutKeyword:
-                    return token.Parent is ArgumentSyntax;
-            }
-
-            return false;
-        }
+        return false;
     }
 }

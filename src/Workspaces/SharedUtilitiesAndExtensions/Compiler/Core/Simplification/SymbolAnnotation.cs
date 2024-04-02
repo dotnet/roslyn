@@ -5,22 +5,23 @@
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Microsoft.CodeAnalysis.Simplification
+namespace Microsoft.CodeAnalysis.Simplification;
+
+/// <summary>
+/// An annotation that holds onto information about a type or namespace symbol.
+/// </summary>
+internal class SymbolAnnotation
 {
-    /// <summary>
-    /// An annotation that holds onto information about a type or namespace symbol.
-    /// </summary>
-    internal class SymbolAnnotation
-    {
-        public const string Kind = "SymbolId";
+    public const string Kind = "SymbolId";
 
-        public static SyntaxAnnotation Create(ISymbol symbol)
-            => new(Kind, DocumentationCommentId.CreateReferenceId(symbol));
+    public static SyntaxAnnotation Create(ISymbol symbol)
+        => new(Kind, DocumentationCommentId.CreateReferenceId(symbol));
 
-        public static ISymbol? GetSymbol(SyntaxAnnotation annotation, Compilation compilation)
-            => GetSymbols(annotation, compilation).FirstOrDefault();
+    public static ISymbol? GetSymbol(SyntaxAnnotation annotation, Compilation compilation)
+        => GetSymbols(annotation, compilation).FirstOrDefault();
 
-        public static ImmutableArray<ISymbol> GetSymbols(SyntaxAnnotation annotation, Compilation compilation)
-            => DocumentationCommentId.GetSymbolsForReferenceId(annotation.Data!, compilation);
-    }
+    public static ImmutableArray<ISymbol> GetSymbols(SyntaxAnnotation annotation, Compilation compilation)
+        => annotation.Data is null
+            ? ImmutableArray<ISymbol>.Empty
+            : DocumentationCommentId.GetSymbolsForReferenceId(annotation.Data, compilation);
 }

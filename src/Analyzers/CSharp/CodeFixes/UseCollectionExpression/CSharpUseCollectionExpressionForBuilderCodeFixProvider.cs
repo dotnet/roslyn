@@ -16,27 +16,24 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
-using static CSharpUseCollectionExpressionForBuilderDiagnosticAnalyzer;
 using static CSharpCollectionExpressionRewriter;
+using static CSharpUseCollectionExpressionForBuilderDiagnosticAnalyzer;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForBuilder), Shared]
-internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider
-    : ForkingSyntaxEditorBasedCodeFixProvider<InvocationExpressionSyntax>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider()
+    : AbstractUseCollectionExpressionCodeFixProvider<InvocationExpressionSyntax>(
+        CSharpCodeFixesResources.Use_collection_expression,
+        IDEDiagnosticIds.UseCollectionExpressionForBuilderDiagnosticId)
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpUseCollectionExpressionForBuilderCodeFixProvider()
-        : base(CSharpCodeFixesResources.Use_collection_expression,
-               IDEDiagnosticIds.UseCollectionExpressionForBuilderDiagnosticId)
-    {
-    }
-
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForBuilderDiagnosticId);
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseCollectionExpressionForBuilderDiagnosticId];
 
     protected override async Task FixAsync(
         Document document,
@@ -47,7 +44,8 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider
         CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        if (AnalyzeInvocation(semanticModel, invocationExpression, cancellationToken) is not { } analysisResult)
+        var expressionType = semanticModel.Compilation.ExpressionOfTType();
+        if (AnalyzeInvocation(semanticModel, invocationExpression, expressionType, allowSemanticsChange: true, cancellationToken) is not { } analysisResult)
             return;
 
         // We want to replace the final invocation (`builder.ToImmutable()`) with `new()`.  That way we can call into
@@ -96,7 +94,8 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider
             => new(analysisResult.DiagnosticLocation,
                    root.GetCurrentNode(analysisResult.LocalDeclarationStatement)!,
                    root.GetCurrentNode(analysisResult.CreationExpression)!,
-                   analysisResult.Matches.SelectAsArray(m => new Match<StatementSyntax>(root.GetCurrentNode(m.Statement)!, m.UseSpread)));
+                   analysisResult.Matches.SelectAsArray(m => new Match<StatementSyntax>(root.GetCurrentNode(m.Statement)!, m.UseSpread)),
+                   analysisResult.ChangesSemantics);
 
         // Creates a new document with all of the relevant nodes in analysisResult tracked so that we can find them
         // across mutations we're making.

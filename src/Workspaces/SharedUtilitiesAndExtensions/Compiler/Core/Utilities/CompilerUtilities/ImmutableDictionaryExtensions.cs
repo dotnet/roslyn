@@ -7,54 +7,53 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+internal static class ImmutableDictionaryExtensions
 {
-    internal static class ImmutableDictionaryExtensions
+    public static ImmutableDictionary<K, ImmutableHashSet<V>> AddAll<K, V>(this ImmutableDictionary<K, ImmutableHashSet<V>> map, IEnumerable<K> keys, V value)
+        where K : notnull
+        => keys.Aggregate(map, (m, k) => m.Add(k, value));
+
+    public static ImmutableDictionary<K, ImmutableHashSet<V>> Add<K, V>(this ImmutableDictionary<K, ImmutableHashSet<V>> map, K key, V value)
+        where K : notnull
     {
-        public static ImmutableDictionary<K, ImmutableHashSet<V>> AddAll<K, V>(this ImmutableDictionary<K, ImmutableHashSet<V>> map, IEnumerable<K> keys, V value)
-            where K : notnull
-            => keys.Aggregate(map, (m, k) => m.Add(k, value));
-
-        public static ImmutableDictionary<K, ImmutableHashSet<V>> Add<K, V>(this ImmutableDictionary<K, ImmutableHashSet<V>> map, K key, V value)
-            where K : notnull
+        if (!map.TryGetValue(key, out var values))
         {
-            if (!map.TryGetValue(key, out var values))
-            {
-                values = ImmutableHashSet.Create<V>();
-                return map.Add(key, values.Add(value));
-            }
-
-            return map.SetItem(key, values.Add(value));
+            values = [];
+            return map.Add(key, values.Add(value));
         }
 
-        public static ImmutableDictionary<K, ImmutableHashSet<V>> RemoveAll<K, V>(this ImmutableDictionary<K, ImmutableHashSet<V>> map, IEnumerable<K> keys, V value)
-            where K : notnull
-            => keys.Aggregate(map, (m, k) => m.Remove(k, value));
+        return map.SetItem(key, values.Add(value));
+    }
 
-        public static ImmutableDictionary<K, ImmutableHashSet<V>> Remove<K, V>(this ImmutableDictionary<K, ImmutableHashSet<V>> map, K key, V value)
-            where K : notnull
+    public static ImmutableDictionary<K, ImmutableHashSet<V>> RemoveAll<K, V>(this ImmutableDictionary<K, ImmutableHashSet<V>> map, IEnumerable<K> keys, V value)
+        where K : notnull
+        => keys.Aggregate(map, (m, k) => m.Remove(k, value));
+
+    public static ImmutableDictionary<K, ImmutableHashSet<V>> Remove<K, V>(this ImmutableDictionary<K, ImmutableHashSet<V>> map, K key, V value)
+        where K : notnull
+    {
+        if (map.TryGetValue(key, out var values))
         {
-            if (map.TryGetValue(key, out var values))
+            values = values.Remove(value);
+            if (values.Count > 0)
             {
-                values = values.Remove(value);
-                if (values.Count > 0)
-                {
-                    return map.SetItem(key, values);
-                }
+                return map.SetItem(key, values);
             }
-
-            return map.Remove(key);
         }
 
-        public static ImmutableDictionary<TKey, TValue> ToImmutableDictionaryOrEmpty<TSource, TKey, TValue>(this IEnumerable<TSource>? source, Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector)
-            where TKey : notnull
-        {
-            if (source is null)
-            {
-                return ImmutableDictionary<TKey, TValue>.Empty;
-            }
+        return map.Remove(key);
+    }
 
-            return source.ToImmutableDictionary(keySelector, elementSelector);
+    public static ImmutableDictionary<TKey, TValue> ToImmutableDictionaryOrEmpty<TSource, TKey, TValue>(this IEnumerable<TSource>? source, Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector)
+        where TKey : notnull
+    {
+        if (source is null)
+        {
+            return ImmutableDictionary<TKey, TValue>.Empty;
         }
+
+        return source.ToImmutableDictionary(keySelector, elementSelector);
     }
 }

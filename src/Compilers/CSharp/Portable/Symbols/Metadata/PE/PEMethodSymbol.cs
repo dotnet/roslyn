@@ -860,6 +860,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return InterlockedOperations.Initialize(ref _lazySignature, signature);
         }
 
+        public override BlobHandle MetadataSignatureHandle
+        {
+            get
+            {
+                try
+                {
+                    return _containingType.ContainingPEModule.Module.GetMethodSignatureOrThrow(_handle);
+                }
+                catch (BadImageFormatException)
+                {
+                    return default;
+                }
+            }
+        }
+
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get
@@ -1652,5 +1667,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
+
+        internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            builderArgument = _containingType.ContainingPEModule.TryDecodeAttributeWithTypeArgument(this.Handle, AttributeDescription.AsyncMethodBuilderAttribute);
+            return builderArgument is not null;
+        }
     }
 }

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -79,9 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             private const int HasPrimaryConstructorBit = 1 << HasPrimaryConstructorOffset;
 
-            public SpecialType SpecialType
+            public ExtendedSpecialType ExtendedSpecialType
             {
-                get { return (SpecialType)((_flags >> SpecialTypeOffset) & SpecialTypeMask); }
+                get { return (ExtendedSpecialType)((_flags >> SpecialTypeOffset) & SpecialTypeMask); }
             }
 
             public ManagedKind ManagedKind
@@ -109,12 +110,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static Flags()
             {
                 // Verify masks are sufficient for values.
+                _ = new int[SpecialTypeMask - (int)InternalSpecialType.NextAvailable + 1];
                 Debug.Assert(EnumUtilities.ContainsAllValues<SpecialType>(SpecialTypeMask));
+                Debug.Assert(EnumUtilities.ContainsAllValues<InternalSpecialType>(SpecialTypeMask)); //This assert might false fail in the future, we don't really need to be able to represent NextAvailable
                 Debug.Assert(EnumUtilities.ContainsAllValues<NullableContextKind>(NullableContextMask));
             }
 #endif
 
-            public Flags(SpecialType specialType, TypeKind typeKind, bool hasPrimaryConstructor)
+            public Flags(ExtendedSpecialType specialType, TypeKind typeKind, bool hasPrimaryConstructor)
             {
                 int specialTypeInt = ((int)specialType & SpecialTypeMask) << SpecialTypeOffset;
                 int typeKindInt = ((int)typeKind & TypeKindMask) << TypeKindOffset;
@@ -250,8 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _declModifiers = modifiers;
 
             var specialType = access == (int)DeclarationModifiers.Public
-                ? MakeSpecialType()
-                : SpecialType.None;
+                ? MakeExtendedSpecialType()
+                : default;
 
             _flags = new Flags(specialType, typeKind, declaration.HasPrimaryConstructor);
             Debug.Assert(typeKind is TypeKind.Struct or TypeKind.Class || !HasPrimaryConstructor);
@@ -265,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             state.NotePartComplete(CompletionPart.TypeArguments); // type arguments need not be computed separately
         }
 
-        private SpecialType MakeSpecialType()
+        private ExtendedSpecialType MakeExtendedSpecialType()
         {
             // check if this is one of the COR library types
             if (ContainingSymbol.Kind == SymbolKind.Namespace &&
@@ -279,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                return SpecialType.None;
+                return default;
             }
         }
 
@@ -532,8 +535,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract void CheckBase(BindingDiagnosticBag diagnostics);
         protected abstract void CheckInterfaces(BindingDiagnosticBag diagnostics);
 
-        internal override void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
+            if (filter?.Invoke(this) == false)
+            {
+                return;
+            }
+
             while (true)
             {
                 // NOTE: cases that depend on GetMembers[ByName] should call RequireCompletionPartMembers.
@@ -583,7 +591,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // force type parameters
                         foreach (var typeParameter in this.TypeParameters)
                         {
-                            typeParameter.ForceComplete(locationOpt, cancellationToken);
+                            // We can't filter out type parameters: if this container was requested, then all its type parameters need to be compiled
+                            typeParameter.ForceComplete(locationOpt, filter: null, cancellationToken);
                         }
 
                         state.NotePartComplete(CompletionPart.TypeParameters);
@@ -624,19 +633,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             bool allCompleted = true;
 
-                            if (locationOpt == null)
+                            if (locationOpt == null && filter == null)
                             {
                                 foreach (var member in members)
                                 {
                                     cancellationToken.ThrowIfCancellationRequested();
-                                    member.ForceComplete(locationOpt, cancellationToken);
+                                    member.ForceComplete(locationOpt, filter: null, cancellationToken);
                                 }
                             }
                             else
                             {
                                 foreach (var member in members)
                                 {
-                                    ForceCompleteMemberByLocation(locationOpt, member, cancellationToken);
+                                    ForceCompleteMemberConditionally(locationOpt, filter, member, cancellationToken);
                                     allCompleted = allCompleted && member.HasComplete(CompletionPart.All);
                                 }
                             }
@@ -763,11 +772,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Flags Encoded Properties
 
-        public override SpecialType SpecialType
+        public override ExtendedSpecialType ExtendedSpecialType
         {
             get
             {
-                return _flags.SpecialType;
+                return _flags.ExtendedSpecialType;
             }
         }
 
@@ -861,7 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                return FileIdentifier.Create(syntaxTree);
+                return FileIdentifier.Create(syntaxTree, DeclaringCompilation?.Options?.SourceReferenceResolver);
             }
         }
 
@@ -1398,6 +1407,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _flags.SetHasDeclaredRequiredMembers(hasDeclaredMembers);
                 return hasDeclaredMembers;
             }
+        }
+
+        internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            return HasAsyncMethodBuilderAttribute(this, out builderArgument);
+        }
+
+        /// <summary>
+        /// Returns true if the method has a [AsyncMethodBuilder(typeof(B))] attribute. If so it returns type B.
+        /// Validation of builder type B is left for elsewhere. This method returns B without validation of any kind.
+        /// </summary>
+        internal static bool HasAsyncMethodBuilderAttribute(Symbol symbol, [NotNullWhen(true)] out TypeSymbol? builderArgument)
+        {
+            Debug.Assert(symbol is not null);
+
+            // Find the AsyncMethodBuilder attribute.
+            foreach (var attr in symbol.GetAttributes())
+            {
+                Debug.Assert(attr is SourceAttributeData);
+
+                if (attr.IsTargetAttribute(AttributeDescription.AsyncMethodBuilderAttribute)
+                    && attr.CommonConstructorArguments.Length == 1
+                    && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
+                {
+                    builderArgument = (TypeSymbol)attr.CommonConstructorArguments[0].ValueInternal!;
+                    return true;
+                }
+            }
+
+            builderArgument = null;
+            return false;
         }
 
         internal override ImmutableArray<Symbol> GetMembersUnordered()
@@ -4104,7 +4144,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray<TypeParameterSymbol>.Empty,
                     ctor.Parameters.SelectAsArray<ParameterSymbol, ParameterSymbol>(param => new SignatureOnlyParameterSymbol(param.TypeWithAnnotations,
                                                                                                                               ImmutableArray<CustomModifier>.Empty,
-                                                                                                                              isParams: false,
+                                                                                                                              isParamsArray: false,
+                                                                                                                              isParamsCollection: false,
                                                                                                                               RefKind.Out
                                                                                                                               )),
                     RefKind.None,
@@ -4151,7 +4192,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create<ParameterSymbol>(new SignatureOnlyParameterSymbol(
                                                                 TypeWithAnnotations.Create(this),
                                                                 ImmutableArray<CustomModifier>.Empty,
-                                                                isParams: false,
+                                                                isParamsArray: false,
+                                                                isParamsCollection: false,
                                                                 RefKind.None
                                                                 )),
                     RefKind.None,
@@ -4199,7 +4241,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create<ParameterSymbol>(new SignatureOnlyParameterSymbol(
                         TypeWithAnnotations.Create(compilation.GetWellKnownType(WellKnownType.System_Text_StringBuilder)),
                         ImmutableArray<CustomModifier>.Empty,
-                        isParams: false,
+                        isParamsArray: false,
+                        isParamsCollection: false,
                         RefKind.None)),
                     RefKind.None,
                     isInitOnly: false,
@@ -4523,7 +4566,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create<ParameterSymbol>(new SignatureOnlyParameterSymbol(
                                                                 TypeWithAnnotations.Create(this),
                                                                 ImmutableArray<CustomModifier>.Empty,
-                                                                isParams: false,
+                                                                isParamsArray: false,
+                                                                isParamsCollection: false,
                                                                 RefKind.None
                                                                 )),
                     RefKind.None,
@@ -4625,7 +4669,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 //kick out early if we've seen everything we're looking for
-                if (hasInstanceConstructor && hasStaticConstructor)
+                if (hasInstanceConstructor &&
+                    hasParameterlessInstanceConstructor &&
+                    hasStaticConstructor)
                 {
                     break;
                 }
@@ -5200,6 +5246,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         #endregion
+
+        internal void DiscoverInterceptors(ArrayBuilder<NamespaceOrTypeSymbol> toSearch)
+        {
+            foreach (var type in this.GetTypeMembers())
+            {
+                toSearch.Add(type);
+            }
+
+            if (!declaration.AnyMemberHasAttributes)
+            {
+                return;
+            }
+
+            foreach (var member in this.GetMembersUnordered())
+            {
+                if (member is MethodSymbol { MethodKind: MethodKind.Ordinary })
+                {
+                    // force binding attributes and populating compilation-level structures
+                    member.GetAttributes();
+                }
+            }
+        }
 
         public sealed override NamedTypeSymbol ConstructedFrom
         {

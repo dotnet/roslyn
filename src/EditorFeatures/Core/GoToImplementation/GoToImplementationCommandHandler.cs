@@ -20,31 +20,30 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.GoToImplementation
+namespace Microsoft.CodeAnalysis.GoToImplementation;
+
+[Export(typeof(ICommandHandler))]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[Name(PredefinedCommandHandlerNames.GoToImplementation)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class GoToImplementationCommandHandler(
+    IThreadingContext threadingContext,
+    IStreamingFindUsagesPresenter streamingPresenter,
+    IUIThreadOperationExecutor uiThreadOperationExecutor,
+    IAsynchronousOperationListenerProvider listenerProvider,
+    IGlobalOptionService globalOptions) : AbstractGoToCommandHandler<IFindUsagesService, GoToImplementationCommandArgs>(threadingContext,
+           streamingPresenter,
+           uiThreadOperationExecutor,
+           listenerProvider.GetListener(FeatureAttribute.GoToImplementation),
+           globalOptions)
 {
-    [Export(typeof(ICommandHandler))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name(PredefinedCommandHandlerNames.GoToImplementation)]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class GoToImplementationCommandHandler(
-        IThreadingContext threadingContext,
-        IStreamingFindUsagesPresenter streamingPresenter,
-        IUIThreadOperationExecutor uiThreadOperationExecutor,
-        IAsynchronousOperationListenerProvider listenerProvider,
-        IGlobalOptionService globalOptions) : AbstractGoToCommandHandler<IFindUsagesService, GoToImplementationCommandArgs>(threadingContext,
-               streamingPresenter,
-               uiThreadOperationExecutor,
-               listenerProvider.GetListener(FeatureAttribute.GoToImplementation),
-               globalOptions)
-    {
-        public override string DisplayName => EditorFeaturesResources.Go_To_Implementation;
+    public override string DisplayName => EditorFeaturesResources.Go_To_Implementation;
 
-        protected override string ScopeDescription => EditorFeaturesResources.Locating_implementations;
-        protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToImplementation;
+    protected override string ScopeDescription => EditorFeaturesResources.Locating_implementations;
+    protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToImplementation;
 
-        protected override Task FindActionAsync(IFindUsagesContext context, Document document, int caretPosition, CancellationToken cancellationToken)
-            => document.GetRequiredLanguageService<IFindUsagesService>()
-                       .FindImplementationsAsync(context, document, caretPosition, cancellationToken);
-    }
+    protected override Task FindActionAsync(IFindUsagesContext context, Document document, int caretPosition, CancellationToken cancellationToken)
+        => document.GetRequiredLanguageService<IFindUsagesService>()
+                   .FindImplementationsAsync(context, document, caretPosition, ClassificationOptionsProvider, cancellationToken);
 }

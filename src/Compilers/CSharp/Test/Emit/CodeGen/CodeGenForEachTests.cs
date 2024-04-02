@@ -88,6 +88,7 @@ class C
         public void TestForEachMultiDimensionalArray()
         {
             var source = @"
+using System.Globalization;
 class C
 {
     static void Main()
@@ -99,7 +100,7 @@ class C
 
         foreach (var x in values)
         {
-            System.Console.WriteLine(x);
+            System.Console.WriteLine(x.ToString(CultureInfo.InvariantCulture));
         }
     }
 }";
@@ -113,62 +114,67 @@ class C
 7.8
 8.9");
 
-            compilation.VerifyIL("C.Main", @"
-    {
-      // Code size       90 (0x5a)
-      .maxstack  3
-      .locals init (double[,] V_0,
-                    int V_1,
-                    int V_2,
-                    int V_3,
-                    int V_4)
-      IL_0000:  ldc.i4.2
-      IL_0001:  ldc.i4.4
-      IL_0002:  newobj     ""double[*,*]..ctor""
-      IL_0007:  dup
-      IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=64 <PrivateImplementationDetails>.B600FC1A4E79D6311C0D8211E6ADB6C750C0EDBFD2A8B9DF903CBEAFEC712F98""
-      IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-      IL_0012:  stloc.0
-      IL_0013:  ldloc.0
-      IL_0014:  ldc.i4.0
-      IL_0015:  callvirt   ""int System.Array.GetUpperBound(int)""
-      IL_001a:  stloc.1
-      IL_001b:  ldloc.0
-      IL_001c:  ldc.i4.1
-      IL_001d:  callvirt   ""int System.Array.GetUpperBound(int)""
-      IL_0022:  stloc.2
-      IL_0023:  ldloc.0
-      IL_0024:  ldc.i4.0
-      IL_0025:  callvirt   ""int System.Array.GetLowerBound(int)""
-      IL_002a:  stloc.3
-      IL_002b:  br.s       IL_0055
-      IL_002d:  ldloc.0
-      IL_002e:  ldc.i4.1
-      IL_002f:  callvirt   ""int System.Array.GetLowerBound(int)""
-      IL_0034:  stloc.s    V_4
-      IL_0036:  br.s       IL_004c
-      IL_0038:  ldloc.0
-      IL_0039:  ldloc.3
-      IL_003a:  ldloc.s    V_4
-      IL_003c:  call       ""double[*,*].Get""
-      IL_0041:  call       ""void System.Console.WriteLine(double)""
-      IL_0046:  ldloc.s    V_4
-      IL_0048:  ldc.i4.1
-      IL_0049:  add
-      IL_004a:  stloc.s    V_4
-      IL_004c:  ldloc.s    V_4
-      IL_004e:  ldloc.2
-      IL_004f:  ble.s      IL_0038
-      IL_0051:  ldloc.3
-      IL_0052:  ldc.i4.1
-      IL_0053:  add
-      IL_0054:  stloc.3
-      IL_0055:  ldloc.3
-      IL_0056:  ldloc.1
-      IL_0057:  ble.s      IL_002d
-      IL_0059:  ret
-    }
-");
+            compilation.VerifyIL("C.Main", """
+{
+  // Code size      104 (0x68)
+  .maxstack  3
+  .locals init (double[,] V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                int V_4,
+                double V_5) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  ldc.i4.4
+  IL_0002:  newobj     "double[*,*]..ctor"
+  IL_0007:  dup
+  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=64 <PrivateImplementationDetails>.B600FC1A4E79D6311C0D8211E6ADB6C750C0EDBFD2A8B9DF903CBEAFEC712F98"
+  IL_000d:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.0
+  IL_0014:  ldc.i4.0
+  IL_0015:  callvirt   "int System.Array.GetUpperBound(int)"
+  IL_001a:  stloc.1
+  IL_001b:  ldloc.0
+  IL_001c:  ldc.i4.1
+  IL_001d:  callvirt   "int System.Array.GetUpperBound(int)"
+  IL_0022:  stloc.2
+  IL_0023:  ldloc.0
+  IL_0024:  ldc.i4.0
+  IL_0025:  callvirt   "int System.Array.GetLowerBound(int)"
+  IL_002a:  stloc.3
+  IL_002b:  br.s       IL_0063
+  IL_002d:  ldloc.0
+  IL_002e:  ldc.i4.1
+  IL_002f:  callvirt   "int System.Array.GetLowerBound(int)"
+  IL_0034:  stloc.s    V_4
+  IL_0036:  br.s       IL_005a
+  IL_0038:  ldloc.0
+  IL_0039:  ldloc.3
+  IL_003a:  ldloc.s    V_4
+  IL_003c:  call       "double[*,*].Get"
+  IL_0041:  stloc.s    V_5
+  IL_0043:  ldloca.s   V_5
+  IL_0045:  call       "System.Globalization.CultureInfo System.Globalization.CultureInfo.InvariantCulture.get"
+  IL_004a:  call       "string double.ToString(System.IFormatProvider)"
+  IL_004f:  call       "void System.Console.WriteLine(string)"
+  IL_0054:  ldloc.s    V_4
+  IL_0056:  ldc.i4.1
+  IL_0057:  add
+  IL_0058:  stloc.s    V_4
+  IL_005a:  ldloc.s    V_4
+  IL_005c:  ldloc.2
+  IL_005d:  ble.s      IL_0038
+  IL_005f:  ldloc.3
+  IL_0060:  ldc.i4.1
+  IL_0061:  add
+  IL_0062:  stloc.3
+  IL_0063:  ldloc.3
+  IL_0064:  ldloc.1
+  IL_0065:  ble.s      IL_002d
+  IL_0067:  ret
+}
+""");
         }
 
         [WorkItem(544937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]
@@ -3358,6 +3364,7 @@ public static class Extensions
         {
             var source = @"
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Collections.Generic;
 public struct C
@@ -3366,7 +3373,7 @@ public struct C
     {
         foreach (var (a, b) in (new[] { 1, 2, 3 }, new List<decimal>{ 0.1m, 0.2m, 0.3m }))
         {
-            Console.WriteLine(a + b);
+            Console.WriteLine((a + b).ToString(CultureInfo.InvariantCulture));
         }
     }
 }
@@ -4297,6 +4304,119 @@ public static class Extensions
     public static C.Enumerator GetEnumerator(this in C self) => new C.Enumerator();
 }";
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
+        }
+
+        [Theory, CombinatorialData]
+        public void TestGetEnumeratorPatternViaInExtensionOnAssignableVariable_OptionalParameter(
+            [CombinatorialValues("ref", "in", "ref readonly", "")] string modifier)
+        {
+            var source = $$"""
+                using System;
+                public struct C
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        foreach (var i in c)
+                        {
+                            Console.Write(i);
+                        }
+                    }
+                    public struct Enumerator
+                    {
+                        public int Current { get; private set; }
+                        public bool MoveNext() => Current++ != 3;
+                    }
+                }
+                public static class Extensions
+                {
+                    public static C.Enumerator GetEnumerator(this in C self, {{modifier}} int x = 9)
+                    {
+                        Console.Write(x);
+                        return new C.Enumerator();
+                    }
+                }
+                """;
+            if (modifier == "ref")
+            {
+                CreateCompilation(source).VerifyDiagnostics(
+                    // (7,27): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Extensions.GetEnumerator(in C, ref int)'
+                    //         foreach (var i in c)
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c").WithArguments("x", "Extensions.GetEnumerator(in C, ref int)").WithLocation(7, 27),
+                    // (7,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+                    //         foreach (var i in c)
+                    Diagnostic(ErrorCode.ERR_ForEachMissingMember, "c").WithArguments("C", "GetEnumerator").WithLocation(7, 27),
+                    // (20,62): error CS1741: A ref or out parameter cannot have a default value
+                    //     public static C.Enumerator GetEnumerator(this in C self, ref int x = 9)
+                    Diagnostic(ErrorCode.ERR_RefOutDefaultValue, "ref").WithLocation(20, 62));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(source, expectedOutput: "9123");
+                if (modifier == "ref readonly")
+                {
+                    verifier.VerifyDiagnostics(
+                        // (20,83): warning CS9200: A default value is specified for 'ref readonly' parameter 'x', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+                        //     public static C.Enumerator GetEnumerator(this in C self, ref readonly int x = 9)
+                        Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "9").WithArguments("x").WithLocation(20, 83));
+                }
+                else
+                {
+                    verifier.VerifyDiagnostics();
+                }
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public void TestDisposePattern_OptionalParameter(
+            [CombinatorialValues("ref", "in", "ref readonly", "")] string modifier)
+        {
+            var source = $$"""
+                using System;
+                public struct C
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        foreach (var i in c)
+                        {
+                            Console.Write(i);
+                        }
+                    }
+                    public Enumerator GetEnumerator()
+                    {
+                        return new Enumerator();
+                    }
+                    public ref struct Enumerator
+                    {
+                        public int Current { get; private set; }
+                        public bool MoveNext() => Current++ != 3;
+                        public void Dispose({{modifier}} int x = 5) { Console.Write(x); }
+                    }
+                }
+                """;
+            if (modifier == "ref")
+            {
+                CreateCompilation(source).VerifyDiagnostics(
+                    // (20,29): error CS1741: A ref or out parameter cannot have a default value
+                    //         public void Dispose(ref int x = 5) { Console.Write(x); }
+                    Diagnostic(ErrorCode.ERR_RefOutDefaultValue, "ref").WithLocation(20, 29));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(source, expectedOutput: "1235", verify: Verification.FailsILVerify);
+                if (modifier == "ref readonly")
+                {
+                    verifier.VerifyDiagnostics(
+                        // (20,50): warning CS9200: A default value is specified for 'ref readonly' parameter 'x', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+                        //         public void Dispose(ref readonly int x = 5) { Console.Write(x); }
+                        Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "5").WithArguments("x").WithLocation(20, 50));
+                }
+                else
+                {
+                    verifier.VerifyDiagnostics();
+                }
+            }
         }
 
         [Fact]

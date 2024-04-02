@@ -24,17 +24,11 @@
       .NET Compiler Platform ("Roslyn") support for Visual Studio.
     </PackageDescription>
   </PropertyGroup>
-  <ItemGroup Label="NuGet">
-    <NuspecProperty Include="MicrosoftCSharpVersion=$(MicrosoftCSharpVersion)" />
-    <NuspecProperty Include="MicrosoftVisualStudioCompositionVersion=$(MicrosoftVisualStudioCompositionVersion)" />
-    <NuspecProperty Include="SystemThreadingTasksDataflowVersion=$(SystemThreadingTasksDataflowVersion)" />
-  </ItemGroup>
   <PropertyGroup>
     <RoslynPackageGuid>6cf2e545-6109-4730-8883-cf43d7aec3e1</RoslynPackageGuid>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
-    <!-- Cannot load in background due to use of SUO options. https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1743421 -->
-    <PkgDefPackageRegistration Include="{$(RoslynPackageGuid)}" Name="RoslynPackage" Class="Microsoft.VisualStudio.LanguageServices.Setup.RoslynPackage" AllowsBackgroundLoad="false" />
+    <PkgDefPackageRegistration Include="{$(RoslynPackageGuid)}" Name="RoslynPackage" Class="Microsoft.VisualStudio.LanguageServices.Setup.RoslynPackage" AllowsBackgroundLoad="true" />
     <None Include="CodeCleanup\readme.md" />
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
     <None Include=".\ColorSchemes\VisualStudio2019.pkgdef" PkgDefEntry="FileContent" />
@@ -56,6 +50,9 @@
     </Compile>
     <EmbeddedResource Include="ColorSchemes\VisualStudio2019.xml" />
     <EmbeddedResource Include="ColorSchemes\VisualStudio2017.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="InternalUtilities\IsExternalInit.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -93,8 +90,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
-    <internalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.IntegrationTests" />
     <internalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ErrorList.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35081" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
@@ -118,49 +113,22 @@
     <Reference Include="UIAutomationProvider" />
     <Reference Include="UIAutomationTypes" />
     <Reference Include="WindowsFormsIntegration" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" />
-    <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
-    <PackageReference Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime" Version="$(MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion)" />
-    <PackageReference Include="Microsoft.Internal.VisualStudio.Interop" Version="$(MicrosoftInternalVisualStudioInteropVersion)" />
-    <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="$(MicrosoftInternalVisualStudioShellFrameworkVersion)" />
-    <PackageReference Include="Microsoft.ServiceHub.Client" Version="$(MicrosoftServiceHubClientVersion)" />
-    <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Designer.Interfaces" Version="$(MicrosoftVisualStudioDesignerInterfacesVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Search" Version="$(MicrosoftVisualStudioSearchVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.LiveShare.LanguageServices" Version="$(MicrosoftVisualStudioLiveShareLanguageServicesVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.LiveShare.LanguageServices.Guest" Version="$(MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Progression.CodeSchema" Version="$(MicrosoftVisualStudioProgressionCodeSchemaVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Progression.Common" Version="$(MicrosoftVisualStudioProgressionCommonVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Progression.Interfaces" Version="$(MicrosoftVisualStudioProgressionInterfacesVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.GraphModel" Version="$(MicrosoftVisualStudioGraphModelVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" Version="$(MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="$(MicrosoftVisualStudioLanguageCallHierarchyVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Design" Version="$(MicrosoftVisualStudioShellDesignVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.VsInteractiveWindow" Version="$(MicrosoftVisualStudioVsInteractiveWindowVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.WinForms.Interfaces" Version="$(MicrosoftVisualStudioWinFormsInterfacesVersion)" />
-    <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
-    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
-    <PackageReference Include="VsWebsite.Interop" Version="$(VsWebsiteInteropVersion)" />
-    <PackageReference Include="NuGet.VisualStudio" Version="$(NuGetVisualStudioVersion)" />
-    <PackageReference Include="NuGet.VisualStudio.Contracts" Version="$(NuGetVisualStudioContractsVersion)" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
-    <PackageReference Include="Nerdbank.Streams" Version="$(NerdbankStreamsVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" />
+    <PackageReference Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime" />
+    <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" />
+    <PackageReference Include="Microsoft.VisualStudio.Sdk" />
+    <PackageReference Include="Microsoft.VisualStudio.Search" />
+    <PackageReference Include="Microsoft.VisualStudio.Progression.CodeSchema" />
+    <PackageReference Include="Microsoft.VisualStudio.Progression.Common" />
+    <PackageReference Include="Microsoft.VisualStudio.Progression.Interfaces" />
+    <PackageReference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" />
+    <PackageReference Include="Microsoft.VisualStudio.VsInteractiveWindow" />
+    <PackageReference Include="Microsoft.VisualStudio.WinForms.Interfaces" />
+    <PackageReference Include="VsWebsite.Interop" />
+    <PackageReference Include="NuGet.VisualStudio" />
+    <PackageReference Include="NuGet.VisualStudio.Contracts" />
     <!-- 
         This is necessary because Microsoft.VisualStudio.LanguageServer.Client.Implementation has transitive dependencies on Microsoft.VisualStudio.Workspace.
         This package causes Namespace/Type collisions with Microsoft.CodeAnalysis.Workspace. We only reference ILanguageServiceBroker2 from here so the simplest
@@ -168,7 +136,7 @@
         
         The fix for this is tracked internally by https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1542016
     -->
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="$(MicrosoftVisualStudioLanguageServerClientImplementationVersion)" ExcludeAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" ExcludeAssets="all" GeneratePathProperty="true" />
     <Reference Include="$(PkgMicrosoft_VisualStudio_LanguageServer_Client_Implementation)\lib\net472\Microsoft.VisualStudio.LanguageServer.Client.Implementation.dll">
       <Private>true</Private>
     </Reference>
@@ -201,6 +169,14 @@
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64S')" />
 
       <PkgDefBrokeredService Include="@(InProcService)" ProfferingPackageId="$(RoslynPackageGuid)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="SetNuspecDependencyVersions" BeforeTargets="InitializeStandardNuspecProperties">
+    <ItemGroup>
+      <NuspecProperty Include="@(PackageVersion->'MicrosoftCSharpVersion=%(Version)')" Condition="'%(Identity)' == 'Microsoft.CSharp'"/>
+      <NuspecProperty Include="@(PackageVersion->'MicrosoftVisualStudioCompositionVersion=%(Version)')" Condition="'%(Identity)' == 'Microsoft.VisualStudio.Composition'"/>
+      <NuspecProperty Include="@(PackageVersion->'SystemThreadingTasksDataflowVersion=%(Version)')" Condition="'%(Identity)' == 'System.Threading.Tasks.Dataflow'"/>
     </ItemGroup>
   </Target>
 </Project>

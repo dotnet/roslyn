@@ -2,14 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
-using System.Diagnostics.CodeAnalysis;
-using System.Threading;
+using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.HelloWorld;
-using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
-using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
@@ -36,13 +32,16 @@ internal class ServiceBrokerFactory
     private readonly ExportProvider _exportProvider;
     private Task _bridgeCompletionTask;
     private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+    private readonly ImmutableArray<IOnServiceBrokerInitialized> _onServiceBrokerInitialized;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ServiceBrokerFactory(ExportProvider exportProvider)
+    public ServiceBrokerFactory([ImportMany] IEnumerable<IOnServiceBrokerInitialized> onServiceBrokerInitialized,
+        ExportProvider exportProvider)
     {
         _exportProvider = exportProvider;
         _bridgeCompletionTask = Task.CompletedTask;
+        _onServiceBrokerInitialized = onServiceBrokerInitialized.ToImmutableArray();
     }
 
     /// <summary>
@@ -70,6 +69,17 @@ internal class ServiceBrokerFactory
         Contract.ThrowIfFalse(_container == null, "We should only create one container.");
 
         _container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _cancellationTokenSource.Token);
+
+        foreach (var onInitialized in _onServiceBrokerInitialized)
+        {
+            try
+            {
+                onInitialized.OnServiceBrokerInitialized(_container.GetFullAccessServiceBroker());
+            }
+            catch (Exception)
+            {
+            }
+        }
     }
 
     public async Task CreateAndConnectAsync(string brokeredServicePipeName)
@@ -78,8 +88,6 @@ internal class ServiceBrokerFactory
 
         var bridgeProvider = _exportProvider.GetExportedValue<BrokeredServiceBridgeProvider>();
         _bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(brokeredServicePipeName, _container!, _cancellationTokenSource.Token);
-
-        await _exportProvider.GetExportedValue<RemoteHelloWorldProvider>().SayHelloToRemoteServerAsync(_cancellationTokenSource.Token);
     }
 
     public Task ShutdownAndWaitForCompletionAsync()

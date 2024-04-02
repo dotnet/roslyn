@@ -37,10 +37,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NonCopyableAttribute.cs" Link="Utilities\NonCopyableAttribute.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\VoidResult.cs" Link="Utilities\VoidResult.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\TestHooks\IExpeditableDelaySource.cs" Link="Utilities\IExpeditableDelaySource.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\Contract.cs" Link="Utilities\Contract.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\Contract.InterpolatedStringHandlers.cs" Link="Utilities\Contract.InterpolatedStringHandlers.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\TaskExtensions.cs" Link="Utilities\TaskExtensions.cs" />
+    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\AsyncLazy.cs" Link="Utilities\AsyncLazy.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\AsyncLazy`1.cs" Link="Utilities\AsyncLazy`1.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\NonReentrantLock.cs" Link="Utilities\NonReentrantLock.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" Link="Utilities\InterpolatedStringHandlerArgumentAttribute.cs" />
@@ -65,7 +67,11 @@
     <Compile Include="..\..\Dependencies\PooledObjects\PooledHashSet.cs" Link="Utilities\PooledHashSet.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+    <PackageReference Include="StreamJsonRpc" />
+    <!-- Due to the limitation of our BindingRedirect generation logic, 
+    add an explicit reference to System.Threading.Tasks.Dataflow to ensure that the correct
+     BindingRedirect is included in the app.config of InteractiveHost.exe -->
+    <PackageReference Include="System.Threading.Tasks.Dataflow" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="InteractiveHostResources.resx" GenerateSource="true" />

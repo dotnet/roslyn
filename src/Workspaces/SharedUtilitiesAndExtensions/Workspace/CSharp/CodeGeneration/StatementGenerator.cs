@@ -8,17 +8,16 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
-{
-    internal static class StatementGenerator
-    {
-        internal static SyntaxList<StatementSyntax> GenerateStatements(IEnumerable<SyntaxNode> statements)
-            => statements.OfType<StatementSyntax>().ToSyntaxList();
+namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
-        internal static BlockSyntax GenerateBlock(IMethodSymbol method)
-        {
-            return SyntaxFactory.Block(
-                StatementGenerator.GenerateStatements(CodeGenerationMethodInfo.GetStatements(method)));
-        }
+internal static class StatementGenerator
+{
+    internal static SyntaxList<StatementSyntax> GenerateStatements(IEnumerable<SyntaxNode> statements)
+        => [.. statements.OfType<StatementSyntax>()];
+
+    internal static BlockSyntax GenerateBlock(IMethodSymbol method)
+    {
+        return SyntaxFactory.Block(
+            StatementGenerator.GenerateStatements(CodeGenerationMethodInfo.GetStatements(method)));
     }
 }

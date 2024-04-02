@@ -147,11 +147,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             Func<int, bool> isOdd = x => x % 2 == 1;
 
-            // BUG:753260 Should this be ArgumentNullException for consistency?
             Assert.Throws<NullReferenceException>(() => default(ImmutableArray<int>).Single(isOdd));
             Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>().Single(isOdd));
             Assert.Equal(1, ImmutableArray.Create<int>(1, 2).Single(isOdd));
             Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>(1, 2, 3).Single(isOdd));
+        }
+
+        [Fact]
+        public void Single_Arg()
+        {
+            Assert.Throws<NullReferenceException>(() => default(ImmutableArray<int>).Single((_, _) => true, 1));
+            Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>().Single((x, a) => x == a, 1));
+            Assert.Equal(1, ImmutableArray.Create<int>(1).Single((x, a) => x == a, 1));
+            Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>(1, 1).Single((x, a) => x == a, 1));
+
+            Assert.Throws<NullReferenceException>(() => default(ImmutableArray<int>).Single((x, a) => x % a == 1, 2));
+            Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>().Single((x, a) => x % a == 1, 2));
+            Assert.Equal(1, ImmutableArray.Create<int>(1, 2).Single((x, a) => x % a == 1, 2));
+            Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>(1, 2, 3).Single((x, a) => x % a == 1, 2));
         }
 
         [Fact]
@@ -507,6 +520,29 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             // Trying to cast from base to derived. "As" should return null (default)
             Assert.True(new C[] { new C() }.AsImmutableOrNull().As<D>().IsDefault);
+        }
+
+        [Theory]
+        [InlineData(new int[0], new[] { 1 })]
+        [InlineData(new[] { 1 }, new[] { 3, 1, 1, 3, 4 })]
+        [InlineData(new[] { 3, 1 }, new[] { 1, 2, 2, 3, 4 })]
+        [InlineData(new[] { 3, 3, 3 }, new[] { 1, 2, 3, 4 })]
+        [InlineData(new[] { 2, 4, 1, 2 }, new[] { 1, 2, 3, 4 })]
+        public void IsSubsetOf_Strict(int[] array, int[] other)
+        {
+            Assert.True(array.ToImmutableArray().IsSubsetOf(other.ToImmutableArray()));
+            Assert.False(other.ToImmutableArray().IsSubsetOf(array.ToImmutableArray()));
+        }
+
+        [Theory]
+        [InlineData(new int[0], new int[0])]
+        [InlineData(new[] { 1 }, new[] { 1 })]
+        [InlineData(new[] { 1, 1 }, new[] { 1, 1, 1, 1 })]
+        [InlineData(new[] { 1, 1, 1 }, new[] { 1, 1 })]
+        public void IsSubsetOf_Equal(int[] array, int[] other)
+        {
+            Assert.True(array.ToImmutableArray().IsSubsetOf(other.ToImmutableArray()));
+            Assert.True(other.ToImmutableArray().IsSubsetOf(array.ToImmutableArray()));
         }
     }
 }

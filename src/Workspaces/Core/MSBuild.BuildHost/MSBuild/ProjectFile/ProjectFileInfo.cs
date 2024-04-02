@@ -122,10 +122,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public ImmutableArray<string> ContentFilePaths { get; }
 
         /// <summary>
-        /// Whether or not we believe this project is an SDK style project.
+        /// The path to the project.assets.json path in obj/.
         /// </summary>
         [DataMember(Order = 16)]
-        public bool IsSdkStyle { get; }
+        public string? ProjectAssetsFilePath { get; }
+
+        /// <summary>
+        /// Any package references defined on the project.
+        /// </summary>
+        [DataMember(Order = 17)]
+        public ImmutableArray<PackageReference> PackageReferences { get; }
 
         public override string ToString()
             => RoslynString.IsNullOrWhiteSpace(TargetFramework)
@@ -142,14 +148,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string? defaultNamespace,
             string? targetFramework,
             string? targetFrameworkIdentifier,
+            string? projectAssetsFilePath,
             ImmutableArray<string> commandLineArgs,
             ImmutableArray<DocumentFileInfo> documents,
             ImmutableArray<DocumentFileInfo> additionalDocuments,
             ImmutableArray<DocumentFileInfo> analyzerConfigDocuments,
             ImmutableArray<ProjectFileReference> projectReferences,
+            ImmutableArray<PackageReference> packageReferences,
             ImmutableArray<string> projectCapabilities,
-            ImmutableArray<string> contentFilePaths,
-            bool isSdkStyle)
+            ImmutableArray<string> contentFilePaths)
         {
             RoslynDebug.Assert(filePath != null);
 
@@ -162,14 +169,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.DefaultNamespace = defaultNamespace;
             this.TargetFramework = targetFramework;
             this.TargetFrameworkIdentifier = targetFrameworkIdentifier;
+            this.ProjectAssetsFilePath = projectAssetsFilePath;
             this.CommandLineArgs = commandLineArgs;
             this.Documents = documents;
             this.AdditionalDocuments = additionalDocuments;
             this.AnalyzerConfigDocuments = analyzerConfigDocuments;
             this.ProjectReferences = projectReferences;
+            this.PackageReferences = packageReferences;
             this.ProjectCapabilities = projectCapabilities;
             this.ContentFilePaths = contentFilePaths;
-            this.IsSdkStyle = isSdkStyle;
         }
 
         public static ProjectFileInfo Create(
@@ -181,14 +189,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string? defaultNamespace,
             string? targetFramework,
             string? targetFrameworkIdentifier,
+            string? projectAssetsFilePath,
             ImmutableArray<string> commandLineArgs,
             ImmutableArray<DocumentFileInfo> documents,
             ImmutableArray<DocumentFileInfo> additionalDocuments,
             ImmutableArray<DocumentFileInfo> analyzerConfigDocuments,
             ImmutableArray<ProjectFileReference> projectReferences,
+            ImmutableArray<PackageReference> packageReferences,
             ImmutableArray<string> projectCapabilities,
-            ImmutableArray<string> contentFilePaths,
-            bool isSdkStyle)
+            ImmutableArray<string> contentFilePaths)
             => new(
                 isEmpty: false,
                 language,
@@ -199,14 +208,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 defaultNamespace,
                 targetFramework,
                 targetFrameworkIdentifier,
+                projectAssetsFilePath,
                 commandLineArgs,
                 documents,
                 additionalDocuments,
                 analyzerConfigDocuments,
                 projectReferences,
+                packageReferences,
                 projectCapabilities,
-                contentFilePaths,
-                isSdkStyle);
+                contentFilePaths);
 
         public static ProjectFileInfo CreateEmpty(string language, string? filePath)
             => new(
@@ -219,13 +229,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 defaultNamespace: null,
                 targetFramework: null,
                 targetFrameworkIdentifier: null,
-                commandLineArgs: ImmutableArray<string>.Empty,
-                documents: ImmutableArray<DocumentFileInfo>.Empty,
-                additionalDocuments: ImmutableArray<DocumentFileInfo>.Empty,
-                analyzerConfigDocuments: ImmutableArray<DocumentFileInfo>.Empty,
-                projectReferences: ImmutableArray<ProjectFileReference>.Empty,
-                projectCapabilities: ImmutableArray<string>.Empty,
-                contentFilePaths: ImmutableArray<string>.Empty,
-                isSdkStyle: false);
+                projectAssetsFilePath: null,
+                commandLineArgs: [],
+                documents: [],
+                additionalDocuments: [],
+                analyzerConfigDocuments: [],
+                projectReferences: [],
+                packageReferences: [],
+                projectCapabilities: [],
+                contentFilePaths: []);
     }
 }

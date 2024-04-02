@@ -32,6 +32,11 @@
         <target state="translated">Generar suscripción de eventos</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generating_event">
+        <source>Generating event...</source>
+        <target state="translated">Generando evento...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Grow_raw_string">
         <source>Grow raw string</source>
         <target state="translated">Aumentar cadena sin formato</target>
@@ -45,11 +50,6 @@
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
         <target state="translated">     (Presione TAB para insertar)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">Sangría inteligente</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_raw_string">

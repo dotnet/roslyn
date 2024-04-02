@@ -11,48 +11,47 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
+namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf;
+
+internal abstract class AbstractConvertTypeOfToNameOfCodeFixProvider<
+    TMemberAccessExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
+    where TMemberAccessExpressionSyntax : SyntaxNode
 {
-    internal abstract class AbstractConvertTypeOfToNameOfCodeFixProvider<
-        TMemberAccessExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
-        where TMemberAccessExpressionSyntax : SyntaxNode
+    protected abstract string GetCodeFixTitle();
+
+    protected abstract SyntaxNode GetSymbolTypeExpression(SemanticModel model, TMemberAccessExpressionSyntax node, CancellationToken cancellationToken);
+
+    public sealed override ImmutableArray<string> FixableDiagnosticIds
+       => [IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId];
+
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        protected abstract string GetCodeFixTitle();
+        var title = GetCodeFixTitle();
+        RegisterCodeFix(context, title, title);
+        return Task.CompletedTask;
+    }
 
-        protected abstract SyntaxNode GetSymbolTypeExpression(SemanticModel model, TMemberAccessExpressionSyntax node, CancellationToken cancellationToken);
-
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-           => ImmutableArray.Create(IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId);
-
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected override async Task FixAllAsync(
+        Document document, ImmutableArray<Diagnostic> diagnostics,
+        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    {
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        foreach (var diagnostic in diagnostics)
         {
-            var title = GetCodeFixTitle();
-            RegisterCodeFix(context, title, title);
-            return Task.CompletedTask;
-        }
+            if (editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true) is not TMemberAccessExpressionSyntax node)
+                continue;
 
-        protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            foreach (var diagnostic in diagnostics)
-            {
-                if (editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true) is not TMemberAccessExpressionSyntax node)
-                    continue;
-
-                ConvertTypeOfToNameOf(semanticModel, editor, node, cancellationToken);
-            }
+            ConvertTypeOfToNameOf(semanticModel, editor, node, cancellationToken);
         }
+    }
 
-        /// <Summary>
-        ///  Method converts typeof(...).Name to nameof(...)
-        /// </Summary>
-        public void ConvertTypeOfToNameOf(SemanticModel semanticModel, SyntaxEditor editor, TMemberAccessExpressionSyntax nodeToReplace, CancellationToken cancellationToken)
-        {
-            var typeExpression = GetSymbolTypeExpression(semanticModel, nodeToReplace, cancellationToken);
-            var nameOfSyntax = editor.Generator.NameOfExpression(typeExpression);
-            editor.ReplaceNode(nodeToReplace, nameOfSyntax);
-        }
+    /// <Summary>
+    ///  Method converts typeof(...).Name to nameof(...)
+    /// </Summary>
+    public void ConvertTypeOfToNameOf(SemanticModel semanticModel, SyntaxEditor editor, TMemberAccessExpressionSyntax nodeToReplace, CancellationToken cancellationToken)
+    {
+        var typeExpression = GetSymbolTypeExpression(semanticModel, nodeToReplace, cancellationToken);
+        var nameOfSyntax = editor.Generator.NameOfExpression(typeExpression);
+        editor.ReplaceNode(nodeToReplace, nameOfSyntax);
     }
 }

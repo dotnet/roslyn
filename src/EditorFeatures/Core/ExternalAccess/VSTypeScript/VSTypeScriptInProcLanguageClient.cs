@@ -13,82 +13,70 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
 using Newtonsoft.Json;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
+
+/// <summary>
+/// Language client to handle TS LSP requests.
+/// Allows us to move features to LSP without being blocked by TS as well
+/// as ensures that TS LSP features use correct solution snapshots.
+/// </summary>
+[ContentType(ContentTypeNames.TypeScriptContentTypeName)]
+[ContentType(ContentTypeNames.JavaScriptContentTypeName)]
+[Export(typeof(ILanguageClient))]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, true)]
+internal class VSTypeScriptInProcLanguageClient(
+    [Import(AllowDefault = true)] IVSTypeScriptCapabilitiesProvider? typeScriptCapabilitiesProvider,
+    VSTypeScriptLspServiceProvider lspServiceProvider,
+    IGlobalOptionService globalOptions,
+    ILspServiceLoggerFactory lspLoggerFactory,
+    IThreadingContext threadingContext,
+    ExportProvider exportProvider) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
 {
-    /// <summary>
-    /// Language client to handle TS LSP requests.
-    /// Allows us to move features to LSP without being blocked by TS as well
-    /// as ensures that TS LSP features use correct solution snapshots.
-    /// </summary>
-    [ContentType(ContentTypeNames.TypeScriptContentTypeName)]
-    [ContentType(ContentTypeNames.JavaScriptContentTypeName)]
-    [Export(typeof(ILanguageClient))]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-    internal class VSTypeScriptInProcLanguageClient(
-        [Import(AllowDefault = true)] IVSTypeScriptCapabilitiesProvider? typeScriptCapabilitiesProvider,
-        VSTypeScriptLspServiceProvider lspServiceProvider,
-        IGlobalOptionService globalOptions,
-        ILspServiceLoggerFactory lspLoggerFactory,
-        IThreadingContext threadingContext,
-        ExportProvider exportProvider) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
+    private readonly IVSTypeScriptCapabilitiesProvider? _typeScriptCapabilitiesProvider = typeScriptCapabilitiesProvider;
+
+    protected override ImmutableArray<string> SupportedLanguages => [InternalLanguageNames.TypeScript];
+
+    public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
     {
-        private readonly IVSTypeScriptCapabilitiesProvider? _typeScriptCapabilitiesProvider = typeScriptCapabilitiesProvider;
+        var serverCapabilities = GetTypeScriptServerCapabilities(clientCapabilities);
 
-        protected override ImmutableArray<string> SupportedLanguages => ImmutableArray.Create(InternalLanguageNames.TypeScript);
-
-        public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
+        serverCapabilities.TextDocumentSync = new TextDocumentSyncOptions
         {
-            var serverCapabilities = GetTypeScriptServerCapabilities(clientCapabilities);
+            Change = TextDocumentSyncKind.Incremental,
+            OpenClose = true,
+        };
 
-            serverCapabilities.TextDocumentSync = new TextDocumentSyncOptions
-            {
-                Change = TextDocumentSyncKind.Incremental,
-                OpenClose = true,
-            };
+        serverCapabilities.ProjectContextProvider = true;
 
-            serverCapabilities.ProjectContextProvider = true;
+        serverCapabilities.SupportsDiagnosticRequests = true;
+        return serverCapabilities;
+    }
 
-            var isPullDiagnostics = GlobalOptions.IsLspPullDiagnostics();
-            if (isPullDiagnostics)
-            {
-                serverCapabilities.SupportsDiagnosticRequests = true;
-            }
+    public override bool ShowNotificationOnInitializeFailed => true;
 
-            return serverCapabilities;
+    public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.RoslynTypeScriptLspServer;
+
+    private VSInternalServerCapabilities GetTypeScriptServerCapabilities(ClientCapabilities clientCapabilities)
+    {
+        if (_typeScriptCapabilitiesProvider != null)
+        {
+            var serializedClientCapabilities = JsonConvert.SerializeObject(clientCapabilities);
+            var serializedServerCapabilities = _typeScriptCapabilitiesProvider.GetServerCapabilities(serializedClientCapabilities);
+            var typeScriptServerCapabilities = JsonConvert.DeserializeObject<VSInternalServerCapabilities>(serializedServerCapabilities);
+            Contract.ThrowIfNull(typeScriptServerCapabilities);
+            return typeScriptServerCapabilities;
         }
-
-        /// <summary>
-        /// When pull diagnostics is enabled, ensure that initialization failures are displayed to the user as
-        /// they will get no diagnostics.  When not enabled we don't show the failure box (failure will still be recorded in the task status center)
-        /// as the failure is not catastrophic.
-        /// </summary>
-        public override bool ShowNotificationOnInitializeFailed => GlobalOptions.IsLspPullDiagnostics();
-
-        public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.RoslynTypeScriptLspServer;
-
-        private VSInternalServerCapabilities GetTypeScriptServerCapabilities(ClientCapabilities clientCapabilities)
+        else
         {
-            if (_typeScriptCapabilitiesProvider != null)
-            {
-                var serializedClientCapabilities = JsonConvert.SerializeObject(clientCapabilities);
-                var serializedServerCapabilities = _typeScriptCapabilitiesProvider.GetServerCapabilities(serializedClientCapabilities);
-                var typeScriptServerCapabilities = JsonConvert.DeserializeObject<VSInternalServerCapabilities>(serializedServerCapabilities);
-                Contract.ThrowIfNull(typeScriptServerCapabilities);
-                return typeScriptServerCapabilities;
-            }
-            else
-            {
-                return new VSInternalServerCapabilities();
-            }
+            return new VSInternalServerCapabilities();
         }
     }
 }

@@ -184,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 namedStringArguments = builder.ToImmutableAndFree()
             End If
 
-            Return New SynthesizedAttributeData(constructorSymbol, arguments, namedStringArguments)
+            Return New SynthesizedAttributeData(Me, constructorSymbol, arguments, namedStringArguments)
         End Function
 
         Private Shared Function ReturnNothingOrThrowIfAttributeNonOptional(constructor As WellKnownMember, Optional isOptionalUse As Boolean = False) As SynthesizedAttributeData
@@ -202,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          constructor.GetUseSiteInfo().DiagnosticInfo Is Nothing AndAlso
                          constructor.ContainingType.GetUseSiteInfo().DiagnosticInfo Is Nothing)
 
-            Return SynthesizedAttributeData.Create(constructor, WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor)
+            Return SynthesizedAttributeData.Create(Me, constructor, WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor)
         End Function
 
         Friend Function SynthesizeStateMachineAttribute(method As MethodSymbol, compilationState As ModuleCompilationState) As SynthesizedAttributeData
@@ -323,9 +323,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim descriptor = WellKnownMembers.GetDescriptor(member)
-                Dim type = If(descriptor.DeclaringTypeId <= SpecialType.Count,
-                              GetSpecialType(CType(descriptor.DeclaringTypeId, SpecialType)),
-                              GetWellKnownType(CType(descriptor.DeclaringTypeId, WellKnownType)))
+                Dim type = If(descriptor.IsSpecialTypeMember,
+                              GetSpecialType(descriptor.DeclaringSpecialType),
+                              GetWellKnownType(descriptor.DeclaringWellKnownType))
 
                 Dim result As Symbol = Nothing
 
@@ -675,7 +675,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Protected Overrides Function MatchTypeToTypeId(type As TypeSymbol, typeId As Integer) As Boolean
-                Return type.SpecialType = typeId
+                Return CInt(type.ExtendedSpecialType) = typeId
             End Function
         End Class
 

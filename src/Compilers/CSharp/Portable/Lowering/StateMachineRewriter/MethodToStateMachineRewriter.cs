@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The set of local variables and parameters that were hoisted and need a proxy.
         /// </summary>
-        private readonly Roslyn.Utilities.IReadOnlySet<Symbol> _hoistedVariables;
+        private readonly IReadOnlySet<Symbol> _hoistedVariables;
 
         private readonly SynthesizedLocalOrdinalsDispenser _synthesizedLocalOrdinals;
         private int _nextFreeHoistedLocalSlot;
@@ -102,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol originalMethod,
             FieldSymbol state,
             FieldSymbol? instanceIdField,
-            Roslyn.Utilities.IReadOnlySet<Symbol> hoistedVariables,
+            IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
@@ -188,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return OriginalMethod.ContainingType; }
         }
 
-        internal Roslyn.Utilities.IReadOnlySet<Symbol> HoistedVariables
+        internal IReadOnlySet<Symbol> HoistedVariables
         {
             get
             {
@@ -440,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type.IsReferenceType || type.TypeKind == TypeKind.TypeParameter) return true; // type parameter or reference type
             if (type.TypeKind != TypeKind.Struct) return false; // enums, etc
             if (type.SpecialType == SpecialType.System_TypedReference) return true;
-            if (type.SpecialType != SpecialType.None) return false; // int, etc
+            if (type.SpecialType.CanOptimizeBehavior()) return false; // int, etc
             if (!type.IsFromCompilation(this.CompilationState.ModuleBuilderOpt.Compilation)) return true; // perhaps from ref assembly
             foreach (var f in _emptyStructTypeCache.GetStructInstanceFields(type))
             {
@@ -672,8 +671,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Editing await expression is not allowed. Thus all spilled fields will be present in the previous state machine.
                         // However, it may happen that the type changes, in which case we need to allocate a new slot.
                         int slotIndex;
-                        if (slotAllocatorOpt == null ||
-                            !slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(
+                        if (slotAllocator == null ||
+                            !slotAllocator.TryGetPreviousHoistedLocalSlotIndex(
                                 awaitSyntaxOpt,
                                 F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics.DiagnosticBag),
                                 kind,

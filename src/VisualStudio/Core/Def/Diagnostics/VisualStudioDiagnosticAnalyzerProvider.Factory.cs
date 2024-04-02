@@ -12,49 +12,48 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Shell;
 using System.Threading;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
+
+internal partial class VisualStudioDiagnosticAnalyzerProvider
 {
-    internal partial class VisualStudioDiagnosticAnalyzerProvider
+    [Export(typeof(IVisualStudioDiagnosticAnalyzerProviderFactory)), Shared]
+    internal sealed class Factory : IVisualStudioDiagnosticAnalyzerProviderFactory
     {
-        [Export(typeof(IVisualStudioDiagnosticAnalyzerProviderFactory)), Shared]
-        internal sealed class Factory : IVisualStudioDiagnosticAnalyzerProviderFactory
+        private readonly IThreadingContext _threadingContext;
+        private readonly IServiceProvider _serviceProvider;
+
+        private VisualStudioDiagnosticAnalyzerProvider? _lazyProvider;
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public Factory(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
         {
-            private readonly IThreadingContext _threadingContext;
-            private readonly IServiceProvider _serviceProvider;
+            _threadingContext = threadingContext;
+            _serviceProvider = serviceProvider;
+        }
 
-            private VisualStudioDiagnosticAnalyzerProvider? _lazyProvider;
+        public async Task<VisualStudioDiagnosticAnalyzerProvider> GetOrCreateProviderAsync(CancellationToken cancellationToken)
+        {
+            // the following code requires UI thread:
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
+            if (_lazyProvider != null)
             {
-                _threadingContext = threadingContext;
-                _serviceProvider = serviceProvider;
+                return _lazyProvider;
             }
 
-            public async Task<VisualStudioDiagnosticAnalyzerProvider> GetOrCreateProviderAsync(CancellationToken cancellationToken)
-            {
-                // the following code requires UI thread:
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var dte = (EnvDTE.DTE)_serviceProvider.GetService(typeof(EnvDTE.DTE));
 
-                if (_lazyProvider != null)
-                {
-                    return _lazyProvider;
-                }
+            // Microsoft.VisualStudio.ExtensionManager is non-versioned, so we need to dynamically load it, depending on the version of VS we are running on
+            // this will allow us to build once and deploy on different versions of VS SxS.
+            var vsDteVersion = Version.Parse(dte.Version.Split(' ')[0]); // DTE.Version is in the format of D[D[.D[D]]][ (?+)], so we need to split out the version part and check for uninitialized Major/Minor below
 
-                var dte = (EnvDTE.DTE)_serviceProvider.GetService(typeof(EnvDTE.DTE));
+            var assembly = Assembly.Load($"Microsoft.VisualStudio.ExtensionManager, Version={(vsDteVersion.Major == -1 ? 0 : vsDteVersion.Major)}.{(vsDteVersion.Minor == -1 ? 0 : vsDteVersion.Minor)}.0.0, PublicKeyToken=b03f5f7f11d50a3a");
+            var typeIExtensionContent = assembly.GetType("Microsoft.VisualStudio.ExtensionManager.IExtensionContent");
+            var type = assembly.GetType("Microsoft.VisualStudio.ExtensionManager.SVsExtensionManager");
+            var extensionManager = _serviceProvider.GetService(type);
 
-                // Microsoft.VisualStudio.ExtensionManager is non-versioned, so we need to dynamically load it, depending on the version of VS we are running on
-                // this will allow us to build once and deploy on different versions of VS SxS.
-                var vsDteVersion = Version.Parse(dte.Version.Split(' ')[0]); // DTE.Version is in the format of D[D[.D[D]]][ (?+)], so we need to split out the version part and check for uninitialized Major/Minor below
-
-                var assembly = Assembly.Load($"Microsoft.VisualStudio.ExtensionManager, Version={(vsDteVersion.Major == -1 ? 0 : vsDteVersion.Major)}.{(vsDteVersion.Minor == -1 ? 0 : vsDteVersion.Minor)}.0.0, PublicKeyToken=b03f5f7f11d50a3a");
-                var typeIExtensionContent = assembly.GetType("Microsoft.VisualStudio.ExtensionManager.IExtensionContent");
-                var type = assembly.GetType("Microsoft.VisualStudio.ExtensionManager.SVsExtensionManager");
-                var extensionManager = _serviceProvider.GetService(type);
-
-                return _lazyProvider = new VisualStudioDiagnosticAnalyzerProvider(extensionManager, typeIExtensionContent);
-            }
+            return _lazyProvider = new VisualStudioDiagnosticAnalyzerProvider(extensionManager, typeIExtensionContent);
         }
     }
 }

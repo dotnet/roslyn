@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable RSEXPERIMENTAL001 // Internal use of experimental API
 #nullable disable
 
 using System;
@@ -35,27 +36,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly BinderFactory _binderFactory;
         private Func<CSharpSyntaxNode, MemberSemanticModel> _createMemberModelFunction;
-        private readonly bool _ignoresAccessibility;
+        private readonly SemanticModelOptions _options;
         private ScriptLocalScopeBinder.Labels _globalStatementLabels;
 
         private static readonly Func<CSharpSyntaxNode, bool> s_isMemberDeclarationFunction = IsMemberDeclaration;
 
-#nullable enable
-        internal SyntaxTreeSemanticModel(CSharpCompilation compilation, SyntaxTree syntaxTree, bool ignoreAccessibility = false)
+        internal SyntaxTreeSemanticModel(CSharpCompilation compilation, SyntaxTree syntaxTree, SemanticModelOptions options)
         {
             _compilation = compilation;
             _syntaxTree = syntaxTree;
-            _ignoresAccessibility = ignoreAccessibility;
+            _options = options;
 
-            _binderFactory = compilation.GetBinderFactory(SyntaxTree, ignoreAccessibility);
+            _binderFactory = compilation.GetBinderFactory(SyntaxTree, (options & SemanticModelOptions.IgnoreAccessibility) != 0);
         }
 
-        internal SyntaxTreeSemanticModel(CSharpCompilation parentCompilation, SyntaxTree parentSyntaxTree, SyntaxTree speculatedSyntaxTree, bool ignoreAccessibility)
+        internal SyntaxTreeSemanticModel(CSharpCompilation parentCompilation, SyntaxTree parentSyntaxTree, SyntaxTree speculatedSyntaxTree, SemanticModelOptions options)
         {
             _compilation = parentCompilation;
             _syntaxTree = speculatedSyntaxTree;
-            _binderFactory = _compilation.GetBinderFactory(parentSyntaxTree, ignoreAccessibility);
-            _ignoresAccessibility = ignoreAccessibility;
+            _binderFactory = _compilation.GetBinderFactory(parentSyntaxTree, ignoreAccessibility: (options & SemanticModelOptions.IgnoreAccessibility) != 0);
+            _options = options;
         }
 
         /// <summary>
@@ -91,13 +91,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal SemanticModelOptions Options => _options;
+
         /// <summary>
         /// Returns true if this is a SemanticModel that ignores accessibility rules when answering semantic questions.
         /// </summary>
         public override bool IgnoresAccessibility
         {
-            get { return _ignoresAccessibility; }
+            get { return (_options & SemanticModelOptions.IgnoreAccessibility) != 0; }
         }
+
+        public override bool NullableAnalysisIsDisabled => (_options & SemanticModelOptions.DisableNullableAnalysis) != 0;
 
         private void VerifySpanForGetDiagnostics(TextSpan? span)
         {
@@ -1472,7 +1476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="declarationSyntax">The syntax node that declares a member.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The symbol that was declared.</returns>
-        public override ISymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        public override IMethodSymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);
 
@@ -2514,22 +2518,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool ShouldSkipSyntaxNodeAnalysis(SyntaxNode node, ISymbol containingSymbol)
         {
-            if (containingSymbol.Kind is SymbolKind.Method)
+            switch (containingSymbol.Kind)
             {
-                switch (node)
-                {
-                    case TypeDeclarationSyntax:
-                        // Skip the topmost type declaration syntax node when analyzing primary constructor
-                        // to avoid duplicate syntax node callbacks.
-                        // We will analyze this node when analyzing the type declaration type symbol.
-                        return true;
+                case SymbolKind.Method:
+                    switch (node)
+                    {
+                        case TypeDeclarationSyntax:
+                            // Skip the topmost type declaration syntax node when analyzing primary constructor
+                            // to avoid duplicate syntax node callbacks.
+                            // We will analyze this node when analyzing the type declaration type symbol.
+                            return true;
 
-                    case CompilationUnitSyntax:
-                        // Skip compilation unit syntax node when analyzing synthesized top level entry point method
+                        case CompilationUnitSyntax:
+                            // Skip compilation unit syntax node when analyzing synthesized top level entry point method
+                            // to avoid duplicate syntax node callbacks.
+                            // We will analyze this node when analyzing the global namespace symbol.
+                            return true;
+
+                        case BaseListSyntax:
+                            // Skip the base list syntax node when analyzing primary constructor
+                            // to avoid duplicate syntax node callbacks.
+                            // We will analyze this node when analyzing the type declaration type symbol.
+                            return true;
+                    }
+
+                    break;
+
+                case SymbolKind.NamedType:
+                    if (node is PrimaryConstructorBaseTypeSyntax)
+                    {
+                        // Skip the PrimaryConstructorBaseTypeSyntax when analyzing type declaration symbol
                         // to avoid duplicate syntax node callbacks.
-                        // We will analyze this node when analyzing the global namespace symbol.
+                        // We will analyze this node when analyzing the primary constructor symbol.
                         return true;
-                }
+                    }
+
+                    break;
             }
 
             return false;

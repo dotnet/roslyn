@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using static Roslyn.Test.Utilities.TestMetadata;
 
@@ -7091,6 +7092,9 @@ struct S
     {
         this.value += value;
     }
+    void Add(string value)
+    {
+    }
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
@@ -7161,6 +7165,9 @@ struct S
     void Add(int value)
     {
         this.value += value;
+    }
+    void Add(string value)
+    {
     }
 }
 ";
@@ -18360,12 +18367,40 @@ class A
         // CS1970ERR_ExplicitDynamicAttr --> AttributeTests_Dynamic.ExplicitDynamicAttribute
 
         [Fact]
-        public void CS1971ERR_NoDynamicPhantomOnBase()
+        public void CS1971ERR_NoDynamicPhantomOnBase_01()
+        {
+            const string text = @"
+public class B
+{
+    public virtual void M(object o) { System.Console.Write(""Called""); }
+}
+public class D : B
+{
+    public override void M(object o) {}
+
+    void N(dynamic d)
+    {
+        base.M(d);
+    }
+
+    static void Main()
+    {
+        new D().N(1);
+    }
+}
+";
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CS1971ERR_NoDynamicPhantomOnBase_02()
         {
             const string text = @"
 public class B
 {
     public virtual void M(object o) {}
+    public void M(int o) {}
 }
 public class D : B
 {
@@ -18379,16 +18414,16 @@ public class D : B
 ";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
-                // (12,9): error CS1971: The call to method 'M' needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.
+                // (13,9): error CS1971: The call to method 'M' needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.
                 //         base.M(d);
                 Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBase, "base.M(d)").WithArguments("M"));
         }
 
         [Fact]
-        public void CS1972ERR_NoDynamicPhantomOnBaseIndexer()
+        public void CS1972ERR_NoDynamicPhantomOnBaseIndexer_01()
         {
             const string text = @"
-public class B
+public partial class B
 {
     public string this[int index]
     {
@@ -18403,6 +18438,13 @@ public class D : B
         int s = base[(dynamic)o];
     }
 }
+public partial class B
+{
+    public string this[long index]
+    {
+        get { return ""You passed "" + index; }
+    }
+}
 ";
 
             var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
@@ -18413,7 +18455,92 @@ public class D : B
         }
 
         [Fact]
-        public void CS1973ERR_BadArgTypeDynamicExtension()
+        public void CS1972ERR_NoDynamicPhantomOnBaseIndexer_02()
+        {
+            const string text = @"
+public class B
+{
+    public string this[int index]
+    {
+        get { return ""You passed "" + index; }
+    }
+}
+public class D : B
+{
+    static void Main()
+    {
+        D d = new D();
+        System.Console.Write(d.M(1));
+    }
+
+    public string M(object o)
+    {
+        return base[(dynamic)o];
+    }
+}
+";
+
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "You passed 1").VerifyDiagnostics();
+
+            verifier.VerifyIL("D.M",
+@"
+{
+  // Code size       78 (0x4e)
+  .maxstack  4
+  .locals init (string V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> D.<>o__1.<>p__0""
+  IL_0007:  brfalse.s  IL_000b
+  IL_0009:  br.s       IL_002f
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldtoken    ""int""
+  IL_0011:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0016:  ldtoken    ""D""
+  IL_001b:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0020:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
+  IL_0025:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_002a:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> D.<>o__1.<>p__0""
+  IL_002f:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> D.<>o__1.<>p__0""
+  IL_0034:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target""
+  IL_0039:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> D.<>o__1.<>p__0""
+  IL_003e:  ldarg.1
+  IL_003f:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
+  IL_0044:  call       ""string B.this[int].get""
+  IL_0049:  stloc.0
+  IL_004a:  br.s       IL_004c
+  IL_004c:  ldloc.0
+  IL_004d:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CS1973ERR_BadArgTypeDynamicExtension_01()
+        {
+            const string text = @"
+class Program
+{
+    static void Main()
+    {
+        dynamic d = 1;
+        B b = new B();
+        b.Goo(d);
+    }
+}
+public class B { }
+static public class Extension
+{
+    public static void Goo(this B b, int x) { System.Console.Write(""Called""); }
+}";
+
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "Called").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CS1973ERR_BadArgTypeDynamicExtension_02()
         {
             const string text = @"
 class Program
@@ -18429,11 +18556,12 @@ public class B { }
 static public class Extension
 {
     public static void Goo(this B b, int x) { }
+    public static void Goo(this B b, long x) { }
 }";
 
             var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
-// (8,9): error CS1973: 'B' has no applicable method named 'Goo' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
+// (9,9): error CS1973: 'B' has no applicable method named 'Goo' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
 //         b.Goo(d);
 Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "b.Goo(d)").WithArguments("B", "Goo"));
         }
@@ -18444,10 +18572,10 @@ Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "b.Goo(d)").WithArguments("
             var text = @"
 class A
 {
-    public A(int x)
-    {
+    public A(int x) {}
 
-    }
+    public A(long x) {}
+
 }
 class B : A
 {
@@ -18472,6 +18600,8 @@ class B
     { }
 
     public B(int a, int b)
+    { }
+    public B(long a, int b)
     { }
 }
 ";
@@ -18535,7 +18665,11 @@ class C
         new C(delegate { }, y);
     }
  
-    public C(Action a, Action y)
+    public C(Action a, int y)
+    {
+    }
+ 
+    public C(Action a, long y)
     {
     }
 }";
@@ -18573,15 +18707,27 @@ unsafe  class C : IEnumerable<object>
 
     public static void SomeStaticMethod() {}
 
-    public void Add(dynamic d, int x, int* ptr)
+    public void Add(int d, int x, int* ptr)
     {
     }
 
-    public void Add(dynamic d, RuntimeArgumentHandle x)
+    public void Add(long d, int x, int* ptr)
     {
     }
 
-    public void Add(dynamic d, Action f)
+    public void Add(int d, RuntimeArgumentHandle x)
+    {
+    }
+
+    public void Add(long d, RuntimeArgumentHandle x)
+    {
+    }
+
+    public void Add(int d, Action f)
+    {
+    }
+
+    public void Add(long d, Action f)
     {
     }
 
@@ -18612,7 +18758,7 @@ unsafe  class C : IEnumerable<object>
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(18, 18),
                 // (19,13): error CS1950: The best overloaded Add method 'C.Add(dynamic, RuntimeArgumentHandle)' for the collection initializer has some invalid arguments
                 //             { d, GetEnumerator },
-                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "{ d, GetEnumerator }").WithArguments("C.Add(dynamic, System.RuntimeArgumentHandle)").WithLocation(19, 13),
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "{ d, GetEnumerator }").WithArguments("C.Add(int, System.RuntimeArgumentHandle)").WithLocation(19, 13),
                 // (19,18): error CS1503: Argument 2: cannot convert from 'method group' to 'RuntimeArgumentHandle'
                 //             { d, GetEnumerator },
                 Diagnostic(ErrorCode.ERR_BadArgType, "GetEnumerator").WithArguments("2", "method group", "System.RuntimeArgumentHandle").WithLocation(19, 18),
@@ -22529,7 +22675,7 @@ public class List<T>
         }
 
         [Fact]
-        public void CS1974WRN_DynamicDispatchToConditionalMethod()
+        public void CS1974WRN_DynamicDispatchToConditionalMethod_01()
         {
             var text = @"
 using System.Diagnostics;
@@ -22546,7 +22692,7 @@ class Myclass
 
     [Conditional(""DEBUG"")]
     static void Goo(string d) {}
-
+    static void Goo(long d) {}
     [Conditional(""DEBUG"")]
     static void Bar(int x, int y) {}
     
@@ -22558,6 +22704,35 @@ class Myclass
 // (9,9): warning CS1974: The dynamically dispatched call to method 'Goo' may fail at runtime because one or more applicable overloads are conditional methods.
 //         Goo(d); 
 Diagnostic(ErrorCode.WRN_DynamicDispatchToConditionalMethod, "Goo(d)").WithArguments("Goo"));
+        }
+
+        [Fact]
+        public void CS1974WRN_DynamicDispatchToConditionalMethod_02()
+        {
+            var text = @"
+using System.Diagnostics;
+class Myclass
+{
+    static void Main()
+    {
+        dynamic d = null;
+        // No warning because Goo is statically bound.
+        Goo(d); 
+        // No warning; only the two-parameter Bar is conditional.
+        Bar(d);
+    }
+
+    [Conditional(""DEBUG"")]
+    static void Goo(string d) {}
+
+    [Conditional(""DEBUG"")]
+    static void Bar(int x, int y) {}
+    
+    static void Bar(string x) {}
+}";
+
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -24832,6 +25007,258 @@ unsafe class C<T, U, V, X, Y, Z> where T : byte*
                 // (12,20): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
                 //             return (1, 2);
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "(1, 2)").WithArguments("lambda expression").WithLocation(12, 20));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68110")]
+        public void DefaultSyntaxValueReentrancy_01()
+        {
+            var source =
+                """
+                #nullable enable
+
+                [A(3, X = 6)]
+                public interface A
+                {
+                    public int X { get; set; }
+
+                    public void M(int x, A a = new A()) { }
+                }
+                """;
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+
+            var a = compilation.GlobalNamespace.GetTypeMember("A").GetMember<MethodSymbol>("M");
+
+            Assert.Null(a.Parameters[1].ExplicitDefaultValue);
+            Assert.True(a.Parameters[1].HasExplicitDefaultValue);
+
+            compilation.VerifyDiagnostics(
+                // (3,2): error CS0653: Cannot apply attribute class 'A' because it is abstract
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_AbstractAttributeClass, "A").WithArguments("A").WithLocation(3, 2),
+                // (8,32): error CS0144: Cannot create an instance of the abstract type or interface 'A'
+                //     public void M(int x, A a = new A()) { }
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new A()").WithArguments("A").WithLocation(8, 32));
+        }
+
+        [Fact]
+        public void GetDiagnosticsWithFilter_TypeLevelFilter()
+        {
+            var source = """
+                class A<TA>
+                {
+                    public void MA<TMA>()
+                    {
+                    }
+                }
+
+                class B<TB>
+                {
+                    [Unbound]
+                    public void MB<TMB>([Unbound] int i)
+                    {
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+
+            comp.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true,
+                symbolFilter: symbol => symbol switch
+                {
+                    NamedTypeSymbol { Name: not "A" } => false,
+                    // Parameters cannot be filtered out. If a method is completed, so are its parameters
+                    ParameterSymbol or TypeParameterSymbol => throw ExceptionUtilities.Unreachable(),
+                    _ => true
+                }, CancellationToken.None)
+                .Verify();
+
+            Assert.False(comp.SourceAssembly.HasComplete(CompletionPart.AssemblySymbolAll));
+            Assert.True(comp.SourceModule.GlobalNamespace.GetMembersUnordered().Single(m => m.Name == "A").HasComplete(CompletionPart.All));
+            var bSymbol = (SourceNamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembersUnordered().Single(m => m.Name == "B");
+            Assert.False(bSymbol.HasComplete(CompletionPart.MembersCompleted));
+
+            comp.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true, symbolFilter: null, CancellationToken.None)
+                .Verify(
+                    // (10,6): error CS0246: The type or namespace name 'UnboundAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound").WithArguments("UnboundAttribute").WithLocation(10, 6),
+                    // (10,6): error CS0246: The type or namespace name 'Unbound' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound").WithArguments("Unbound").WithLocation(10, 6),
+                    // (11,26): error CS0246: The type or namespace name 'UnboundAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     public void MB<TMB>([Unbound] int i)
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound").WithArguments("UnboundAttribute").WithLocation(11, 26),
+                    // (11,26): error CS0246: The type or namespace name 'Unbound' could not be found (are you missing a using directive or an assembly reference?)
+                    //     public void MB<TMB>([Unbound] int i)
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound").WithArguments("Unbound").WithLocation(11, 26));
+
+            Assert.True(bSymbol.HasComplete(CompletionPart.All));
+            Assert.True(comp.SourceAssembly.HasComplete(CompletionPart.AssemblySymbolAll));
+        }
+
+        [Fact]
+        public void GetDiagnosticsWithFilter_MemberLevelFilter()
+        {
+            var source = """
+                class A<TA>
+                {
+                    [Unbound1]
+                    public void M<TM>([Unbound2] int i)
+                    {
+                    }
+
+                    [Unbound3]
+                    public int Prop { get { } set { } }
+
+                    [Unbound4]
+                    public event System.Action E;
+
+                    [Unbound5]
+                    public int F;
+                }
+
+                enum E
+                {
+                    [Unbound6] E1,
+                    [Unbound7] E2 = Unbound8,
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+
+            comp.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true,
+                symbolFilter: symbol => symbol switch
+                {
+                    NamedTypeSymbol => true,
+                    MethodSymbol => false,
+                    PropertySymbol => false,
+                    SourceEnumConstantSymbol => false,
+                    EventSymbol => false,
+                    FieldSymbol => false,
+                    // Parameters cannot be filtered out. If a method is completed, so are its parameters
+                    ParameterSymbol or TypeParameterSymbol => throw ExceptionUtilities.Unreachable(),
+                    _ => true
+                }, CancellationToken.None)
+                .Verify();
+
+            var aSymbol = (SourceNamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembersUnordered().Single(m => m.Name == "A");
+            Assert.False(comp.SourceAssembly.HasComplete(CompletionPart.AssemblySymbolAll));
+            Assert.False(aSymbol.HasComplete(CompletionPart.MembersCompleted));
+
+            var eSymbol = (SourceNamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembersUnordered().Single(m => m.Name == "E");
+            Assert.False(eSymbol.HasComplete(CompletionPart.MembersCompleted));
+
+            comp.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true, symbolFilter: null, CancellationToken.None)
+                .Verify(
+                    // (3,6): error CS0246: The type or namespace name 'Unbound1Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound1]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound1").WithArguments("Unbound1Attribute").WithLocation(3, 6),
+                    // (3,6): error CS0246: The type or namespace name 'Unbound1' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound1]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound1").WithArguments("Unbound1").WithLocation(3, 6),
+                    // (4,24): error CS0246: The type or namespace name 'Unbound2Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     public void M<TM>([Unbound2] int i)
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound2").WithArguments("Unbound2Attribute").WithLocation(4, 24),
+                    // (4,24): error CS0246: The type or namespace name 'Unbound2' could not be found (are you missing a using directive or an assembly reference?)
+                    //     public void M<TM>([Unbound2] int i)
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound2").WithArguments("Unbound2").WithLocation(4, 24),
+                    // (8,6): error CS0246: The type or namespace name 'Unbound3Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound3]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound3").WithArguments("Unbound3Attribute").WithLocation(8, 6),
+                    // (8,6): error CS0246: The type or namespace name 'Unbound3' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound3]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound3").WithArguments("Unbound3").WithLocation(8, 6),
+                    // (11,6): error CS0246: The type or namespace name 'Unbound4Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound4]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound4").WithArguments("Unbound4Attribute").WithLocation(11, 6),
+                    // (11,6): error CS0246: The type or namespace name 'Unbound4' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound4]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound4").WithArguments("Unbound4").WithLocation(11, 6),
+                    // (14,6): error CS0246: The type or namespace name 'Unbound5Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound5]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound5").WithArguments("Unbound5Attribute").WithLocation(14, 6),
+                    // (14,6): error CS0246: The type or namespace name 'Unbound5' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound5]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound5").WithArguments("Unbound5").WithLocation(14, 6),
+                    // (20,6): error CS0246: The type or namespace name 'Unbound6Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound6] E1,
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound6").WithArguments("Unbound6Attribute").WithLocation(20, 6),
+                    // (20,6): error CS0246: The type or namespace name 'Unbound6' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound6] E1,
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound6").WithArguments("Unbound6").WithLocation(20, 6),
+                    // (21,6): error CS0246: The type or namespace name 'Unbound7Attribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound7] E2 = Unbound8,
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound7").WithArguments("Unbound7Attribute").WithLocation(21, 6),
+                    // (21,6): error CS0246: The type or namespace name 'Unbound7' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [Unbound7] E2 = Unbound8,
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unbound7").WithArguments("Unbound7").WithLocation(21, 6),
+                    // (21,21): error CS0103: The name 'Unbound8' does not exist in the current context
+                    //     [Unbound7] E2 = Unbound8,
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound8").WithArguments("Unbound8").WithLocation(21, 21));
+
+            Assert.True(aSymbol.HasComplete(CompletionPart.All));
+            Assert.True(comp.SourceAssembly.HasComplete(CompletionPart.AssemblySymbolAll));
+        }
+
+        [Fact]
+        public void GetDiagnosticsWithFilter_NamespaceLevelFilter()
+        {
+            var source = """
+                namespace A
+                {
+                    [UnboundA]
+                    class CA
+                    {
+                    }
+                }
+
+                namespace B
+                {
+                    [UnboundB]
+                    class CB
+                    {
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+
+            comp.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true,
+                symbolFilter: symbol => symbol switch
+                {
+                    NamespaceSymbol { Name: "B" } => false,
+                    _ => true
+                }, CancellationToken.None)
+                .Verify(
+                    // (3,6): error CS0246: The type or namespace name 'UnboundAAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [UnboundA]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnboundA").WithArguments("UnboundAAttribute").WithLocation(3, 6),
+                    // (3,6): error CS0246: The type or namespace name 'UnboundA' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [UnboundA]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnboundA").WithArguments("UnboundA").WithLocation(3, 6));
+
+            Assert.False(comp.SourceAssembly.HasComplete(CompletionPart.AssemblySymbolAll));
+            Assert.True(comp.SourceModule.GlobalNamespace.GetMembersUnordered().Single(m => m.Name == "A").HasComplete(CompletionPart.All));
+            var bSymbol = (SourceNamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMembersUnordered().Single(m => m.Name == "B");
+            Assert.False(bSymbol.HasComplete(CompletionPart.MembersCompleted));
+
+            comp.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: true, symbolFilter: null, CancellationToken.None)
+                .Verify(
+                    // (3,6): error CS0246: The type or namespace name 'UnboundAAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [UnboundA]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnboundA").WithArguments("UnboundAAttribute").WithLocation(3, 6),
+                    // (3,6): error CS0246: The type or namespace name 'UnboundA' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [UnboundA]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnboundA").WithArguments("UnboundA").WithLocation(3, 6),
+                    // (11,6): error CS0246: The type or namespace name 'UnboundBAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [UnboundB]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnboundB").WithArguments("UnboundBAttribute").WithLocation(11, 6),
+                    // (11,6): error CS0246: The type or namespace name 'UnboundB' could not be found (are you missing a using directive or an assembly reference?)
+                    //     [UnboundB]
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UnboundB").WithArguments("UnboundB").WithLocation(11, 6));
+
+            Assert.True(bSymbol.HasComplete(CompletionPart.All));
+            Assert.True(comp.SourceAssembly.HasComplete(CompletionPart.AssemblySymbolAll));
         }
     }
 }

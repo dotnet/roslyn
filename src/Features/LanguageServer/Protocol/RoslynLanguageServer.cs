@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             AbstractLspServiceProvider lspServiceProvider,
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            ILspServiceLogger logger,
+            AbstractLspLogger logger,
             HostServices hostServices,
             ImmutableArray<string> supportedLanguages,
             WellKnownLspServerKinds serverKind)
@@ -51,12 +51,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         protected override IRequestExecutionQueue<RequestContext> ConstructRequestExecutionQueue()
         {
             var provider = GetLspServices().GetRequiredService<IRequestExecutionQueueProvider<RequestContext>>();
-            return provider.CreateRequestExecutionQueue(this, _logger, GetHandlerProvider());
+            return provider.CreateRequestExecutionQueue(this, _logger, HandlerProvider);
         }
 
         private ImmutableDictionary<Type, ImmutableArray<Func<ILspServices, object>>> GetBaseServices(
             JsonRpc jsonRpc,
-            ILspServiceLogger logger,
+            AbstractLspLogger logger,
             ICapabilitiesProvider capabilitiesProvider,
             HostServices hostServices,
             WellKnownLspServerKinds serverKind,
@@ -68,23 +68,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             AddBaseService<IClientLanguageServerManager>(clientLanguageServerManager);
             AddBaseService<ILspLogger>(logger);
-            AddBaseService<ILspServiceLogger>(logger);
+            AddBaseService<AbstractLspLogger>(logger);
             AddBaseService<ICapabilitiesProvider>(capabilitiesProvider);
             AddBaseService<ILifeCycleManager>(lifeCycleManager);
             AddBaseService(new ServerInfoProvider(serverKind, supportedLanguages));
-            AddBaseServiceFromFunc<IRequestContextFactory<RequestContext>>((lspServices) => new RequestContextFactory(lspServices));
+            AddBaseServiceFromFunc<AbstractRequestContextFactory<RequestContext>>((lspServices) => new RequestContextFactory(lspServices));
             AddBaseServiceFromFunc<IRequestExecutionQueue<RequestContext>>((_) => GetRequestExecutionQueue());
+            AddBaseServiceFromFunc<AbstractTelemetryService>((lspServices) => new TelemetryService(lspServices));
             AddBaseService<IInitializeManager>(new InitializeManager());
             AddBaseService<IMethodHandler>(new InitializeHandler());
             AddBaseService<IMethodHandler>(new InitializedHandler());
             AddBaseService<IOnInitialized>(this);
+            AddBaseService<ILanguageInfoProvider>(new LanguageInfoProvider());
 
             // In all VS cases, we already have a misc workspace.  Specifically
             // Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MiscellaneousFilesWorkspace.  In
             // those cases, we do not need to add an additional workspace to manage new files we hear about.  So only
             // add the LspMiscellaneousFilesWorkspace for hosts that have not already brought their own.
             if (serverKind == WellKnownLspServerKinds.CSharpVisualBasicLspServer)
-                AddBaseService<LspMiscellaneousFilesWorkspace>(new LspMiscellaneousFilesWorkspace(hostServices));
+                AddBaseServiceFromFunc<LspMiscellaneousFilesWorkspace>(lspServices => new LspMiscellaneousFilesWorkspace(lspServices, hostServices));
 
             return baseServices.ToImmutableDictionary();
 
@@ -95,7 +97,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             void AddBaseServiceFromFunc<T>(Func<ILspServices, object> creatorFunc)
             {
-                var added = baseServices.GetValueOrDefault(typeof(T), ImmutableArray<Func<ILspServices, object>>.Empty).Add(creatorFunc);
+                var added = baseServices.GetValueOrDefault(typeof(T), []).Add(creatorFunc);
                 baseServices[typeof(T)] = added;
             }
         }

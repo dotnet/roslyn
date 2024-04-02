@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
@@ -26,12 +25,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
 {
     public abstract class AbstractToggleCommentTestBase
     {
-        internal abstract AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(TestWorkspace workspace);
+        internal abstract AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(EditorTestWorkspace workspace);
 
-        internal abstract TestWorkspace GetWorkspace(string markup, TestComposition composition);
+        internal abstract EditorTestWorkspace GetWorkspace(string markup, TestComposition composition);
 
         protected void ToggleComment(string markup, string expected)
-            => ToggleCommentMultiple(markup, new string[] { expected });
+            => ToggleCommentMultiple(markup, [expected]);
 
         protected void ToggleCommentMultiple(string markup, string[] expectedText)
         {

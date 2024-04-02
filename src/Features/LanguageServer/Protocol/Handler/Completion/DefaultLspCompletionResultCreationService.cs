@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 {
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                     {
                         CommandIdentifier = CompleteComplexEditCommand,
                         Title = nameof(CompleteComplexEditCommand),
-                        Arguments = new object[] { textDocumentIdentifier.Uri, textEdit, isSnippetString, lspOffset }
+                        Arguments = [textDocumentIdentifier, textEdit, isSnippetString, lspOffset]
                     };
                 }
             }

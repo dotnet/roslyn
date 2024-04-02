@@ -187,7 +187,7 @@ End Class
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545820")>
-        Public Async Function Test_IndexerWithNoRequiredParameters() As Task
+        Public Async Function Test_IndexerWithNoRequiredParameters_01() As Task
             Dim input =
                 <Workspace>
                     <Project Language='C#' AssemblyName='CSharpAssembly1' CommonReferences='true'>
@@ -214,6 +214,51 @@ Class C
     Implements I
  
     Public ReadOnly Property Item(ParamArray y() As Integer) As Integer Implements I.Item
+        Get
+            Throw New NotImplementedException()
+        End Get
+    End Property
+End Class
+                </text>.Value.Trim()
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/72227")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72227")>
+        Public Async Function Test_IndexerWithNoRequiredParameters_02() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language='C#' AssemblyName='CSharpAssembly1' CommonReferences='true'>
+                        <Document FilePath='Test1.cs'>
+using System.Collections.Generic;
+
+public interface I
+{
+    int this[params IEnumerable&lt;int&gt; y] { get; }
+}
+                        </Document>
+                    </Project>
+                    <Project Language='Visual Basic' AssemblyName='VBAssembly1' CommonReferences='true'>
+                        <ProjectReference>CSharpAssembly1</ProjectReference>
+                        <Document>
+Imports System.Collections.Generic
+
+Class C
+    Implements $$I
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+Imports System.Collections.Generic
+
+Class C
+    Implements I
+ 
+    Public ReadOnly Property Item(y As IEnumerable(Of Integer)) As Integer Implements I.Item
         Get
             Throw New NotImplementedException()
         End Get
@@ -251,7 +296,7 @@ End Class
 Class C
     Implements IA
 
-    Public Sub Goo(a1 As Integer, a2 As Integer) Implements IA.Goo
+    Public Sub Goo(a1 As Integer, A2 As Integer) Implements IA.Goo
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -287,7 +332,7 @@ End Class
 Class C
     Implements IA
 
-    Default Public ReadOnly Property Item(a1 As Integer, a2 As Integer) As Integer Implements IA.Item
+    Default Public ReadOnly Property Item(a1 As Integer, A2 As Integer) As Integer Implements IA.Item
         Get
             Throw New NotImplementedException()
         End Get

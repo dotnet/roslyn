@@ -6,16 +6,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+/// <summary>
+/// Returns a <see cref="RemoteHostClient"/> that a user can use to communicate with a remote host (i.e. ServiceHub) 
+/// </summary>
+internal interface IRemoteHostClientProvider : IWorkspaceService
 {
     /// <summary>
-    /// Returns a <see cref="RemoteHostClient"/> that a user can use to communicate with a remote host (i.e. ServiceHub) 
+    /// Get <see cref="RemoteHostClient"/> to current RemoteHost
     /// </summary>
-    internal interface IRemoteHostClientProvider : IWorkspaceService
-    {
-        /// <summary>
-        /// Get <see cref="RemoteHostClient"/> to current RemoteHost
-        /// </summary>
-        Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken);
-    }
+    Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken);
 }

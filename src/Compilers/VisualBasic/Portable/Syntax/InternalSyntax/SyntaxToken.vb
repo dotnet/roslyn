@@ -13,12 +13,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private ReadOnly _trailingTriviaOrTriviaInfo As Object
 
         Friend Class TriviaInfo
-            Implements IObjectWritable
-
-            Shared Sub New()
-                ObjectBinder.RegisterTypeReader(GetType(TriviaInfo), Function(r) New TriviaInfo(r))
-            End Sub
-
             Private Sub New(leadingTrivia As GreenNode, trailingTrivia As GreenNode)
                 Me._leadingTrivia = leadingTrivia
                 Me._trailingTrivia = trailingTrivia
@@ -85,22 +79,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Public _leadingTrivia As GreenNode
             Public _trailingTrivia As GreenNode
-
-            Public Sub New(reader As ObjectReader)
-                Me._leadingTrivia = DirectCast(reader.ReadValue(), GreenNode)
-                Me._trailingTrivia = DirectCast(reader.ReadValue(), GreenNode)
-            End Sub
-
-            Private ReadOnly Property IObjectWritable_ShouldReuseInSerialization As Boolean Implements IObjectWritable.ShouldReuseInSerialization
-                Get
-                    Return ShouldCacheTriviaInfo(_leadingTrivia, _trailingTrivia)
-                End Get
-            End Property
-
-            Public Sub WriteTo(writer As ObjectWriter) Implements IObjectWritable.WriteTo
-                writer.WriteValue(_leadingTrivia)
-                writer.WriteValue(_trailingTrivia)
-            End Sub
         End Class
 
         Protected Sub New(kind As SyntaxKind, text As String, precedingTrivia As GreenNode, followingTrivia As GreenNode)
@@ -163,52 +141,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ClearFlagIfMissing()
         End Sub
 
-        Friend Sub New(reader As ObjectReader)
-            MyBase.New(reader)
-            Me.SetFlags(NodeFlags.IsNotMissing)
-
-            Me._text = reader.ReadString()
-            Me.FullWidth = Me._text.Length
-
-            Me._trailingTriviaOrTriviaInfo = reader.ReadValue()
-
-            Dim info = TryCast(Me._trailingTriviaOrTriviaInfo, TriviaInfo)
-
-            Dim followingTrivia = If(info IsNot Nothing, info._trailingTrivia, TryCast(Me._trailingTriviaOrTriviaInfo, GreenNode))
-            Dim precedingTrivia = If(info IsNot Nothing, info._leadingTrivia, Nothing)
-
-            If followingTrivia IsNot Nothing Then
-                ' Don't propagate NoMissing in Init
-                AdjustFlagsAndWidth(followingTrivia)
-            End If
-
-            If precedingTrivia IsNot Nothing Then
-                ' Don't propagate NoMissing in Init
-                AdjustFlagsAndWidth(precedingTrivia)
-            End If
-
-            ClearFlagIfMissing()
-        End Sub
-
         Private Sub ClearFlagIfMissing()
             If Text.Length = 0 AndAlso Kind <> SyntaxKind.EndOfFileToken AndAlso Kind <> SyntaxKind.EmptyToken Then
                 ' If a token has text then it is not missing.  The only 0 length tokens that are not considered missing are the end of file token because no text exists for this token 
                 ' and the empty token which exists solely so that the empty statement has a token.
                 Me.ClearFlags(NodeFlags.IsNotMissing)
             End If
-        End Sub
-
-        Friend Overrides ReadOnly Property ShouldReuseInSerialization As Boolean
-            Get
-                Return MyBase.ShouldReuseInSerialization AndAlso
-                    Me.FullWidth < Scanner.MAX_CACHED_TOKENSIZE
-            End Get
-        End Property
-
-        Friend Overrides Sub WriteTo(writer As ObjectWriter)
-            MyBase.WriteTo(writer)
-            writer.WriteString(Me._text)
-            writer.WriteValue(Me._trailingTriviaOrTriviaInfo)
         End Sub
 
         Friend ReadOnly Property Text As String

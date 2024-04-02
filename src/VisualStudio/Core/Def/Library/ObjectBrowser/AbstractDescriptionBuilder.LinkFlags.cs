@@ -6,16 +6,15 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser;
+
+internal abstract partial class AbstractDescriptionBuilder
 {
-    internal abstract partial class AbstractDescriptionBuilder
+    [Flags]
+    protected enum LinkFlags
     {
-        [Flags]
-        protected enum LinkFlags
-        {
-            None = 0,
-            ExpandPredefinedTypes = 1 << 1,
-            SplitNamespaceAndType = 1 << 2
-        }
+        None = 0,
+        ExpandPredefinedTypes = 1 << 1,
+        SplitNamespaceAndType = 1 << 2
     }
 }

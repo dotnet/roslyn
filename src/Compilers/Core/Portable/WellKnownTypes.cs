@@ -17,11 +17,10 @@ namespace Microsoft.CodeAnalysis
         // Value 0 represents an unknown type
         Unknown = SpecialType.None,
 
-        First = SpecialType.Count + 1,
+        First = InternalSpecialType.NextAvailable,
 
         // The following type ids should be in sync with names in WellKnownTypes.metadataNames array.
         System_Math = First,
-        System_Array,
         System_Attribute,
         System_CLSCompliantAttribute,
         System_Convert,
@@ -30,9 +29,6 @@ namespace Microsoft.CodeAnalysis
         System_FormattableString,
         System_Guid,
         System_IFormattable,
-        System_RuntimeTypeHandle,
-        System_RuntimeFieldHandle,
-        System_RuntimeMethodHandle,
         System_MarshalByRefObject,
         System_Type,
         System_Reflection_AssemblyKeyFileAttribute,
@@ -190,6 +186,7 @@ namespace Microsoft.CodeAnalysis
 
         System_Collections_IList,
         System_Collections_ICollection,
+        System_Collections_Immutable_ImmutableArray_T,
         System_Collections_Generic_EqualityComparer_T,
         System_Collections_Generic_List_T,
         System_Collections_Generic_IDictionary_KV,
@@ -245,16 +242,16 @@ namespace Microsoft.CodeAnalysis
         System_Environment,
 
         System_Runtime_GCLatencyMode,
-        System_IFormatProvider,
 
-        CSharp7Sentinel = System_IFormatProvider, // all types that were known before CSharp7 should remain above this sentinel
+        CSharp7Sentinel = System_Runtime_GCLatencyMode, // all types that were known before CSharp7 should remain above this sentinel
 
         System_ValueTuple,
+
         System_ValueTuple_T1,
-        System_ValueTuple_T2,
 
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
+        System_ValueTuple_T2,
         System_ValueTuple_T3,
         System_ValueTuple_T4,
         System_ValueTuple_T5,
@@ -313,6 +310,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_IsExternalInit,
         System_Runtime_InteropServices_OutAttribute,
         System_Runtime_InteropServices_MemoryMarshal,
+        System_Runtime_InteropServices_CollectionsMarshal,
+        System_Runtime_InteropServices_ImmutableCollectionsMarshal,
 
         System_Text_StringBuilder,
 
@@ -330,8 +329,12 @@ namespace Microsoft.CodeAnalysis
         System_Diagnostics_CodeAnalysis_UnscopedRefAttribute,
 
         System_MissingMethodException,
+        System_IndexOutOfRangeException,
+
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
         System_Runtime_CompilerServices_Unsafe,
+
+        System_Runtime_CompilerServices_ParamCollectionAttribute,
 
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
@@ -350,10 +353,9 @@ namespace Microsoft.CodeAnalysis
         /// that we could use ids to index into the array
         /// </summary>
         /// <remarks></remarks>
-        private static readonly string[] s_metadataNames = new string[]
+        private static readonly string[] s_metadataNames = new string[Count]
         {
             "System.Math",
-            "System.Array",
             "System.Attribute",
             "System.CLSCompliantAttribute",
             "System.Convert",
@@ -362,9 +364,6 @@ namespace Microsoft.CodeAnalysis
             "System.FormattableString",
             "System.Guid",
             "System.IFormattable",
-            "System.RuntimeTypeHandle",
-            "System.RuntimeFieldHandle",
-            "System.RuntimeMethodHandle",
             "System.MarshalByRefObject",
             "System.Type",
             "System.Reflection.AssemblyKeyFileAttribute",
@@ -517,6 +516,7 @@ namespace Microsoft.CodeAnalysis
 
             "System.Collections.IList",
             "System.Collections.ICollection",
+            "System.Collections.Immutable.ImmutableArray`1",
             "System.Collections.Generic.EqualityComparer`1",
             "System.Collections.Generic.List`1",
             "System.Collections.Generic.IDictionary`2",
@@ -573,14 +573,12 @@ namespace Microsoft.CodeAnalysis
 
             "System.Runtime.GCLatencyMode",
 
-            "System.IFormatProvider",
-
             "System.ValueTuple",
             "System.ValueTuple`1",
+
+            "", // WellKnownType.ExtSentinel extension marker
+
             "System.ValueTuple`2",
-
-            "", // extension marker
-
             "System.ValueTuple`3",
             "System.ValueTuple`4",
             "System.ValueTuple`5",
@@ -640,6 +638,8 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.IsExternalInit",
             "System.Runtime.InteropServices.OutAttribute",
             "System.Runtime.InteropServices.MemoryMarshal",
+            "System.Runtime.InteropServices.CollectionsMarshal",
+            "System.Runtime.InteropServices.ImmutableCollectionsMarshal",
 
             "System.Text.StringBuilder",
             "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",
@@ -653,8 +653,11 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute",
             "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute",
             "System.MissingMethodException",
+            "System.IndexOutOfRangeException",
             "System.Runtime.CompilerServices.MetadataUpdateOriginalTypeAttribute",
             "System.Runtime.CompilerServices.Unsafe",
+
+            "System.Runtime.CompilerServices.ParamCollectionAttribute",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
@@ -689,7 +692,7 @@ namespace Microsoft.CodeAnalysis
                         typeIdName = "Microsoft.VisualBasic.CompilerServices.ObjectFlowControl+ForLoopControl";
                         break;
                     case WellKnownType.CSharp7Sentinel:
-                        typeIdName = "System.IFormatProvider";
+                        typeIdName = "System.Runtime.GCLatencyMode";
                         break;
                     case WellKnownType.ExtSentinel:
                         typeIdName = "";
@@ -710,8 +713,17 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(name == typeIdName, $"Enum name ({typeIdName}) and type name ({name}) must match at {i}");
             }
 
-            Debug.Assert((int)WellKnownType.ExtSentinel == 255);
-            Debug.Assert((int)WellKnownType.NextAvailable <= 512, "Time for a new sentinel");
+#if DEBUG
+            // Some compile time asserts
+            {
+                // The WellKnownType.ExtSentinel value must be 255
+                _ = new int[(int)WellKnownType.ExtSentinel - 255];
+                _ = new int[255 - (int)WellKnownType.ExtSentinel];
+
+                // Once the last real id minus WellKnownType.ExtSentinel cannot fit into a byte, it is time to add a new sentinel.
+                _ = new int[255 - ((int)WellKnownType.NextAvailable - 1 - (int)WellKnownType.ExtSentinel)];
+            }
+#endif 
         }
 
         public static bool IsWellKnownType(this WellKnownType typeId)

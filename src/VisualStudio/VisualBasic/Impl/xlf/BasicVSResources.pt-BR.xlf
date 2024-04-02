@@ -62,9 +62,9 @@
         <target state="translated">Preferir a criação simplificada de objetos</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_Imports">
-        <source>Remove unnecessary Imports</source>
-        <target state="translated">Remover as Imports desnecessárias</target>
+      <trans-unit id="Remove_unnecessary_imports">
+        <source>Remove unnecessary imports</source>
+        <target state="translated">Remover as Importações desnecessárias</target>
         <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
@@ -181,11 +181,6 @@
         <source>Import Directives</source>
         <target state="translated">Importar Diretivas</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Sort_imports">
-        <source>Sort imports</source>
-        <target state="translated">Classificar as imports</target>
-        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in _NuGet packages</source>

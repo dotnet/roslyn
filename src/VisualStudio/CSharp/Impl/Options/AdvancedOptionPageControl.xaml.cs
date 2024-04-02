@@ -67,7 +67,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptionsStorage.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.CSharp);
 
             BindToOption(Run_code_analysis_in_separate_process, RemoteHostOptionsStorage.OOP64Bit);
-            BindToOption(Run_code_analysis_on_dotnet, RemoteHostOptionsStorage.OOPCoreClr);
 
             BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, () =>
             {
@@ -88,7 +87,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Enable_navigation_to_sourcelink_and_embedded_sources, MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources);
             BindToOption(Enable_navigation_to_decompiled_sources, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
             BindToOption(Always_use_default_symbol_servers_for_navigation, MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers);
-            BindToOption(Navigate_asynchronously_exerimental, FeatureOnOffOptions.NavigateAsynchronously);
 
             // Rename
             BindToOption(Rename_asynchronously_exerimental, InlineRenameSessionOptionsStorage.RenameAsynchronously);
@@ -125,6 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             // Block Structure Guides
             BindToOption(Show_guides_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp);
             BindToOption(Show_guides_for_code_level_constructs, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp);
+            BindToOption(Show_guides_for_comments_and_preprocessor_regions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, LanguageNames.CSharp);
 
             // Comments
             BindToOption(GenerateXmlDocCommentsForTripleSlash, DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, LanguageNames.CSharp);
@@ -138,6 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Fix_text_pasted_into_string_literals_experimental, StringCopyPasteOptionsStorage.AutomaticallyFixStringContentsOnPaste, LanguageNames.CSharp);
             BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp);
             BindToOption(Underline_reassigned_variables, ClassificationOptionsStorage.ClassifyReassignedVariables, LanguageNames.CSharp);
+            BindToOption(Strike_out_obsolete_symbols, ClassificationOptionsStorage.ClassifyObsoleteSymbols, LanguageNames.CSharp);
             BindToOption(Enable_all_features_in_opened_files_from_source_generators, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace, () =>
             {
                 // If the option has not been set by the user, check if the option is enabled from experimentation.
@@ -217,63 +217,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             Customized_Theme_Warning.Visibility = isSupportedTheme && isThemeCustomized ? Visibility.Visible : Visibility.Collapsed;
             Custom_VS_Theme_Warning.Visibility = isSupportedTheme ? Visibility.Collapsed : Visibility.Visible;
 
-            UpdatePullDiagnosticsOptions();
             UpdateInlineHintsOptions();
 
             base.OnLoad();
-        }
-
-        private void UpdatePullDiagnosticsOptions()
-        {
-            var normalPullDiagnosticsOption = OptionStore.GetOption(InternalDiagnosticsOptionsStorage.NormalDiagnosticMode);
-            Enable_pull_diagnostics_experimental_requires_restart.IsChecked = GetCheckboxValueForDiagnosticMode(normalPullDiagnosticsOption);
-            AddSearchHandler(Enable_pull_diagnostics_experimental_requires_restart);
-
-            static bool? GetCheckboxValueForDiagnosticMode(DiagnosticMode mode)
-            {
-                return mode switch
-                {
-                    DiagnosticMode.SolutionCrawlerPush => false,
-                    DiagnosticMode.LspPull => true,
-                    DiagnosticMode.Default => null,
-                    _ => throw new System.ArgumentException("unknown diagnostic mode"),
-                };
-            }
-        }
-
-        private void Enable_pull_diagnostics_experimental_requires_restart_CheckedChanged(object sender, RoutedEventArgs e)
-        {
-            // Three state is only valid for the initial option state (default).  If changed we only
-            // allow the checkbox to be on or off.
-            Enable_pull_diagnostics_experimental_requires_restart.IsThreeState = false;
-            var checkboxValue = Enable_pull_diagnostics_experimental_requires_restart.IsChecked;
-            var newDiagnosticMode = GetDiagnosticModeForCheckboxValue(checkboxValue);
-            if (checkboxValue != null)
-            {
-                // Update the actual value of the feature flag to ensure CPS is informed of the new feature flag value.
-                this.OptionStore.SetOption(DiagnosticOptionsStorage.LspPullDiagnosticsFeatureFlag, checkboxValue.Value);
-            }
-
-            // Update the workspace option.
-            this.OptionStore.SetOption(InternalDiagnosticsOptionsStorage.NormalDiagnosticMode, newDiagnosticMode);
-
-            UpdatePullDiagnosticsOptions();
-
-            static DiagnosticMode GetDiagnosticModeForCheckboxValue(bool? checkboxValue)
-            {
-                return checkboxValue switch
-                {
-                    true => DiagnosticMode.LspPull,
-                    false => DiagnosticMode.SolutionCrawlerPush,
-                    null => DiagnosticMode.Default
-                };
-            }
-        }
-
-        private void Enable_pull_diagnostics_experimental_requires_restart_Indeterminate(object sender, RoutedEventArgs e)
-        {
-            this.OptionStore.SetOption(InternalDiagnosticsOptionsStorage.NormalDiagnosticMode, DiagnosticMode.Default);
-            UpdatePullDiagnosticsOptions();
         }
 
         private void UpdateInlineHintsOptions()
@@ -331,16 +277,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             Collapse_usings_on_file_open.IsEnabled = false;
             Collapse_metadata_signature_files_on_open.IsEnabled = false;
             Collapse_sourcelink_embedded_decompiled_files_on_open.IsEnabled = false;
-        }
-
-        private void Run_code_analysis_in_separate_process_Checked(object sender, RoutedEventArgs e)
-        {
-            Run_code_analysis_on_dotnet.IsEnabled = true;
-        }
-
-        private void Run_code_analysis_in_separate_process_Unchecked(object sender, RoutedEventArgs e)
-        {
-            Run_code_analysis_on_dotnet.IsEnabled = false;
         }
     }
 }

@@ -2,15 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -21,12 +30,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     [Trait(Traits.Feature, Traits.Features.Classification)]
     public partial class TotalClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions? options, TestHost testHost)
+        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, ImmutableArray<TextSpan> spans, ParseOptions? options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
             var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
 
-            return await GetAllClassificationsAsync(document, span);
+            return await GetAllClassificationsAsync(document, spans);
         }
 
         [Theory, CombinatorialData]
@@ -543,7 +552,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                TypeParameter("var"),
+                Keyword("var"),
                 Local("x"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
@@ -1141,7 +1150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("unmanaged"),
+                Keyword("unmanaged"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
@@ -1235,7 +1244,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("unmanaged"),
+                Keyword("unmanaged"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
@@ -1326,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("unmanaged"),
+                Keyword("unmanaged"),
                 Punctuation.Semicolon);
         }
 
@@ -1438,7 +1447,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("unmanaged"),
+                Keyword("unmanaged"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,
@@ -1630,7 +1639,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("notnull"),
+                Keyword("notnull"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
@@ -1724,7 +1733,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("notnull"),
+                Keyword("notnull"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
@@ -1815,7 +1824,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("notnull"),
+                Keyword("notnull"),
                 Punctuation.Semicolon);
         }
 
@@ -1927,7 +1936,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("where"),
                 TypeParameter("T"),
                 Punctuation.Colon,
-                Interface("notnull"),
+                Keyword("notnull"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,
@@ -3021,6 +3030,212 @@ Keyword("async"));
                 Punctuation.CloseAngle,
                 Local("fp"),
                 Punctuation.Semicolon);
+        }
+
+        [WpfFact]
+        public async Task TestTotalClassifier()
+        {
+            using var workspace = EditorTestWorkspace.CreateCSharp(""""
+                using System.Text.RegularExpressions;
+
+                class C
+                {
+                    // class D { }
+                    void M()
+                    {
+                        new Regex("(a)");
+                        var s1 = "s1";
+                        var s2 = $"s2";
+                        var s3 = @"s3";
+                        var s4 = """
+                        s4
+                        """;
+                    }
+                }
+                """");
+            var document = workspace.Documents.First();
+
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var globalOptions = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+
+            var provider = new TotalClassificationTaggerProvider(
+                workspace.GetService<IThreadingContext>(),
+                workspace.GetService<ClassificationTypeMap>(),
+                globalOptions,
+                visibilityTracker: null,
+                listenerProvider);
+
+            var buffer = document.GetTextBuffer();
+            using var tagger = provider.CreateTagger(document.GetTextView(), buffer);
+
+            var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
+            await waiter.ExpeditedWaitAsync();
+
+            var allCode = buffer.CurrentSnapshot.GetText();
+            var tags = tagger!.GetTags(new NormalizedSnapshotSpanCollection(buffer.CurrentSnapshot.GetFullSpan()));
+
+            var actualOrdered = tags.OrderBy((t1, t2) => t1.Span.Span.Start - t2.Span.Span.Start);
+
+            var actualFormatted = actualOrdered.Select(a => new FormattedClassification(allCode.Substring(a.Span.Span.Start, a.Span.Span.Length), a.Tag.ClassificationType.Classification));
+
+            AssertEx.Equal(new[]
+            {
+                Keyword("using"),
+                Namespace("System"),
+                Operators.Dot,
+                Namespace("Text"),
+                Operators.Dot,
+                Namespace("RegularExpressions"),
+                Punctuation.Semicolon,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Comment("// class D { }"),
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("new"),
+                Class("Regex"),
+                Punctuation.OpenParen,
+                String("\""),
+                Regex.Grouping("("),
+                Regex.Text("a"),
+                Regex.Grouping(")"),
+                String("\""),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("s1"),
+                Operators.Equals,
+                String("\"s1\""),
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("s2"),
+                Operators.Equals,
+                String("$\""),
+                String("s2"),
+                String("\""),
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("s3"),
+                Operators.Equals,
+                Verbatim("@\"s3\""),
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("s4"),
+                Operators.Equals,
+                String(""""
+                    """
+                            s4
+                            """
+                    """"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+            }, actualFormatted);
+        }
+
+        [WpfFact]
+        public void TestCopyPasteClassifier()
+        {
+            using var workspace = EditorTestWorkspace.CreateCSharp(""""
+                using System.Text.RegularExpressions;
+
+                class C
+                {
+                    // class D { }
+                    void M()
+                    {
+                        new Regex("(a)");
+                        var s1 = "s1";
+                        var s2 = $"s2";
+                        var s3 = @"s3";
+                        var s4 = """
+                        s4
+                        """;
+                    }
+                }
+                """");
+            var document = workspace.Documents.First();
+
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var globalOptions = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+
+            var provider = new CopyPasteAndPrintingClassificationBufferTaggerProvider(
+                workspace.GetService<IThreadingContext>(),
+                workspace.GetService<ClassificationTypeMap>(),
+                listenerProvider,
+                globalOptions);
+
+            var buffer = document.GetTextBuffer();
+            using var tagger = provider.CreateTagger<IClassificationTag>(buffer);
+
+            var allCode = buffer.CurrentSnapshot.GetText();
+            var tags = tagger!.GetAllTags(new NormalizedSnapshotSpanCollection(buffer.CurrentSnapshot.GetFullSpan()), CancellationToken.None);
+
+            var actualOrdered = tags.OrderBy((t1, t2) => t1.Span.Span.Start - t2.Span.Span.Start);
+
+            var actualFormatted = actualOrdered.Select(a => new FormattedClassification(allCode.Substring(a.Span.Span.Start, a.Span.Span.Length), a.Tag.ClassificationType.Classification));
+
+            AssertEx.Equal(new[]
+            {
+                Keyword("using"),
+                Namespace("System"),
+                Operators.Dot,
+                Namespace("Text"),
+                Operators.Dot,
+                Namespace("RegularExpressions"),
+                Punctuation.Semicolon,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Comment("// class D { }"),
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("new"),
+                Class("Regex"),
+                Punctuation.OpenParen,
+                String("\""),
+                Regex.Grouping("("),
+                Regex.Text("a"),
+                Regex.Grouping(")"),
+                String("\""),
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("s1"),
+                Operators.Equals,
+                String("\"s1\""),
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("s2"),
+                Operators.Equals,
+                String("$\""),
+                String("s2"),
+                String("\""),
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("s3"),
+                Operators.Equals,
+                Verbatim("@\"s3\""),
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("s4"),
+                Operators.Equals,
+                String(""""
+                    """
+                            s4
+                            """
+                    """"),
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+            }, actualFormatted);
         }
     }
 }

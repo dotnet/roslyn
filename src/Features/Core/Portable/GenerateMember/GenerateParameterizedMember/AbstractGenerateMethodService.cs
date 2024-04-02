@@ -12,38 +12,37 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
+namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
+
+internal abstract partial class AbstractGenerateMethodService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax> :
+    AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>, IGenerateParameterizedMemberService
+    where TService : AbstractGenerateMethodService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
+    where TSimpleNameSyntax : TExpressionSyntax
+    where TExpressionSyntax : SyntaxNode
+    where TInvocationExpressionSyntax : TExpressionSyntax
 {
-    internal abstract partial class AbstractGenerateMethodService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax> :
-        AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>, IGenerateParameterizedMemberService
-        where TService : AbstractGenerateMethodService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
-        where TSimpleNameSyntax : TExpressionSyntax
-        where TExpressionSyntax : SyntaxNode
-        where TInvocationExpressionSyntax : TExpressionSyntax
+    protected abstract bool IsSimpleNameGeneration(SyntaxNode node);
+    protected abstract bool IsExplicitInterfaceGeneration(SyntaxNode node);
+    protected abstract bool TryInitializeExplicitInterfaceState(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken, out SyntaxToken identifierToken, out IMethodSymbol methodSymbol, out INamedTypeSymbol typeToGenerateIn);
+    protected abstract bool TryInitializeSimpleNameState(SemanticDocument document, TSimpleNameSyntax simpleName, CancellationToken cancellationToken, out SyntaxToken identifierToken, out TExpressionSyntax simpleNameOrMemberAccessExpression, out TInvocationExpressionSyntax invocationExpressionOpt, out bool isInConditionalExpression);
+    protected abstract ITypeSymbol DetermineReturnTypeForSimpleNameOrMemberAccessExpression(ITypeInferenceService typeInferenceService, SemanticModel semanticModel, TExpressionSyntax expression, CancellationToken cancellationToken);
+
+    public async Task<ImmutableArray<CodeAction>> GenerateMethodAsync(
+        Document document,
+        SyntaxNode node,
+        CodeAndImportGenerationOptionsProvider fallbackOptions,
+        CancellationToken cancellationToken)
     {
-        protected abstract bool IsSimpleNameGeneration(SyntaxNode node);
-        protected abstract bool IsExplicitInterfaceGeneration(SyntaxNode node);
-        protected abstract bool TryInitializeExplicitInterfaceState(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken, out SyntaxToken identifierToken, out IMethodSymbol methodSymbol, out INamedTypeSymbol typeToGenerateIn);
-        protected abstract bool TryInitializeSimpleNameState(SemanticDocument document, TSimpleNameSyntax simpleName, CancellationToken cancellationToken, out SyntaxToken identifierToken, out TExpressionSyntax simpleNameOrMemberAccessExpression, out TInvocationExpressionSyntax invocationExpressionOpt, out bool isInConditionalExpression);
-        protected abstract ITypeSymbol DetermineReturnTypeForSimpleNameOrMemberAccessExpression(ITypeInferenceService typeInferenceService, SemanticModel semanticModel, TExpressionSyntax expression, CancellationToken cancellationToken);
-
-        public async Task<ImmutableArray<CodeAction>> GenerateMethodAsync(
-            Document document,
-            SyntaxNode node,
-            CodeAndImportGenerationOptionsProvider fallbackOptions,
-            CancellationToken cancellationToken)
+        using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateMethod, cancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateMethod, cancellationToken))
+            var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var state = await State.GenerateMethodStateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
+            if (state == null)
             {
-                var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-                var state = await State.GenerateMethodStateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
-                if (state == null)
-                {
-                    return ImmutableArray<CodeAction>.Empty;
-                }
-
-                return await GetActionsAsync(document, state, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                return [];
             }
+
+            return await GetActionsAsync(document, state, fallbackOptions, cancellationToken).ConfigureAwait(false);
         }
     }
 }

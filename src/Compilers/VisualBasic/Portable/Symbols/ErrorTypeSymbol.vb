@@ -412,6 +412,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+            guidString = Nothing
+            Return False
+        End Function
+
 #Region "IErrorTypeSymbol members"
 
         Public ReadOnly Property IErrorTypeSymbol_CandidateSymbols As ImmutableArray(Of ISymbol) Implements IErrorTypeSymbol.CandidateSymbols

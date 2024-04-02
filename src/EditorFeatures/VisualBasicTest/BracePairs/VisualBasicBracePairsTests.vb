@@ -9,8 +9,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BracePairs
     Public Class VisualBasicBracePairsTests
         Inherits AbstractBracePairsTests
 
-        Protected Overrides Function CreateWorkspace(input As String) As Editor.UnitTests.Workspaces.TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(input)
+        Protected Overrides Function CreateWorkspace(input As String) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(input)
         End Function
 
         <Fact>

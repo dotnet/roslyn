@@ -188,6 +188,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        internal override bool HasImportedFromTypeLibAttribute => _underlyingAssembly.HasImportedFromTypeLibAttribute;
+
+        internal override bool HasPrimaryInteropAssemblyAttribute => _underlyingAssembly.HasPrimaryInteropAssemblyAttribute;
+
         internal override IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
         {
             return _underlyingAssembly.GetInternalsVisibleToPublicKeys(simpleName);
@@ -214,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         /// <param name="type"></param>
         /// <returns></returns>
         /// <remarks></remarks>
-        internal override NamedTypeSymbol GetDeclaredSpecialType(SpecialType type)
+        internal override NamedTypeSymbol GetDeclaredSpecialType(ExtendedSpecialType type)
         {
             // Cor library should not have any references and, therefore, should never be
             // wrapped by a RetargetingAssemblySymbol.

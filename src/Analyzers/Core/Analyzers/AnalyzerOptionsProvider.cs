@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
@@ -62,7 +63,7 @@ internal readonly struct AnalyzerOptionsProvider(IOptionsReader options, string 
     // CodeStyleOptions
 
     public CodeStyleOption2<bool> PreferObjectInitializer => GetOption(CodeStyleOptions2.PreferObjectInitializer, FallbackCodeStyleOptions.PreferObjectInitializer);
-    public CodeStyleOption2<bool> PreferCollectionExpression => GetOption(CodeStyleOptions2.PreferCollectionExpression, FallbackCodeStyleOptions.PreferCollectionExpression);
+    public CodeStyleOption2<CollectionExpressionPreference> PreferCollectionExpression => GetOption(CodeStyleOptions2.PreferCollectionExpression, FallbackCodeStyleOptions.PreferCollectionExpression);
     public CodeStyleOption2<bool> PreferCollectionInitializer => GetOption(CodeStyleOptions2.PreferCollectionInitializer, FallbackCodeStyleOptions.PreferCollectionInitializer);
     public CodeStyleOption2<bool> PreferSimplifiedBooleanExpressions => GetOption(CodeStyleOptions2.PreferSimplifiedBooleanExpressions, FallbackCodeStyleOptions.PreferSimplifiedBooleanExpressions);
     public OperatorPlacementWhenWrappingPreference OperatorPlacementWhenWrapping => GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping, FallbackCodeStyleOptions.OperatorPlacementWhenWrapping);

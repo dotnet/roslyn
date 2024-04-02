@@ -48,18 +48,17 @@ End Class", HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CurrentLineTextAsync("        Dim x = {$$}", assertCaretPosition: true, HangMitigatingCancellationToken);
 
             await TestServices.Input.SendWithoutActivateAsync(
-                new InputKey[]
-                {
+                [
                     "New Object",
                     VirtualKeyCode.ESCAPE,
                     VirtualKeyCode.TAB,
-                },
+                ],
                 HangMitigatingCancellationToken);
 
             if (argumentCompletion)
             {
                 await TestServices.EditorVerifier.CurrentLineTextAsync("        Dim x = {New Object($$)}", assertCaretPosition: true, HangMitigatingCancellationToken);
-                await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.SignatureHelp }, HangMitigatingCancellationToken);
+                await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.SignatureHelp], HangMitigatingCancellationToken);
 
                 await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
                 await TestServices.EditorVerifier.CurrentLineTextAsync("        Dim x = {New Object()$$}", assertCaretPosition: true, HangMitigatingCancellationToken);
@@ -235,13 +234,12 @@ Class C
 End Class", HangMitigatingCancellationToken);
 
             await TestServices.Input.SendWithoutActivateAsync(
-                new InputKey[]
-                {
+                [
                     "Dim y = {New C([dim",
                     VirtualKeyCode.ESCAPE,
                     "]:=\"hello({[\")}",
                     VirtualKeyCode.RETURN,
-                },
+                ],
                 HangMitigatingCancellationToken);
             var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
             Assert.Contains("Dim y = {New C([dim]:=\"hello({[\")}", actualText);
@@ -261,8 +259,7 @@ Class C
 End Class", HangMitigatingCancellationToken);
 
             await TestServices.Input.SendWithoutActivateAsync(
-                new InputKey[]
-                {
+                [
                     "Dim y = {New C([dim",
                     VirtualKeyCode.ESCAPE,
                     VirtualKeyCode.TAB,
@@ -271,7 +268,7 @@ End Class", HangMitigatingCancellationToken);
                     VirtualKeyCode.TAB,
                     VirtualKeyCode.TAB,
                     VirtualKeyCode.RETURN,
-                },
+                ],
                 HangMitigatingCancellationToken);
             var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
             Assert.Contains("Dim y = {New C([dim]:=\"hello({[\")}", actualText);

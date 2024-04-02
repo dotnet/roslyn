@@ -573,6 +573,65 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             return AssertCodeCleanupResult(expected, code, OutsidePreferPreservationOption);
         }
 
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70187")]
+        [CombinatorialData]
+        public Task FixAllWarningsAndErrorsWithCustomFixIdsExplicitlyEnabled(
+            bool applyAllAnalyzerFixersId,
+            bool explicitlyIncludeCompilerId,
+            [CombinatorialValues(DiagnosticSeverity.Warning, DiagnosticSeverity.Info)] DiagnosticSeverity severity)
+        {
+            var code = """
+                namespace A
+                {
+                    internal class Program
+                    {
+                        private void Method()
+                        {
+                            int a = 42; // CS0219: The variable 'a' is assigned but its value is never used.
+                        }
+                    }
+                }
+                """;
+
+            var expectedCleanup = false;
+            if (explicitlyIncludeCompilerId)
+            {
+                expectedCleanup = true;
+            }
+            else if (applyAllAnalyzerFixersId)
+            {
+                expectedCleanup = severity >= DiagnosticSeverity.Warning;
+            }
+
+            var expected = code;
+            if (expectedCleanup)
+            {
+                expected = """
+                namespace A
+                {
+                    internal class Program
+                    {
+                        private void Method()
+                        {
+                        }
+                    }
+                }
+                """;
+            }
+
+            Func<string, bool> enabledFixIdsFilter = id =>
+                id switch
+                {
+                    "CS0219" => explicitlyIncludeCompilerId,
+                    "ApplyAllAnalyzerFixersId" => applyAllAnalyzerFixersId,
+                    _ => false
+                };
+
+            var diagnosticIdsWithSeverity = new[] { ("CS0219", severity) };
+
+            return AssertCodeCleanupResult(expected, code, enabledFixIdsFilter: enabledFixIdsFilter, diagnosticIdsWithSeverity: diagnosticIdsWithSeverity);
+        }
+
         [Theory]
         [InlineData(LanguageNames.CSharp)]
         [InlineData(LanguageNames.VisualBasic)]
@@ -748,7 +807,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             where TCodefix : CodeFixProvider, new()
         {
 
-            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf.AddParts(typeof(TCodefix)));
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf.AddParts(typeof(TCodefix)));
 
             var options = CodeActionOptions.DefaultProvider;
 
@@ -771,10 +830,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             project = project.AddAnalyzerConfigDocument(".editorconfig", SourceText.From(editorconfigText), filePath: @"z:\\.editorconfig").Project;
             workspace.TryApplyChanges(project.Solution);
 
-            // register this workspace to solution crawler so that analyzer service associate itself with given workspace
-            var incrementalAnalyzerProvider = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>() as IIncrementalAnalyzerProvider;
-            incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace);
-
             var hostdoc = workspace.Documents.Single();
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
 
@@ -783,7 +838,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
             var newDoc = await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, new ProgressTracker(), options, CancellationToken.None);
+                document, enabledDiagnostics, CodeAnalysisProgress.None, options, CancellationToken.None);
 
             var actual = await newDoc.GetTextAsync();
             Assert.Equal(expected, actual.ToString());
@@ -801,16 +856,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             var supportedDiagnostics = enabledDiagnostics.Diagnostics.SelectMany(x => x.DiagnosticIds).ToArray();
             return supportedDiagnostics;
 
-            TestWorkspace GetTestWorkspaceForLanguage(string language)
+            EditorTestWorkspace GetTestWorkspaceForLanguage(string language)
             {
                 if (language == LanguageNames.CSharp)
                 {
-                    return TestWorkspace.CreateCSharp(string.Empty, composition: EditorTestCompositions.EditorFeaturesWpf);
+                    return EditorTestWorkspace.CreateCSharp(string.Empty, composition: EditorTestCompositions.EditorFeaturesWpf);
                 }
 
                 if (language == LanguageNames.VisualBasic)
                 {
-                    return TestWorkspace.CreateVisualBasic(string.Empty, composition: EditorTestCompositions.EditorFeaturesWpf);
+                    return EditorTestWorkspace.CreateVisualBasic(string.Empty, composition: EditorTestCompositions.EditorFeaturesWpf);
                 }
 
                 return null;
@@ -824,9 +879,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
         /// <param name="code">The input code to be processed and tested.</param>
         /// <param name="systemUsingsFirst">Indicates whether <c><see cref="System"/>.*</c> '<c>using</c>' directives should preceed others. Default is <c>true</c>.</param>
         /// <param name="separateUsingGroups">Indicates whether '<c>using</c>' directives should be organized into separated groups. Default is <c>true</c>.</param>
+        /// <param name="enabledFixIdsFilter">Optional filter to determine if a specific fix ID is explicitly enabled for cleanup.</param>
+        /// <param name="diagnosticIdsWithSeverity">Optional list of diagnostic IDs with effective severities to be configured in editorconfig.</param>
         /// <returns>The <see cref="Task"/> to test code cleanup.</returns>
-        private protected static Task AssertCodeCleanupResult(string expected, string code, bool systemUsingsFirst = true, bool separateUsingGroups = false)
-            => AssertCodeCleanupResult(expected, code, new(AddImportPlacement.OutsideNamespace, NotificationOption2.Silent), systemUsingsFirst, separateUsingGroups);
+        private protected static Task AssertCodeCleanupResult(string expected, string code, bool systemUsingsFirst = true, bool separateUsingGroups = false, Func<string, bool> enabledFixIdsFilter = null, (string, DiagnosticSeverity)[] diagnosticIdsWithSeverity = null)
+            => AssertCodeCleanupResult(expected, code, new(AddImportPlacement.OutsideNamespace, NotificationOption2.Silent), systemUsingsFirst, separateUsingGroups, enabledFixIdsFilter, diagnosticIdsWithSeverity);
 
         /// <summary>
         /// Assert the expected code value equals the actual processed input <paramref name="code"/>.
@@ -836,10 +893,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
         /// <param name="preferredImportPlacement">Indicates the code style option for the preferred 'using' directives placement.</param>
         /// <param name="systemUsingsFirst">Indicates whether <c><see cref="System"/>.*</c> '<c>using</c>' directives should preceed others. Default is <c>true</c>.</param>
         /// <param name="separateUsingGroups">Indicates whether '<c>using</c>' directives should be organized into separated groups. Default is <c>true</c>.</param>
+        /// <param name="enabledFixIdsFilter">Optional filter to determine if a specific fix ID is explicitly enabled for cleanup.</param>
+        /// <param name="diagnosticIdsWithSeverity">Optional list of diagnostic IDs with effective severities to be configured in editorconfig.</param>
         /// <returns>The <see cref="Task"/> to test code cleanup.</returns>
-        private protected static async Task AssertCodeCleanupResult(string expected, string code, CodeStyleOption2<AddImportPlacement> preferredImportPlacement, bool systemUsingsFirst = true, bool separateUsingGroups = false)
+        private protected static async Task AssertCodeCleanupResult(string expected, string code, CodeStyleOption2<AddImportPlacement> preferredImportPlacement, bool systemUsingsFirst = true, bool separateUsingGroups = false, Func<string, bool> enabledFixIdsFilter = null, (string, DiagnosticSeverity)[] diagnosticIdsWithSeverity = null)
         {
-            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
 
             // must set global options since incremental analyzer infra reads from global options
             var globalOptions = workspace.GlobalOptions;
@@ -853,11 +912,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                 new AnalyzerFileReference(typeof(UseExpressionBodyDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
             });
 
-            workspace.TryApplyChanges(solution);
+            if (diagnosticIdsWithSeverity != null)
+            {
+                var editorconfigText = "is_global = true";
+                foreach (var (diagnosticId, severity) in diagnosticIdsWithSeverity)
+                {
+                    editorconfigText += $"\ndotnet_diagnostic.{diagnosticId}.severity = {severity.ToEditorConfigString()}";
+                }
 
-            // register this workspace to solution crawler so that analyzer service associate itself with given workspace
-            var incrementalAnalyzerProvider = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>() as IIncrementalAnalyzerProvider;
-            incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace);
+                var project = solution.Projects.Single();
+                project = project.AddAnalyzerConfigDocument(".editorconfig", SourceText.From(editorconfigText), filePath: @"z:\\.editorconfig").Project;
+                solution = project.Solution;
+            }
+
+            workspace.TryApplyChanges(solution);
 
             var hostdoc = workspace.Documents.Single();
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
@@ -866,8 +934,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
             var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
+            if (enabledFixIdsFilter != null)
+                enabledDiagnostics = VisualStudio.LanguageServices.Implementation.CodeCleanup.AbstractCodeCleanUpFixer.AdjustDiagnosticOptions(enabledDiagnostics, enabledFixIdsFilter);
+
             var newDoc = await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, new ProgressTracker(), globalOptions.CreateProvider(), CancellationToken.None);
+                document, enabledDiagnostics, CodeAnalysisProgress.None, globalOptions.CreateProvider(), CancellationToken.None);
 
             var actual = await newDoc.GetTextAsync();
 

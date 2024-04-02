@@ -16,208 +16,206 @@ using Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
+namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable;
+
+[ExportLanguageService(typeof(IGenerateVariableService), LanguageNames.CSharp), Shared]
+internal partial class CSharpGenerateVariableService :
+    AbstractGenerateVariableService<CSharpGenerateVariableService, SimpleNameSyntax, ExpressionSyntax>
 {
-    [ExportLanguageService(typeof(IGenerateVariableService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpGenerateVariableService :
-        AbstractGenerateVariableService<CSharpGenerateVariableService, SimpleNameSyntax, ExpressionSyntax>
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpGenerateVariableService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpGenerateVariableService()
+    }
+
+    protected override bool IsExplicitInterfaceGeneration(SyntaxNode node)
+        => node is PropertyDeclarationSyntax;
+
+    protected override bool IsIdentifierNameGeneration(SyntaxNode node)
+        => node is IdentifierNameSyntax identifierName && !IsProbablySyntacticConstruct(identifierName.Identifier);
+
+    private static bool IsProbablySyntacticConstruct(SyntaxToken token)
+    {
+        // Technically all C# contextual keywords are valid member names.
+        // However some of them start various syntactic constructs
+        // and we don't want to show "Generate <member name>" codefix for them:
+        // 1. "from" starts LINQ expression
+        // 2. "nameof" is probably nameof(some_name)
+        // 3. "async" can start a delegate declaration
+        // 4. "await" starts await expression
+        // 5. "var" is used in constructions like "var x = ..."
+        // The list can be expanded in the future if necessary
+        // This method tells if the given SyntaxToken is one of the cases above
+        var contextualKind = SyntaxFacts.GetContextualKeywordKind(token.ValueText);
+
+        return contextualKind is SyntaxKind.FromKeyword or
+                              SyntaxKind.NameOfKeyword or
+                              SyntaxKind.AsyncKeyword or
+                              SyntaxKind.AwaitKeyword or
+                              SyntaxKind.VarKeyword;
+    }
+
+    protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
+        => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
+
+    protected override bool TryInitializeExplicitInterfaceState(
+        SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken,
+        out SyntaxToken identifierToken, out IPropertySymbol propertySymbol, out INamedTypeSymbol typeToGenerateIn)
+    {
+        var propertyDeclaration = (PropertyDeclarationSyntax)node;
+        identifierToken = propertyDeclaration.Identifier;
+
+        if (propertyDeclaration.ExplicitInterfaceSpecifier != null)
         {
-        }
-
-        protected override bool IsExplicitInterfaceGeneration(SyntaxNode node)
-            => node is PropertyDeclarationSyntax;
-
-        protected override bool IsIdentifierNameGeneration(SyntaxNode node)
-            => node is IdentifierNameSyntax identifierName && !IsProbablySyntacticConstruct(identifierName.Identifier);
-
-        private static bool IsProbablySyntacticConstruct(SyntaxToken token)
-        {
-            // Technically all C# contextual keywords are valid member names.
-            // However some of them start various syntactic constructs
-            // and we don't want to show "Generate <member name>" codefix for them:
-            // 1. "from" starts LINQ expression
-            // 2. "nameof" is probably nameof(some_name)
-            // 3. "async" can start a delegate declaration
-            // 4. "await" starts await expression
-            // 5. "var" is used in constructions like "var x = ..."
-            // The list can be expanded in the future if necessary
-            // This method tells if the given SyntaxToken is one of the cases above
-            var contextualKind = SyntaxFacts.GetContextualKeywordKind(token.ValueText);
-
-            return contextualKind is SyntaxKind.FromKeyword or
-                                  SyntaxKind.NameOfKeyword or
-                                  SyntaxKind.AsyncKeyword or
-                                  SyntaxKind.AwaitKeyword or
-                                  SyntaxKind.VarKeyword;
-        }
-
-        protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
-            => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
-
-        protected override bool TryInitializeExplicitInterfaceState(
-            SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken,
-            out SyntaxToken identifierToken, out IPropertySymbol propertySymbol, out INamedTypeSymbol typeToGenerateIn)
-        {
-            var propertyDeclaration = (PropertyDeclarationSyntax)node;
-            identifierToken = propertyDeclaration.Identifier;
-
-            if (propertyDeclaration.ExplicitInterfaceSpecifier != null)
+            var semanticModel = document.SemanticModel;
+            propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken);
+            if (propertySymbol != null && !propertySymbol.ExplicitInterfaceImplementations.Any())
             {
-                var semanticModel = document.SemanticModel;
-                propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken);
-                if (propertySymbol != null && !propertySymbol.ExplicitInterfaceImplementations.Any())
-                {
-                    var info = semanticModel.GetTypeInfo(propertyDeclaration.ExplicitInterfaceSpecifier.Name, cancellationToken);
-                    typeToGenerateIn = info.Type as INamedTypeSymbol;
-                    return typeToGenerateIn != null;
-                }
+                var info = semanticModel.GetTypeInfo(propertyDeclaration.ExplicitInterfaceSpecifier.Name, cancellationToken);
+                typeToGenerateIn = info.Type as INamedTypeSymbol;
+                return typeToGenerateIn != null;
+            }
+        }
+
+        identifierToken = default;
+        propertySymbol = null;
+        typeToGenerateIn = null;
+        return false;
+    }
+
+    protected override bool TryInitializeIdentifierNameState(
+        SemanticDocument document, SimpleNameSyntax identifierName, CancellationToken cancellationToken,
+        out SyntaxToken identifierToken, out ExpressionSyntax simpleNameOrMemberAccessExpression, out bool isInExecutableBlock, out bool isConditionalAccessExpression)
+    {
+        identifierToken = identifierName.Identifier;
+        if (identifierToken.ValueText != string.Empty &&
+            !IsProbablyGeneric(identifierName, cancellationToken))
+        {
+            var memberAccess = identifierName.Parent as MemberAccessExpressionSyntax;
+            var conditionalMemberAccess = identifierName.Parent.Parent as ConditionalAccessExpressionSyntax;
+            if (memberAccess?.Name == identifierName)
+            {
+                simpleNameOrMemberAccessExpression = memberAccess;
+            }
+            else if ((conditionalMemberAccess?.WhenNotNull as MemberBindingExpressionSyntax)?.Name == identifierName)
+            {
+                simpleNameOrMemberAccessExpression = conditionalMemberAccess;
+            }
+            else
+            {
+                simpleNameOrMemberAccessExpression = identifierName;
             }
 
-            identifierToken = default;
-            propertySymbol = null;
-            typeToGenerateIn = null;
-            return false;
-        }
-
-        protected override bool TryInitializeIdentifierNameState(
-            SemanticDocument document, SimpleNameSyntax identifierName, CancellationToken cancellationToken,
-            out SyntaxToken identifierToken, out ExpressionSyntax simpleNameOrMemberAccessExpression, out bool isInExecutableBlock, out bool isConditionalAccessExpression)
-        {
-            identifierToken = identifierName.Identifier;
-            if (identifierToken.ValueText != string.Empty &&
-                !IsProbablyGeneric(identifierName, cancellationToken))
+            // If we're being invoked, then don't offer this, offer generate method instead.
+            // Note: we could offer to generate a field with a delegate type.  However, that's
+            // very esoteric and probably not what most users want.
+            if (!IsLegal(document, simpleNameOrMemberAccessExpression, cancellationToken))
             {
-                var memberAccess = identifierName.Parent as MemberAccessExpressionSyntax;
-                var conditionalMemberAccess = identifierName.Parent.Parent as ConditionalAccessExpressionSyntax;
-                if (memberAccess?.Name == identifierName)
-                {
-                    simpleNameOrMemberAccessExpression = memberAccess;
-                }
-                else if ((conditionalMemberAccess?.WhenNotNull as MemberBindingExpressionSyntax)?.Name == identifierName)
-                {
-                    simpleNameOrMemberAccessExpression = conditionalMemberAccess;
-                }
-                else
-                {
-                    simpleNameOrMemberAccessExpression = identifierName;
-                }
-
-                // If we're being invoked, then don't offer this, offer generate method instead.
-                // Note: we could offer to generate a field with a delegate type.  However, that's
-                // very esoteric and probably not what most users want.
-                if (!IsLegal(document, simpleNameOrMemberAccessExpression, cancellationToken))
-                {
-                    isInExecutableBlock = false;
-                    isConditionalAccessExpression = false;
-                    return false;
-                }
-
-                var block = identifierName.GetAncestor<BlockSyntax>();
-                isInExecutableBlock = block != null && !block.OverlapsHiddenPosition(cancellationToken);
-                isConditionalAccessExpression = conditionalMemberAccess != null;
-                return true;
-            }
-
-            identifierToken = default;
-            simpleNameOrMemberAccessExpression = null;
-            isInExecutableBlock = false;
-            isConditionalAccessExpression = false;
-            return false;
-        }
-
-        private static bool IsProbablyGeneric(SimpleNameSyntax identifierName, CancellationToken cancellationToken)
-        {
-            if (identifierName.IsKind(SyntaxKind.GenericName))
-            {
-                return true;
-            }
-
-            // We might have something of the form:   Goo < Bar.
-            // In this case, we would want to generate offer a member called 'Goo'.  however, if we have
-            // something like "Goo < string >" then that's clearly something generic and we don't want
-            // to offer to generate a member there.
-            var localRoot = identifierName.GetAncestor<StatementSyntax>() ??
-                            identifierName.GetAncestor<MemberDeclarationSyntax>() ??
-                            identifierName.SyntaxTree.GetRoot(cancellationToken);
-
-            // In order to figure this out (without writing our own parser), we just try to parse out a
-            // type name here.  If we get a generic name back, without any errors, then we'll assume the
-            // user really is typing a generic name, and thus should not get recommendations to create a
-            // variable.
-            var localText = localRoot.ToString();
-            var startIndex = identifierName.Span.Start - localRoot.Span.Start;
-
-            var parsedType = SyntaxFactory.ParseTypeName(localText, startIndex, consumeFullText: false);
-
-            return parsedType.IsKind(SyntaxKind.GenericName) && !parsedType.ContainsDiagnostics;
-        }
-
-        private static bool IsLegal(
-            SemanticDocument document,
-            ExpressionSyntax expression,
-            CancellationToken cancellationToken)
-        {
-            // TODO(cyrusn): Consider supporting this at some point.  It is difficult because we'd
-            // need to replace the identifier typed with the fully qualified name of the field we
-            // were generating.
-            if (expression.IsParentKind(SyntaxKind.AttributeArgument))
-            {
+                isInExecutableBlock = false;
+                isConditionalAccessExpression = false;
                 return false;
             }
 
-            if (expression.IsParentKind(SyntaxKind.ConditionalAccessExpression))
-            {
-                return true;
-            }
-
-            if (expression.IsParentKind(SyntaxKind.IsPatternExpression))
-            {
-                return true;
-            }
-
-            if (expression.Parent is (kind: SyntaxKind.NameColon or SyntaxKind.ExpressionColon) &&
-                expression.Parent.IsParentKind(SyntaxKind.Subpattern))
-            {
-                return true;
-            }
-
-            if (expression.IsParentKind(SyntaxKind.ConstantPattern))
-            {
-                return true;
-            }
-
-            return expression.CanReplaceWithLValue(document.SemanticModel, cancellationToken);
+            var block = identifierName.GetAncestor<BlockSyntax>();
+            isInExecutableBlock = block != null && !block.OverlapsHiddenPosition(cancellationToken);
+            isConditionalAccessExpression = conditionalMemberAccess != null;
+            return true;
         }
 
-        protected override bool TryConvertToLocalDeclaration(ITypeSymbol type, SyntaxToken identifierToken, SemanticModel semanticModel, CancellationToken cancellationToken, out SyntaxNode newRoot)
+        identifierToken = default;
+        simpleNameOrMemberAccessExpression = null;
+        isInExecutableBlock = false;
+        isConditionalAccessExpression = false;
+        return false;
+    }
+
+    private static bool IsProbablyGeneric(SimpleNameSyntax identifierName, CancellationToken cancellationToken)
+    {
+        if (identifierName.IsKind(SyntaxKind.GenericName))
         {
-            var token = identifierToken;
-            var node = identifierToken.Parent as IdentifierNameSyntax;
-            if (node.IsLeftSideOfAssignExpression() && node.Parent.IsParentKind(SyntaxKind.ExpressionStatement))
-            {
-                var assignExpression = (AssignmentExpressionSyntax)node.Parent;
-                var expressionStatement = (StatementSyntax)assignExpression.Parent;
+            return true;
+        }
 
-                var declarationStatement = SyntaxFactory.LocalDeclarationStatement(
-                    SyntaxFactory.VariableDeclaration(
-                        type.GenerateTypeSyntax(),
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.VariableDeclarator(token, null, SyntaxFactory.EqualsValueClause(
-                                assignExpression.OperatorToken, assignExpression.Right)))));
-                declarationStatement = declarationStatement.WithAdditionalAnnotations(Formatter.Annotation);
+        // We might have something of the form:   Goo < Bar.
+        // In this case, we would want to generate offer a member called 'Goo'.  however, if we have
+        // something like "Goo < string >" then that's clearly something generic and we don't want
+        // to offer to generate a member there.
+        var localRoot = identifierName.GetAncestor<StatementSyntax>() ??
+                        identifierName.GetAncestor<MemberDeclarationSyntax>() ??
+                        identifierName.SyntaxTree.GetRoot(cancellationToken);
 
-                var root = token.GetAncestor<CompilationUnitSyntax>();
-                newRoot = root.ReplaceNode(expressionStatement, declarationStatement);
+        // In order to figure this out (without writing our own parser), we just try to parse out a
+        // type name here.  If we get a generic name back, without any errors, then we'll assume the
+        // user really is typing a generic name, and thus should not get recommendations to create a
+        // variable.
+        var localText = localRoot.ToString();
+        var startIndex = identifierName.Span.Start - localRoot.Span.Start;
 
-                return true;
-            }
+        var parsedType = SyntaxFactory.ParseTypeName(localText, startIndex, consumeFullText: false);
 
-            newRoot = null;
+        return parsedType.IsKind(SyntaxKind.GenericName) && !parsedType.ContainsDiagnostics;
+    }
+
+    private static bool IsLegal(
+        SemanticDocument document,
+        ExpressionSyntax expression,
+        CancellationToken cancellationToken)
+    {
+        // TODO(cyrusn): Consider supporting this at some point.  It is difficult because we'd
+        // need to replace the identifier typed with the fully qualified name of the field we
+        // were generating.
+        if (expression.IsParentKind(SyntaxKind.AttributeArgument))
+        {
             return false;
         }
+
+        if (expression.IsParentKind(SyntaxKind.ConditionalAccessExpression))
+        {
+            return true;
+        }
+
+        if (expression.IsParentKind(SyntaxKind.IsPatternExpression))
+        {
+            return true;
+        }
+
+        if (expression.Parent is (kind: SyntaxKind.NameColon or SyntaxKind.ExpressionColon) &&
+            expression.Parent.IsParentKind(SyntaxKind.Subpattern))
+        {
+            return true;
+        }
+
+        if (expression.IsParentKind(SyntaxKind.ConstantPattern))
+        {
+            return true;
+        }
+
+        return expression.CanReplaceWithLValue(document.SemanticModel, cancellationToken);
+    }
+
+    protected override bool TryConvertToLocalDeclaration(ITypeSymbol type, SyntaxToken identifierToken, SemanticModel semanticModel, CancellationToken cancellationToken, out SyntaxNode newRoot)
+    {
+        var token = identifierToken;
+        var node = identifierToken.Parent as IdentifierNameSyntax;
+        if (node.IsLeftSideOfAssignExpression() && node.Parent.IsParentKind(SyntaxKind.ExpressionStatement))
+        {
+            var assignExpression = (AssignmentExpressionSyntax)node.Parent;
+            var expressionStatement = (StatementSyntax)assignExpression.Parent;
+
+            var declarationStatement = SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(
+                    type.GenerateTypeSyntax(),
+                    [SyntaxFactory.VariableDeclarator(token, null, SyntaxFactory.EqualsValueClause(
+                        assignExpression.OperatorToken, assignExpression.Right))]));
+            declarationStatement = declarationStatement.WithAdditionalAnnotations(Formatter.Annotation);
+
+            var root = token.GetAncestor<CompilationUnitSyntax>();
+            newRoot = root.ReplaceNode(expressionStatement, declarationStatement);
+
+            return true;
+        }
+
+        newRoot = null;
+        return false;
     }
 }

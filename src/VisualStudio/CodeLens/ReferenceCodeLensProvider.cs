@@ -21,6 +21,8 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using IAsyncCodeLensDataPoint = Microsoft.VisualStudio.Language.CodeLens.Remoting.IAsyncCodeLensDataPoint;
+using IAsyncCodeLensDataPointProvider = Microsoft.VisualStudio.Language.CodeLens.Remoting.IAsyncCodeLensDataPointProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 {
@@ -43,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         // Map of project GUID -> data points
         private readonly CancellationTokenSource _cancellationTokenSource = new();
         private Task? _pollingTask;
-        private readonly Dictionary<Guid, (string version, HashSet<DataPoint> dataPoints)> _dataPoints = new();
+        private readonly Dictionary<Guid, (string version, HashSet<DataPoint> dataPoints)> _dataPoints = [];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -149,8 +151,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 
         private class DataPoint : IAsyncCodeLensDataPoint, IDisposable
         {
-            private static readonly List<CodeLensDetailHeaderDescriptor> s_header = new List<CodeLensDetailHeaderDescriptor>()
-            {
+            private static readonly List<CodeLensDetailHeaderDescriptor> s_header =
+            [
                 new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.FilePath },
                 new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.LineNumber },
                 new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ColumnNumber },
@@ -163,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextBeforeReference1 },
                 new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextAfterReference1 },
                 new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextAfterReference2 },
-            };
+            ];
 
             private readonly ReferenceCodeLensProvider _owner;
             private readonly ICodeLensCallbackService _callbackService;

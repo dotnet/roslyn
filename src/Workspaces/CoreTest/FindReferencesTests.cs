@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 projectName,
                 projectName,
                 languageName,
-                metadataReferences: new[] { metadataReference },
+                metadataReferences: [metadataReference],
                 projectReferences: projectReferences.Select(p => new ProjectReference(p)));
             return solution.AddProject(pi).AddDocument(did, $"{projectName}.{suffix}", SourceText.From(code));
         }
@@ -323,7 +323,7 @@ class B : C, A
             result = (await SymbolFinder.FindReferencesAsync(boo, solution)).ToList();
             Assert.Equal(2, result.Count); // 2 symbols found
 
-            expectedMatchedLines = new HashSet<int> { 3, 13, 14 };
+            expectedMatchedLines = [3, 13, 14];
             result.ForEach((reference) => Verify(reference, expectedMatchedLines));
 
             Assert.Empty(expectedMatchedLines);
@@ -334,7 +334,7 @@ class B : C, A
             result = (await SymbolFinder.FindReferencesAsync(boo, solution)).ToList();
             Assert.Equal(2, result.Count); // 2 symbols found
 
-            expectedMatchedLines = new HashSet<int> { 7, 12 };
+            expectedMatchedLines = [7, 12];
             result.ForEach((reference) => Verify(reference, expectedMatchedLines));
 
             Assert.Empty(expectedMatchedLines);
@@ -369,7 +369,7 @@ namespace N2
 }", SystemRef_v46, solution.Projects.Single(pid => pid.Name == "NetStandardProject").Id);
 
             var desktopProject = solution.Projects.First(p => p.Name == "DesktopProject");
-            solution = solution.AddMetadataReferences(desktopProject.Id, new[] { MscorlibRef_v46, Net46StandardFacade });
+            solution = solution.AddMetadataReferences(desktopProject.Id, [MscorlibRef_v46, Net46StandardFacade]);
 
             desktopProject = solution.GetProject(desktopProject.Id);
             var netStandardProject = solution.Projects.First(p => p.Name == "NetStandardProject");
@@ -415,8 +415,8 @@ namespace N2
 }";
 
             using var workspace = CreateWorkspace();
-            var solution = GetMultipleDocumentSolution(workspace, new[] { implText, interface1Text, interface2Text });
-            solution = solution.AddMetadataReferences(solution.ProjectIds.Single(), new[] { MscorlibRef_v46, Net46StandardFacade, SystemRef_v46, NetStandard20Ref });
+            var solution = GetMultipleDocumentSolution(workspace, [implText, interface1Text, interface2Text]);
+            solution = solution.AddMetadataReferences(solution.ProjectIds.Single(), [MscorlibRef_v46, Net46StandardFacade, SystemRef_v46, NetStandard20Ref]);
 
             var project = solution.Projects.Single();
             var compilation = await project.GetCompilationAsync();
@@ -502,7 +502,7 @@ abstract class C<T> where T : unmanaged         // Line 4
             var constraint = comp.GetTypeByMetadataName("C`1").TypeParameters.Single().ConstraintTypes.Single();
             var result = (await SymbolFinder.FindReferencesAsync(constraint, solution)).Single();
 
-            Verify(result, new HashSet<int> { 1, 4 });
+            Verify(result, [1, 4]);
         }
 
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1177764")]

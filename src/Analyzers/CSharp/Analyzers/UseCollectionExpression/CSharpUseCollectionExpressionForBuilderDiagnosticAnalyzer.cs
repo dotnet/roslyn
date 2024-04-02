@@ -6,34 +6,34 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticAnalyzer
-    : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
+internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticAnalyzer()
+    : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer(
+        IDEDiagnosticIds.UseCollectionExpressionForBuilderDiagnosticId,
+        EnforceOnBuildValues.UseCollectionExpressionForBuilder)
 {
     private const string CreateBuilderName = nameof(ImmutableArray.CreateBuilder);
     private const string GetInstanceName = nameof(ArrayBuilder<int>.GetInstance);
 
-    public CSharpUseCollectionExpressionForBuilderDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UseCollectionExpressionForBuilderDiagnosticId,
-               EnforceOnBuildValues.UseCollectionExpressionForBuilder)
-    {
-    }
+    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
+        => context.RegisterSyntaxNodeAction(context => AnalyzeInvocationExpression(context, expressionType), SyntaxKind.InvocationExpression);
 
-    protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context)
-        => context.RegisterSyntaxNodeAction(AnalyzeInvocationExpression, SyntaxKind.InvocationExpression);
-
-    private void AnalyzeInvocationExpression(SyntaxNodeAnalysisContext context)
+    private void AnalyzeInvocationExpression(
+        SyntaxNodeAnalysisContext context,
+        INamedTypeSymbol? expressionType)
     {
         var semanticModel = context.SemanticModel;
         var invocationExpression = (InvocationExpressionSyntax)context.Node;
@@ -41,58 +41,67 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
 
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
-        if (!option.Value)
+        if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
-        if (AnalyzeInvocation(semanticModel, invocationExpression, cancellationToken) is not { } analysisResult)
+        var allowSemanticsChange = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
+        if (AnalyzeInvocation(semanticModel, invocationExpression, expressionType, allowSemanticsChange, cancellationToken) is not { } analysisResult)
             return;
 
         var locations = ImmutableArray.Create(invocationExpression.GetLocation());
+        var properties = analysisResult.ChangesSemantics ? ChangesSemantics : null;
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             analysisResult.DiagnosticLocation,
-            option.Notification.Severity,
+            option.Notification,
+            context.Options,
             additionalLocations: locations,
-            properties: null));
+            properties: properties));
 
         FadeOutCode(context, analysisResult, locations);
-    }
 
-    private void FadeOutCode(SyntaxNodeAnalysisContext context, AnalysisResult analysisResult, ImmutableArray<Location> locations)
-    {
-        var additionalUnnecessaryLocations = ImmutableArray.Create(
-            analysisResult.LocalDeclarationStatement.GetLocation());
+        return;
 
-        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-            UnnecessaryCodeDescriptor,
-            additionalUnnecessaryLocations[0],
-            ReportDiagnostic.Default,
-            additionalLocations: locations,
-            additionalUnnecessaryLocations: additionalUnnecessaryLocations,
-            properties: null));
-
-        foreach (var statementMatch in analysisResult.Matches)
+        void FadeOutCode(SyntaxNodeAnalysisContext context, AnalysisResult analysisResult, ImmutableArray<Location> locations)
         {
-            additionalUnnecessaryLocations = UseCollectionInitializerHelpers.GetLocationsToFade(
-                CSharpSyntaxFacts.Instance, statementMatch);
-            if (additionalUnnecessaryLocations.IsDefaultOrEmpty)
-                continue;
+            var additionalUnnecessaryLocations = ImmutableArray.Create(
+                analysisResult.LocalDeclarationStatement.GetLocation());
 
-            // Report the diagnostic at the first unnecessary location. This is the location where the code fix
-            // will be offered.
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 UnnecessaryCodeDescriptor,
                 additionalUnnecessaryLocations[0],
-                ReportDiagnostic.Default,
+                NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+                context.Options,
                 additionalLocations: locations,
                 additionalUnnecessaryLocations: additionalUnnecessaryLocations,
-                properties: null));
+                properties: properties));
+
+            foreach (var statementMatch in analysisResult.Matches)
+            {
+                additionalUnnecessaryLocations = UseCollectionInitializerHelpers.GetLocationsToFade(
+                    CSharpSyntaxFacts.Instance, statementMatch);
+                if (additionalUnnecessaryLocations.IsDefaultOrEmpty)
+                    continue;
+
+                // Report the diagnostic at the first unnecessary location. This is the location where the code fix
+                // will be offered.
+                context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                    UnnecessaryCodeDescriptor,
+                    additionalUnnecessaryLocations[0],
+                    NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+                    context.Options,
+                    additionalLocations: locations,
+                    additionalUnnecessaryLocations: additionalUnnecessaryLocations,
+                    properties: properties));
+            }
         }
     }
 
     public static AnalysisResult? AnalyzeInvocation(
         SemanticModel semanticModel,
         InvocationExpressionSyntax invocationExpression,
+        INamedTypeSymbol? expressionType,
+        bool allowSemanticsChange,
         CancellationToken cancellationToken)
     {
         // Looking for `XXX.CreateBuilder(...)`
@@ -187,13 +196,13 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
 
             // Make sure we can actually use a collection expression in place of the created collection.
             if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                    semanticModel, creationExpression, skipVerificationForReplacedNode: true, cancellationToken))
+                    semanticModel, creationExpression, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
             {
                 return null;
             }
 
             // Looks good.  We can convert this.
-            return new(memberAccessExpression.Name.Identifier.GetLocation(), localDeclarationStatement, creationExpression, matches.ToImmutable());
+            return new(memberAccessExpression.Name.Identifier.GetLocation(), localDeclarationStatement, creationExpression, matches.ToImmutable(), changesSemantics);
         }
 
         return null;
@@ -240,5 +249,6 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         Location DiagnosticLocation,
         LocalDeclarationStatementSyntax LocalDeclarationStatement,
         InvocationExpressionSyntax CreationExpression,
-        ImmutableArray<Match<StatementSyntax>> Matches);
+        ImmutableArray<Match<StatementSyntax>> Matches,
+        bool ChangesSemantics);
 }

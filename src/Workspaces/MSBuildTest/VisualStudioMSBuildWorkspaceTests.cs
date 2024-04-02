@@ -29,6 +29,8 @@ using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
@@ -86,6 +88,20 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             var compilation = await vbProject.GetCompilationAsync();
             var compReferences = compilation.References.ToList();
             Assert.Equal(5, compReferences.Count);
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        public async Task TestDirectUseOfMSBuildProjectLoader()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles());
+            var solutionFilePath = GetSolutionFileName("TestSolution.sln");
+
+            using var workspace = CreateMSBuildWorkspace();
+            var msbuildProjectLoader = new MSBuildProjectLoader(workspace);
+            var solutionInfo = await msbuildProjectLoader.LoadSolutionInfoAsync(solutionFilePath);
+            var projectInfo = Assert.Single(solutionInfo.Projects);
+
+            Assert.Single(projectInfo.Documents.Where(d => d.Name == "CSharpClass.cs"));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -920,10 +936,7 @@ class C1
 
             using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            {
-                await workspace.OpenSolutionAsync(solutionFilePath);
-            });
+            await AssertThrowsExceptionForInvalidPath(() => workspace.OpenSolutionAsync(solutionFilePath));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -1020,7 +1033,7 @@ class C1
             using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             workspace.SkipUnrecognizedProjects = false;
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenSolutionAsync(solutionFilePath));
+            await AssertThrowsExceptionForInvalidPath(() => workspace.OpenSolutionAsync(solutionFilePath));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -1138,7 +1151,7 @@ class C1
             });
 
             var projFileName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
-            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projFileName, ".csproj");
+            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projFileName, LanguageNames.CSharp);
             Assert.Equal(expected, e.Message);
         }
 
@@ -1156,7 +1169,7 @@ class C1
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
             var projFileName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
-            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projFileName, ".csproj");
+            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projFileName, LanguageNames.CSharp);
             Assert.Equal(expected, workspace.Diagnostics.Single().Message);
         }
 
@@ -1171,7 +1184,7 @@ class C1
             using var workspace = MSBuildWorkspace.Create(MefHostServices.Create(_defaultAssembliesWithoutCSharp));
             var e = await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenProjectAsync(projectName));
 
-            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectName, ".csproj");
+            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projectName, LanguageNames.CSharp);
             Assert.Equal(expected, e.Message);
         }
 
@@ -1183,7 +1196,7 @@ class C1
 
             using var workspace = CreateMSBuildWorkspace();
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenProjectAsync(projectFilePath));
+            await AssertThrowsExceptionForInvalidPath(() => workspace.OpenProjectAsync(projectFilePath));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -1225,7 +1238,7 @@ class C1
 
             using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             workspace.SkipUnrecognizedProjects = false;
-            await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenProjectAsync(projectFilePath));
+            await AssertThrowsExceptionForInvalidPath(() => workspace.OpenProjectAsync(projectFilePath));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -1643,8 +1656,8 @@ class C1
             var project = sol.Projects.First();
             var options = project.ParseOptions;
 
-            Assert.DoesNotContain(options.PreprocessorSymbolNames, name => name == "DEBUG");
-            Assert.Contains(options.PreprocessorSymbolNames, name => name == "TRACE");
+            Assert.DoesNotContain("DEBUG", options.PreprocessorSymbolNames);
+            Assert.Contains("TRACE", options.PreprocessorSymbolNames);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -2350,18 +2363,18 @@ class C1
 
             CreateFiles(files);
 
-            using var workspace = new AdhocWorkspace(MSBuildMefHostServices.DefaultServices, WorkspaceKind.MSBuild);
+            using var workspace = CreateMSBuildWorkspace();
             var projectFullPath = GetSolutionFileName(@"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj");
 
-            var loader = new MSBuildProjectLoader(workspace);
-            var infos = await loader.LoadProjectInfoAsync(projectFullPath);
+            var project = await workspace.OpenProjectAsync(projectFullPath);
 
-            var doc = infos[0].Documents[0];
-            var tav = doc.TextLoader.LoadTextAndVersionSynchronously(new LoadTextOptions(SourceHashAlgorithms.Default), CancellationToken.None);
+            var document = project.Documents.Single(d => d.Name == "CSharpClass.cs");
+            var documentText = document.GetTextSynchronously(CancellationToken.None);
+            Assert.Contains("public class CSharpClass", documentText.ToString(), StringComparison.Ordinal);
 
-            var adoc = infos[0].AdditionalDocuments.First(a => a.Name == "XamlFile.xaml");
-            var atav = adoc.TextLoader.LoadTextAndVersionSynchronously(new LoadTextOptions(SourceHashAlgorithms.Default), CancellationToken.None);
-            Assert.Contains("Window", atav.Text.ToString(), StringComparison.Ordinal);
+            var additionalDocument = project.AdditionalDocuments.Single(a => a.Name == "XamlFile.xaml");
+            var additionalDocumentText = additionalDocument.GetTextSynchronously(CancellationToken.None);
+            Assert.Contains("Window", additionalDocumentText.ToString(), StringComparison.Ordinal);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -2989,7 +3002,7 @@ class C { }";
             var diagnostic = Assert.Single(workspace.Diagnostics);
             Assert.StartsWith("Msbuild failed", diagnostic.Message);
 
-            Assert.Empty(proj.DocumentIds);
+            Assert.Equal(2, proj.DocumentIds.Count);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
@@ -3007,14 +3020,14 @@ class C { }";
             Assert.StartsWith("Msbuild failed", diagnostic.Message);
 
             var project = Assert.Single(solution.Projects);
-            Assert.Empty(project.DocumentIds);
+            Assert.Equal(2, project.DocumentIds.Count);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
-        public async Task TestOpenProject_MsbuildError()
+        public async Task TestOpenProject_MSBuildExecutionError()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
-                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.MsbuildError));
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.MSBuildExecutionError));
 
             var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
@@ -3023,6 +3036,40 @@ class C { }";
 
             var diagnostic = Assert.Single(workspace.Diagnostics);
             Assert.StartsWith("Msbuild failed", diagnostic.Message);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
+        public async Task TestOpenProject_MSBuildEvaluationErrorWithExpressionInputs()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.MSBuildEvaluationErrorWithExpressionInputs));
+
+            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
+            var project = await workspace.OpenProjectAsync(projectFilePath);
+
+            var diagnostic = Assert.Single(workspace.Diagnostics);
+
+            // Assert we get an error about the broken expression so we know this is not some unrelated error making the test pass
+            Assert.Contains("[MSBuild]::VersionEquals('', 6.0)", diagnostic.Message);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
+        public async Task TestOpenProject_MSBuildEvaluationErrorWithSyntax()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.MSBuildEvaluationErrorWithSyntax));
+
+            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
+            var project = await workspace.OpenProjectAsync(projectFilePath);
+
+            var diagnostic = Assert.Single(workspace.Diagnostics);
+
+            // Assert we get an error about the broken expression so we know this is not some unrelated error making the test pass
+            Assert.Contains("'$(Configuration)|$(Platform)' == 'Debug|AnyCPU", diagnostic.Message);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -3046,18 +3093,15 @@ class C { }";
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
             using var workspace = CreateMSBuildWorkspace();
-            var loader = workspace.Services
-                .GetLanguageServices(LanguageNames.CSharp)
-                .GetRequiredService<IProjectFileLoader>();
+            var loader = new CSharpProjectFileLoader();
 
             var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
-            var buildManager = new ProjectBuildManager(ImmutableDictionary<string, string>.Empty);
-            buildManager.StartBatchBuild();
+            await using var buildHostProcessManager = new BuildHostProcessManager(ImmutableDictionary<string, string>.Empty);
 
-            var projectFile = await loader.LoadProjectFileAsync(projectFilePath, buildManager, CancellationToken.None);
+            var buildHost = await buildHostProcessManager.GetBuildHostWithFallbackAsync(projectFilePath, CancellationToken.None);
+            var projectFile = await buildHost.LoadProjectFileAsync(projectFilePath, LanguageNames.CSharp, CancellationToken.None);
             var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
-            buildManager.EndBatchBuild();
 
             var commandLineParser = workspace.Services
                 .GetLanguageServices(loader.Language)
@@ -3226,8 +3270,8 @@ class C { }";
             Assert.Equal(0, workspace.CurrentSolution.ProjectIds.Count);
         }
 
-        // On .NET Core this tests fails with "CodePape Not Found"
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        // On .NET Core this tests fails with "CodePage Not Found"
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DesktopClrOnly))]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public async Task MSBuildProjectShouldHandleCodePageProperty()
         {
@@ -3260,7 +3304,7 @@ class C { }";
             using var workspace = CreateMSBuildWorkspace();
             var project = await workspace.OpenProjectAsync(GetSolutionFileName("Project.csproj"));
             var document = project.Documents.Single(d => d.Name == "MyClass.cs");
-            Assert.Equal(new[] { "dir1", "dir2", "dir3" }, document.Folders);
+            Assert.Equal(["dir1", "dir2", "dir3"], document.Folders);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -3273,7 +3317,7 @@ class C { }";
             using var workspace = CreateMSBuildWorkspace();
             var project = await workspace.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
             var linkedDocument = project.Documents.Single(d => d.Name == "Foo.cs");
-            Assert.Equal(new[] { "Blah" }, linkedDocument.Folders);
+            Assert.Equal(["Blah"], linkedDocument.Folders);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -3286,7 +3330,7 @@ class C { }";
             using var workspace = CreateMSBuildWorkspace();
             var project = await workspace.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
             var linkedDocument = project.Documents.Single(d => d.Name == "MyClass.cs");
-            Assert.Equal(new[] { "..", "MyDir" }, linkedDocument.Folders);
+            Assert.Equal(["..", "MyDir"], linkedDocument.Folders);
         }
 
         private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader

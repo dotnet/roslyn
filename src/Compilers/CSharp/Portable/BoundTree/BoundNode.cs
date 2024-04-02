@@ -53,7 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             WasConverted = 1 << 8,
 
-            AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted,
+            ParamsArrayOrCollection = 1 << 9,
+
+            AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted | ParamsArrayOrCollection,
         }
 
         protected new BoundNode MemberwiseClone()
@@ -149,6 +151,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(original is BoundExpression || !original.IsSuppressed);
             this.IsSuppressed = original.IsSuppressed;
+
+            if (original.IsParamsArrayOrCollection)
+            {
+                this.IsParamsArrayOrCollection = true;
+            }
+
 #if DEBUG
             this.WasConverted = original.WasConverted;
 #endif
@@ -318,6 +326,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 #endif
+
+        public bool IsParamsArrayOrCollection
+        {
+            get
+            {
+                return (_attributes & BoundNodeAttributes.ParamsArrayOrCollection) != 0;
+            }
+            protected set
+            {
+                Debug.Assert((_attributes & BoundNodeAttributes.ParamsArrayOrCollection) == 0, $"{nameof(BoundNodeAttributes.ParamsArrayOrCollection)} flag should not be set twice or reset");
+                Debug.Assert(value || !IsParamsArrayOrCollection);
+                Debug.Assert(!value ||
+                             this is BoundArrayCreation { Bounds: [BoundLiteral { WasCompilerGenerated: true }], InitializerOpt: BoundArrayInitialization { WasCompilerGenerated: true }, WasCompilerGenerated: true } or
+                                     BoundUnconvertedCollectionExpression { WasCompilerGenerated: true } or
+                                     BoundCollectionExpression { WasCompilerGenerated: true, UnconvertedCollectionExpression.IsParamsArrayOrCollection: true } or
+                                     BoundConversion { Operand: BoundCollectionExpression { IsParamsArrayOrCollection: true } });
+                Debug.Assert(!value ||
+                             this is not BoundUnconvertedCollectionExpression collection ||
+                             ImmutableArray<BoundNode>.CastUp(collection.Elements.CastArray<BoundExpression>()) == collection.Elements);
+
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.ParamsArrayOrCollection;
+                }
+            }
+        }
 
         public BoundKind Kind
         {
@@ -498,24 +532,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitBlock(BoundBlock node)
             {
-                if (node.Instrumentation != null)
+                var instrumentation = node.Instrumentation;
+                if (instrumentation != null)
                 {
-                    var added = DeclaredLocals.Add(node.Instrumentation.Local);
-                    Debug.Assert(added);
+                    foreach (var local in instrumentation.Locals)
+                    {
+                        var added = DeclaredLocals.Add(local);
+                        Debug.Assert(added);
+                    }
 
-                    _ = Visit(node.Instrumentation.Prologue);
+                    _ = Visit(instrumentation.Prologue);
                 }
 
                 AddAll(node.Locals);
                 base.VisitBlock(node);
                 RemoveAll(node.Locals);
 
-                if (node.Instrumentation != null)
+                if (instrumentation != null)
                 {
-                    _ = Visit(node.Instrumentation.Epilogue);
+                    _ = Visit(instrumentation.Epilogue);
 
-                    var removed = DeclaredLocals.Remove(node.Instrumentation.Local);
-                    Debug.Assert(removed);
+                    foreach (var local in instrumentation.Locals)
+                    {
+                        var removed = DeclaredLocals.Remove(local);
+                        Debug.Assert(removed);
+                    }
                 }
 
                 return null;

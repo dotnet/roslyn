@@ -37,6 +37,7 @@ namespace CSharpSyntaxGenerator
             WriteLine("using System.Diagnostics.CodeAnalysis;");
             WriteLine("using Microsoft.CodeAnalysis.Syntax.InternalSyntax;");
             WriteLine("using Roslyn.Utilities;");
+            WriteLine("using CoreSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax;");
             WriteLine();
         }
 
@@ -44,38 +45,30 @@ namespace CSharpSyntaxGenerator
         {
             WriteFileHeader();
 
-            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax");
-            OpenBlock();
-            WriteLine();
+            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;");
             this.WriteGreenTypes();
             this.WriteGreenVisitors();
             this.WriteGreenRewriter();
             this.WriteContextualGreenFactories();
             this.WriteStaticGreenFactories();
-            CloseBlock();
         }
 
         private void WriteSyntax()
         {
             WriteFileHeader();
-            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax");
-            OpenBlock();
-            WriteLine();
+            WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax;");
             this.WriteRedTypes();
-            CloseBlock();
         }
 
         private void WriteMain()
         {
             WriteFileHeader();
-            WriteLine("namespace Microsoft.CodeAnalysis.CSharp");
-            OpenBlock();
+            WriteLine("namespace Microsoft.CodeAnalysis.CSharp;");
             WriteLine("using System.Diagnostics.CodeAnalysis;");
             WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
             this.WriteRedVisitors();
             this.WriteRedRewriter();
             this.WriteRedFactories();
-            CloseBlock();
         }
 
         private void WriteGreenTypes()
@@ -104,7 +97,7 @@ namespace CSharpSyntaxGenerator
                 OpenBlock();
                 if (node.Name == "DirectiveTriviaSyntax")
                 {
-                    WriteLine("this.flags |= NodeFlags.ContainsDirectives;");
+                    WriteLine("SetFlags(NodeFlags.ContainsDirectives);");
                 }
                 CloseBlock();
                 WriteLine();
@@ -114,18 +107,7 @@ namespace CSharpSyntaxGenerator
                 OpenBlock();
                 if (node.Name == "DirectiveTriviaSyntax")
                 {
-                    WriteLine("this.flags |= NodeFlags.ContainsDirectives;");
-                }
-                CloseBlock();
-
-                // object reader constructor
-                WriteLine();
-                WriteLine($"protected {node.Name}(ObjectReader reader)");
-                WriteLine("  : base(reader)");
-                OpenBlock();
-                if (node.Name == "DirectiveTriviaSyntax")
-                {
-                    WriteLine("this.flags |= NodeFlags.ContainsDirectives;");
+                    WriteLine("SetFlags(NodeFlags.ContainsDirectives);");
                 }
                 CloseBlock();
 
@@ -142,7 +124,7 @@ namespace CSharpSyntaxGenerator
                         if (IsSeparatedNodeList(field.Type) ||
                             IsNodeList(field.Type))
                         {
-                            WriteLine($"public abstract {(IsNew(field) ? "new " : "")}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{field.Type} {field.Name} {{ get; }}");
+                            WriteLine($"public abstract {(IsNew(field) ? "new " : "")}CoreSyntax.{field.Type} {field.Name} {{ get; }}");
                         }
                         else
                         {
@@ -191,7 +173,7 @@ namespace CSharpSyntaxGenerator
                 WriteLine(", DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)");
                 WriteLine("  : base(kind, diagnostics, annotations)");
                 OpenBlock();
-                WriteCtorBody(valueFields, nodeFields);
+                WriteCtorBody(nd, valueFields, nodeFields);
                 CloseBlock();
 
                 // write constructor with async
@@ -204,7 +186,7 @@ namespace CSharpSyntaxGenerator
                 WriteLine("  : base(kind)");
                 OpenBlock();
                 WriteLine("this.SetFactoryContext(context);");
-                WriteCtorBody(valueFields, nodeFields);
+                WriteCtorBody(nd, valueFields, nodeFields);
                 CloseBlock();
 
                 // write constructor without diagnostics and annotations
@@ -216,7 +198,7 @@ namespace CSharpSyntaxGenerator
                 WriteLine(")");
                 WriteLine("  : base(kind)");
                 OpenBlock();
-                WriteCtorBody(valueFields, nodeFields);
+                WriteCtorBody(nd, valueFields, nodeFields);
                 CloseBlock();
                 WriteLine();
 
@@ -226,15 +208,18 @@ namespace CSharpSyntaxGenerator
                     WriteComment(field.PropertyComment, "");
                     if (IsNodeList(field.Type))
                     {
-                        WriteLine($"public {OverrideOrNewModifier(field)}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{field.Type} {field.Name} => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.{field.Type}(this.{CamelCase(field.Name)});");
+                        var type = $"CoreSyntax.{field.Type}";
+                        WriteLine($"public {OverrideOrNewModifier(field)}{type} {field.Name} => new {type}(this.{CamelCase(field.Name)});");
                     }
                     else if (IsSeparatedNodeList(field.Type))
                     {
-                        WriteLine($"public {OverrideOrNewModifier(field)}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{field.Type} {field.Name} => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.{field.Type}(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{CamelCase(field.Name)}));");
+                        var type = $"CoreSyntax.{field.Type}";
+                        WriteLine($"public {OverrideOrNewModifier(field)}{type} {field.Name} => new {type}(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.{CamelCase(field.Name)}));");
                     }
                     else if (field.Type == "SyntaxNodeOrTokenList")
                     {
-                        WriteLine($"public {OverrideOrNewModifier(field)}Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode> {field.Name} => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{CamelCase(field.Name)});");
+                        var type = $"CoreSyntax.SyntaxList<CSharpSyntaxNode>";
+                        WriteLine($"public {OverrideOrNewModifier(field)}{type} {field.Name} => new {type}(this.{CamelCase(field.Name)});");
                     }
                     else
                     {
@@ -287,7 +272,6 @@ namespace CSharpSyntaxGenerator
                 this.WriteSetDiagnostics(nd);
                 this.WriteSetAnnotations(nd);
 
-                this.WriteGreenSerialization(nd);
                 CloseBlock();
             }
         }
@@ -305,88 +289,13 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private void WriteGreenSerialization(Node node)
+        private void WriteCtorBody(Node node, List<Field> valueFields, List<Field> nodeFields)
         {
-            var valueFields = node.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
-            var nodeFields = node.Fields.Where(n => IsNodeOrNodeList(n.Type)).ToList();
-
-            // object reader constructor
-            WriteLine();
-            WriteLine($"internal {node.Name}(ObjectReader reader)");
-            WriteLine("  : base(reader)");
-            OpenBlock();
-            WriteLine($"this.SlotCount = {nodeFields.Count};");
-
-            foreach (var field in nodeFields)
+            if (node.Name == "AttributeSyntax")
             {
-                string type = GetFieldType(field, green: true);
-                WriteLine($"var {CamelCase(field.Name)} = ({type})reader.ReadValue();");
-
-                if (IsAnyList(field.Type) || IsOptional(field))
-                {
-                    WriteLine($"if ({CamelCase(field.Name)} != null)");
-                    OpenBlock();
-                    WriteLine($"AdjustFlagsAndWidth({CamelCase(field.Name)});");
-                    WriteLine($"this.{CamelCase(field.Name)} = {CamelCase(field.Name)};");
-                    CloseBlock();
-                }
-                else
-                {
-                    WriteLine($"AdjustFlagsAndWidth({CamelCase(field.Name)});");
-                    WriteLine($"this.{CamelCase(field.Name)} = {CamelCase(field.Name)};");
-                }
+                WriteLine("SetFlags(NodeFlags.ContainsAttributes);");
             }
 
-            foreach (var field in valueFields)
-            {
-                WriteLine($"this.{CamelCase(field.Name)} = ({(GetFieldType(field, green: true))})reader.{(GetReaderMethod(GetFieldType(field, green: true)))}();");
-            }
-
-            CloseBlock();
-
-            // IWritable
-            WriteLine();
-            WriteLine("internal override void WriteTo(ObjectWriter writer)");
-            OpenBlock();
-            WriteLine("base.WriteTo(writer);");
-
-            foreach (var field in nodeFields)
-            {
-                WriteLine($"writer.WriteValue(this.{CamelCase(field.Name)});");
-            }
-
-            foreach (var field in valueFields)
-            {
-                var type = GetFieldType(field, green: true);
-                WriteLine($"writer.{GetWriterMethod(type)}(this.{CamelCase(field.Name)});");
-            }
-
-            CloseBlock();
-
-            // IReadable
-            WriteLine();
-            WriteLine($"static {node.Name}()");
-            OpenBlock();
-            WriteLine($"ObjectBinder.RegisterTypeReader(typeof({node.Name}), r => new {node.Name}(r));");
-            CloseBlock();
-        }
-
-        private string GetWriterMethod(string type)
-            => type switch
-            {
-                "bool" => "WriteBoolean",
-                _ => throw new InvalidOperationException($"Type '{type}' not supported for object reader serialization."),
-            };
-
-        private string GetReaderMethod(string type)
-            => type switch
-            {
-                "bool" => "ReadBoolean",
-                _ => throw new InvalidOperationException($"Type '{type}' not supported for object reader serialization."),
-            };
-
-        private void WriteCtorBody(List<Field> valueFields, List<Field> nodeFields)
-        {
             // constructor body
             WriteLine($"this.SlotCount = {nodeFields.Count};");
 
@@ -473,10 +382,10 @@ namespace CSharpSyntaxGenerator
             Write(CommaJoin(node.Fields.Select(f =>
             {
                 var type =
-                    f.Type == "SyntaxNodeOrTokenList" ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>" :
-                    f.Type == "SyntaxTokenList" ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>" :
-                    IsNodeList(f.Type) ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax." + f.Type :
-                    IsSeparatedNodeList(f.Type) ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax." + f.Type :
+                    f.Type == "SyntaxNodeOrTokenList" ? "CoreSyntax.SyntaxList<CSharpSyntaxNode>" :
+                    f.Type == "SyntaxTokenList" ? "CoreSyntax.SyntaxList<SyntaxToken>" :
+                    IsNodeList(f.Type) ? "CoreSyntax." + f.Type :
+                    IsSeparatedNodeList(f.Type) ? "CoreSyntax." + f.Type :
                     f.Type;
 
                 return $"{type} {CamelCase(f.Name)}";
@@ -677,6 +586,7 @@ namespace CSharpSyntaxGenerator
             if (nd.Name != "SkippedTokensTriviaSyntax" &&
                 nd.Name != "DocumentationCommentTriviaSyntax" &&
                 nd.Name != "IncompleteMemberSyntax" &&
+                nd.Name != "AttributeSyntax" &&
                 valueFields.Count + nodeFields.Count <= 3)
             {
                 //int hash;
@@ -746,8 +656,8 @@ namespace CSharpSyntaxGenerator
                 {
                     var type = f.Type switch
                     {
-                        "SyntaxNodeOrTokenList" => "Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>",
-                        _ when IsSeparatedNodeList(f.Type) || IsNodeList(f.Type) => $"Microsoft.CodeAnalysis.Syntax.InternalSyntax.{f.Type}",
+                        "SyntaxNodeOrTokenList" => "CoreSyntax.SyntaxList<CSharpSyntaxNode>",
+                        _ when IsSeparatedNodeList(f.Type) || IsNodeList(f.Type) => $"CoreSyntax.{f.Type}",
                         _ => GetFieldType(f, green: true),
                     };
 
@@ -960,7 +870,7 @@ namespace CSharpSyntaxGenerator
                         }
                         else
                         {
-                            WriteLine($" => new SyntaxToken(this, ((Syntax.InternalSyntax.{node.Name})this.Green).{CamelCase(field.Name)}, {GetChildPosition(i)}, {GetChildIndex(i)});");
+                            WriteLine($" => new SyntaxToken(this, ((InternalSyntax.{node.Name})this.Green).{CamelCase(field.Name)}, {GetChildPosition(i)}, {GetChildIndex(i)});");
                         }
                     }
                     else if (field.Type == "SyntaxList<SyntaxToken>")
@@ -1019,7 +929,7 @@ namespace CSharpSyntaxGenerator
                 foreach (var field in valueFields)
                 {
                     WriteComment(field.PropertyComment, "");
-                    WriteLine($"{"public"} {OverrideOrNewModifier(field)}{field.Type} {field.Name} => ((Syntax.InternalSyntax.{node.Name})this.Green).{field.Name};");
+                    WriteLine($"{"public"} {OverrideOrNewModifier(field)}{field.Type} {field.Name} => ((InternalSyntax.{node.Name})this.Green).{field.Name};");
                     WriteLine();
                 }
 

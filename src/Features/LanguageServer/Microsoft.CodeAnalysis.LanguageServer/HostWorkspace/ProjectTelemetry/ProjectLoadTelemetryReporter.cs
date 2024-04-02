@@ -21,12 +21,19 @@ internal class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory, Server
 
     private readonly ILogger _logger = loggerFactory.CreateLogger<ProjectLoadTelemetryReporter>();
 
+    public record TelemetryInfo
+    {
+        public ImmutableArray<CommandLineReference> MetadataReferences { get; init; }
+        public OutputKind OutputKind { get; init; }
+        public bool IsSdkStyle { get; init; }
+    }
+
     /// <summary>
     /// This is designed to report project telemetry in an extremely similar way to O#
     /// so that we are able to compare data accurately.
     /// See https://github.com/OmniSharp/omnisharp-roslyn/blob/b2e64c6006beed49460f063117793f42ab2a8a5c/src/OmniSharp.MSBuild/ProjectLoadListener.cs#L36
     /// </summary>
-    public async Task ReportProjectLoadTelemetryAsync(Dictionary<ProjectFileInfo, (ImmutableArray<CommandLineReference> MetadataReferences, OutputKind OutputKind)> projectFileInfos, ProjectToLoad projectToLoad, CancellationToken cancellationToken)
+    public async Task ReportProjectLoadTelemetryAsync(Dictionary<ProjectFileInfo, TelemetryInfo> projectFileInfos, ProjectToLoad projectToLoad, CancellationToken cancellationToken)
     {
         try
         {
@@ -44,10 +51,10 @@ internal class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory, Server
             // but only the data from one of the sets of possible outputkinds / references / content / etc.
             var firstInfo = projectFileInfos.First();
             var projectFileInfo = firstInfo.Key;
-            var (metadataReferences, outputKind) = firstInfo.Value;
+            var telemetryInfo = firstInfo.Value;
 
             // Matches O# behavior to not report this event if no references found.
-            if (!metadataReferences.Any())
+            if (!telemetryInfo.MetadataReferences.Any())
             {
                 return;
             }
@@ -57,14 +64,14 @@ internal class ProjectLoadTelemetryReporter(ILoggerFactory loggerFactory, Server
 
             var projectCapabilities = projectFileInfo.ProjectCapabilities;
 
-            var hashedReferences = GetHashedReferences(metadataReferences);
+            var hashedReferences = GetHashedReferences(telemetryInfo.MetadataReferences);
             var fileCounts = GetUniqueHashedFileExtensionsAndCounts(projectFileInfo);
-            var isSdkStyleProject = projectFileInfo.IsSdkStyle;
+            var isSdkStyleProject = telemetryInfo.IsSdkStyle;
 
             var projectEvent = new ProjectLoadTelemetryEvent(
                 ProjectId: projectId,
                 SessionId: s_hashedSessionId,
-                OutputKind: (int)outputKind,
+                OutputKind: (int)telemetryInfo.OutputKind,
                 ProjectCapabilities: projectCapabilities,
                 TargetFrameworks: targetFrameworks,
                 References: hashedReferences,

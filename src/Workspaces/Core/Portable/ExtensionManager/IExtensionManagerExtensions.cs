@@ -9,142 +9,121 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.Extensions
+namespace Microsoft.CodeAnalysis.Extensions;
+
+internal static class IExtensionManagerExtensions
 {
-    internal static class IExtensionManagerExtensions
+    public static void PerformAction(this IExtensionManager extensionManager, object extension, Action action)
     {
-        public static void PerformAction(this IExtensionManager extensionManager, object extension, Action action)
+        try
         {
-            try
+            if (!extensionManager.IsDisabled(extension))
             {
-                if (!extensionManager.IsDisabled(extension))
-                {
-                    action();
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception e) when (extensionManager.CanHandleException(extension, e))
-            {
-                extensionManager.HandleException(extension, e);
+                action();
             }
         }
-
-        public static T PerformFunction<T>(
-            this IExtensionManager extensionManager,
-            object extension,
-            Func<T> function,
-            T defaultValue)
+        catch (Exception e) when (extensionManager.HandleException(extension, e))
         {
-            try
-            {
-                if (!extensionManager.IsDisabled(extension))
-                {
-                    return function();
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception e) when (extensionManager.CanHandleException(extension, e))
-            {
-                extensionManager.HandleException(extension, e);
-            }
+        }
+    }
 
+    public static T PerformFunction<T>(
+        this IExtensionManager extensionManager,
+        object extension,
+        Func<T> function,
+        T defaultValue)
+    {
+        try
+        {
+            if (!extensionManager.IsDisabled(extension))
+                return function();
+        }
+        catch (Exception e) when (extensionManager.HandleException(extension, e))
+        {
+        }
+
+        return defaultValue;
+    }
+
+    public static async Task PerformActionAsync(
+        this IExtensionManager extensionManager,
+        object extension,
+        Func<Task?> function)
+    {
+        try
+        {
+            if (!extensionManager.IsDisabled(extension))
+            {
+                var task = function() ?? Task.CompletedTask;
+                await task.ConfigureAwait(false);
+            }
+        }
+        catch (Exception e) when (extensionManager.HandleException(extension, e))
+        {
+        }
+    }
+
+    public static async Task<T> PerformFunctionAsync<T>(
+        this IExtensionManager extensionManager,
+        object extension,
+        Func<CancellationToken, Task<T>?> function,
+        T defaultValue,
+        CancellationToken cancellationToken)
+    {
+        if (extensionManager.IsDisabled(extension))
             return defaultValue;
-        }
 
-        public static async Task PerformActionAsync(
-            this IExtensionManager extensionManager,
-            object extension,
-            Func<Task?> function)
+        try
         {
-            try
-            {
-                if (!extensionManager.IsDisabled(extension))
-                {
-                    var task = function() ?? Task.CompletedTask;
-                    await task.ConfigureAwait(false);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception e) when (extensionManager.CanHandleException(extension, e))
-            {
-                extensionManager.HandleException(extension, e);
-            }
+            var task = function(cancellationToken);
+            if (task != null)
+                return await task.ConfigureAwait(false);
         }
-
-        public static async Task<T> PerformFunctionAsync<T>(
-            this IExtensionManager extensionManager,
-            object extension,
-            Func<Task<T>?> function,
-            T defaultValue)
+        catch (Exception e) when (extensionManager.HandleException(extension, e))
         {
-            if (extensionManager.IsDisabled(extension))
-            {
-                return defaultValue;
-            }
-
-            try
-            {
-                var task = function();
-                if (task != null)
-                {
-                    return await task.ConfigureAwait(false);
-                }
-            }
-            catch (Exception e) when (!(e is OperationCanceledException) && extensionManager.CanHandleException(extension, e))
-            {
-                extensionManager.HandleException(extension, e);
-            }
-
-            return defaultValue;
         }
 
-        [SuppressMessage("Style", "IDE0039:Use local function", Justification = "Avoid per-call delegate allocation")]
-        public static Func<SyntaxNode, ImmutableArray<TExtension>> CreateNodeExtensionGetter<TExtension>(
-            this IExtensionManager extensionManager, IEnumerable<TExtension> extensions, Func<TExtension, ImmutableArray<Type>> nodeTypeGetter)
+        return defaultValue;
+    }
+
+    [SuppressMessage("Style", "IDE0039:Use local function", Justification = "Avoid per-call delegate allocation")]
+    public static Func<SyntaxNode, ImmutableArray<TExtension>> CreateNodeExtensionGetter<TExtension>(
+        this IExtensionManager extensionManager, IEnumerable<TExtension> extensions, Func<TExtension, ImmutableArray<Type>> nodeTypeGetter)
+    {
+        var map = new ConcurrentDictionary<Type, ImmutableArray<TExtension>>();
+
+        Func<Type, ImmutableArray<TExtension>> getExtensions = (Type t1) =>
         {
-            var map = new ConcurrentDictionary<Type, ImmutableArray<TExtension>>();
+            var query = from e in extensions
+                        let types = extensionManager.PerformFunction(e, () => nodeTypeGetter(e), [])
+                        where !types.Any() || types.Any(static (t2, t1) => t1 == t2 || t1.GetTypeInfo().IsSubclassOf(t2), t1)
+                        select e;
 
-            Func<Type, ImmutableArray<TExtension>> getExtensions = (Type t1) =>
-            {
-                var query = from e in extensions
-                            let types = extensionManager.PerformFunction(e, () => nodeTypeGetter(e), ImmutableArray<Type>.Empty)
-                            where !types.Any() || types.Any(static (t2, t1) => t1 == t2 || t1.GetTypeInfo().IsSubclassOf(t2), t1)
-                            select e;
+            return query.ToImmutableArray();
+        };
 
-                return query.ToImmutableArray();
-            };
+        return n => map.GetOrAdd(n.GetType(), getExtensions);
+    }
 
-            return n => map.GetOrAdd(n.GetType(), getExtensions);
-        }
-
-        [SuppressMessage("Style", "IDE0039:Use local function", Justification = "Avoid per-call delegate allocation")]
-        public static Func<SyntaxToken, ImmutableArray<TExtension>> CreateTokenExtensionGetter<TExtension>(
-            this IExtensionManager extensionManager, IEnumerable<TExtension> extensions, Func<TExtension, ImmutableArray<int>> tokenKindGetter)
+    [SuppressMessage("Style", "IDE0039:Use local function", Justification = "Avoid per-call delegate allocation")]
+    public static Func<SyntaxToken, ImmutableArray<TExtension>> CreateTokenExtensionGetter<TExtension>(
+        this IExtensionManager extensionManager, IEnumerable<TExtension> extensions, Func<TExtension, ImmutableArray<int>> tokenKindGetter)
+    {
+        var map = new ConcurrentDictionary<int, ImmutableArray<TExtension>>();
+        Func<int, ImmutableArray<TExtension>> getExtensions = (int k) =>
         {
-            var map = new ConcurrentDictionary<int, ImmutableArray<TExtension>>();
-            Func<int, ImmutableArray<TExtension>> getExtensions = (int k) =>
-            {
-                var query = from e in extensions
-                            let kinds = extensionManager.PerformFunction(e, () => tokenKindGetter(e), ImmutableArray<int>.Empty)
-                            where !kinds.Any() || kinds.Contains(k)
-                            select e;
+            var query = from e in extensions
+                        let kinds = extensionManager.PerformFunction(e, () => tokenKindGetter(e), [])
+                        where !kinds.Any() || kinds.Contains(k)
+                        select e;
 
-                return query.ToImmutableArray();
-            };
+            return query.ToImmutableArray();
+        };
 
-            return t => map.GetOrAdd(t.RawKind, getExtensions);
-        }
+        return t => map.GetOrAdd(t.RawKind, getExtensions);
     }
 }

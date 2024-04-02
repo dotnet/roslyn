@@ -7,30 +7,25 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
+
+[ExportWorkspaceService(typeof(IUnitTestingDocumentTrackingService), ServiceLayer.Default)]
+[Shared]
+internal sealed class DefaultUnitTestingDocumentTrackingService : IUnitTestingDocumentTrackingService
 {
-    [ExportWorkspaceService(typeof(IUnitTestingDocumentTrackingService), ServiceLayer.Default)]
-    [Shared]
-    internal sealed class DefaultUnitTestingDocumentTrackingService : IUnitTestingDocumentTrackingService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public DefaultUnitTestingDocumentTrackingService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultUnitTestingDocumentTrackingService()
-        {
-        }
-
-        public bool SupportsDocumentTracking => false;
-
-#if false // Not used in unit testing crawling
-        public event EventHandler<DocumentId?> ActiveDocumentChanged { add { } remove { } }
-#endif
-
-        public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
-
-        public ImmutableArray<DocumentId> GetVisibleDocuments()
-            => ImmutableArray<DocumentId>.Empty;
-
-        public DocumentId? TryGetActiveDocument()
-            => null;
     }
+
+    public bool SupportsDocumentTracking => false;
+
+    public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
+
+    public ImmutableArray<DocumentId> GetVisibleDocuments()
+        => [];
+
+    public DocumentId? TryGetActiveDocument()
+        => null;
 }

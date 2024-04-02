@@ -11,55 +11,54 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using InterlockedOperations = Roslyn.Utilities.InterlockedOperations;
 
-namespace Microsoft.CodeAnalysis.Navigation
+namespace Microsoft.CodeAnalysis.Navigation;
+
+internal partial class NavigableItemFactory
 {
-    internal partial class NavigableItemFactory
+    private class SymbolLocationNavigableItem(
+        Solution solution,
+        ISymbol symbol,
+        Location location,
+        ImmutableArray<TaggedText>? displayTaggedParts) : INavigableItem
     {
-        private class SymbolLocationNavigableItem(
-            Solution solution,
-            ISymbol symbol,
-            Location location,
-            ImmutableArray<TaggedText>? displayTaggedParts) : INavigableItem
+        private readonly Solution _solution = solution;
+        private readonly ISymbol _symbol = symbol;
+        private readonly Location _location = location;
+
+        /// <summary>
+        /// Lazily-initialized backing field for <see cref="Document"/>.
+        /// </summary>
+        /// <seealso cref="InterlockedOperations.Initialize{T, U}(ref StrongBox{T}, Func{U, T}, U)"/>
+        private StrongBox<INavigableItem.NavigableDocument> _lazyDocument;
+
+        public bool DisplayFileLocation => true;
+
+        public ImmutableArray<TaggedText> DisplayTaggedParts { get; } = displayTaggedParts.GetValueOrDefault();
+
+        public Glyph Glyph => _symbol.GetGlyph();
+
+        public bool IsImplicitlyDeclared => _symbol.IsImplicitlyDeclared;
+
+        public INavigableItem.NavigableDocument Document
         {
-            private readonly Solution _solution = solution;
-            private readonly ISymbol _symbol = symbol;
-            private readonly Location _location = location;
-
-            /// <summary>
-            /// Lazily-initialized backing field for <see cref="Document"/>.
-            /// </summary>
-            /// <seealso cref="InterlockedOperations.Initialize{T, U}(ref StrongBox{T}, Func{U, T}, U)"/>
-            private StrongBox<INavigableItem.NavigableDocument> _lazyDocument;
-
-            public bool DisplayFileLocation => true;
-
-            public ImmutableArray<TaggedText> DisplayTaggedParts { get; } = displayTaggedParts.GetValueOrDefault();
-
-            public Glyph Glyph => _symbol.GetGlyph();
-
-            public bool IsImplicitlyDeclared => _symbol.IsImplicitlyDeclared;
-
-            public INavigableItem.NavigableDocument Document
+            get
             {
-                get
-                {
-                    return InterlockedOperations.Initialize(
-                        ref _lazyDocument,
-                        static self =>
-                        {
-                            return (self._location.IsInSource && self._solution.GetDocument(self._location.SourceTree) is { } document)
-                                ? INavigableItem.NavigableDocument.FromDocument(document)
-                                : null;
-                        },
-                        this);
-                }
+                return InterlockedOperations.Initialize(
+                    ref _lazyDocument,
+                    static self =>
+                    {
+                        return (self._location.IsInSource && self._solution.GetDocument(self._location.SourceTree) is { } document)
+                            ? INavigableItem.NavigableDocument.FromDocument(document)
+                            : null;
+                    },
+                    this);
             }
-
-            public TextSpan SourceSpan => _location.SourceSpan;
-
-            public bool IsStale => false;
-
-            public ImmutableArray<INavigableItem> ChildItems => ImmutableArray<INavigableItem>.Empty;
         }
+
+        public TextSpan SourceSpan => _location.SourceSpan;
+
+        public bool IsStale => false;
+
+        public ImmutableArray<INavigableItem> ChildItems => [];
     }
 }

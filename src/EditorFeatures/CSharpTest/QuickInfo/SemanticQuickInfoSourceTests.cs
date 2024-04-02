@@ -28,17 +28,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     {
         private static async Task TestWithOptionsAsync(CSharpParseOptions options, string markup, params Action<QuickInfoItem>[] expectedResults)
         {
-            using var workspace = TestWorkspace.CreateCSharp(markup, options);
+            using var workspace = EditorTestWorkspace.CreateCSharp(markup, options);
             await TestWithOptionsAsync(workspace, expectedResults);
         }
 
         private static async Task TestWithOptionsAsync(CSharpCompilationOptions options, string markup, params Action<QuickInfoItem>[] expectedResults)
         {
-            using var workspace = TestWorkspace.CreateCSharp(markup, compilationOptions: options);
+            using var workspace = EditorTestWorkspace.CreateCSharp(markup, compilationOptions: options);
             await TestWithOptionsAsync(workspace, expectedResults);
         }
 
-        private static async Task TestWithOptionsAsync(TestWorkspace workspace, params Action<QuickInfoItem>[] expectedResults)
+        private static async Task TestWithOptionsAsync(EditorTestWorkspace workspace, params Action<QuickInfoItem>[] expectedResults)
         {
             var testDocument = workspace.DocumentWithCursor;
             var position = testDocument.CursorPosition.GetValueOrDefault();
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     </Project>
 </Workspace>", SecurityElement.Escape(markup));
 
-            using var workspace = TestWorkspace.Create(xmlString);
+            using var workspace = EditorTestWorkspace.Create(xmlString);
             var sourceDocument = workspace.Documents.Single(d => d.Name == "SourceDocument");
             var position = sourceDocument.CursorPosition!.Value;
             var documentId = sourceDocument.Id;
@@ -247,7 +247,7 @@ using System.Linq;
 
         private static async Task VerifyWithReferenceWorkerAsync(string xmlString, params Action<QuickInfoItem>[] expectedResults)
         {
-            using var workspace = TestWorkspace.Create(xmlString);
+            using var workspace = EditorTestWorkspace.Create(xmlString);
             var sourceDocument = workspace.Documents.First(d => d.Name == "SourceDocument");
             var position = sourceDocument.CursorPosition!.Value;
             var documentId = sourceDocument.Id;
@@ -6262,7 +6262,7 @@ class C
     </Submission>
 </Workspace>
 ";
-            using var workspace = TestWorkspace.Create(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive);
+            using var workspace = EditorTestWorkspace.Create(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive);
             await TestWithOptionsAsync(workspace, MainDescription($"({FeaturesResources.parameter}) int x = 1"));
         }
 
@@ -7269,6 +7269,35 @@ public interface ICloneable<T>
             await TestInClassAsync(markup,
                 MainDescription("Test<int> Test<int>.Clone()"),
                 Documentation("Clones a Test<T>."));
+        }
+
+        [Fact]
+        public async Task TestInheritdocWithTypeParamRef1()
+        {
+            var markup =
+@"
+public interface ITest
+{
+    /// <summary>
+    /// A generic method <typeparamref name=""T""/>.
+    /// </summary>
+    /// <typeparam name=""T"">A generic type.</typeparam>
+    void Foo<T>();
+}
+
+public class Test : ITest
+{
+    /// <inheritdoc/>
+    public void $$Foo<T>() { }
+}";
+
+            await TestWithOptionsAsync(TestOptions.Regular8,
+                markup,
+                MainDescription($"void Test.Foo<T>()"),
+                Documentation("A generic method T."),
+                item => Assert.Equal(
+                    item.Sections.First(section => section.Kind == QuickInfoSectionKinds.DocumentationComments).TaggedParts.Select(p => p.Tag).ToArray(),
+                    new[] { "Text", "Space", "TypeParameter", "Text" }));
         }
 
         [Fact]
@@ -8767,6 +8796,61 @@ class Program
 @"using unsafe $$X = int*;";
             await TestAsync(source,
                 MainDescription($"int*"));
+        }
+
+        [Fact]
+        public async Task TestCollectionExpression_Start()
+        {
+            var source =
+"int[] x = $$[1, 2]";
+            await TestAsync(source,
+                MainDescription($"int[]"));
+        }
+
+        [Fact]
+        public async Task TestCollectionExpression_Middle()
+        {
+            var source =
+"int[] x = [1 $$, 2]";
+            await TestAsync(source);
+        }
+
+        [Fact]
+        public async Task TestCollectionExpression_End()
+        {
+            var source =
+"int[] x = [1, 2]$$";
+            await TestAsync(source,
+                MainDescription($"int[]"));
+        }
+
+        [Fact]
+        public async Task TestCollectionExpression_Start_Typeless()
+        {
+            var source =
+"var x = $$[1, 2]";
+            await TestAsync(source);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71638")]
+        public async Task TestAnonymousType()
+        {
+            var markup = """
+                _ = new
+                {
+                    @string = ""
+                }.$$@string;
+                """;
+            var description = $"string 'a.@string {{ get; }}";
+
+            await VerifyWithMscorlib45Async(markup, new[]
+            {
+                MainDescription(description),
+                AnonymousTypes(
+$@"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} new {{ string @string }}")
+            });
         }
     }
 }

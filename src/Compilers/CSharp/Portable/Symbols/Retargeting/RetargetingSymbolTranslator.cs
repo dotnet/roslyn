@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         // This is a local type explicitly declared in source. Get information from TypeIdentifier attribute.
                         foreach (var attrData in type.GetAttributes())
                         {
-                            int signatureIndex = attrData.GetTargetAttributeSignatureIndex(type, AttributeDescription.TypeIdentifierAttribute);
+                            int signatureIndex = attrData.GetTargetAttributeSignatureIndex(AttributeDescription.TypeIdentifierAttribute);
 
                             if (signatureIndex != -1)
                             {
@@ -1003,7 +1003,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         static ParameterSymbol (param, translator) => new SignatureOnlyParameterSymbol(
                             translator.Retarget(param.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                             translator.RetargetModifiers(param.RefCustomModifiers, modifiersHaveChanged: out _),
-                            param.IsParams,
+                            isParamsArray: param.IsParamsArray,
+                            isParamsCollection: param.IsParamsCollection,
                             param.RefKind),
                         translator);
 
@@ -1076,7 +1077,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     static ParameterSymbol (param, self) => new SignatureOnlyParameterSymbol(
                         self.Retarget(param.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                         self.RetargetModifiers(param.RefCustomModifiers, modifiersHaveChanged: out _),
-                        param.IsParams,
+                        isParamsArray: param.IsParamsArray,
+                        isParamsCollection: param.IsParamsCollection,
                         param.RefKind),
                     this);
 
@@ -1145,11 +1147,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             internal IEnumerable<CSharpAttributeData> RetargetAttributes(IEnumerable<CSharpAttributeData> attributes)
             {
-#if DEBUG
-                SynthesizedAttributeData x = null;
-                SourceAttributeData y = x; // Code below relies on the fact that SynthesizedAttributeData derives from SourceAttributeData.
-                x = (SynthesizedAttributeData)y;
-#endif
                 foreach (var attributeData in attributes)
                 {
                     yield return this.RetargetAttributeData(attributeData);
@@ -1158,14 +1155,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             private CSharpAttributeData RetargetAttributeData(CSharpAttributeData oldAttributeData)
             {
-                SourceAttributeData oldAttribute = (SourceAttributeData)oldAttributeData;
-
-                MethodSymbol oldAttributeCtor = oldAttribute.AttributeConstructor;
+                MethodSymbol oldAttributeCtor = oldAttributeData.AttributeConstructor;
                 MethodSymbol newAttributeCtor = (object)oldAttributeCtor == null ?
                     null :
                     Retarget(oldAttributeCtor, MemberSignatureComparer.RetargetedExplicitImplementationComparer);
 
-                NamedTypeSymbol oldAttributeType = oldAttribute.AttributeClass;
+                NamedTypeSymbol oldAttributeType = oldAttributeData.AttributeClass;
                 NamedTypeSymbol newAttributeType;
                 if ((object)newAttributeCtor != null)
                 {
@@ -1180,24 +1175,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     newAttributeType = null;
                 }
 
-                ImmutableArray<TypedConstant> oldAttributeCtorArguments = oldAttribute.CommonConstructorArguments;
+                ImmutableArray<TypedConstant> oldAttributeCtorArguments = oldAttributeData.CommonConstructorArguments;
                 ImmutableArray<TypedConstant> newAttributeCtorArguments = RetargetAttributeConstructorArguments(oldAttributeCtorArguments);
 
-                ImmutableArray<KeyValuePair<string, TypedConstant>> oldAttributeNamedArguments = oldAttribute.CommonNamedArguments;
+                ImmutableArray<KeyValuePair<string, TypedConstant>> oldAttributeNamedArguments = oldAttributeData.CommonNamedArguments;
                 ImmutableArray<KeyValuePair<string, TypedConstant>> newAttributeNamedArguments = RetargetAttributeNamedArguments(oldAttributeNamedArguments);
 
                 // Must create a RetargetingAttributeData even if the types and
                 // arguments are unchanged since the AttributeData instance is
                 // used to resolve System.Type which may require retargeting.
                 return new RetargetingAttributeData(
-                    oldAttribute.ApplicationSyntaxReference,
+                    oldAttributeData,
                     newAttributeType,
                     newAttributeCtor,
                     newAttributeCtorArguments,
-                    oldAttribute.ConstructorArgumentsSourceIndices,
-                    newAttributeNamedArguments,
-                    hasErrors: oldAttribute.HasErrors || newAttributeCtor is null,
-                    oldAttribute.IsConditionallyOmitted);
+                    newAttributeNamedArguments);
             }
 
             private ImmutableArray<TypedConstant> RetargetAttributeConstructorArguments(ImmutableArray<TypedConstant> constructorArguments)

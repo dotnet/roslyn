@@ -410,14 +410,39 @@ Show items from unimported namespaces (experimental);</source>
         <target state="translated">IDE에서 사용되는 C# 구성 요소입니다. 프로젝트 형식 및 설정에 따라 다른 버전의 컴파일러를 사용할 수 있습니다.</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_CSharp_script_file">
-        <source>An empty C# script file.</source>
-        <target state="translated">비어 있는 C# 스크립트 파일입니다.</target>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>Always add new line on enter</source>
+        <target state="translated">입력 시 새 줄 항상 추가</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_CSharp_Script">
-        <source>Visual C# Script</source>
-        <target state="translated">Visual C# 스크립트</target>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">코드 조각 항상 포함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Default">
+        <source>Default</source>
+        <target state="translated">기본값</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when Tab is typed after an identifier</source>
+        <target state="translated">식별자 뒤에 Tab을 입력하면 코드 조각 포함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>Never add new line on enter</source>
+        <target state="translated">입력 시 새 줄 추가 안 함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">코드 조각 포함 안 함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>Only add new line on enter after end of fully typed word</source>
+        <target state="translated">단어를 모두 입력하고 &lt;Enter&gt; 키를 누르면 새 줄 추가</target>
         <note />
       </trans-unit>
     </body>

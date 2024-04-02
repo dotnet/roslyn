@@ -6,71 +6,73 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindUsages
+namespace Microsoft.CodeAnalysis.FindUsages;
+
+internal partial class DefinitionItem
 {
-    internal partial class DefinitionItem
+    /// <summary>
+    /// Implementation of a <see cref="DefinitionItem"/> that sits on top of a 
+    /// <see cref="DocumentSpan"/>.
+    /// </summary>
+    // internal for testing purposes.
+    internal sealed class DefaultDefinitionItem(
+        ImmutableArray<string> tags,
+        ImmutableArray<TaggedText> displayParts,
+        ImmutableArray<TaggedText> nameDisplayParts,
+        ImmutableArray<DocumentSpan> sourceSpans,
+        ImmutableArray<ClassifiedSpansAndHighlightSpan?> classifiedSpans,
+        ImmutableArray<AssemblyLocation> metadataLocations,
+        ImmutableDictionary<string, string>? properties,
+        ImmutableDictionary<string, string>? displayableProperties,
+        bool displayIfNoReferences) : DefinitionItem(
+            tags, displayParts, nameDisplayParts,
+            sourceSpans, classifiedSpans, metadataLocations, properties, displayableProperties, displayIfNoReferences)
     {
-        /// <summary>
-        /// Implementation of a <see cref="DefinitionItem"/> that sits on top of a 
-        /// <see cref="DocumentSpan"/>.
-        /// </summary>
-        // internal for testing purposes.
-        internal sealed class DefaultDefinitionItem(
-            ImmutableArray<string> tags,
-            ImmutableArray<TaggedText> displayParts,
-            ImmutableArray<TaggedText> nameDisplayParts,
-            ImmutableArray<TaggedText> originationParts,
-            ImmutableArray<DocumentSpan> sourceSpans,
-            ImmutableDictionary<string, string>? properties,
-            ImmutableDictionary<string, string>? displayableProperties,
-            bool displayIfNoReferences) : DefinitionItem(tags, displayParts, nameDisplayParts, originationParts,
-                   sourceSpans, properties, displayableProperties, displayIfNoReferences)
+        internal sealed override bool IsExternal => false;
+
+        public override async Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
         {
-            internal sealed override bool IsExternal => false;
+            if (Properties.ContainsKey(NonNavigable))
+                return null;
 
-            public override async Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
+            if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
             {
-                if (Properties.ContainsKey(NonNavigable))
-                    return null;
-
-                if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
+                var (project, symbol) = await TryResolveSymbolAsync(workspace.CurrentSolution, symbolKey, cancellationToken).ConfigureAwait(false);
+                if (symbol is { Kind: not SymbolKind.Namespace })
                 {
-                    var (project, symbol) = await TryResolveSymbolAsync(workspace.CurrentSolution, symbolKey, cancellationToken).ConfigureAwait(false);
-                    if (symbol is { Kind: not SymbolKind.Namespace })
-                    {
-                        Contract.ThrowIfNull(project);
+                    Contract.ThrowIfNull(project);
 
-                        var navigationService = workspace.Services.GetRequiredService<ISymbolNavigationService>();
-                        return await navigationService.GetNavigableLocationAsync(
-                            symbol, project, cancellationToken).ConfigureAwait(false);
-                    }
-
-                    return null;
+                    var navigationService = workspace.Services.GetRequiredService<ISymbolNavigationService>();
+                    return await navigationService.GetNavigableLocationAsync(
+                        symbol, project, cancellationToken).ConfigureAwait(false);
                 }
 
-                return await SourceSpans[0].GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
+                return null;
             }
 
-            private async ValueTask<(Project? project, ISymbol? symbol)> TryResolveSymbolAsync(Solution solution, string symbolKey, CancellationToken cancellationToken)
+            return await SourceSpans[0].GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        private async ValueTask<(Project? project, ISymbol? symbol)> TryResolveSymbolAsync(Solution solution, string symbolKey, CancellationToken cancellationToken)
+        {
+            if (!Properties.TryGetValue(MetadataSymbolOriginatingProjectIdGuid, out var projectIdGuid) ||
+                !Properties.TryGetValue(MetadataSymbolOriginatingProjectIdDebugName, out var projectDebugName))
             {
-                if (!Properties.TryGetValue(MetadataSymbolOriginatingProjectIdGuid, out var projectIdGuid) ||
-                    !Properties.TryGetValue(MetadataSymbolOriginatingProjectIdDebugName, out var projectDebugName))
-                {
-                    return default;
-                }
-
-                var project = solution.GetProject(ProjectId.CreateFromSerialized(Guid.Parse(projectIdGuid), projectDebugName));
-                if (project == null)
-                    return default;
-
-                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var symbol = SymbolKey.ResolveString(symbolKey, compilation, cancellationToken: cancellationToken).Symbol;
-                return (project, symbol);
+                return default;
             }
+
+            var project = solution.GetProject(ProjectId.CreateFromSerialized(Guid.Parse(projectIdGuid), projectDebugName));
+            if (project == null)
+                return default;
+
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var symbol = SymbolKey.ResolveString(symbolKey, compilation, cancellationToken: cancellationToken).Symbol;
+            return (project, symbol);
         }
     }
 }

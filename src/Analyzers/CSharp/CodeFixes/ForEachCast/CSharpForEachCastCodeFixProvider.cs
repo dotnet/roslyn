@@ -12,26 +12,25 @@ using Microsoft.CodeAnalysis.ForEachCast;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ForEachCast
-{
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ForEachCast), Shared]
-    internal class CSharpForEachCastCodeFixProvider : AbstractForEachCastCodeFixProvider<CommonForEachStatementSyntax>
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpForEachCastCodeFixProvider()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ForEachCast;
 
-        protected override ITypeSymbol GetForEachElementType(
-            SemanticModel semanticModel, CommonForEachStatementSyntax forEachStatement)
-        {
-            var forEachInfo = semanticModel.GetForEachStatementInfo(forEachStatement);
-            var result = forEachInfo.ElementType;
-            // We should only get here if our analyzer found an issue, and it already checked that this property
-            // was non-null.  So we can safely know it's non-null at fix time as well.
-            Contract.ThrowIfNull(result);
-            return result;
-        }
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ForEachCast), Shared]
+internal class CSharpForEachCastCodeFixProvider : AbstractForEachCastCodeFixProvider<CommonForEachStatementSyntax>
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpForEachCastCodeFixProvider()
+    {
+    }
+
+    protected override ITypeSymbol GetForEachElementType(
+        SemanticModel semanticModel, CommonForEachStatementSyntax forEachStatement)
+    {
+        var forEachInfo = semanticModel.GetForEachStatementInfo(forEachStatement);
+        var result = forEachInfo.ElementType;
+        // We should only get here if our analyzer found an issue, and it already checked that this property
+        // was non-null.  So we can safely know it's non-null at fix time as well.
+        Contract.ThrowIfNull(result);
+        return result;
     }
 }
