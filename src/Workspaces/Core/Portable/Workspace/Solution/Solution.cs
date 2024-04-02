@@ -1857,4 +1857,7 @@ public partial class Solution
             }
         }
     }
+
+    internal SourceGeneratorExecutionVersion GetSourceGeneratorExecutionVersion(ProjectId projectId)
+        => this.CompilationState.GetSourceGeneratorExecutionVersion(projectId);
 }

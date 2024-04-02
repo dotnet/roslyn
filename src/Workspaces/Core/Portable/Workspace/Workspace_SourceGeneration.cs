@@ -91,7 +91,7 @@ public partial class Workspace
                     {
                         result.Add(
                             projectId,
-                            Increment(solution.GetRequiredProject(projectId).SourceGeneratorExecutionVersion, solutionMajor));
+                            Increment(solution.GetSourceGeneratorExecutionVersion(projectId), solutionMajor));
                     }
                 }
             }
@@ -108,13 +108,15 @@ public partial class Workspace
                     if (forceRegeneration != major)
                         continue;
 
+                    // We may have been asked to rerun generators for a project that is no longer around.  So make sure
+                    // we still have this project.
                     var requestedProject = solution.GetProject(projectId);
                     if (requestedProject != null)
                     {
-                        result[projectId] = Increment(requestedProject.SourceGeneratorExecutionVersion, major);
+                        result[projectId] = Increment(solution.GetSourceGeneratorExecutionVersion(projectId), major);
 
                         foreach (var transitiveProjectId in dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId))
-                            result[transitiveProjectId] = Increment(solution.GetRequiredProject(transitiveProjectId).SourceGeneratorExecutionVersion, major);
+                            result[transitiveProjectId] = Increment(solution.GetSourceGeneratorExecutionVersion(transitiveProjectId), major);
                     }
                 }
             }

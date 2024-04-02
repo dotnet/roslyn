@@ -303,6 +303,9 @@ internal sealed partial class SolutionCompilationState
         return projectIdToTrackerMapBuilder.ToImmutable();
     }
 
+    public SourceGeneratorExecutionVersion GetSourceGeneratorExecutionVersion(ProjectId projectId)
+        => _projectIdToExecutionVersion[projectId];
+
     /// <inheritdoc cref="SolutionState.AddProject(ProjectInfo)"/>
     public SolutionCompilationState AddProject(ProjectInfo projectInfo)
     {
