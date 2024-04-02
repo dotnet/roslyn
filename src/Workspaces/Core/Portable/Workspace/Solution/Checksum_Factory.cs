@@ -74,6 +74,9 @@ internal readonly partial record struct Checksum
     public static Checksum Create(Checksum checksum1, Checksum checksum2, Checksum checksum3)
         => Create(stackalloc[] { checksum1, checksum2, checksum3 });
 
+    public static Checksum Create(Checksum checksum1, Checksum checksum2, Checksum checksum3, Checksum checksum4)
+        => Create(stackalloc[] { checksum1, checksum2, checksum3, checksum4 });
+
     public static Checksum Create(ReadOnlySpan<Checksum> hashes)
     {
         Span<byte> destination = stackalloc byte[XXHash128SizeBytes];

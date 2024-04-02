@@ -40,6 +40,7 @@ internal sealed class SolutionCompilationStateChecksums
         // identity contract of this type.
         Checksum = Checksum.Create(
             SolutionState,
+            SourceGeneratorExecutionVersionMap,
             FrozenSourceGeneratedDocumentIdentities?.Checksum ?? Checksum.Null,
             FrozenSourceGeneratedDocuments?.Checksum ?? Checksum.Null);
     }
