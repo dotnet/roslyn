@@ -950,8 +950,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var currentSolution = workspace.CurrentSolution;
 
-            Assert.Equal(initialSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion.IncrementMinorVersion(), currentSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion);
-            Assert.Equal(initialSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion.IncrementMinorVersion(), currentSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion);
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId1).IncrementMinorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId1));
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMinorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
         [Fact]
@@ -991,8 +991,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var currentSolution = workspace.CurrentSolution;
 
-            Assert.Equal(initialSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion.IncrementMajorVersion(), currentSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion);
-            Assert.Equal(initialSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion.IncrementMajorVersion(), currentSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion);
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId1).IncrementMajorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId1));
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMajorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
         [Fact]
@@ -1034,8 +1034,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var currentSolution = workspace.CurrentSolution;
 
-            Assert.Equal(initialSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion.IncrementMajorVersion(), currentSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion);
-            Assert.Equal(initialSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion.IncrementMajorVersion(), currentSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion);
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId1).IncrementMajorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId1));
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMajorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
         [Fact]
@@ -1076,8 +1076,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var currentSolution = workspace.CurrentSolution;
 
-            Assert.Equal(initialSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion.IncrementMinorVersion(), currentSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion);
-            Assert.Equal(initialSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion, currentSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion);
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId1).IncrementMinorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId1));
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
         [Fact]
@@ -1119,8 +1119,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var currentSolution = workspace.CurrentSolution;
 
-            Assert.Equal(initialSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion.IncrementMinorVersion(), currentSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion);
-            Assert.Equal(initialSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion.IncrementMinorVersion(), currentSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion);
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId1).IncrementMinorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId1));
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMinorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
         [Fact]
@@ -1162,8 +1162,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var currentSolution = workspace.CurrentSolution;
 
-            Assert.Equal(initialSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion, currentSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion);
-            Assert.Equal(initialSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion.IncrementMinorVersion(), currentSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion);
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId1), currentSolution.GetSourceGeneratorExecutionVersion(projectId1));
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMinorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
         [Fact]
@@ -1207,8 +1207,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var currentSolution = workspace.CurrentSolution;
 
-            Assert.Equal(initialSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion.IncrementMajorVersion(), currentSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion);
-            Assert.Equal(initialSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion.IncrementMajorVersion(), currentSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion);
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId1).IncrementMajorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId1));
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMajorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
         [Fact]
@@ -1252,8 +1252,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var currentSolution = workspace.CurrentSolution;
 
-            Assert.Equal(initialSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion.IncrementMinorVersion(), currentSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion);
-            Assert.Equal(initialSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion.IncrementMajorVersion(), currentSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion);
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId1).IncrementMinorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId1));
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMajorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
         [Fact]
@@ -1295,8 +1295,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var currentSolution = workspace.CurrentSolution;
 
-            Assert.Equal(initialSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion.IncrementMajorVersion(), currentSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion);
-            Assert.Equal(initialSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion.IncrementMinorVersion(), currentSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion);
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId1).IncrementMajorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId1));
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMinorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
         [Fact]
@@ -1338,8 +1338,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var currentSolution = workspace.CurrentSolution;
 
-            Assert.Equal(initialSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion.IncrementMajorVersion(), currentSolution.GetRequiredProject(projectId1).SourceGeneratorExecutionVersion);
-            Assert.Equal(initialSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion.IncrementMajorVersion(), currentSolution.GetRequiredProject(projectId2).SourceGeneratorExecutionVersion);
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId1).IncrementMajorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId1));
+            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMajorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
         private static async Task<Solution> VerifyIncrementalUpdatesAsync(

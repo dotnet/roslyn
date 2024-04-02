@@ -432,19 +432,22 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
-            var oldProject = e.OldSolution.GetProject(_documentIdentity.DocumentId.ProjectId);
-            var newProject = e.NewSolution.GetProject(_documentIdentity.DocumentId.ProjectId);
+            var projectId = _documentIdentity.DocumentId.ProjectId;
+
+            // Trivial check.  see if the SG version of these projects changed.  If so, we definitely want to update
+            // this generated file.
+            if (e.OldSolution.GetSourceGeneratorExecutionVersion(projectId) !=
+                e.NewSolution.GetSourceGeneratorExecutionVersion(projectId))
+            {
+                _batchingWorkQueue.AddWork();
+                return;
+            }
+
+            var oldProject = e.OldSolution.GetProject(projectId);
+            var newProject = e.NewSolution.GetProject(projectId);
 
             if (oldProject != null && newProject != null)
             {
-                // Trivial check.  see if the SG version of these projects changed.  If so, we definitely want to update
-                // this generated file.
-                if (oldProject.SourceGeneratorExecutionVersion != newProject.SourceGeneratorExecutionVersion)
-                {
-                    _batchingWorkQueue.AddWork();
-                    return;
-                }
-
                 // We'll start this work asynchronously to figure out if we need to change; if the file is closed the cancellationToken
                 // is triggered and this will no-op.
                 var asyncToken = _fileManager._listener.BeginAsyncOperation($"{nameof(OpenSourceGeneratedFile)}.{nameof(OnWorkspaceChanged)}");
