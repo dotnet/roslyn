@@ -55,6 +55,18 @@ internal readonly partial record struct Checksum
         return From(hash);
     }
 
+    public static Checksum Create<T>(T @object, Action<T, ObjectWriter> writeObject)
+    {
+        using var stream = SerializableBytes.CreateWritableStream();
+        using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
+        {
+            writeObject(@object, objectWriter);
+        }
+
+        stream.Position = 0;
+        return Create(stream);
+    }
+
     public static Checksum Create(Checksum checksum1, Checksum checksum2)
         => Create(stackalloc[] { checksum1, checksum2 });
 
@@ -103,18 +115,5 @@ internal readonly partial record struct Checksum
                 var (value, serializer, context) = tuple;
                 serializer.Serialize(value!, writer, context, CancellationToken.None);
             });
-    }
-
-    public static Checksum Create<T>(T value, Action<T, ObjectWriter> writeTo)
-    {
-        using var stream = SerializableBytes.CreateWritableStream();
-
-        using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
-        {
-            writeTo(value, objectWriter);
-        }
-
-        stream.Position = 0;
-        return Create(stream);
     }
 }
