@@ -5,24 +5,28 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 
-internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
+internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
 {
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
     private readonly ISmartRenameSessionWrapper _smartRenameSession;
 #pragma warning restore CS0618
 
+    private readonly IGlobalOptionService _globalOptionService;
     private readonly IThreadingContext _threadingContext;
     private readonly IAsynchronousOperationListenerProvider _listenerProvider;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
@@ -44,6 +48,8 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
     public string StatusMessage => _smartRenameSession.StatusMessage;
 
     public bool StatusMessageVisibility => _smartRenameSession.StatusMessageVisibility;
+    public bool IsUsingResultPanel { get; set; }
+    public bool IsUsingDropdown { get; set; }
 
     private string? _selectedSuggestedName;
 
@@ -64,11 +70,41 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    public static string GetSuggestionsTooltip => EditorFeaturesWpfResources.Get_AI_suggestions;
+    public bool IsSuggestionsPanelCollapsed
+    {
+        get => IsUsingDropdown || _globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
+        set
+        {
+            if (value != IsSuggestionsPanelCollapsed)
+            {
+                _globalOptionService.SetGlobalOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel, value);
+                NotifyPropertyChanged(nameof(IsSuggestionsPanelCollapsed));
+                NotifyPropertyChanged(nameof(IsSuggestionsPanelExpanded));
+            }
+        }
+    }
+
+    public bool IsSuggestionsPanelExpanded
+    {
+        get => IsUsingResultPanel && !IsSuggestionsPanelCollapsed;
+    }
+
+    public string GetSuggestionsTooltip
+        => IsUsingDropdown
+        ? EditorFeaturesWpfResources.Get_AI_suggestions
+        : EditorFeaturesWpfResources.Toggle_AI_suggestions;
+
+    public string SubmitTextOverride
+        => IsUsingDropdown
+        ? EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion
+        : EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview;
+
+    public static string GeneratingSuggestionsLabel => EditorFeaturesWpfResources.Generating_suggestions;
 
     public ICommand GetSuggestionsCommand { get; }
 
     public SmartRenameViewModel(
+        IGlobalOptionService globalOptionService,
         IThreadingContext threadingContext,
         IAsynchronousOperationListenerProvider listenerProvider,
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
@@ -76,6 +112,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
 #pragma warning restore CS0618,
         RenameFlyoutViewModel baseViewModel)
     {
+        _globalOptionService = globalOptionService;
         _threadingContext = threadingContext;
         _listenerProvider = listenerProvider;
         _smartRenameSession = smartRenameSession;
@@ -85,15 +122,34 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
         this.BaseViewModel.IdentifierText = baseViewModel.IdentifierText;
 
         GetSuggestionsCommand = new DelegateCommand(OnGetSuggestionsCommandExecute, null, threadingContext.JoinableTaskFactory);
+
+        var getSuggestionsAutomatically = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.GetSuggestionsAutomatically);
+        IsUsingResultPanel = getSuggestionsAutomatically;
+        IsUsingDropdown = !IsUsingResultPanel;
+        SetupTelemetry();
+        if (IsUsingResultPanel && IsSuggestionsPanelExpanded)
+        {
+            OnGetSuggestionsCommandExecute();
+        }
     }
 
     private void OnGetSuggestionsCommandExecute()
     {
         _threadingContext.ThrowIfNotOnUIThread();
+        if (IsUsingResultPanel && SuggestedNames.Count > 0)
+        {
+            // Don't get suggestions again in the automatic scenario
+            return;
+        }
         if (_getSuggestionsTask.Status is TaskStatus.RanToCompletion or TaskStatus.Faulted or TaskStatus.Canceled)
         {
             var listener = _listenerProvider.GetListener(FeatureAttribute.SmartRename);
             var listenerToken = listener.BeginAsyncOperation(nameof(_smartRenameSession.GetSuggestionsAsync));
+            if (IsUsingDropdown && _suggestionsDropdownTelemetry is not null)
+            {
+                _suggestionsDropdownTelemetry.DropdownButtonClickTimes += 1;
+            }
+
             _getSuggestionsTask = _smartRenameSession.GetSuggestionsAsync(_cancellationTokenSource.Token).CompletesAsyncOperation(listenerToken);
         }
     }
@@ -107,8 +163,14 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
             var textInputBackup = BaseViewModel.IdentifierText;
 
             SuggestedNames.Clear();
+            var count = 0;
             foreach (var name in _smartRenameSession.SuggestedNames)
             {
+                if (++count > 3 && IsUsingResultPanel)
+                {
+                    // Set limit of 3 results when using the result panel
+                    break;
+                }
                 SuggestedNames.Add(name);
             }
 
@@ -144,12 +206,14 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
         _cancellationTokenSource.Cancel();
         // It's needed by editor-side telemetry.
         _smartRenameSession.OnCancel();
+        PostTelemetry(isCommit: false);
     }
 
     public void Commit(string finalIdentifierName)
     {
         // It's needed by editor-side telemetry.
         _smartRenameSession.OnSuccess(finalIdentifierName);
+        PostTelemetry(isCommit: true);
     }
 
     public void Dispose()
@@ -158,4 +222,7 @@ internal sealed class SmartRenameViewModel : INotifyPropertyChanged, IDisposable
         _smartRenameSession.Dispose();
         _cancellationTokenSource.Dispose();
     }
+
+    private void NotifyPropertyChanged([CallerMemberName] string? name = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
