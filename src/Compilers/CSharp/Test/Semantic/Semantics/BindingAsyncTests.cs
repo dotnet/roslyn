@@ -3255,7 +3255,7 @@ class Test
 {
     async Task M1(bool truth)
     {
-        var tr = new TypedReference();
+        var tr = new TypedReference(); // 1
         await Task.Factory.StartNew(() => { });
     }
 
@@ -3263,15 +3263,23 @@ class Test
     {
         var tr = new TypedReference();
         await Task.Factory.StartNew(() => { });
+        var tr2 = tr; // 2
+    }
+
+    async Task M3()
+    {
+        var tr = new TypedReference();
+        await Task.Factory.StartNew(() => { });
+        tr = default;
         var tr2 = tr;
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyEmitDiagnostics(
                 // (9,13): warning CS0219: The variable 'tr' is assigned but its value is never used
-                //         var tr = new TypedReference();
+                //         var tr = new TypedReference(); // 1
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "tr").WithArguments("tr").WithLocation(9, 13),
                 // (17,19): error CS4013: Instance of type 'TypedReference' cannot be used inside a nested function, query expression, iterator block or async method
-                //         var tr2 = tr;
+                //         var tr2 = tr; // 2
                 Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "tr").WithArguments("", "System.TypedReference").WithLocation(17, 19));
         }
 

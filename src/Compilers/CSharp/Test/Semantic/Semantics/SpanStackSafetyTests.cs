@@ -851,7 +851,7 @@ class Program
 
         a();
 
-        // this is an error
+        // this is valid since C# 13
         foreach (var i in new C1())
         {
         }
@@ -879,8 +879,16 @@ class C1
 }
 ";
 
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (33,9): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (var i in new C1())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "foreach").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(33, 9));
 
+            comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilationWithMscorlibAndSpan(text);
             comp.VerifyEmitDiagnostics();
         }
 

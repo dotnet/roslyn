@@ -20160,20 +20160,27 @@ class Program
             var src = @"
 class Program
 {
-    static async void Test()
+    static Buffer4<int> s_buffer;
+
+    static async System.Threading.Tasks.Task Main()
     {
+        s_buffer[1] = 3;
+
         foreach (ref int y in GetBuffer())
         {
+            y *= y;
+            System.Console.Write(y);
         }
 
         await System.Threading.Tasks.Task.Yield();
     }
 
-    static ref Buffer4<int> GetBuffer() => throw null;
+    static ref Buffer4<int> GetBuffer() => ref s_buffer;
 }
 ";
-            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: "0900");
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -20600,20 +20607,26 @@ class Program
             var src = @"
 class Program
 {
-    static async void Test()
+    static Buffer4<int> s_buffer;
+
+    static async System.Threading.Tasks.Task Main()
     {
+        s_buffer[1] = 3;
+
         foreach (ref readonly int y in GetBuffer())
         {
+            System.Console.Write(y);
         }
 
         await System.Threading.Tasks.Task.Yield();
     }
 
-    static ref readonly Buffer4<int> GetBuffer() => throw null;
+    static ref readonly Buffer4<int> GetBuffer() => ref s_buffer;
 }
 ";
-            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: "0300");
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -21035,20 +21048,35 @@ class Program
             var src = @"
 class Program
 {
+    static Buffer4<int> s_buffer;
+
+    static void Main()
+    {
+        s_buffer[2] = 3;
+
+        foreach (int x in Test())
+        {
+            System.Console.Write(x);
+        }
+    }
+
     static System.Collections.Generic.IEnumerable<int> Test()
     {
         foreach (ref int y in GetBuffer())
         {
+            y *= y;
+            System.Console.Write(y);
         }
 
         yield return -1;
     }
 
-    static ref Buffer4<int> GetBuffer() => throw null;
+    static ref Buffer4<int> GetBuffer() => ref s_buffer;
 }
 ";
-            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: "0090-1");
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -21327,20 +21355,34 @@ class Program
             var src = @"
 class Program
 {
+    static Buffer4<int> s_buffer;
+
+    static void Main()
+    {
+        s_buffer[2] = 3;
+
+        foreach (int x in Test())
+        {
+            System.Console.Write(x);
+        }
+    }
+
     static System.Collections.Generic.IEnumerable<int> Test()
     {
         foreach (ref readonly int y in GetBuffer())
         {
+            System.Console.Write(y);
         }
 
         yield return -1;
     }
 
-    static ref readonly Buffer4<int> GetBuffer() => throw null;
+    static ref readonly Buffer4<int> GetBuffer() => ref s_buffer;
 }
 ";
-            var comp = CreateCompilation(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: "0030-1");
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
