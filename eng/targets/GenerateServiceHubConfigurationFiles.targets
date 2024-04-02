@@ -10,32 +10,9 @@
   </PropertyGroup>
 
   <Target Name="CalculateServiceHubConfigurationFiles">
-    <ItemGroup Condition="'$(ServiceHubHostRuntime)'=='desktop'">
-      <_ServicesWithSuffix Include="@(ServiceHubService)" FileSuffix="64" HostIdSuffix="" />
-      <_ServicesWithSuffix Include="@(ServiceHubService)" FileSuffix="64S" HostIdSuffix="S" />  
-
-      <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithSuffix.Identity)%(_ServicesWithSuffix.FileSuffix).servicehub.service.json" >
-        <Content>
-          <![CDATA[{
-  "host": "netfx.anycpu",
-  "hostId": "RoslynCodeAnalysisService%(_ServicesWithSuffix.HostIdSuffix)",
-  "hostGroupAllowed": true,
-  "serviceOverride": true, 
-  "entryPoint": {
-    "assemblyPath": "$(ServiceHubAssemblyBasePath.Replace('\', '\\'))Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
-    "fullClassName": "%(_ServicesWithSuffix.ClassName)",
-    "appBasePath": "%VSAPPIDDIR%",
-    "configPath": "%PkgDefApplicationConfigFile%"
-  }
-}
-]]>
-        </Content>
-      </ServiceHubServiceJsonFile>
-    </ItemGroup>
-
-    <ItemGroup Condition="'$(ServiceHubHostRuntime)'=='core'">
+    <ItemGroup>
       <_ServicesWithSuffix Include="@(ServiceHubService)" FileSuffix="Core64" HostIdSuffix="" />
-      <_ServicesWithSuffix Include="@(ServiceHubService)" FileSuffix="Core64S" HostIdSuffix="S" />      
+      <_ServicesWithSuffix Include="@(ServiceHubService)" FileSuffix="Core64S" HostIdSuffix="S" />
 
       <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithSuffix.Identity)%(_ServicesWithSuffix.FileSuffix).servicehub.service.json" >
         <Content>

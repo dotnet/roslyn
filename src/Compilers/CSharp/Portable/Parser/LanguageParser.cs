@@ -5801,6 +5801,7 @@ parse_member_name:;
             }
 
             ScanTypeFlags result = ScanTypeFlags.GenericTypeOrExpression;
+            ScanTypeFlags lastScannedType;
 
             do
             {
@@ -5819,7 +5820,8 @@ parse_member_name:;
                     return result;
                 }
 
-                switch (this.ScanType(out _))
+                lastScannedType = this.ScanType(out _);
+                switch (lastScannedType)
                 {
                     case ScanTypeFlags.NotType:
                         greaterThanToken = null;
@@ -5918,6 +5920,25 @@ parse_member_name:;
 
             if (this.CurrentToken.Kind != SyntaxKind.GreaterThanToken)
             {
+                // Error recovery after missing > token:
+
+                // In the case of an identifier, we assume that there could be a missing > token
+                // For example, we have reached C in X<A, B C
+                if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken)
+                {
+                    greaterThanToken = this.EatToken(SyntaxKind.GreaterThanToken);
+                    return result;
+                }
+
+                // As for tuples, we do not expect direct invocation right after the parenthesis
+                // EXAMPLE: X<(string, string)(), where we imply a missing > token between )(
+                // as the user probably wants to invoke X by X<(string, string)>()
+                if (lastScannedType is ScanTypeFlags.TupleType && this.CurrentToken.Kind is SyntaxKind.OpenParenToken)
+                {
+                    greaterThanToken = this.EatToken(SyntaxKind.GreaterThanToken);
+                    return result;
+                }
+
                 greaterThanToken = null;
                 return ScanTypeFlags.NotType;
             }
@@ -5968,7 +5989,34 @@ parse_member_name:;
                 {
                     break;
                 }
-                else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
+
+                // We prefer early terminating the argument list over parsing until exhaustion
+                // for better error recovery
+                if (tokenBreaksTypeArgumentList(this.CurrentToken))
+                {
+                    break;
+                }
+
+                // We are currently past parsing a type and we encounter an unexpected identifier token
+                // followed by tokens that are not part of a type argument list
+                // Example: List<(string a, string b) Method() { }
+                //                 current token:     ^^^^^^
+                if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken && tokenBreaksTypeArgumentList(this.PeekToken(1)))
+                {
+                    break;
+                }
+
+                // This is for the case where we are in a this[] accessor, and the last one of the parameters in the parameter list
+                // is missing a > on its type
+                // Example: X this[IEnumerable<string parameter] => 
+                //                 current token:     ^^^^^^^^^
+                if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken
+                    && this.PeekToken(1).Kind is SyntaxKind.CloseBracketToken)
+                {
+                    break;
+                }
+
+                if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
                 {
                     types.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
                     types.Add(this.ParseTypeArgument());
@@ -5980,6 +6028,57 @@ parse_member_name:;
             }
 
             close = this.EatToken(SyntaxKind.GreaterThanToken);
+
+            static bool tokenBreaksTypeArgumentList(SyntaxToken token)
+            {
+                var contextualKind = SyntaxFacts.GetContextualKeywordKind(token.ValueText);
+                switch (contextualKind)
+                {
+                    // Example: x is IEnumerable<string or IList<int>
+                    case SyntaxKind.OrKeyword:
+                    // Example: x is IEnumerable<string and IDisposable
+                    case SyntaxKind.AndKeyword:
+                        return true;
+                }
+
+                switch (token.Kind)
+                {
+                    // Example: Method<string(argument)
+                    // Note: We would do a bad job handling a tuple argument with a missing comma,
+                    //       like: Method<string (int x, int y)>
+                    //       but since we do not look as far as possible to determine whether it is
+                    //       a tuple type or an argument list, we resort to considering it as an
+                    //       argument list
+                    case SyntaxKind.OpenParenToken:
+
+                    // Example: IEnumerable<string Method<T>() --- (< in <T>)
+                    case SyntaxKind.LessThanToken:
+                    // Example: Method(IEnumerable<string parameter)
+                    case SyntaxKind.CloseParenToken:
+                    // Example: IEnumerable<string field;
+                    case SyntaxKind.SemicolonToken:
+                    // Example: IEnumerable<string Property { get; set; }
+                    case SyntaxKind.OpenBraceToken:
+                    // Example:
+                    // {
+                    //     IEnumerable<string field
+                    // }
+                    case SyntaxKind.CloseBraceToken:
+                    // Examples:
+                    // - IEnumerable<string field = null;
+                    // - Method(IEnumerable<string parameter = null)
+                    case SyntaxKind.EqualsToken:
+                    // Example: IEnumerable<string Property => null;
+                    case SyntaxKind.EqualsGreaterThanToken:
+                    // Example: IEnumerable<string this[string key] { get; set; }
+                    case SyntaxKind.ThisKeyword:
+                    // Example: static IEnumerable<string operator +(A left, A right);
+                    case SyntaxKind.OperatorKeyword:
+                        return true;
+                }
+
+                return false;
+            }
         }
 
         private PostSkipAction SkipBadTypeArgumentListTokens(SeparatedSyntaxListBuilder<TypeSyntax> list, SyntaxKind expected)
