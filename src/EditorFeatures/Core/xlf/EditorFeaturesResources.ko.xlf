@@ -297,6 +297,11 @@
         <target state="translated">Roslyn 테스트 코드 마크업</target>
         <note />
       </trans-unit>
+      <trans-unit id="Run">
+        <source>Run</source>
+        <target state="new">Run</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Split_comment">
         <source>Split comment</source>
         <target state="translated">주석 분할</target>
