@@ -57,14 +57,13 @@ internal partial class SolutionCompilationState
                 if (result.HasValue)
                 {
                     // Since we ran the SG work out of process, we could not have created or modified the driver passed in.
-                    // So just pass what we got in right back out.
-                    return (result.Value.compilationWithGeneratedFiles, new(result.Value.generatedDocuments, generatorInfo.Driver));
+                    // Just return `null` for the driver as there's nothing to track for it on the host side.
+                    return (result.Value.compilationWithGeneratedFiles, new(result.Value.generatedDocuments, Driver: null));
                 }
 
                 // If that failed (OOP crash, or we are the OOP process ourselves), then generate the SG docs locally.
-                var telemetryCollector = compilationState.SolutionState.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
                 var (compilationWithGeneratedFiles, nextGeneratedDocuments, nextGeneratorDriver) = await ComputeNewGeneratorInfoInCurrentProcessAsync(
-                    telemetryCollector,
+                    compilationState,
                     compilationWithoutGeneratedFiles,
                     generatorInfo.Documents,
                     generatorInfo.Driver,
@@ -222,18 +221,15 @@ internal partial class SolutionCompilationState
         }
 
         private async Task<(Compilation compilationWithGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments, GeneratorDriver? generatorDriver)> ComputeNewGeneratorInfoInCurrentProcessAsync(
-            ISourceGeneratorTelemetryCollectorWorkspaceService? telemetryCollector,
+            SolutionCompilationState compilationState,
             Compilation compilationWithoutGeneratedFiles,
             TextDocumentStates<SourceGeneratedDocumentState> oldGeneratedDocuments,
             GeneratorDriver? generatorDriver,
             Compilation? compilationWithStaleGeneratedTrees,
             CancellationToken cancellationToken)
         {
-            // If we don't have any source generators.  Trivially bail out.  Note: this check is intentionally don't in
-            // the "InCurrentProcess" call so that it will normally run only in the OOP process, thus ensuring that we
-            // get accurate information about what SourceGenerators we actually have (say, in case they they are rebuilt
-            // by the user while VS is running).
-            if (!GetSourceGenerators(this.ProjectState).Any())
+            // If we don't have any source generators.  Trivially bail out.
+            if (!await compilationState.HasSourceGeneratorsAsync(this.ProjectState.Id, cancellationToken).ConfigureAwait(false))
                 return (compilationWithoutGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState>.Empty, generatorDriver);
 
             // If we don't already have an existing generator driver, create one from scratch
@@ -268,6 +264,7 @@ internal partial class SolutionCompilationState
 
             var runResult = generatorDriver.GetRunResult();
 
+            var telemetryCollector = compilationState.SolutionState.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>();
             telemetryCollector?.CollectRunResult(
                 runResult, generatorDriver.GetTimingInfo(),
                 g => GetAnalyzerReference(this.ProjectState, g));
