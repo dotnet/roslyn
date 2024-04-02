@@ -34,10 +34,15 @@ public partial class Workspace
     private async ValueTask ProcessUpdateSourceGeneratorRequestAsync(
         ImmutableSegmentedList<(ProjectId? projectId, bool forceRegeneration)> projectIds, CancellationToken cancellationToken)
     {
-        // Only need to do this if we're not in automatic mode.
         var configuration = this.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
         if (configuration.SourceGeneratorExecution is SourceGeneratorExecutionPreference.Automatic)
-            return;
+        {
+            // If we're in automatic mode, we don't need to do anything *unless* the host has asked us to
+            // force-regenerate something.  In that case we're literally going to drop our generator drivers and
+            // regenerate the code, so we can't depend on automatic running generators normally.
+            if (!projectIds.Any(t => t.forceRegeneration))
+                return;
+        }
 
         // Ensure we're fully loaded before rerunning generators.
         var workspaceStatusService = this.Services.GetRequiredService<IWorkspaceStatusService>();
