@@ -322,7 +322,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Built_in_Copilot_analysis">
         <source>Built-in Copilot analysis</source>
-        <target state="new">Built-in Copilot analysis</target>
+        <target state="translated">Analyse Copilot intégrée</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
@@ -657,7 +657,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       </trans-unit>
       <trans-unit id="Dismiss">
         <source>Dismiss</source>
-        <target state="new">Dismiss</target>
+        <target state="translated">Ignorer</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -2053,7 +2053,7 @@ Vous pouvez concaténer au moins deux plages de caractères. Par exemple, pour s
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_long">
         <source>The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
-        <target state="translated">La construction d'expression régulière \P{ nom } correspond aux caractères qui n'appartiennent pas à une catégorie générale Unicode ou à un bloc nommé, nom étant l'abréviation de la catégorie ou le nom du bloc nommé.</target>
+        <target state="translated">La construction d'expression régulière \P{ name } correspond aux caractères qui n'appartiennent pas à une catégorie générale Unicode ou à un bloc nommé, nom étant l'abréviation de la catégorie ou le nom du bloc nommé.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_short">
@@ -2345,7 +2345,7 @@ Il existe une ambiguïté entre les codes d'échappement octaux (par exemple \16
       </trans-unit>
       <trans-unit id="Regex_unicode_category_long">
         <source>The regular expression construct \p{ name } matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
-        <target state="translated">La construction d'expression régulière \p{ nom } correspond aux caractères qui appartiennent à une catégorie générale Unicode ou à un bloc nommé, nom étant l'abréviation de la catégorie ou le nom du bloc nommé.</target>
+        <target state="translated">La construction d'expression régulière \p{ name } correspond aux caractères qui appartiennent à une catégorie générale Unicode ou à un bloc nommé, nom étant l'abréviation de la catégorie ou le nom du bloc nommé.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_category_short">

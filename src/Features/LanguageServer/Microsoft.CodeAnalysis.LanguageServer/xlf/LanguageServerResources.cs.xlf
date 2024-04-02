@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Exception_thrown_0">
         <source>Exception thrown: {0}</source>
-        <target state="new">Exception thrown: {0}</target>
+        <target state="translated">Vyvolaná výjimka: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed">
@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Failed_to_read_runsettings_file_at_0_1">
         <source>Failed to read .runsettings file at {0}:{1}</source>
-        <target state="new">Failed to read .runsettings file at {0}:{1}</target>
+        <target state="translated">Čtení souboru .runsettings na {0} se nezdařilo:{1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_run_restore_on_0">

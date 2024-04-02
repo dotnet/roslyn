@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="Refine_using_Copilot">
         <source>Refine using Copilot</source>
-        <target state="new">Refine using Copilot</target>
+        <target state="translated">Refinar usando o Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">

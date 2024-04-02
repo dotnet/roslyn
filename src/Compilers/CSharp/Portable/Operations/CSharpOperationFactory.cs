@@ -1257,13 +1257,14 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return element is BoundCollectionExpressionSpreadElement spreadElement ?
                 CreateBoundCollectionExpressionSpreadElement(expr, spreadElement) :
-                Create(Binder.GetUnderlyingCollectionExpressionElement(expr, (BoundExpression)element) ?? element);
+                Create(Binder.GetUnderlyingCollectionExpressionElement(expr, (BoundExpression)element, throwOnErrors: false));
         }
 
         private ISpreadOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpression expr, BoundCollectionExpressionSpreadElement element)
         {
-            var iteratorBody = ((BoundExpressionStatement?)element.IteratorBody)?.Expression;
-            var iteratorItem = Binder.GetUnderlyingCollectionExpressionElement(expr, iteratorBody);
+            var iteratorItem = element.IteratorBody is { } iteratorBody ?
+                Binder.GetUnderlyingCollectionExpressionElement(expr, ((BoundExpressionStatement)iteratorBody).Expression, throwOnErrors: false) :
+                null;
             var collection = Create(element.Expression);
             SyntaxNode syntax = element.Syntax;
             bool isImplicit = element.WasCompilerGenerated;

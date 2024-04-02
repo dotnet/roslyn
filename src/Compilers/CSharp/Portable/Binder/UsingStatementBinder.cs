@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
                         ImmutableArray<int> argsToParams = default;
 
-                        originalBinder.BindDefaultArgumentsAndParamsCollection(
+                        originalBinder.BindDefaultArguments(
                             // If this is a using statement, then we want to use the whole `using (expr) { }` as the argument location. These arguments
                             // will be represented in the IOperation tree and the "correct" node for them, given that they are an implicit invocation
                             // at the end of the using statement, is on the whole using statement, not on the current expression.
