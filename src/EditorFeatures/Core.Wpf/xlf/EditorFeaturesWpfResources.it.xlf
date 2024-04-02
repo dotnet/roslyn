@@ -32,6 +32,11 @@
         <target state="translated">Esecuzione della selezione nella finestra interattiva.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generating_suggestions">
+        <source>Generating suggestions...</source>
+        <target state="translated">Generazione di suggerimenti in corso</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Get_AI_suggestions">
         <source>Get AI-powered rename suggestions (Ctrl+Space)</source>
         <target state="translated">Ottieni suggerimenti di ridenominazione basati sull'intelligenza artificiale (CTRL+BARRA SPAZIATRICE)</target>
@@ -65,6 +70,11 @@
       <trans-unit id="The_CurrentWindow_property_may_only_be_assigned_once">
         <source>The CurrentWindow property may only be assigned once.</source>
         <target state="translated">La proprietà CurrentWindow può essere assegnata una sola volta.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_AI_suggestions">
+        <source>Toggle rename suggestions (Ctrl+Space)</source>
+        <target state="new">Toggle rename suggestions (Ctrl+Space)</target>
         <note />
       </trans-unit>
     </body>

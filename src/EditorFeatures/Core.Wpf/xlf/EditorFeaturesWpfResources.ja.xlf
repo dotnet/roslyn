@@ -32,6 +32,11 @@
         <target state="translated">インタラクティブ ウィンドウで選択を実行します。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generating_suggestions">
+        <source>Generating suggestions...</source>
+        <target state="translated">候補を生成しています...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Get_AI_suggestions">
         <source>Get AI-powered rename suggestions (Ctrl+Space)</source>
         <target state="translated">AI を利用した名前変更の提示を取得する (Ctrl + Space)</target>
@@ -65,6 +70,11 @@
       <trans-unit id="The_CurrentWindow_property_may_only_be_assigned_once">
         <source>The CurrentWindow property may only be assigned once.</source>
         <target state="translated">CurrentWindow プロパティは 1 回のみ割り当てることができます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_AI_suggestions">
+        <source>Toggle rename suggestions (Ctrl+Space)</source>
+        <target state="new">Toggle rename suggestions (Ctrl+Space)</target>
         <note />
       </trans-unit>
     </body>
