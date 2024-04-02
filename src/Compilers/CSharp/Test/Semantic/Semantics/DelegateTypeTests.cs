@@ -6643,13 +6643,8 @@ class Program
                 """;
             foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
             {
-                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                    // (7,18): error CS8917: The delegate type could not be inferred.
-                    //         var x1 = new Program().Test1;
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
-                    // (8,18): error CS8917: The delegate type could not be inferred.
-                    //         var x2 = new Program().Test2;
-                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                    expectedOutput: "12").VerifyDiagnostics();
             }
         }
 
