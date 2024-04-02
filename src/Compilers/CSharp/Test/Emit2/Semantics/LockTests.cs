@@ -2013,7 +2013,10 @@ public class LockTests : CSharpTestBase
         CreateCompilation([source, LockTypeDefinition]).VerifyEmitDiagnostics(
             // (9,15): error CS4013: Instance of type 'Lock.Scope' cannot be used inside a nested function, query expression, iterator block or async method
             //         lock (new Lock())
-            Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "new Lock()").WithArguments("System.Threading.Lock.Scope").WithLocation(9, 15));
+            Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "new Lock()").WithArguments("System.Threading.Lock.Scope").WithLocation(9, 15),
+            // (11,13): warning CS9230: 'yield return' should not be used in the body of a lock statement
+            //             yield return 2;
+            Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(11, 13));
     }
 
     [Fact]
@@ -2041,7 +2044,10 @@ public class LockTests : CSharpTestBase
         CreateCompilationWithTasksExtensions([source, LockTypeDefinition, AsyncStreamsTypes]).VerifyDiagnostics(
             // (10,15): error CS9217: A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.
             //         lock (new Lock())
-            Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(10, 15));
+            Diagnostic(ErrorCode.ERR_BadSpecialByRefLock, "new Lock()").WithLocation(10, 15),
+            // (12,13): warning CS9230: 'yield return' should not be used in the body of a lock statement
+            //             yield return 2;
+            Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(12, 13));
     }
 
     [Theory, CombinatorialData]
