@@ -4143,10 +4143,10 @@ class C
 
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
-            // (8,19): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (8,19): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public string P2 { get; set; }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P2").WithArguments("property", "P2").WithLocation(8, 19),
-            // (9,19): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            // (9,19): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
             //     public string F2;
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F2").WithArguments("field", "F2").WithLocation(9, 19)
         );
@@ -4175,16 +4175,16 @@ class C
 
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
-            // (11,12): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (11,12): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public C()
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P2").WithLocation(11, 12),
-            // (11,12): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            // (11,12): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
             //     public C()
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(11, 12),
-            // (15,12): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (15,12): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public C(int _) {}
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P2").WithLocation(15, 12),
-            // (15,12): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            // (15,12): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
             //     public C(int _) {}
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(15, 12)
         );
@@ -4229,10 +4229,10 @@ struct S
 
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
-            // (11,12): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (11,12): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public S() {}
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "P2").WithLocation(11, 12),
-            // (11,12): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            // (11,12): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
             //     public S() {}
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "F2").WithLocation(11, 12)
         );
@@ -4368,10 +4368,10 @@ class C
 
         var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
         comp.VerifyDiagnostics(
-            // (9,12): warning CS8618: Non-nullable property 'Property' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (9,12): warning CS8618: Non-nullable property 'Property' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public C() { }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Property").WithLocation(9, 12),
-            // (9,12): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            // (9,12): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
             //     public C() { }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_field").WithLocation(9, 12)
         );
@@ -4396,10 +4396,10 @@ class C
 
         var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
         comp.VerifyDiagnostics(
-            // (9,12): warning CS8618: Non-nullable property 'Property' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (9,12): warning CS8618: Non-nullable property 'Property' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public C() { }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Property").WithLocation(9, 12),
-            // (9,12): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            // (9,12): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
             //     public C() { }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_field").WithLocation(9, 12)
         );
@@ -4447,7 +4447,7 @@ public class C
 
         var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
         comp.VerifyDiagnostics(
-            // (8,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (8,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public C() { }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Prop3").WithLocation(8, 12)
         );
@@ -4607,10 +4607,10 @@ class C
 
         var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
         comp.VerifyDiagnostics(
-            // (9,12): warning CS8618: Non-nullable property 'Property2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (9,12): warning CS8618: Non-nullable property 'Property2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public C() { }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Property2").WithLocation(9, 12),
-            // (9,12): warning CS8618: Non-nullable property 'Property1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (9,12): warning CS8618: Non-nullable property 'Property1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public C() { }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Property1").WithLocation(9, 12)
         );
@@ -4782,7 +4782,7 @@ class Derived : Base
             // (4,20): warning CS0169: The field 'Derived._field' is never used
             //     private string _field;
             Diagnostic(ErrorCode.WRN_UnreferencedField, "_field").WithArguments("Derived._field").WithLocation(4, 20),
-            // (5,13): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            // (5,13): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
             //     private Derived()
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "_field").WithLocation(5, 13)
         };
@@ -4825,7 +4825,7 @@ class Derived : Base
 """;
 
         var expectedDiagnostics = new[] {
-            // (6,12): warning CS8618: Non-nullable property 'Property' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (6,12): warning CS8618: Non-nullable property 'Property' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public Derived() { }
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Property").WithLocation(6, 12),
             // (8,9): warning CS8602: Dereference of a possibly null reference.
@@ -5131,7 +5131,7 @@ public class Derived : Base
 
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
-            // (9,15): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (9,15): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     protected Base() {} // 1
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Base").WithArguments("property", "Prop1").WithLocation(9, 15),
             // (17,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
@@ -5195,16 +5195,16 @@ public class Derived : Base
         var comp = CreateCompilationWithRequiredMembers(new[] { derived, @base });
 
         comp.VerifyDiagnostics(
-            // (10,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (10,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public Derived(int unused) : base()
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop3").WithLocation(10, 12),
-            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public Derived(int unused) : base()
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(10, 12),
-            // (16,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (16,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public Derived(bool unused)
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop3").WithLocation(16, 12),
-            // (16,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (16,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public Derived(bool unused)
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(16, 12),
             // (21,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
@@ -5215,16 +5215,16 @@ public class Derived : Base
         var baseComp = CreateCompilationWithRequiredMembers(@base);
         comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (10,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (10,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public Derived(int unused) : base()
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop3").WithLocation(10, 12),
-            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public Derived(int unused) : base()
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(10, 12),
-            // (16,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (16,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public Derived(bool unused)
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop3").WithLocation(16, 12),
-            // (16,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (16,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public Derived(bool unused)
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(16, 12),
             // (21,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
@@ -5277,16 +5277,16 @@ public class Derived : Base
 
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
-                // (17,12): warning CS8618: Non-nullable field 'Field3' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (17,12): warning CS8618: Non-nullable field 'Field3' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public Derived(int unused) : base()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "Field3").WithLocation(17, 12),
-                // (17,12): warning CS8618: Non-nullable field 'Field1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (17,12): warning CS8618: Non-nullable field 'Field1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public Derived(int unused) : base()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "Field1").WithLocation(17, 12),
-                // (23,12): warning CS8618: Non-nullable field 'Field3' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (23,12): warning CS8618: Non-nullable field 'Field3' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public Derived(bool unused)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "Field3").WithLocation(23, 12),
-                // (23,12): warning CS8618: Non-nullable field 'Field1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (23,12): warning CS8618: Non-nullable field 'Field1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public Derived(bool unused)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "Field1").WithLocation(23, 12),
                 // (28,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
@@ -5341,16 +5341,16 @@ public class Derived : Base
         var comp = CreateCompilationWithRequiredMembers(new[] { derived, @base });
 
         comp.VerifyDiagnostics(
-            // (10,12): warning CS8618: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (10,12): warning CS8618: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public Derived(int unused) : base()
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop2").WithLocation(10, 12),
-            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public Derived(int unused) : base()
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(10, 12),
-            // (15,12): warning CS8618: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (15,12): warning CS8618: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public Derived(bool unused)
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop2").WithLocation(15, 12),
-            // (15,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (15,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public Derived(bool unused)
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(15, 12),
             // (19,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
@@ -5361,16 +5361,16 @@ public class Derived : Base
         var baseComp = CreateCompilationWithRequiredMembers(@base);
         comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (10,12): warning CS8618: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (10,12): warning CS8618: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public Derived(int unused) : base()
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop2").WithLocation(10, 12),
-            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public Derived(int unused) : base()
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(10, 12),
-            // (15,12): warning CS8618: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (15,12): warning CS8618: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public Derived(bool unused)
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop2").WithLocation(15, 12),
-            // (15,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (15,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     public Derived(bool unused)
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(15, 12),
             // (19,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
@@ -5732,7 +5732,7 @@ public class Derived : Base
 
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
-            // (9,15): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (9,15): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
             //     protected Base() {} // 1
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Base").WithArguments("property", "Prop1").WithLocation(9, 15),
             // (12,15): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.

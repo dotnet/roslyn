@@ -126,14 +126,14 @@ internal partial class SolutionCompilationState
                 ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocuments = null;
                 ImmutableArray<DateTime> frozenSourceGeneratedDocumentGenerationDateTimes = default;
 
-                if (FrozenSourceGeneratedDocumentStates.HasValue)
+                if (FrozenSourceGeneratedDocumentStates != null)
                 {
                     var serializer = this.SolutionState.Services.GetRequiredService<ISerializerService>();
-                    var identityChecksums = FrozenSourceGeneratedDocumentStates.Value
+                    var identityChecksums = FrozenSourceGeneratedDocumentStates
                         .SelectAsArray(static (s, arg) => arg.serializer.CreateChecksum(s.Identity, cancellationToken: arg.cancellationToken), (serializer, cancellationToken));
                     frozenSourceGeneratedDocumentIdentities = new ChecksumCollection(identityChecksums);
-                    frozenSourceGeneratedDocuments = await FrozenSourceGeneratedDocumentStates.Value.GetChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false);
-                    frozenSourceGeneratedDocumentGenerationDateTimes = FrozenSourceGeneratedDocumentStates.Value.SelectAsArray(d => d.GenerationDateTime);
+                    frozenSourceGeneratedDocuments = await FrozenSourceGeneratedDocumentStates.GetChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false);
+                    frozenSourceGeneratedDocumentGenerationDateTimes = FrozenSourceGeneratedDocumentStates.SelectAsArray(d => d.GenerationDateTime);
                 }
 
                 var compilationStateChecksums = new SolutionCompilationStateChecksums(

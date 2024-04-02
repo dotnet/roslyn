@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var smartRenameSession = smartRenameSessionFactory?.Value.CreateSmartRenameSession(_session.TriggerSpan);
             if (smartRenameSession is not null)
             {
-                SmartRenameViewModel = new SmartRenameViewModel(threadingContext, listenerProvider, smartRenameSession.Value, this);
+                SmartRenameViewModel = new SmartRenameViewModel(globalOptionService, threadingContext, listenerProvider, smartRenameSession.Value, this);
             }
 
             RegisterOleComponent();

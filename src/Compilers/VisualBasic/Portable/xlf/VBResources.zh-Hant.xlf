@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="ERR_LockTypeUnsupported">
         <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
-        <target state="new">A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</target>
+        <target state="translated">SyncLock 不支援型別 'System.Threading.Lock' 的值。請考慮改為在 Try/Finally 區塊中手動呼叫 'Enter' 和 'Exit' 方法。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -616,12 +616,12 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</target>
+        <target state="translated">型別 'System.Threading.Lock' 轉換為不同型別的值，在 SyncLock 陳述式中可能會使用非預期的監視器型鎖定。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock_Title">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</target>
+        <target state="translated">型別 'System.Threading.Lock' 轉換為不同型別的值，在 SyncLock 陳述式中可能會使用非預期的監視器型鎖定。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">

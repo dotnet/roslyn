@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -14,11 +15,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -975,5 +976,19 @@ internal partial class ProjectState
             : contentChanged
                 ? CreateLazyLatestDocumentTopLevelChangeVersion(newDocument, newDocumentStates, newAdditionalDocumentStates)
                 : _lazyLatestDocumentTopLevelChangeVersion;
+    }
+
+    public void AddDocumentIdsWithFilePath(ref TemporaryArray<DocumentId> temporaryArray, string filePath)
+    {
+        this.DocumentStates.AddDocumentIdsWithFilePath(ref temporaryArray, filePath);
+        this.AdditionalDocumentStates.AddDocumentIdsWithFilePath(ref temporaryArray, filePath);
+        this.AnalyzerConfigDocumentStates.AddDocumentIdsWithFilePath(ref temporaryArray, filePath);
+    }
+
+    public DocumentId? GetFirstDocumentIdWithFilePath(string filePath)
+    {
+        return this.DocumentStates.GetFirstDocumentIdWithFilePath(filePath) ??
+            this.AdditionalDocumentStates.GetFirstDocumentIdWithFilePath(filePath) ??
+            this.AnalyzerConfigDocumentStates.GetFirstDocumentIdWithFilePath(filePath);
     }
 }

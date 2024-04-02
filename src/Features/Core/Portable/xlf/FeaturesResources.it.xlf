@@ -322,7 +322,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Built_in_Copilot_analysis">
         <source>Built-in Copilot analysis</source>
-        <target state="new">Built-in Copilot analysis</target>
+        <target state="translated">Analisi Copilot predefinita</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
@@ -657,7 +657,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Dismiss">
         <source>Dismiss</source>
-        <target state="new">Dismiss</target>
+        <target state="translated">Chiudi</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">

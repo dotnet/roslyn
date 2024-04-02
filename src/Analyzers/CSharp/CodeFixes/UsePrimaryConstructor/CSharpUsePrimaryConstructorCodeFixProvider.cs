@@ -238,37 +238,48 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
                 parameterList.DescendantNodes().OfType<SimpleNameSyntax>(),
                 (nameSyntax, currentNameSyntax) =>
                 {
-                    // Don't have to update if the member is already qualified.
-
-                    if (nameSyntax.Parent is not QualifiedNameSyntax qualifiedNameSyntax ||
-                        qualifiedNameSyntax.Left == nameSyntax)
+                    if (nameSyntax.Parent is QualifiedNameSyntax qualifiedNameSyntax)
                     {
-                        // Qualified names occur in things like the `type` portion of the parameter
-
-                        // reference to a nested type in an unqualified fashion.  Have to qualify this.
-                        var symbol = semanticModel.GetSymbolInfo(nameSyntax, cancellationToken).GetAnySymbol();
-                        if (symbol is INamedTypeSymbol { ContainingType: { } containingType })
-                            return CreateDottedName(nameSyntax, currentNameSyntax, containingType);
-                    }
-
-                    if (nameSyntax.Parent is not MemberAccessExpressionSyntax memberAccessExpression ||
-                        memberAccessExpression.Expression == nameSyntax)
-                    {
-                        // Member access expressions occur in things like the default initializer, or attribute
-                        // arguments of the parameter.
-
-                        var symbol = semanticModel.GetSymbolInfo(nameSyntax, cancellationToken).GetAnySymbol();
-                        if (symbol is IMethodSymbol or IPropertySymbol or IEventSymbol or IFieldSymbol &&
-                            symbol is { ContainingType.OriginalDefinition: { } containingType } &&
-                            namedType.Equals(containingType))
+                        // Don't have to update if the name is already the RHS of some qualified name.
+                        if (qualifiedNameSyntax.Left == nameSyntax)
                         {
-                            // reference to a member field an unqualified fashion.  Have to qualify this.
-                            return CreateDottedName(nameSyntax, currentNameSyntax, containingType);
+                            // Qualified names occur in things like the `type` portion of the parameter
+                            return TryQualify(nameSyntax, currentNameSyntax);
                         }
+                    }
+                    else if (nameSyntax.Parent is MemberAccessExpressionSyntax memberAccessExpression)
+                    {
+                        // Don't have to update if the name is already the RHS of some member access expr.
+                        if (memberAccessExpression.Expression == nameSyntax)
+                        {
+                            // Member access expressions occur in things like the default initializer, or attribute
+                            // arguments of the parameter.
+                            return TryQualify(nameSyntax, currentNameSyntax);
+                        }
+                    }
+                    else
+                    {
+                        // Standalone name.  Try to qualify depending on if this is a type or member context.
+                        return TryQualify(nameSyntax, currentNameSyntax);
                     }
 
                     return currentNameSyntax;
                 });
+
+            SyntaxNode TryQualify(
+                SimpleNameSyntax originalName,
+                SimpleNameSyntax currentName)
+            {
+                var symbol = semanticModel.GetSymbolInfo(originalName, cancellationToken).GetAnySymbol();
+                return symbol switch
+                {
+                    INamedTypeSymbol { ContainingType: { } containingType } => CreateDottedName(originalName, currentName, containingType),
+                    IMethodSymbol or IPropertySymbol or IEventSymbol or IFieldSymbol =>
+                        symbol is { ContainingType.OriginalDefinition: { } containingType } &&
+                        namedType.Equals(containingType) ? CreateDottedName(originalName, currentName, containingType) : currentName,
+                    _ => currentName,
+                };
+            }
 
             SyntaxNode CreateDottedName(
                 SimpleNameSyntax originalName,

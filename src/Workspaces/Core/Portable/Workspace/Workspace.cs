@@ -283,8 +283,12 @@ public abstract partial class Workspace : IDisposable
                 if (!addedProject.SupportsCompilation)
                     continue;
 
+                // It's likely when adding files that if we link them to files in another project, that we will do the
+                // same for other sibling files being added.  Keep that information around so help speed up the linked
+                // file search as we process siblings.
+                ProjectId? relatedProjectIdHint = null;
                 foreach (var addedDocument in addedProject.Documents)
-                    newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument.Id);
+                    (newSolution, relatedProjectIdHint) = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument.Id, relatedProjectIdHint);
             }
 
             using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenChangedDocuments);
@@ -296,8 +300,9 @@ public abstract partial class Workspace : IDisposable
                     continue;
 
                 // Now do the same for all added documents in a project.
+                ProjectId? relatedProjectIdHint = null;
                 foreach (var addedDocument in projectChanges.GetAddedDocuments())
-                    newSolution = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument);
+                    (newSolution, relatedProjectIdHint) = UpdateAddedDocumentToExistingContentsInSolution(newSolution, addedDocument, relatedProjectIdHint);
 
                 // now, for any changed document, ensure we go and make all links to it have the same text/tree.
                 foreach (var changedDocumentId in projectChanges.GetChangedDocuments())
@@ -307,16 +312,33 @@ public abstract partial class Workspace : IDisposable
             return newSolution;
         }
 
-        static Solution UpdateAddedDocumentToExistingContentsInSolution(Solution solution, DocumentId addedDocumentId)
+        static (Solution newSolution, ProjectId? relatedProjectId) UpdateAddedDocumentToExistingContentsInSolution(
+            Solution solution, DocumentId addedDocumentId, ProjectId? relatedProjectIdHint)
         {
-            var relatedDocumentIds = solution.GetRelatedDocumentIds(addedDocumentId);
-            foreach (var relatedDocumentId in relatedDocumentIds)
-            {
-                var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
-                return solution.WithDocumentContentsFrom(addedDocumentId, relatedDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
-            }
+            Contract.ThrowIfTrue(addedDocumentId.ProjectId == relatedProjectIdHint);
 
-            return solution;
+            // Look for a related document we can create our contents from.  We only have to look for a single related
+            // doc as we'll be done once we update our contents to theirs.  Note: GetFirstRelatedDocumentId will also
+            // not search the project that addedDocumentId came from.  So this will help ensure we don't repeatedly add
+            // documents to a project, then look for related docs *within that project*, forcing the file-path map in it
+            // to be recreated for each document.
+            var relatedDocumentId = solution.GetFirstRelatedDocumentId(addedDocumentId, relatedProjectIdHint);
+
+            // Couldn't find a related document.  Keep the same solution, and keep track of the best related project we
+            // found while processing this project.
+            if (relatedDocumentId is null)
+                return (solution, relatedProjectIdHint);
+
+            var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
+
+            // Should never return a file as its own related document
+            Contract.ThrowIfTrue(relatedDocumentId == addedDocumentId);
+
+            // Related document must come from a distinct project.
+            Contract.ThrowIfTrue(relatedDocumentId.ProjectId == addedDocumentId.ProjectId);
+
+            var newSolution = solution.WithDocumentContentsFrom(addedDocumentId, relatedDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
+            return (newSolution, relatedProjectId: relatedDocumentId.ProjectId);
         }
 
         static Solution UpdateExistingDocumentsToChangedDocumentContents(Solution solution, DocumentId changedDocumentId, HashSet<DocumentId> processedDocuments)
@@ -329,6 +351,9 @@ public abstract partial class Workspace : IDisposable
                 var relatedDocumentIds = solution.GetRelatedDocumentIds(changedDocumentId);
                 foreach (var relatedDocumentId in relatedDocumentIds)
                 {
+                    if (relatedDocumentId == changedDocumentId)
+                        continue;
+
                     if (processedDocuments.Add(relatedDocumentId))
                         solution = solution.WithDocumentContentsFrom(relatedDocumentId, changedDocument.DocumentState, forceEvenIfTreesWouldDiffer: false);
                 }

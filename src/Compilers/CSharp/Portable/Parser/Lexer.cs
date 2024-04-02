@@ -1909,9 +1909,7 @@ LoopExit:
                             }
 
                             // normal single line comment
-                            this.ScanToEndOfLine();
-                            var text = TextWindow.GetText(false);
-                            this.AddTrivia(SyntaxFactory.Comment(text), ref triviaList);
+                            lexSingleLineComment(ref triviaList);
                             onlyWhitespaceOnLine = false;
                             break;
                         }
@@ -1938,12 +1936,27 @@ LoopExit:
 
                         // not trivia
                         return;
-                    case '@' when TextWindow.PeekChar(1) == '*':
-                        // Razor comment. We pretend that it's a multi-line comment for error recovery, but it's an error case.
-                        this.AddError(TextWindow.Position, width: 1, ErrorCode.ERR_UnexpectedCharacter, '@');
-                        lexMultiLineComment(ref triviaList, delimiter: '@');
-                        onlyWhitespaceOnLine = false;
-                        break;
+                    case '@':
+                        if ((ch = TextWindow.PeekChar(1)) == '*')
+                        {
+                            // Razor comment. We pretend that it's a multi-line comment for error recovery, but it's an error case.
+                            this.AddError(TextWindow.Position, width: 1, ErrorCode.ERR_UnexpectedCharacter, '@');
+                            lexMultiLineComment(ref triviaList, delimiter: '@');
+                            onlyWhitespaceOnLine = false;
+                            break;
+                        }
+                        else if (ch == ':')
+                        {
+                            // Razor HTML transition. We pretend it's a single-line comment for error recovery.
+                            this.AddError(TextWindow.Position, width: 1, ErrorCode.ERR_UnexpectedCharacter, '@');
+                            lexSingleLineComment(ref triviaList);
+                            onlyWhitespaceOnLine = false;
+                            break;
+                        }
+                        else
+                        {
+                            return;
+                        }
                     case '\r':
                     case '\n':
                         var endOfLine = this.ScanEndOfLine();
@@ -1990,6 +2003,13 @@ LoopExit:
                     default:
                         return;
                 }
+            }
+
+            void lexSingleLineComment(ref SyntaxListBuilder triviaList)
+            {
+                this.ScanToEndOfLine();
+                var text = TextWindow.GetText(false);
+                this.AddTrivia(SyntaxFactory.Comment(text), ref triviaList);
             }
 
             void lexMultiLineComment(ref SyntaxListBuilder triviaList, char delimiter)

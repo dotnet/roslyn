@@ -1393,7 +1393,7 @@ public static class C {
     }
 }";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // (4,19): warning CS8618: Non-nullable field 'o' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (4,19): warning CS8618: Non-nullable field 'o' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     static object o;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "o").WithArguments("field", "o").WithLocation(4, 19),
                 // (4,19): warning CS0649: Field 'C.o' is never assigned to, and will always have its default value null
