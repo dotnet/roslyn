@@ -1339,6 +1339,148 @@ async () => {
             EOF();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void AwaitAsDesignationAfterNullableTypeInPattern1()
+        {
+            UsingExpression("f(x is int? await)");
+
+            N(SyntaxKind.InvocationExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "f");
+                }
+                N(SyntaxKind.ArgumentList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.IsPatternExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.IsKeyword);
+                            N(SyntaxKind.DeclarationPattern);
+                            {
+                                N(SyntaxKind.NullableType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.QuestionToken);
+                                }
+                                N(SyntaxKind.SingleVariableDesignation);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "await");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void AwaitAsDesignationAfterNullableTypeInPattern2()
+        {
+            UsingExpression("dict[x is int? await]");
+
+            N(SyntaxKind.ElementAccessExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "dict");
+                }
+                N(SyntaxKind.BracketedArgumentList);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.IsPatternExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.IsKeyword);
+                            N(SyntaxKind.DeclarationPattern);
+                            {
+                                N(SyntaxKind.NullableType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.QuestionToken);
+                                }
+                                N(SyntaxKind.SingleVariableDesignation);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "await");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void AwaitAsDesignationAfterNullableTypeInPattern3()
+        {
+            UsingExpression("x is { Prop: int? await }");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.NameColon);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Prop");
+                                }
+                                N(SyntaxKind.ColonToken);
+                            }
+                            N(SyntaxKind.DeclarationPattern);
+                            {
+                                N(SyntaxKind.NullableType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.QuestionToken);
+                                }
+                                N(SyntaxKind.SingleVariableDesignation);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "await");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
         #region AwaitExpressionInSyncContext
 
         [Fact]
