@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis;
 
 internal partial class SolutionCompilationState
 {
-    internal sealed record SourceGeneratorMap(
+    private sealed record SourceGeneratorMap(
         ImmutableArray<ISourceGenerator> SourceGenerators,
         FrozenDictionary<ISourceGenerator, AnalyzerReference> SourceGeneratorToAnalyzerReference);
 
