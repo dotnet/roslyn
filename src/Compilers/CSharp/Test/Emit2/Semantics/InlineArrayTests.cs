@@ -20154,7 +20154,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Foreach_InAsync_03()
         {
             var src = @"
@@ -20601,7 +20601,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Foreach_InAsync_07()
         {
             var src = @"
@@ -21042,7 +21042,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Foreach_InIterator_03()
         {
             var src = @"
@@ -21349,7 +21349,7 @@ class Program
             CompileAndVerify(comp, expectedOutput: " 0 1 2 3", verify: Verification.Fails).VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Foreach_InIterator_07()
         {
             var src = @"
