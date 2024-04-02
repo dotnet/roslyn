@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
-internal class ContentHashComparer : IEqualityComparer<ReadOnlyMemory<byte>>
+internal sealed class ContentHashComparer : IEqualityComparer<ReadOnlyMemory<byte>>
 {
     public bool Equals(ReadOnlyMemory<byte> x, ReadOnlyMemory<byte> y)
     {
