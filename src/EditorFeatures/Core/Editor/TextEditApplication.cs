@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+namespace Microsoft.CodeAnalysis.Editor;
 
 internal static class TextEditApplication
 {
@@ -31,7 +31,7 @@ internal static class TextEditApplication
     private static void UpdateText(ImmutableArray<TextChange> textChanges, ITextBuffer buffer, ITextSnapshot oldSnapshot, SourceText oldText, EditOptions options)
     {
         using var edit = buffer.CreateEdit(options, reiteratedVersionNumber: null, editTag: null);
-        if (CodeAnalysis.Workspace.TryGetWorkspace(oldText.Container, out var workspace))
+        if (Workspace.TryGetWorkspace(oldText.Container, out var workspace))
         {
             var undoService = workspace.Services.GetRequiredService<ISourceTextUndoService>();
             undoService.BeginUndoTransaction(oldSnapshot);

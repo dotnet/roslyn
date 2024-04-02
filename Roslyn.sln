@@ -555,6 +555,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonLanguageSer
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.Emit3.UnitTests", "src\Compilers\CSharp\Test\Emit3\Microsoft.CodeAnalysis.CSharp.Emit3.UnitTests.csproj", "{4E273CBC-BB1D-4AC1-91DB-C62FC83E0350}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SemanticSearch", "SemanticSearch", "{52ABB0E4-C3A1-4897-B51B-18EDA83F5D20}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SemanticSearch.BuildTask", "src\Tools\SemanticSearch\BuildTask\SemanticSearch.BuildTask.csproj", "{FCE88BBD-9BBD-4871-B9B0-DE176D73A6B0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SemanticSearch.ReferenceAssemblies", "src\Tools\SemanticSearch\ReferenceAssemblies\SemanticSearch.ReferenceAssemblies.csproj", "{EDEF898A-CEFA-4151-8168-D0231A602093}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SemanticSearch.BuildTask.UnitTests", "src\Tools\SemanticSearch\Tests\SemanticSearch.BuildTask.UnitTests.csproj", "{D817E3CE-F603-499B-B02A-7DECD017B170}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1369,6 +1377,18 @@ Global
 		{4E273CBC-BB1D-4AC1-91DB-C62FC83E0350}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E273CBC-BB1D-4AC1-91DB-C62FC83E0350}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E273CBC-BB1D-4AC1-91DB-C62FC83E0350}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCE88BBD-9BBD-4871-B9B0-DE176D73A6B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCE88BBD-9BBD-4871-B9B0-DE176D73A6B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCE88BBD-9BBD-4871-B9B0-DE176D73A6B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCE88BBD-9BBD-4871-B9B0-DE176D73A6B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EDEF898A-CEFA-4151-8168-D0231A602093}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDEF898A-CEFA-4151-8168-D0231A602093}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDEF898A-CEFA-4151-8168-D0231A602093}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDEF898A-CEFA-4151-8168-D0231A602093}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D817E3CE-F603-499B-B02A-7DECD017B170}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D817E3CE-F603-499B-B02A-7DECD017B170}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D817E3CE-F603-499B-B02A-7DECD017B170}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D817E3CE-F603-499B-B02A-7DECD017B170}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1623,6 +1643,10 @@ Global
 		{64EADED3-4B5D-4431-BBE5-A4ABA1C38C00} = {D449D505-CC6A-4E0B-AF1B-976E2D0AE67A}
 		{730CADBA-701F-4722-9B6F-1FCC0DF2C95D} = {D449D505-CC6A-4E0B-AF1B-976E2D0AE67A}
 		{4E273CBC-BB1D-4AC1-91DB-C62FC83E0350} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
+		{52ABB0E4-C3A1-4897-B51B-18EDA83F5D20} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
+		{FCE88BBD-9BBD-4871-B9B0-DE176D73A6B0} = {52ABB0E4-C3A1-4897-B51B-18EDA83F5D20}
+		{EDEF898A-CEFA-4151-8168-D0231A602093} = {52ABB0E4-C3A1-4897-B51B-18EDA83F5D20}
+		{D817E3CE-F603-499B-B02A-7DECD017B170} = {52ABB0E4-C3A1-4897-B51B-18EDA83F5D20}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

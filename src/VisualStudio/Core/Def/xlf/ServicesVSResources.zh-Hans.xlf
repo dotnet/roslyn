@@ -1272,6 +1272,16 @@
         <target state="translated">搜索设置</target>
         <note />
       </trans-unit>
+      <trans-unit id="Search_cancelled">
+        <source>Search canceled</source>
+        <target state="new">Search canceled</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Search_found_no_results_no_csharp_or_vb_projects_opened">
+        <source>Search found no results: no C# or Visual Basic projects are opened</source>
+        <target state="new">Search found no results: no C# or Visual Basic projects are opened</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
         <source>Select an appropriate symbol to start value tracking</source>
         <target state="translated">选择适当的符号以启动值跟踪</target>
@@ -1310,6 +1320,16 @@
       <trans-unit id="Select_members_colon">
         <source>Select members:</source>
         <target state="translated">选择成员:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_0">
+        <source>Semantic Search ({0})</source>
+        <target state="new">Semantic Search ({0})</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_results">
+        <source>Semantic Search Results</source>
+        <target state="new">Semantic Search Results</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">

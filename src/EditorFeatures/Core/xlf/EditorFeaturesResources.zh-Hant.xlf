@@ -297,6 +297,11 @@
         <target state="translated">Roslyn 測試程式碼標記</target>
         <note />
       </trans-unit>
+      <trans-unit id="Run">
+        <source>Run</source>
+        <target state="new">Run</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Split_comment">
         <source>Split comment</source>
         <target state="translated">分割註解</target>

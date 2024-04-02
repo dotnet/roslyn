@@ -297,6 +297,11 @@
         <target state="translated">Markup del codice di test di Roslyn</target>
         <note />
       </trans-unit>
+      <trans-unit id="Run">
+        <source>Run</source>
+        <target state="new">Run</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Split_comment">
         <source>Split comment</source>
         <target state="translated">Dividi commento</target>

@@ -359,6 +359,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     try
                     {
+                        // Only bother keeping track of staleCompilationWithGeneratedDocuments for projects that
+                        // actually have generators in them.
+                        var hasSourceGenerators = await compilationState.HasSourceGeneratorsAsync(this.ProjectState.Id, cancellationToken).ConfigureAwait(false);
                         var currentState = initialState;
 
                         // Then, we serially process the chain while that parsing is happening concurrently.
@@ -368,7 +371,7 @@ namespace Microsoft.CodeAnalysis
 
                             // We have a list of transformations to get to our final compilation; take the first transformation and apply it.
                             var (compilationWithoutGeneratedDocuments, staleCompilationWithGeneratedDocuments, generatorInfo) =
-                                await ApplyFirstTransformationAsync(currentState).ConfigureAwait(false);
+                                await ApplyFirstTransformationAsync(currentState, hasSourceGenerators).ConfigureAwait(false);
 
                             // We have updated state, so store this new result; this allows us to drop the intermediate state we already processed
                             // even if we were to get cancelled at a later point.
@@ -397,7 +400,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     async Task<(Compilation compilationWithoutGeneratedDocuments, Compilation? staleCompilationWithGeneratedDocuments, CompilationTrackerGeneratorInfo generatorInfo)>
-                        ApplyFirstTransformationAsync(InProgressState inProgressState)
+                        ApplyFirstTransformationAsync(InProgressState inProgressState, bool hasSourceGenerators)
                     {
                         Contract.ThrowIfTrue(inProgressState.PendingTranslationActions.IsEmpty);
                         var translationAction = inProgressState.PendingTranslationActions[0];
@@ -422,7 +425,7 @@ namespace Microsoft.CodeAnalysis
                             // Also transform the compilation that has generated files; we won't do that though if the transformation either would cause problems with
                             // the generated documents, or if don't have any source generators in the first place.
                             if (translationAction.CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput &&
-                                GetSourceGenerators(translationAction.OldProjectState).Any())
+                                hasSourceGenerators)
                             {
                                 staleCompilationWithGeneratedDocuments = await translationAction.TransformCompilationAsync(staleCompilationWithGeneratedDocuments, cancellationToken).ConfigureAwait(false);
                             }
@@ -853,10 +856,8 @@ namespace Microsoft.CodeAnalysis
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 // If we don't have any generators, then we know we have no generated files, so we can skip the computation entirely.
-                if (!GetSourceGenerators(this.ProjectState).Any())
-                {
+                if (!await compilationState.HasSourceGeneratorsAsync(this.ProjectState.Id, cancellationToken).ConfigureAwait(false))
                     return TextDocumentStates<SourceGeneratedDocumentState>.Empty;
-                }
 
                 var finalState = await GetOrBuildFinalStateAsync(
                     compilationState, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -866,10 +867,8 @@ namespace Microsoft.CodeAnalysis
             public async ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                if (!GetSourceGenerators(this.ProjectState).Any())
-                {
+                if (!await compilationState.HasSourceGeneratorsAsync(this.ProjectState.Id, cancellationToken).ConfigureAwait(false))
                     return [];
-                }
 
                 var finalState = await GetOrBuildFinalStateAsync(
                     compilationState, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -895,10 +894,8 @@ namespace Microsoft.CodeAnalysis
 
             public async ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                if (!GetSourceGenerators(this.ProjectState).Any())
-                {
+                if (!await compilationState.HasSourceGeneratorsAsync(this.ProjectState.Id, cancellationToken).ConfigureAwait(false))
                     return null;
-                }
 
                 var finalState = await GetOrBuildFinalStateAsync(
                     compilationState, cancellationToken).ConfigureAwait(false);

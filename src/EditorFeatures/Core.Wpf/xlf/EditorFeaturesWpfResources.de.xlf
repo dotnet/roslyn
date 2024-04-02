@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Generating_suggestions">
         <source>Generating suggestions...</source>
-        <target state="new">Generating suggestions...</target>
+        <target state="translated">Vorschläge werden generiert...</target>
         <note />
       </trans-unit>
       <trans-unit id="Get_AI_suggestions">
