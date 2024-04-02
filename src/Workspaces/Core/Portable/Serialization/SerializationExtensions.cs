@@ -32,7 +32,7 @@ internal static class SerializationExtensions
             AnalyzerReference => WellKnownSynchronizationKind.AnalyzerReference,
             SerializableSourceText => WellKnownSynchronizationKind.SerializableSourceText,
             SourceGeneratedDocumentIdentity => WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity,
-            ImmutableSegmentedDictionary<ProjectId, 
+            SourceGeneratorExecutionVersionMap => WellKnownSynchronizationKind.SourceGeneratorExecutionVersionMap,
             _ => throw ExceptionUtilities.UnexpectedValue(value),
         };
 

@@ -20,7 +20,7 @@ internal sealed class SolutionCompilationStateChecksums
 {
     public SolutionCompilationStateChecksums(
         Checksum solutionState,
-        ChecksumsAndIds<ProjectId> sourceGenerationExecutionVersions,
+        ChecksumsAndIds<ProjectId> sourceGeneratorExecutionVersionMap,
         ChecksumCollection? frozenSourceGeneratedDocumentIdentities,
         ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocuments,
         ImmutableArray<DateTime> frozenSourceGeneratedDocumentGenerationDateTimes)
@@ -31,7 +31,7 @@ internal sealed class SolutionCompilationStateChecksums
         Contract.ThrowIfFalse(frozenSourceGeneratedDocumentIdentities?.Count == frozenSourceGeneratedDocuments?.Length);
 
         SolutionState = solutionState;
-        SourceGenerationExecutionVersions = sourceGenerationExecutionVersions;
+        SourceGeneratorExecutionVersionMap = sourceGeneratorExecutionVersionMap;
         FrozenSourceGeneratedDocumentIdentities = frozenSourceGeneratedDocumentIdentities;
         FrozenSourceGeneratedDocuments = frozenSourceGeneratedDocuments;
         FrozenSourceGeneratedDocumentGenerationDateTimes = frozenSourceGeneratedDocumentGenerationDateTimes;
@@ -46,7 +46,7 @@ internal sealed class SolutionCompilationStateChecksums
 
     public Checksum Checksum { get; }
     public Checksum SolutionState { get; }
-    public ChecksumsAndIds<ProjectId> SourceGenerationExecutionVersions { get; }
+    public ChecksumsAndIds<ProjectId> SourceGeneratorExecutionVersionMap { get; }
     public ChecksumCollection? FrozenSourceGeneratedDocumentIdentities { get; }
     public ChecksumsAndIds<DocumentId>? FrozenSourceGeneratedDocuments { get; }
 
@@ -57,7 +57,7 @@ internal sealed class SolutionCompilationStateChecksums
     {
         checksums.AddIfNotNullChecksum(this.Checksum);
         checksums.AddIfNotNullChecksum(this.SolutionState);
-        checksums.AddIfNotNullChecksum(this.SourceGenerationExecutionVersions.Checksum);
+        checksums.AddIfNotNullChecksum(this.SourceGeneratorExecutionVersionMap.Checksum);
         this.FrozenSourceGeneratedDocumentIdentities?.AddAllTo(checksums);
         this.FrozenSourceGeneratedDocuments?.Checksums.AddAllTo(checksums);
     }
@@ -67,7 +67,7 @@ internal sealed class SolutionCompilationStateChecksums
         // Writing this is optional, but helps ensure checksums are being computed properly on both the host and oop side.
         this.Checksum.WriteTo(writer);
         this.SolutionState.WriteTo(writer);
-        this.SourceGenerationExecutionVersions.WriteTo(writer);
+        this.SourceGeneratorExecutionVersionMap.WriteTo(writer);
 
         // Write out a boolean to know whether we'll have this extra information
         writer.WriteBoolean(this.FrozenSourceGeneratedDocumentIdentities.HasValue);
@@ -83,7 +83,7 @@ internal sealed class SolutionCompilationStateChecksums
     {
         var checksum = Checksum.ReadFrom(reader);
         var solutionState = Checksum.ReadFrom(reader);
-        var sourceGenerationExecutionVersions = ChecksumsAndIds<ProjectId>.ReadFrom(reader);
+        var sourceGeneratorExecutionVersionMap = ChecksumsAndIds<ProjectId>.ReadFrom(reader);
 
         var hasFrozenSourceGeneratedDocuments = reader.ReadBoolean();
         ChecksumCollection? frozenSourceGeneratedDocumentIdentities = null;
@@ -99,7 +99,7 @@ internal sealed class SolutionCompilationStateChecksums
 
         var result = new SolutionCompilationStateChecksums(
             solutionState: solutionState,
-            sourceGenerationExecutionVersions: sourceGenerationExecutionVersions,
+            sourceGeneratorExecutionVersionMap: sourceGeneratorExecutionVersionMap,
             frozenSourceGeneratedDocumentIdentities,
             frozenSourceGeneratedDocuments,
             frozenSourceGeneratedDocumentGenerationDateTimes);
@@ -123,8 +123,8 @@ internal sealed class SolutionCompilationStateChecksums
         if (searchingChecksumsLeft.Remove(this.Checksum))
             result[this.Checksum] = this;
 
-        if (searchingChecksumsLeft.Remove(this.SourceGenerationExecutionVersions.Checksum))
-            result[this.SourceGenerationExecutionVersions.Checksum] = compilationState.ProjectIdToExecutionVersion;
+        if (searchingChecksumsLeft.Remove(this.SourceGeneratorExecutionVersionMap.Checksum))
+            result[this.SourceGeneratorExecutionVersionMap.Checksum] = compilationState.SourceGeneratorExecutionVersionMap;
 
         if (searchingChecksumsLeft.Count == 0)
             return;
