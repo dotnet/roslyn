@@ -114,11 +114,11 @@ namespace Microsoft.CodeAnalysis.Remote
                         solution = solution.WithFrozenSourceGeneratedDocuments(frozenDocuments.ToImmutable());
                     }
 
-                    if (oldSolutionCompilationChecksums.SourceGenerationExecutionVersions.Checksum !=
-                        newSolutionCompilationChecksums.SourceGenerationExecutionVersions.Checksum)
+                    if (oldSolutionCompilationChecksums.SourceGeneratorExecutionVersionMap !=
+                        newSolutionCompilationChecksums.SourceGeneratorExecutionVersionMap)
                     {
-                        var newVersions = await _assetProvider.GetAssetAsync<ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>>(
-                            assetHint: AssetHint.None, newSolutionCompilationChecksums.SourceGenerationExecutionVersions.Checksum, cancellationToken).ConfigureAwait(false);
+                        var newVersions = await _assetProvider.GetAssetAsync<SourceGeneratorExecutionVersionMap>(
+                            assetHint: AssetHint.None, newSolutionCompilationChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
 
                         solution = solution.WithSourceGeneratorExecutionVersions(newVersions, cancellationToken);
                     }
