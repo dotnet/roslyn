@@ -1860,5 +1860,5 @@ public partial class Solution
     }
 
     internal SourceGeneratorExecutionVersion GetSourceGeneratorExecutionVersion(ProjectId projectId)
-        => this.CompilationState.ProjectIdToExecutionVersion[projectId];
+        => this.CompilationState.SourceGeneratorExecutionVersionMap[projectId];
 }

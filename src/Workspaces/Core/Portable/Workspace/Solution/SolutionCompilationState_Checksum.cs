@@ -141,7 +141,7 @@ internal partial class SolutionCompilationState
                 Debug.Assert(sortedProjectIds.SetEquals(this.ProjectIdToExecutionVersion.Keys));
 
                 var sourceGenerationExecutionVersions = new ChecksumsAndIds<ProjectId>(
-                    sortedProjectIds.SelectAsArray(p => this.ProjectIdToExecutionVersion[p].Checksum),
+                    sortedProjectIds.SelectAsArray(p => this.SourceGeneratorExecutionVersionMap[p].Checksum),
                     sortedProjectIds.ToImmutableArray());
 
                 var compilationStateChecksums = new SolutionCompilationStateChecksums(
