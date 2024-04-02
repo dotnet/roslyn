@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Collections;
@@ -43,18 +44,25 @@ internal readonly record struct SourceGeneratorExecutionVersion(
         => new(reader.ReadInt32(), reader.ReadInt32());
 }
 
-internal readonly struct SourceGeneratorExecutionVersionMap
+internal sealed class SourceGeneratorExecutionVersionMap
 {
-    public static readonly SourceGeneratorExecutionVersionMap Empty = new(default);
+    public static readonly SourceGeneratorExecutionVersionMap Empty = new();
 
     private readonly ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion> _map;
 
+    public SourceGeneratorExecutionVersionMap()
+        : this(ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Empty)
+    {
+    }
+
     public SourceGeneratorExecutionVersionMap(ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion> map)
     {
-        _map = map.IsDefault ? ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Empty : map;
+        _map = map;
     }
 
     public SourceGeneratorExecutionVersion this[ProjectId projectId] => _map[projectId];
+    public IEnumerable<ProjectId> ProjectIds => _map.Keys;
+    public Enumerator GetEnumerator() => new(_map.GetEnumerator());
 
     public static bool operator ==(SourceGeneratorExecutionVersionMap map1, SourceGeneratorExecutionVersionMap map2)
         => map1._map == map2._map;
@@ -68,7 +76,7 @@ internal readonly struct SourceGeneratorExecutionVersionMap
     public override bool Equals([NotNullWhen(true)] object? obj)
         => obj is SourceGeneratorExecutionVersionMap map && this == map;
 
-    public readonly Builder ToBuilder()
+    public Builder ToBuilder()
         => new(_map.ToBuilder());
 
     public void WriteTo(ObjectWriter writer)
@@ -95,6 +103,9 @@ internal readonly struct SourceGeneratorExecutionVersionMap
         return new(builder.ToImmutable());
     }
 
+    public static Builder CreateBuilder()
+        => new(ImmutableSegmentedDictionary.CreateBuilder<ProjectId, SourceGeneratorExecutionVersion>());
+
     public struct Builder
     {
         private readonly ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Builder _builder;
@@ -110,6 +121,9 @@ internal readonly struct SourceGeneratorExecutionVersionMap
             set => _builder[projectId] = value;
         }
 
+        public readonly bool ContainsKey(ProjectId projectId)
+            => _builder.ContainsKey(projectId);
+
         public readonly void Add(ProjectId projectId, SourceGeneratorExecutionVersion version)
             => _builder.Add(projectId, version);
 
@@ -118,5 +132,18 @@ internal readonly struct SourceGeneratorExecutionVersionMap
 
         public readonly SourceGeneratorExecutionVersionMap ToImmutable()
             => new(_builder.ToImmutable());
+    }
+
+    public struct Enumerator
+    {
+        private ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Enumerator _enumerator;
+
+        public Enumerator(ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Enumerator enumerator)
+        {
+            _enumerator = enumerator;
+        }
+
+        public bool MoveNext() => _enumerator.MoveNext();
+        public (ProjectId projectId, SourceGeneratorExecutionVersion version) Current => (_enumerator.Current.Key, _enumerator.Current.Value);
     }
 }

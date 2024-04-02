@@ -138,7 +138,10 @@ internal partial class SolutionCompilationState
                     frozenSourceGeneratedDocumentGenerationDateTimes = FrozenSourceGeneratedDocumentStates.SelectAsArray(d => d.GenerationDateTime);
                 }
 
-                var versionMapChecksum = GetVersionMapChecksum();
+                var versionMapChecksum = ChecksumCache.GetOrCreate(
+                    this.SourceGeneratorExecutionVersionMap,
+                    static (_, @this) => GetVersionMapChecksum(@this),
+                    this);
 
                 var compilationStateChecksums = new SolutionCompilationStateChecksums(
                     solutionStateChecksum,
@@ -154,18 +157,18 @@ internal partial class SolutionCompilationState
             throw ExceptionUtilities.Unreachable();
         }
 
-        Checksum GetVersionMapChecksum()
+        static Checksum GetVersionMapChecksum(SolutionCompilationState @this)
         {
             // We want the projects in sorted order so we can generate the checksum for the
             // source-generation-execution-map consistently.
-            var sortedProjectIds = SolutionState.GetOrCreateSortedProjectIds(SolutionState.ProjectIds);
+            var sortedProjectIds = SolutionState.GetOrCreateSortedProjectIds(@this.SolutionState.ProjectIds);
 
             using var _ = ArrayBuilder<Checksum>.GetInstance(out var checksums);
 
             foreach (var projectId in sortedProjectIds)
             {
                 checksums.Add(projectId.Checksum);
-                checksums.Add(Checksum.Create(this.SourceGeneratorExecutionVersionMap[projectId], static (w, v) => v.WriteTo(w)));
+                checksums.Add(Checksum.Create(@this.SourceGeneratorExecutionVersionMap[projectId], static (w, v) => v.WriteTo(w)));
             }
 
             return Checksum.Create(checksums);

@@ -1621,9 +1621,9 @@ public partial class Solution
     }
 
     internal Solution WithSourceGeneratorExecutionVersions(
-        ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion> projectIdToSourceGeneratorExecutionVersion, CancellationToken cancellationToken)
+        SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap, CancellationToken cancellationToken)
     {
-        var newCompilationState = _compilationState.WithSourceGeneratorExecutionVersions(projectIdToSourceGeneratorExecutionVersion, cancellationToken);
+        var newCompilationState = _compilationState.WithSourceGeneratorExecutionVersions(sourceGeneratorExecutionVersionMap, cancellationToken);
         return newCompilationState != _compilationState
             ? new Solution(newCompilationState)
             : this;

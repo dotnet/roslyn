@@ -48,7 +48,7 @@ public partial class Workspace
             oldSolution =>
             {
                 var updates = GetUpdatedSourceGeneratorVersions(oldSolution, projectIds);
-                return oldSolution.WithSourceGeneratorVersions(updates, cancellationToken);
+                return oldSolution.WithSourceGeneratorExecutionVersions(updates, cancellationToken);
             },
             static (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
             onBeforeUpdate: null,
@@ -57,15 +57,14 @@ public partial class Workspace
 
         return;
 
-        static FrozenDictionary<ProjectId, SourceGeneratorExecutionVersion> GetUpdatedSourceGeneratorVersions(
+        static SourceGeneratorExecutionVersionMap GetUpdatedSourceGeneratorVersions(
             Solution solution, ImmutableSegmentedList<(ProjectId? projectId, bool forceRegeneration)> projectIds)
         {
             // For all the projects explicitly requested, update their source generator version.  Do this for all
             // projects that transitively depend on that project, so that their generators will run as well when next
             // asked.
             var dependencyGraph = solution.GetProjectDependencyGraph();
-
-            using var _ = CodeAnalysis.PooledObjects.PooledDictionary<ProjectId, SourceGeneratorExecutionVersion>.GetInstance(out var result);
+            var result = SourceGeneratorExecutionVersionMap.CreateBuilder();
 
             // Determine if we want a major solution change, forcing regeneration of all projects.
             var solutionMajor = projectIds.Any(t => t.projectId is null && t.forceRegeneration);
@@ -96,7 +95,7 @@ public partial class Workspace
                 }
             }
 
-            return result.ToFrozenDictionary();
+            return result.ToImmutable();
 
             void PopulateSourceGeneratorExecutionVersions(bool major)
             {

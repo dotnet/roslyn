@@ -110,7 +110,7 @@ internal sealed partial class SolutionCompilationState
         Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
 
         // Solution and SG version maps must correspond to the same set of projets.
-        Contract.ThrowIfFalse(this.SolutionState.ProjectIds.SetEquals(_projectIdToExecutionVersion.Keys));
+        Contract.ThrowIfFalse(this.SolutionState.ProjectIds.SetEquals(_sourceGeneratorExecutionVersionMap.ProjectIds));
     }
 
     private SolutionCompilationState Branch(
@@ -136,7 +136,7 @@ internal sealed partial class SolutionCompilationState
             newSolutionState,
             PartialSemanticsEnabled,
             projectIdToTrackerMap.Value,
-            sourceGeneratorExecutionVersionMap.Value,
+            sourceGeneratorExecutionVersionMap,
             newFrozenSourceGeneratedDocumentStates,
             cachedFrozenSnapshot);
     }
@@ -1160,13 +1160,13 @@ internal sealed partial class SolutionCompilationState
     }
 
     public SolutionCompilationState WithSourceGeneratorExecutionVersions(
-        ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion> projectIdToSourceGeneratorExecutionVersion, CancellationToken cancellationToken)
+        SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersions, CancellationToken cancellationToken)
     {
         var versionMapBuilder = _sourceGeneratorExecutionVersionMap.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
         var changed = false;
 
-        foreach (var (projectId, sourceGeneratorExecutionVersion) in projectIdToSourceGeneratorExecutionVersion)
+        foreach (var (projectId, sourceGeneratorExecutionVersion) in sourceGeneratorExecutionVersions)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
