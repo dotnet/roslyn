@@ -11,6 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -1619,10 +1620,10 @@ public partial class Solution
             : this;
     }
 
-    internal Solution WithSourceGeneratorVersions(
-        FrozenDictionary<ProjectId, SourceGeneratorExecutionVersion> projectIdToSourceGeneratorExecutionVersion, CancellationToken cancellationToken)
+    internal Solution WithSourceGeneratorExecutionVersions(
+        ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion> projectIdToSourceGeneratorExecutionVersion, CancellationToken cancellationToken)
     {
-        var newCompilationState = _compilationState.WithSourceGeneratorVersions(projectIdToSourceGeneratorExecutionVersion, cancellationToken);
+        var newCompilationState = _compilationState.WithSourceGeneratorExecutionVersions(projectIdToSourceGeneratorExecutionVersion, cancellationToken);
         return newCompilationState != _compilationState
             ? new Solution(newCompilationState)
             : this;
@@ -1859,5 +1860,5 @@ public partial class Solution
     }
 
     internal SourceGeneratorExecutionVersion GetSourceGeneratorExecutionVersion(ProjectId projectId)
-        => this.CompilationState.GetSourceGeneratorExecutionVersion(projectId);
+        => this.CompilationState.ProjectIdToExecutionVersion[projectId];
 }

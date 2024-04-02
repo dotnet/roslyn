@@ -303,8 +303,7 @@ internal sealed partial class SolutionCompilationState
         return projectIdToTrackerMapBuilder.ToImmutable();
     }
 
-    public SourceGeneratorExecutionVersion GetSourceGeneratorExecutionVersion(ProjectId projectId)
-        => _projectIdToExecutionVersion[projectId];
+    public ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion> ProjectIdToExecutionVersion => _projectIdToExecutionVersion;
 
     /// <inheritdoc cref="SolutionState.AddProject(ProjectInfo)"/>
     public SolutionCompilationState AddProject(ProjectInfo projectInfo)
@@ -1159,8 +1158,8 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithOptions(options));
     }
 
-    public SolutionCompilationState WithSourceGeneratorVersions(
-        FrozenDictionary<ProjectId, SourceGeneratorExecutionVersion> projectIdToSourceGeneratorExecutionVersion, CancellationToken cancellationToken)
+    public SolutionCompilationState WithSourceGeneratorExecutionVersions(
+        ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion> projectIdToSourceGeneratorExecutionVersion, CancellationToken cancellationToken)
     {
         var newIdToExecutionVersionBuilder = _projectIdToExecutionVersion.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();

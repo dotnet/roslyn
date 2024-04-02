@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -111,6 +112,15 @@ namespace Microsoft.CodeAnalysis.Remote
                         }
 
                         solution = solution.WithFrozenSourceGeneratedDocuments(frozenDocuments.ToImmutable());
+                    }
+
+                    if (oldSolutionCompilationChecksums.SourceGenerationExecutionVersions.Checksum !=
+                        newSolutionCompilationChecksums.SourceGenerationExecutionVersions.Checksum)
+                    {
+                        var newVersions = await _assetProvider.GetAssetAsync<ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>>(
+                            assetHint: AssetHint.None, newSolutionCompilationChecksums.SourceGenerationExecutionVersions.Checksum, cancellationToken).ConfigureAwait(false);
+
+                        solution = solution.WithSourceGeneratorExecutionVersions(newVersions, cancellationToken);
                     }
 
 #if DEBUG
@@ -422,12 +432,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (project.State.ProjectInfo.Attributes.ChecksumAlgorithm != newProjectAttributes.ChecksumAlgorithm)
                 {
                     project = project.Solution.WithProjectChecksumAlgorithm(projectId, newProjectAttributes.ChecksumAlgorithm).GetRequiredProject(projectId);
-                }
-
-                if (project.State.ProjectInfo.Attributes.SourceGeneratorExecutionVersion != newProjectAttributes.SourceGeneratorExecutionVersion)
-                {
-                    project = project.Solution.WithSourceGeneratorVersions(
-                        FrozenDictionary.ToFrozenDictionary([new KeyValuePair<ProjectId, SourceGeneratorExecutionVersion>(projectId, newProjectAttributes.SourceGeneratorExecutionVersion)]), cancellationToken).GetRequiredProject(projectId);
                 }
 
                 return project;

@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.IO;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -31,6 +32,7 @@ internal static class SerializationExtensions
             AnalyzerReference => WellKnownSynchronizationKind.AnalyzerReference,
             SerializableSourceText => WellKnownSynchronizationKind.SerializableSourceText,
             SourceGeneratedDocumentIdentity => WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity,
+            ImmutableSegmentedDictionary<ProjectId, 
             _ => throw ExceptionUtilities.UnexpectedValue(value),
         };
 

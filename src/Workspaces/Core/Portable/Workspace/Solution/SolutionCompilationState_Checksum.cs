@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -136,8 +137,16 @@ internal partial class SolutionCompilationState
                     frozenSourceGeneratedDocumentGenerationDateTimes = FrozenSourceGeneratedDocumentStates.SelectAsArray(d => d.GenerationDateTime);
                 }
 
+                var sortedProjectIds = SolutionState.GetOrCreateSortedProjectIds(SolutionState.ProjectIds);
+                Debug.Assert(sortedProjectIds.SetEquals(this.ProjectIdToExecutionVersion.Keys));
+
+                var sourceGenerationExecutionVersions = new ChecksumsAndIds<ProjectId>(
+                    sortedProjectIds.SelectAsArray(p => this.ProjectIdToExecutionVersion[p].Checksum),
+                    sortedProjectIds.ToImmutableArray());
+
                 var compilationStateChecksums = new SolutionCompilationStateChecksums(
                     solutionStateChecksum,
+                    sourceGenerationExecutionVersions,
                     frozenSourceGeneratedDocumentIdentities,
                     frozenSourceGeneratedDocuments,
                     frozenSourceGeneratedDocumentGenerationDateTimes);
