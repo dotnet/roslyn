@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SourceGeneration;
@@ -19,7 +21,7 @@ internal partial class SolutionCompilationState
 {
     internal sealed record SourceGeneratorMap(
         ImmutableArray<ISourceGenerator> SourceGenerators,
-        ImmutableDictionary<ISourceGenerator, AnalyzerReference> SourceGeneratorToAnalyzerReference);
+        FrozenDictionary<ISourceGenerator, AnalyzerReference> SourceGeneratorToAnalyzerReference);
 
     /// <summary>
     /// Cached mapping from language (only C#/VB since those are the only languages that support analyzers) to the lists
@@ -67,7 +69,7 @@ internal partial class SolutionCompilationState
         static SourceGeneratorMap ComputeSourceGenerators(ProjectState projectState)
         {
             using var generators = TemporaryArray<ISourceGenerator>.Empty;
-            var generatorToAnalyzerReference = ImmutableDictionary.CreateBuilder<ISourceGenerator, AnalyzerReference>();
+            using var _ = PooledDictionary<ISourceGenerator, AnalyzerReference>.GetInstance(out var generatorToAnalyzerReference);
 
             foreach (var reference in projectState.AnalyzerReferences)
             {
@@ -78,7 +80,7 @@ internal partial class SolutionCompilationState
                 }
             }
 
-            return new(generators.ToImmutableAndClear(), generatorToAnalyzerReference.ToImmutable());
+            return new(generators.ToImmutableAndClear(), generatorToAnalyzerReference.ToFrozenDictionary());
         }
     }
 
