@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -137,16 +138,11 @@ internal partial class SolutionCompilationState
                     frozenSourceGeneratedDocumentGenerationDateTimes = FrozenSourceGeneratedDocumentStates.SelectAsArray(d => d.GenerationDateTime);
                 }
 
-                var sortedProjectIds = SolutionState.GetOrCreateSortedProjectIds(SolutionState.ProjectIds);
-                Debug.Assert(sortedProjectIds.SetEquals(this.ProjectIdToExecutionVersion.Keys));
-
-                var sourceGenerationExecutionVersions = new ChecksumsAndIds<ProjectId>(
-                    sortedProjectIds.SelectAsArray(p => this.SourceGeneratorExecutionVersionMap[p].Checksum),
-                    sortedProjectIds.ToImmutableArray());
+                var versionMapChecksum = GetVersionMapChecksum();
 
                 var compilationStateChecksums = new SolutionCompilationStateChecksums(
                     solutionStateChecksum,
-                    sourceGenerationExecutionVersions,
+                    versionMapChecksum,
                     frozenSourceGeneratedDocumentIdentities,
                     frozenSourceGeneratedDocuments,
                     frozenSourceGeneratedDocumentGenerationDateTimes);
@@ -156,6 +152,23 @@ internal partial class SolutionCompilationState
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
         {
             throw ExceptionUtilities.Unreachable();
+        }
+
+        Checksum GetVersionMapChecksum()
+        {
+            // We want the projects in sorted order so we can generate the checksum for the
+            // source-generation-execution-map consistently.
+            var sortedProjectIds = SolutionState.GetOrCreateSortedProjectIds(SolutionState.ProjectIds);
+
+            using var _ = ArrayBuilder<Checksum>.GetInstance(out var checksums);
+
+            foreach (var projectId in sortedProjectIds)
+            {
+                checksums.Add(projectId.Checksum);
+                checksums.Add(Checksum.Create(this.SourceGeneratorExecutionVersionMap[projectId], static (w, v) => v.WriteTo(w)));
+            }
+
+            return Checksum.Create(checksums);
         }
     }
 }

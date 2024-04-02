@@ -137,6 +137,19 @@ internal readonly partial record struct Checksum
         return Create(stream);
     }
 
+    public static Checksum Create<T>(T value, Action<ObjectWriter, T> writeTo)
+    {
+        using var stream = SerializableBytes.CreateWritableStream();
+
+        using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
+        {
+            writeTo(objectWriter, value);
+        }
+
+        stream.Position = 0;
+        return Create(stream);
+    }
+
     public static Checksum Create(ParseOptions value, ISerializerService serializer)
     {
         using var stream = SerializableBytes.CreateWritableStream();

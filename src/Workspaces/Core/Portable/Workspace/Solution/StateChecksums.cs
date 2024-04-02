@@ -20,7 +20,7 @@ internal sealed class SolutionCompilationStateChecksums
 {
     public SolutionCompilationStateChecksums(
         Checksum solutionState,
-        ChecksumsAndIds<ProjectId> sourceGeneratorExecutionVersionMap,
+        Checksum sourceGeneratorExecutionVersionMap,
         ChecksumCollection? frozenSourceGeneratedDocumentIdentities,
         ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocuments,
         ImmutableArray<DateTime> frozenSourceGeneratedDocumentGenerationDateTimes)
@@ -46,7 +46,7 @@ internal sealed class SolutionCompilationStateChecksums
 
     public Checksum Checksum { get; }
     public Checksum SolutionState { get; }
-    public ChecksumsAndIds<ProjectId> SourceGeneratorExecutionVersionMap { get; }
+    public Checksum SourceGeneratorExecutionVersionMap { get; }
     public ChecksumCollection? FrozenSourceGeneratedDocumentIdentities { get; }
     public ChecksumsAndIds<DocumentId>? FrozenSourceGeneratedDocuments { get; }
 
@@ -57,7 +57,7 @@ internal sealed class SolutionCompilationStateChecksums
     {
         checksums.AddIfNotNullChecksum(this.Checksum);
         checksums.AddIfNotNullChecksum(this.SolutionState);
-        checksums.AddIfNotNullChecksum(this.SourceGeneratorExecutionVersionMap.Checksum);
+        checksums.AddIfNotNullChecksum(this.SourceGeneratorExecutionVersionMap);
         this.FrozenSourceGeneratedDocumentIdentities?.AddAllTo(checksums);
         this.FrozenSourceGeneratedDocuments?.Checksums.AddAllTo(checksums);
     }
@@ -83,7 +83,7 @@ internal sealed class SolutionCompilationStateChecksums
     {
         var checksum = Checksum.ReadFrom(reader);
         var solutionState = Checksum.ReadFrom(reader);
-        var sourceGeneratorExecutionVersionMap = ChecksumsAndIds<ProjectId>.ReadFrom(reader);
+        var sourceGeneratorExecutionVersionMap = Checksum.ReadFrom(reader);
 
         var hasFrozenSourceGeneratedDocuments = reader.ReadBoolean();
         ChecksumCollection? frozenSourceGeneratedDocumentIdentities = null;
@@ -123,8 +123,8 @@ internal sealed class SolutionCompilationStateChecksums
         if (searchingChecksumsLeft.Remove(this.Checksum))
             result[this.Checksum] = this;
 
-        if (searchingChecksumsLeft.Remove(this.SourceGeneratorExecutionVersionMap.Checksum))
-            result[this.SourceGeneratorExecutionVersionMap.Checksum] = compilationState.SourceGeneratorExecutionVersionMap;
+        if (searchingChecksumsLeft.Remove(this.SourceGeneratorExecutionVersionMap))
+            result[this.SourceGeneratorExecutionVersionMap] = compilationState.SourceGeneratorExecutionVersionMap;
 
         if (searchingChecksumsLeft.Count == 0)
             return;
