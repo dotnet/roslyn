@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
+using Microsoft.Cci;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp;
@@ -46,6 +47,7 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
     private readonly int _position;
     private readonly int _lineNumberOneIndexed;
     private readonly int _characterNumberOneIndexed;
+    private string? _data;
 
     internal InterceptableLocation1(ImmutableArray<byte> checksum, string path, int position, int lineNumberOneIndexed, int characterNumberOneIndexed)
     {
@@ -72,14 +74,24 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
     {
         get
         {
-            var builder = new BlobBuilder();
-            builder.WriteBytes(_checksum, start: 0, 16);
-            builder.WriteInt32(_position);
+            if (_data is null)
+                _data = makeData();
 
-            var displayFileName = Path.GetFileName(_path);
-            builder.WriteUTF8(displayFileName);
+            return _data;
 
-            return Convert.ToBase64String(builder.ToArray());
+            string makeData()
+            {
+                var builder = PooledBlobBuilder.GetInstance();
+                builder.WriteBytes(_checksum, start: 0, 16);
+                builder.WriteInt32(_position);
+
+                var displayFileName = Path.GetFileName(_path);
+                builder.WriteUTF8(displayFileName);
+
+                var bytes = builder.ToArray();
+                builder.Free();
+                return Convert.ToBase64String(bytes);
+            }
         }
     }
 
