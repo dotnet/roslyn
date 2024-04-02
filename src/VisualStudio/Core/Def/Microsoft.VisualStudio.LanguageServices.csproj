@@ -164,10 +164,6 @@
 
   <Target Name="GeneratePkgDefServiceRegistrations" BeforeTargets="GeneratePkgDef">
     <ItemGroup>
-      <!-- Add registrations 64-bit, and 64-bit Server GC on desktop host -->
-      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64')" />
-      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64S')" />
-
       <PkgDefBrokeredService Include="@(InProcService)" ProfferingPackageId="$(RoslynPackageGuid)" />
     </ItemGroup>
   </Target>

@@ -1205,7 +1205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var argsBuilder = ArrayBuilder<BoundExpression>.GetInstance(patternDisposeMethod.ParameterCount);
                     var argsToParams = default(ImmutableArray<int>);
 
-                    BindDefaultArgumentsAndParamsCollection(
+                    BindDefaultArguments(
                         syntax,
                         patternDisposeMethod.Parameters,
                         argsBuilder,
@@ -1429,9 +1429,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    Debug.Assert(analyzedArguments.Arguments.Count == 0);
                     var argsToParams = overloadResolutionResult.ValidResult.Result.ArgsToParamsOpt;
                     var expanded = overloadResolutionResult.ValidResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
-                    BindDefaultArgumentsAndParamsCollection(
+                    BindDefaultArguments(
                         syntax,
                         result.Parameters,
                         analyzedArguments.Arguments,
@@ -1883,7 +1884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImmutableArray<int> argsToParams = default;
-            BindDefaultArgumentsAndParamsCollection(
+            BindDefaultArguments(
                 syntax,
                 method.Parameters,
                 argsBuilder,

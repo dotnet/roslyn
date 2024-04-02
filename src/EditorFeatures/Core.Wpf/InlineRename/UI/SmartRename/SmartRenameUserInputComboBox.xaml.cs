@@ -102,6 +102,22 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
         _dropDownPopup = (Popup)GetTemplateChild(DropDownPopup)!;
     }
 
+    private void GetSuggestionsButtonClick(object sender, RoutedEventArgs e)
+    {
+        if (_smartRenameViewModel.IsUsingResultPanel)
+        {
+            _smartRenameViewModel.IsSuggestionsPanelCollapsed = !_smartRenameViewModel.IsSuggestionsPanelCollapsed;
+            if (_smartRenameViewModel.IsSuggestionsPanelExpanded)
+            {
+                _smartRenameViewModel.GetSuggestionsCommand.Execute(null);
+            }
+        }
+        else
+        {
+            _smartRenameViewModel.GetSuggestionsCommand.Execute(null);
+        }
+    }
+
     private void ComboBox_Unloaded(object sender, RoutedEventArgs e)
     {
         _smartRenameViewModel.SuggestedNames.CollectionChanged -= SuggestedNames_CollectionChanged;
@@ -120,6 +136,10 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
 
     private void ComboBox_PreviewKeyUp(object sender, KeyEventArgs e)
     {
+        if (!_smartRenameViewModel.IsUsingDropdown)
+        {
+            return;
+        }
         if ((e.Key is Key.Up or Key.Down) && Items.Count > 0)
         {
             Assumes.NotNull(_dropDownPopup);
@@ -144,6 +164,10 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
 
     private void InnerTextBox_GotFocus(object sender, RoutedEventArgs e)
     {
+        if (!_smartRenameViewModel.IsUsingDropdown)
+        {
+            return;
+        }
         if (Items.Count > 0)
         {
             Assumes.NotNull(_dropDownPopup);
@@ -160,7 +184,9 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
     private void InnerTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
     {
         Assumes.NotNull(_dropDownPopup);
-        if ((e.Key is Key.Escape or Key.Space or Key.Enter) && _dropDownPopup.IsOpen)
+        if ((e.Key is Key.Escape or Key.Space or Key.Enter)
+            && (_dropDownPopup.IsOpen // Handle these keystrokes when dropdown is present
+            || _smartRenameViewModel.IsUsingResultPanel && this.TextSelectionLength < this.Text.Length)) // Or when panel is present and text is not yet selected
         {
             _dropDownPopup.IsOpen = false;
             SelectAllText();
