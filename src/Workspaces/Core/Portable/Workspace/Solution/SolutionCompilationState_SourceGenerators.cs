@@ -106,7 +106,9 @@ internal partial class SolutionCompilationState
         AsyncLazy<bool> GetLazy(ProjectState projectState)
             => s_hasSourceGeneratorsMap.GetValue(
                 projectState,
-                projectState => AsyncLazy.Create(cancellationToken => ComputeHasSourceGeneratorsAsync(this, projectState, cancellationToken)));
+                projectState => AsyncLazy.Create(
+                    static (tuple, cancellationToken) => ComputeHasSourceGeneratorsAsync(tuple.@this, tuple.projectState, cancellationToken),
+                    (@this: this, projectState)));
 
         static async Task<bool> ComputeHasSourceGeneratorsAsync(
             SolutionCompilationState solution, ProjectState projectState, CancellationToken cancellationToken)
