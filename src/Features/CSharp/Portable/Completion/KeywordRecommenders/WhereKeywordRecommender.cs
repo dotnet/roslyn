@@ -71,18 +71,16 @@ internal class WhereKeywordRecommender : AbstractSyntacticSingleKeywordRecommend
             token.Parent.IsKind(SyntaxKind.ParameterList))
         {
             var tokenParent = token.Parent;
-            if (tokenParent.IsParentKind(SyntaxKind.MethodDeclaration))
+            if (tokenParent.IsParentKind<MethodDeclarationSyntax>(SyntaxKind.MethodDeclaration, out var methodDeclaration))
             {
-                var decl = token.GetAncestor<MethodDeclarationSyntax>();
-                if (decl != null && decl.Arity > 0)
+                if (methodDeclaration.Arity > 0)
                 {
                     return true;
                 }
             }
-            else if (tokenParent.IsParentKind(SyntaxKind.LocalFunctionStatement))
+            else if (tokenParent.IsParentKind<LocalFunctionStatementSyntax>(SyntaxKind.LocalFunctionStatement, out var localFunctionDeclaration))
             {
-                var decl = token.GetAncestor<LocalFunctionStatementSyntax>();
-                if (decl is { TypeParameterList.Parameters.Count: > 0 })
+                if (localFunctionDeclaration is { TypeParameterList.Parameters.Count: > 0 })
                 {
                     return true;
                 }
