@@ -3284,6 +3284,48 @@ public class LockTests : CSharpTestBase
     }
 
     [Fact]
+    public void Yield_Break()
+    {
+        var source = """
+            #pragma warning disable CS0162 // Unreachable code detected
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+
+            static class Program
+            {
+                static void Main()
+                {
+                    foreach (var x in M())
+                    {
+                        Console.Write(x);
+                    }
+                }
+
+                static IEnumerable<int> M()
+                {
+                    yield return 1;
+                    lock (new Lock())
+                    {
+                        Console.Write("L");
+                        yield break;
+                        Console.Write("B");
+                    }
+                    yield return 2;
+                }
+            }
+            """;
+        var expectedOutput = "1ELD";
+        var verifier = CompileAndVerify([source, LockTypeDefinition], options: TestOptions.ReleaseExe,
+            verify: Verification.FailsILVerify, expectedOutput: expectedOutput);
+        verifier.VerifyDiagnostics();
+
+        verifier = CompileAndVerify([source, LockTypeDefinition], options: TestOptions.DebugExe,
+            verify: Verification.FailsILVerify, expectedOutput: expectedOutput);
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
     public void Yield_AroundOnly()
     {
         var source = """
@@ -3348,6 +3390,51 @@ public class LockTests : CSharpTestBase
             // (10,15): error CS4013: Instance of type 'Lock.Scope' cannot be used inside a nested function, query expression, iterator block or async method
             //         lock (new Lock())
             Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "new Lock()").WithArguments("", "System.Threading.Lock.Scope").WithLocation(10, 15));
+    }
+
+    [Fact]
+    public void Yield_Async_Break()
+    {
+        var source = """
+            #pragma warning disable CS0162 // Unreachable code detected
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            static class Program
+            {
+                static async Task Main()
+                {
+                    await foreach (var x in M())
+                    {
+                        Console.Write(x);
+                    }
+                }
+
+                async static IAsyncEnumerable<int> M()
+                {
+                    yield return 1;
+                    await Task.Yield();
+                    lock (new Lock())
+                    {
+                        Console.Write("L");
+                        yield break;
+                        Console.Write("B");
+                    }
+                    await Task.Yield();
+                    yield return 2;
+                }
+            }
+            """;
+        var expectedOutput = "1ELD";
+        var comp = CreateCompilationWithTasksExtensions([source, LockTypeDefinition, AsyncStreamsTypes], options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: expectedOutput);
+        verifier.VerifyDiagnostics();
+
+        comp = CreateCompilationWithTasksExtensions([source, LockTypeDefinition, AsyncStreamsTypes], options: TestOptions.DebugExe);
+        verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: expectedOutput);
+        verifier.VerifyDiagnostics();
     }
 
     [Fact]
