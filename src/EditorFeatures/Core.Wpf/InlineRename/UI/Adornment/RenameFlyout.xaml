@@ -52,6 +52,8 @@
                     x:Name="ToggleExpandButton"
                     Grid.Column="1"
                     Click="ToggleExpand"
+                    VerticalAlignment="Top"
+                    Margin="0 2 0 0"
                     Background="Transparent"
                     platformimaging:ImageThemingUtilities.ImageBackgroundColor="{Binding Path=Background, ElementName=Outline, Converter={StaticResource BrushToColorConverter}}" >
                     <Button.Style>
@@ -101,6 +103,7 @@
                 Text="{Binding SearchText}"
                 Visibility="{Binding ShowSearchText, Converter={StaticResource BooleanToVisibilityConverter}}"
                 FontWeight="Light"
+                VerticalAlignment="Center"
                 Margin="0,0,0,5" />
 
             <StackPanel Orientation="Vertical" Visibility="{Binding IsExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
