@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
@@ -110,7 +111,10 @@ internal sealed partial class SolutionCompilationState
         Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
 
         // Solution and SG version maps must correspond to the same set of projets.
-        Contract.ThrowIfFalse(this.SolutionState.ProjectIds.SetEquals(_sourceGeneratorExecutionVersionMap.proj));
+        Contract.ThrowIfFalse(this.SolutionState.ProjectStates
+            .Where(kvp => RemoteSupportedLanguages.IsSupported(kvp.Value.Language))
+            .Select(kvp => kvp.Key)
+            .SetEquals(_sourceGeneratorExecutionVersionMap.ProjectIds));
     }
 
     private SolutionCompilationState Branch(
@@ -311,13 +315,18 @@ internal sealed partial class SolutionCompilationState
         var newSolutionState = this.SolutionState.AddProject(projectInfo);
         var newTrackerMap = CreateCompilationTrackerMap(projectInfo.Id, newSolutionState.GetProjectDependencyGraph(), static (_, _) => { }, /* unused */ 0, skipEmptyCallback: true);
 
-        var versionMapBuilder = _sourceGeneratorExecutionVersionMap.ToBuilder();
-        versionMapBuilder.Add(projectInfo.Id, new());
+        var sourceGeneratorExecutionVersionMap = _sourceGeneratorExecutionVersionMap;
+        if (RemoteSupportedLanguages.IsSupported(projectInfo.Language))
+        {
+            var versionMapBuilder = _sourceGeneratorExecutionVersionMap.ToBuilder();
+            versionMapBuilder.Add(projectInfo.Id, new());
+            sourceGeneratorExecutionVersionMap = versionMapBuilder.ToImmutable();
+        }
 
         return Branch(
             newSolutionState,
             projectIdToTrackerMap: newTrackerMap,
-            sourceGeneratorExecutionVersionMap: versionMapBuilder.ToImmutable());
+            sourceGeneratorExecutionVersionMap: sourceGeneratorExecutionVersionMap);
     }
 
     /// <inheritdoc cref="SolutionState.RemoveProject(ProjectId)"/>
