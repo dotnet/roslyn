@@ -205,7 +205,7 @@ internal partial class SerializerService : ISerializerService
         => _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetRequiredService<IOptionsSerializationService>());
 
     public Checksum CreateParseOptionsChecksum(ParseOptions value)
-        => Checksum.Create(value, this);
+        => Checksum.Create((value, @this: this), static (tuple, writer) => tuple.@this.SerializeParseOptions(tuple.value, writer));
 }
 
 // TODO: convert this to sub class rather than using enum with if statement.
