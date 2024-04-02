@@ -42,7 +42,7 @@ internal partial class SolutionCompilationState
     /// Cached information about if a project has source generators or not.  This instance should be locked when
     /// accessing this data.
     /// </summary>
-    private readonly Dictionary<ProjectId, AsyncLazy<bool>> _hasSourceGeneratorsMap = [];
+    private static readonly ConditionalWeakTable<ProjectState, AsyncLazy<bool>> s_hasSourceGeneratorsMap = new();
 
     private static SourceGeneratorMap ComputeSourceGenerators(IReadOnlyList<AnalyzerReference> analyzerReferences, string language)
     {
@@ -92,31 +92,28 @@ internal partial class SolutionCompilationState
 
     public async Task<bool> HasSourceGeneratorsAsync(ProjectId projectId, CancellationToken cancellationToken)
     {
-        AsyncLazy<bool>? lazy;
-        lock (_hasSourceGeneratorsMap)
+        var projectState = this.SolutionState.GetRequiredProjectState(projectId);
+
+        if (!s_hasSourceGeneratorsMap.TryGetValue(projectState, out var lazy))
         {
-            if (!_hasSourceGeneratorsMap.TryGetValue(projectId, out lazy))
-            {
-                lazy = GetLazy();
-                _hasSourceGeneratorsMap.Add(projectId, lazy);
-            }
+            // Extracted into local function to prevent allocations in the case where we find a value in the cache.
+            lazy = GetLazy(projectState);
         }
 
         return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-        AsyncLazy<bool> GetLazy()
-            => AsyncLazy.Create(cancellationToken => ComputeHasSourceGeneratorsAsync(projectId, cancellationToken));
+        AsyncLazy<bool> GetLazy(ProjectState projectState)
+            => s_hasSourceGeneratorsMap.GetValue(
+                projectState,
+                projectState => AsyncLazy.Create(cancellationToken => ComputeHasSourceGeneratorsAsync(projectState, cancellationToken)));
 
         async Task<bool> ComputeHasSourceGeneratorsAsync(
-            ProjectId projectId, CancellationToken cancellationToken)
+            ProjectState projectState, CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(this.Services, cancellationToken).ConfigureAwait(false);
+            // If in proc, just load the generators and see if we have any.
             if (client is null)
-            {
-                // In proc, just load the generators and see if we have any.
-                var projectState = this.SolutionState.GetRequiredProjectState(projectId);
                 return GetSourceGenerators(projectState).Any();
-            }
 
             // Out of process, call to the remote to figure this out.
             var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, bool>(

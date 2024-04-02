@@ -68,8 +68,7 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
-            var solutionState = solution.CompilationState;
-            return await solutionState.HasSourceGeneratorsAsync(projectId, cancellationToken).ConfigureAwait(false);
+            return await solution.CompilationState.HasSourceGeneratorsAsync(projectId, cancellationToken).ConfigureAwait(false);
         }, cancellationToken);
     }
 }
