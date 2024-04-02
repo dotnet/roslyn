@@ -1,5 +1,38 @@
 # This document lists known breaking changes in Roslyn after .NET 7 all the way to .NET 8.
 
+## Default and params parameters are considered in method group natural type
+
+***Introduced in Visual Studio 2022 version 17.11***
+
+Previously the compiler [unexpectedly](https://github.com/dotnet/roslyn/issues/71333)
+inferred different delegate type depending on the order of candidates in source
+when default parameter values or `params` arrays were used. Now an ambiguity error is emitted.
+
+```cs
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var x1 = new Program().Test1; // previously Action<long[]> - now error
+        var x2 = new Program().Test2; // previously anonymous void delegate(params long[]) - now error
+
+        x1();
+        x2();
+    }
+}
+
+static class E
+{
+    static public void Test1(this Program p, long[] a) => Console.Write(a.Length);
+    static public void Test1(this object p, params long[] a) => Console.Write(a.Length);
+
+    static public void Test2(this object p, params long[] a) => Console.Write(a.Length);
+    static public void Test2(this Program p, long[] a) => Console.Write(a.Length);
+}
+```
+
 ## Ref modifiers of dynamic arguments should be compatible with ref modifiers of corresponding parameters
 
 ***Introduced in Visual Studio 2022 version 17.10***
