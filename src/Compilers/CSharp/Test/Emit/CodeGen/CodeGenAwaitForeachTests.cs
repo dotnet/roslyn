@@ -1780,6 +1780,62 @@ class C
         }
 
         [Fact]
+        public void TestWithPattern_Ref_Iterator_Used()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    static async IAsyncEnumerable<int> F()
+                    {
+                        await foreach (ref var i in new C())
+                        {
+                            yield return i;
+                            M(ref i);
+                        }
+                    }
+
+                    static void M(ref int i) { }
+
+                    public Enumerator GetAsyncEnumerator(System.Threading.CancellationToken token = default) => new();
+
+                    public sealed class Enumerator
+                    {
+                        private readonly int[] _array = [1, 2, 3];
+                        private int _index = -1;
+                        public Task<bool> MoveNextAsync()
+                        {
+                            if (_index < _array.Length) _index++;
+                            return Task.FromResult(_index < _array.Length);
+                        }       
+                        public ref int Current => ref _array[_index];
+                    }
+                }
+                """ + AsyncStreamsTypes;
+
+            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (8,32): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await foreach (ref var i in new C())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(8, 32));
+
+            var expectedDiagnostics = new[]
+            {
+                // (11,19): error CS4013: Instance of type 'ref int' cannot be used inside a nested function, query expression, iterator block or async method
+                //             M(ref i);
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "i").WithArguments("ref ", "int").WithLocation(11, 19)
+            };
+
+            comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilationWithTasksExtensions(source);
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
         public void TestWithPattern_PointerType()
         {
             string source = @"

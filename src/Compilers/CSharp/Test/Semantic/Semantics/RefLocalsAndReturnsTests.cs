@@ -3414,6 +3414,34 @@ class Program
         }
 
         [Fact]
+        public void RefReturnAcrossAwaitExpression()
+        {
+            var code = """
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static int field = 1;
+
+                    static async Task Main()
+                    {
+                        M1(ref GiveMeRef(), await M2());
+                    }
+
+                    static void M1(ref int i, int j) { }
+
+                    static ref int GiveMeRef() => ref field;
+
+                    static Task<int> M2() => Task.FromResult(field++);
+                }
+                """;
+            CreateCompilation(code).VerifyEmitDiagnostics(
+                // (9,16): error CS8178: A reference returned by a call to 'Program.GiveMeRef()' cannot be preserved across 'await' or 'yield' boundary.
+                //         M1(ref GiveMeRef(), await M2());
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "GiveMeRef()").WithArguments("Program.GiveMeRef()").WithLocation(9, 16));
+        }
+
+        [Fact]
         public void BadRefLocalInIteratorMethod()
         {
             var text = @"

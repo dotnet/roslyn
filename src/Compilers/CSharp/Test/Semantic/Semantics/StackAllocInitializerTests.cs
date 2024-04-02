@@ -764,18 +764,20 @@ class Test
         [Fact]
         public void TestAwait_Span_02()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
-using System;
-using System.Threading.Tasks;
-class Test
-{
-    async void M()
-    {
-        Span<int> p = stackalloc int[1] { await Task.FromResult(2) };
-    }
-}", TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilationWithMscorlibAndSpan("""
+                using System;
+                using System.Threading.Tasks;
+                class Test
+                {
+                    static async Task Main()
+                    {
+                        Span<int> p = stackalloc int[1] { await Task.FromResult(2) };
+                        Console.WriteLine(p[0]);
+                    }
+                }
+                """, TestOptions.UnsafeReleaseExe);
 
-            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]

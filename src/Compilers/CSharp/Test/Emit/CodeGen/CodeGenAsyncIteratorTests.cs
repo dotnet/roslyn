@@ -678,7 +678,7 @@ ref struct S
                     public S Current => new S { F = 123 };
                     public async Task<bool> MoveNextAsync()
                     {
-                        await Task.CompletedTask;
+                        await Task.Yield();
                         return !_done ? (_done = true) : false;
                     }
                 }
@@ -811,6 +811,108 @@ ref struct S
                   IL_00ed:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void RefStructElementType_NonGeneric_AwaitAfter()
+        {
+            string source = """
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    public E GetAsyncEnumerator() => new E();
+                    static async Task Main()
+                    {
+                        await foreach (var s in new C())
+                        {
+                            System.Console.Write(s.F);
+                            await Task.Yield();
+                        }
+                    }
+                }
+                class E
+                {
+                    bool _done;
+                    public S Current => new S { F = 123 };
+                    public async Task<bool> MoveNextAsync()
+                    {
+                        await Task.Yield();
+                        return !_done ? (_done = true) : false;
+                    }
+                }
+                ref struct S
+                {
+                    public int F;
+                }
+                """;
+
+            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // source(8,24): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await foreach (var s in new C())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(8, 24));
+
+            comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "123", verify: Verification.FailsILVerify);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefStructElementType_NonGeneric_AwaitBefore()
+        {
+            string source = """
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    public E GetAsyncEnumerator() => new E();
+                    static async Task Main()
+                    {
+                        await foreach (var s in new C())
+                        {
+                            await Task.Yield();
+                            System.Console.Write(s.F);
+                        }
+                    }
+                }
+                class E
+                {
+                    bool _done;
+                    public S Current => new S { F = 123 };
+                    public async Task<bool> MoveNextAsync()
+                    {
+                        await Task.Yield();
+                        return !_done ? (_done = true) : false;
+                    }
+                }
+                ref struct S
+                {
+                    public int F;
+                }
+                """;
+
+            var comp = CreateCompilationWithAsyncIterator(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // source(8,24): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         await foreach (var s in new C())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(8, 24));
+
+            var expectedDiagnostics = new[]
+            {
+                // source(11,34): error CS4013: Instance of type 'S' cannot be used inside a nested function, query expression, iterator block or async method
+                //             System.Console.Write(s.F);
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "s.F").WithArguments("", "S").WithLocation(11, 34)
+            };
+
+            comp = CreateCompilationWithAsyncIterator(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilationWithAsyncIterator(source);
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Fact]

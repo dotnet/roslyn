@@ -20177,10 +20177,20 @@ class Program
 
     static ref Buffer4<int> GetBuffer() => ref s_buffer;
 }
-";
-            var verifier = CompileAndVerify(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
-                expectedOutput: "0900");
-            verifier.VerifyDiagnostics();
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (10,26): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(10, 26));
+
+            var expectedOutput = "0900";
+
+            CompileAndVerify(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -20623,10 +20633,20 @@ class Program
 
     static ref readonly Buffer4<int> GetBuffer() => ref s_buffer;
 }
-";
-            var verifier = CompileAndVerify(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
-                expectedOutput: "0300");
-            verifier.VerifyDiagnostics();
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (10,35): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref readonly int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(10, 35));
+
+            var expectedOutput = "0300";
+
+            CompileAndVerify(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -21073,10 +21093,20 @@ class Program
 
     static ref Buffer4<int> GetBuffer() => ref s_buffer;
 }
-";
-            var verifier = CompileAndVerify(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
-                expectedOutput: "0090-1");
-            verifier.VerifyDiagnostics();
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (18,26): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(18, 26));
+
+            var expectedOutput = "0090-1";
+
+            CompileAndVerify(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -21379,10 +21409,20 @@ class Program
 
     static ref readonly Buffer4<int> GetBuffer() => ref s_buffer;
 }
-";
-            var verifier = CompileAndVerify(src + Buffer4Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
-                expectedOutput: "0030-1");
-            verifier.VerifyDiagnostics();
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (18,35): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref readonly int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(18, 35));
+
+            var expectedOutput = "0030-1";
+
+            CompileAndVerify(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
