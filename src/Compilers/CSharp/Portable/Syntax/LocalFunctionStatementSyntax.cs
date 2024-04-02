@@ -8,14 +8,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     public partial class LocalFunctionStatementSyntax
     {
-        public int Arity
-        {
-            get
-            {
-                return this.TypeParameterList == null ? 0 : this.TypeParameterList.Parameters.Count;
-            }
-        }
-
         // Preserved as shipped public API for binary compatibility
         public LocalFunctionStatementSyntax Update(SyntaxTokenList modifiers, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
         {

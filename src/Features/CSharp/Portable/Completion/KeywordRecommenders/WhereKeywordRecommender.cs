@@ -82,7 +82,7 @@ internal class WhereKeywordRecommender : AbstractSyntacticSingleKeywordRecommend
             else if (tokenParent.IsParentKind(SyntaxKind.LocalFunctionStatement))
             {
                 var decl = token.GetAncestor<LocalFunctionStatementSyntax>();
-                if (decl != null && decl.Arity > 0)
+                if (decl is { TypeParameterList.Parameters.Count: > 0 })
                 {
                     return true;
                 }
