@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -16,8 +14,6 @@ using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
-
-using AnalyzerReferencesToSourceGenerators = ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, SolutionCompilationState.SourceGeneratorMap>;
 
 internal partial class SolutionCompilationState
 {
@@ -32,34 +28,15 @@ internal partial class SolutionCompilationState
     /// of things so that we don't cause source generators to be loaded (and fixed) within VS (which is .net framework
     /// only).
     /// </summary>
-    private static readonly ImmutableArray<(string language, AnalyzerReferencesToSourceGenerators referencesToGenerators, AnalyzerReferencesToSourceGenerators.CreateValueCallback callback)> s_languageToAnalyzerReferencesToSourceGeneratorsMap =
-    [
-        (LanguageNames.CSharp, new(), (static rs => ComputeSourceGenerators(rs, LanguageNames.CSharp))),
-        (LanguageNames.VisualBasic, new(), (static rs => ComputeSourceGenerators(rs, LanguageNames.VisualBasic))),
-    ];
+    private static readonly ConditionalWeakTable<ProjectState, SourceGeneratorMap> s_projectStateToSourceGeneratorsMap = new();
 
     /// <summary>
-    /// Cached information about if a project has source generators or not.  This instance should be locked when
-    /// accessing this data.
+    /// Cached information about if a project has source generators or not.  Note: this is distinct from <see
+    /// cref="s_projectStateToSourceGeneratorsMap"/> as we want to be able to compute it by calling over to our OOP
+    /// process (if present) and having it make the determination, without the host necessarily loading generators
+    /// itself.
     /// </summary>
     private static readonly ConditionalWeakTable<ProjectState, AsyncLazy<bool>> s_hasSourceGeneratorsMap = new();
-
-    private static SourceGeneratorMap ComputeSourceGenerators(IReadOnlyList<AnalyzerReference> analyzerReferences, string language)
-    {
-        using var generators = TemporaryArray<ISourceGenerator>.Empty;
-        var generatorToAnalyzerReference = ImmutableDictionary.CreateBuilder<ISourceGenerator, AnalyzerReference>();
-
-        foreach (var reference in analyzerReferences)
-        {
-            foreach (var generator in reference.GetGenerators(language).Distinct())
-            {
-                generators.Add(generator);
-                generatorToAnalyzerReference.Add(generator, reference);
-            }
-        }
-
-        return new(generators.ToImmutableAndClear(), generatorToAnalyzerReference.ToImmutable());
-    }
 
     /// <summary>
     /// This method should only be called in a .net core host like our out of process server.
@@ -82,12 +59,27 @@ internal partial class SolutionCompilationState
 
     private static SourceGeneratorMap? GetSourceGeneratorMap(ProjectState projectState)
     {
-        var tupleOpt = s_languageToAnalyzerReferencesToSourceGeneratorsMap.FirstOrNull(static (t, language) => t.language == language, projectState.Language);
-        if (tupleOpt is null)
+        if (!projectState.SupportsCompilation)
             return null;
 
-        var tuple = tupleOpt.Value;
-        return tuple.referencesToGenerators.GetValue(projectState.AnalyzerReferences, tuple.callback);
+        return s_projectStateToSourceGeneratorsMap.GetValue(projectState, ComputeSourceGenerators);
+
+        static SourceGeneratorMap ComputeSourceGenerators(ProjectState projectState)
+        {
+            using var generators = TemporaryArray<ISourceGenerator>.Empty;
+            var generatorToAnalyzerReference = ImmutableDictionary.CreateBuilder<ISourceGenerator, AnalyzerReference>();
+
+            foreach (var reference in projectState.AnalyzerReferences)
+            {
+                foreach (var generator in reference.GetGenerators(projectState.Language).Distinct())
+                {
+                    generators.Add(generator);
+                    generatorToAnalyzerReference.Add(generator, reference);
+                }
+            }
+
+            return new(generators.ToImmutableAndClear(), generatorToAnalyzerReference.ToImmutable());
+        }
     }
 
     public async Task<bool> HasSourceGeneratorsAsync(ProjectId projectId, CancellationToken cancellationToken)
