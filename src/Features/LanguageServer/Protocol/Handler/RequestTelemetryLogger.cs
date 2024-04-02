@@ -66,6 +66,7 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
             m[TelemetryLogging.KeyValue] = queuedDuration.Milliseconds;
             m[TelemetryLogging.KeyMetricName] = "TimeInQueue";
             m["server"] = _serverTypeName;
+            m["method"] = methodName;
         }));
 
         TelemetryLogging.LogAggregated(FunctionId.LSP_RequestDuration, KeyValueLogMessage.Create(m =>
