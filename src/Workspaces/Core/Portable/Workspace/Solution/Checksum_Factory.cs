@@ -55,24 +55,14 @@ internal readonly partial record struct Checksum
         return From(hash);
     }
 
-    public static Checksum Create<T>(T @object, Action<T, ObjectWriter> writeObject)
-    {
-        using var stream = SerializableBytes.CreateWritableStream();
-
-        using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
-        {
-            writeObject(@object, objectWriter);
-        }
-
-        stream.Position = 0;
-        return Create(stream);
-    }
-
     public static Checksum Create(Checksum checksum1, Checksum checksum2)
         => Create(stackalloc[] { checksum1, checksum2 });
 
     public static Checksum Create(Checksum checksum1, Checksum checksum2, Checksum checksum3)
         => Create(stackalloc[] { checksum1, checksum2, checksum3 });
+
+    public static Checksum Create(Checksum checksum1, Checksum checksum2, Checksum checksum3, Checksum checksum4)
+        => Create(stackalloc[] { checksum1, checksum2, checksum3, checksum4 });
 
     public static Checksum Create(ReadOnlySpan<Checksum> hashes)
     {
@@ -82,68 +72,46 @@ internal readonly partial record struct Checksum
     }
 
     public static Checksum Create(ArrayBuilder<Checksum> checksums)
-    {
-        using var stream = SerializableBytes.CreateWritableStream();
-
-        using (var writer = new ObjectWriter(stream, leaveOpen: true))
+        => Create(checksums, static (checksums, writer) =>
         {
             foreach (var checksum in checksums)
                 checksum.WriteTo(writer);
-        }
-
-        stream.Position = 0;
-        return Create(stream);
-    }
+        });
 
     public static Checksum Create(ImmutableArray<Checksum> checksums)
-    {
-        using var stream = SerializableBytes.CreateWritableStream();
-
-        using (var writer = new ObjectWriter(stream, leaveOpen: true))
+        => Create(checksums, static (checksums, writer) =>
         {
             foreach (var checksum in checksums)
                 checksum.WriteTo(writer);
-        }
-
-        stream.Position = 0;
-        return Create(stream);
-    }
+        });
 
     public static Checksum Create(ImmutableArray<byte> bytes)
-    {
-        using var stream = SerializableBytes.CreateWritableStream();
-
-        using (var writer = new ObjectWriter(stream, leaveOpen: true))
+        => Create(bytes, static (bytes, writer) =>
         {
-            for (var i = 0; i < bytes.Length; i++)
-                writer.WriteByte(bytes[i]);
-        }
-
-        stream.Position = 0;
-        return Create(stream);
-    }
+            foreach (var b in bytes)
+                writer.WriteByte(b);
+        });
 
     public static Checksum Create<T>(T value, ISerializerService serializer)
     {
-        using var stream = SerializableBytes.CreateWritableStream();
         using var context = new SolutionReplicationContext();
 
-        using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
-        {
-            serializer.Serialize(value!, objectWriter, context, CancellationToken.None);
-        }
-
-        stream.Position = 0;
-        return Create(stream);
+        return Create(
+            (value, serializer, context),
+            static (tuple, writer) =>
+            {
+                var (value, serializer, context) = tuple;
+                serializer.Serialize(value!, writer, context, CancellationToken.None);
+            });
     }
 
-    public static Checksum Create(ParseOptions value, ISerializerService serializer)
+    public static Checksum Create<T>(T value, Action<T, ObjectWriter> writeTo)
     {
         using var stream = SerializableBytes.CreateWritableStream();
 
         using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
         {
-            serializer.SerializeParseOptions(value, objectWriter);
+            writeTo(value, objectWriter);
         }
 
         stream.Position = 0;
