@@ -688,9 +688,6 @@ internal partial class ProjectState
             documentStates: DocumentStates.UpdateStates(static (state, args) => state.UpdateParseOptions(args.options, args.onlyPreprocessorDirectiveChange), (options, onlyPreprocessorDirectiveChange)));
     }
 
-    public ProjectState WithSourceGeneratorExecutionVersion(SourceGeneratorExecutionVersion sourceGeneratorExecutionVersion)
-        => With(projectInfo: ProjectInfo.WithSourceGeneratorExecutionVersion(sourceGeneratorExecutionVersion));
-
     public static bool IsSameLanguage(ProjectState project1, ProjectState project2)
         => project1.LanguageServices == project2.LanguageServices;
 

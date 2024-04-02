@@ -202,11 +202,6 @@ public partial class Project
     public IEnumerable<AnalyzerConfigDocument> AnalyzerConfigDocuments => AnalyzerConfigDocumentIds.Select(GetAnalyzerConfigDocument)!;
 
     /// <summary>
-    /// The current version of source generator execution that we're on. <inheritdoc cref="CodeAnalysis.SourceGeneratorExecutionVersion"/>.
-    /// </summary>
-    internal SourceGeneratorExecutionVersion SourceGeneratorExecutionVersion => this.State.Attributes.SourceGeneratorExecutionVersion;
-
-    /// <summary>
     /// True if the project contains a document with the specified ID.
     /// </summary>
     public bool ContainsDocument(DocumentId documentId)

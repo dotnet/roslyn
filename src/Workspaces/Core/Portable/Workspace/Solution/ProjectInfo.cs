@@ -386,9 +386,6 @@ public sealed class ProjectInfo
     internal ProjectInfo WithTelemetryId(Guid telemetryId)
         => With(attributes: Attributes.With(telemetryId: telemetryId));
 
-    internal ProjectInfo WithSourceGeneratorExecutionVersion(SourceGeneratorExecutionVersion sourceGeneratorExecutionVersion)
-        => With(attributes: Attributes.With(sourceGeneratorExecutionVersion: sourceGeneratorExecutionVersion));
-
     internal string GetDebuggerDisplay()
         => nameof(ProjectInfo) + " " + Name + (!string.IsNullOrWhiteSpace(FilePath) ? " " + FilePath : "");
 
@@ -411,8 +408,7 @@ public sealed class ProjectInfo
         Guid telemetryId = default,
         bool isSubmission = false,
         bool hasAllInformation = true,
-        bool runAnalyzers = true,
-        SourceGeneratorExecutionVersion sourceGeneratorExecutionVersion = default)
+        bool runAnalyzers = true)
     {
         /// <summary>
         /// Matches names like: Microsoft.CodeAnalysis.Features (netcoreapp3.1)
@@ -512,9 +508,6 @@ public sealed class ProjectInfo
                 return match.Success ? (match.Groups["name"].Value, match.Groups["flavor"].Value) : default;
             }, this);
 
-        /// <inheritdoc cref="Project.SourceGeneratorExecutionVersion"/>
-        public SourceGeneratorExecutionVersion SourceGeneratorExecutionVersion { get; } = sourceGeneratorExecutionVersion;
-
         public ProjectAttributes With(
             VersionStamp? version = null,
             string? name = null,
@@ -529,8 +522,7 @@ public sealed class ProjectInfo
             Optional<bool> isSubmission = default,
             Optional<bool> hasAllInformation = default,
             Optional<bool> runAnalyzers = default,
-            Optional<Guid> telemetryId = default,
-            Optional<SourceGeneratorExecutionVersion> sourceGeneratorExecutionVersion = default)
+            Optional<Guid> telemetryId = default)
         {
             var newVersion = version ?? Version;
             var newName = name ?? Name;
@@ -546,7 +538,6 @@ public sealed class ProjectInfo
             var newHasAllInformation = hasAllInformation.HasValue ? hasAllInformation.Value : HasAllInformation;
             var newRunAnalyzers = runAnalyzers.HasValue ? runAnalyzers.Value : RunAnalyzers;
             var newTelemetryId = telemetryId.HasValue ? telemetryId.Value : TelemetryId;
-            var newSourceGeneratorVersion = sourceGeneratorExecutionVersion.HasValue ? sourceGeneratorExecutionVersion.Value : SourceGeneratorExecutionVersion;
 
             if (newVersion == Version &&
                 newName == Name &&
@@ -561,8 +552,7 @@ public sealed class ProjectInfo
                 newIsSubmission == IsSubmission &&
                 newHasAllInformation == HasAllInformation &&
                 newRunAnalyzers == RunAnalyzers &&
-                newTelemetryId == TelemetryId &&
-                newSourceGeneratorVersion == SourceGeneratorExecutionVersion)
+                newTelemetryId == TelemetryId)
             {
                 return this;
             }
@@ -582,8 +572,7 @@ public sealed class ProjectInfo
                 newTelemetryId,
                 newIsSubmission,
                 newHasAllInformation,
-                newRunAnalyzers,
-                newSourceGeneratorVersion);
+                newRunAnalyzers);
         }
 
         public void WriteTo(ObjectWriter writer)
@@ -606,7 +595,6 @@ public sealed class ProjectInfo
             writer.WriteBoolean(HasAllInformation);
             writer.WriteBoolean(RunAnalyzers);
             writer.WriteGuid(TelemetryId);
-            this.SourceGeneratorExecutionVersion.WriteTo(writer);
 
             // TODO: once CompilationOptions, ParseOptions, ProjectReference, MetadataReference, AnalyzerReference supports
             //       serialization, we should include those here as well.
@@ -630,7 +618,6 @@ public sealed class ProjectInfo
             var hasAllInformation = reader.ReadBoolean();
             var runAnalyzers = reader.ReadBoolean();
             var telemetryId = reader.ReadGuid();
-            var sourceGeneratorExecutionVersion = SourceGeneratorExecutionVersion.ReadFrom(reader);
 
             return new ProjectAttributes(
                 projectId,
@@ -647,8 +634,7 @@ public sealed class ProjectInfo
                 telemetryId,
                 isSubmission: isSubmission,
                 hasAllInformation: hasAllInformation,
-                runAnalyzers: runAnalyzers,
-                sourceGeneratorExecutionVersion: sourceGeneratorExecutionVersion);
+                runAnalyzers: runAnalyzers);
         }
 
         public Checksum Checksum
