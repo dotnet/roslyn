@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 if (considerParamsAndDefaultValues && (param1.IsParams != param2.IsParams ||
-                    param1.ExplicitDefaultConstantValue?.Value != param2.ExplicitDefaultConstantValue?.Value))
+                    param1.ExplicitDefaultConstantValue != param2.ExplicitDefaultConstantValue))
                 {
                     return false;
                 }
