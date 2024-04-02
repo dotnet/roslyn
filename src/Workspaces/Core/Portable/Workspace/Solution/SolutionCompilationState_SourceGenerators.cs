@@ -106,19 +106,20 @@ internal partial class SolutionCompilationState
         AsyncLazy<bool> GetLazy(ProjectState projectState)
             => s_hasSourceGeneratorsMap.GetValue(
                 projectState,
-                projectState => AsyncLazy.Create(cancellationToken => ComputeHasSourceGeneratorsAsync(projectState, cancellationToken)));
+                projectState => AsyncLazy.Create(cancellationToken => ComputeHasSourceGeneratorsAsync(this, projectState, cancellationToken)));
 
-        async Task<bool> ComputeHasSourceGeneratorsAsync(
-            ProjectState projectState, CancellationToken cancellationToken)
+        static async Task<bool> ComputeHasSourceGeneratorsAsync(
+            SolutionCompilationState solution, ProjectState projectState, CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(this.Services, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
             // If in proc, just load the generators and see if we have any.
             if (client is null)
                 return GetSourceGenerators(projectState).Any();
 
             // Out of process, call to the remote to figure this out.
+            var projectId = projectState.Id;
             var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, bool>(
-                this,
+                solution,
                 projectId,
                 (service, solution, cancellationToken) => service.HasGeneratorsAsync(solution, projectId, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
