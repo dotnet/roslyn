@@ -54,8 +54,15 @@ internal partial class SolutionCompilationState
     /// </summary>
     private static AnalyzerReference GetAnalyzerReference(ProjectState projectState, ISourceGenerator sourceGenerator)
     {
+        // We must be talking about a project that supports compilations, since we already got a source generator from it.
+        Contract.ThrowIfFalse(projectState.SupportsCompilation);
+
         var map = GetSourceGeneratorMap(projectState);
+
+        // It should not be possible for this to be null. We have the source generator, as such we must have mapped from
+        // the project state to the SG info for it.
         Contract.ThrowIfNull(map);
+
         return map.SourceGeneratorToAnalyzerReference[sourceGenerator];
     }
 
