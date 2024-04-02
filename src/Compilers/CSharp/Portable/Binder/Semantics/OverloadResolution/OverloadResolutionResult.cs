@@ -200,7 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode queryClause = null,
             bool isMethodGroupConversion = false,
             RefKind? returnRefKind = null,
-            TypeSymbol delegateOrFunctionPointerType = null) where T : Symbol
+            TypeSymbol delegateOrFunctionPointerType = null,
+            bool isParamsModifierValidation = false) where T : Symbol
         {
             Debug.Assert(!this.Succeeded, "Don't ask for diagnostic info on a successful overload resolution result.");
 
@@ -509,7 +510,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (receiver is null)
                                 {
                                     Debug.Assert(firstSupported.Member is MethodSymbol { MethodKind: MethodKind.Constructor });
-                                    diagnostics.Add(ErrorCode.ERR_CollectionExpressionMissingConstructor, location);
+                                    diagnostics.Add(
+                                        isParamsModifierValidation ?
+                                            ErrorCode.ERR_ParamsCollectionMissingConstructor :
+                                            ErrorCode.ERR_CollectionExpressionMissingConstructor,
+                                        location);
                                 }
                                 else
                                 {
@@ -1181,7 +1186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ParameterSymbol parameter = method.GetParameters()[parm];
-            bool isLastParameter = method.GetParameterCount() == parm + 1; // This is used to later decide if we need to try to unwrap a params array
+            bool isLastParameter = method.GetParameterCount() == parm + 1; // This is used to later decide if we need to try to unwrap a params collection
             RefKind refArg = arguments.RefKind(arg);
             RefKind refParameter = parameter.RefKind;
 
@@ -1205,7 +1210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argument.Kind != BoundKind.OutVariablePendingInference &&
                 argument.Kind != BoundKind.DiscardExpression)
             {
-                TypeSymbol parameterType = UnwrapIfParamsArray(parameter, isLastParameter) is TypeSymbol t ? t : parameter.Type;
+                TypeSymbol parameterType = unwrapIfParamsCollection(badArg, parameter, isLastParameter) is TypeSymbol t ? t : parameter.Type;
 
                 // If the problem is that a lambda isn't convertible to the given type, also report why.
                 // The argument and parameter type might match, but may not have same in/out modifiers
@@ -1238,7 +1243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         symbols,
                         arg + 1,
                         argument.Display, //'<null>' doesn't need refkind
-                        new FormattedSymbol(UnwrapIfParamsArray(parameter, isLastParameter), SymbolDisplayFormat.CSharpErrorMessageNoParameterNamesFormat));
+                        new FormattedSymbol(unwrapIfParamsCollection(badArg, parameter, isLastParameter), SymbolDisplayFormat.CSharpErrorMessageNoParameterNamesFormat));
                 }
             }
             else if (refArg != refParameter &&
@@ -1307,7 +1312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         name,
                         method,
                         new FormattedSymbol(parameter, SymbolDisplayFormat.CSharpErrorMessageNoParameterNamesFormat));
-                    Debug.Assert((object)parameter == UnwrapIfParamsArray(parameter, isLastParameter), "If they ever differ, just call the method when constructing the diagnostic.");
+                    Debug.Assert((object)parameter == unwrapIfParamsCollection(badArg, parameter, isLastParameter), "If they ever differ, just call the method when constructing the diagnostic.");
                 }
                 else
                 {
@@ -1328,10 +1333,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             SignatureOnlyParameterSymbol displayArg = new SignatureOnlyParameterSymbol(
                             TypeWithAnnotations.Create(argType),
                             ImmutableArray<CustomModifier>.Empty,
-                            isParams: false,
+                            isParamsArray: false,
+                            isParamsCollection: false,
                             refKind: refArg);
 
-                            SymbolDistinguisher distinguisher = new SymbolDistinguisher(binder.Compilation, displayArg, UnwrapIfParamsArray(parameter, isLastParameter));
+                            SymbolDistinguisher distinguisher = new SymbolDistinguisher(binder.Compilation, displayArg, unwrapIfParamsCollection(badArg, parameter, isLastParameter));
 
                             // CS1503: Argument {0}: cannot convert from '{1}' to '{2}'
                             diagnostics.Add(
@@ -1351,7 +1357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             symbols,
                             arg + 1,
                             argument.Display,
-                            new FormattedSymbol(UnwrapIfParamsArray(parameter, isLastParameter), SymbolDisplayFormat.CSharpErrorMessageNoParameterNamesFormat));
+                            new FormattedSymbol(unwrapIfParamsCollection(badArg, parameter, isLastParameter), SymbolDisplayFormat.CSharpErrorMessageNoParameterNamesFormat));
                     }
                 }
             }
@@ -1359,25 +1365,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool isStringLiteralToInterpolatedStringHandlerArgumentConversion(BoundExpression argument, ParameterSymbol parameter)
                 => argument is BoundLiteral { Type.SpecialType: SpecialType.System_String } &&
                    parameter.Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true };
-        }
 
-        /// <summary>
-        /// If an argument fails to convert to the type of the corresponding parameter and that
-        /// parameter is a params array, then the error message should reflect the element type
-        /// of the params array - not the array type.
-        /// </summary>
-        private static Symbol UnwrapIfParamsArray(ParameterSymbol parameter, bool isLastParameter)
-        {
-            // We only try to unwrap parameters if they are a parameter array and are on the last position
-            if (parameter.IsParams && isLastParameter)
+            // <summary>
+            // If an argument fails to convert to the type of the corresponding parameter and that
+            // parameter is a params collection, then the error message should reflect the element type
+            // of the params collection - not the collection type.
+            // </summary>
+            static Symbol unwrapIfParamsCollection(MemberResolutionResult<TMember> badArg, ParameterSymbol parameter, bool isLastParameter)
             {
-                ArrayTypeSymbol arrayType = parameter.Type as ArrayTypeSymbol;
-                if ((object)arrayType != null && arrayType.IsSZArray)
+                // We only try to unwrap parameters if they are a parameter collection and are on the last position
+                if (isLastParameter && badArg.Result.ParamsElementTypeOpt.HasType)
                 {
-                    return arrayType.ElementType;
+                    Debug.Assert(badArg.Result.ParamsElementTypeOpt.Type != (object)ErrorTypeSymbol.EmptyParamsCollectionElementTypeSentinel);
+                    return badArg.Result.ParamsElementTypeOpt.Type;
                 }
+                return parameter;
             }
-            return parameter;
         }
 
         private bool HadAmbiguousWorseMethods(BindingDiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, Location location, bool isQuery, BoundExpression receiver, string name)

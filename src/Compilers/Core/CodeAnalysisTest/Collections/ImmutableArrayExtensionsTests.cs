@@ -147,11 +147,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             Func<int, bool> isOdd = x => x % 2 == 1;
 
-            // BUG:753260 Should this be ArgumentNullException for consistency?
             Assert.Throws<NullReferenceException>(() => default(ImmutableArray<int>).Single(isOdd));
             Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>().Single(isOdd));
             Assert.Equal(1, ImmutableArray.Create<int>(1, 2).Single(isOdd));
             Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>(1, 2, 3).Single(isOdd));
+        }
+
+        [Fact]
+        public void Single_Arg()
+        {
+            Assert.Throws<NullReferenceException>(() => default(ImmutableArray<int>).Single((_, _) => true, 1));
+            Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>().Single((x, a) => x == a, 1));
+            Assert.Equal(1, ImmutableArray.Create<int>(1).Single((x, a) => x == a, 1));
+            Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>(1, 1).Single((x, a) => x == a, 1));
+
+            Assert.Throws<NullReferenceException>(() => default(ImmutableArray<int>).Single((x, a) => x % a == 1, 2));
+            Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>().Single((x, a) => x % a == 1, 2));
+            Assert.Equal(1, ImmutableArray.Create<int>(1, 2).Single((x, a) => x % a == 1, 2));
+            Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>(1, 2, 3).Single((x, a) => x % a == 1, 2));
         }
 
         [Fact]

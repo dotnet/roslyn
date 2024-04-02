@@ -4,9 +4,8 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
 
@@ -15,12 +14,12 @@ namespace Microsoft.CodeAnalysis.Serialization;
 /// </summary>
 internal static class Creator
 {
-    public static PooledObject<HashSet<Checksum>> CreateChecksumSet(ImmutableArray<Checksum> checksums)
+    public static PooledObject<HashSet<Checksum>> CreateChecksumSet(ReadOnlyMemory<Checksum> checksums)
     {
         var items = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
 
         var hashSet = items.Object;
-        foreach (var checksum in checksums)
+        foreach (var checksum in checksums.Span)
             hashSet.Add(checksum);
 
         return items;

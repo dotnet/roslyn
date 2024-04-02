@@ -619,4 +619,9 @@ internal enum FunctionId
     SuggestedAction_Preview_Summary = 745,
 
     LSP_DocumentIdCacheMiss = 746,
+
+    RemoteWorkspace_SolutionCachingStatistics = 750,
+
+    // 800-850 for Copilot performance logging.
+    Copilot_Suggestion_Dismissed = 800,
 }

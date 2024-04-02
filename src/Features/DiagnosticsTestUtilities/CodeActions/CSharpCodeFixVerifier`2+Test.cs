@@ -113,16 +113,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             protected override FixAllContext CreateFixAllContext(
                 Document? document,
+                TextSpan? diagnosticSpan,
                 Project project,
                 CodeFixProvider codeFixProvider,
                 FixAllScope scope,
                 string? codeActionEquivalenceKey,
                 IEnumerable<string> diagnosticIds,
+                DiagnosticSeverity minimumSeverity,
                 FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
                 CancellationToken cancellationToken)
                 => new(new FixAllState(
                     fixAllProvider: NoOpFixAllProvider.Instance,
-                    diagnosticSpan: null,
+                    diagnosticSpan,
                     document,
                     project,
                     codeFixProvider,

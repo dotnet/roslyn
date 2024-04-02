@@ -1,0 +1,251 @@
+// NOTE:
+// When this file is changed. Please also update the cache tag under settings entry in src/VisualStudio/CSharp/Impl/PackageRegistration.pkgdef
+// Otherwise your change might be ignored.
+// See https://devdiv.visualstudio.com/DevDiv/_wiki/wikis/DevDiv.wiki/39345/Manifest-Build-Deployment-and-Setup-Authoring-In-Depth?anchor=example-pkgdef-key for more details
+{
+  "properties": {
+    // CompletionOptionsStorage.TriggerOnTypingLetters
+    "textEditor.csharp.intellisense.triggerCompletionOnTypingLetters": {
+      "title": "@Show_completion_list_after_a_character_is_typed;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 0,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.TriggerOnTypingLetters"
+          }
+        }
+      }
+    },
+    // CompletionOptionsStorage.TriggerOnDeletion
+    "textEditor.csharp.intellisense.triggerCompletionOnDeletion": {
+      "title": "@Show_completion_list_after_a_character_is_deleted;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "default": false,
+      "order": 1,
+      "enableWhen": "${config:textEditor.csharp.intellisense.triggerCompletionOnTypingLetters}=='true'",
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.TriggerOnDeletion"
+          }
+        }
+      }
+    },
+    // CompletionOptionsStorage.TriggerInArgumentLists
+    "textEditor.csharp.intellisense.triggerCompletionInArgumentLists": {
+      "title": "@Automatically_show_completion_list_in_argument_lists;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 10,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.TriggerInArgumentLists"
+          }
+        }
+      }
+    },
+    // CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems
+    "textEditor.csharp.intellisense.highlightMatchingPortionsOfCompletionListItems": {
+      "title": "@Highlight_matching_portions_of_completion_list_items;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 20,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.HighlightMatchingPortionsOfCompletionListItems"
+          }
+        }
+      }
+    },
+    // CompletionViewOptionsStorage.ShowCompletionItemFilters
+    "textEditor.csharp.intellisense.showCompletionItemFilters": {
+      "title": "@Show_completion_item_filters;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 30,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ShowCompletionItemFilters"
+          }
+        }
+      }
+    },
+    // CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon
+    "textEditor.csharp.intellisense.completeStatementOnSemicolon": {
+      "title": "@Automatically_complete_statement_on_semicolon;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 40,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.AutomaticallyCompleteStatementOnSemicolon"
+          }
+        }
+      }
+    },
+    // CompletionOptionsStorage.SnippetsBehavior
+    "textEditor.csharp.intellisense.snippetsBehavior": {
+      "title": "@Snippets_behavior;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "string",
+      "enum": [ "neverInclude", "alwaysInclude", "includeAfterTypingIdentifierQuestionTab" ],
+      "enumItemLabels": [ "@Never_include_snippets;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Always_include_snippets;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Include_snippets_when_Tab_is_typed_after_an_identifier;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}" ],
+      "default": "alwaysInclude",
+      "order": 50,
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SnippetsBehavior"
+          },
+          "map": [
+            {
+              "result": "neverInclude",
+              "match": 1
+            },
+            // '0' matches to SnippetsRule.Default. Means the behavior is decided by langauge.
+            // '2' matches to SnippetsRule.AlwaysInclude. It's the default behavior for C#
+            // Put both mapping here, so it's possible for unified setting to load '0' from the storage.
+            // Put '2' in front, so unifed settings would persist '2' to storage when 'alwasyInclude' is selected.
+            {
+              "result": "alwaysInclude",
+              "match": 2
+            },
+            {
+              "result": "alwaysInclude",
+              "match": 0
+            },
+            {
+              "result": "includeAfterTypingIdentifierQuestionTab",
+              "match": 3
+            }
+          ]
+        }
+      }
+    },
+    // CompletionOptionsStorage.EnterKeyBehavior
+    "textEditor.csharp.intellisense.returnKeyCompletionBehavior": {
+      "title": "@Enter_key_behavior_colon;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "string",
+      "enum": [ "never", "afterFullyTypedWord", "always" ],
+      "enumItemLabels": [ "@Never_add_new_line_on_enter;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Only_add_new_line_on_enter_after_end_of_fully_typed_word;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Always_add_new_line_on_enter;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}" ],
+      "default": "never",
+      "order": 60,
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.EnterKeyBehavior"
+          },
+          "map": [
+            // '0' matches to EnterKeyRule.Default. Means the behavior is decided by langauge.
+            // '1' matches to SnippetsRule.Never. It's the default behavior for C#
+            // Put both mapping here, so it's possible for unified setting to load '0' from the storage.
+            // Put '1' in front, so unifed settings would persist '2' to storage when 'never' is selected.
+            {
+              "result": "never",
+              "match": 1
+            },
+            {
+              "result": "never",
+              "match": 0
+            },
+            {
+              "result": "always",
+              "match": 2
+            },
+            {
+              "result": "afterFullyTypedWord",
+              "match": 3
+            }
+          ]
+        }
+      }
+    },
+    // CompletionOptionsStorage.ShowNameSuggestions
+    "textEditor.csharp.intellisense.showNameCompletionSuggestions": {
+      "title": "@Show_name_suggestions;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 70,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ShowNameSuggestions"
+          }
+        }
+      }
+    },
+    // CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces
+    "textEditor.csharp.intellisense.showCompletionItemsFromUnimportedNamespaces": {
+      "title": "@Show_items_from_unimported_namespaces;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 80,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ShowItemsFromUnimportedNamespaces"
+          }
+        }
+      }
+    },
+    // CompletionViewOptionsStorage.EnableArgumentCompletionSnippets
+    "textEditor.csharp.intellisense.enableArgumentCompletionSnippets": {
+      "title": "@Tab_twice_to_insert_arguments;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      "order": 90,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.EnableArgumentCompletionSnippets"
+          }
+        }
+      }
+    },
+    // CompletionOptionsStorage.ShowNewSnippetExperienceUserOption
+    "textEditor.csharp.intellisense.showNewSnippetExperience": {
+      "title": "@Show_new_snippet_experience_experimental;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "default": false,
+      "alternateDefault": {
+        // CompletionOptionsStorage.ShowNewSnippetExperienceFeatureFlag
+        "flagName": "Roslyn.SnippetCompletion",
+        "default": true
+      },
+      "order": 100,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ShowNewSnippetExperience"
+          }
+        }
+      }
+    }
+  },
+  "categories": {
+    "textEditor.csharp":{
+      "title": "C#"
+    },
+    "textEditor.csharp.intellisense": {
+      "title": "@103;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "legacyOptionPageId": "EDE66829-7A36-4c5d-8E20-9290195DCF80"
+    }
+  }
+}

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => _underlyingType.BaseTypeNoUseSiteDiagnostics;
 
-        public override SpecialType SpecialType => _underlyingType.SpecialType;
+        public override ExtendedSpecialType ExtendedSpecialType => _underlyingType.ExtendedSpecialType;
 
         public override IEnumerable<string> MemberNames => GetMembers().Select(m => m.Name);
 

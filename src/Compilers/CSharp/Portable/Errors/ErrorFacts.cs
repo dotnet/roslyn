@@ -556,6 +556,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.WRN_ConvertingLock:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
+
                     return 1;
                 default:
                     return 0;
@@ -776,7 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_CheckedOverflow:
                 case ErrorCode.ERR_ConstOutOfRangeChecked:
                 case ErrorCode.ERR_BadVarargs:
-                case ErrorCode.ERR_ParamsMustBeArray:
+                case ErrorCode.ERR_ParamsMustBeCollection:
                 case ErrorCode.ERR_IllegalArglist:
                 case ErrorCode.ERR_IllegalUnsafe:
                 case ErrorCode.ERR_AmbigMember:
@@ -1010,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FieldCantHaveVoidType:
                 case ErrorCode.WRN_NonObsoleteOverridingObsolete:
                 case ErrorCode.ERR_SystemVoid:
-                case ErrorCode.ERR_ExplicitParamArray:
+                case ErrorCode.ERR_ExplicitParamArrayOrCollection:
                 case ErrorCode.WRN_BitwiseOrSignExtend:
                 case ErrorCode.ERR_VolatileStruct:
                 case ErrorCode.ERR_VolatileAndReadonly:
@@ -2437,6 +2441,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_ExtensionMethodInExtension:
                 case ErrorCode.ERR_MalformedExtensionInMetadata:
                 case ErrorCode.ERR_UnderspecifiedImplicitExtension:
+                case ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections:
+                case ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
+                case ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls:
+                case ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember:
+                case ErrorCode.ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember:
+                case ErrorCode.ERR_ParamsCollectionExpressionTree:
+                case ErrorCode.ERR_ParamsCollectionExtensionAddMethod:
+                case ErrorCode.ERR_ParamsCollectionMissingConstructor:
+                case ErrorCode.ERR_NoModifiersOnUsing:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
@@ -2478,7 +2494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_DeprecatedSymbolStr:
                 case ErrorCode.ERR_MissingPredefinedMember:
                 case ErrorCode.ERR_DefaultValueUsedWithAttributes:
-                case ErrorCode.ERR_ExplicitParamArray:
+                case ErrorCode.ERR_ExplicitParamArrayOrCollection:
                     return false;
                 default:
                     return true;

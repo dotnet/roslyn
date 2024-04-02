@@ -75,12 +75,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Always_use_default_symbol_servers_for_navigation
             => ServicesVSResources.Always_use_default_symbol_servers_for_navigation;
 
-        public static string Option_Enable_pull_diagnostics_requires_restart
-            => ServicesVSResources.Enable_pull_diagnostics_requires_restart;
-
-        public static string Option_Enable_Razor_pull_diagnostics_experimental_requires_restart
-            => ServicesVSResources.Enable_Razor_pull_diagnostics_experimental_requires_restart;
-
         public static string Option_run_code_analysis_in_separate_process
             => ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart;
 
@@ -155,6 +149,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Underline_reassigned_variables
             => ServicesVSResources.Underline_reassigned_variables;
+
+        public static string Option_Strike_out_obsolete_symbols
+            => ServicesVSResources.Strike_out_obsolete_symbols;
 
         public static string Option_DontPutOutOrRefOnStruct
             => CSharpVSResources.Don_t_put_ref_or_out_on_custom_struct;

@@ -281,6 +281,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureImplicitIndexerInitializer = MessageBase + 12840,
         IDS_FeatureLockObject = MessageBase + 12841,
 
+        IDS_FeatureParamsCollections = MessageBase + 12842,
+
         IDS_FeatureExtensions = MessageBase + 12850, // PROTOTYPE consolidate feature identifier
         IDS_FeatureBaseExtensions = MessageBase + 12851, // PROTOTYPE remove this temporary feature flag
     }
@@ -466,6 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureStringEscapeCharacter:
                 case MessageID.IDS_FeatureImplicitIndexerInitializer:
                 case MessageID.IDS_FeatureLockObject:
+                case MessageID.IDS_FeatureParamsCollections:
                 case MessageID.IDS_FeatureExtensions:
                     return LanguageVersion.Preview;
 

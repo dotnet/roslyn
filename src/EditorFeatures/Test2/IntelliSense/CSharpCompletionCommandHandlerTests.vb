@@ -4069,6 +4069,7 @@ class C
                 state.SendBackspace()
                 state.SendBackspace()
                 state.SendBackspace()
+                Await state.AssertCompletionSession()
                 state.SendEscape()
                 state.Workspace.SetDocumentContext(linkDocument.Id)
                 state.SendTypeChars("Thing1")
@@ -4080,6 +4081,7 @@ class C
                 state.SendBackspace()
                 state.SendBackspace()
                 state.SendBackspace()
+                Await state.AssertCompletionSession()
                 state.SendTypeChars("M")
                 Await state.AssertSelectedCompletionItem("M")
                 Assert.False(state.GetSelectedItem().Tags.Contains(WellKnownTags.Warning))
@@ -12577,6 +12579,22 @@ namespace N
                 Await state.AssertCompletionSession()
                 Await state.AssertCompletionItemsContain("B2", displayTextSuffix:="")
                 Await state.AssertCompletionItemsDoNotContainAny("B1")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72392")>
+        Public Async Function AliasToDynamicType(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System = dynamic;
+$$
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("System", displayTextSuffix:="")
             End Using
         End Function
     End Class

@@ -28,8 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         Protected Const DestinationDocument = "DestinationDocument"
 
         Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
-            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
-            .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService), GetType(WorkspaceTestLogger))
+            .AddParts(GetType(WorkspaceTestLogger))
 
         Private Shared ReadOnly s_composition As TestComposition = s_compositionWithMockDiagnosticUpdateSourceRegistrationService _
             .AddParts(GetType(TestAddMetadataReferenceCodeActionOperationFactoryWorkspaceService))
