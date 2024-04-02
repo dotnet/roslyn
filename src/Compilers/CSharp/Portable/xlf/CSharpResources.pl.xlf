@@ -444,7 +444,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingAdd">
         <source>Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</source>
-        <target state="new">Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</target>
+        <target state="translated">Typ wyrażenia kolekcji „{0}” musi mieć wystąpienie lub metodę rozszerzenia „Dodaj”, którą można wywołać z pojedynczym argumentem.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingConstructor">
