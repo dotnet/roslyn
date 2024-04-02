@@ -48,6 +48,14 @@ internal sealed partial class SolutionCompilationState
     // Values for all these are created on demand.
     private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
 
+    /// <summary>
+    /// Map from each project to the <see cref="SourceGeneratorExecutionVersion"/> it is currently at. Loosely, the
+    /// execution version allows us to have the generated documents for a project get fixed at some point in the past
+    /// when they were generated, up until events happen in the host that cause a need for them to be brought up to
+    /// date.  This is ambient, compilation-level, information about our projects, which is why it is stored at this
+    /// compilation-state level.  When syncing to our OOP process, this information is included, allowing the oop side
+    /// to move its own generators forward when a host changes these versions.
+    /// </summary>
     private readonly SourceGeneratorExecutionVersionMap _sourceGeneratorExecutionVersionMap;
 
     /// <summary>
