@@ -36,6 +36,7 @@ internal sealed class SnippetCompletionProvider : LSPCompletionProvider
         "class",
         "cw",
         "ctor",
+        "do",
         "else",
         "enum",
         "for",

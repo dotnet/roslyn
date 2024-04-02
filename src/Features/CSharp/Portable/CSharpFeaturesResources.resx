@@ -621,4 +621,8 @@
   <data name="Warning_colon_AI_suggestions_might_be_inaccurate" xml:space="preserve">
     <value>Warning: AI suggestions might be inaccurate.</value>
   </data>
+  <data name="do_while_loop" xml:space="preserve">
+    <value>do-while loop</value>
+    <comment>{Locked="do"}{Locked="while"} "do" and "while" are C# keywords and should not be localized.</comment>
+  </data>
 </root>

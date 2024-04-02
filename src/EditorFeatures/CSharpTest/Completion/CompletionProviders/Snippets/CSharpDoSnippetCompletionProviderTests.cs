@@ -7,15 +7,17 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets;
+
+[Trait(Traits.Feature, Traits.Features.Completion)]
+public class CSharpDoSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
 {
-    [Trait(Traits.Feature, Traits.Features.Completion)]
-    public abstract class AbstractCSharpConditionalBlockSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
+    protected override string ItemToCommit => "do";
+
+    [WpfFact]
+    public async Task InsertSnippetInMethodTest()
     {
-        [WpfFact]
-        public async Task InsertSnippetInMethodTest()
-        {
-            var markupBeforeCommit = """
+        var markupBeforeCommit = """
                 class Program
                 {
                     public void Method()
@@ -25,43 +27,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            var expectedCodeAfterCommit = $$"""
+        var expectedCodeAfterCommit = """
                 class Program
                 {
                     public void Method()
                     {
-                        {{ItemToCommit}} (true)
+                        do
                         {
                             $$
                         }
+                        while (true);
                     }
                 }
                 """;
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
 
-        [WpfFact]
-        public async Task InsertSnippetInGlobalContextTest()
-        {
-            var markupBeforeCommit = """
+    [WpfFact]
+    public async Task InsertSnippetInGlobalContextTest()
+    {
+        var markupBeforeCommit = """
                 Ins$$
                 """;
 
-            var expectedCodeAfterCommit = $$"""
-                {{ItemToCommit}} (true)
+        var expectedCodeAfterCommit = """
+                do
                 {
                     $$
                 }
+                while (true);
                 """;
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
 
-        [WpfFact]
-        public async Task NoSnippetInBlockNamespaceTest()
-        {
-            var markupBeforeCommit = """
+    [WpfFact]
+    public async Task NoSnippetInBlockNamespaceTest()
+    {
+        var markupBeforeCommit = """
                 namespace Namespace
                 {
                     $$
@@ -74,13 +78,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
 
-        [WpfFact]
-        public async Task NoSnippetInFileScopedNamespaceTest()
-        {
-            var markupBeforeCommit = """
+    [WpfFact]
+    public async Task NoSnippetInFileScopedNamespaceTest()
+    {
+        var markupBeforeCommit = """
                 namespace Namespace;
                 $$
                 class Program
@@ -91,13 +95,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
 
-        [WpfFact]
-        public async Task InsertSnippetInConstructorTest()
-        {
-            var markupBeforeCommit = """
+    [WpfFact]
+    public async Task InsertSnippetInConstructorTest()
+    {
+        var markupBeforeCommit = """
                 class Program
                 {
                     public Program()
@@ -108,27 +112,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            var expectedCodeAfterCommit = $$"""
+        var expectedCodeAfterCommit = """
                 class Program
                 {
                     public Program()
                     {
                         var x = 5;
-                        {{ItemToCommit}} (true)
+                        do
                         {
                             $$
                         }
+                        while (true);
                     }
                 }
                 """;
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
 
-        [WpfFact]
-        public async Task InsertSnippetInLocalFunctionTest()
-        {
-            var markupBeforeCommit = """
+    [WpfFact]
+    public async Task InsertSnippetInLocalFunctionTest()
+    {
+        var markupBeforeCommit = """
                 class Program
                 {
                     public void Method()
@@ -142,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            var expectedCodeAfterCommit = $$"""
+        var expectedCodeAfterCommit = """
                 class Program
                 {
                     public void Method()
@@ -150,22 +155,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                         var x = 5;
                         void LocalMethod()
                         {
-                            {{ItemToCommit}} (true)
+                            do
                             {
                                 $$
                             }
+                            while (true);
                         }
                     }
                 }
                 """;
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
 
-        [WpfFact]
-        public async Task InsertSnippetInAnonymousFunctionTest()
-        {
-            var markupBeforeCommit = """
+    [WpfFact]
+    public async Task InsertSnippetInAnonymousFunctionTest()
+    {
+        var markupBeforeCommit = """
                 public delegate void Print(int value);
 
                 static void Main(string[] args)
@@ -177,28 +183,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            var expectedCodeAfterCommit = $$"""
+        var expectedCodeAfterCommit = """
                 public delegate void Print(int value);
 
                 static void Main(string[] args)
                 {
                     Print print = delegate(int val) {
-                        {{ItemToCommit}} (true)
+                        do
                         {
                             $$
                         }
+                        while (true);
                     };
 
                 }
                 """;
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
 
-        [WpfFact]
-        public async Task InsertSnippetInParenthesizedLambdaExpressionTest()
-        {
-            var markupBeforeCommit = """
+    [WpfFact]
+    public async Task InsertSnippetInParenthesizedLambdaExpressionTest()
+    {
+        var markupBeforeCommit = """
                 Func<int, int, bool> testForEquality = (x, y) =>
                 {
                     $$
@@ -206,24 +213,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 };
                 """;
 
-            var expectedCodeAfterCommit = $$"""
+        var expectedCodeAfterCommit = """
                 Func<int, int, bool> testForEquality = (x, y) =>
                 {
-                    {{ItemToCommit}} (true)
+                    do
                     {
                         $$
                     }
+                    while (true);
                     return x == y;
                 };
                 """;
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
 
-        [WpfFact]
-        public async Task NoSnippetInSwitchExpression()
-        {
-            var markupBeforeCommit = """
+    [WpfFact]
+    public async Task NoSnippetInSwitchExpression()
+    {
+        var markupBeforeCommit = """
                 class Program
                 {
                     public void Method()
@@ -242,13 +250,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
 
-        [WpfFact]
-        public async Task NoSnippetInSingleLambdaExpression()
-        {
-            var markupBeforeCommit = """
+    [WpfFact]
+    public async Task NoSnippetInSingleLambdaExpression()
+    {
+        var markupBeforeCommit = """
                 class Program
                 {
                     public void Method()
@@ -258,13 +266,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
 
-        [WpfFact]
-        public async Task NoSnippetInStringTest()
-        {
-            var markupBeforeCommit = """
+    [WpfFact]
+    public async Task NoSnippetInStringTest()
+    {
+        var markupBeforeCommit = """
                 class Program
                 {
                     public void Method()
@@ -274,13 +282,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
 
-        [WpfFact]
-        public async Task NoSnippetInObjectInitializerTest()
-        {
-            var markupBeforeCommit = """
+    [WpfFact]
+    public async Task NoSnippetInObjectInitializerTest()
+    {
+        var markupBeforeCommit = """
                 class Program
                 {
                     public void Method()
@@ -300,13 +308,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
 
-        [WpfFact]
-        public async Task NoSnippetInParameterListTest()
-        {
-            var markupBeforeCommit = """
+    [WpfFact]
+    public async Task NoSnippetInParameterListTest()
+    {
+        var markupBeforeCommit = """
                 class Program
                 {
                     public void Method(int x, $$)
@@ -315,13 +323,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
 
-        [WpfFact]
-        public async Task NoSnippetInRecordDeclarationTest()
-        {
-            var markupBeforeCommit = """
+    [WpfFact]
+    public async Task NoSnippetInRecordDeclarationTest()
+    {
+        var markupBeforeCommit = """
                 public record Person
                 {
                     $$
@@ -330,13 +338,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 };
                 """;
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
 
-        [WpfFact]
-        public async Task NoSnippetInVariableDeclarationTest()
-        {
-            var markupBeforeCommit = """
+    [WpfFact]
+    public async Task NoSnippetInVariableDeclarationTest()
+    {
+        var markupBeforeCommit = """
                 class Program
                 {
                     public void Method()
@@ -346,13 +354,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
 
-        [WpfFact]
-        public async Task InsertSnippetWithInvocationBeforeAndAfterCursorTest()
-        {
-            var markupBeforeCommit = """
+    [WpfFact]
+    public async Task InsertSnippetWithInvocationBeforeAndAfterCursorTest()
+    {
+        var markupBeforeCommit = """
                 class Program
                 {
                     public void Method()
@@ -362,26 +370,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            var expectedCodeAfterCommit = $$"""
+        var expectedCodeAfterCommit = """
                 class Program
                 {
                     public void Method()
                     {
-                        {{ItemToCommit}} (true)
+                        do
                         {
                             $$
                         }
+                        while (true);
                     }
                 }
                 """;
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
 
-        [WpfFact]
-        public async Task InsertSnippetWithInvocationUnderscoreBeforeAndAfterCursorTest()
-        {
-            var markupBeforeCommit = """
+    [WpfFact]
+    public async Task InsertSnippetWithInvocationUnderscoreBeforeAndAfterCursorTest()
+    {
+        var markupBeforeCommit = """
                 class Program
                 {
                     public void Method()
@@ -391,26 +400,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            var expectedCodeAfterCommit = $$"""
+        var expectedCodeAfterCommit = """
                 class Program
                 {
                     public void Method()
                     {
-                        {{ItemToCommit}} (true)
+                        do
                         {
                             $$
                         }
+                        while (true);
                     }
                 }
                 """;
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
 
-        [WpfFact]
-        public async Task InsertInlineSnippetForCorrectTypeTest()
-        {
-            var markupBeforeCommit = """
+    [WpfFact]
+    public async Task InsertInlineSnippetForCorrectTypeTest()
+    {
+        var markupBeforeCommit = """
                 class Program
                 {
                     void M(bool arg)
@@ -420,26 +430,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            var expectedCodeAfterCommit = $$"""
+        var expectedCodeAfterCommit = """
                 class Program
                 {
                     void M(bool arg)
                     {
-                        {{ItemToCommit}} (arg)
+                        do
                         {
                             $$
                         }
+                        while (arg);
                     }
                 }
                 """;
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
 
-        [WpfFact]
-        public async Task NoInlineSnippetForIncorrectTypeTest()
-        {
-            var markupBeforeCommit = """
+    [WpfFact]
+    public async Task NoInlineSnippetForIncorrectTypeTest()
+    {
+        var markupBeforeCommit = """
                 class Program
                 {
                     void M(int arg)
@@ -449,13 +460,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
 
-        [WpfFact]
-        public async Task NoInlineSnippetWhenNotDirectlyExpressionStatementTest()
-        {
-            var markupBeforeCommit = """
+    [WpfFact]
+    public async Task NoInlineSnippetWhenNotDirectlyExpressionStatementTest()
+    {
+        var markupBeforeCommit = """
                 class Program
                 {
                     void M(bool arg)
@@ -465,16 +476,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
 
-        [WpfTheory]
-        [InlineData("// comment")]
-        [InlineData("/* comment */")]
-        [InlineData("#region test")]
-        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest1(string trivia)
-        {
-            var markupBeforeCommit = $$"""
+    [WpfTheory]
+    [InlineData("// comment")]
+    [InlineData("/* comment */")]
+    [InlineData("#region test")]
+    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest1(string trivia)
+    {
+        var markupBeforeCommit = $$"""
                 class Program
                 {
                     void M(bool arg)
@@ -485,30 +496,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            var expectedCodeAfterCommit = $$"""
+        var expectedCodeAfterCommit = $$"""
                 class Program
                 {
                     void M(bool arg)
                     {
                         {{trivia}}
-                        {{ItemToCommit}} (arg)
+                        do
                         {
                             $$
                         }
+                        while (arg);
                     }
                 }
                 """;
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
 
-        [WpfTheory]
-        [InlineData("#if true")]
-        [InlineData("#pragma warning disable CS0108")]
-        [InlineData("#nullable enable")]
-        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest2(string trivia)
-        {
-            var markupBeforeCommit = $$"""
+    [WpfTheory]
+    [InlineData("#if true")]
+    [InlineData("#pragma warning disable CS0108")]
+    [InlineData("#nullable enable")]
+    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInMethodTest2(string trivia)
+    {
+        var markupBeforeCommit = $$"""
                 class Program
                 {
                     void M(bool arg)
@@ -519,72 +531,75 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            var expectedCodeAfterCommit = $$"""
+        var expectedCodeAfterCommit = $$"""
                 class Program
                 {
                     void M(bool arg)
                     {
                 {{trivia}}
-                        {{ItemToCommit}} (arg)
+                        do
                         {
                             $$
                         }
+                        while (arg);
                     }
                 }
                 """;
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
 
-        [WpfTheory]
-        [InlineData("// comment")]
-        [InlineData("/* comment */")]
-        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest1(string trivia)
-        {
-            var markupBeforeCommit = $$"""
+    [WpfTheory]
+    [InlineData("// comment")]
+    [InlineData("/* comment */")]
+    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest1(string trivia)
+    {
+        var markupBeforeCommit = $$"""
                 {{trivia}}
                 true.$$
                 """;
 
-            var expectedCodeAfterCommit = $$"""
+        var expectedCodeAfterCommit = $$"""
                 {{trivia}}
-                {{ItemToCommit}} (true)
+                do
                 {
                     $$
                 }
+                while (true);
                 """;
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
 
-        [WpfTheory]
-        [InlineData("#region test")]
-        [InlineData("#if true")]
-        [InlineData("#pragma warning disable CS0108")]
-        [InlineData("#nullable enable")]
-        public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest2(string trivia)
-        {
-            var markupBeforeCommit = $$"""
+    [WpfTheory]
+    [InlineData("#region test")]
+    [InlineData("#if true")]
+    [InlineData("#pragma warning disable CS0108")]
+    [InlineData("#nullable enable")]
+    public async Task CorrectlyDealWithLeadingTriviaInInlineSnippetInGlobalStatementTest2(string trivia)
+    {
+        var markupBeforeCommit = $$"""
                 {{trivia}}
                 true.$$
                 """;
 
-            var expectedCodeAfterCommit = $$"""
+        var expectedCodeAfterCommit = $$"""
 
                 {{trivia}}
-                {{ItemToCommit}} (true)
+                do
                 {
                     $$
                 }
+                while (true);
                 """;
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
-        public async Task InsertInlineSnippetWhenDottingBeforeContextualKeywordTest1()
-        {
-            var markupBeforeCommit = """
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
+    public async Task InsertInlineSnippetWhenDottingBeforeContextualKeywordTest1()
+    {
+        var markupBeforeCommit = """
                 using System.Collections.Generic;
 
                 class C
@@ -597,29 +612,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            var expectedCodeAfterCommit = $$"""
+        var expectedCodeAfterCommit = """
                 using System.Collections.Generic;
 
                 class C
                 {
                     void M(bool flag)
                     {
-                        {{ItemToCommit}} (flag)
+                        do
                         {
                             $$
                         }
+                        while (flag);
                         var a = 0;
                     }
                 }
                 """;
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
 
-        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
-        public async Task InsertInlineSnippetWhenDottingBeforeContextualKeywordTest2()
-        {
-            var markupBeforeCommit = """
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
+    public async Task InsertInlineSnippetWhenDottingBeforeContextualKeywordTest2()
+    {
+        var markupBeforeCommit = """
                 using System.Collections.Generic;
 
                 class C
@@ -632,32 +648,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            var expectedCodeAfterCommit = $$"""
+        var expectedCodeAfterCommit = $$"""
                 using System.Collections.Generic;
 
                 class C
                 {
                     void M(bool flag, Task t)
                     {
-                        {{ItemToCommit}} (flag)
+                        do
                         {
                             $$
                         }
+                        while (flag);
                         await t;
                     }
                 }
                 """;
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
 
-        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
-        [InlineData("Task")]
-        [InlineData("Task<int>")]
-        [InlineData("System.Threading.Tasks.Task<int>")]
-        public async Task InsertInlineSnippetWhenDottingBeforeNameSyntaxTest(string nameSyntax)
-        {
-            var markupBeforeCommit = $$"""
+    [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
+    [InlineData("Task")]
+    [InlineData("Task<int>")]
+    [InlineData("System.Threading.Tasks.Task<int>")]
+    public async Task InsertInlineSnippetWhenDottingBeforeNameSyntaxTest(string nameSyntax)
+    {
+        var markupBeforeCommit = $$"""
                 using System.Collections.Generic;
 
                 class C
@@ -670,23 +687,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 }
                 """;
 
-            var expectedCodeAfterCommit = $$"""
+        var expectedCodeAfterCommit = $$"""
                 using System.Collections.Generic;
 
                 class C
                 {
                     void M(bool flag)
                     {
-                        {{ItemToCommit}} (flag)
+                        do
                         {
                             $$
                         }
+                        while (flag);
                         {{nameSyntax}} t = null;
                     }
                 }
                 """;
 
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
     }
 }
