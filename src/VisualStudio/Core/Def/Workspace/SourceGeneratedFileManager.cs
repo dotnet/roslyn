@@ -508,29 +508,23 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             _currentInfoBarMessage?.Remove();
 
             VisualStudioInfoBar.InfoBarMessage? infoBarMessage = null;
-            InfoBarUI[] infoBarItems = [];
-
-            var options = this.Workspace.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
-            if (options.SourceGeneratorExecution != SourceGeneratorExecutionPreference.Automatic)
+            InfoBarUI[] infoBarItems = [new InfoBarUI(ServicesVSResources.Rerun_generator, InfoBarUI.UIKind.Button, () =>
             {
-                infoBarItems = [new InfoBarUI(ServicesVSResources.Rerun_generator, InfoBarUI.UIKind.Button, () =>
-                {
-                    _fileManager._threadingContext.ThrowIfNotOnUIThread();
-                    Contract.ThrowIfNull(infoBarMessage);
-                    infoBarMessage.Remove();
+                _fileManager._threadingContext.ThrowIfNotOnUIThread();
+                Contract.ThrowIfNull(infoBarMessage);
+                infoBarMessage.Remove();
 
-                    _currentInfoBarMessage = _fileManager._threadingContext.JoinableTaskFactory.Run(() =>
-                        _infoBar.ShowInfoBarMessageAsync(
-                            ServicesVSResources.Generator_running, isCloseButtonVisible: false, KnownMonikers.StatusInformation));
+                _currentInfoBarMessage = _fileManager._threadingContext.JoinableTaskFactory.Run(() =>
+                    _infoBar.ShowInfoBarMessageAsync(
+                        ServicesVSResources.Generator_running, isCloseButtonVisible: false, KnownMonikers.StatusInformation));
 
-                    // Force regeneration here.  Nothing has actually changed, so the incremental generator architecture
-                    // would normally just return the same values all over again.  By forcing things, we drop the
-                    // generator driver, which will force new files to actually be created.
-                    this.Workspace.EnqueueUpdateSourceGeneratorVersion(
-                        this._documentIdentity.DocumentId.ProjectId,
-                        forceRegeneration: true);
-                })];
-            }
+                // Force regeneration here.  Nothing has actually changed, so the incremental generator architecture
+                // would normally just return the same values all over again.  By forcing things, we drop the
+                // generator driver, which will force new files to actually be created.
+                this.Workspace.EnqueueUpdateSourceGeneratorVersion(
+                    this._documentIdentity.DocumentId.ProjectId,
+                    forceRegeneration: true);
+            })];
 
             infoBarMessage = await _infoBar.ShowInfoBarMessageAsync(
                 message, isCloseButtonVisible: false, imageMoniker, infoBarItems).ConfigureAwait(true);
