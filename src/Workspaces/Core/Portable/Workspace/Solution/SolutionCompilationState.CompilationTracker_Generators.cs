@@ -233,7 +233,7 @@ internal partial class SolutionCompilationState
             // the "InCurrentProcess" call so that it will normally run only in the OOP process, thus ensuring that we
             // get accurate information about what SourceGenerators we actually have (say, in case they they are rebuilt
             // by the user while VS is running).
-            if (!this.ProjectState.SourceGenerators.Any())
+            if (!GetSourceGenerators(this.ProjectState).Any())
                 return (compilationWithoutGeneratedFiles, TextDocumentStates<SourceGeneratedDocumentState>.Empty, generatorDriver);
 
             // If we don't already have an existing generator driver, create one from scratch
@@ -268,7 +268,9 @@ internal partial class SolutionCompilationState
 
             var runResult = generatorDriver.GetRunResult();
 
-            telemetryCollector?.CollectRunResult(runResult, generatorDriver.GetTimingInfo(), ProjectState);
+            telemetryCollector?.CollectRunResult(
+                runResult, generatorDriver.GetTimingInfo(),
+                g => GetAnalyzerReference(this.ProjectState, g));
 
             // We may be able to reuse compilationWithStaleGeneratedTrees if the generated trees are identical. We will assign null
             // to compilationWithStaleGeneratedTrees if we at any point realize it can't be used. We'll first check the count of trees
@@ -293,7 +295,7 @@ internal partial class SolutionCompilationState
                 if (IsGeneratorRunResultToIgnore(generatorResult))
                     continue;
 
-                var generatorAnalyzerReference = this.ProjectState.GetAnalyzerReferenceForGenerator(generatorResult.Generator);
+                var generatorAnalyzerReference = GetAnalyzerReference(this.ProjectState, generatorResult.Generator);
 
                 foreach (var generatedSource in generatorResult.GeneratedSources)
                 {
@@ -394,7 +396,7 @@ internal partial class SolutionCompilationState
 
                 return compilationFactory.CreateGeneratorDriver(
                     projectState.ParseOptions!,
-                    projectState.SourceGenerators.ToImmutableArray(),
+                    GetSourceGenerators(projectState),
                     projectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
                     additionalTexts);
             }

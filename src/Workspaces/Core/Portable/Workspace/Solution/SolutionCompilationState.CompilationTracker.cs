@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis
                             // Also transform the compilation that has generated files; we won't do that though if the transformation either would cause problems with
                             // the generated documents, or if don't have any source generators in the first place.
                             if (translationAction.CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput &&
-                                translationAction.OldProjectState.SourceGenerators.Any())
+                                GetSourceGenerators(translationAction.OldProjectState).Any())
                             {
                                 staleCompilationWithGeneratedDocuments = await translationAction.TransformCompilationAsync(staleCompilationWithGeneratedDocuments, cancellationToken).ConfigureAwait(false);
                             }
@@ -853,7 +853,7 @@ namespace Microsoft.CodeAnalysis
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 // If we don't have any generators, then we know we have no generated files, so we can skip the computation entirely.
-                if (!this.ProjectState.SourceGenerators.Any())
+                if (!GetSourceGenerators(this.ProjectState).Any())
                 {
                     return TextDocumentStates<SourceGeneratedDocumentState>.Empty;
                 }
@@ -866,7 +866,7 @@ namespace Microsoft.CodeAnalysis
             public async ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                if (!this.ProjectState.SourceGenerators.Any())
+                if (!GetSourceGenerators(this.ProjectState).Any())
                 {
                     return [];
                 }
@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis
 
             public async ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                if (!this.ProjectState.SourceGenerators.Any())
+                if (!GetSourceGenerators(this.ProjectState).Any())
                 {
                     return null;
                 }
