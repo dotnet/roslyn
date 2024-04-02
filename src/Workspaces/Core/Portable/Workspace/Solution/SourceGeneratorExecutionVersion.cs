@@ -44,20 +44,19 @@ internal readonly record struct SourceGeneratorExecutionVersion(
         => new(reader.ReadInt32(), reader.ReadInt32());
 }
 
-internal sealed class SourceGeneratorExecutionVersionMap
+/// <summary>
+/// Helper construct to allow a mapping from <see cref="ProjectId"/>s to <see cref="SourceGeneratorExecutionVersion"/>.
+/// Limited to just the surface area the workspace needs.
+/// </summary>
+internal sealed class SourceGeneratorExecutionVersionMap(ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion> map)
 {
     public static readonly SourceGeneratorExecutionVersionMap Empty = new();
 
-    private readonly ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion> _map;
+    private readonly ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion> _map = map;
 
     public SourceGeneratorExecutionVersionMap()
         : this(ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Empty)
     {
-    }
-
-    public SourceGeneratorExecutionVersionMap(ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion> map)
-    {
-        _map = map;
     }
 
     public SourceGeneratorExecutionVersion this[ProjectId projectId] => _map[projectId];
@@ -106,44 +105,30 @@ internal sealed class SourceGeneratorExecutionVersionMap
     public static Builder CreateBuilder()
         => new(ImmutableSegmentedDictionary.CreateBuilder<ProjectId, SourceGeneratorExecutionVersion>());
 
-    public struct Builder
+    public readonly struct Builder(ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Builder builder)
     {
-        private readonly ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Builder _builder;
-
-        public Builder(ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Builder builder)
+        public SourceGeneratorExecutionVersion this[ProjectId projectId]
         {
-            _builder = builder;
+            get => builder[projectId];
+            set => builder[projectId] = value;
         }
 
-        public readonly SourceGeneratorExecutionVersion this[ProjectId projectId]
-        {
-            get => _builder[projectId];
-            set => _builder[projectId] = value;
-        }
+        public bool ContainsKey(ProjectId projectId)
+            => builder.ContainsKey(projectId);
 
-        public readonly bool ContainsKey(ProjectId projectId)
-            => _builder.ContainsKey(projectId);
+        public void Add(ProjectId projectId, SourceGeneratorExecutionVersion version)
+            => builder.Add(projectId, version);
 
-        public readonly void Add(ProjectId projectId, SourceGeneratorExecutionVersion version)
-            => _builder.Add(projectId, version);
+        public void Remove(ProjectId projectId)
+            => builder.Remove(projectId);
 
-        public readonly void Remove(ProjectId projectId)
-            => _builder.Remove(projectId);
-
-        public readonly SourceGeneratorExecutionVersionMap ToImmutable()
-            => new(_builder.ToImmutable());
+        public SourceGeneratorExecutionVersionMap ToImmutable()
+            => new(builder.ToImmutable());
     }
 
-    public struct Enumerator
+    public readonly struct Enumerator(ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Enumerator enumerator)
     {
-        private ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Enumerator _enumerator;
-
-        public Enumerator(ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Enumerator enumerator)
-        {
-            _enumerator = enumerator;
-        }
-
-        public bool MoveNext() => _enumerator.MoveNext();
-        public (ProjectId projectId, SourceGeneratorExecutionVersion version) Current => (_enumerator.Current.Key, _enumerator.Current.Value);
+        public bool MoveNext() => enumerator.MoveNext();
+        public (ProjectId projectId, SourceGeneratorExecutionVersion version) Current => (enumerator.Current.Key, enumerator.Current.Value);
     }
 }
