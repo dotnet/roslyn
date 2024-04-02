@@ -154,12 +154,8 @@ class Test
                 }
                 """ + AsyncStreamsTypes;
 
-            var expectedOutput = ExecutionConditionUtil.IsDesktop
-                ? null
-                : "0123Object synchronization method was called from an unsynchronized block of code.";
-
             var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe.WithWarningLevel(8));
-            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(comp).VerifyDiagnostics();
 
             var expectedDiagnostics = new[]
             {
@@ -169,10 +165,10 @@ class Test
             };
 
             comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe.WithWarningLevel(9));
-            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(comp).VerifyDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(comp).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72443")]
