@@ -15343,6 +15343,146 @@ public class Class
 
         [Fact]
         [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        public void MissingClosingAngleBracket_Property04()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                const string source =
+                    """
+                    IEnumerable<(string Value, string Description Values { get; set; }
+                    """;
+
+                UsingDeclaration(source, options,
+                    // (1,47): error CS1026: ) expected
+                    // IEnumerable<(string Value, string Description Values { get; set; }
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "Values").WithLocation(1, 47),
+                    // (1,47): error CS1003: Syntax error, '>' expected
+                    // IEnumerable<(string Value, string Description Values { get; set; }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Values").WithArguments(">").WithLocation(1, 47));
+
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "IEnumerable");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.StringKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "Value");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.StringKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "Description");
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.IdentifierToken, "Values");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.GetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.GetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.SetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.SetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
+        public void MissingClosingAngleBracket_Property05()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                const string source =
+                    """
+                    IEnumerable<(string Value, string Description Values => null;
+                    """;
+
+                UsingDeclaration(source, options,
+                    // (1,47): error CS1026: ) expected
+                    // IEnumerable<(string Value, string Description Values => null;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "Values").WithLocation(1, 47),
+                    // (1,47): error CS1003: Syntax error, '>' expected
+                    // IEnumerable<(string Value, string Description Values => null;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Values").WithArguments(">").WithLocation(1, 47));
+
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "IEnumerable");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.StringKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "Value");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.StringKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "Description");
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.IdentifierToken, "Values");
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NullLiteralExpression);
+                        {
+                            N(SyntaxKind.NullKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(24642, "https://github.com/dotnet/roslyn/issues/24642")]
         public void MissingClosingAngleBracket_Local01()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })

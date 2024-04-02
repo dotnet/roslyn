@@ -5801,7 +5801,7 @@ parse_member_name:;
             }
 
             ScanTypeFlags result = ScanTypeFlags.GenericTypeOrExpression;
-            ScanTypeFlags lastScannedType = ScanTypeFlags.NotType;
+            ScanTypeFlags lastScannedType;
 
             do
             {
@@ -5985,13 +5985,17 @@ parse_member_name:;
             // remaining types & commas
             while (true)
             {
-                if (this.CurrentToken.Kind is SyntaxKind.GreaterThanToken)
+                if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
+                {
                     break;
+                }
 
                 // We prefer early terminating the argument list over parsing until exhaustion
                 // for better error recovery
                 if (tokenBreaksTypeArgumentList(this.CurrentToken))
+                {
                     break;
+                }
 
                 // We are currently past parsing a type and we encounter an unexpected identifier token
                 // followed by tokens that are not part of a type argument list
