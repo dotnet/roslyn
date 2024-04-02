@@ -28,6 +28,7 @@ internal abstract class AbstractAssetProvider
         var solutionChecksums = await GetAssetAsync<SolutionStateChecksums>(AssetHint.None, solutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
 
         var solutionAttributes = await GetAssetAsync<SolutionInfo.SolutionAttributes>(AssetHint.None, solutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
+        await GetAssetAsync<SourceGeneratorExecutionVersionMap>(AssetHint.None, solutionCompilationChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<ProjectInfo>.GetInstance(solutionChecksums.Projects.Length, out var projects);
         foreach (var (projectChecksum, projectId) in solutionChecksums.Projects)
