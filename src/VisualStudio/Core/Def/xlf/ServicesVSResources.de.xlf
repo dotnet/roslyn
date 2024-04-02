@@ -1248,8 +1248,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Search_cancelled">
-        <source>Search cancelled</source>
-        <target state="new">Search cancelled</target>
+        <source>Search canceled</source>
+        <target state="new">Search canceled</target>
         <note />
       </trans-unit>
       <trans-unit id="Search_found_no_results_no_csharp_or_vb_projects_opened">
