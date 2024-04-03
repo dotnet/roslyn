@@ -384,7 +384,9 @@ public sealed class ProjectInfo
         => With(analyzerReferences: PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
 
     internal ProjectInfo WithTelemetryId(Guid telemetryId)
-        => With(attributes: Attributes.With(telemetryId: telemetryId));
+    {
+        return With(attributes: Attributes.With(telemetryId: telemetryId));
+    }
 
     internal string GetDebuggerDisplay()
         => nameof(ProjectInfo) + " " + Name + (!string.IsNullOrWhiteSpace(FilePath) ? " " + FilePath : "");
