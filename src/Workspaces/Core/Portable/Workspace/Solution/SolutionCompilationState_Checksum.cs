@@ -139,10 +139,7 @@ internal partial class SolutionCompilationState
                     frozenSourceGeneratedDocumentGenerationDateTimes = FrozenSourceGeneratedDocumentStates.SelectAsArray(d => d.GenerationDateTime);
                 }
 
-                var versionMapChecksum = ChecksumCache.GetOrCreate(
-                    this.SourceGeneratorExecutionVersionMap,
-                    static (_, @this) => GetVersionMapChecksum(@this),
-                    this);
+                var versionMapChecksum = GetVersionMapChecksum(projectCone);
 
                 var compilationStateChecksums = new SolutionCompilationStateChecksums(
                     solutionStateChecksum,
@@ -158,22 +155,25 @@ internal partial class SolutionCompilationState
             throw ExceptionUtilities.Unreachable();
         }
 
-        static Checksum GetVersionMapChecksum(SolutionCompilationState @this)
+        Checksum GetVersionMapChecksum(ProjectCone? projectCone)
         {
             // We want the projects in sorted order so we can generate the checksum for the
             // source-generation-execution-map consistently.
-            var sortedProjectIds = SolutionState.GetOrCreateSortedProjectIds(@this.SolutionState.ProjectIds);
+            var sortedProjectIds = SolutionState.GetOrCreateSortedProjectIds(this.SolutionState.ProjectIds);
 
             using var _ = ArrayBuilder<Checksum>.GetInstance(out var checksums);
 
             foreach (var projectId in sortedProjectIds)
             {
-                var projectState = @this.SolutionState.GetRequiredProjectState(projectId);
+                if (projectCone != null && !projectCone.Contains(projectId))
+                    continue;
+
+                var projectState = this.SolutionState.GetRequiredProjectState(projectId);
                 if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
                     continue;
 
                 checksums.Add(projectId.Checksum);
-                checksums.Add(Checksum.Create(@this.SourceGeneratorExecutionVersionMap[projectId], static (v, w) => v.WriteTo(w)));
+                checksums.Add(Checksum.Create(this.SourceGeneratorExecutionVersionMap[projectId], static (v, w) => v.WriteTo(w)));
             }
 
             return Checksum.Create(checksums);

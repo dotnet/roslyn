@@ -125,7 +125,7 @@ internal sealed class SolutionCompilationStateChecksums
             result[this.Checksum] = this;
 
         if (searchingChecksumsLeft.Remove(this.SourceGeneratorExecutionVersionMap))
-            result[this.SourceGeneratorExecutionVersionMap] = compilationState.SourceGeneratorExecutionVersionMap;
+            result[this.SourceGeneratorExecutionVersionMap] = Filter(compilationState.SourceGeneratorExecutionVersionMap, projectCone);
 
         if (searchingChecksumsLeft.Count == 0)
             return;
@@ -164,6 +164,23 @@ internal sealed class SolutionCompilationStateChecksums
             // Otherwise, grab the top-most state checksum for this cone and search within that.
             Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(projectCone.RootProjectId, out var solutionChecksums));
             await solutionChecksums.FindAsync(solutionState, projectCone, assetHint, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+        }
+
+        return;
+
+        static SourceGeneratorExecutionVersionMap Filter(SourceGeneratorExecutionVersionMap map, ProjectCone? projectCone)
+        {
+            if (projectCone is null)
+                return map;
+
+            var builder = map.ToBuilder();
+            foreach (var (projectId, _) in map)
+            {
+                if (!projectCone.Contains(projectId))
+                    builder.Remove(projectId);
+            }
+
+            return builder.ToImmutable();
         }
     }
 }
