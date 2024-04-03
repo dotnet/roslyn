@@ -455,8 +455,7 @@ End Namespace
 
                 If special = SpecialType.System_Runtime_CompilerServices_RuntimeFeature OrElse
                    special = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute OrElse
-                   special = SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute OrElse
-                   special = SpecialType.System_ReadOnlySpan_T Then
+                   special = SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute Then
                     Assert.Equal(SymbolKind.ErrorType, symbol.Kind) ' Not available
                 Else
                     Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind)
@@ -496,7 +495,8 @@ End Namespace
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor OrElse
-                   special = SpecialMember.System_ReadOnlySpan_T__ctor_Reference Then
+                   special = SpecialMember.System_ReadOnlySpan_T__ctor_Reference OrElse
+                   special = SpecialMember.System_Array__Empty Then
                     Assert.Null(symbol) ' Not available
                 Else
                     Assert.NotNull(symbol)
@@ -697,8 +697,7 @@ End Namespace
                     Case WellKnownMember.Count
                         ' Not a real value.
                         Continue For
-                    Case WellKnownMember.System_Array__Empty,
-                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
+                    Case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
                          WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
                          WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor,
@@ -903,8 +902,7 @@ End Namespace
                          WellKnownMember.Microsoft_VisualBasic_Conversion__IntDouble
                         ' The type is not embedded, so the member is not available.
                         Continue For
-                    Case WellKnownMember.System_Array__Empty,
-                         WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
+                    Case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
                          WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
                          WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor,

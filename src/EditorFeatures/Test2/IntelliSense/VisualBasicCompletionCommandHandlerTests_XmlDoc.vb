@@ -637,12 +637,12 @@ End Class
 
         <WpfFact>
         Public Function InvokeWithTrueKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("True")
+            Return InvokeWithKeywordCommitSeeLangword("True", unique:=False)
         End Function
 
         <WpfFact>
         Public Function InvokeWithFalseKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("False")
+            Return InvokeWithKeywordCommitSeeLangword("False", unique:=False)
         End Function
 
         <WpfFact>

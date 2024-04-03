@@ -32,6 +32,11 @@
         <target state="translated">Seçim, Etkileşimli Pencere'de yürütülüyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generating_suggestions">
+        <source>Generating suggestions...</source>
+        <target state="translated">Öneriler oluşturuluyor...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Get_AI_suggestions">
         <source>Get AI-powered rename suggestions (Ctrl+Space)</source>
         <target state="translated">Yapay zeka destekli yeniden adlandırma önerileri alın (Ctrl+Space)</target>
@@ -65,6 +70,11 @@
       <trans-unit id="The_CurrentWindow_property_may_only_be_assigned_once">
         <source>The CurrentWindow property may only be assigned once.</source>
         <target state="translated">CurrentWindow özelliği yalnızca bir kez atanabilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_AI_suggestions">
+        <source>Toggle rename suggestions (Ctrl+Space)</source>
+        <target state="new">Toggle rename suggestions (Ctrl+Space)</target>
         <note />
       </trans-unit>
     </body>

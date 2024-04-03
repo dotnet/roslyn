@@ -84,8 +84,7 @@ internal sealed class CopilotTaggerProvider(
         var prompts = await service.GetAvailablePromptTitlesAsync(document, cancellationToken).ConfigureAwait(false);
         if (prompts.Length > 0)
         {
-            // Invoke analysis call into the Copilot service for the containing method's span.
-            await service.AnalyzeDocumentAsync(document, new(spanToTag.SnapshotSpan.Start, 0), prompts[0], cancellationToken).ConfigureAwait(false);
+            await service.AnalyzeDocumentAsync(document, spanToTag.SnapshotSpan.Span.ToTextSpan(), prompts[0], cancellationToken).ConfigureAwait(false);
         }
     }
 }

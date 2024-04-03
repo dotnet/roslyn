@@ -9,8 +9,8 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -39,9 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
 
         // TODO: Requires WPF due to IInlineRenameService dependency (https://github.com/dotnet/roslyn/issues/46153)
         protected override TestComposition GetComposition()
-            => EditorTestCompositions.EditorFeaturesWpf
-                .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
-                .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
+            => EditorTestCompositions.EditorFeaturesWpf;
 
         #region Generate Class
 
@@ -899,6 +897,54 @@ class Class
     }
 }",
 index: 2);
+        }
+
+        [Fact]
+        public async Task TestGenerateClassFromThrowStatementOnModernDotNet_NoObsoleteConstructor()
+        {
+            var source = """
+                class Class
+                {
+                    void Method()
+                    {
+                        throw new [|ExType|]();
+                    }
+                }
+                """;
+
+            await TestInRegularAndScriptAsync($"""
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet8="true">
+                        <Document>{source}</Document>
+                    </Project>
+                </Workspace>
+                """, """
+                using System;
+
+                class Class
+                {
+                    void Method()
+                    {
+                        throw new ExType();
+                    }
+
+                    [Serializable]
+                    private class ExType : Exception
+                    {
+                        public ExType()
+                        {
+                        }
+
+                        public ExType(string message) : base(message)
+                        {
+                        }
+
+                        public ExType(string message, Exception innerException) : base(message, innerException)
+                        {
+                        }
+                    }
+                }
+                """, index: 2);
         }
 
         [Fact]

@@ -84,10 +84,7 @@ internal partial class SerializerService : ISerializerService
                     return CreateChecksum((AnalyzerReference)value, cancellationToken);
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
-                    return Checksum.Create(((SerializableSourceText)value).GetContentHash());
-
-                case WellKnownSynchronizationKind.SourceText:
-                    return Checksum.Create(((SourceText)value).GetContentHash());
+                    return Checksum.Create(((SerializableSourceText)value).ContentHash);
 
                 default:
                     // object that is not part of solution is not supported since we don't know what inputs are required to
@@ -148,10 +145,6 @@ internal partial class SerializerService : ISerializerService
                     SerializeSourceText((SerializableSourceText)value, writer, context, cancellationToken);
                     return;
 
-                case WellKnownSynchronizationKind.SourceText:
-                    SerializeSourceText(new SerializableSourceText((SourceText)value), writer, context, cancellationToken);
-                    return;
-
                 case WellKnownSynchronizationKind.SolutionCompilationState:
                     ((SolutionCompilationStateChecksums)value).Serialize(writer);
                     return;
@@ -203,7 +196,6 @@ internal partial class SerializerService : ISerializerService
                 WellKnownSynchronizationKind.MetadataReference => DeserializeMetadataReference(reader, cancellationToken),
                 WellKnownSynchronizationKind.AnalyzerReference => DeserializeAnalyzerReference(reader, cancellationToken),
                 WellKnownSynchronizationKind.SerializableSourceText => SerializableSourceText.Deserialize(reader, _storageService, _textService, cancellationToken),
-                WellKnownSynchronizationKind.SourceText => DeserializeSourceText(reader, cancellationToken),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
         }
@@ -213,7 +205,7 @@ internal partial class SerializerService : ISerializerService
         => _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetRequiredService<IOptionsSerializationService>());
 
     public Checksum CreateParseOptionsChecksum(ParseOptions value)
-        => Checksum.Create(value, this);
+        => Checksum.Create((value, @this: this), static (tuple, writer) => tuple.@this.SerializeParseOptions(tuple.value, writer));
 }
 
 // TODO: convert this to sub class rather than using enum with if statement.

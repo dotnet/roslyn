@@ -80,8 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 NamedTypeSymbol type = c1.GetSpecialType((SpecialType)i);
                 if (i is (int)SpecialType.System_Runtime_CompilerServices_RuntimeFeature or
                          (int)SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute or
-                         (int)SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute or
-                         (int)SpecialType.System_ReadOnlySpan_T)
+                         (int)SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute)
                 {
                     Assert.True(type.IsErrorType()); // Not available
                 }

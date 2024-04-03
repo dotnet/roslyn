@@ -5,14 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
@@ -27,29 +23,6 @@ internal sealed class TestDiagnosticTagProducer<TProvider, TTag>
         IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>>? analyzerMap = null)
     {
         return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TProvider, TTag>(workspace, analyzerMap);
-    }
-
-    internal static async Task<IList<ITagSpan<TTag>>> GetErrorsFromUpdateSource(EditorTestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs, DiagnosticKind diagnosticKind)
-    {
-        var source = new TestDiagnosticUpdateSource();
-
-        var wrapper = new DiagnosticTaggerWrapper<TProvider, TTag>(workspace, updateSource: source);
-
-        var firstDocument = workspace.Documents.First();
-        var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(firstDocument.GetTextBuffer());
-        using var disposable = (IDisposable)tagger;
-
-        var analyzerServer = (MockDiagnosticAnalyzerService)workspace.GetService<IDiagnosticAnalyzerService>();
-        analyzerServer.AddDiagnostics(updateArgs.Diagnostics, diagnosticKind);
-
-        source.RaiseDiagnosticsUpdated(ImmutableArray.Create(updateArgs));
-
-        await wrapper.WaitForTags();
-
-        var snapshot = firstDocument.GetTextBuffer().CurrentSnapshot;
-        var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();
-
-        return spans;
     }
 
     internal static DiagnosticData CreateDiagnosticData(EditorTestHostDocument document, TextSpan span)
@@ -71,16 +44,5 @@ internal sealed class TestDiagnosticTagProducer<TProvider, TTag>
             properties: ImmutableDictionary<string, string?>.Empty,
             location: new DiagnosticDataLocation(new FileLinePositionSpan(document.FilePath, linePosSpan), document.Id),
             language: document.Project.Language);
-    }
-
-    private class TestDiagnosticUpdateSource : IDiagnosticUpdateSource
-    {
-        public void RaiseDiagnosticsUpdated(ImmutableArray<DiagnosticsUpdatedArgs> args)
-        {
-            DiagnosticsUpdated?.Invoke(this, args);
-        }
-
-        public event EventHandler<ImmutableArray<DiagnosticsUpdatedArgs>>? DiagnosticsUpdated;
-        public event EventHandler DiagnosticsCleared { add { } remove { } }
     }
 }

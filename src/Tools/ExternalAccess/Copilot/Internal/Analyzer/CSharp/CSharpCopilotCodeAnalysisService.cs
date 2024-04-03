@@ -3,41 +3,89 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer.CSharp;
 
-internal sealed partial class CSharpCopilotCodeAnalysisService(
-    Lazy<IExternalCopilotCodeAnalysisService> lazyExternalCopilotService,
-    IDiagnosticsRefresher diagnosticsRefresher,
-    VisualStudioCopilotOptionService copilotOptionService) : AbstractCopilotCodeAnalysisService(lazyExternalCopilotService, diagnosticsRefresher)
+[ExportLanguageService(typeof(ICopilotCodeAnalysisService), LanguageNames.CSharp), Shared]
+internal sealed partial class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnalysisService
 {
     private const string CopilotRefineOptionName = "EnableCSharpRefineQuickActionSuggestion";
     private const string CopilotCodeAnalysisOptionName = "EnableCSharpCodeAnalysis";
 
-    public static CSharpCopilotCodeAnalysisService Create(
-        HostLanguageServices languageServices,
-        IDiagnosticsRefresher diagnosticsRefresher,
-        VisualStudioCopilotOptionService copilotOptionService,
-        SVsServiceProvider serviceProvider,
-        IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer)
-    {
-        var lazyExternalCopilotService = new Lazy<IExternalCopilotCodeAnalysisService>(GetExternalService, LazyThreadSafetyMode.PublicationOnly);
-        return new CSharpCopilotCodeAnalysisService(lazyExternalCopilotService, diagnosticsRefresher, copilotOptionService);
+    private readonly Lazy<IExternalCSharpCopilotCodeAnalysisService> _lazyExternalCopilotService;
+    private readonly VisualStudioCopilotOptionService _copilotOptionService;
 
-        IExternalCopilotCodeAnalysisService GetExternalService()
-            => languageServices.GetService<IExternalCopilotCodeAnalysisService>() ?? new ReflectionWrapper(serviceProvider, brokeredServiceContainer);
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpCopilotCodeAnalysisService(
+        [Import(AllowDefault = true)] IExternalCSharpCopilotCodeAnalysisService? externalCopilotService,
+        VisualStudioCopilotOptionService copilotOptionService,
+        IDiagnosticsRefresher diagnosticsRefresher,
+        SVsServiceProvider serviceProvider,
+        IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer
+        ) : base(diagnosticsRefresher)
+    {
+        _lazyExternalCopilotService = new Lazy<IExternalCSharpCopilotCodeAnalysisService>(GetExternalService, LazyThreadSafetyMode.PublicationOnly);
+        _copilotOptionService = copilotOptionService;
+
+        IExternalCSharpCopilotCodeAnalysisService GetExternalService()
+            => externalCopilotService ?? new ReflectionWrapper(serviceProvider, brokeredServiceContainer);
     }
 
     public override Task<bool> IsRefineOptionEnabledAsync()
-        => copilotOptionService.IsCopilotOptionEnabledAsync(CopilotRefineOptionName);
+        => _copilotOptionService.IsCopilotOptionEnabledAsync(CopilotRefineOptionName);
 
     public override Task<bool> IsCodeAnalysisOptionEnabledAsync()
-        => copilotOptionService.IsCopilotOptionEnabledAsync(CopilotCodeAnalysisOptionName);
+        => _copilotOptionService.IsCopilotOptionEnabledAsync(CopilotCodeAnalysisOptionName);
+
+    protected override Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken)
+        => _lazyExternalCopilotService.Value.AnalyzeDocumentAsync(document, span, promptTitle, cancellationToken);
+
+    protected override Task<ImmutableArray<string>> GetAvailablePromptTitlesCoreAsync(Document document, CancellationToken cancellationToken)
+        => _lazyExternalCopilotService.Value.GetAvailablePromptTitlesAsync(document, cancellationToken);
+
+    protected override Task<ImmutableArray<Diagnostic>> GetCachedDiagnosticsCoreAsync(Document document, string promptTitle, CancellationToken cancellationToken)
+        => _lazyExternalCopilotService.Value.GetCachedDiagnosticsAsync(document, promptTitle, cancellationToken);
+
+    protected override Task<bool> IsAvailableCoreAsync(CancellationToken cancellationToken)
+        => _lazyExternalCopilotService.Value.IsAvailableAsync(cancellationToken);
+
+    protected override Task StartRefinementSessionCoreAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken)
+        => _lazyExternalCopilotService.Value.StartRefinementSessionAsync(oldDocument, newDocument, primaryDiagnostic, cancellationToken);
+
+    protected override async Task<ImmutableArray<Diagnostic>> GetDiagnosticsIntersectWithSpanAsync(
+        Document document, IReadOnlyList<Diagnostic> diagnostics, TextSpan span, CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var filteredDiagnostics);
+
+        // The location of Copilot diagnostics is on the method identifier, we'd like to expand the range to include them
+        // if any part of the method intersects with the given span.
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+        foreach (var diagnostic in diagnostics)
+        {
+            var containingMethod = syntaxFacts.GetContainingMethodDeclaration(root, diagnostic.Location.SourceSpan.Start, useFullSpan: false);
+            if (containingMethod?.Span.IntersectsWith(span) is true)
+                filteredDiagnostics.Add(diagnostic);
+        }
+
+        return filteredDiagnostics.ToImmutable();
+    }
 }

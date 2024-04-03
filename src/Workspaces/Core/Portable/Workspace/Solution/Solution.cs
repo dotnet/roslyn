@@ -1536,9 +1536,17 @@ public partial class Solution
     }
 
     internal ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)
-    {
-        return this.SolutionState.GetRelatedDocumentIds(documentId);
-    }
+        => this.SolutionState.GetRelatedDocumentIds(documentId);
+
+    /// <summary>
+    /// Returns one of any of the related documents of <paramref name="documentId"/>.  Importantly, this will never
+    /// return <paramref name="documentId"/> (unlike <see cref="GetRelatedDocumentIds"/> which includes the original
+    /// file in the result).
+    /// </summary>
+    /// <param name="relatedProjectIdHint">A hint on the first project to search when looking for related
+    /// documents.  Must not be the project that <paramref name="documentId"/> is from.</param>
+    internal DocumentId? GetFirstRelatedDocumentId(DocumentId documentId, ProjectId? relatedProjectIdHint)
+        => this.SolutionState.GetFirstRelatedDocumentId(documentId, relatedProjectIdHint);
 
     internal Solution WithNewWorkspace(string? workspaceKind, int workspaceVersion, SolutionServices services)
     {
@@ -1586,9 +1594,10 @@ public partial class Solution
     /// implementation of <see cref="TextExtensions.GetOpenDocumentInCurrentContextWithChanges"/> where if a user has a source
     /// generated file open, we need to make sure everything lines up.
     /// </summary>
-    internal Document WithFrozenSourceGeneratedDocument(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)
+    internal Document WithFrozenSourceGeneratedDocument(
+        SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)
     {
-        var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, text)]);
+        var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, generationDateTime, text)]);
         var newSolution = newCompilationState != _compilationState
             ? new Solution(newCompilationState)
             : this;
@@ -1600,7 +1609,8 @@ public partial class Solution
         return newProject.GetOrCreateSourceGeneratedDocument(newDocumentState);
     }
 
-    internal Solution WithFrozenSourceGeneratedDocuments(ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)> documents)
+    internal Solution WithFrozenSourceGeneratedDocuments(
+        ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)> documents)
     {
         var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments(documents);
         return newCompilationState != _compilationState

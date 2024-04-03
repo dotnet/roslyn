@@ -171,7 +171,7 @@ internal partial class ContainedLanguage
     {
         // we don't actually care what has changed in primary buffer. we just want to re-analyze secondary buffer
         // when primary buffer has changed to update diagnostic positions.
-        _diagnosticAnalyzerService.Reanalyze(this.Workspace, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable(this.ContainedDocument.Id), highPriority: false);
+        _diagnosticAnalyzerService.RequestDiagnosticRefresh();
     }
 
     public string GetFilePathFromBuffers()

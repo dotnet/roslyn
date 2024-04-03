@@ -182,6 +182,8 @@
              types.
         -->
         <Field Name="SourceType" Type="BoundTypeExpression"/>
+        <!-- Member populated during lowering -->
+        <Field Name="GetTypeFromHandle" Type="MethodSymbol" Null="allow"/>
     </Node>
 
     <!-- Like GetType, but for fields. Gets the reflection object for the given field. -->
@@ -196,6 +198,7 @@
       <!-- Non-null type is required for this node kind -->
       <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
       <Field Name="Method" Type="MethodSymbol"/>
+      <Field Name="GetMethodFromHandle" Type="MethodSymbol"/>
     </Node>
 
     <!-- Note: BoundTypeExpressions are NOT required in the bound tree for semantic 

@@ -1404,7 +1404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            MethodSymbol? arrayEmpty = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__Empty) as MethodSymbol;
+            MethodSymbol? arrayEmpty = _compilation.GetSpecialTypeMember(SpecialMember.System_Array__Empty) as MethodSymbol;
             if (arrayEmpty is null) // will be null if Array.Empty<T> doesn't exist in reference assemblies
             {
                 return null;

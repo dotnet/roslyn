@@ -13,27 +13,17 @@ namespace Microsoft.CodeAnalysis.Copilot;
 
 internal static class Extensions
 {
-    public static async Task<ImmutableArray<DiagnosticData>> GetCachedCopilotDiagnosticsAsync(this TextDocument document, TextSpan span, CancellationToken cancellationToken)
-    {
-        var diagnostics = await document.GetCachedCopilotDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
-        if (diagnostics.IsEmpty)
-            return [];
-
-        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        return diagnostics.WhereAsArray(diagnostic => span.IntersectsWith(diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)));
-    }
-
-    public static async Task<ImmutableArray<DiagnosticData>> GetCachedCopilotDiagnosticsAsync(this TextDocument document, CancellationToken cancellationToken)
+    public static async Task<ImmutableArray<DiagnosticData>> GetCachedCopilotDiagnosticsAsync(this TextDocument document, TextSpan? span, CancellationToken cancellationToken)
     {
         if (document is not Document sourceDocument)
-            return ImmutableArray<DiagnosticData>.Empty;
+            return [];
 
         var copilotCodeAnalysisService = sourceDocument.GetLanguageService<ICopilotCodeAnalysisService>();
         if (copilotCodeAnalysisService is null)
-            return ImmutableArray<DiagnosticData>.Empty;
+            return [];
 
         var promptTitles = await copilotCodeAnalysisService.GetAvailablePromptTitlesAsync(sourceDocument, cancellationToken).ConfigureAwait(false);
-        var copilotDiagnostics = await copilotCodeAnalysisService.GetCachedDocumentDiagnosticsAsync(sourceDocument, promptTitles, cancellationToken).ConfigureAwait(false);
+        var copilotDiagnostics = await copilotCodeAnalysisService.GetCachedDocumentDiagnosticsAsync(sourceDocument, span, promptTitles, cancellationToken).ConfigureAwait(false);
         return copilotDiagnostics.SelectAsArray(d => DiagnosticData.Create(d, sourceDocument));
     }
 }

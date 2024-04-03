@@ -94,7 +94,7 @@ internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : LSPCompl
 
     protected abstract IEnumerable<string?> GetExistingTopLevelAttributeValues(TSyntax syntax, string tagName, string attributeName);
 
-    protected abstract IEnumerable<string> GetKeywordNames();
+    protected abstract ImmutableArray<string> GetKeywordNames();
 
     /// <summary>
     /// A temporarily hack that should be removed once/if https://github.com/dotnet/roslyn/issues/53092 is fixed.

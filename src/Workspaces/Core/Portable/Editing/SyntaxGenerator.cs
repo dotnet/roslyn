@@ -1071,6 +1071,14 @@ public abstract class SyntaxGenerator : ILanguageService
     /// </summary>
     internal abstract SyntaxNode RemoveAllComments(SyntaxNode node);
 
+    internal SyntaxNode RemovePrimaryConstructor(SyntaxNode declaration)
+    {
+        var node = GetPrimaryConstructorParameterList(declaration);
+        return RemoveNodes(declaration, node is not null ? [node] : []);
+    }
+
+    internal abstract SyntaxNode? GetPrimaryConstructorParameterList(SyntaxNode declaration);
+
     internal SyntaxNode RemoveLeadingAndTrailingComments(SyntaxNode node)
     {
         return node.WithLeadingTrivia(RemoveCommentLines(node.GetLeadingTrivia()))

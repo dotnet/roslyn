@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 MethodSymbol? lengthMethod;
-                if (TryGetWellKnownTypeMember(fixedInitializer.Syntax, WellKnownMember.System_Array__get_Length, out lengthMethod))
+                if (TryGetSpecialTypeMethod(fixedInitializer.Syntax, SpecialMember.System_Array__get_Length, out lengthMethod))
                 {
                     lengthCall = factory.Call(factory.Local(pinnedTemp), lengthMethod);
                 }

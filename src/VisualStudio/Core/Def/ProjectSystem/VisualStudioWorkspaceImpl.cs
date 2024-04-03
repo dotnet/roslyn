@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -135,7 +136,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             new ExternalErrorDiagnosticUpdateSource(
                 this,
                 exportProvider.GetExportedValue<IDiagnosticAnalyzerService>(),
-                exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>(),
                 exportProvider.GetExportedValue<IGlobalOperationNotificationService>(),
                 exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
                 _threadingContext),

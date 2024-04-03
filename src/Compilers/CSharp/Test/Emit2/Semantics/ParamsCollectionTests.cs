@@ -5724,6 +5724,52 @@ class Program
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72696")]
+        public void BetterOverload_04_Ambiguity()
+        {
+            var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection<T> : IEnumerable<T>
+{
+    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+
+static class ExtensionsA
+{
+    public static void Add<T>(this MyCollection<T> collection, params string[] args) { }
+}
+
+static class ExtensionsB
+{
+    public static void Add<T>(this MyCollection<T> collection, params string[] args) { }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new MyCollection<object>();
+        x.Add("");
+
+        var y = new MyCollection<object> { "" };
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (25,11): error CS0121: The call is ambiguous between the following methods or properties: 'ExtensionsA.Add<T>(MyCollection<T>, params string[])' and 'ExtensionsB.Add<T>(MyCollection<T>, params string[])'
+                //         x.Add("");
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Add").WithArguments("ExtensionsA.Add<T>(MyCollection<T>, params string[])", "ExtensionsB.Add<T>(MyCollection<T>, params string[])").WithLocation(25, 11),
+                // (27,44): error CS0121: The call is ambiguous between the following methods or properties: 'ExtensionsA.Add<T>(MyCollection<T>, params string[])' and 'ExtensionsB.Add<T>(MyCollection<T>, params string[])'
+                //         var y = new MyCollection<object> { "" };
+                Diagnostic(ErrorCode.ERR_AmbigCall, @"""""").WithArguments("ExtensionsA.Add<T>(MyCollection<T>, params string[])", "ExtensionsB.Add<T>(MyCollection<T>, params string[])").WithLocation(27, 44)
+                );
+        }
+
+        [Fact]
         public void GenericInference()
         {
             var src = """
@@ -14878,6 +14924,165 @@ class C1
                 // (16,17): error CS0111: Type 'C1' already defines a member called 'M2' with the same parameter types
                 //     static void M2(params IEnumerable<long> x)
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M2").WithArguments("M2", "C1").WithLocation(16, 17)
+                );
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72098")]
+        [Fact]
+        public void AddMethod_Derived_01()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class Element { }
+
+                class ElementCollection : IEnumerable
+                {
+                    private readonly List<object> _list = new();
+                    public IEnumerator GetEnumerator() => _list.GetEnumerator();
+                    public void Add(Element element) { _list.Add(element); }
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        Test(new Element(), null);
+                    }
+
+                    static void Test(params ElementCollection c)
+                    {
+                        c.Report();
+                    }
+                }
+                """;
+            CompileAndVerify([source, CollectionExpressionTests.s_collectionExtensions], expectedOutput: "[Element, null], ");
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72098")]
+        [Fact]
+        public void AddMethod_Derived_02()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class Base { }
+                class Element : Base { }
+
+                class ElementCollection : IEnumerable<Base>
+                {
+                    private readonly List<Base> _list = new();
+                    public IEnumerator<Base> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    public void Add(Element element) { _list.Add(element); }
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        Test(new Element(), null);
+                    }
+                
+                    static void Test(params ElementCollection c)
+                    {
+                        c.Report();
+                    }
+                }
+                """;
+            CompileAndVerify([source, CollectionExpressionTests.s_collectionExtensions], expectedOutput: "[Element, null], ");
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71240")]
+        [Fact]
+        public void AddMethod_Derived_03()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class Sample<T> : IEnumerable<object[]>
+                {
+                    private readonly List<object[]> _list = new();
+                    IEnumerator<object[]> IEnumerable<object[]>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public void Add(T t) { if (t is object[] o) _list.Add(o); }
+                }
+                """;
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Test(["a"], ["b"], ["c"]);
+                    }
+                
+                    static void Test(params Sample<string[]> s)
+                    {
+                        s.Report();
+                    }
+                }
+                """;
+            CompileAndVerify([sourceA, sourceB1, CollectionExpressionTests.s_collectionExtensions], expectedOutput: "[[a], [b], [c]], ");
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Test("a", null);
+                    }
+                
+                    static void Test(params Sample<string> s)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB2]);
+            comp.VerifyEmitDiagnostics(
+                // (5,14): error CS1503: Argument 1: cannot convert from 'string' to 'object[]'
+                //         Test("a", null);
+                Diagnostic(ErrorCode.ERR_BadArgType, @"""a""").WithArguments("1", "string", "object[]").WithLocation(5, 14)
+                );
+        }
+
+        [Fact]
+        public void AddMethod_Generic_02()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable
+                {
+                    private readonly List<T> _list = new();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public void Add<U>(T t) { _list.Add(t); }
+                }
+                class Program
+                {
+                
+                    static void Test(params MyCollection<object> z)
+                    {
+                    }
+
+                    static void Main()
+                    {
+                        int x = 1;
+                        Test(x);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (12,22): error CS9215: Collection expression type 'MyCollection<object>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //     static void Test(params MyCollection<object> z)
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "params MyCollection<object> z").WithArguments("MyCollection<object>").WithLocation(12, 22),
+                // (19,14): error CS1503: Argument 1: cannot convert from 'int' to 'params MyCollection<object>'
+                //         Test(x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "int", "params MyCollection<object>").WithLocation(19, 14)
                 );
         }
     }

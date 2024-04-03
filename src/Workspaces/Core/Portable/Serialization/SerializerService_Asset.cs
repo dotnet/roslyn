@@ -22,12 +22,6 @@ internal partial class SerializerService
         text.Serialize(writer, context, cancellationToken);
     }
 
-    private SourceText DeserializeSourceText(ObjectReader reader, CancellationToken cancellationToken)
-    {
-        var serializableSourceText = SerializableSourceText.Deserialize(reader, _storageService, _textService, cancellationToken);
-        return serializableSourceText.GetText(cancellationToken);
-    }
-
     private void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -8237,9 +8237,15 @@ End Class
 </compilation>)
             AssertTheseEmitDiagnostics(compilation,
 <errors>
+    BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+    Shared F As Expression(Of D) = Function() New A(Nothing)
+                                              ~~~~~~~~~~~~~~
 BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
     Shared G As Expression(Of D) = Function() M()
                                               ~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+    Shared F As Expression(Of D) = Function() New A(Nothing)
+                                              ~~~~~~~~~~~~~~
 BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
     Shared G As Expression(Of D) = Function() M()
                                               ~~~

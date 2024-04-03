@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (element is BoundCollectionExpressionSpreadElement spreadElement)
                 {
                     Debug.Assert(spreadElement.IteratorBody is { });
-                    var iteratorBody = Binder.GetUnderlyingCollectionExpressionElement(node, ((BoundExpressionStatement)spreadElement.IteratorBody).Expression);
+                    var iteratorBody = Binder.GetUnderlyingCollectionExpressionElement(node, ((BoundExpressionStatement)spreadElement.IteratorBody).Expression, throwOnErrors: true);
                     Debug.Assert(iteratorBody is { });
                     return spreadElement.Update(
                         spreadElement.Expression,
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var result = Binder.GetUnderlyingCollectionExpressionElement(node, (BoundExpression)element);
+                    var result = Binder.GetUnderlyingCollectionExpressionElement(node, (BoundExpression)element, throwOnErrors: true);
                     Debug.Assert(result is { });
                     return result;
                 }

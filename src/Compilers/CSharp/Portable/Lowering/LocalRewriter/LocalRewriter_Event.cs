@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)addRemove != null)
                 {
-                    BoundExpression eventInfo = _factory.New(ctor, _factory.Typeof(node.Event.ContainingType), _factory.Literal(node.Event.MetadataName));
+                    BoundExpression eventInfo = _factory.New(ctor, _factory.Typeof(node.Event.ContainingType, ctor.Parameters[0].Type), _factory.Literal(node.Event.MetadataName));
                     result = _factory.Call(eventInfo, addRemove,
                                           _factory.Convert(addRemove.Parameters[0].Type, rewrittenReceiver),
                                           _factory.Convert(addRemove.Parameters[1].Type, rewrittenArgument));

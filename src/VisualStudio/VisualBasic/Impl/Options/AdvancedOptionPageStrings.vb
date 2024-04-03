@@ -76,14 +76,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_run_code_analysis_in_separate_process As String =
             ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart
 
-        Public ReadOnly Property Option_run_code_analysis_on_dotnet As String =
-            ServicesVSResources.Run_code_analysis_on_latest_dotnet_requires_restart
-
         Public ReadOnly Property Option_DisplayLineSeparators As String =
             BasicVSResources.Show_procedure_line_separators
 
         Public ReadOnly Property Option_Underline_reassigned_variables As String =
             ServicesVSResources.Underline_reassigned_variables
+
+        Public ReadOnly Property Option_Strike_out_obsolete_symbols As String =
+            ServicesVSResources.Strike_out_obsolete_symbols
 
         Public ReadOnly Property Option_Display_all_hints_while_pressing_Alt_F1 As String =
             ServicesVSResources.Display_all_hints_while_pressing_Alt_F1
@@ -257,6 +257,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Show_guides_for_code_level_constructs As String =
             ServicesVSResources.Show_guides_for_code_level_constructs
+
+        Public ReadOnly Property Option_Show_guides_for_comments_and_preprocessor_regions As String =
+            ServicesVSResources.Show_guides_for_comments_and_preprocessor_regions
 
         Public ReadOnly Property Option_Fading As String =
             ServicesVSResources.Fading
