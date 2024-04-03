@@ -40,7 +40,7 @@ internal sealed class CSharpDoWhileLoopStatementProvider() : AbstractConditional
     }
 
     protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
-        => static (node) => node is DoStatementSyntax;
+        => static node => node is DoStatementSyntax;
 
     protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
     {
