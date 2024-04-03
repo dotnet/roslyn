@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using static Microsoft.VisualStudio.Threading.ThreadingTools;
@@ -204,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async Task<bool> IsIncrementalUpdateAsync(
+        private static async Task<bool> IsIncrementalUpdateAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             Solution currentSolution,
@@ -220,6 +221,21 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // if either solution id or file path changed, then we consider it as new solution
             return currentSolution.Id == newSolutionInfo.Id && currentSolution.FilePath == newSolutionInfo.FilePath;
+        }
+
+        private async Task<Solution> GetOrCreateSolutionToUpdateAsync(
+            AssetProvider assetProvider,
+            Checksum solutionChecksum,
+            CancellationToken cancellationToken)
+        {
+            // See if we can just incrementally update the current solution.
+            var currentSolution = this.CurrentSolution;
+            if (await IsIncrementalUpdateAsync(assetProvider, solutionChecksum, currentSolution, cancellationToken).ConfigureAwait(false))
+                return currentSolution;
+
+            // If not, have to create a new, fresh, solution instance to update.
+            var solutionInfo = await assetProvider.CreateSolutionInfoAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            return CreateSolutionFromInfo(solutionInfo);
         }
 
         /// <summary>
@@ -246,7 +262,8 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             try
             {
-                var solutionToUpdate = await GetOrCreateSolutionToUpdateAsync(this.CurrentSolution).ConfigureAwait(false);
+                var solutionToUpdate = await GetOrCreateSolutionToUpdateAsync(
+                    assetProvider, solutionChecksum, cancellationToken).ConfigureAwait(false);
 
                 // Now, bring that solution in line with the snapshot defined by solutionChecksum.
                 var updater = new SolutionCreator(Services.HostServices, assetProvider, solutionToUpdate);
@@ -255,17 +272,6 @@ namespace Microsoft.CodeAnalysis.Remote
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable();
-            }
-
-            async Task<Solution> GetOrCreateSolutionToUpdateAsync(Solution currentSolution)
-            {
-                // See if we can just incrementally update the current solution.
-                if (await IsIncrementalUpdateAsync(assetProvider, solutionChecksum, currentSolution, cancellationToken).ConfigureAwait(false))
-                    return currentSolution;
-
-                // If not, have to create a new, fresh, solution instance to update.
-                var solutionInfo = await assetProvider.CreateSolutionInfoAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-                return CreateSolutionFromInfo(solutionInfo);
             }
         }
 
