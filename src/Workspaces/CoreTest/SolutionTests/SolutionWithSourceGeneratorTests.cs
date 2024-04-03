@@ -838,7 +838,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var frozenWithSingleDocument = project.Solution.WithFrozenSourceGeneratedDocument(
                     identity, DateTime.Now, SourceText.From("// Frozen Document"));
                 Assert.Equal("// Frozen Document", (await frozenWithSingleDocument.GetTextAsync()).ToString());
-                var frozenTree = Assert.Single((await frozenWithSingleDocument.Project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
+                var syntaxTrees = (await frozenWithSingleDocument.Project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees;
+                var frozenTree = Assert.Single(syntaxTrees);
                 Assert.Equal("// Frozen Document", frozenTree.ToString());
             }
         }
