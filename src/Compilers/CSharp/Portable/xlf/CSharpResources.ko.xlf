@@ -267,6 +267,11 @@
         <target state="translated">위치 매개 변수 '{0}'과(와) 일치하려면 레코드 멤버 '{1}'이(가) 유형 '{2}'의 읽을 수 있는 인스턴스 속성 또는 필드여야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRefIterator">
+        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</source>
+        <target state="new">foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
         <target state="new">Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</target>

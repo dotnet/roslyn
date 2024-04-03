@@ -267,6 +267,11 @@
         <target state="translated">El miembro de registro '{0}' debe ser una propiedad de instancia legible o un campo de tipo '{1}' para coincidir con el parámetro posicional '{2}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRefIterator">
+        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</source>
+        <target state="new">foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
         <target state="new">Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</target>

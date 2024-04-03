@@ -806,14 +806,11 @@ class C1
 
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-            comp.VerifyEmitDiagnostics(
-                // (15,9): error CS4013: Instance of type 'C1.S1' cannot be used inside a nested function, query expression, iterator block or async method
+            comp.VerifyDiagnostics(
+                // (15,9): error CS8344: foreach statement cannot operate on enumerators of type 'C1.S1' in async or iterator methods because 'C1.S1' is a ref struct.
                 //         foreach (var i in obj)
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, @"foreach (var i in obj)
-        {
-            await Task.Yield();
-            System.Console.WriteLine(i);
-        }").WithArguments("", "C1.S1").WithLocation(15, 9));
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C1.S1").WithLocation(15, 9)
+            );
         }
 
         [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
@@ -851,7 +848,7 @@ class Program
 
         a();
 
-        // this is valid since C# 13
+        // this is an error
         foreach (var i in new C1())
         {
         }
@@ -879,17 +876,13 @@ class C1
 }
 ";
 
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular12);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+
             comp.VerifyDiagnostics(
-                // (33,9): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (33,9): error CS8344: foreach statement cannot operate on enumerators of type 'C1.S1' in async or iterator methods because 'C1.S1' is a ref struct.
                 //         foreach (var i in new C1())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "foreach").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(33, 9));
-
-            comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.RegularNext);
-            comp.VerifyEmitDiagnostics();
-
-            comp = CreateCompilationWithMscorlibAndSpan(text);
-            comp.VerifyEmitDiagnostics();
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C1.S1").WithLocation(33, 9)
+            );
         }
 
         [Fact]

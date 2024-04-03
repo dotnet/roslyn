@@ -2062,6 +2062,40 @@ public ref struct S
         }
 
         [Fact]
+        public void TestWithPattern_RefStructEnumerator()
+        {
+            var source = """
+                using System.Threading.Tasks;
+                public class C
+                {
+                    public static async Task Main()
+                    {
+                        await foreach (var s in new C())
+                        {
+                        }
+                    }
+                    public Enumerator GetAsyncEnumerator() => new Enumerator();
+                    public ref struct Enumerator
+                    {
+                        public int Current => 0;
+                        public Task<bool> MoveNextAsync() => throw null;
+                    }
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (6,15): error CS8344: foreach statement cannot operate on enumerators of type 'C.Enumerator' in async or iterator methods because 'C.Enumerator' is a ref struct.
+                //         await foreach (var s in new C())
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C.Enumerator").WithLocation(6, 15)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
         public void TestWithPattern_RefReturningCurrent()
         {
             string source = @"

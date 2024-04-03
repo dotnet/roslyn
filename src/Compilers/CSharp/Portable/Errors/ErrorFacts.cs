@@ -1838,6 +1838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_AutoPropsInRoStruct:
                 case ErrorCode.ERR_FieldlikeEventsInRoStruct:
                 case ErrorCode.ERR_RefStructInterfaceImpl:
+                case ErrorCode.ERR_BadSpecialByRefIterator:
                 case ErrorCode.ERR_FieldAutoPropCantBeByRefLike:
                 case ErrorCode.ERR_StackAllocConversionNotPossible:
                 case ErrorCode.ERR_EscapeCall:
