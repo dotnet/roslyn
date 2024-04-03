@@ -126,9 +126,9 @@ internal sealed class SourceGeneratorExecutionVersionMap(ImmutableSegmentedDicti
             => new(builder.ToImmutable());
     }
 
-    public readonly struct Enumerator(ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Enumerator enumerator)
+    public struct Enumerator(ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Enumerator enumerator)
     {
         public bool MoveNext() => enumerator.MoveNext();
-        public (ProjectId projectId, SourceGeneratorExecutionVersion version) Current => (enumerator.Current.Key, enumerator.Current.Value);
+        public readonly (ProjectId projectId, SourceGeneratorExecutionVersion version) Current => (enumerator.Current.Key, enumerator.Current.Value);
     }
 }

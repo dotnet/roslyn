@@ -711,37 +711,30 @@ namespace Microsoft.CodeAnalysis
                 // scratch next time around.
                 var desiredGeneratorInfo = forceRegeneration ? state.GeneratorInfo with { Driver = null } : state.GeneratorInfo;
 
-                // If we're already in the state where we are running generators and skeletons we don't need to do
-                // anything and can just return ourselves. The next request to create the compilation will do so fully,
-                // including running generators.
+                // If we're already in the state where we are running generators and skeletons in the desired fashion
+                // (including forced regeneration) we don't need to do anything and can just return ourselves. The next
+                // request to create the compilation will do so fully, including running generators.
                 if (state.CreationPolicy == desiredCreationPolicy && desiredGeneratorInfo == state.GeneratorInfo)
                     return this;
 
-                InProgressState newState;
-                if (state is InProgressState inProgressState)
+                var newState = state switch
                 {
-                    newState = new InProgressState(
+                    InProgressState inProgressState => new InProgressState(
                         desiredCreationPolicy,
                         inProgressState.LazyCompilationWithoutGeneratedDocuments,
                         desiredGeneratorInfo,
                         inProgressState.LazyStaleCompilationWithGeneratedDocuments,
-                        inProgressState.PendingTranslationActions);
-                }
-                else if (state is FinalCompilationTrackerState finalState)
-                {
+                        inProgressState.PendingTranslationActions),
                     // Transition the final frozen state we have back to an in-progress state that will then compute
                     // generators and skeletons.
-                    newState = new InProgressState(
+                    FinalCompilationTrackerState finalState => new InProgressState(
                         desiredCreationPolicy,
                         finalState.CompilationWithoutGeneratedDocuments,
                         desiredGeneratorInfo,
                         finalState.FinalCompilationWithGeneratedDocuments,
-                        pendingTranslationActions: []);
-                }
-                else
-                {
-                    throw ExceptionUtilities.UnexpectedValue(state.GetType());
-                }
+                        pendingTranslationActions: []),
+                    _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
+                };
 
                 return new CompilationTracker(
                     this.ProjectState,
