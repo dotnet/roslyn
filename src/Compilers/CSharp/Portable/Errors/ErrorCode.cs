@@ -2301,7 +2301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ParamsCollectionMissingConstructor = 9228,
 
         ERR_NoModifiersOnUsing = 9229,
-        ERR_CannotDynamicInvokeOnRefStruct = 9230,
+        ERR_CannotDynamicInvokeOnExpression = 9230,
 
         #endregion
 

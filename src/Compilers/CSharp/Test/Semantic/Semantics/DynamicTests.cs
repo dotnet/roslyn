@@ -4562,9 +4562,9 @@ class C2 : C1
                 """;
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (4,1): error CS9230: Cannot perform a dynamic call on a ref struct 'S'.
+                // (4,1): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
                 // s.M(d);
-                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnRefStruct, "s").WithArguments("S").WithLocation(4, 1)
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(4, 1)
             );
         }
 
@@ -4693,9 +4693,9 @@ class C2 : C1
                 """;
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (4,1): error CS9230: Cannot perform a dynamic call on a ref struct 'S'.
+                // (4,1): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
                 // s.M(d);
-                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnRefStruct, "s").WithArguments("S").WithLocation(4, 1)
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(4, 1)
             );
         }
 
@@ -4718,9 +4718,9 @@ class C2 : C1
                 """;
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (4,1): error CS9230: Cannot perform a dynamic call on a ref struct 'S'.
+                // (4,1): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
                 // s.M(d);
-                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnRefStruct, "s").WithArguments("S").WithLocation(4, 1)
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(4, 1)
             );
         }
 
@@ -4952,12 +4952,12 @@ class C2 : C1
                 """;
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (4,5): error CS9230: Cannot perform a dynamic call on a ref struct 'S'.
+                // (4,5): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
                 // _ = s[d];
-                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnRefStruct, "s").WithArguments("S").WithLocation(4, 5),
-                // (5,1): error CS9230: Cannot perform a dynamic call on a ref struct 'S'.
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(4, 5),
+                // (5,1): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
                 // s[d] = 1;
-                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnRefStruct, "s").WithArguments("S").WithLocation(5, 1)
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "s").WithArguments("S").WithLocation(5, 1)
             );
         }
     }

@@ -14537,9 +14537,9 @@ AppendFormatted");
                 """;
 
             CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
-                // (7,31): error CS9230: Cannot perform a dynamic call on a ref struct 'CustomInterpolationHandler'.
+                // (7,31): error CS9230: Cannot perform a dynamic invocation on an expression with type 'CustomInterpolationHandler'.
                 // Console.WriteLine(Interpolate($"literal" + $"{d}"));
-                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnRefStruct, expression).WithArguments("CustomInterpolationHandler").WithLocation(7, 31)
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, expression).WithArguments("CustomInterpolationHandler").WithLocation(7, 31)
 
             );
         }
@@ -14594,9 +14594,9 @@ AppendFormatted");
                 """;
 
             CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
-                // (7,31): error CS9230: Cannot perform a dynamic call on a ref struct 'CustomInterpolationHandler'.
+                // (7,31): error CS9230: Cannot perform a dynamic invocation on an expression with type 'CustomInterpolationHandler'.
                 // Console.WriteLine(Interpolate($"literal" + $"{d}"));
-                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnRefStruct, expression).WithArguments("CustomInterpolationHandler").WithLocation(7, 31)
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, expression).WithArguments("CustomInterpolationHandler").WithLocation(7, 31)
             );
         }
 

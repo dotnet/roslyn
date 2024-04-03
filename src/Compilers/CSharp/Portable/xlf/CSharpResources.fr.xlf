@@ -327,9 +327,9 @@
         <target state="translated">Impossible de convertir le groupe de &amp;méthodes '{0}' en type délégué '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CannotDynamicInvokeOnRefStruct">
-        <source>Cannot perform a dynamic call on a ref struct '{0}'.</source>
-        <target state="new">Cannot perform a dynamic call on a ref struct '{0}'.</target>
+      <trans-unit id="ERR_CannotDynamicInvokeOnExpression">
+        <source>Cannot perform a dynamic invocation on an expression with type '{0}'.</source>
+        <target state="new">Cannot perform a dynamic invocation on an expression with type '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">

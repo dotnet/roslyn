@@ -380,6 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+#nullable enable
         private BoundExpression BindDynamicInvocation(
             SyntaxNode node,
             BoundExpression expression,
@@ -423,6 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // the runtime binder would ignore the receiver, but in a ctor initializer we can't read "this" before 
                                 // the base constructor is called. We need to handle this as a type qualified static method call.
                                 // Also applicable to things like field initializers, which run before the ctor initializer.
+                                Debug.Assert(ContainingType is not null);
                                 expression = methodGroup.Update(
                                     methodGroup.TypeArgumentsOpt,
                                     methodGroup.Name,
@@ -491,6 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: Compilation.DynamicType,
                 hasErrors: hasErrors);
         }
+#nullable disable
 
         private void CheckNamedArgumentsForDynamicInvocation(AnalyzedArguments arguments, BindingDiagnosticBag diagnostics)
         {
@@ -537,21 +540,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Returns true if there were errors.
+#nullable enable
         private static bool ReportBadDynamicArguments(
             SyntaxNode node,
             BoundExpression? receiver,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKinds,
             BindingDiagnosticBag diagnostics,
-            CSharpSyntaxNode queryClause)
+            CSharpSyntaxNode? queryClause)
         {
             bool hasErrors = false;
             bool reportedBadQuery = false;
 
             if (receiver != null && !IsLegalDynamicOperand(receiver))
             {
-                // Cannot perform a dynamic call on a ref struct '{0}'.
-                Error(diagnostics, ErrorCode.ERR_CannotDynamicInvokeOnRefStruct, receiver.Syntax, receiver.Type);
+                // Cannot perform a dynamic invocation on an expression with type '{0}'.
+                Debug.Assert(receiver.Type is not null);
+                Error(diagnostics, ErrorCode.ERR_CannotDynamicInvokeOnExpression, receiver.Syntax, receiver.Type);
                 hasErrors = true;
             }
 
@@ -602,7 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Lambdas,anonymous methods and method groups are the typeless expressions that
                         // are not usable as dynamic arguments; if we get here then the expression must have a type.
-                        Debug.Assert((object)arg.Type != null);
+                        Debug.Assert((object?)arg.Type != null);
                         // error CS1978: Cannot use an expression of type 'int*' as an argument to a dynamically dispatched operation
 
                         Error(diagnostics, ErrorCode.ERR_BadDynamicMethodArg, arg.Syntax, arg.Type);
@@ -612,6 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return hasErrors;
         }
+#nullable disable
 
         private BoundExpression BindDelegateInvocation(
             SyntaxNode node,

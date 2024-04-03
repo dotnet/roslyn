@@ -7905,7 +7905,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NoModifiersOnUsing" xml:space="preserve">
     <value>Modifiers cannot be placed on using declarations</value>
   </data>
-  <data name="ERR_CannotDynamicInvokeOnRefStruct" xml:space="preserve">
-    <value>Cannot perform a dynamic call on a ref struct '{0}'.</value>
+  <data name="ERR_CannotDynamicInvokeOnExpression" xml:space="preserve">
+    <value>Cannot perform a dynamic invocation on an expression with type '{0}'.</value>
   </data>
 </root>

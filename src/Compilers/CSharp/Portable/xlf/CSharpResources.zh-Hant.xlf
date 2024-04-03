@@ -327,9 +327,9 @@
         <target state="translated">無法將方法群組 '{0}' 轉換成委派類型 '{1}'(&amp;M)。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CannotDynamicInvokeOnRefStruct">
-        <source>Cannot perform a dynamic call on a ref struct '{0}'.</source>
-        <target state="new">Cannot perform a dynamic call on a ref struct '{0}'.</target>
+      <trans-unit id="ERR_CannotDynamicInvokeOnExpression">
+        <source>Cannot perform a dynamic invocation on an expression with type '{0}'.</source>
+        <target state="new">Cannot perform a dynamic invocation on an expression with type '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
