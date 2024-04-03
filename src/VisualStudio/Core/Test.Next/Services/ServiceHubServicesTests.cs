@@ -913,13 +913,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
-        [Fact]
-        internal async Task TestSourceGenerationExecution_FullSolutionChange_Minor()
+        [Theory, CombinatorialData]
+        internal async Task TestSourceGenerationExecution_FullSolutionChange_Minor(SourceGeneratorExecutionPreference sourceGeneratorExecution)
         {
             using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
 
             var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced);
+            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, sourceGeneratorExecution);
 
             // want to access the true workspace solution (which will be a fork of the solution we're producing here).
             var projectId1 = ProjectId.CreateNewId();
@@ -954,13 +954,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMinorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
-        [Fact]
-        internal async Task TestSourceGenerationExecution_FullSolutionChange_Major()
+        [Theory, CombinatorialData]
+        internal async Task TestSourceGenerationExecution_FullSolutionChange_Major(SourceGeneratorExecutionPreference sourceGeneratorExecution)
         {
             using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
 
             var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced);
+            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, sourceGeneratorExecution);
 
             // want to access the true workspace solution (which will be a fork of the solution we're producing here).
             var projectId1 = ProjectId.CreateNewId();
@@ -995,13 +995,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMajorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
-        [Fact]
-        internal async Task TestSourceGenerationExecution_FullSolutionChange_MajorAndMinor()
+        [Theory, CombinatorialData]
+        internal async Task TestSourceGenerationExecution_FullSolutionChange_MajorAndMinor(SourceGeneratorExecutionPreference sourceGeneratorExecution)
         {
             using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
 
             var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced);
+            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, sourceGeneratorExecution);
 
             // want to access the true workspace solution (which will be a fork of the solution we're producing here).
             var projectId1 = ProjectId.CreateNewId();
@@ -1038,13 +1038,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMajorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
-        [Fact]
-        internal async Task TestSourceGenerationExecution_ProjectChange_Minor_1()
+        [Theory, CombinatorialData]
+        internal async Task TestSourceGenerationExecution_ProjectChange_Minor_1(SourceGeneratorExecutionPreference sourceGeneratorExecution)
         {
             using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
 
             var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced);
+            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, sourceGeneratorExecution);
 
             // want to access the true workspace solution (which will be a fork of the solution we're producing here).
             var projectId1 = ProjectId.CreateNewId();
@@ -1080,13 +1080,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
-        [Fact]
-        internal async Task TestSourceGenerationExecution_ProjectChange_Minor_2()
+        [Theory, CombinatorialData]
+        internal async Task TestSourceGenerationExecution_ProjectChange_Minor_2(SourceGeneratorExecutionPreference sourceGeneratorExecution)
         {
             using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
 
             var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced);
+            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, sourceGeneratorExecution);
 
             // want to access the true workspace solution (which will be a fork of the solution we're producing here).
             var projectId1 = ProjectId.CreateNewId();
@@ -1123,13 +1123,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMinorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
-        [Fact]
-        internal async Task TestSourceGenerationExecution_ProjectChange_Minor_3()
+        [Theory, CombinatorialData]
+        internal async Task TestSourceGenerationExecution_ProjectChange_Minor_3(SourceGeneratorExecutionPreference sourceGeneratorExecution)
         {
             using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
 
             var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced);
+            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, sourceGeneratorExecution);
 
             // want to access the true workspace solution (which will be a fork of the solution we're producing here).
             var projectId1 = ProjectId.CreateNewId();
@@ -1166,13 +1166,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMinorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
-        [Fact]
-        internal async Task TestSourceGenerationExecution_ProjectChange_MinorAndMajor1()
+        [Theory, CombinatorialData]
+        internal async Task TestSourceGenerationExecution_ProjectChange_MinorAndMajor1(SourceGeneratorExecutionPreference sourceGeneratorExecution)
         {
             using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
 
             var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced);
+            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, sourceGeneratorExecution);
 
             // want to access the true workspace solution (which will be a fork of the solution we're producing here).
             var projectId1 = ProjectId.CreateNewId();
@@ -1211,13 +1211,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMajorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
-        [Fact]
-        internal async Task TestSourceGenerationExecution_ProjectChange_MinorAndMajor2()
+        [Theory, CombinatorialData]
+        internal async Task TestSourceGenerationExecution_ProjectChange_MinorAndMajor2(SourceGeneratorExecutionPreference sourceGeneratorExecution)
         {
             using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
 
             var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced);
+            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, sourceGeneratorExecution);
 
             // want to access the true workspace solution (which will be a fork of the solution we're producing here).
             var projectId1 = ProjectId.CreateNewId();
@@ -1256,13 +1256,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMajorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
-        [Fact]
-        internal async Task TestSourceGenerationExecution_SolutionAndProjectChange_1()
+        [Theory, CombinatorialData]
+        internal async Task TestSourceGenerationExecution_SolutionAndProjectChange_1(SourceGeneratorExecutionPreference sourceGeneratorExecution)
         {
             using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
 
             var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced);
+            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, sourceGeneratorExecution);
 
             // want to access the true workspace solution (which will be a fork of the solution we're producing here).
             var projectId1 = ProjectId.CreateNewId();
@@ -1299,13 +1299,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMinorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
         }
 
-        [Fact]
-        internal async Task TestSourceGenerationExecution_SolutionAndProjectChange_2()
+        [Theory, CombinatorialData]
+        internal async Task TestSourceGenerationExecution_SolutionAndProjectChange_2(SourceGeneratorExecutionPreference sourceGeneratorExecution)
         {
             using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)]);
 
             var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced);
+            globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, sourceGeneratorExecution);
 
             // want to access the true workspace solution (which will be a fork of the solution we're producing here).
             var projectId1 = ProjectId.CreateNewId();
