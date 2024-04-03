@@ -1139,8 +1139,18 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var currentSolution = workspace.CurrentSolution;
 
-            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId1).IncrementMinorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId1));
-            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMinorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
+            if (sourceGeneratorExecution is SourceGeneratorExecutionPreference.Automatic)
+            {
+                // In automatic mode, nothing should change.
+                Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId1), currentSolution.GetSourceGeneratorExecutionVersion(projectId1));
+                Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
+            }
+            else
+            {
+                // In balanced mode, both projects should update their minor version
+                Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId1).IncrementMinorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId1));
+                Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMinorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
+            }
         }
 
         [Theory, CombinatorialData]
@@ -1183,7 +1193,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var currentSolution = workspace.CurrentSolution;
 
             Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId1), currentSolution.GetSourceGeneratorExecutionVersion(projectId1));
-            Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMinorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
+
+            if (sourceGeneratorExecution is SourceGeneratorExecutionPreference.Automatic)
+            {
+                // In automatic mode, nothing should change.
+                Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
+            }
+            else
+            {
+                // In balanced mode, only the requested project should change.
+                Assert.Equal(initialSolution.GetSourceGeneratorExecutionVersion(projectId2).IncrementMinorVersion(), currentSolution.GetSourceGeneratorExecutionVersion(projectId2));
+            }
         }
 
         [Theory, CombinatorialData]
