@@ -888,7 +888,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 // Should call the generator the first time.
                 Assert.Equal(1, callCount);
 
-                // Because we're forcing regeneration, in balanced mode we should now see two calls to the generator.
+                // Because we're forcing regeneration, in both mode we should now see two calls to the generator.
                 workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
                 await workspace.GetWorkspaceTestAccessor().WaitUntilCurrentSourceGeneratorsBatchCompletesAsync();
 
@@ -900,16 +900,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync();
                 Assert.Single(sourceGeneratedDocuments);
 
-                if (executionPreference is SourceGeneratorExecutionPreference.Automatic)
-                {
-                    Assert.Equal(1, callCount);
-                    Assert.Equal("// generated document 1", sourceGeneratedDocuments.Single().GetTextSynchronously(CancellationToken.None).ToString());
-                }
-                else
-                {
-                    Assert.Equal(2, callCount);
-                    Assert.Equal("// generated document 2", sourceGeneratedDocuments.Single().GetTextSynchronously(CancellationToken.None).ToString());
-                }
+                Assert.Equal(2, callCount);
+                Assert.Equal("// generated document 2", sourceGeneratedDocuments.Single().GetTextSynchronously(CancellationToken.None).ToString());
             }
         }
 
