@@ -424,41 +424,56 @@ namespace Microsoft.CodeAnalysis.CSharp
             return lambda;
         }
 
-        internal static T BindWithLambdaBindingCountDiagnostics<T>(Binder binder, BindingDiagnosticBag diagnostics, Func<Binder, BindingDiagnosticBag, T> bind)
-            where T : BoundNode
+        [ThreadStatic] private static Dictionary<SyntaxNode, int>? s_lambdaBindings;
+
+        internal TResult BindWithLambdaBindingCountDiagnostics<TSyntax, TArg, TResult>(
+            TSyntax syntax,
+            TArg arg,
+            BindingDiagnosticBag diagnostics,
+            Func<Binder, TSyntax, TArg, BindingDiagnosticBag, TResult> bind)
+            where TSyntax : SyntaxNode
+            where TResult : BoundNode
         {
-            var lambdaBindings = new Dictionary<SyntaxNode, int>();
-            var result = bind(new RecordLambdaBindingBinder(binder, lambdaBindings), diagnostics);
+            Debug.Assert(s_lambdaBindings is null);
+            s_lambdaBindings = null;
 
-            var builder = ArrayBuilder<(SyntaxNode, int)>.GetInstance();
-            getLambdaBindingCounts(lambdaBindings, builder);
-
-            foreach (var (syntax, count) in builder)
+            try
             {
-                const int maxLambdaBinding = 100;
-                if (count > maxLambdaBinding)
+                TResult result = bind(this, syntax, arg, diagnostics);
+
+                if (s_lambdaBindings is { })
                 {
-                    int lowerCount = ((count - 1) / 100) * 100;
-                    diagnostics.Add(ErrorCode.INF_TooManyBoundLambdas, Binder.GetAnonymousFunctionLocation(syntax), lowerCount);
-                }
-            }
-
-            builder.Free();
-            return result;
-
-            static void getLambdaBindingCounts(Dictionary<SyntaxNode, int> lambdaBindingCounts, ArrayBuilder<(SyntaxNode, int)> builder)
-            {
-                Debug.Assert(builder.Count == 0);
-
-                foreach (var pair in lambdaBindingCounts)
-                {
-                    builder.Add((pair.Key, pair.Value));
+                    foreach (var pair in s_lambdaBindings)
+                    {
+                        const int maxLambdaBinding = 100;
+                        int count = pair.Value;
+                        if (count > maxLambdaBinding)
+                        {
+                            int lowerCount = ((count - 1) / 100) * 100;
+                            diagnostics.Add(ErrorCode.INF_TooManyBoundLambdas, GetAnonymousFunctionLocation(pair.Key), lowerCount);
+                        }
+                    }
                 }
 
-                builder.Sort((x, y) => getPosition(x.Item1) - getPosition(y.Item1));
+                return result;
             }
+            finally
+            {
+                s_lambdaBindings = null;
+            }
+        }
 
-            static int getPosition(SyntaxNode syntax) => syntax.Location.SourceSpan.Start;
+        internal static void RecordLambdaBinding(SyntaxNode syntax)
+        {
+            s_lambdaBindings ??= new Dictionary<SyntaxNode, int>();
+            if (s_lambdaBindings.TryGetValue(syntax, out int count))
+            {
+                s_lambdaBindings[syntax] = ++count;
+            }
+            else
+            {
+                s_lambdaBindings.Add(syntax, 1);
+            }
         }
     }
 }

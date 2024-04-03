@@ -523,12 +523,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal virtual void RecordLambdaBinding(SyntaxNode syntax)
-        {
-            Debug.Assert(Next is { });
-            Next.RecordLambdaBinding(syntax);
-        }
-
         internal static void Error(BindingDiagnosticBag diagnostics, DiagnosticInfo info, SyntaxNode syntax)
         {
             diagnostics.Add(new CSDiagnostic(info, syntax.Location));

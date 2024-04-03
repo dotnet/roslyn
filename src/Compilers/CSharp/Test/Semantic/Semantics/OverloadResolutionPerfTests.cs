@@ -385,7 +385,7 @@ class Program
         }
 
         [Fact]
-        public void NestedLambdas_03()
+        public void NestedLambdas_MethodBody()
         {
             var source = """
                 #pragma warning disable 649
@@ -418,9 +418,8 @@ class Program
                 Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("1300").WithLocation(17, 23));
         }
 
-        // As above, but from primary constructor.
         [Fact]
-        public void NestedLambdas_04()
+        public void NestedLambdas_FieldInitializer()
         {
             var source = """
                 #pragma warning disable 649

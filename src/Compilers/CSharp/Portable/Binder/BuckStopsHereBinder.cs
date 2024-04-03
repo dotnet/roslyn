@@ -253,9 +253,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return ImmutableHashSet.Create<Symbol>(); }
         }
-
-        internal override void RecordLambdaBinding(SyntaxNode syntax)
-        {
-        }
     }
 }

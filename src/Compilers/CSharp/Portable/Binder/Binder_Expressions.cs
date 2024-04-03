@@ -448,11 +448,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder initializerBinder = this.GetBinder(initializerOpt);
             Debug.Assert(initializerBinder != null);
 
-            BoundExpression result = BindWithLambdaBindingCountDiagnostics(
-                initializerBinder,
-                diagnostics,
-                (initializerBinder, diagnostics) => initializerBinder.BindVariableOrAutoPropInitializerValue(initializerOpt, field.RefKind,
-                                                           field.GetFieldType(initializerBinder.FieldsBeingBound).Type, diagnostics));
+            BoundExpression result = initializerBinder.BindVariableOrAutoPropInitializerValue(initializerOpt, field.RefKind,
+                                                           field.GetFieldType(initializerBinder.FieldsBeingBound).Type, diagnostics);
 
             if (field is { IsStatic: false, RefKind: RefKind.None, ContainingSymbol: SourceMemberContainerTypeSymbol { PrimaryConstructor: { } primaryConstructor } } &&
                 TryGetPrimaryConstructorParameterUsedAsValue(primaryConstructor, result) is (ParameterSymbol parameter, SyntaxNode syntax) &&
