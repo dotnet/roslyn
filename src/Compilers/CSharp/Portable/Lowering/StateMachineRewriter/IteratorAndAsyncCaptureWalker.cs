@@ -202,7 +202,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CaptureVariable(Symbol variable, SyntaxNode syntax)
         {
             var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
-            if (type.IsRestrictedType() || variable is LocalSymbol { RefKind: not RefKind.None, IsCompilerGenerated: false })
+            if (type.IsRestrictedType() ||
+                (variable is LocalSymbol { RefKind: not RefKind.None } refLocal && !canRefLocalBeHoisted(refLocal)))
             {
                 (_lazyDisallowedCaptures ??= new MultiDictionary<Symbol, SyntaxNode>()).Add(variable, syntax);
             }
@@ -210,6 +211,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_variablesToHoist.Add(variable) && variable is LocalSymbol local && _boundRefLocalInitializers.TryGetValue(local, out var variableInitializer))
                     CaptureRefInitializer(variableInitializer, syntax);
+            }
+
+            static bool canRefLocalBeHoisted(LocalSymbol refLocal)
+            {
+                return refLocal.SynthesizedKind == SynthesizedLocalKind.Spill ||
+                    (refLocal.SynthesizedKind == SynthesizedLocalKind.ForEachArray &&
+                        refLocal.Type.HasInlineArrayAttribute(out _) &&
+                        refLocal.Type.TryGetInlineArrayElementField() is not null);
             }
         }
 
