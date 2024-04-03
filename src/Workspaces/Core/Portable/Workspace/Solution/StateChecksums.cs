@@ -125,7 +125,7 @@ internal sealed class SolutionCompilationStateChecksums
             result[this.Checksum] = this;
 
         if (searchingChecksumsLeft.Remove(this.SourceGeneratorExecutionVersionMap))
-            result[this.SourceGeneratorExecutionVersionMap] = Filter(compilationState.SourceGeneratorExecutionVersionMap, projectCone);
+            result[this.SourceGeneratorExecutionVersionMap] = compilationState.SourceGeneratorExecutionVersionMap;
 
         if (searchingChecksumsLeft.Count == 0)
             return;
@@ -168,7 +168,7 @@ internal sealed class SolutionCompilationStateChecksums
 
         return;
 
-        static SourceGeneratorExecutionVersionMap Filter(SourceGeneratorExecutionVersionMap map, ProjectCone? projectCone)
+        static SourceGeneratorExecutionVersionMap FilterToProjectCone(SourceGeneratorExecutionVersionMap map, ProjectCone? projectCone)
         {
             if (projectCone is null)
                 return map;
