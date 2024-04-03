@@ -16,13 +16,13 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-internal sealed class CSharpWhileLoopSnippetProvider : AbstractWhileLoopSnippetProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpWhileLoopSnippetProvider() : AbstractWhileLoopSnippetProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpWhileLoopSnippetProvider()
-    {
-    }
+    public override string Identifier => CSharpSnippetIdentifiers.While;
+
+    public override string Description => FeaturesResources.while_loop;
 
     protected override SyntaxNode GetCondition(SyntaxNode node)
     {

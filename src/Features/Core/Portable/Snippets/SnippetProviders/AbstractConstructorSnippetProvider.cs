@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
 internal abstract class AbstractConstructorSnippetProvider : AbstractSingleChangeSnippetProvider
 {
-    public override string Identifier => "ctor";
+    public override string Identifier => CommonSnippetIdentifiers.Constructor;
 
     public override string Description => FeaturesResources.constructor;
 

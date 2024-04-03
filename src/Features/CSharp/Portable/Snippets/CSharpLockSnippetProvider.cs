@@ -17,15 +17,11 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-internal sealed class CSharpLockSnippetProvider : AbstractLockSnippetProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpLockSnippetProvider() : AbstractLockSnippetProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpLockSnippetProvider()
-    {
-    }
-
-    public override string Identifier => "lock";
+    public override string Identifier => CSharpSnippetIdentifiers.Lock;
 
     public override string Description => CSharpFeaturesResources.lock_statement;
 

@@ -18,7 +18,9 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-internal sealed class CSharpEnumSnippetProvider : AbstractCSharpTypeSnippetProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpEnumSnippetProvider() : AbstractCSharpTypeSnippetProvider
 {
     private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
@@ -29,13 +31,8 @@ internal sealed class CSharpEnumSnippetProvider : AbstractCSharpTypeSnippetProvi
         SyntaxKind.FileKeyword,
     };
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpEnumSnippetProvider()
-    {
-    }
+    public override string Identifier => CSharpSnippetIdentifiers.Enum;
 
-    public override string Identifier => "enum";
     public override string Description => FeaturesResources.enum_;
 
     protected override ISet<SyntaxKind> ValidModifiers => s_validModifiers;

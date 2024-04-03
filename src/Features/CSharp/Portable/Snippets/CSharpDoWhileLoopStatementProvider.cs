@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpDoWhileLoopStatementProvider() : AbstractConditionalBlockSnippetProvider
 {
-    public override string Identifier => "do";
+    public override string Identifier => CSharpSnippetIdentifiers.Do;
 
     public override string Description => CSharpFeaturesResources.do_while_loop;
 

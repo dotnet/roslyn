@@ -24,7 +24,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-internal sealed class CSharpConstructorSnippetProvider : AbstractConstructorSnippetProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpConstructorSnippetProvider() : AbstractConstructorSnippetProvider
 {
     private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
@@ -34,12 +36,6 @@ internal sealed class CSharpConstructorSnippetProvider : AbstractConstructorSnip
         SyntaxKind.InternalKeyword,
         SyntaxKind.StaticKeyword,
     };
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpConstructorSnippetProvider()
-    {
-    }
 
     protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
     {

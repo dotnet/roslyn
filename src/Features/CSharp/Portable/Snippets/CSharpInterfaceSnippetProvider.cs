@@ -18,7 +18,9 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-internal sealed class CSharpInterfaceSnippetProvider : AbstractCSharpTypeSnippetProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpInterfaceSnippetProvider() : AbstractCSharpTypeSnippetProvider
 {
     private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
@@ -30,13 +32,7 @@ internal sealed class CSharpInterfaceSnippetProvider : AbstractCSharpTypeSnippet
         SyntaxKind.FileKeyword,
     };
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpInterfaceSnippetProvider()
-    {
-    }
-
-    public override string Identifier => "interface";
+    public override string Identifier => CSharpSnippetIdentifiers.Interface;
 
     public override string Description => FeaturesResources.interface_;
 
