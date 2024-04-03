@@ -707,10 +707,14 @@ namespace Microsoft.CodeAnalysis
                 if (state is null)
                     return this;
 
+                // If we're forcing regeneration then we have to drop whatever driver we have so that we'll start from
+                // scratch next time around.
+                var desiredGeneratorInfo = forceRegeneration ? state.GeneratorInfo with { Driver = null } : state.GeneratorInfo;
+
                 // If we're already in the state where we are running generators and skeletons we don't need to do
                 // anything and can just return ourselves. The next request to create the compilation will do so fully,
                 // including running generators.
-                if (state.CreationPolicy == desiredCreationPolicy)
+                if (state.CreationPolicy == desiredCreationPolicy && desiredGeneratorInfo == state.GeneratorInfo)
                     return this;
 
                 InProgressState newState;
@@ -719,7 +723,7 @@ namespace Microsoft.CodeAnalysis
                     newState = new InProgressState(
                         desiredCreationPolicy,
                         inProgressState.LazyCompilationWithoutGeneratedDocuments,
-                        forceRegeneration ? inProgressState.GeneratorInfo with { Driver = null } : inProgressState.GeneratorInfo,
+                        desiredGeneratorInfo,
                         inProgressState.LazyStaleCompilationWithGeneratedDocuments,
                         inProgressState.PendingTranslationActions);
                 }
@@ -730,7 +734,7 @@ namespace Microsoft.CodeAnalysis
                     newState = new InProgressState(
                         desiredCreationPolicy,
                         finalState.CompilationWithoutGeneratedDocuments,
-                        forceRegeneration ? finalState.GeneratorInfo with { Driver = null } : finalState.GeneratorInfo,
+                        desiredGeneratorInfo,
                         finalState.FinalCompilationWithGeneratedDocuments,
                         pendingTranslationActions: []);
                 }
