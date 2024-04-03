@@ -137,7 +137,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // Ensure remote workspace is in sync with normal workspace.
             var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
             var solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
-            await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
+            await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, CancellationToken.None);
 
             var callback = new DesignerAttributeComputerCallback();
 
@@ -188,7 +188,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // Ensure remote workspace is in sync with normal workspace.
             var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
             var solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
-            await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
+            await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, CancellationToken.None);
 
             var callback = new DesignerAttributeComputerCallback();
 
@@ -359,9 +359,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var remoteWorkspace = new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());
 
             // this shouldn't throw exception
-            var (solution, updated) = await remoteWorkspace.GetTestAccessor().TryUpdateWorkspaceCurrentSolutionAsync(
-                remoteWorkspace.GetTestAccessor().CreateSolutionFromInfo(solutionInfo), workspaceVersion: 1);
-            Assert.True(updated);
+            var solution = await remoteWorkspace.GetTestAccessor().UpdateWorkspaceCurrentSolutionAsync(
+                remoteWorkspace.GetTestAccessor().CreateSolutionFromInfo(solutionInfo));
             Assert.NotNull(solution);
         }
 
@@ -828,10 +827,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private static async Task UpdatePrimaryWorkspace(RemoteHostClient client, Solution solution)
         {
-            var workspaceVersion = solution.WorkspaceVersion;
             await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
                 solution,
-                async (service, solutionInfo, cancellationToken) => await service.SynchronizePrimaryWorkspaceAsync(solutionInfo, workspaceVersion, cancellationToken),
+                async (service, solutionInfo, cancellationToken) => await service.SynchronizePrimaryWorkspaceAsync(solutionInfo, cancellationToken),
                 CancellationToken.None);
         }
 
