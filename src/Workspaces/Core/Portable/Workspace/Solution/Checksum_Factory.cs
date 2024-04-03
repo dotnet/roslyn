@@ -58,6 +58,7 @@ internal readonly partial record struct Checksum
     public static Checksum Create<T>(T @object, Action<T, ObjectWriter> writeObject)
     {
         using var stream = SerializableBytes.CreateWritableStream();
+
         using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
         {
             writeObject(@object, objectWriter);
