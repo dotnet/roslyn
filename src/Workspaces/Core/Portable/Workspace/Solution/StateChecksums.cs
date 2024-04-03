@@ -165,23 +165,6 @@ internal sealed class SolutionCompilationStateChecksums
             Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(projectCone.RootProjectId, out var solutionChecksums));
             await solutionChecksums.FindAsync(solutionState, projectCone, assetHint, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
         }
-
-        return;
-
-        static SourceGeneratorExecutionVersionMap FilterToProjectCone(SourceGeneratorExecutionVersionMap map, ProjectCone? projectCone)
-        {
-            if (projectCone is null)
-                return map;
-
-            var builder = map.ToBuilder();
-            foreach (var (projectId, _) in map)
-            {
-                if (!projectCone.Contains(projectId))
-                    builder.Remove(projectId);
-            }
-
-            return builder.ToImmutable();
-        }
     }
 }
 
