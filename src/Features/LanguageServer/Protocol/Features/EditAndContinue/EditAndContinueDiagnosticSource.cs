@@ -2,19 +2,77 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 internal sealed class EditAndContinueDiagnosticSource
 {
-    public static async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Document designTimeDocument, CancellationToken cancellationToken)
+    private sealed class ClosedDocumentSource(TextDocument document, ImmutableArray<DiagnosticData> diagnostics) : AbstractWorkspaceDocumentDiagnosticSource(document)
+    {
+        public override bool IsLiveSource()
+            => true;
+
+        public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
+            => Task.FromResult(diagnostics);
+    }
+
+    private sealed class ProjectSource(Project project, ImmutableArray<DiagnosticData> diagnostics) : AbstractProjectDiagnosticSource(project)
+    {
+        public override bool IsLiveSource()
+            => true;
+
+        public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
+            => Task.FromResult(diagnostics);
+    }
+
+    public static async ValueTask AddWorkspaceDiagnosticSourcesAsync(ArrayBuilder<IDiagnosticSource> sources, Solution solution, Func<Document, bool> isDocumentOpen, CancellationToken cancellationToken)
+    {
+        // avoid creating and synchronizing compile-time solution if Hot Reload/EnC session is not active
+        if (solution.Services.GetRequiredService<IEditAndContinueWorkspaceService>().SessionTracker is not { IsSessionActive: true } sessionStateTracker)
+        {
+            return;
+        }
+
+        var applyDiagnostics = sessionStateTracker.ApplyChangesDiagnostics;
+
+        var dataByDocument = from data in applyDiagnostics
+                             where data.DocumentId != null
+                             group data by data.DocumentId into documentData
+                             select documentData;
+
+        // diagnostics associated with closed documents:
+        foreach (var (documentId, diagnostics) in dataByDocument)
+        {
+            var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            if (document != null && !isDocumentOpen(document))
+            {
+                sources.Add(new ClosedDocumentSource(document, diagnostics.ToImmutableArray()));
+            }
+        }
+
+        // diagnostics not associated with a document:
+        sources.AddRange(
+            from data in applyDiagnostics
+            where data.DocumentId == null && data.ProjectId != null
+            group data by data.ProjectId into projectData
+            let project = solution.GetProject(projectData.Key)
+            where project != null
+            select new ProjectSource(project, projectData.ToImmutableArray()));
+    }
+
+    public static async Task<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(Document designTimeDocument, CancellationToken cancellationToken)
     {
         var designTimeSolution = designTimeDocument.Project.Solution;
         var services = designTimeSolution.Services;
@@ -25,7 +83,7 @@ internal sealed class EditAndContinueDiagnosticSource
             return [];
         }
 
-        var applyDiagnostics = sessionStateTracker.ApplyChangesDiagnostics;
+        var applyDiagnostics = sessionStateTracker.ApplyChangesDiagnostics.WhereAsArray(static (data, id) => data.DocumentId == id, designTimeDocument.Id);
 
         var compileTimeSolution = services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(designTimeSolution);
 

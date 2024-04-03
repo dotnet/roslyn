@@ -40,7 +40,7 @@ internal sealed class DocumentDiagnosticSource(DiagnosticKind diagnosticKind, Te
 
             if (Document is Document document)
             {
-                var encDiagnostics = await EditAndContinueDiagnosticSource.GetDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
+                var encDiagnostics = await EditAndContinueDiagnosticSource.GetDocumentDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
                 allSpanDiagnostics = allSpanDiagnostics.AddRange(encDiagnostics);
             }
         }
