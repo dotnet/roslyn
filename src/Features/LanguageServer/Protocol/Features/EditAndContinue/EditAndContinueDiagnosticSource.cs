@@ -39,7 +39,6 @@ internal sealed class EditAndContinueDiagnosticSource
 
     public static async ValueTask AddWorkspaceDiagnosticSourcesAsync(ArrayBuilder<IDiagnosticSource> sources, Solution solution, Func<Document, bool> isDocumentOpen, CancellationToken cancellationToken)
     {
-        // avoid creating and synchronizing compile-time solution if Hot Reload/EnC session is not active
         if (solution.Services.GetRequiredService<IEditAndContinueWorkspaceService>().SessionTracker is not { IsSessionActive: true } sessionStateTracker)
         {
             return;

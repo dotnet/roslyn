@@ -78,8 +78,8 @@ internal sealed class EditAndContinueLanguageService(
     private Solution GetCurrentDesignTimeSolution()
         => workspaceProvider.Value.Workspace.CurrentSolution;
 
-    private Solution GetCurrentCompileTimeSolution(Solution? currentDesignTimeSolution = null)
-        => Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(currentDesignTimeSolution ?? GetCurrentDesignTimeSolution());
+    private Solution GetCurrentCompileTimeSolution(Solution currentDesignTimeSolution)
+        => Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(currentDesignTimeSolution);
 
     private RemoteDebuggingSessionProxy GetDebuggingSession()
         => _debuggingSession ?? throw new NoSessionException();
@@ -164,7 +164,7 @@ internal sealed class EditAndContinueLanguageService(
         try
         {
             var session = GetDebuggingSession();
-            var solution = (inBreakState == true) ? GetCurrentCompileTimeSolution() : null;
+            var solution = (inBreakState == true) ? GetCurrentCompileTimeSolution(GetCurrentDesignTimeSolution()) : null;
 
             await session.BreakStateOrCapabilitiesChangedAsync(inBreakState, cancellationToken).ConfigureAwait(false);
 
