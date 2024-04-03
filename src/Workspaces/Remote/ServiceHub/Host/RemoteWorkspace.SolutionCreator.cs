@@ -120,6 +120,10 @@ namespace Microsoft.CodeAnalysis.Remote
                         var newVersions = await _assetProvider.GetAssetAsync<SourceGeneratorExecutionVersionMap>(
                             assetHint: AssetHint.None, newSolutionCompilationChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
 
+                        // The execution version map will be for the entire solution on the host side.  However, we may
+                        // only be syncing over a partial cone.  In that case, filter down the version map we apply to
+                        // the local solution to only be for that cone as well.
+                        newVersions = FilterToProjectCone(newVersions, newSolutionChecksums.ProjectCone);
                         solution = solution.WithSourceGeneratorExecutionVersions(newVersions, cancellationToken);
                     }
 
@@ -133,6 +137,21 @@ namespace Microsoft.CodeAnalysis.Remote
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable();
+                }
+
+                static SourceGeneratorExecutionVersionMap FilterToProjectCone(SourceGeneratorExecutionVersionMap map, ProjectCone? projectCone)
+                {
+                    if (projectCone is null)
+                        return map;
+
+                    var builder = map.ToBuilder();
+                    foreach (var (projectId, _) in map)
+                    {
+                        if (!projectCone.Contains(projectId))
+                            builder.Remove(projectId);
+                    }
+
+                    return builder.ToImmutable();
                 }
             }
 
