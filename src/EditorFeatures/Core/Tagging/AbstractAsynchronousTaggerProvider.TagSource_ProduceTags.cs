@@ -170,20 +170,24 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
         private void EnqueueWork(bool highPriority)
         {
-            // We're enqueuing another request to do lightweight frozen-partial tagging.  Stop any expensive non-frozen
-            // tagging pass currently in progress.  It will get re-enqueues after this next frozen partial pass finishes.
-            _nonFrozenComputationCancellationSeries.CreateNext();
 
-            EnqueueWork(highPriority, _dataSource.SupportsFrozenPartialSemantics, nonFrozenComputationToken: null);
+            EnqueueWork(highPriority, _dataSource.SupportsFrozenPartialSemantics);
         }
 
-        private void EnqueueWork(bool highPriority, bool frozenPartialSemantics, CancellationToken? nonFrozenComputationToken)
+        private void EnqueueWork(bool highPriority, bool frozenPartialSemantics)
         {
-            // If we support frozen partial semantics, but this is the request to do expensive work, then this must come
-            // with an associated cancellation token to cancel this work
-            if (_dataSource.SupportsFrozenPartialSemantics && !frozenPartialSemantics)
+            // Cancellation token if this expensive work that we want to be cancellable when cheap work comes in.
+            CancellationToken? nonFrozenComputationToken = null;
+
+            if (_dataSource.SupportsFrozenPartialSemantics)
             {
-                Contract.ThrowIfNull(nonFrozenComputationToken);
+                // We do support frozen partial work.  Cancel any expensive work in flight as new work has come in.
+                var nextToken = _nonFrozenComputationCancellationSeries.CreateNext();
+
+                // If this is new work *is* the expensive work, then use this token to allow cancellation of it when
+                // more new work comes in.
+                if (!frozenPartialSemantics)
+                    nonFrozenComputationToken = nextToken;
             }
 
             _eventChangeQueue.AddWork(
@@ -369,7 +373,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // mode again, kicking the can down the road to finally end with non-frozen-partial computation
                 if (frozenPartialSemantics)
                 {
-                    this.EnqueueWork(highPriority, frozenPartialSemantics: false, _nonFrozenComputationCancellationSeries.CreateNext(CancellationToken.None));
+                    this.EnqueueWork(highPriority, frozenPartialSemantics: false);
                 }
             }
         }
