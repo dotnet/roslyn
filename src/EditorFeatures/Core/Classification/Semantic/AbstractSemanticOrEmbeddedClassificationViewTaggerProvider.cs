@@ -98,15 +98,20 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
         if (isLspSemanticTokensEnabled)
             return Task.CompletedTask;
 
-        // Don't block getting classifications on building the full compilation.  This may take a significant amount
-        // of time and can cause a very latency sensitive operation (copying) to block the user while we wait on this
-        // work to happen.  
+        // Because of the `SupportsFrozenPartialSemantics => true` property above, we'll do classification in two
+        // passes.  In the first pass we do not block getting classifications on building the full compilation.  This
+        // may take a significant amount of time and can cause a very latency sensitive operation (copying) to block the
+        // user while we wait on this work to happen.  
         //
         // It's also a better experience to get classifications to the user faster versus waiting a potentially large
         // amount of time waiting for all the compilation information to be built.  For example, we can classify types
-        // that we've parsed in other files, or partially loaded from metadata, even if we're still parsing/loading.
-        // For cross language projects, this also produces semantic classifications more quickly as we do not have to
-        // wait on skeletons to be built.
+        // that we've parsed in other files, or partially loaded from metadata, even if we're still parsing/loading. For
+        // cross language projects, this also produces semantic classifications more quickly as we do not have to wait
+        // on skeletons to be built.
+        //
+        // In the second pass though, we will go and do things without frozen-partial semantics, so that we do always
+        // snap to a final correct state.  Note: the expensive second pass will be kicked down the road as new events
+        // come in to classify things.
         var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language) with
         {
             FrozenPartialSemantics = context.FrozenPartialSemantics,
