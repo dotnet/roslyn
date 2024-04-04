@@ -243,7 +243,12 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             await task.ConfigureAwait(false);
             var resultProperty = task.GetType().GetProperty("Result") ?? throw new InvalidOperationException("Result property on task cannot be null");
             var result = resultProperty.GetValue(task);
-            return result is not null ? JToken.FromObject(result, _target._jsonSerializer) : null;
+            if (result is null || result == NoValue.Instance)
+            {
+                return null;
+            }
+
+            return JToken.FromObject(result, _target._jsonSerializer);
         }
 
         private static object DeserializeRequest(JToken? request, RequestHandlerMetadata metadata, JsonSerializer jsonSerializer)

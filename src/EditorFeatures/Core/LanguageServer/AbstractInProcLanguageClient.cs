@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 

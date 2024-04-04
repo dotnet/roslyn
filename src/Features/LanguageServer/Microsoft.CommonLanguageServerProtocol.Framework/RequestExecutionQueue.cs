@@ -308,6 +308,16 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
     }
 
     /// <summary>
+    /// Allows XAML to inspect the request before its dispatched.
+    /// Should not generally be used, this will be replaced by the OOP XAML server.
+    /// </summary>
+    [Obsolete("Only for use by legacy XAML LSP")]
+    protected internal virtual void BeforeRequest<TRequest>(TRequest request)
+    {
+        return;
+    }
+
+    /// <summary>
     /// Choose the method handler for the given request. By default this calls the <see cref="AbstractHandlerProvider"/>.
     /// </summary>
     protected virtual IMethodHandler GetHandlerForRequest(IQueueItem<TRequestContext> work)
