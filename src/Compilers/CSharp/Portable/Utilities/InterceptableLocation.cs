@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.Cci;
 using Roslyn.Utilities;
 
@@ -99,6 +100,57 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
                 return Convert.ToBase64String(bytes);
             }
         }
+    }
+
+    internal static (ImmutableArray<byte> checksum, int position, string displayFileName)? Decode(string? data, Location diagnosticLocation, BindingDiagnosticBag diagnostics)
+    {
+        if (data is null)
+        {
+            diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, diagnosticLocation);
+            return null;
+        }
+
+        byte[] bytes;
+        try
+        {
+            bytes = Convert.FromBase64String(data);
+        }
+        catch (FormatException)
+        {
+            diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, diagnosticLocation);
+            return null;
+        }
+
+        // format:
+        // - 16 bytes of target file content hash (xxHash128)
+        // - int32 position (little endian)
+        // - utf-8 display filename
+        const int hashIndex = 0;
+        const int hashSize = 16;
+        const int positionIndex = hashIndex + hashSize;
+        const int positionSize = sizeof(int);
+        const int displayNameIndex = positionIndex + positionSize;
+        const int minLength = displayNameIndex;
+
+        if (bytes.Length < minLength)
+        {
+            diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, diagnosticLocation);
+            return null;
+        }
+
+        var hash = bytes.AsMemory(start: hashIndex, length: hashSize);
+        var position = BinaryPrimitives.ReadInt32LittleEndian(bytes.AsSpan(start: positionIndex));
+
+        // https://learn.microsoft.com/en-us/dotnet/api/system.text.encoding.utf8?view=net-8.0#remarks states:
+        // > `Encoding.UTF8` returns a UTF8Encoding object that uses replacement fallback to replace each string that it can't encode and each byte that it can't decode with a question mark ("?") character.
+        //
+        // If these assertions are violated, it means the encoder may throw for invalid UTF-8 sequences, which we don't expect.
+        // In this case we would either need to adjust the code to start handling ArgumentException from GetString, or create a static UTF8 decoder with non-throwing behavior.
+        Debug.Assert(Encoding.UTF8.DecoderFallback is DecoderReplacementFallback);
+        Debug.Assert(Encoding.UTF8.IsReadOnly);
+        string displayFileName = Encoding.UTF8.GetString(bytes, index: displayNameIndex, count: bytes.Length - displayNameIndex);
+
+        return (hash, position, displayFileName);
     }
 
     // Note: the goal of implementing equality here is so that incremental state tables etc. can detect and use it.
