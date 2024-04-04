@@ -2286,7 +2286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CollectionExpressionMissingAdd = 9215,
 
         WRN_ConvertingLock = 9216,
-        // 9217 available for reuse
+        ERR_RefLocalAcrossAwait = 9217,
 
         ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections = 9218,
         ERR_ParamsCollectionAmbiguousDynamicArgument = 9219,

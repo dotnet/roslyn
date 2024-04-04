@@ -3897,16 +3897,16 @@ public ref struct S
     public bool P2 => true;
 }
 ";
-            CreateCompilation(source, options: TestOptions.DebugDll).VerifyDiagnostics().VerifyEmitDiagnostics(
-                // (9,17): error CS4013: Instance of type 'S' cannot be used inside a nested function, query expression, iterator block or async method
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,17): error CS4007: Instance of type 'S' cannot be preserved across 'await' or 'yield' boundary.
                 //             Q { F: { P1: true } } when await c => r, // error: cached Q.F is alive
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "F").WithArguments("", "S").WithLocation(9, 17)
-                );
-            CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics().VerifyEmitDiagnostics(
-                // (9,17): error CS4013: Instance of type 'S' cannot be used inside a nested function, query expression, iterator block or async method
-                //             Q { F: { P1: true } } when await c => r, // error: cached Q.F is alive
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "F").WithArguments("", "S").WithLocation(9, 17)
-                );
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "F").WithArguments("S").WithLocation(9, 17)
+            };
+
+            CreateCompilation(source, options: TestOptions.DebugDll).VerifyDiagnostics().VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics().VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Fact]

@@ -3446,9 +3446,9 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilation([source, LockTypeDefinition]).VerifyEmitDiagnostics(
-            // (9,15): error CS4013: Instance of type 'Lock.Scope' cannot be used inside a nested function, query expression, iterator block or async method
+            // (9,15): error CS4007: Instance of type 'System.Threading.Lock.Scope' cannot be preserved across 'await' or 'yield' boundary.
             //         lock (new Lock())
-            Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "new Lock()").WithArguments("", "System.Threading.Lock.Scope").WithLocation(9, 15));
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new Lock()").WithArguments("System.Threading.Lock.Scope").WithLocation(9, 15));
     }
 
     [Fact]
@@ -3555,9 +3555,9 @@ public class LockTests : CSharpTestBase
             }
             """;
         CreateCompilationWithTasksExtensions([source, LockTypeDefinition, AsyncStreamsTypes]).VerifyEmitDiagnostics(
-            // (10,15): error CS4013: Instance of type 'Lock.Scope' cannot be used inside a nested function, query expression, iterator block or async method
+            // (10,15): error CS4007: Instance of type 'System.Threading.Lock.Scope' cannot be preserved across 'await' or 'yield' boundary.
             //         lock (new Lock())
-            Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "new Lock()").WithArguments("", "System.Threading.Lock.Scope").WithLocation(10, 15));
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new Lock()").WithArguments("System.Threading.Lock.Scope").WithLocation(10, 15));
     }
 
     [Fact]

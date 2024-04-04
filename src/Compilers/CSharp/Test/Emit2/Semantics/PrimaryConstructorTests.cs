@@ -20414,10 +20414,10 @@ class C1(string p1)
                 Diagnostic(ErrorCode.ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny, "a").WithArguments("System.ArgIterator").WithLocation(7, 13),
                 // (16,37): error CS4013: Instance of type 'ArgIterator' cannot be used inside a nested function, query expression, iterator block or async method
                 //         System.Action d = () => _ = b;
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "b").WithArguments("", "System.ArgIterator").WithLocation(16, 37),
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "b").WithArguments("System.ArgIterator").WithLocation(16, 37),
                 // (23,33): error CS4013: Instance of type 'ArgIterator' cannot be used inside a nested function, query expression, iterator block or async method
                 //     System.Action d = () => _ = c;
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "c").WithArguments("", "System.ArgIterator").WithLocation(23, 33)
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "c").WithArguments("System.ArgIterator").WithLocation(23, 33)
                 );
         }
 

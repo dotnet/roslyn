@@ -622,6 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
                 case ErrorCode.ERR_PossibleAsyncIteratorWithoutYield:
                 case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
+                case ErrorCode.ERR_RefLocalAcrossAwait:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
                     return true;

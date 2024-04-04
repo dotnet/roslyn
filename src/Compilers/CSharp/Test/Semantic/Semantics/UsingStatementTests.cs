@@ -1157,9 +1157,9 @@ class C2
                 """;
             var compilation = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             compilation.VerifyEmitDiagnostics(
-                // 0.cs(14,25): error CS4013: Instance of type 'S1' cannot be used inside a nested function, query expression, iterator block or async method
+                // 0.cs(14,25): error CS4007: Instance of type 'S1' cannot be preserved across 'await' or 'yield' boundary.
                 //         await using (S1 c = new S1())
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "c = new S1()").WithArguments("", "S1").WithLocation(14, 25));
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "c").WithArguments("S1").WithLocation(14, 25));
         }
 
         [Fact]

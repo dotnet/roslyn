@@ -3810,7 +3810,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>__arglist is not allowed in the parameter list of async methods</value>
   </data>
   <data name="ERR_ByRefTypeAndAwait" xml:space="preserve">
-    <value>'await' cannot be used in an expression containing the type '{0}'</value>
+    <value>Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.</value>
   </data>
   <data name="ERR_UnsafeAsyncArgType" xml:space="preserve">
     <value>Async methods cannot have pointer type parameters</value>
@@ -4188,7 +4188,7 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>Indexed property '{0}' must have all arguments optional</value>
   </data>
   <data name="ERR_SpecialByRefInLambda" xml:space="preserve">
-    <value>Instance of type '{0}{1}' cannot be used inside a nested function, query expression, iterator block or async method</value>
+    <value>Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</value>
   </data>
   <data name="ERR_SecurityAttributeMissingAction" xml:space="preserve">
     <value>First argument to a security attribute must be a valid SecurityAction</value>
@@ -7895,5 +7895,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureRefUnsafeInIteratorAsync" xml:space="preserve">
     <value>ref and unsafe in async and iterator methods</value>
+  </data>
+  <data name="ERR_RefLocalAcrossAwait" xml:space="preserve">
+    <value>A 'ref' local cannot be preserved across 'await' or 'yield' boundary.</value>
   </data>
 </root>

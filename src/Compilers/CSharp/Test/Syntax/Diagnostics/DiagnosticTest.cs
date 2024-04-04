@@ -2978,6 +2978,7 @@ class Program
                     case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
                     case ErrorCode.ERR_PossibleAsyncIteratorWithoutYield:
                     case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
+                    case ErrorCode.ERR_RefLocalAcrossAwait:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

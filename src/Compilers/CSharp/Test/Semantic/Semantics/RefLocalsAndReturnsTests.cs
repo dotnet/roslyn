@@ -1255,9 +1255,9 @@ class C
     }
 }");
             comp.VerifyEmitDiagnostics(
-                // (12,30): error CS4013: Instance of type 'ref readonly int' cannot be used inside a nested function, query expression, iterator block or async method
-                //                 yield return x;
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "x").WithArguments("ref readonly ", "int").WithLocation(12, 30));
+                // (10,34): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //                 ref readonly int x = ref (new int[1])[0];
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "x").WithLocation(10, 34));
         }
 
         [Fact]

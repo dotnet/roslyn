@@ -1823,9 +1823,9 @@ class C
 
             var expectedDiagnostics = new[]
             {
-                // (11,19): error CS4013: Instance of type 'ref int' cannot be used inside a nested function, query expression, iterator block or async method
-                //             M(ref i);
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "i").WithArguments("ref ", "int").WithLocation(11, 19)
+                // (8,32): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         await foreach (ref var i in new C())
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "i").WithLocation(8, 32)
             };
 
             comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext);

@@ -1712,6 +1712,11 @@
         <target state="translated">Um campo ref só pode ser declarado em uma estrutura ref.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefLocalAcrossAwait">
+        <source>A 'ref' local cannot be preserved across 'await' or 'yield' boundary.</source>
+        <target state="new">A 'ref' local cannot be preserved across 'await' or 'yield' boundary.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="translated">O lado esquerdo de uma atribuição ref deve ser uma variável ref.</target>
@@ -10535,8 +10540,8 @@ Forneça ao compilador alguma forma de diferenciar os métodos. Por exemplo, voc
         <note />
       </trans-unit>
       <trans-unit id="ERR_ByRefTypeAndAwait">
-        <source>'await' cannot be used in an expression containing the type '{0}'</source>
-        <target state="translated">'aguardar' não pode ser usado em uma expressão que contém o tipo '{0}'</target>
+        <source>Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
+        <target state="needs-review-translation">'aguardar' não pode ser usado em uma expressão que contém o tipo '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
@@ -11122,8 +11127,8 @@ Você pode suprimir o aviso se tiver certeza de que não vai querer aguardar a c
         <note />
       </trans-unit>
       <trans-unit id="ERR_SpecialByRefInLambda">
-        <source>Instance of type '{0}{1}' cannot be used inside a nested function, query expression, iterator block or async method</source>
-        <target state="new">Instance of type '{0}{1}' cannot be used inside a nested function, query expression, iterator block or async method</target>
+        <source>Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</source>
+        <target state="new">Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityAttributeMissingAction">

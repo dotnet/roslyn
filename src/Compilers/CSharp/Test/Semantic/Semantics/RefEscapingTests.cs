@@ -5043,9 +5043,9 @@ class C
                 }
                 """;
             CreateCompilation(code).VerifyEmitDiagnostics(
-                // (10,9): error CS4013: Instance of type 'ref int' cannot be used inside a nested function, query expression, iterator block or async method
-                //         y.ToString(); // 1
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "y").WithArguments("ref ", "int").WithLocation(10, 9));
+                // (7,17): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         ref int y = ref x;
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(7, 17));
         }
 
         [WorkItem(25398, "https://github.com/dotnet/roslyn/issues/25398")]
@@ -5386,9 +5386,9 @@ public static class Test
 }
 """);
             compilation.VerifyEmitDiagnostics(
-                // (20,19): error CS4013: Instance of type 'PooledArrayHandle<int>' cannot be used inside a nested function, query expression, iterator block or async method
+                // (20,19): error CS4007: 'await' cannot be used in an expression containing the type 'PooledArrayHandle<int>'
                 //         using var handle = RentArray<int>(200, out var array);
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "handle = RentArray<int>(200, out var array)").WithArguments("", "PooledArrayHandle<int>").WithLocation(20, 19));
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "handle").WithArguments("PooledArrayHandle<int>").WithLocation(20, 19));
         }
 
         [Theory(Skip = "https://github.com/dotnet/roslyn/issues/40583")]

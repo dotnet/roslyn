@@ -77,26 +77,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var variable = kvp.Key;
 
-                    if (variable is SynthesizedLocal local && local.SynthesizedKind == SynthesizedLocalKind.Spill)
+                    if (variable is LocalSymbol local)
                     {
-                        Debug.Assert(local.TypeWithAnnotations.IsRestrictedType());
-                        diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.GetFirstLocation(), local.TypeWithAnnotations);
+                        if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined)
+                        {
+                            reportLocalAcrossAwaitError(diagnostics, local, local.GetFirstLocation());
+                        }
+                        else
+                        {
+                            foreach (var syntax in kvp.Value)
+                            {
+                                reportLocalAcrossAwaitError(diagnostics, local, syntax.Location);
+                            }
+                        }
                     }
                     else
                     {
-                        var (type, refKindPrefix) = variable switch
-                        {
-                            LocalSymbol l => (l.Type, l.RefKind.ToLocalPrefix()),
-                            ParameterSymbol p => (p.Type, p.RefKind.ToParameterPrefix()),
-                            _ => throw ExceptionUtilities.UnexpectedValue(variable),
-                        };
-
-                        foreach (CSharpSyntaxNode syntax in kvp.Value)
-                        {
-                            // PROTOTYPE: Improve error message (the instance might be usable in iterator/async just not across yield/await)
-                            // CS4013: Instance of type '{0}{1}' cannot be used inside an anonymous function, query expression, iterator block or async method
-                            diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, refKindPrefix, type);
-                        }
+                        var parameter = (ParameterSymbol)variable;
+                        Debug.Assert(parameter.TypeWithAnnotations.IsRestrictedType());
+                        // CS4007: Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.
+                        diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, parameter.GetFirstLocation(), parameter.TypeWithAnnotations);
                     }
                 }
             }
@@ -124,6 +124,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             walker.Free();
 
             return variablesToHoist;
+
+            static void reportLocalAcrossAwaitError(DiagnosticBag diagnostics, LocalSymbol local, Location location)
+            {
+                if (local.TypeWithAnnotations.IsRestrictedType())
+                {
+                    // CS4007: Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.
+                    diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, location, local.TypeWithAnnotations);
+                }
+                else
+                {
+                    Debug.Assert(local.RefKind != RefKind.None);
+                    // CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                    diagnostics.Add(ErrorCode.ERR_RefLocalAcrossAwait, location);
+                }
+            }
         }
 
         private static bool HoistInDebugBuild(Symbol symbol)

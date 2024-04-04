@@ -85,17 +85,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static string ToLocalPrefix(this RefKind kind)
-        {
-            return kind switch
-            {
-                RefKind.Ref => "ref ",
-                RefKind.RefReadOnly => "ref readonly ",
-                RefKind.None => string.Empty,
-                _ => throw ExceptionUtilities.UnexpectedValue(kind),
-            };
-        }
-
         // Used internally to track `In` arguments that were specified with `In` modifier
         // as opposed to those that were specified with no modifiers and matched `In` parameter.
         // There is at least one kind of analysis that cares about this distinction - hoisting

@@ -3516,9 +3516,9 @@ class Program
                 // (10,31): error CS0190: The __arglist construct is valid only within a variable argument method
                 //             Console.WriteLine(__arglist);
                 Diagnostic(ErrorCode.ERR_ArgsInvalid, "__arglist").WithLocation(10, 31),
-                // (18,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                // (18,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside a nested function, query expression, iterator block or async method
                 //             Console.WriteLine(__arglist);
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("", "System.RuntimeArgumentHandle").WithLocation(18, 31),
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(18, 31),
                 // (24,20): error CS1669: __arglist is not valid in this context
                 //         void Local(__arglist)
                 Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(24, 20),
@@ -3528,9 +3528,9 @@ class Program
                 // (32,20): error CS1669: __arglist is not valid in this context
                 //         void Local(__arglist)
                 Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(32, 20),
-                // (34,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                // (34,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside a nested function, query expression, iterator block or async method
                 //             Console.WriteLine(__arglist);
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("", "System.RuntimeArgumentHandle").WithLocation(34, 31)
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(34, 31)
     );
         }
 

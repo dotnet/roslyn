@@ -903,9 +903,9 @@ ref struct S
 
             var expectedDiagnostics = new[]
             {
-                // source(11,34): error CS4013: Instance of type 'S' cannot be used inside a nested function, query expression, iterator block or async method
-                //             System.Console.Write(s.F);
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "s.F").WithArguments("", "S").WithLocation(11, 34)
+                // source(8,28): error CS4007: Instance of type 'S' cannot be preserved across 'await' or 'yield' boundary.
+                //         await foreach (var s in new C())
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s").WithArguments("S").WithLocation(8, 28)
             };
 
             comp = CreateCompilationWithAsyncIterator(source, parseOptions: TestOptions.RegularNext);

@@ -697,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (type.IsRestrictedType() == true)
                     {
-                        _diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, string.Empty, type);
+                        _diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, type);
                     }
                 }
 

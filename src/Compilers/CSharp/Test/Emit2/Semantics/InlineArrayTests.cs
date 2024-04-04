@@ -20910,15 +20910,9 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (13,13): error CS4013: Instance of type 'ref int' cannot be used inside a nested function, query expression, iterator block or async method
-                //             y *= y;
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "y").WithArguments("ref ", "int").WithLocation(13, 13),
-                // (13,18): error CS4013: Instance of type 'ref int' cannot be used inside a nested function, query expression, iterator block or async method
-                //             y *= y;
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "y").WithArguments("ref ", "int").WithLocation(13, 18),
-                // (14,34): error CS4013: Instance of type 'ref int' cannot be used inside a nested function, query expression, iterator block or async method
-                //             System.Console.Write(y);
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "y").WithArguments("ref ", "int").WithLocation(14, 34)
+                // (10,26): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (ref int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(10, 26)
             };
 
             CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
@@ -21015,14 +21009,9 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (11,9): error CS4013: Instance of type 'ref Buffer4<int>' cannot be used inside a nested function, query expression, iterator block or async method
-                //         foreach (ref int y in buffer)
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, @"foreach (ref int y in buffer)
-        {
-            y *= y;
-            System.Console.Write(y);
-            await System.Threading.Tasks.Task.Yield();
-        }").WithArguments("ref ", "Buffer4<int>").WithLocation(11, 9)
+                // (10,26): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         ref Buffer4<int> buffer = ref GetBuffer();
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "buffer").WithLocation(10, 26)
             };
 
             CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
@@ -21084,17 +21073,9 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (22,9): error CS4013: Instance of type 'ref readonly Buffer4<int>' cannot be used inside a nested function, query expression, iterator block or async method
-                //         foreach (var y in f)
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, @"foreach (var y in f)
-        {
-            Increment();    
-            System.Console.Write(' ');
-            System.Console.Write(y);
-
-            await Task.Yield();
-            await Task.Delay(2);
-        }").WithArguments("ref readonly ", "Buffer4<int>").WithLocation(22, 9)
+                // (21,35): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         ref readonly Buffer4<int> f = ref x.F;
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(21, 35)
             };
 
             CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
@@ -21176,9 +21157,9 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (11,34): error CS4013: Instance of type 'ref readonly int' cannot be used inside a nested function, query expression, iterator block or async method
-                //             System.Console.Write(y);
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "y").WithArguments("ref readonly ", "int").WithLocation(11, 34)
+                // (8,35): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (ref readonly int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(8, 35)
             };
 
             CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
@@ -22025,15 +22006,9 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (21,13): error CS4013: Instance of type 'ref int' cannot be used inside a nested function, query expression, iterator block or async method
-                //             y *= y;
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "y").WithArguments("ref ", "int").WithLocation(21, 13),
-                // (21,18): error CS4013: Instance of type 'ref int' cannot be used inside a nested function, query expression, iterator block or async method
-                //             y *= y;
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "y").WithArguments("ref ", "int").WithLocation(21, 18),
-                // (22,34): error CS4013: Instance of type 'ref int' cannot be used inside a nested function, query expression, iterator block or async method
-                //             System.Console.Write(y);
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "y").WithArguments("ref ", "int").WithLocation(22, 34)
+                // (18,26): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (ref int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(18, 26)
             };
 
             CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
@@ -22146,14 +22121,9 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (19,9): error CS4013: Instance of type 'ref Buffer4<int>' cannot be used inside a nested function, query expression, iterator block or async method
-                //         foreach (ref int y in buffer)
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, @"foreach (ref int y in buffer)
-        {
-            y *= y;
-            System.Console.Write(y);
-            yield return 1;
-        }").WithArguments("ref ", "Buffer4<int>").WithLocation(19, 9)
+                // (18,26): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         ref Buffer4<int> buffer = ref GetBuffer();
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "buffer").WithLocation(18, 26)
             };
 
             CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
@@ -22213,16 +22183,9 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (21,9): error CS4013: Instance of type 'ref readonly Buffer4<int>' cannot be used inside a nested function, query expression, iterator block or async method
-                //         foreach (var y in f)
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, @"foreach (var y in f)
-        {
-            Increment();    
-            System.Console.Write(' ');
-            System.Console.Write(y);
-
-            yield return -1;
-        }").WithArguments("ref readonly ", "Buffer4<int>").WithLocation(21, 9)
+                // (20,35): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         ref readonly Buffer4<int> f = ref x.F;
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(20, 35)
             };
 
             CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
@@ -22304,9 +22267,9 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (11,34): error CS4013: Instance of type 'ref readonly int' cannot be used inside a nested function, query expression, iterator block or async method
-                //             System.Console.Write(y);
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "y").WithArguments("ref readonly ", "int").WithLocation(11, 34)
+                // (8,35): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (ref readonly int y in GetBuffer())
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(8, 35)
             };
 
             CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
