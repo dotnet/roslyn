@@ -5386,7 +5386,7 @@ public static class Test
 }
 """);
             compilation.VerifyEmitDiagnostics(
-                // (20,19): error CS4007: 'await' cannot be used in an expression containing the type 'PooledArrayHandle<int>'
+                // (20,19): error CS4007: Instance of type 'PooledArrayHandle<int>' cannot be preserved across 'await' or 'yield' boundary.
                 //         using var handle = RentArray<int>(200, out var array);
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "handle").WithArguments("PooledArrayHandle<int>").WithLocation(20, 19));
         }
