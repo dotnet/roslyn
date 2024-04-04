@@ -6800,4 +6800,76 @@ partial struct CustomHandler
             //     [InterceptsLocation(1, "jB4qgCy292LkEGCwmD+R6FIAAABQcm9ncmFtMS5jcw==")]
             Diagnostic(ErrorCode.ERR_InterceptsLocationDuplicateFile, "InterceptsLocation").WithArguments("Program1.cs").WithLocation(6, 6));
     }
+
+    [Fact]
+    public void Checksum_09()
+    {
+        // Call can be intercepted syntactically but a semantic error occurs when actually performing it.
+
+        var source = CSharpTestSource.Parse("""
+            using System;
+
+            class C
+            {
+                static Action P { get; } = null!;
+
+                static void Main()
+                {
+                    P();
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+
+            static class Interceptors
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void P1(this C c) => Console.Write(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        comp = CreateCompilation([source, interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
+        comp.VerifyEmitDiagnostics(
+            // Interceptors.cs(5,6): error CS9207: Cannot intercept 'P' because it is not an invocation of an ordinary member method.
+            //     [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, "ZnP1PXDK5WDD07FTErR9eWUAAABQcm9ncmFtLmNz")]
+            Diagnostic(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, "global::System.Runtime.CompilerServices.InterceptsLocationAttribute").WithArguments("P").WithLocation(5, 6));
+    }
+
+    [Fact]
+    public void Checksum_10()
+    {
+        // Call cannot be intercepted syntactically
+
+        var source = CSharpTestSource.Parse("""
+            using System;
+
+            static class C
+            {
+                public static void M(this object obj) => throw null!;
+
+                static void Main()
+                {
+                    null();
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(9,9): error CS0149: Method name expected
+            //         null();
+            Diagnostic(ErrorCode.ERR_MethodNameExpected, "null").WithLocation(9, 9));
+
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+        var locationSpecifier = model.GetInterceptableLocation(node);
+        Assert.Null(locationSpecifier);
+    }
 }
