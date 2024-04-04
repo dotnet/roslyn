@@ -143,10 +143,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
                 throw new InvalidOperationException($"Language specific handlers for {methodGroup.Key} have mis-matched number of parameters or returns:{Environment.NewLine}{string.Join(Environment.NewLine, methodGroup)}");
             }
 
-            // Pick the kind of streamjsonrpc handling based on the number of request / response arguments
-            // We use the first since we've validated above that the language specific handlers have similarly shaped requests.
-            var methodInfo = DelegatingEntryPoint.GetMethodInstantiation(methodGroup.First().RequestType, methodGroup.First().ResponseType);
-
+            var entryPointMethodInfo = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.ExecuteRequestAsync))!;
             var delegatingEntryPoint = new DelegatingEntryPoint(methodGroup.Key, this, handlerProvider);
 
             var methodAttribute = new JsonRpcMethodAttribute(methodGroup.Key)
@@ -154,7 +151,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
                 UseSingleObjectParameterDeserialization = true,
             };
 
-            _jsonRpc.AddLocalRpcMethod(methodInfo, delegatingEntryPoint, methodAttribute);
+            _jsonRpc.AddLocalRpcMethod(entryPointMethodInfo, delegatingEntryPoint, methodAttribute);
         }
     }
 
@@ -186,7 +183,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
     protected virtual string GetLanguageForRequest(string methodName, JToken? parameters)
     {
-        _logger.LogInformation("Using default language handler");
+        _logger.LogInformation($"Using default language handler for {methodName}");
         return LanguageServerConstants.DefaultLanguageName;
     }
 
@@ -195,11 +192,6 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         private readonly string _method;
         private readonly Lazy<ImmutableDictionary<string, (MethodInfo MethodInfo, RequestHandlerMetadata Metadata)>> _languageEntryPoint;
         private readonly AbstractLanguageServer<TRequestContext> _target;
-
-        private static readonly MethodInfo s_entryPointMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(EntryPointAsync))!;
-        private static readonly MethodInfo s_parameterlessEntryPointMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(ParameterlessEntryPointAsync))!;
-        private static readonly MethodInfo s_notificationMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(NotificationEntryPointAsync))!;
-        private static readonly MethodInfo s_parameterlessNotificationMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(ParameterlessNotificationEntryPointAsync))!;
 
         private static readonly MethodInfo s_queueExecuteAsyncMethod = typeof(RequestExecutionQueue<TRequestContext>).GetMethod(nameof(RequestExecutionQueue<TRequestContext>.ExecuteAsync))!;
 
@@ -224,24 +216,11 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             });
         }
 
-        public static MethodInfo GetMethodInstantiation(Type? requestType, Type? responseType)
-            => (requestType, responseType) switch
-            {
-                (requestType: not null, responseType: not null) => s_entryPointMethod,
-                (requestType: null, responseType: not null) => s_parameterlessEntryPointMethod,
-                (requestType: not null, responseType: null) => s_notificationMethod,
-                (requestType: null, responseType: null) => s_parameterlessNotificationMethod,
-            };
-
-        public Task NotificationEntryPointAsync(JToken request, CancellationToken cancellationToken) => ExecuteRequestAsync(request, cancellationToken);
-
-        public Task ParameterlessNotificationEntryPointAsync(CancellationToken cancellationToken) => ExecuteRequestAsync(null, cancellationToken);
-
-        public Task<JToken?> EntryPointAsync(JToken request, CancellationToken cancellationToken) => ExecuteRequestAsync(request, cancellationToken);
-
-        public Task<JToken?> ParameterlessEntryPointAsync(CancellationToken cancellationToken) => ExecuteRequestAsync(null, cancellationToken);
-
-        private async Task<JToken?> ExecuteRequestAsync(JToken? request, CancellationToken cancellationToken)
+        /// <summary>
+        /// StreamJsonRpc entry point for all handler methods.
+        /// The optional parameters allow StreamJsonRpc to call into the same method for any kind of request / notification (with any number of params or response).
+        /// </summary>
+        public async Task<JToken?> ExecuteRequestAsync(JToken? request = null, CancellationToken cancellationToken = default)
         {
             var queue = _target.GetRequestExecutionQueue();
             var lspServices = _target.GetLspServices();

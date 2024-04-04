@@ -48,12 +48,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             return server;
         }
-
-        //public AbstractLanguageServer<RequestContext> Create(Stream input, Stream output, ICapabilitiesProvider capabilitiesProvider, AbstractLspLogger logger, HostServices hostServices)
-        //{
-            
-        //    var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(output, input));
-        //    return Create(jsonRpc, capabilitiesProvider, WellKnownLspServerKinds.CSharpVisualBasicLspServer, logger, hostServices);
-        //}
     }
 }
