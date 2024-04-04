@@ -417,7 +417,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(methodGroup.Syntax, useSiteInfo);
             if (resolution.IsExtensionMember(out Symbol? extensionMember))
             {
-                return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember, diagnostics);
+                return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember,
+                    methodGroup.TypeArgumentsSyntax, methodGroup.TypeArgumentsOpt, diagnostics);
             }
 
             // We have a method group so bind to an inferred delegate type
@@ -7499,7 +7500,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (resolution.IsExtensionMember(out Symbol extensionMember))
                         {
                             diagnostics.AddRange(resolution.Diagnostics);
-                            return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember, diagnostics);
+                            return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember,
+                                methodGroup.TypeArgumentsSyntax, methodGroup.TypeArgumentsOpt, diagnostics);
                         }
 
                         if (!expr.HasAnyErrors)
@@ -7541,7 +7543,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             diagnostics.AddRange(resolution.Diagnostics);
                             resolution.Free();
-                            return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember, diagnostics);
+                            return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember,
+                                methodGroup.TypeArgumentsSyntax, methodGroup.TypeArgumentsOpt, diagnostics);
                         }
 
                         resolution.Free();

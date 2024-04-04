@@ -1134,6 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public ImmutableArray<IPropertySymbol> GetIndexerGroup(ExpressionSyntax expression, CancellationToken cancellationToken = default(CancellationToken))
         {
+            // PROTOTYPE(instance) handle extension indexers
             CheckSyntaxNode(expression);
 
             return CanGetSemanticInfo(expression)
@@ -1414,10 +1415,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             NamespaceOrTypeSymbol container = null,
             string name = null,
-            bool includeReducedExtensionMethods = false)
+            bool includeReducedExtensionMethods = false) // PROTOTYPE(static) can we rename this public parameter?
         {
-            // PROTOTYPE test Lookup APIs and add support for extension types
-            var options = includeReducedExtensionMethods ? LookupOptions.IncludeExtensionMethods : LookupOptions.Default;
+            var options = includeReducedExtensionMethods ? LookupOptions.IncludeExtensionMethodsAndMembers : LookupOptions.Default;
             return LookupSymbolsInternal(position, container, name, options, useBaseReferenceAccessibility: false);
         }
 
@@ -1460,7 +1460,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             string name = null)
         {
-            // PROTOTYPE Test LookupBaseMembers API and add support for extension type members
             return LookupSymbolsInternal(position, container: null, name: name, options: LookupOptions.Default, useBaseReferenceAccessibility: true);
         }
 
@@ -1564,7 +1563,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupOptions options,
             bool useBaseReferenceAccessibility)
         {
-            // PROTOTYPE need to test Lookup APIs and adjust the lookup options here or in callers
             Debug.Assert((options & LookupOptions.UseBaseReferenceAccessibility) == 0, "Use the useBaseReferenceAccessibility parameter.");
             if (useBaseReferenceAccessibility)
             {
@@ -1579,7 +1577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)container == null || container.Kind == SymbolKind.Namespace)
             {
-                options &= ~LookupOptions.IncludeExtensionMethods;
+                options &= ~LookupOptions.IncludeExtensionMethodsAndMembers;
             }
 
             var binder = GetEnclosingBinder(position);
@@ -1655,25 +1653,51 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             info.Free();
 
-            if ((options & LookupOptions.IncludeExtensionMethods) != 0)
+            if ((options & LookupOptions.IncludeExtensionMethodsAndMembers) != 0)
             {
-                var lookupResult = LookupResult.GetInstance();
+                Debug.Assert((options & LookupOptions.MustBeInstance) == 0);
 
-                options |= LookupOptions.AllMethodsOnArityZero;
-                options &= ~LookupOptions.MustBeInstance;
+                var lookupResult = LookupResult.GetInstance();
+                options |= LookupOptions.AllMethodsOnArityZero | LookupOptions.AllNamedTypesOnArityZero;
 
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                binder.LookupExtensionMethods(lookupResult, name, 0, options, ref discardedUseSiteInfo);
+
+                foreach (var scope in new ExtensionScopes(binder))
+                {
+                    // PROTOTYPE(static) confirm that we want to exclude type parameters from extension member resolution or leave a comment
+                    if (container is TypeSymbol typeSymbol && !typeSymbol.IsTypeParameter())
+                    {
+                        // When looking up members of an extension type, we don't need to find its members as part of
+                        // an extension member lookup since we'll already have found them as part of member lookup on the extension type.
+                        TypeSymbol skipType = typeSymbol.IsExtension ? typeSymbol.OriginalDefinition : null;
+
+                        // We use a Lookup API (which uses a CheckViability check) instead of an AddLookup API (which uses a CanAddLookupSymbolInfo check),
+                        // but that is fine since we filter symbols that cannot be referenced by name below anyways.
+                        scope.Binder.LookupImplicitExtensionMembersInSingleBinder(
+                            lookupResult, typeSymbol, name, arity: 0,
+                            basesBeingResolved: null, options, originalBinder: binder, ref discardedUseSiteInfo, skipType);
+                    }
+
+                    binder.LookupExtensionMethodsInSingleBinder(scope, lookupResult, name, arity: 0, options, ref discardedUseSiteInfo);
+                }
 
                 if (lookupResult.IsMultiViable)
                 {
                     TypeSymbol containingType = (TypeSymbol)container;
-                    foreach (MethodSymbol extensionMethod in lookupResult.Symbols)
+                    foreach (Symbol member in lookupResult.Symbols)
                     {
-                        var reduced = extensionMethod.ReduceExtensionMethod(containingType, Compilation);
-                        if ((object)reduced != null)
+                        if (member is MethodSymbol { IsExtensionMethod: true } extensionMethod)
                         {
-                            results.Add(reduced.GetPublicSymbol());
+                            var reduced = extensionMethod.ReduceExtensionMethod(containingType, Compilation);
+                            if (reduced is not null)
+                            {
+                                results.Add(reduced.GetPublicSymbol());
+                            }
+                        }
+                        else
+                        {
+                            Debug.Assert(member.ContainingType.IsExtension);
+                            results.Add(member.GetPublicSymbol());
                         }
                     }
                 }
@@ -1742,10 +1766,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 name,
                 arity,
                 basesBeingResolved: null,
-                options: options & ~LookupOptions.IncludeExtensionMethods,
+                options: options & ~LookupOptions.IncludeExtensionMethodsAndMembers,
                 diagnose: false,
                 useSiteInfo: ref discardedUseSiteInfo);
-            // PROTOTYPE test Lookup APIs and add support for extension types
 
             if (lookupResult.IsMultiViable)
             {

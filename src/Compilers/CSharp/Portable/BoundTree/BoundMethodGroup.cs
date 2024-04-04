@@ -54,6 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public SeparatedSyntaxList<TypeSyntax> TypeArgumentsSyntax
+            => NameSyntax is GenericNameSyntax genericName ? genericName.TypeArgumentList.Arguments : default;
+
         public BoundExpression? InstanceOpt
         {
             get

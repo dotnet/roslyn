@@ -45,14 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void LookupExtensionMethods(LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            foreach (var scope in new ExtensionScopes(this))
-            {
-                this.LookupExtensionMethodsInSingleBinder(scope, result, name, arity, options, ref useSiteInfo);
-            }
-        }
-
         /// <summary>
         /// Look for any symbols in scope with the given name and arity.
         /// </summary>
@@ -179,10 +171,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        protected void LookupImplicitExtensionMembersInSingleBinder(LookupResult result, TypeSymbol type,
-            string name, int arity, ConsList<TypeSymbol>? basesBeingResolved, LookupOptions options,
-            Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        // Note: for public Lookup API purposes, we need to collect results from member lookup and extension member lookup;
+        // we use `skipType` to skip collecting the extension member lookup results from an extension type that we already
+        // collected members from (via direct member lookup).
+        internal void LookupImplicitExtensionMembersInSingleBinder(LookupResult result, TypeSymbol type,
+            string? name, int arity, ConsList<TypeSymbol>? basesBeingResolved, LookupOptions options,
+            Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, TypeSymbol? skipType = null)
         {
+            Debug.Assert(skipType is null || (skipType.IsDefinition && skipType.IsExtension));
             Debug.Assert(!type.IsTypeParameter());
 
             var compatibleExtensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
@@ -192,12 +188,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type = extendedType;
             }
 
-            getCompatibleExtensions(this, type, compatibleExtensions, originalBinder, basesBeingResolved);
+            getCompatibleExtensions(this, type, compatibleExtensions, originalBinder, basesBeingResolved, skipType);
 
             // Sort extensions from more specific to less specific
             var tempUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
             compatibleExtensions.Sort((x, y) => isMoreSpecificExtension(x, y) ? -1 : 1); // Note: captures tempUseSiteInfo
-            useSiteInfo.MergeAndClear(ref tempUseSiteInfo);
+            if (tempUseSiteInfo.AccumulatesDiagnostics)
+            {
+                useSiteInfo.MergeAndClear(ref tempUseSiteInfo);
+            }
 
             // PROTOTYPE test use-site diagnostics
             var tempResult = LookupResult.GetInstance();
@@ -216,13 +215,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             compatibleExtensions.Free();
             return;
 
-            static void getCompatibleExtensions(Binder binder, TypeSymbol type, ArrayBuilder<NamedTypeSymbol> compatibleExtensions, Binder originalBinder, ConsList<TypeSymbol>? basesBeingResolved)
+            static void getCompatibleExtensions(Binder binder, TypeSymbol type, ArrayBuilder<NamedTypeSymbol> compatibleExtensions,
+                Binder originalBinder, ConsList<TypeSymbol>? basesBeingResolved, TypeSymbol? skipType)
             {
                 var extensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
                 binder.GetImplicitExtensionTypes(extensions, originalBinder);
 
                 foreach (var extension in extensions)
                 {
+                    if (ReferenceEquals(extension, skipType))
+                    {
+                        continue;
+                    }
+
                     if (basesBeingResolved?.Contains(extension) == true)
                     {
                         continue;
@@ -620,13 +625,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         /// <summary>
         /// Lookup extension methods by name and arity in the given binder and
         /// check viability in this binder. The lookup is performed on a single
         /// binder because extension method search stops at the first applicable
         /// method group from the nearest enclosing namespace.
         /// </summary>
-        private void LookupExtensionMethodsInSingleBinder(ExtensionScope scope, LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal void LookupExtensionMethodsInSingleBinder(ExtensionScope scope, LookupResult result, string? name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var methods = ArrayBuilder<MethodSymbol>.GetInstance();
             var binder = scope.Binder;
@@ -640,6 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             methods.Free();
         }
+#nullable disable
 
         #region "AttributeTypeLookup"
 
@@ -916,6 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return false; }
         }
 
+#nullable enable
         /// <summary>
         /// Return the extension methods from this specific binding scope that match the name and optional
         /// arity. Since the lookup of extension methods is iterative, proceeding one binding scope at a time,
@@ -925,14 +933,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal virtual void GetCandidateExtensionMethods(
             ArrayBuilder<MethodSymbol> methods,
-            string name,
+            string? name,
             int arity,
             LookupOptions options,
             Binder originalBinder)
         {
         }
 
-#nullable enable
         /// <summary>
         /// Return the extension types from this specific binding scope 
         /// Since the lookup of extension members is iterative, proceeding one binding scope at a time,
@@ -943,13 +950,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal virtual void GetImplicitExtensionTypes(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
         {
         }
-#nullable disable
 
         // Does a member lookup in a single type, without considering inheritance.
-        protected static void LookupMembersWithoutInheritance(LookupResult result, TypeSymbol type, string name, int arity,
-            LookupOptions options, Binder originalBinder, TypeSymbol accessThroughType, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol> basesBeingResolved)
+        protected static void LookupMembersWithoutInheritance(LookupResult result, TypeSymbol type, string? name, int arity,
+            LookupOptions options, Binder originalBinder, TypeSymbol accessThroughType, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol>? basesBeingResolved)
         {
-            var members = GetCandidateMembers(type, name, options, originalBinder);
+            var members = name is null ? GetCandidateMembers(type, options, originalBinder) : GetCandidateMembers(type, name, options, originalBinder);
 
             foreach (Symbol member in members)
             {
@@ -959,6 +965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result.MergeEqual(resultOfThisMember);
             }
         }
+#nullable disable
 
         // Lookup member in a class, struct, enum, delegate.
         private void LookupMembersInClass(
@@ -1194,13 +1201,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return other;
         }
 
+#nullable enable
         // Lookup member in an extension type
         private void LookupMembersInExtension(
             LookupResult current,
             NamedTypeSymbol type,
-            string name,
+            string? name,
             int arity,
-            ConsList<TypeSymbol> basesBeingResolved,
+            ConsList<TypeSymbol>? basesBeingResolved,
             LookupOptions options,
             Binder originalBinder,
             bool diagnose,
@@ -1210,6 +1218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LookupMembersWithoutInheritance(current, type, name, arity, options, originalBinder, accessThroughType: type, diagnose, ref useSiteInfo, basesBeingResolved);
         }
+#nullable disable
 
         // Lookup member in interface, and any base interfaces.
         private void LookupMembersInInterfaceOnly(
@@ -2144,19 +2153,25 @@ symIsHidden:;
             }
         }
 
-        private void AddMemberLookupSymbolsInfoInType(LookupSymbolsInfo result, TypeSymbol type, LookupOptions options, Binder originalBinder)
+#nullable enable
+        /// <param name="accessThroughType">When collecting symbols from an extension type, we include the members from the extended type,
+        /// but those will be accessed through the extension type</param>
+        private void AddMemberLookupSymbolsInfoInType(LookupSymbolsInfo result, TypeSymbol type, LookupOptions options, Binder originalBinder, TypeSymbol? accessThroughType = null)
         {
+            Debug.Assert(accessThroughType is null || accessThroughType.IsExtension);
+
             switch (type.TypeKind)
             {
                 case TypeKind.TypeParameter:
+                    // PROTOTYPE(static) need to confirm what we want for extension members on type parameters or values of type parameters
+                    Debug.Assert(accessThroughType is null);
                     this.AddMemberLookupSymbolsInfoInTypeParameter(result, (TypeParameterSymbol)type, options, originalBinder);
                     break;
 
                 case TypeKind.Interface:
-                    this.AddMemberLookupSymbolsInfoInInterface(result, type, options, originalBinder, type);
+                    accessThroughType ??= type;
+                    this.AddMemberLookupSymbolsInfoInInterface(result, type, options, originalBinder, accessThroughType);
                     break;
-
-                // PROTOTYPE implement Lookup APIs for extension types. See TestLookupSymbolNamesInInterface and TestLookupSymbolsInInterface
 
                 case TypeKind.Class:
                 case TypeKind.Struct:
@@ -2165,10 +2180,29 @@ symIsHidden:;
                 case TypeKind.Array:
                 case TypeKind.Dynamic:
                 case TypeKind.Submission:
-                    this.AddMemberLookupSymbolsInfoInClass(result, type, options, originalBinder, type);
+                    accessThroughType ??= type;
+                    this.AddMemberLookupSymbolsInfoInClass(result, type, options, originalBinder, accessThroughType);
+                    break;
+
+                case TypeKind.Extension:
+                    Debug.Assert(accessThroughType is null);
+                    addMemberLookupSymbolsInfoInExtension(result, type, options, originalBinder);
                     break;
             }
+
+            return;
+
+            void addMemberLookupSymbolsInfoInExtension(LookupSymbolsInfo result, TypeSymbol type, LookupOptions options, Binder originalBinder)
+            {
+                AddMemberLookupSymbolsInfoWithoutInheritance(result, type, options, originalBinder, accessThroughType: type);
+
+                if (type.ExtendedTypeNoUseSiteDiagnostics is { } extendedType)
+                {
+                    AddMemberLookupSymbolsInfoInType(result, extendedType, options, originalBinder, accessThroughType: type);
+                }
+            }
         }
+#nullable disable
 
         protected void AddMemberLookupSymbolsInfoInSubmissions(LookupSymbolsInfo result, TypeSymbol scriptClass, bool inUsings, LookupOptions options, Binder originalBinder)
         {

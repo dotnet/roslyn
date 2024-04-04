@@ -722,7 +722,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (resolution.IsExtensionMember(out Symbol extensionMember))
             {
                 diagnostics.AddRange(resolution.Diagnostics);
-                var extensionMemberAccess = GetExtensionMemberAccess(expression, methodGroup.ReceiverOpt, extensionMember, diagnostics);
+                var extensionMemberAccess = GetExtensionMemberAccess(expression, methodGroup.ReceiverOpt, extensionMember,
+                    methodGroup.TypeArgumentsSyntax, methodGroup.TypeArgumentsOpt, diagnostics);
+
                 Debug.Assert(extensionMemberAccess.Kind != BoundKind.MethodGroup);
 
                 var extensionMemberInvocation = BindInvocationExpression(syntax, expression, methodName, extensionMemberAccess, analyzedArguments, diagnostics);
@@ -2368,6 +2370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckFeatureAvailability(node, MessageID.IDS_FeatureNameof, diagnostics);
             var argument = node.ArgumentList.Arguments[0].Expression;
             var boundArgument = BindExpression(argument, diagnostics);
+            boundArgument = ResolveToExtensionMemberIfPossible(boundArgument, diagnostics);
 
             bool syntaxIsOk = CheckSyntaxForNameofArgument(argument, out string name, boundArgument.HasAnyErrors ? BindingDiagnosticBag.Discarded : diagnostics);
             if (!boundArgument.HasAnyErrors && syntaxIsOk && boundArgument.Kind == BoundKind.MethodGroup)

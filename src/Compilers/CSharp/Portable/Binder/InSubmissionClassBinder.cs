@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void GetCandidateExtensionMethods(
             ArrayBuilder<MethodSymbol> methods,
-            string name,
+            string? name,
             int arity,
             LookupOptions options,
             Binder originalBinder)

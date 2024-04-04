@@ -72,9 +72,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return true; }
         }
 
+#nullable enable
         internal override void GetCandidateExtensionMethods(
             ArrayBuilder<MethodSymbol> methods,
-            string name,
+            string? name,
             int arity,
             LookupOptions options,
             Binder originalBinder)
@@ -84,6 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ((NamespaceSymbol)_container).GetExtensionMethods(methods, name, arity, options);
             }
         }
+#nullable disable
 
         internal override void GetImplicitExtensionTypes(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
         {
