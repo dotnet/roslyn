@@ -195,8 +195,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         private async ValueTask ProcessEventChangeAsync(
             ImmutableSegmentedList<TagSourceQueueItem> changes, CancellationToken cancellationToken)
         {
-            if (changes.Count == 0)
-                return;
+            Contract.ThrowIfTrue(changes.IsEmpty);
 
             // If any of the requests was high priority, then compute at that speed.
             var highPriority = changes.Contains(x => x.HighPriority);
