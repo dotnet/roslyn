@@ -507,6 +507,8 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             // Remove the current message so it can be replaced with the new one.
             _currentInfoBarMessage?.Remove();
 
+            // Capture the newly created message into a local.  That way the "rerun generator" button callback can
+            // reference *exactly this* instance in order to remove it when it is clicked.
             VisualStudioInfoBar.InfoBarMessage? infoBarMessage = null;
             InfoBarUI[] infoBarItems = [new InfoBarUI(ServicesVSResources.Rerun_generator, InfoBarUI.UIKind.Button, () =>
             {
