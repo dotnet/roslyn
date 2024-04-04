@@ -86,12 +86,11 @@ internal abstract partial class VisualStudioWorkspaceImpl
             nextCommandHandler();
 
             // After a save happens, enqueue a request to run generators on the projects impacted by the save.
-            foreach (var group in args.SubjectBuffer.GetRelatedDocuments().GroupBy(d => d.Project.Solution.Workspace))
+            foreach (var projectGroup in args.SubjectBuffer.GetRelatedDocuments().GroupBy(d => d.Project))
             {
-                if (group.Key is VisualStudioWorkspaceImpl visualStudioWorkspace)
+                if (projectGroup.Key.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
                 {
-                    foreach (var projectGroup in group.GroupBy(d => d.Project))
-                        visualStudioWorkspace.EnqueueUpdateSourceGeneratorVersion(projectGroup.Key.Id, forceRegeneration: false);
+                    visualStudioWorkspace.EnqueueUpdateSourceGeneratorVersion(projectGroup.Key.Id, forceRegeneration: false);
                 }
             }
         }
