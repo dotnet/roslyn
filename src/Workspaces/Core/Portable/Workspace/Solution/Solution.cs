@@ -325,6 +325,9 @@ public partial class Solution
         return null;
     }
 
+    private Solution WithCompilationState(SolutionCompilationState compilationState)
+        => compilationState == _compilationState ? this : new Solution(compilationState);
+
     /// <summary>
     /// Creates a new solution instance that includes a project with the specified language and names.
     /// Returns the new project.
@@ -1553,9 +1556,6 @@ public partial class Solution
         var newCompilationState = _compilationState.WithNewWorkspace(workspaceKind, workspaceVersion, services);
         return WithCompilationState(newCompilationState);
     }
-
-    private Solution WithCompilationState(SolutionCompilationState compilationState)
-        => compilationState == _compilationState ? this : new Solution(compilationState);
 
     /// <summary>
     /// Formerly, returned a copy of the solution isolated from the original so that they do not share computed state. It now does nothing.
