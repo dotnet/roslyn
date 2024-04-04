@@ -5,7 +5,6 @@
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -20,6 +19,8 @@ internal sealed class ContentHashComparer : IEqualityComparer<ReadOnlyMemory<byt
 
     public int GetHashCode(ReadOnlyMemory<byte> obj)
     {
+        // We expect the content hash to be well-mixed.
+        // Therefore simply reading the first 4 bytes of it results in an adequate hash code.
         return BinaryPrimitives.ReadInt32LittleEndian(obj.Span);
     }
 

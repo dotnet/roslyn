@@ -968,7 +968,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (version != 1)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptsLocationUnsupportedVersion, attributeLocation);
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationUnsupportedVersion, attributeLocation, version);
                 return;
             }
 
@@ -1009,16 +1009,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var hash = bytes.AsMemory(start: hashIndex, length: hashSize);
             var position = BinaryPrimitives.ReadInt32LittleEndian(bytes.AsSpan(start: positionIndex));
 
-            string displayFileName;
-            try
-            {
-                displayFileName = Encoding.UTF8.GetString(bytes, index: displayNameIndex, count: bytes.Length - displayNameIndex);
-            }
-            catch (ArgumentException)
-            {
-                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, attributeLocation);
-                return;
-            }
+            // https://learn.microsoft.com/en-us/dotnet/api/system.text.encoding.utf8?view=net-8.0#remarks states:
+            // > `Encoding.UTF8` returns a UTF8Encoding object that uses replacement fallback to replace each string that it can't encode and each byte that it can't decode with a question mark ("?") character.
+            //
+            // If these assertions are violated, it means the encoder may throw for invalid UTF-8 sequences, which we don't expect.
+            // In this case we would either need to adjust the code to start handling ArgumentException from GetString, or create a static UTF8 decoder with non-throwing behavior.
+            Debug.Assert(Encoding.UTF8.DecoderFallback is DecoderReplacementFallback);
+            Debug.Assert(Encoding.UTF8.IsReadOnly);
+            string displayFileName = Encoding.UTF8.GetString(bytes, index: displayNameIndex, count: bytes.Length - displayNameIndex);
 
             var interceptorsNamespaces = ((CSharpParseOptions)attributeNameSyntax.SyntaxTree.Options).InterceptorsPreviewNamespaces;
             var thisNamespaceNames = getNamespaceNames(this);
@@ -1089,6 +1087,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case { Parent: SimpleNameSyntax { Parent: MemberAccessExpressionSyntax memberAccess } rhs } when memberAccess.Name == rhs:
                     // NB: there are all sorts of places "simple names" can appear in syntax. With these checks we are trying to
                     // minimize confusion about why the name being used is not *interceptable*, but it's done on a best-effort basis.
+
                     diagnostics.Add(ErrorCode.ERR_InterceptorNameNotInvoked, attributeLocation, referencedToken.Text);
                     return;
                 default:

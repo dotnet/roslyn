@@ -1082,6 +1082,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal OneOrMany<SyntaxTree> GetSyntaxTreesByContentHash(ReadOnlyMemory<byte> contentHash)
         {
+            Debug.Assert(contentHash.Length == InterceptableLocation1.ContentHashLength);
+
             var contentHashToSyntaxTree = _contentHashToSyntaxTree;
             if (contentHashToSyntaxTree.IsDefault)
             {

@@ -5,16 +5,17 @@
 using System;
 using System.Buffers.Binary;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
 using Microsoft.Cci;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
 [Experimental(RoslynExperiments.Interceptors, UrlFormat = RoslynExperiments.Interceptors_Url)]
+//[DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
 public abstract class InterceptableLocation
 {
     private protected InterceptableLocation() { }
@@ -42,19 +43,22 @@ public abstract class InterceptableLocation
 /// </summary>
 internal sealed class InterceptableLocation1 : InterceptableLocation
 {
+    internal const int ContentHashLength = 16;
+
     private readonly ImmutableArray<byte> _checksum;
     private readonly string _path;
     private readonly int _position;
     private readonly int _lineNumberOneIndexed;
     private readonly int _characterNumberOneIndexed;
-    private string? _data;
+    private string? _lazyData;
 
     internal InterceptableLocation1(ImmutableArray<byte> checksum, string path, int position, int lineNumberOneIndexed, int characterNumberOneIndexed)
     {
-        if (checksum.Length != 16)
-        {
-            throw new ArgumentException(message: "checksum must be exactly 16 bytes in length", paramName: nameof(checksum));
-        }
+        Debug.Assert(checksum.Length == ContentHashLength);
+        Debug.Assert(path is not null);
+        Debug.Assert(position >= 0);
+        Debug.Assert(lineNumberOneIndexed > 0);
+        Debug.Assert(characterNumberOneIndexed > 0);
 
         _checksum = checksum;
         _path = path;
@@ -69,15 +73,17 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
         return $"{_path}({_lineNumberOneIndexed},{_characterNumberOneIndexed})";
     }
 
+    public override string ToString() => GetDisplayLocation();
+
     public override int Version => 1;
     public override string Data
     {
         get
         {
-            if (_data is null)
-                _data = makeData();
+            if (_lazyData is null)
+                _lazyData = makeData();
 
-            return _data;
+            return _lazyData;
 
             string makeData()
             {

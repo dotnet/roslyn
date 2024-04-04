@@ -5224,7 +5224,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var tree = node.SyntaxTree;
+            return GetInterceptableLocationInternal(nameSyntax, cancellationToken);
+        }
+
+        // Factored out for ease of test authoring, especially for scenarios involving unsupported syntax.
+        internal InterceptableLocation GetInterceptableLocationInternal(SyntaxNode nameSyntax, CancellationToken cancellationToken)
+        {
+            var tree = nameSyntax.SyntaxTree;
             var text = tree.GetText(cancellationToken);
             var path = tree.FilePath;
             var checksum = text.GetContentHash();
