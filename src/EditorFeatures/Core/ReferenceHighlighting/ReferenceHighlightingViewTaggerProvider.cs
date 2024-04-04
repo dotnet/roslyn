@@ -57,6 +57,12 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
 
     protected override TaggerDelay EventChangeDelay => TaggerDelay.Medium;
 
+    /// <summary>
+    /// We support frozen partial semantics, so we can quickly get reference highlights without building SG docs.  We
+    /// will still run a tagging pass after the frozen-pass where we run again on non-frozen docs.
+    /// </summary>
+    protected override bool SupportsFrozenPartialSemantics => true;
+
     protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
     {
         // Note: we don't listen for OnTextChanged.  Text changes to this buffer will get
@@ -129,7 +135,10 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
         }
 
         // Otherwise, we need to go produce all tags.
-        var options = _globalOptions.GetHighlightingOptions(document.Project.Language);
+        var options = _globalOptions.GetHighlightingOptions(document.Project.Language) with
+        {
+            FrozenPartialSemantics = context.FrozenPartialSemantics,
+        };
         return ProduceTagsAsync(context, caretPosition, document, options, cancellationToken);
     }
 
