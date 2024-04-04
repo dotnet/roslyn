@@ -22277,7 +22277,7 @@ class Program
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void UserDefinedIndexer_Warning_17()
         {
             var src = @"
