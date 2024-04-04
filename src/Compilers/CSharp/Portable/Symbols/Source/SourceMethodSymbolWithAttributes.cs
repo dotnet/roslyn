@@ -963,15 +963,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void DecodeInterceptsLocationChecksumBased(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, int version, string? data)
         {
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+            var attributeNameSyntax = arguments.AttributeSyntaxOpt!.Name; // used for reporting diagnostics
+            var attributeLocation = attributeNameSyntax.Location;
+
             if (version != 1)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptsLocationUnsupportedVersion, arguments.Attribute.GetAttributeArgumentLocation(parameterIndex: 0));
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationUnsupportedVersion, attributeLocation);
                 return;
             }
 
             if (data is null)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, arguments.Attribute.GetAttributeArgumentLocation(parameterIndex: 1));
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, attributeLocation);
                 return;
             }
 
@@ -982,7 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             catch (FormatException)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, arguments.Attribute.GetAttributeArgumentLocation(parameterIndex: 1));
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, attributeLocation);
                 return;
             }
 
@@ -999,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (bytes.Length < minLength)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, arguments.Attribute.GetAttributeArgumentLocation(parameterIndex: 1));
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, attributeLocation);
                 return;
             }
 
@@ -1013,20 +1016,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             catch (ArgumentException)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, arguments.Attribute.GetAttributeArgumentLocation(parameterIndex: 1));
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, attributeLocation);
                 return;
             }
 
-            var attributeSyntax = arguments.AttributeSyntaxOpt;
-            Debug.Assert(attributeSyntax is object);
-            var attributeLocation = attributeSyntax.Location;
-
-            var interceptorsNamespaces = ((CSharpParseOptions)attributeSyntax.SyntaxTree.Options).InterceptorsPreviewNamespaces;
-            var thisNamespaceNames = getNamespaceNames();
+            var interceptorsNamespaces = ((CSharpParseOptions)attributeNameSyntax.SyntaxTree.Options).InterceptorsPreviewNamespaces;
+            var thisNamespaceNames = getNamespaceNames(this);
             var foundAnyMatch = interceptorsNamespaces.Any(ns => isDeclaredInNamespace(thisNamespaceNames, ns));
             if (!foundAnyMatch)
             {
-                reportFeatureNotEnabled(diagnostics, attributeSyntax, thisNamespaceNames);
+                reportFeatureNotEnabled(diagnostics, attributeLocation, thisNamespaceNames);
                 thisNamespaceNames.Free();
                 return;
             }
@@ -1057,13 +1056,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var matchingTrees = DeclaringCompilation.GetSyntaxTreesByContentHash(hash);
             if (matchingTrees.Count > 1)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDuplicateFile, attributeData.GetAttributeArgumentLocation(1), displayFileName);
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationDuplicateFile, attributeLocation, displayFileName);
                 return;
             }
 
             if (matchingTrees.Count == 0)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptsLocationFileNotFound, attributeData.GetAttributeArgumentLocation(1), displayFileName);
+                diagnostics.Add(ErrorCode.ERR_InterceptsLocationFileNotFound, attributeLocation, displayFileName);
                 return;
             }
 
@@ -1106,10 +1105,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclaringCompilation.AddInterception(matchingTree.FilePath, position, attributeLocation, this);
 
             // Caller must free the returned builder.
-            ArrayBuilder<string> getNamespaceNames()
+            ArrayBuilder<string> getNamespaceNames(SourceMethodSymbolWithAttributes @this)
             {
                 var namespaceNames = ArrayBuilder<string>.GetInstance();
-                for (var containingNamespace = ContainingNamespace; containingNamespace?.IsGlobalNamespace == false; containingNamespace = containingNamespace.ContainingNamespace)
+                for (var containingNamespace = @this.ContainingNamespace; containingNamespace?.IsGlobalNamespace == false; containingNamespace = containingNamespace.ContainingNamespace)
                     namespaceNames.Add(containingNamespace.Name);
                 // order outermost->innermost
                 // e.g. for method MyApp.Generated.Interceptors.MyInterceptor(): ["MyApp", "Generated", "Interceptors"]
@@ -1141,16 +1140,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            static void reportFeatureNotEnabled(BindingDiagnosticBag diagnostics, AttributeSyntax attributeSyntax, ArrayBuilder<string> namespaceNames)
+            static void reportFeatureNotEnabled(BindingDiagnosticBag diagnostics, Location attributeLocation, ArrayBuilder<string> namespaceNames)
             {
                 if (namespaceNames.Count == 0)
                 {
-                    diagnostics.Add(ErrorCode.ERR_InterceptorGlobalNamespace, attributeSyntax);
+                    diagnostics.Add(ErrorCode.ERR_InterceptorGlobalNamespace, attributeLocation);
                 }
                 else
                 {
                     var recommendedProperty = $"<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);{string.Join(".", namespaceNames)}</InterceptorsPreviewNamespaces>";
-                    diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeSyntax, recommendedProperty);
+                    diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeLocation, recommendedProperty);
                 }
             }
         }

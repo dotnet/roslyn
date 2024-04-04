@@ -6633,9 +6633,9 @@ partial struct CustomHandler
 
         var comp = CreateCompilation([interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
         comp.VerifyEmitDiagnostics(
-            // Interceptors.cs(6,28): error CS9229: The data argument to InterceptsLocationAttribute is not in the correct format.
+            // Interceptors.cs(6,6): error CS9230: The data argument to InterceptsLocationAttribute is not in the correct format.
             //     [InterceptsLocation(1, "jB4qgCy292LkEGCwmD+R6AcAAAAJAAAAUHJvZ3JhbS5jcw===")]
-            Diagnostic(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, @"""jB4qgCy292LkEGCwmD+R6AcAAAAJAAAAUHJvZ3JhbS5jcw===""").WithLocation(6, 28));
+            Diagnostic(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, "InterceptsLocation").WithLocation(6, 6));
     }
 
     [Fact]
@@ -6665,9 +6665,9 @@ partial struct CustomHandler
 
         var comp = CreateCompilation([interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
         comp.VerifyEmitDiagnostics(
-                // Interceptors.cs(6,28): error CS9233: Cannot intercept a call in file '�' because a matching file was not found in the compilation.
-                //     [InterceptsLocation(1, "{base64}")]
-                Diagnostic(ErrorCode.ERR_InterceptsLocationFileNotFound, $@"""{base64}""").WithArguments("�").WithLocation(6, 28));
+            // Interceptors.cs(6,6): error CS9233: Cannot intercept a call in file '�' because a matching file was not found in the compilation.
+            //     [InterceptsLocation(1, "AAAAAAAAAAAAAAAAAAAAAAAAAADA")]
+            Diagnostic(ErrorCode.ERR_InterceptsLocationFileNotFound, "InterceptsLocation").WithArguments("�").WithLocation(6, 6));
     }
 
     [Theory]
@@ -6689,9 +6689,9 @@ partial struct CustomHandler
 
         var comp = CreateCompilation([interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
         comp.VerifyEmitDiagnostics(
-            // Interceptors.cs(6,28): error CS9229: The data argument to InterceptsLocationAttribute is not in the correct format.
-            //     [InterceptsLocation(1, "{data}")]
-            Diagnostic(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, $@"""{data}""").WithLocation(6, 28));
+            // Interceptors.cs(6,6): error CS9230: The data argument to InterceptsLocationAttribute is not in the correct format.
+            //     [InterceptsLocation(1, "")]
+            Diagnostic(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, "InterceptsLocation").WithLocation(6, 6));
     }
 
     [Fact]
@@ -6711,9 +6711,9 @@ partial struct CustomHandler
 
         var comp = CreateCompilation([interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
         comp.VerifyEmitDiagnostics(
-            // Interceptors.cs(6,28): error CS9229: The data argument to InterceptsLocationAttribute is not in the correct format.
+            // Interceptors.cs(6,6): error CS9230: The data argument to InterceptsLocationAttribute is not in the correct format.
             //     [InterceptsLocation(1, null)]
-            Diagnostic(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, "null").WithLocation(6, 28));
+            Diagnostic(ErrorCode.ERR_InterceptsLocationDataInvalidFormat, "InterceptsLocation").WithLocation(6, 6));
     }
 
     [Fact]
@@ -6751,9 +6751,9 @@ partial struct CustomHandler
 
         var comp1 = CreateCompilation([interceptors, CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
         comp1.VerifyEmitDiagnostics(
-            // Interceptors.cs(6,28): error CS9232: Cannot intercept a call in file 'Program.cs' because a matching file was not found in the compilation.
-            //     [InterceptsLocation(1, "{locationSpecifier.Data}")]
-            Diagnostic(ErrorCode.ERR_InterceptsLocationFileNotFound, $@"""{locationSpecifier.Data}""").WithArguments("Program.cs").WithLocation(6, 28));
+            // Interceptors.cs(6,6): error CS9233: Cannot intercept a call in file 'Program.cs' because a matching file was not found in the compilation.
+            //     [InterceptsLocation(1, "jB4qgCy292LkEGCwmD+R6FIAAABQcm9ncmFtLmNz")]
+            Diagnostic(ErrorCode.ERR_InterceptsLocationFileNotFound, "InterceptsLocation").WithArguments("Program.cs").WithLocation(6, 6));
     }
 
     [Fact]
@@ -6796,8 +6796,8 @@ partial struct CustomHandler
             interceptors,
             CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors)]);
         comp1.GetDiagnostics().Where(d => d.Location.SourceTree == interceptors).Verify(
-            // Interceptors.cs(6,28): error CS9231: Cannot intercept a call in file 'Program1.cs' because it is duplicated elsewhere in the compilation.
-            //     [InterceptsLocation(1, "{data}")]
-            Diagnostic(ErrorCode.ERR_InterceptsLocationDuplicateFile, $@"""{locationSpecifier.Data}""").WithArguments("Program1.cs").WithLocation(6, 28));
+            // Interceptors.cs(6,6): error CS9232: Cannot intercept a call in file 'Program1.cs' because it is duplicated elsewhere in the compilation.
+            //     [InterceptsLocation(1, "jB4qgCy292LkEGCwmD+R6FIAAABQcm9ncmFtMS5jcw==")]
+            Diagnostic(ErrorCode.ERR_InterceptsLocationDuplicateFile, "InterceptsLocation").WithArguments("Program1.cs").WithLocation(6, 6));
     }
 }
