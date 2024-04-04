@@ -169,10 +169,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             => EnqueueWork(highPriority: false);
 
         private void EnqueueWork(bool highPriority)
-        {
-
-            EnqueueWork(highPriority, _dataSource.SupportsFrozenPartialSemantics);
-        }
+            => EnqueueWork(highPriority, _dataSource.SupportsFrozenPartialSemantics);
 
         private void EnqueueWork(bool highPriority, bool frozenPartialSemantics)
         {
