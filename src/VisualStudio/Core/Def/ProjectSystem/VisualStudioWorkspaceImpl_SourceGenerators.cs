@@ -74,7 +74,7 @@ internal abstract partial class VisualStudioWorkspaceImpl
     [Name(PredefinedCommandHandlerNames.SourceGeneratorSave)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal partial class SaveCommandHandler() : IChainedCommandHandler<SaveCommandArgs>
+    internal sealed class SaveCommandHandler() : IChainedCommandHandler<SaveCommandArgs>
     {
         public string DisplayName => ServicesVSResources.Roslyn_save_command_handler;
 
