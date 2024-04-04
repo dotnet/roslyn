@@ -102,7 +102,7 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
         }
     }
 
-    internal static (ImmutableArray<byte> checksum, int position, string displayFileName)? Decode(string? data, Location diagnosticLocation, BindingDiagnosticBag diagnostics)
+    internal static (ReadOnlyMemory<byte> checksum, int position, string displayFileName)? Decode(string? data, Location diagnosticLocation, BindingDiagnosticBag diagnostics)
     {
         if (data is null)
         {
