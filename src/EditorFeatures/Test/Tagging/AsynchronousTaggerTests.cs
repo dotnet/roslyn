@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -154,6 +155,8 @@ public sealed class AsynchronousTaggerTests
 
         WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestFrozenPartialSemantics1)} creates asynchronous taggers");
 
+        var testDocument = workspace.Documents.First();
+
         var eventSource = new TestTaggerEventSource();
         var callbackCounter = 0;
         var taggerProvider = new TestTaggerProvider(
@@ -161,13 +164,17 @@ public sealed class AsynchronousTaggerTests
             (c, s) =>
             {
                 Assert.True(callbackCounter <= 1);
+                var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
                 if (callbackCounter is 0)
                 {
                     Assert.True(c.FrozenPartialSemantics);
+                    // Should be getting a frozen document here.
+                    Assert.NotSame(document, c.SpansToTag.First().Document);
                 }
                 else
                 {
                     Assert.False(c.FrozenPartialSemantics);
+                    Assert.Same(document, c.SpansToTag.First().Document);
                 }
 
                 callbackCounter++;
@@ -178,22 +185,17 @@ public sealed class AsynchronousTaggerTests
             supportsFrozenPartialSemantics: true,
             asyncListener);
 
-        var document = workspace.Documents.First();
-        var textBuffer = document.GetTextBuffer();
-        var snapshot = textBuffer.CurrentSnapshot;
+        var textBuffer = testDocument.GetTextBuffer();
         using var tagger = taggerProvider.CreateTagger(textBuffer);
         Contract.ThrowIfNull(tagger);
-
-        var snapshotSpans = new NormalizedSnapshotSpanCollection(
-            snapshot.GetFullSpan());
 
         eventSource.SendUpdateEvent();
 
         await asyncListener.ExpeditedWaitAsync();
-
-        var tags = tagger.GetTags(snapshotSpans);
-        Assert.Equal(1, tags.Count());
         Assert.Equal(2, callbackCounter);
+
+        var tags = tagger.GetTags(new NormalizedSnapshotSpanCollection(textBuffer.CurrentSnapshot.GetFullSpan()));
+        Assert.Equal(1, tags.Count());
     }
 
     [WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2016199")]
@@ -209,14 +211,18 @@ public sealed class AsynchronousTaggerTests
 
         WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestFrozenPartialSemantics2)} creates asynchronous taggers");
 
+        var testDocument = workspace.Documents.First();
+
         var eventSource = new TestTaggerEventSource();
         var callbackCounter = 0;
         var taggerProvider = new TestTaggerProvider(
             workspace.GetService<IThreadingContext>(),
             (c, s) =>
             {
+                var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
                 Assert.True(callbackCounter == 0);
                 Assert.False(c.FrozenPartialSemantics);
+                Assert.Same(document, c.SpansToTag.First().Document);
 
                 callbackCounter++;
                 return [new TagSpan<TextMarkerTag>(new SnapshotSpan(s.SnapshotSpan.Snapshot, new Span(0, 1)), new TextMarkerTag($"Test"))];
@@ -226,22 +232,17 @@ public sealed class AsynchronousTaggerTests
             supportsFrozenPartialSemantics: false,
             asyncListener);
 
-        var document = workspace.Documents.First();
-        var textBuffer = document.GetTextBuffer();
-        var snapshot = textBuffer.CurrentSnapshot;
+        var textBuffer = testDocument.GetTextBuffer();
         using var tagger = taggerProvider.CreateTagger(textBuffer);
         Contract.ThrowIfNull(tagger);
-
-        var snapshotSpans = new NormalizedSnapshotSpanCollection(
-            snapshot.GetFullSpan());
 
         eventSource.SendUpdateEvent();
 
         await asyncListener.ExpeditedWaitAsync();
-
-        var tags = tagger.GetTags(snapshotSpans);
-        Assert.Equal(1, tags.Count());
         Assert.Equal(1, callbackCounter);
+
+        var tags = tagger.GetTags(new NormalizedSnapshotSpanCollection(textBuffer.CurrentSnapshot.GetFullSpan()));
+        Assert.Equal(1, tags.Count());
     }
 
     private sealed class TestTaggerProvider(
