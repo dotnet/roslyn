@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (variable is LocalSymbol local)
                     {
-                        if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined)
+                        if (local.SynthesizedKind is SynthesizedLocalKind.UserDefined or SynthesizedLocalKind.Spill)
                         {
                             reportLocalAcrossAwaitError(diagnostics, local, local.GetFirstLocation());
                         }

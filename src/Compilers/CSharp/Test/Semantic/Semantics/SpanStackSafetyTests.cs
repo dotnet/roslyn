@@ -1416,19 +1416,18 @@ public class Program
 
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-            comp.VerifyEmitDiagnostics(
-                // (17,39): error CS4007: 'await' cannot be used in an expression containing the type 'System.Span<int>'
+            var expectedDiagnostics = new[]
+            {
+                // (17,39): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
                 //         TakesSpan(default(Span<int>), await I1());
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await I1()").WithArguments("System.Span<int>")
-            );
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await I1()").WithArguments("System.Span<int>").WithLocation(17, 39)
+            };
+
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
 
-            comp.VerifyEmitDiagnostics(
-                // (17,39): error CS4007: 'await' cannot be used in an expression containing the type 'System.Span<int>'
-                //         TakesSpan(default(Span<int>), await I1());
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await I1()").WithArguments("System.Span<int>")
-            );
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -1467,19 +1466,18 @@ public class Program
 
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-            comp.VerifyEmitDiagnostics(
-                // (14,45): error CS4007: 'await' cannot be used in an expression containing the type 'Span<int>'
+            var expectedDiagnostics = new[]
+            {
+                // (14,45): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
                 //         TakesSpan(s: default(Span<int>), i: await I1());
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await I1()").WithArguments("System.Span<int>").WithLocation(14, 45)
-            );
+            };
+
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
 
-            comp.VerifyEmitDiagnostics(
-                // (14,45): error CS4007: 'await' cannot be used in an expression containing the type 'Span<int>'
-                //         TakesSpan(s: default(Span<int>), i: await I1());
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await I1()").WithArguments("System.Span<int>").WithLocation(14, 45)
-            );
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
