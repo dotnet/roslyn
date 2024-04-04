@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -66,14 +65,15 @@ public sealed class AsynchronousTaggerTests
 
         WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(LargeNumberOfSpans)} creates asynchronous taggers");
 
-        var eventSource = CreateEventSource();
+        var eventSource = new TestTaggerEventSource();
         var taggerProvider = new TestTaggerProvider(
             workspace.GetService<IThreadingContext>(),
-            (s, c) => Enumerable
+            (_, s) => Enumerable
                 .Range(0, tagsProduced)
-                .Select(i => new TagSpan<TextMarkerTag>(new SnapshotSpan(s.Snapshot, new Span(50 + i * 2, 1)), new TextMarkerTag($"Test{i}"))),
+                .Select(i => new TagSpan<TextMarkerTag>(new SnapshotSpan(s.SnapshotSpan.Snapshot, new Span(50 + i * 2, 1)), new TextMarkerTag($"Test{i}"))),
             eventSource,
             workspace.GetService<IGlobalOptionService>(),
+            supportsFrozenPartialSemantics: false,
             asyncListener);
 
         var document = workspace.Documents.First();
@@ -141,19 +141,122 @@ public sealed class AsynchronousTaggerTests
         Assert.Equal(2, tags.Count());
     }
 
-    private static TestTaggerEventSource CreateEventSource()
-        => new();
+    [WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2016199")]
+    public async Task TestFrozenPartialSemantics1()
+    {
+        using var workspace = EditorTestWorkspace.CreateCSharp("""
+            class Program
+            {
+            }
+            """);
+
+        var asyncListener = new AsynchronousOperationListener();
+
+        WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestFrozenPartialSemantics1)} creates asynchronous taggers");
+
+        var eventSource = new TestTaggerEventSource();
+        var callbackCounter = 0;
+        var taggerProvider = new TestTaggerProvider(
+            workspace.GetService<IThreadingContext>(),
+            (c, s) =>
+            {
+                Assert.True(callbackCounter <= 1);
+                if (callbackCounter is 0)
+                {
+                    Assert.True(c.FrozenPartialSemantics);
+                }
+                else
+                {
+                    Assert.False(c.FrozenPartialSemantics);
+                }
+
+                callbackCounter++;
+                return [new TagSpan<TextMarkerTag>(new SnapshotSpan(s.SnapshotSpan.Snapshot, new Span(0, 1)), new TextMarkerTag($"Test"))];
+            },
+            eventSource,
+            workspace.GetService<IGlobalOptionService>(),
+            supportsFrozenPartialSemantics: true,
+            asyncListener);
+
+        var document = workspace.Documents.First();
+        var textBuffer = document.GetTextBuffer();
+        var snapshot = textBuffer.CurrentSnapshot;
+        using var tagger = taggerProvider.CreateTagger(textBuffer);
+        Contract.ThrowIfNull(tagger);
+
+        var snapshotSpans = new NormalizedSnapshotSpanCollection(
+            snapshot.GetFullSpan());
+
+        eventSource.SendUpdateEvent();
+
+        await asyncListener.ExpeditedWaitAsync();
+
+        var tags = tagger.GetTags(snapshotSpans);
+        Assert.Equal(1, tags.Count());
+        Assert.Equal(2, callbackCounter);
+    }
+
+    [WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2016199")]
+    public async Task TestFrozenPartialSemantics2()
+    {
+        using var workspace = EditorTestWorkspace.CreateCSharp("""
+            class Program
+            {
+            }
+            """);
+
+        var asyncListener = new AsynchronousOperationListener();
+
+        WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestFrozenPartialSemantics2)} creates asynchronous taggers");
+
+        var eventSource = new TestTaggerEventSource();
+        var callbackCounter = 0;
+        var taggerProvider = new TestTaggerProvider(
+            workspace.GetService<IThreadingContext>(),
+            (c, s) =>
+            {
+                Assert.True(callbackCounter == 0);
+                Assert.False(c.FrozenPartialSemantics);
+
+                callbackCounter++;
+                return [new TagSpan<TextMarkerTag>(new SnapshotSpan(s.SnapshotSpan.Snapshot, new Span(0, 1)), new TextMarkerTag($"Test"))];
+            },
+            eventSource,
+            workspace.GetService<IGlobalOptionService>(),
+            supportsFrozenPartialSemantics: false,
+            asyncListener);
+
+        var document = workspace.Documents.First();
+        var textBuffer = document.GetTextBuffer();
+        var snapshot = textBuffer.CurrentSnapshot;
+        using var tagger = taggerProvider.CreateTagger(textBuffer);
+        Contract.ThrowIfNull(tagger);
+
+        var snapshotSpans = new NormalizedSnapshotSpanCollection(
+            snapshot.GetFullSpan());
+
+        eventSource.SendUpdateEvent();
+
+        await asyncListener.ExpeditedWaitAsync();
+
+        var tags = tagger.GetTags(snapshotSpans);
+        Assert.Equal(1, tags.Count());
+        Assert.Equal(1, callbackCounter);
+    }
 
     private sealed class TestTaggerProvider(
         IThreadingContext threadingContext,
-        Func<SnapshotSpan, CancellationToken, IEnumerable<ITagSpan<TextMarkerTag>>> callback,
+        Func<TaggerContext<TextMarkerTag>, DocumentSnapshotSpan, IEnumerable<ITagSpan<TextMarkerTag>>> callback,
         ITaggerEventSource eventSource,
         IGlobalOptionService globalOptions,
+        bool supportsFrozenPartialSemantics,
         IAsynchronousOperationListener asyncListener)
         : AsynchronousTaggerProvider<TextMarkerTag>(threadingContext, globalOptions, visibilityTracker: null, asyncListener)
     {
         protected override TaggerDelay EventChangeDelay
             => TaggerDelay.NearImmediate;
+
+        protected override bool SupportsFrozenPartialSemantics => supportsFrozenPartialSemantics;
 
         protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
             => eventSource;
@@ -161,7 +264,7 @@ public sealed class AsynchronousTaggerTests
         protected override Task ProduceTagsAsync(
             TaggerContext<TextMarkerTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition, CancellationToken cancellationToken)
         {
-            foreach (var tag in callback(snapshotSpan.SnapshotSpan, cancellationToken))
+            foreach (var tag in callback(context, snapshotSpan))
                 context.AddTag(tag);
 
             return Task.CompletedTask;
