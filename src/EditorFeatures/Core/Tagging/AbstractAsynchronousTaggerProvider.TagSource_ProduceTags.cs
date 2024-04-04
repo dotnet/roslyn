@@ -654,8 +654,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 !this.CachedTagTrees.TryGetValue(buffer, out _))
             {
                 // Compute this as a high priority work item to have the lease amount of blocking as possible.
-                _dataSource.ThreadingContext.JoinableTaskFactory.Run(async () =>
-                    await this.RecomputeTagsAsync(highPriority: true, _dataSource.SupportsFrozenPartialSemantics, _disposalTokenSource.Token).ConfigureAwait(false));
+                _dataSource.ThreadingContext.JoinableTaskFactory.Run(() =>
+                    this.RecomputeTagsAsync(highPriority: true, _dataSource.SupportsFrozenPartialSemantics, _disposalTokenSource.Token));
             }
 
             _firstTagsRequest = false;
