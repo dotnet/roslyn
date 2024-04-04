@@ -7,10 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -75,11 +73,18 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _normalPriTagsChangedQueue;
 
         /// <summary>
-        /// Boolean specifies if this is the initial set of tags being computed or not.  This queue is used to batch
-        /// up event change notifications and only dispatch one recomputation every <see cref="EventChangeDelay"/>
-        /// to actually produce the latest set of tags.
+        /// This queue is used to batch up event change notifications and only dispatch one recomputation every <see
+        /// cref="EventChangeDelay"/> to actually produce the latest set of tags.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<(bool highPriority, bool frozenPartialSemantics)> _eventChangeQueue;
+        private readonly AsyncBatchingWorkQueue<TagSourceQueueItem> _eventChangeQueue;
+
+        /// <summary>
+        /// For taggers that support tagging frozen and non-frozen snapshots, this cancellation series controls the
+        /// non-frozen tagging pass.  We want this to be separately cancellable so that if new events come in that we 
+        /// cancel the expensive non-frozen tagging pass (which might be computing skeletons, SG docs, etc.), do the 
+        /// next cheap frozen-tagging-pass, and then push the expensive-nonfrozen-tagging-pass to the end again.
+        /// </summary>
+        private readonly CancellationSeries _nonFrozenComputationCancellationSeries = new();
 
         #endregion
 
@@ -164,10 +169,10 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             //
             // PERF: Use AsyncBatchingWorkQueue<bool, VoidResult> instead of AsyncBatchingWorkQueue<bool> because
             // the latter has an async state machine that rethrows a very common cancellation exception.
-            _eventChangeQueue = new AsyncBatchingWorkQueue<(bool highPriority, bool frozenPartialSemantics)>(
+            _eventChangeQueue = new AsyncBatchingWorkQueue<TagSourceQueueItem>(
                 dataSource.EventChangeDelay.ComputeTimeDelay(),
                 ProcessEventChangeAsync,
-                EqualityComparer<(bool highPriority, bool frozenPartialSemantics)>.Default,
+                EqualityComparer<TagSourceQueueItem>.Default,
                 asyncListener,
                 _disposalTokenSource.Token);
 
