@@ -28,14 +28,14 @@ class C
 // generated code
 static class D
 {
-    [InterceptsLocation(version: 1, data: "...(refers to the call at L1")]
+    [InterceptsLocation(version: 1, data: "...(refers to the call at L1)")]
     public static void InterceptorMethod(this C c, int param)
     {
         Console.WriteLine($"interceptor {param}");
     }
 
-    [InterceptsLocation(version: 1, data: "...(refers to the call at L2")]
-    [InterceptsLocation(version: 1, data: "...(refers to the call at L3")]
+    [InterceptsLocation(version: 1, data: "...(refers to the call at L2)")]
+    [InterceptsLocation(version: 1, data: "...(refers to the call at L3)")]
     public static void OtherInterceptorMethod(this C c, int param)
     {
         Console.WriteLine($"other interceptor {param}");
