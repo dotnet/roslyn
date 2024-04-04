@@ -143,7 +143,7 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
             return;
 
         var classified = await TryClassifyContainingMemberSpanAsync(
-                context, document, spanToTag.SnapshotSpan, classificationService, options, cancellationToken).ConfigureAwait(false);
+            context, document, spanToTag.SnapshotSpan, classificationService, options, cancellationToken).ConfigureAwait(false);
         if (classified)
         {
             return;
