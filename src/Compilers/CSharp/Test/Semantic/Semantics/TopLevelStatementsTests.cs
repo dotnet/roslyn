@@ -1115,9 +1115,9 @@ await System.Threading.Tasks.Task.Yield();
 
             var expectedDiagnostics = new[]
             {
-                // (3,9): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // ref int d = ref c;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "d").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(3, 9)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "d").WithArguments("ref and unsafe in async and iterator methods").WithLocation(3, 9)
             };
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);

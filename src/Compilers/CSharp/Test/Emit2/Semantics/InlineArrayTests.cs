@@ -20182,9 +20182,9 @@ class Program
 " + Buffer4Definition;
 
             CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // (10,26): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (10,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(10, 26));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 26));
 
             var expectedOutput = "09009";
 
@@ -20644,9 +20644,9 @@ class Program
 " + Buffer4Definition;
 
             CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // (11,35): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (11,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref readonly int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(11, 35));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(11, 35));
 
             var expectedOutput = "01 34 01 01 4";
 
@@ -20859,12 +20859,12 @@ class Program
 " + Buffer4Definition;
 
             CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // (10,26): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (10,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         ref Buffer4<int> buffer = ref GetBuffer();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "buffer").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(10, 26),
-                // (11,26): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "buffer").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 26),
+                // (11,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref int y in buffer)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(11, 26));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(11, 26));
 
             var expectedOutput = "09009";
 
@@ -20904,9 +20904,9 @@ class Program
 " + Buffer4Definition;
 
             CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // (10,26): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (10,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(10, 26));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 26));
 
             var expectedDiagnostics = new[]
             {
@@ -20955,9 +20955,9 @@ class Program
 " + Buffer4Definition;
 
             CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // (10,26): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (10,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(10, 26));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 26));
 
             var expectedDiagnostics = new[]
             {
@@ -21006,12 +21006,12 @@ class Program
 " + Buffer4Definition;
 
             CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // (10,26): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (10,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         ref Buffer4<int> buffer = ref GetBuffer();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "buffer").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(10, 26),
-                // (11,26): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "buffer").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 26),
+                // (11,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref int y in buffer)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(11, 26));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(11, 26));
 
             var expectedDiagnostics = new[]
             {
@@ -21078,9 +21078,9 @@ class Program
 " + Buffer4Definition;
 
             CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // (21,35): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (21,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         ref readonly Buffer4<int> f = ref x.F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(21, 35));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f").WithArguments("ref and unsafe in async and iterator methods").WithLocation(21, 35));
 
             var expectedDiagnostics = new[]
             {
@@ -21126,9 +21126,9 @@ class Program
 " + Buffer4Definition;
 
             CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // (8,35): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref readonly int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(8, 35));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 35));
 
             var expectedDiagnostics = new[]
             {
@@ -21170,9 +21170,9 @@ class Program
 " + Buffer4Definition;
 
             CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // (8,35): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref readonly int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(8, 35));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 35));
 
             var expectedDiagnostics = new[]
             {
@@ -21462,9 +21462,9 @@ class Program
 " + Buffer4Definition;
 
             CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // (18,26): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (18,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(18, 26));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(18, 26));
 
             var expectedOutput = "0090-19";
 
@@ -21784,9 +21784,9 @@ class Program
 " + Buffer4Definition;
 
             CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // (19,35): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (19,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref readonly int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(19, 35));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(19, 35));
 
             var expectedOutput = "01 01 34 01 -14";
 
@@ -21966,12 +21966,12 @@ class Program
 " + Buffer4Definition;
 
             CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // (18,26): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (18,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         ref Buffer4<int> buffer = ref GetBuffer();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "buffer").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(18, 26),
-                // (19,26): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "buffer").WithArguments("ref and unsafe in async and iterator methods").WithLocation(18, 26),
+                // (19,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref int y in buffer)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(19, 26));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(19, 26));
 
             var expectedOutput = "0090-19";
 
@@ -22019,9 +22019,9 @@ class Program
 " + Buffer4Definition;
 
             CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // (18,26): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (18,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(18, 26));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(18, 26));
 
             var expectedDiagnostics = new[]
             {
@@ -22078,9 +22078,9 @@ class Program
 " + Buffer4Definition;
 
             CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // (18,26): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (18,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(18, 26));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(18, 26));
 
             var expectedDiagnostics = new[]
             {
@@ -22137,12 +22137,12 @@ class Program
 " + Buffer4Definition;
 
             CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // (18,26): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (18,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         ref Buffer4<int> buffer = ref GetBuffer();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "buffer").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(18, 26),
-                // (19,26): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "buffer").WithArguments("ref and unsafe in async and iterator methods").WithLocation(18, 26),
+                // (19,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref int y in buffer)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(19, 26));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(19, 26));
 
             var expectedDiagnostics = new[]
             {
@@ -22207,9 +22207,9 @@ class Program
 " + Buffer4Definition;
 
             CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // (20,35): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (20,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         ref readonly Buffer4<int> f = ref x.F;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(20, 35));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f").WithArguments("ref and unsafe in async and iterator methods").WithLocation(20, 35));
 
             var expectedDiagnostics = new[]
             {
@@ -22254,9 +22254,9 @@ class Program
 " + Buffer4Definition;
 
             CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // (8,35): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref readonly int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(8, 35));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 35));
 
             var expectedDiagnostics = new[]
             {
@@ -22298,9 +22298,9 @@ class Program
 " + Buffer4Definition;
 
             CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // (8,35): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         foreach (ref readonly int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(8, 35));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 35));
 
             var expectedDiagnostics = new[]
             {

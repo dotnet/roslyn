@@ -2348,8 +2348,8 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRefUnsafeInIteratorAsync">
-        <source>Ref and unsafe in async and iterator methods</source>
-        <target state="new">Ref and unsafe in async and iterator methods</target>
+        <source>ref and unsafe in async and iterator methods</source>
+        <target state="new">ref and unsafe in async and iterator methods</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">

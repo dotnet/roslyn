@@ -4992,12 +4992,12 @@ class C
                     // (8,26): error CS0306: The type 'S' may not be used as a type argument
                     //     async Task M(Task<S> t)
                     Diagnostic(ErrorCode.ERR_BadTypeArgument, "t").WithArguments("S").WithLocation(8, 26),
-                    // (12,9): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (12,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //         var a = await t;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(12, 9),
-                    // (14,9): error CS8652: The feature 'Ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(12, 9),
+                    // (14,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //         var r = t.Result;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("Ref and unsafe in async and iterator methods").WithLocation(14, 9),
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(14, 9),
                     // (15,9): error CS8350: This combination of arguments to 'C.M(S, ref S)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
                     //         M(await t, ref r);
                     Diagnostic(ErrorCode.ERR_CallArgMixing, "M(await t, ref r)").WithArguments("C.M(S, ref S)", "t").WithLocation(15, 9)
