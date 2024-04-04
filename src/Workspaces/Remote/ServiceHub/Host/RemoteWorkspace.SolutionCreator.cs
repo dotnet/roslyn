@@ -144,14 +144,14 @@ namespace Microsoft.CodeAnalysis.Remote
                     if (projectCone is null)
                         return map;
 
-                    var builder = map.ToBuilder();
-                    foreach (var (projectId, _) in map)
+                    var builder = map.Map.ToBuilder();
+                    foreach (var (projectId, _) in map.Map)
                     {
                         if (!projectCone.Contains(projectId))
                             builder.Remove(projectId);
                     }
 
-                    return builder.ToImmutable();
+                    return new(builder.ToImmutable());
                 }
             }
 
