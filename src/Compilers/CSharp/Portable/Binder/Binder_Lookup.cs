@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             compatibleExtensions.Sort((x, y) => isMoreSpecificExtension(x, y) ? -1 : 1); // Note: captures tempUseSiteInfo
             useSiteInfo.MergeAndClear(ref tempUseSiteInfo);
 
-            // PROTOTYPE test use-site diagnostics
+            // PROTOTYPE(static) test use-site diagnostics
             var tempResult = LookupResult.GetInstance();
             foreach (NamedTypeSymbol extension in compatibleExtensions)
             {
@@ -2156,7 +2156,7 @@ symIsHidden:;
                     this.AddMemberLookupSymbolsInfoInInterface(result, type, options, originalBinder, type);
                     break;
 
-                // PROTOTYPE implement Lookup APIs for extension types. See TestLookupSymbolNamesInInterface and TestLookupSymbolsInInterface
+                // PROTOTYPE(static) implement Lookup APIs for extension types. See TestLookupSymbolNamesInInterface and TestLookupSymbolsInInterface
 
                 case TypeKind.Class:
                 case TypeKind.Struct:

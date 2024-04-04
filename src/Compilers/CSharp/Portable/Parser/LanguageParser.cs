@@ -1575,7 +1575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
 
-            var paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken && mainKeyword.Kind != SyntaxKind.ExtensionKeyword // PROTOTYPE
+            var paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken && mainKeyword.Kind != SyntaxKind.ExtensionKeyword // PROTOTYPE(static)
                 ? ParseParenthesizedParameterList() : null;
 
             SyntaxToken? forKeyword = null;
@@ -1583,12 +1583,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (mainKeyword.Kind == SyntaxKind.ExtensionKeyword
                 && CurrentToken.Kind == SyntaxKind.ForKeyword)
             {
-                // PROTOTYPE consider error recovery for `class X for type`
+                // PROTOTYPE(static) consider error recovery for `class X for type`
                 forKeyword = EatToken(SyntaxKind.ForKeyword);
                 forType = ParseType();
             }
 
-            // PROTOTYPE decide whether to keep parsing base extensions or not
+            // PROTOTYPE(static) decide whether to keep parsing base extensions or not
             var baseList = this.ParseBaseList();
             if (mainKeyword.Kind == SyntaxKind.ExtensionKeyword
                 && baseList is not null)
@@ -1615,7 +1615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 SyntaxToken semicolon;
                 SyntaxToken? openBrace;
                 SyntaxToken? closeBrace;
-                if (CurrentToken.Kind == SyntaxKind.SemicolonToken && mainKeyword.Kind != SyntaxKind.ExtensionKeyword) // PROTOTYPE
+                if (CurrentToken.Kind == SyntaxKind.SemicolonToken && mainKeyword.Kind != SyntaxKind.ExtensionKeyword) // PROTOTYPE(static)
                 {
                     semicolon = EatToken(SyntaxKind.SemicolonToken);
                     openBrace = null;
@@ -1739,7 +1739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             bool tryScanExtensionStart([NotNullWhen(true)] out SyntaxToken? implicitOrExplicitKeyword, [NotNullWhen(true)] out SyntaxToken? extensionKeyword)
             {
-                // PROTOTYPE consider improving error recovery for `extension explicit` and `extension implicit`
+                // PROTOTYPE(static) consider improving error recovery for `extension explicit` and `extension implicit`
                 if (this.CurrentToken.Kind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword &&
                     this.PeekToken(1).ContextualKind == SyntaxKind.ExtensionKeyword)
                 {

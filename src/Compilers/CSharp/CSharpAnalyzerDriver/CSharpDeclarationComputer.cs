@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return;
                     }
-                // PROTOTYPE
+                // PROTOTYPE(static)
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.RecordDeclaration:

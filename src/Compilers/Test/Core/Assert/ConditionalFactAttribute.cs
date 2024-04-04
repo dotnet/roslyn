@@ -421,7 +421,7 @@ namespace Roslyn.Test.Utilities
         public override string SkipReason => "Test currently not supported on Framework 4.5";
     }
 
-    // PROTOTYPE support for base extensions was temporarily removed from the compiler
+    // PROTOTYPE(inheritance) support for base extensions was temporarily removed from the compiler
     // but related tests were merely skipped.
     public class NoBaseExtensions : ExecutionCondition
     {

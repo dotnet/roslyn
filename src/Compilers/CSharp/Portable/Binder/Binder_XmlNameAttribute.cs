@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var name = identifier.Identifier.ValueText;
 
             var lookupResult = LookupResult.GetInstance();
-            // PROTOTYPE confirm that default LookupOptions are fine
-            // PROTOTYPE test lookup to underlying type
+            // PROTOTYPE(static) confirm that default LookupOptions are fine
+            // PROTOTYPE(static) test lookup to underlying type
             this.LookupSymbolsWithFallback(lookupResult, name, arity: 0, useSiteInfo: ref useSiteInfo);
 
             if (lookupResult.Kind == LookupResultKind.Empty)

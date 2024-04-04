@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var extensionUnderlyingType = extension.ExtendedTypeNoUseSiteDiagnostics;
             Debug.Assert(extensionUnderlyingType is not null);
 
-            // PROTOTYPE we'll want to adjust the handling for differences that aren't relevant to the CLR, such as object/dynamic
+            // PROTOTYPE(static) we'll want to adjust the handling for differences that aren't relevant to the CLR, such as object/dynamic
             if (TypeSymbol.Equals(extensionUnderlyingType, type, TypeCompareKind.CLRSignatureCompareOptions))
             {
                 map = null;

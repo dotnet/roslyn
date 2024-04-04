@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                          (analyzedArguments.HasDynamicArgument ? OverloadResolution.Options.DynamicResolution : OverloadResolution.Options.None));
             diagnostics.Add(expression, useSiteInfo);
 
-            if (resolution.IsExtensionMember(out Symbol extensionMember))
+            if (resolution.IsNonMethodExtensionMember(out Symbol extensionMember))
             {
                 diagnostics.AddRange(resolution.Diagnostics);
                 var extensionMemberAccess = GetExtensionMemberAccess(expression, methodGroup.ReceiverOpt, extensionMember, diagnostics);
@@ -814,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(finalApplicableCandidates.Length > 0);
 
-                            // PROTOTYPE need to confirm what we want for invocations with dynamic arguments
+                            // PROTOTYPE(static) need to confirm what we want for invocations with dynamic arguments
                             if (resolution.IsExtensionMethodGroup)
                             {
                                 // error CS1973: 'T' has no applicable method named 'M' but appears to have an
@@ -2394,7 +2394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Check that the method group contains something applicable. Otherwise error.
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.None);
-            // PROTOTYPE we probably want this error for extension members too
+            // PROTOTYPE(static) we probably want this error for extension members too
             diagnostics.Add(methodGroup.Syntax, useSiteInfo);
             diagnostics.AddRange(resolution.Diagnostics);
             if (resolution.IsExtensionMethodGroup)

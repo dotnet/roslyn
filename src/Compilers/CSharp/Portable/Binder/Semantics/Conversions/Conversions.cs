@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var resolution = ResolveDelegateOrFunctionPointerMethodGroup(_binder, source, methodSymbol, isFunctionPointer, callingConventionInfo, ref useSiteInfo);
-            if (resolution.IsExtensionMember(out var extensionMember))
+            if (resolution.IsNonMethodExtensionMember(out var extensionMember))
             {
                 var nestedConversion = ClassifyConversionFromExpressionType(extensionMember.GetTypeOrReturnType().Type, destination, isChecked: false, ref useSiteInfo);
                 if (nestedConversion.Kind != ConversionKind.NoConversion)
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 MethodGroupResolution resolution = _binder.ResolveMethodGroup(source, analyzedArguments: null, ref useSiteInfo, options: OverloadResolution.Options.None);
-                if (resolution.IsExtensionMember(out Symbol? extensionMember) && extensionMember is not NamedTypeSymbol)
+                if (resolution.IsNonMethodExtensionMember(out Symbol? extensionMember) && extensionMember is not NamedTypeSymbol)
                 {
                     var nestedConversion = ClassifyConversionFromExpressionType(extensionMember.GetTypeOrReturnType().Type, destination, isChecked: false, ref useSiteInfo);
                     if (nestedConversion.Kind != ConversionKind.NoConversion)

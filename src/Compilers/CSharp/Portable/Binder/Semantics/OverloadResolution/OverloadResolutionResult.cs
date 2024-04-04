@@ -1407,7 +1407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 if (ReferenceEquals(worseResult1.LeastOverriddenMember.OriginalDefinition, worseResult2.LeastOverriddenMember.OriginalDefinition) &&
-                    worseResult1.LeastOverriddenMember.ContainingType.IsExtension) // PROTOTYPE consider using the improved diagnostic for scenarios beyond extensions
+                    worseResult1.LeastOverriddenMember.ContainingType.IsExtension) // PROTOTYPE(static) consider using the improved diagnostic for scenarios beyond extensions
                 {
                     // error CS0121: The call is ambiguous between the following methods or properties: 'P.W(A)' and 'P.W(B)'
                     diagnostics.Add(

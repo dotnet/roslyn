@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(declaration.Kind == DeclarationKind.Extension);
         }
 
-        // PROTOTYPE restore base extensions or remove this wrapper type
+        // PROTOTYPE(inheritance) restore base extensions or remove this wrapper type
         private class ExtensionInfo
         {
             public readonly TypeSymbol? UnderlyingType;
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var current = declaredUnderlyingType;
                     do
                     {
-                        // PROTOTYPE should this should check declaring module rather than compilations?
+                        // PROTOTYPE(static) should this should check declaring module rather than compilations?
                         if (ReferenceEquals(current.DeclaringCompilation, this.DeclaringCompilation))
                         {
                             break;
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (!useSiteInfo.Diagnostics.IsNullOrEmpty())
                     {
-                        // PROTOTYPE Are we dropping dependencies if we are not getting into this 'if'?
+                        // PROTOTYPE(static) Are we dropping dependencies if we are not getting into this 'if'?
                         var location = FindUnderlyingTypeSyntax(declaredUnderlyingType) ?? Locations[0];
                         diagnostics.Add(location, useSiteInfo);
                     }
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var underlyingTypeWithAnnotations = underlyingTypeBinder.BindType(underlyingTypeSyntax, diagnostics, basesBeingResolved);
 
                 TypeSymbol underlyingType = underlyingTypeWithAnnotations.Type;
-                // PROTOTYPE are nullable annotations allowed on extended types?
+                // PROTOTYPE(static) are nullable annotations allowed on extended types?
                 if (AreStaticIncompatible(extendedType: underlyingType, extensionType: this))
                 {
                     diagnostics.Add(ErrorCode.ERR_StaticBaseTypeOnInstanceExtension, location, this, underlyingType);

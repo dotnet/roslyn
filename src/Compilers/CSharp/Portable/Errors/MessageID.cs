@@ -283,8 +283,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureParamsCollections = MessageBase + 12842,
 
-        IDS_FeatureExtensions = MessageBase + 12850, // PROTOTYPE consolidate feature identifier
-        IDS_FeatureBaseExtensions = MessageBase + 12851, // PROTOTYPE remove this temporary feature flag
+        IDS_FeatureExtensions = MessageBase + 12850, // PROTOTYPE(static) consolidate feature identifier
+        IDS_FeatureBaseExtensions = MessageBase + 12851, // PROTOTYPE(inheritance) remove this temporary feature flag
     }
 
     // Message IDs may refer to strings that need to be localized.

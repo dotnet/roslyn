@@ -2851,7 +2851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameters: parameters);
         }
 
-        // PROTOTYPE update to account for parameter list from primary constructor syntax
+        // PROTOTYPE(static) update to account for parameter list from primary constructor syntax
         /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
         public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken implicitOrExplicitKeyword, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ForTypeSyntax? forUnderlyingType, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
             => SyntaxFactory.ExtensionDeclaration(attributeLists, modifiers, implicitOrExplicitKeyword, keyword, identifier, typeParameterList,

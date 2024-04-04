@@ -1416,7 +1416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name = null,
             bool includeReducedExtensionMethods = false)
         {
-            // PROTOTYPE test Lookup APIs and add support for extension types
+            // PROTOTYPE(static) test Lookup APIs and add support for extension types
             var options = includeReducedExtensionMethods ? LookupOptions.IncludeExtensionMethods : LookupOptions.Default;
             return LookupSymbolsInternal(position, container, name, options, useBaseReferenceAccessibility: false);
         }
@@ -1564,7 +1564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupOptions options,
             bool useBaseReferenceAccessibility)
         {
-            // PROTOTYPE need to test Lookup APIs and adjust the lookup options here or in callers
+            // PROTOTYPE(static) need to test Lookup APIs and adjust the lookup options here or in callers
             Debug.Assert((options & LookupOptions.UseBaseReferenceAccessibility) == 0, "Use the useBaseReferenceAccessibility parameter.");
             if (useBaseReferenceAccessibility)
             {
@@ -1745,7 +1745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options: options & ~LookupOptions.IncludeExtensionMethods,
                 diagnose: false,
                 useSiteInfo: ref discardedUseSiteInfo);
-            // PROTOTYPE test Lookup APIs and add support for extension types
+            // PROTOTYPE(static) test Lookup APIs and add support for extension types
 
             if (lookupResult.IsMultiViable)
             {
@@ -4639,7 +4639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder = binder.WithAdditionalFlags(BinderFlags.SemanticModel);
                 foreach (var scope in new ExtensionScopes(binder))
                 {
-                    // PROTOTYPE need to search extension type members for GetMemberGroup and other semantic model APIs
+                    // PROTOTYPE(static) need to search extension type members for GetMemberGroup and other semantic model APIs
                     var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
                     var otherBinder = scope.Binder;
                     otherBinder.GetCandidateExtensionMethods(extensionMethods,

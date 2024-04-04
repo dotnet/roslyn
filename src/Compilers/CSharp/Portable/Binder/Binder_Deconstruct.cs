@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // That step returns placeholder (of correct type) instead of the outVar nodes that were passed in as arguments.
                 // So the generated invocation expression will contain placeholders instead of those outVar nodes.
                 // Those placeholders are also recorded in the outVar for easy access below, by the `SetInferredType` call on the outVar nodes.
-                // PROTOTYPE revisit pattern-based deconstruction
+                // PROTOTYPE(instance) revisit pattern-based deconstruction
                 BoundExpression result = BindMethodGroupInvocation(
                     rightSyntax, rightSyntax, methodName, (BoundMethodGroup)memberAccess, analyzedArguments, diagnostics, queryClause: null,
                     ignoreNormalFormIfHasValidParamsParameter: false, anyApplicableCandidates: out anyApplicableCandidates);

@@ -2493,10 +2493,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract TypeSymbol? ExtendedTypeNoUseSiteDiagnostics { get; }
 
-        // PROTOTYPE restore base extension logic
+        // PROTOTYPE(inheritance) restore base extension logic
         internal ImmutableArray<NamedTypeSymbol> BaseExtensionsNoUseSiteDiagnostics => [];
 
-        // PROTOTYPE restore base extension logic
+        // PROTOTYPE(inheritance) restore base extension logic
         /// <summary>
         /// For extension types, returns the list of all base extensions 
         /// (this excludes this type itself).

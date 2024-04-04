@@ -2460,7 +2460,7 @@ public static class E
                 Assert.Equal(["void C.M(C c)", "void C.M()"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
             }
 
-            // PROTOTYPE instead of finding the extension method and reporting an error on its receiver,
+            // PROTOTYPE(static) instead of finding the extension method and reporting an error on its receiver,
             // we should instead discard it as a candidate early like we do for instance methods in OverloadResolution.RemoveStaticInstanceMismatches
             {
                 var comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);
@@ -2537,7 +2537,7 @@ public static class E
                 Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
             }
 
-            // PROTOTYPE instead of finding the extension method and reporting an error on its receiver,
+            // PROTOTYPE(static) instead of finding the extension method and reporting an error on its receiver,
             // we should instead discard it as a candidate early like we do for instance methods in OverloadResolution.RemoveStaticInstanceMismatches
             {
                 var comp = CreateCompilation(source, parseOptions: useCSharp13 ? TestOptions.RegularNext : TestOptions.RegularPreview);

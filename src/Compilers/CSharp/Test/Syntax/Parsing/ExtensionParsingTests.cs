@@ -1344,7 +1344,7 @@ public sealed class ExtensionParsingTests : ParsingTests
             // explicit extension C for UnderlyingType;
             Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 40)
             );
-        // PROTOTYPE should parse
+        // PROTOTYPE(static) should parse
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -2343,7 +2343,7 @@ Write();
             // explicit extension C<T> for UnderlyingType;
             Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 43)
             );
-        // PROTOTYPE should parse
+        // PROTOTYPE(static) should parse
 
         N(SyntaxKind.CompilationUnit);
         {

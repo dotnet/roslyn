@@ -1332,7 +1332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodName,
                 arity: 0,
                 basesBeingResolved: null,
-                options: LookupOptions.Default, // PROTOTYPE revisit
+                options: LookupOptions.Default, // PROTOTYPE(instance) revisit
                 originalBinder: this,
                 diagnose: false,
                 useSiteInfo: ref useSiteInfo);
@@ -1465,7 +1465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private MethodArgumentInfo FindForEachPatternMethodViaExtension(SyntaxNode syntax, SyntaxNode collectionSyntax, BoundExpression collectionExpr, string methodName, BindingDiagnosticBag diagnostics)
         {
-            // PROTOTYPE we'll want extension types to contribute and not crash below
+            // PROTOTYPE(instance) we'll want extension types to contribute and not crash below
             var analyzedArguments = AnalyzedArguments.GetInstance();
 
             var methodGroupResolutionResult = this.ResolveExtension(
@@ -1575,7 +1575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Dynamic: // Not specifically mentioned in the spec, but consistent with Dev10.
                     break;
 
-                // PROTOTYPE add support for iterating over collections of extension type
+                // PROTOTYPE(instance) add support for iterating over collections of extension type
                 case TypeKind.Submission:
                     // submission class is synthesized and should never appear in a foreach:
                     throw ExceptionUtilities.UnexpectedValue(enumeratorType.TypeKind);
@@ -1599,7 +1599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     WellKnownMemberNames.CurrentPropertyName,
                     arity: 0,
                     basesBeingResolved: null,
-                    options: LookupOptions.Default, // properties are not invokable - their accessors are // PROTOTYPE revisit
+                    options: LookupOptions.Default, // properties are not invokable - their accessors are // PROTOTYPE(instance) revisit
                     originalBinder: this,
                     diagnose: false,
                     useSiteInfo: ref useSiteInfo);

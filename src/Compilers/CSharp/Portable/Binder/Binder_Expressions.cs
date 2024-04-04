@@ -411,11 +411,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         private BoundExpression BindToExtensionMemberOrInferredDelegateType(BoundMethodGroup methodGroup, BindingDiagnosticBag diagnostics)
         {
-            // PROTOTYPE test use-site diagnostics
+            // PROTOTYPE(static) test use-site diagnostics
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             MethodGroupResolution resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, ref useSiteInfo, options: OverloadResolution.Options.None);
             diagnostics.Add(methodGroup.Syntax, useSiteInfo);
-            if (resolution.IsExtensionMember(out Symbol? extensionMember))
+            if (resolution.IsNonMethodExtensionMember(out Symbol? extensionMember))
             {
                 return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember, diagnostics);
             }
@@ -2436,7 +2436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         private bool IsRefOrOutThisParameterCaptured(SyntaxNodeOrToken thisOrBaseToken, BindingDiagnosticBag diagnostics)
         {
-            // PROTOTYPE review impact of this check/diagnostic on extension scenarios
+            // PROTOTYPE(static) review impact of this check/diagnostic on extension scenarios
             if (GetDiagnosticIfRefOrOutThisParameterCaptured() is { } diagnosticInfo)
             {
                 var location = thisOrBaseToken.GetLocation();
@@ -4351,7 +4351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (ContainingType.IsExtension)
             {
-                // PROTOTYPE revisit when handling constructors
+                // PROTOTYPE(static) revisit when handling constructors
                 return null;
             }
 
@@ -4819,7 +4819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         goto case TypeKind.Class;
 
                     default:
-                        // PROTOTYPE block or handle object creation with extension type
+                        // PROTOTYPE(static) block or handle object creation with extension type
                         throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
                 }
             }
@@ -7432,7 +7432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)leftType != null);
                 if (leftType.TypeKind == TypeKind.TypeParameter)
                 {
-                    // PROTOTYPE need to confirm what we want for extension invocations on type parameters
+                    // PROTOTYPE(static) need to confirm what we want for extension invocations on type parameters
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options | LookupOptions.MustNotBeInstance | LookupOptions.MustBeAbstractOrVirtual);
                     diagnostics.Add(right, useSiteInfo);
@@ -7496,7 +7496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.None);
                         diagnostics.Add(expr.Syntax, useSiteInfo);
 
-                        if (resolution.IsExtensionMember(out Symbol extensionMember))
+                        if (resolution.IsNonMethodExtensionMember(out Symbol extensionMember))
                         {
                             diagnostics.AddRange(resolution.Diagnostics);
                             return GetExtensionMemberAccess(methodGroup.Syntax, methodGroup.ReceiverOpt, extensionMember, diagnostics);
@@ -7537,7 +7537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, ref useSiteInfo, options: OverloadResolution.Options.None);
                         diagnostics.Add(expr.Syntax, useSiteInfo);
 
-                        if (resolution.IsExtensionMember(out Symbol extensionMember))
+                        if (resolution.IsNonMethodExtensionMember(out Symbol extensionMember))
                         {
                             diagnostics.AddRange(resolution.Diagnostics);
                             resolution.Free();
@@ -7548,7 +7548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return expr;
-                // PROTOTYPE need to handle PropertyGroup as well
+                // PROTOTYPE(static) need to handle PropertyGroup as well
 
                 default:
                     return expr;
@@ -8010,13 +8010,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var scope in new ExtensionScopes(this))
             {
-                // PROTOTYPE confirm that we want to exclude type parameters from extension member resolution or leave a comment
+                // PROTOTYPE(static) confirm that we want to exclude type parameters from extension member resolution or leave a comment
                 if (!left.Type.IsTypeParameter()
                     && tryResolveExtensionTypeMember(this, expression, memberName, analyzedArguments, left, typeArgumentsWithAnnotations,
                         options, returnRefKind, returnType, withDependencies, scope, in callingConvention,
                         out MethodGroupResolution extensionResult))
                 {
-                    if (extensionResult.IsExtensionMember(out _))
+                    if (extensionResult.IsNonMethodExtensionMember(out _))
                     {
                         return extensionResult;
                     }
@@ -8042,7 +8042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                // PROTOTYPE handle extension methods on the underlying type of an extension type
+                // PROTOTYPE(instance) handle extension methods on the underlying type of an extension type
                 if (tryResolveExtensionMethod(this, expression, memberName, analyzedArguments, left, typeArgumentsWithAnnotations,
                     options, returnRefKind, returnType, withDependencies, scope,
                     ref actualArguments, in callingConvention, out MethodGroupResolution extensionMethodResult))
@@ -8091,7 +8091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lookupResult, left.Type!, memberName, arity,
                     basesBeingResolved: null, lookupOptions, originalBinder: binder, ref useSiteInfo);
 
-                // PROTOTYPE test use-site diagnostics
+                // PROTOTYPE(static) test use-site diagnostics
                 diagnostics.Add(expression, useSiteInfo);
 
                 if (!lookupResult.IsMultiViable)
@@ -8216,7 +8216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     returnType: returnType,
                     in callingConvention);
 
-                // PROTOTYPE test use-site diagnostics
+                // PROTOTYPE(static) test use-site diagnostics
                 diagnostics.Add(expression, useSiteInfo);
                 var sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
 
@@ -9703,8 +9703,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(receiver.Type is not null);
 
             if (receiver.Kind == BoundKind.BaseReference
-                || receiver.Type.IsTypeParameter() // PROTOTYPE need to confirm what we want for extension indexer access on type parameters or values of type parameters
-                || analyzedArguments.HasDynamicArgument) // PROTOTYPE need to confirm what we want for dynamic access
+                || receiver.Type.IsTypeParameter() // PROTOTYPE(static) need to confirm what we want for extension indexer access on type parameters or values of type parameters
+                || analyzedArguments.HasDynamicArgument) // PROTOTYPE(static) need to confirm what we want for dynamic access
             {
                 extensionIndexerAccess = null;
                 return false;
@@ -9735,7 +9735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder.LookupImplicitExtensionMembersInSingleBinder(lookupResult, receiver.Type, WellKnownMemberNames.Indexer,
                     arity: 0, basesBeingResolved: null, LookupOptions.Default, originalBinder, ref lookupUseSiteInfo);
 
-                // PROTOTYPE test use-site diagnostics
+                // PROTOTYPE(static) test use-site diagnostics
                 diagnostics.Add(syntax, lookupUseSiteInfo);
 
                 if (!lookupResult.IsMultiViable)
@@ -9756,7 +9756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 originalBinder.OverloadResolution.PropertyOverloadResolution(
                     indexerGroup, receiver, analyzedArguments, overloadResolutionResult, allowRefOmittedArguments, dynamicResolution: false, ref overloadUseSiteInfo);
 
-                // PROTOTYPE test use-site diagnostics
+                // PROTOTYPE(static) test use-site diagnostics
                 diagnostics.Add(syntax, overloadUseSiteInfo);
                 indexerGroup.Free();
 
@@ -9801,7 +9801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var isExpanded = resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
             var argsToParams = resolutionResult.Result.ArgsToParamsOpt;
 
-            // PROTOTYPE review impact of initialBindingReceiverIsSubjectToCloning/ReceiverIsSubjectToCloning
+            // PROTOTYPE(instance) review impact of initialBindingReceiverIsSubjectToCloning/ReceiverIsSubjectToCloning
             // Note that we do not bind default arguments here, because at this point we do not know whether
             // the indexer is being used in a 'get', or 'set', or 'get+set' (compound assignment) context.
             return new BoundIndexerAccess(
@@ -9959,7 +9959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WellKnownMemberNames.Indexer,
                         arity: 0,
                         basesBeingResolved: null,
-                        LookupOptions.Default, // PROTOTYPE revisit
+                        LookupOptions.Default, // PROTOTYPE(instance) revisit
                         originalBinder: this,
                         diagnose: false,
                         ref useSiteInfo);
@@ -10014,7 +10014,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WellKnownMemberNames.SliceMethodName,
                         arity: 0,
                         basesBeingResolved: null,
-                        LookupOptions.Default, // PROTOTYPE revisit
+                        LookupOptions.Default, // PROTOTYPE(instance) revisit
                         originalBinder: this,
                         diagnose: false,
                         ref useSiteInfo);
@@ -10059,7 +10059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method, lookupError: null, BoundMethodGroupFlags.None, functionType: null, receiver, LookupResultKind.Viable)
                 { WasCompilerGenerated = true };
 
-                // PROTOTYPE revisit when spec'ing pattern-based implicit indexing
+                // PROTOTYPE(instance) revisit when spec'ing pattern-based implicit indexing
                 indexerOrSliceAccess = BindMethodGroupInvocation(syntax, syntax, method.Name, boundMethodGroup, analyzedArguments,
                     diagnostics, queryClause: null, ignoreNormalFormIfHasValidParamsParameter: true, anyApplicableCandidates: out bool _).MakeCompilerGenerated();
 
@@ -10126,7 +10126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     propertyName,
                     arity: 0,
                     basesBeingResolved: null,
-                    LookupOptions.Default, // PROTOTYPE revisit
+                    LookupOptions.Default, // PROTOTYPE(instance) revisit
                     originalBinder: this,
                     diagnose: false,
                     useSiteInfo: ref useSiteInfo);
@@ -10652,7 +10652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(left.Type is not null);
 
-                // PROTOTYPE need to confirm what we want for extension members on type parameters or values of type parameters
+                // PROTOTYPE(static) need to confirm what we want for extension members on type parameters or values of type parameters
                 if (left.Type.IsTypeParameter())
                     return;
 

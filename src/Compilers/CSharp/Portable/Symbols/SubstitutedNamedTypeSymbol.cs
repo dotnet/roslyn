@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => _unbound ? null : Map.SubstituteType(OriginalDefinition.ExtendedTypeNoUseSiteDiagnostics).Type;
 
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
-            => throw new InvalidOperationException("PROTOTYPE"); // PROTOTYPE
+            => throw new InvalidOperationException("PROTOTYPE(inheritance)"); // PROTOTYPE(inheritance)
 
         internal sealed override bool HasInlineArrayAttribute(out int length)
         {

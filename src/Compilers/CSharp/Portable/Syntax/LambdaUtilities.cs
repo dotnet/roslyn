@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.YieldReturnStatement:
                     return true;
 
-                // PROTOTYPE
+                // PROTOTYPE(static)
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.RecordDeclaration:

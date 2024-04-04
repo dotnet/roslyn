@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal string lazyDisplayFileName;
 
             internal ThreeState lazyIsExplicitExtension = ThreeState.Unknown;
-            // PROTOTYPE consider renaming ExtensionUnderlyingType->ExtendedType (here and elsewhere)
+            // PROTOTYPE(static) consider renaming ExtensionUnderlyingType->ExtendedType (here and elsewhere)
             internal TypeSymbol lazyDeclaredExtensionUnderlyingType = null;
 
 #if DEBUG
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private TypeSymbol ApplyTransforms(TypeSymbol type, EntityHandle targetSymbolToken, PEModuleSymbol moduleSymbol)
         {
-            // PROTOTYPE consider sharing this code with other locations that decode types
+            // PROTOTYPE(static) consider sharing this code with other locations that decode types
             TypeSymbol decodedType = DynamicTypeDecoder.TransformType(type, targetSymbolCustomModifierCount: 0, targetSymbolToken, moduleSymbol);
             decodedType = NativeIntegerTypeDecoder.TransformType(decodedType, targetSymbolToken, moduleSymbol, containingType: this);
             decodedType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(decodedType, targetSymbolToken, moduleSymbol);
@@ -1416,7 +1416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // (to allow efficient lookup when matching property accessors).
                     PooledDictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol = this.CreateMethods(nonFieldMembers);
 
-                    // PROTOTYPE revisit when handling constructors
+                    // PROTOTYPE(static) revisit when handling constructors
                     if (this.TypeKind == TypeKind.Struct)
                     {
                         bool haveParameterlessConstructor = false;
@@ -1988,7 +1988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return false;
                 }
 
-                // PROTOTYPE do we want to tighten the flags check further? (require that type be sealed?)
+                // PROTOTYPE(static) do we want to tighten the flags check further? (require that type be sealed?)
                 if ((localFlags & MethodAttributes.Private) == 0 ||
                     (localFlags & MethodAttributes.Static) == 0)
                 {
@@ -2010,12 +2010,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var paramInfo = paramInfos[i];
                     TypeSymbol type = paramInfo.Type;
 
-                    // PROTOTYPE need to decode extension type references (may be some cycle issues)
+                    // PROTOTYPE(static) need to decode extension type references (may be some cycle issues)
                     type = ApplyTransforms(type, paramInfo.Handle, moduleSymbol);
 
                     if (paramInfo.IsByRef || !paramInfo.CustomModifiers.IsDefault)
                     {
-                        var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, this); // PROTOTYPE need to report use-site diagnostic
+                        var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, this); // PROTOTYPE(static) need to report use-site diagnostic
                         type = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
                     }
 
@@ -2031,7 +2031,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         if (SourceExtensionTypeSymbol.AreStaticIncompatible(extendedType: type, extensionType: this)
                             || SourceExtensionTypeSymbol.IsRestrictedExtensionUnderlyingType(type))
                         {
-                            var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, this); // PROTOTYPE need to report use-site diagnostic
+                            var info = new CSDiagnosticInfo(ErrorCode.ERR_MalformedExtensionInMetadata, this); // PROTOTYPE(static) need to report use-site diagnostic
                             underlyingType = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotReferencable, info, unreported: true);
                         }
                         else
@@ -2230,7 +2230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var module = moduleSymbol.Module;
             var map = PooledDictionary<MethodDefinitionHandle, PEMethodSymbol>.GetInstance();
 
-            // PROTOTYPE are extensions embeddable?
+            // PROTOTYPE(static) are extensions embeddable?
             // for ordinary embeddable struct types we import private members so that we can report appropriate errors if the structure is used
             var isOrdinaryEmbeddableStruct = (this.TypeKind == TypeKind.Struct) && (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.None) && this.ContainingAssembly.IsLinked;
             var extensionMarkerMethod = TryGetExtensionMarkerMethod();

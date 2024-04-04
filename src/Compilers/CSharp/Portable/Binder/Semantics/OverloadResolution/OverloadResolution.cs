@@ -1004,7 +1004,7 @@ outerDefault:
                                 return;
                             }
 
-                            // PROTOTYPE We should handle an extension type in metadata with a `hidebyname` method
+                            // PROTOTYPE(static) We should handle an extension type in metadata with a `hidebyname` method
                             if (MemberGroupHidesByName(others, member, ref useSiteInfo))
                             {
                                 return;

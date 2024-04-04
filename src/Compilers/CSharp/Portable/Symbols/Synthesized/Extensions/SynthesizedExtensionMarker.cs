@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// through metadata.
     ///
     /// It encodes:
-    /// - whether the extension type is implicit or explicit (PROTOTYPE)
+    /// - whether the extension type is implicit or explicit (PROTOTYPE(static))
     /// - the underlying type (first parameter type)
     ///
     /// For example: 'implicit extension R for UnderlyingType' yield
-    /// 'private static void &lt;Extension>$(UnderlyingType)'. // PROTOTYPE
+    /// 'private static void &lt;Extension>$(UnderlyingType)'. // PROTOTYPE(static)
     /// </summary>
     internal sealed class SynthesizedExtensionMarker : SynthesizedMethodSymbol
     {
@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsExtensionMethod => false;
 
-        internal override bool HasSpecialName => false; // PROTOTYPE
+        internal override bool HasSpecialName => false; // PROTOTYPE(static)
 
-        internal override bool HasRuntimeSpecialName => false; // PROTOTYPE
+        internal override bool HasRuntimeSpecialName => false; // PROTOTYPE(static)
 
         internal override bool HasDeclarativeSecurity => false;
 

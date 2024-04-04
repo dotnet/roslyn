@@ -3489,7 +3489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
 
                 case TypeKind.Extension:
-                    // PROTOTYPE what are the rules for constructors in extensions?
+                    // PROTOTYPE(static) what are the rules for constructors in extensions?
                     AddSynthesizedConstructorsIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
                     break;
 
@@ -4666,7 +4666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void AddSynthesizedConstructorsIfNecessary(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, BindingDiagnosticBag diagnostics)
         {
-            // PROTOTYPE what are the rules for constructors in extensions?
+            // PROTOTYPE(static) what are the rules for constructors in extensions?
             //we're not calling the helpers on NamedTypeSymbol base, because those call
             //GetMembers and we're inside a GetMembers call ourselves (i.e. stack overflow)
             var hasInstanceConstructor = false;
@@ -5163,7 +5163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            // PROTOTYPE should count extended type and base extensions
+            // PROTOTYPE(static) should count extended type and base extensions
             var builder = new MostCommonNullableValueBuilder();
             var baseType = BaseTypeNoUseSiteDiagnostics;
             if (baseType is object)

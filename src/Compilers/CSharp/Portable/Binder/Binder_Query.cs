@@ -957,7 +957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var methodGroup = (BoundMethodGroup)ultimateReceiver;
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                    // PROTOTYPE we'll want extension types to contribute
+                    // PROTOTYPE(instance) we'll want extension types to contribute
                     var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.None);
                     diagnostics.Add(node, useSiteInfo);
                     diagnostics.AddRange(resolution.Diagnostics);

@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
-            // PROTOTYPE handle hiding/new for extensions
+            // PROTOTYPE(static) handle hiding/new for extensions
             if (this.BaseTypeNoUseSiteDiagnostics?.IsErrorType() == true)
             {
                 // Avoid cascading diagnostics

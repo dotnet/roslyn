@@ -835,7 +835,7 @@ next:;
                     case TypeKind.Class:
                         return AttributeLocation.Type | (HasPrimaryConstructor ? AttributeLocation.Method : 0);
 
-                    case TypeKind.Extension: // PROTOTYPE
+                    case TypeKind.Extension: // PROTOTYPE(static)
                     default:
                         return AttributeLocation.None;
                 }
@@ -914,7 +914,7 @@ next:;
         {
             if (IsExtension)
             {
-                // PROTOTYPE revisit when adding support for attributes
+                // PROTOTYPE(static) revisit when adding support for attributes
                 return (null, null);
             }
 
@@ -1257,7 +1257,7 @@ next:;
             {
                 if (IsExtension)
                 {
-                    // PROTOTYPE revisit when adding support for attributes
+                    // PROTOTYPE(static) revisit when adding support for attributes
                     return false;
                 }
 
@@ -1373,7 +1373,7 @@ next:;
             {
                 if (IsExtension)
                 {
-                    // PROTOTYPE revisit when adding support for attributes
+                    // PROTOTYPE(static) revisit when adding support for attributes
                     return false;
                 }
 
@@ -1388,7 +1388,7 @@ next:;
             {
                 if (IsExtension)
                 {
-                    // PROTOTYPE revisit when adding support for attributes
+                    // PROTOTYPE(static) revisit when adding support for attributes
                     return null;
                 }
 
@@ -1526,7 +1526,7 @@ next:;
 
                 if (this.TypeKind is TypeKind.Struct or TypeKind.Extension)
                 {
-                    // PROTOTYPE consider disallowing attribute for explicit layout on extension types
+                    // PROTOTYPE(static) consider disallowing attribute for explicit layout on extension types
                     // CLI spec 22.37.16:
                     // "A ValueType shall have a non-zero size - either by defining at least one field, or by providing a non-zero ClassSize"
                     // 
@@ -1601,7 +1601,7 @@ next:;
         {
             if (IsExtension)
             {
-                // PROTOTYPE revisit when adding support for attributes
+                // PROTOTYPE(static) revisit when adding support for attributes
                 return;
             }
 

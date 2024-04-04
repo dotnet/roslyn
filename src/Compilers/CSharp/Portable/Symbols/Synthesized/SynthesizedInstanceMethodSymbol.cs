@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private ParameterSymbol _lazyThisParameter;
 
-        // PROTOTYPE should be sealed
+        // PROTOTYPE(static) should be sealed
         public override bool IsStatic => false;
 
         internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
