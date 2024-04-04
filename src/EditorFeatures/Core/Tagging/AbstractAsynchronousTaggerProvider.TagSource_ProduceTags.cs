@@ -368,9 +368,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // message, if it sees any other events asking for frozen-partial-semantics, it will process in that
                 // mode again, kicking the can down the road to finally end with non-frozen-partial computation
                 if (frozenPartialSemantics)
-                {
                     this.EnqueueWork(highPriority, frozenPartialSemantics: false);
-                }
             }
         }
 
