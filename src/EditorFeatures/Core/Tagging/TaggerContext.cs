@@ -22,7 +22,14 @@ internal class TaggerContext<TTag> where TTag : ITag
     internal ImmutableArray<SnapshotSpan> _spansTagged;
     public readonly SegmentedList<ITagSpan<TTag>> TagSpans = [];
 
+    /// <summary>
+    /// If the client should compute tags using frozen partial semantics.  This generally should have no effect if tags
+    /// are computed within this process as the provided <see cref="SpansToTag"/> will be given the right frozen or
+    /// unfrozen documents.  However, this is relevant when making calls to our external OOP server to ensure that it
+    /// also does the same when processing the request on its side.
+    /// </summary>
     public bool FrozenPartialSemantics { get; }
+
     public ImmutableArray<DocumentSnapshotSpan> SpansToTag { get; }
     public SnapshotPoint? CaretPosition { get; }
 
