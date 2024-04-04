@@ -10,9 +10,15 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CSharp.Snippets;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.VisualStudio.CallHierarchy.Package.Definitions;
 using Microsoft.VisualStudio.LanguageServices.Options;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -23,25 +29,42 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
         private readonly static ImmutableArray<IOption2> s_onboardedOptions = ImmutableArray.Create<IOption2>(CompletionOptionsStorage.TriggerOnTypingLetters);
 
         [Fact]
-        public async Task CSharpUnifiedSettingsTest()
+        public async Task CSharpIntellisensePageTest()
         {
             var registrationFileStream = typeof(CSharpUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.CSharp.UnitTests.csharpSettings.registration.json");
             using var reader = new StreamReader(registrationFileStream);
             var registrationFile = await reader.ReadToEndAsync().ConfigureAwait(false);
+            var registrationJsonObject = JObject.Parse(registrationFile, new JsonLoadSettings() { CommentHandling = CommentHandling.Ignore });
 
-            foreach (var option in s_onboardedOptions)
-            {
-                var optionName = option.Definition.ConfigName;
-                if (VisualStudioOptionStorage.UnifiedSettingsStorages.TryGetValue(optionName, out var unifiedSettingsStorage))
-                {
+            var categoriesTitle = registrationJsonObject.SelectToken("$.categories.['textEditor.csharp'].title")!;
+            Assert.Equal("C#", categoriesTitle.ToString());
+            var optionPageId = registrationJsonObject.SelectToken("$.categories.['textEditor.csharp.intellisense'].legacyOptionPageId")!;
+            Assert.Equal(Microsoft.VisualStudio.LanguageServices.Guids.CSharpOptionPageIntelliSenseIdString, optionPageId.ToString());
 
-                }
-                else
-                {
-                    // Can't find the option in the storage dictionary
-                    throw ExceptionUtilities.UnexpectedValue(optionName);
-                }
-            }
+            //foreach (var option in s_onboardedOptions)
+            //{
+            //    var optionName = option.Definition.ConfigName;
+            //    if (VisualStudioOptionStorage.UnifiedSettingsStorages.TryGetValue(optionName, out var unifiedSettingsStorage))
+            //    {
+            //        var unifiedSettingsPath = unifiedSettingsStorage.GetUnifiedSettingsPath(LanguageNames.CSharp);
+
+            //    }
+            //    else
+            //    {
+            //        // Can't find the option in the storage dictionary
+            //        throw ExceptionUtilities.UnexpectedValue(optionName);
+            //    }
+            //}
+        }
+
+        private static void VerifyType()
+        {
+
+        }
+
+        private static void VerifyDefaultValue()
+        {
+
         }
     }
 }
