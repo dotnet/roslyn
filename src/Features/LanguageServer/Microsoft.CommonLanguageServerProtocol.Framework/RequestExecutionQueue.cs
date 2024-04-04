@@ -174,14 +174,6 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
             cancellationToken);
     }
 
-    //protected virtual string GetLanguageForRequest<TRequest>(string methodName, TRequest request)
-    //    => LanguageServerConstants.DefaultLanguageName;
-
-    internal virtual string GetLanguageForRequest(string methodName, JObject parameters)
-    {
-        return LanguageServerConstants.DefaultLanguageName;
-    }
-
     private async Task ProcessQueueAsync()
     {
         ILspServices? lspServices = null;

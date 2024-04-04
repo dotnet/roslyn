@@ -77,13 +77,6 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         _queue = new Lazy<IRequestExecutionQueue<TRequestContext>>(() => ConstructRequestExecutionQueue());
     }
 
-    [Obsolete($"Use AbstractLanguageServer(JsonRpc jsonRpc, JsonSerializer jsonSerializer, ILspLogger logger)")]
-    protected AbstractLanguageServer(
-        JsonRpc jsonRpc,
-        ILspLogger logger) : this(jsonRpc, GetJsonSerializerFromJsonRpc(jsonRpc), logger)
-    {
-    }
-
     /// <summary>
     /// Initializes the LanguageServer.
     /// </summary>
@@ -197,21 +190,6 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         return LanguageServerConstants.DefaultLanguageName;
     }
 
-    /// <summary>
-    /// Temporary workaround to avoid requiring a breaking change in CLASP.
-    /// Consumers of clasp already specify the json serializer they need on the jsonRpc object.
-    /// We can retrieve that serializer from it via reflection.
-    /// </summary>
-    private static JsonSerializer GetJsonSerializerFromJsonRpc(JsonRpc jsonRpc)
-    {
-        var messageHandlerProp = typeof(JsonRpc).GetProperty("MessageHandler", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        var getter = messageHandlerProp.GetGetMethod(nonPublic: true);
-        var messageHandler = (IJsonRpcMessageHandler)getter.Invoke(jsonRpc, null);
-        var formatter = (JsonMessageFormatter)messageHandler.Formatter;
-        var serializer = formatter.JsonSerializer;
-        return serializer;
-    }
-
     private sealed class DelegatingEntryPoint
     {
         private readonly string _method;
@@ -223,7 +201,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         private static readonly MethodInfo s_notificationMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(NotificationEntryPointAsync))!;
         private static readonly MethodInfo s_parameterlessNotificationMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(ParameterlessNotificationEntryPointAsync))!;
 
-        private static readonly MethodInfo s_queueExecuteAsyncMethod = typeof(RequestExecutionQueue<TRequestContext>).GetMethod(nameof(RequestExecutionQueue<TRequestContext>.ExecuteAsync));
+        private static readonly MethodInfo s_queueExecuteAsyncMethod = typeof(RequestExecutionQueue<TRequestContext>).GetMethod(nameof(RequestExecutionQueue<TRequestContext>.ExecuteAsync))!;
 
         public DelegatingEntryPoint(string method, AbstractLanguageServer<TRequestContext> target, IHandlerProvider handlerProvider)
         {
@@ -279,23 +257,36 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             }
 
             // Deserialize the request parameters (if any).
+            var requestObject = DeserializeRequest(request, requestInfo.Metadata, _target._jsonSerializer);
+
+            var task = requestInfo.MethodInfo.Invoke(queue, new[] { requestObject, _method, language, lspServices, cancellationToken }) as Task
+                ?? throw new InvalidOperationException($"Queue result task cannot be null");
+            await task.ConfigureAwait(false);
+            var resultProperty = task.GetType().GetProperty("Result") ?? throw new InvalidOperationException("Result property on task cannot be null");
+            var result = resultProperty.GetValue(task);
+            return result is not null ? JToken.FromObject(result, _target._jsonSerializer) : null;
+        }
+
+        private static object DeserializeRequest(JToken? request, RequestHandlerMetadata metadata, JsonSerializer jsonSerializer)
+        {
+            if (request is null && metadata.RequestType is not null)
+            {
+                throw new InvalidOperationException($"Handler {metadata.HandlerDescription} requires request parameters but received none");
+            }
+
+            if (request is not null && metadata.RequestType is null)
+            {
+                throw new InvalidOperationException($"Handler {metadata.HandlerDescription} does not accept parameters, but received some.");
+            }
+
             object requestObject = NoValue.Instance;
             if (request is not null)
             {
-                if (requestInfo.Metadata.RequestType is null)
-                {
-                    throw new InvalidOperationException($"Handler for {_method} and {language} has no request type defined");
-                }
-
-                requestObject = request.ToObject(requestInfo.Metadata.RequestType, _target._jsonSerializer)
-                    ?? throw new InvalidOperationException($"Unable to deserialize {request} into {requestInfo.Metadata.RequestType} for {_method} and language {language}");
+                requestObject = request.ToObject(metadata.RequestType, jsonSerializer)
+                    ?? throw new InvalidOperationException($"Unable to deserialize {request} into {metadata.RequestType} for {metadata.HandlerDescription}");
             }
 
-            var task = (Task)requestInfo.MethodInfo.Invoke(queue, new[] { requestObject, _method, language, lspServices, cancellationToken });
-            await task.ConfigureAwait(false);
-            var resultProperty = task.GetType().GetProperty("Result");
-            var result = resultProperty.GetValue(task);
-            return result is not null ? JToken.FromObject(result, _target._jsonSerializer) : null;
+            return requestObject;
         }
     }
 
