@@ -95,6 +95,11 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
     /// </summary>
     protected virtual bool CancelOnNewWork { get; }
 
+    /// <summary>
+    /// Whether or not this tagger would like to use frozen-partial snapshots to compute tags. TODO: doc more before submitting.
+    /// </summary>
+    protected virtual bool SupportsFrozenPartialSemantics { get; }
+
     protected virtual void BeforeTagsChanged(ITextSnapshot snapshot)
     {
     }

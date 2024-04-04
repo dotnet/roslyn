@@ -79,7 +79,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// up event change notifications and only dispatch one recomputation every <see cref="EventChangeDelay"/>
         /// to actually produce the latest set of tags.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<bool, VoidResult> _eventChangeQueue;
+        private readonly AsyncBatchingWorkQueue<(bool highPriority, bool frozenPartialSemantics)> _eventChangeQueue;
 
         #endregion
 
@@ -164,10 +164,10 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             //
             // PERF: Use AsyncBatchingWorkQueue<bool, VoidResult> instead of AsyncBatchingWorkQueue<bool> because
             // the latter has an async state machine that rethrows a very common cancellation exception.
-            _eventChangeQueue = new AsyncBatchingWorkQueue<bool, VoidResult>(
+            _eventChangeQueue = new AsyncBatchingWorkQueue<(bool highPriority, bool frozenPartialSemantics)>(
                 dataSource.EventChangeDelay.ComputeTimeDelay(),
                 ProcessEventChangeAsync,
-                EqualityComparer<bool>.Default,
+                EqualityComparer<(bool highPriority, bool frozenPartialSemantics)>.Default,
                 asyncListener,
                 _disposalTokenSource.Token);
 
