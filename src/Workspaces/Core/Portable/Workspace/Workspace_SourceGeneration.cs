@@ -129,13 +129,4 @@ public partial class Workspace
                 => major ? version.IncrementMajorVersion() : version.IncrementMinorVersion();
         }
     }
-
-    internal WorkspaceTestAccessor GetWorkspaceTestAccessor()
-        => new(this);
-
-    internal readonly struct WorkspaceTestAccessor(Workspace workspace)
-    {
-        public Task WaitUntilCurrentSourceGeneratorsBatchCompletesAsync()
-            => workspace._updateSourceGeneratorsQueue.WaitUntilCurrentBatchCompletesAsync();
-    }
 }
