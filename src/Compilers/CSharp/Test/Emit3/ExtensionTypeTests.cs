@@ -1488,7 +1488,7 @@ object.M(null);
 
 implicit extension E for object
 {
-    public static string M(this object o) => throw null;
+    public static string M(this object o) => throw null;
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
@@ -1503,8 +1503,8 @@ implicit extension E for object
             // new object().M(null);
             Diagnostic(ErrorCode.ERR_ObjectProhibited, "new object().M").WithArguments("E.M(object)").WithLocation(4, 1),
             // (9,26): error CS9321: Extension methods are not allowed in extension types.
-            //     public static string M(this object o) => throw null;
-            Diagnostic(ErrorCode.ERR_ExtensionMethodInExtension, "M").WithLocation(9, 26));
+            //     public static string M(this object o) => throw null;
+            Diagnostic(ErrorCode.ERR_ExtensionMethodInExtension, "M").WithLocation(9, 26) );
     }
 
     [Fact]
@@ -1515,13 +1515,13 @@ var x = object.M;
 
 implicit extension E for object
 {
-    public static string M(this object o) => throw null;
+    public static string M(this object o) => throw null;
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (5,26): error CS9321: Extension methods are not allowed in extension types.
-            //     public static string M(this object o) => throw null;
+            //     public static string M(this object o) => throw null;
             Diagnostic(ErrorCode.ERR_ExtensionMethodInExtension, "M").WithLocation(5, 26));
 
         var tree = comp.SyntaxTrees.Single();
@@ -1541,7 +1541,7 @@ var x = new object().M;
 
 implicit extension E for object
 {
-    public static string M(this object o) => throw null;
+    public static string M(this object o) => throw null;
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
@@ -1550,7 +1550,7 @@ implicit extension E for object
             // var x = new object().M;
             Diagnostic(ErrorCode.ERR_ObjectProhibited, "new object().M").WithArguments("E.M(object)").WithLocation(1, 9),
             // (5,26): error CS9321: Extension methods are not allowed in extension types.
-            //     public static string M(this object o) => throw null;
+            //     public static string M(this object o) => throw null;
             Diagnostic(ErrorCode.ERR_ExtensionMethodInExtension, "M").WithLocation(5, 26));
 
         var tree = comp.SyntaxTrees.Single();
