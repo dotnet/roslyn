@@ -273,7 +273,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
             _fileManager = fileManager;
             _textBuffer = textBuffer;
             _documentIdentity = documentIdentity;
-            _workspaceConfigurationService = _fileManager._visualStudioWorkspace.Services.GetService<IWorkspaceConfigurationService>();
+            _workspaceConfigurationService = this.Workspace.Services.GetService<IWorkspaceConfigurationService>();
 
             // We'll create a read-only region for the file, but it'll be a dynamic region we can temporarily suspend
             // while we're doing edits.
