@@ -710,60 +710,60 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     return ImmutableArray.Create(("hint", SourceText.From($"// generated document {callCount}", Encoding.UTF8)));
                 });
 
-            // want to access the true workspace solution (which will be a fork of the solution we're producing here).
-            DocumentId tempDocId;
-            {
-                var projectId = ProjectId.CreateNewId();
-                var analyzerReference = new TestGeneratorReference(generator);
-                var project = workspace.CurrentSolution
-                    .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
-                    .GetRequiredProject(projectId)
-                    .AddAnalyzerReference(analyzerReference);
-                var tempDoc = project.AddDocument("X.cs", SourceText.From("// "));
-                tempDocId = tempDoc.Id;
+            var tempDocId = AddSimpleDocument(workspace, generator);
 
-                Assert.True(workspace.SetCurrentSolution(_ => tempDoc.Project.Solution, WorkspaceChangeKind.SolutionChanged));
+            using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+
+            var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+
+            var remoteProcessId = await client.TryInvokeAsync<IRemoteProcessTelemetryService, int>(
+                (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, cancellationToken),
+                CancellationToken.None).ConfigureAwait(false);
+
+            var solution = workspace.CurrentSolution;
+            await UpdatePrimaryWorkspace(client, solution);
+
+            var project = solution.Projects.Single();
+            var compilation = await project.GetCompilationAsync();
+
+            // Should call the generator the first time.
+            Assert.Equal(1, callCount);
+
+            solution = solution.WithTextDocumentText(tempDocId, SourceText.From("// new contents"));
+            Assert.True(workspace.SetCurrentSolution(_ => solution, WorkspaceChangeKind.SolutionChanged));
+
+            solution = workspace.CurrentSolution;
+            project = solution.Projects.Single();
+
+            compilation = await project.GetCompilationAsync();
+
+            var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync();
+            Assert.Single(sourceGeneratedDocuments);
+            if (executionPreference is SourceGeneratorExecutionPreference.Automatic)
+            {
+                Assert.Equal(2, callCount);
+                Assert.Equal("// generated document 2", sourceGeneratedDocuments.Single().GetTextSynchronously(CancellationToken.None).ToString());
             }
-
+            else
             {
-                using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
-
-                var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
-
-                var remoteProcessId = await client.TryInvokeAsync<IRemoteProcessTelemetryService, int>(
-                    (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, cancellationToken),
-                    CancellationToken.None).ConfigureAwait(false);
-
-                var solution = workspace.CurrentSolution;
-                await UpdatePrimaryWorkspace(client, solution);
-
-                var project = solution.Projects.Single();
-                var compilation = await project.GetCompilationAsync();
-
-                // Should call the generator the first time.
                 Assert.Equal(1, callCount);
-
-                solution = solution.WithTextDocumentText(tempDocId, SourceText.From("// new contents"));
-                Assert.True(workspace.SetCurrentSolution(_ => solution, WorkspaceChangeKind.SolutionChanged));
-
-                solution = workspace.CurrentSolution;
-                project = solution.Projects.Single();
-
-                compilation = await project.GetCompilationAsync();
-
-                var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync();
-                Assert.Single(sourceGeneratedDocuments);
-                if (executionPreference is SourceGeneratorExecutionPreference.Automatic)
-                {
-                    Assert.Equal(2, callCount);
-                    Assert.Equal("// generated document 2", sourceGeneratedDocuments.Single().GetTextSynchronously(CancellationToken.None).ToString());
-                }
-                else
-                {
-                    Assert.Equal(1, callCount);
-                    Assert.Equal("// generated document 1", sourceGeneratedDocuments.Single().GetTextSynchronously(CancellationToken.None).ToString());
-                }
+                Assert.Equal("// generated document 1", sourceGeneratedDocuments.Single().GetTextSynchronously(CancellationToken.None).ToString());
             }
+        }
+
+        private static DocumentId AddSimpleDocument(TestWorkspace workspace, CallbackGenerator generator)
+        {
+            var projectId = ProjectId.CreateNewId();
+            var analyzerReference = new TestGeneratorReference(generator);
+            var project = workspace.CurrentSolution
+                .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
+                .GetRequiredProject(projectId)
+                .AddAnalyzerReference(analyzerReference);
+            var tempDoc = project.AddDocument("X.cs", SourceText.From("// "));
+
+            Assert.True(workspace.SetCurrentSolution(_ => tempDoc.Project.Solution, WorkspaceChangeKind.SolutionChanged));
+
+            return tempDoc.Id;
         }
 
         [Theory, CombinatorialData]
