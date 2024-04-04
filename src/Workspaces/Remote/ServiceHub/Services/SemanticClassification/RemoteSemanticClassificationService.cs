@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfNull(document);
 
                 // Frozen partial semantics is not automatically passed to OOP, so enable it explicitly when desired
-                if (options.FrozenPartialSemantics)
-                    document = document.WithFrozenPartialSemantics(cancellationToken);
+                document = options.FrozenPartialSemantics ? document.WithFrozenPartialSemantics(cancellationToken) : document;
+                solution = document.Project.Solution;
 
                 using var _ = Classifier.GetPooledList(out var temp);
                 await AbstractClassificationService.AddClassificationsInCurrentProcessAsync(
