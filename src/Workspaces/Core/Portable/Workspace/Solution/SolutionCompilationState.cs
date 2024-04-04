@@ -121,7 +121,7 @@ internal sealed partial class SolutionCompilationState
         Contract.ThrowIfFalse(this.SolutionState.ProjectStates
             .Where(kvp => RemoteSupportedLanguages.IsSupported(kvp.Value.Language))
             .Select(kvp => kvp.Key)
-            .SetEquals(_sourceGeneratorExecutionVersionMap.ProjectIds));
+            .SetEquals(_sourceGeneratorExecutionVersionMap.Map.Keys));
     }
 
     private SolutionCompilationState Branch(
@@ -325,9 +325,9 @@ internal sealed partial class SolutionCompilationState
         var sourceGeneratorExecutionVersionMap = _sourceGeneratorExecutionVersionMap;
         if (RemoteSupportedLanguages.IsSupported(projectInfo.Language))
         {
-            var versionMapBuilder = _sourceGeneratorExecutionVersionMap.ToBuilder();
+            var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
             versionMapBuilder.Add(projectInfo.Id, new());
-            sourceGeneratorExecutionVersionMap = versionMapBuilder.ToImmutable();
+            sourceGeneratorExecutionVersionMap = new(versionMapBuilder.ToImmutable());
         }
 
         return Branch(
@@ -350,13 +350,13 @@ internal sealed partial class SolutionCompilationState
             projectId,
             skipEmptyCallback: true);
 
-        var versionMapBuilder = _sourceGeneratorExecutionVersionMap.ToBuilder();
+        var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
         versionMapBuilder.Remove(projectId);
 
         return this.Branch(
             newSolutionState,
             projectIdToTrackerMap: newTrackerMap,
-            sourceGeneratorExecutionVersionMap: versionMapBuilder.ToImmutable());
+            sourceGeneratorExecutionVersionMap: new(versionMapBuilder.ToImmutable()));
     }
 
     /// <inheritdoc cref="SolutionState.WithProjectAssemblyName"/>
@@ -1178,11 +1178,11 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState WithSourceGeneratorExecutionVersions(
         SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersions, CancellationToken cancellationToken)
     {
-        var versionMapBuilder = _sourceGeneratorExecutionVersionMap.ToBuilder();
+        var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
         var changed = false;
 
-        foreach (var (projectId, sourceGeneratorExecutionVersion) in sourceGeneratorExecutionVersions)
+        foreach (var (projectId, sourceGeneratorExecutionVersion) in sourceGeneratorExecutionVersions.Map)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -1215,7 +1215,7 @@ internal sealed partial class SolutionCompilationState
         return this.Branch(
             this.SolutionState,
             projectIdToTrackerMap: newIdToTrackerMapBuilder.ToImmutable(),
-            sourceGeneratorExecutionVersionMap: versionMapBuilder.ToImmutable());
+            sourceGeneratorExecutionVersionMap: new(versionMapBuilder.ToImmutable()));
     }
 
     public SolutionCompilationState WithFrozenPartialCompilations(CancellationToken cancellationToken)

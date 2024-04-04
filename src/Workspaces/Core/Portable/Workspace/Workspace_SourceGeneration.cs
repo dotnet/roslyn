@@ -69,7 +69,7 @@ public partial class Workspace
             // projects that transitively depend on that project, so that their generators will run as well when next
             // asked.
             var dependencyGraph = solution.GetProjectDependencyGraph();
-            var result = SourceGeneratorExecutionVersionMap.CreateBuilder();
+            var result = ImmutableSegmentedDictionary.CreateBuilder<ProjectId, SourceGeneratorExecutionVersion>();
 
             // Determine if we want a major solution change, forcing regeneration of all projects.
             var solutionMajor = projectIds.Any(t => t.projectId is null && t.forceRegeneration);
@@ -100,7 +100,7 @@ public partial class Workspace
                 }
             }
 
-            return result.ToImmutable();
+            return new(result.ToImmutable());
 
             void PopulateSourceGeneratorExecutionVersions(bool major)
             {

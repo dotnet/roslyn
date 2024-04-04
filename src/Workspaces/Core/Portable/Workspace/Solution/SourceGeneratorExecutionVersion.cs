@@ -52,19 +52,17 @@ internal sealed class SourceGeneratorExecutionVersionMap(ImmutableSegmentedDicti
 {
     public static readonly SourceGeneratorExecutionVersionMap Empty = new();
 
-    private readonly ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion> _map = map;
+    public ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion> Map { get; } = map;
 
     public SourceGeneratorExecutionVersionMap()
         : this(ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Empty)
     {
     }
 
-    public SourceGeneratorExecutionVersion this[ProjectId projectId] => _map[projectId];
-    public IEnumerable<ProjectId> ProjectIds => _map.Keys;
-    public Enumerator GetEnumerator() => new(_map.GetEnumerator());
+    public SourceGeneratorExecutionVersion this[ProjectId projectId] => Map[projectId];
 
     public static bool operator ==(SourceGeneratorExecutionVersionMap map1, SourceGeneratorExecutionVersionMap map2)
-        => map1._map == map2._map;
+        => map1.Map == map2.Map;
 
     public static bool operator !=(SourceGeneratorExecutionVersionMap map1, SourceGeneratorExecutionVersionMap map2)
         => !(map1 == map2);
@@ -75,13 +73,10 @@ internal sealed class SourceGeneratorExecutionVersionMap(ImmutableSegmentedDicti
     public override bool Equals([NotNullWhen(true)] object? obj)
         => obj is SourceGeneratorExecutionVersionMap map && this == map;
 
-    public Builder ToBuilder()
-        => new(_map.ToBuilder());
-
     public void WriteTo(ObjectWriter writer)
     {
-        writer.WriteInt32(_map.Count);
-        foreach (var (projectId, version) in _map)
+        writer.WriteInt32(Map.Count);
+        foreach (var (projectId, version) in Map)
         {
             projectId.WriteTo(writer);
             version.WriteTo(writer);
@@ -100,35 +95,5 @@ internal sealed class SourceGeneratorExecutionVersionMap(ImmutableSegmentedDicti
         }
 
         return new(builder.ToImmutable());
-    }
-
-    public static Builder CreateBuilder()
-        => new(ImmutableSegmentedDictionary.CreateBuilder<ProjectId, SourceGeneratorExecutionVersion>());
-
-    public readonly struct Builder(ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Builder builder)
-    {
-        public SourceGeneratorExecutionVersion this[ProjectId projectId]
-        {
-            get => builder[projectId];
-            set => builder[projectId] = value;
-        }
-
-        public bool ContainsKey(ProjectId projectId)
-            => builder.ContainsKey(projectId);
-
-        public void Add(ProjectId projectId, SourceGeneratorExecutionVersion version)
-            => builder.Add(projectId, version);
-
-        public void Remove(ProjectId projectId)
-            => builder.Remove(projectId);
-
-        public SourceGeneratorExecutionVersionMap ToImmutable()
-            => new(builder.ToImmutable());
-    }
-
-    public struct Enumerator(ImmutableSegmentedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Enumerator enumerator)
-    {
-        public bool MoveNext() => enumerator.MoveNext();
-        public readonly (ProjectId projectId, SourceGeneratorExecutionVersion version) Current => (enumerator.Current.Key, enumerator.Current.Value);
     }
 }
