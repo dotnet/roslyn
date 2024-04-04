@@ -375,27 +375,27 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 if (project.State.ProjectInfo.Attributes.Name != newProjectAttributes.Name)
                 {
-                    project = project.Solution.WithProjectName(projectId, newProjectAttributes.Name).GetProject(projectId)!;
+                    project = project.Solution.WithProjectName(projectId, newProjectAttributes.Name).GetRequiredProject(projectId);
                 }
 
                 if (project.State.ProjectInfo.Attributes.AssemblyName != newProjectAttributes.AssemblyName)
                 {
-                    project = project.Solution.WithProjectAssemblyName(projectId, newProjectAttributes.AssemblyName).GetProject(projectId)!;
+                    project = project.Solution.WithProjectAssemblyName(projectId, newProjectAttributes.AssemblyName).GetRequiredProject(projectId);
                 }
 
                 if (project.State.ProjectInfo.Attributes.FilePath != newProjectAttributes.FilePath)
                 {
-                    project = project.Solution.WithProjectFilePath(projectId, newProjectAttributes.FilePath).GetProject(projectId)!;
+                    project = project.Solution.WithProjectFilePath(projectId, newProjectAttributes.FilePath).GetRequiredProject(projectId);
                 }
 
                 if (project.State.ProjectInfo.Attributes.OutputFilePath != newProjectAttributes.OutputFilePath)
                 {
-                    project = project.Solution.WithProjectOutputFilePath(projectId, newProjectAttributes.OutputFilePath).GetProject(projectId)!;
+                    project = project.Solution.WithProjectOutputFilePath(projectId, newProjectAttributes.OutputFilePath).GetRequiredProject(projectId);
                 }
 
                 if (project.State.ProjectInfo.Attributes.OutputRefFilePath != newProjectAttributes.OutputRefFilePath)
                 {
-                    project = project.Solution.WithProjectOutputRefFilePath(projectId, newProjectAttributes.OutputRefFilePath).GetProject(projectId)!;
+                    project = project.Solution.WithProjectOutputRefFilePath(projectId, newProjectAttributes.OutputRefFilePath).GetRequiredProject(projectId);
                 }
 
                 if (project.State.ProjectInfo.Attributes.CompilationOutputInfo != newProjectAttributes.CompilationOutputInfo)
@@ -405,22 +405,22 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 if (project.State.ProjectInfo.Attributes.DefaultNamespace != newProjectAttributes.DefaultNamespace)
                 {
-                    project = project.Solution.WithProjectDefaultNamespace(projectId, newProjectAttributes.DefaultNamespace).GetProject(projectId)!;
+                    project = project.Solution.WithProjectDefaultNamespace(projectId, newProjectAttributes.DefaultNamespace).GetRequiredProject(projectId);
                 }
 
                 if (project.State.ProjectInfo.Attributes.HasAllInformation != newProjectAttributes.HasAllInformation)
                 {
-                    project = project.Solution.WithHasAllInformation(projectId, newProjectAttributes.HasAllInformation).GetProject(projectId)!;
+                    project = project.Solution.WithHasAllInformation(projectId, newProjectAttributes.HasAllInformation).GetRequiredProject(projectId);
                 }
 
                 if (project.State.ProjectInfo.Attributes.RunAnalyzers != newProjectAttributes.RunAnalyzers)
                 {
-                    project = project.Solution.WithRunAnalyzers(projectId, newProjectAttributes.RunAnalyzers).GetProject(projectId)!;
+                    project = project.Solution.WithRunAnalyzers(projectId, newProjectAttributes.RunAnalyzers).GetRequiredProject(projectId);
                 }
 
                 if (project.State.ProjectInfo.Attributes.ChecksumAlgorithm != newProjectAttributes.ChecksumAlgorithm)
                 {
-                    project = project.Solution.WithProjectChecksumAlgorithm(projectId, newProjectAttributes.ChecksumAlgorithm).GetProject(projectId)!;
+                    project = project.Solution.WithProjectChecksumAlgorithm(projectId, newProjectAttributes.ChecksumAlgorithm).GetRequiredProject(projectId);
                 }
 
                 return project;
