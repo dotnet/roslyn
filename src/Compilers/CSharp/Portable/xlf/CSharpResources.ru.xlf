@@ -2442,6 +2442,11 @@
         <target state="new">Compilation requires binding the nested lambda expression more than {0} times. Consider declaring some or all of the lambda expressions with explicit parameter types.</target>
         <note />
       </trans-unit>
+      <trans-unit id="INF_TooManyBoundLambdas_Title">
+        <source>Compilation requires binding the nested lambda expression many times. Consider declaring some or all of the lambda expressions with explicit parameter types.</source>
+        <target state="new">Compilation requires binding the nested lambda expression many times. Consider declaring some or all of the lambda expressions with explicit parameter types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
         <source>{0} is not a valid C# spread operation</source>
         <target state="translated">{0} не является допустимой операцией расширения C#</target>

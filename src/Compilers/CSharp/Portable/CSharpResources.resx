@@ -6877,6 +6877,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="INF_TooManyBoundLambdas" xml:space="preserve">
     <value>Compilation requires binding the nested lambda expression more than {0} times. Consider declaring some or all of the lambda expressions with explicit parameter types.</value>
   </data>
+  <data name="INF_TooManyBoundLambdas_Title" xml:space="preserve">
+    <value>Compilation requires binding the nested lambda expression many times. Consider declaring some or all of the lambda expressions with explicit parameter types.</value>
+  </data>
   <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
     <value>Record equality contract property '{0}' must have a get accessor.</value>
   </data>
