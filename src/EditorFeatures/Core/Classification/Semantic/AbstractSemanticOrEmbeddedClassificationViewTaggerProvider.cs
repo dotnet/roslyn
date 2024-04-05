@@ -122,11 +122,7 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
         if (isLspSemanticTokensEnabled)
             return;
 
-        var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language) with
-        {
-            FrozenPartialSemantics = context.FrozenPartialSemantics,
-        };
-
+        var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language);
         await ProduceTagsAsync(
             context, spanToTag, classificationService, classificationOptions, cancellationToken).ConfigureAwait(false);
     }
@@ -244,8 +240,24 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
             {
                 using var _ = Classifier.GetPooledList(out var classifiedSpans);
 
-                await AddClassificationsAsync(
-                    classificationService, options, document, snapshotSpan, classifiedSpans, cancellationToken).ConfigureAwait(false);
+                // Ensure that if we're producing tags for frozen/partial documents, that we pass along that info so
+                // that we preserve that same behavior in OOP if we end up computing the tags there.
+                options = options with { FrozenPartialSemantics = context.FrozenPartialSemantics };
+
+                if (_type == ClassificationType.Semantic)
+                {
+                    await classificationService.AddSemanticClassificationsAsync(
+                       document, snapshotSpan.Span.ToTextSpan(), options, classifiedSpans, cancellationToken).ConfigureAwait(false);
+                }
+                else if (_type == ClassificationType.EmbeddedLanguage)
+                {
+                    await classificationService.AddEmbeddedLanguageClassificationsAsync(
+                       document, snapshotSpan.Span.ToTextSpan(), options, classifiedSpans, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(_type);
+                }
 
                 foreach (var span in classifiedSpans)
                     context.AddTag(ClassificationUtilities.Convert(_typeMap, snapshotSpan.Snapshot, span));
@@ -260,30 +272,6 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
         {
             throw ExceptionUtilities.Unreachable();
-        }
-    }
-
-    private async Task AddClassificationsAsync(
-        IClassificationService classificationService,
-        ClassificationOptions options,
-        Document document,
-        SnapshotSpan snapshotSpan,
-        SegmentedList<ClassifiedSpan> classifiedSpans,
-        CancellationToken cancellationToken)
-    {
-        if (_type == ClassificationType.Semantic)
-        {
-            await classificationService.AddSemanticClassificationsAsync(
-               document, snapshotSpan.Span.ToTextSpan(), options, classifiedSpans, cancellationToken).ConfigureAwait(false);
-        }
-        else if (_type == ClassificationType.EmbeddedLanguage)
-        {
-            await classificationService.AddEmbeddedLanguageClassificationsAsync(
-               document, snapshotSpan.Span.ToTextSpan(), options, classifiedSpans, cancellationToken).ConfigureAwait(false);
-        }
-        else
-        {
-            throw ExceptionUtilities.UnexpectedValue(_type);
         }
     }
 }
