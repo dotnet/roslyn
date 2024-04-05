@@ -1230,6 +1230,50 @@ class C
         }
 
         [Fact]
+        public void RefReadonlyInIterator_ForEach()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    int[] arr = new int[2];
+                    IEnumerable<int> M()
+                    {
+                        ref readonly int[] x = ref arr;
+
+                        foreach (var i in x)
+                        {
+                            System.Console.Write(i);
+                            yield return 1;
+                        }
+                
+                        foreach (var j in x)
+                        {
+                            System.Console.Write(j);
+                            yield return 2;
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (7,28): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         ref readonly int[] x = ref arr;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 28));
+
+            var expectedDiagnostics = new[]
+            {
+                // (15,27): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var j in x)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "x").WithLocation(15, 27)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
         public void RefReadonlyInSwitchCaseInIterator_01()
         {
             var comp = CreateCompilation(@"

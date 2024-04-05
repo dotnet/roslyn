@@ -21265,6 +21265,65 @@ class Program
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
+        [Fact]
+        public void Foreach_InAsync_19()
+        {
+            var src = @"
+using System.Threading.Tasks;
+
+class C
+{
+    public readonly Buffer4<int> F = default;
+}
+
+class Program
+{
+    static async Task Test(C x)
+    {
+        ref readonly Buffer4<int> f = ref x.F;
+
+        foreach (var i in f) System.Console.Write(i);
+
+        foreach (var y in f)
+        {
+            System.Console.Write(y);
+            await Task.Yield();
+        }
+
+        foreach (var j in f) System.Console.Write(j);
+
+        foreach (var z in f)
+        {
+            System.Console.Write(z);
+            await Task.Yield();
+        }
+    }
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (13,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         ref readonly Buffer4<int> f = ref x.F;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f").WithArguments("ref and unsafe in async and iterator methods").WithLocation(13, 35));
+
+            var expectedDiagnostics = new[]
+            {
+                // (17,27): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var y in f)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(17, 27),
+                // (23,27): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var j in f) System.Console.Write(j);
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(23, 27),
+                // (25,27): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var z in f)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(25, 27)
+            };
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
         [ConditionalFact(typeof(CoreClrOnly))]
         public void Foreach_InIterator_01()
         {
@@ -22466,6 +22525,63 @@ class Program
             };
 
             CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void Foreach_InIterator_19()
+        {
+            var src = @"
+class C
+{
+    public readonly Buffer4<int> F = default;
+}
+
+class Program
+{
+    static System.Collections.Generic.IEnumerable<int> Test(C x)
+    {
+        ref readonly Buffer4<int> f = ref x.F;
+
+        foreach (var i in f) System.Console.Write(i);
+
+        foreach (var y in f)
+        {
+            System.Console.Write(y);
+            yield return -1;
+        }
+
+        foreach (var j in f) System.Console.Write(j);
+
+        foreach (var z in f)
+        {
+            System.Console.Write(z);
+            yield return -2;
+        }
+    }
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (11,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         ref readonly Buffer4<int> f = ref x.F;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "f").WithArguments("ref and unsafe in async and iterator methods").WithLocation(11, 35));
+
+            var expectedDiagnostics = new[]
+            {
+                // (15,27): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var y in f)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(15, 27),
+                // (21,27): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var j in f) System.Console.Write(j);
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(21, 27),
+                // (23,27): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var z in f)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(23, 27)
+            };
+
+            CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
