@@ -169,28 +169,18 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             => EnqueueWork(highPriority: false);
 
         private void EnqueueWork(bool highPriority)
-            => EnqueueWork(highPriority, _dataSource.SupportsFrozenPartialSemantics);
-
-        private void EnqueueWork(bool highPriority, bool frozenPartialSemantics)
         {
-            // Cancellation token if this expensive work that we want to be cancellable when cheap work comes in.
-            CancellationToken? nonFrozenComputationToken = null;
+            // Cancel any expensive, in-flight, tagging work as there's now a request to perform lightweight tagging.
+            // Note: intentionally ignoring the return value here.  We're enqueuing normal work here, so it has no
+            // associated token with it.
+            _ = _nonFrozenComputationCancellationSeries.CreateNext();
+            EnqueueWork(highPriority, _dataSource.SupportsFrozenPartialSemantics, nonFrozenComputationToken: null);
+        }
 
-            if (_dataSource.SupportsFrozenPartialSemantics)
-            {
-                // We do support frozen partial work.  Cancel any expensive work in flight as new work has come in.
-                var nextToken = _nonFrozenComputationCancellationSeries.CreateNext();
-
-                // If this is new work *is* the expensive work, then use this token to allow cancellation of it when
-                // more new work comes in.
-                if (!frozenPartialSemantics)
-                    nonFrozenComputationToken = nextToken;
-            }
-
-            _eventChangeQueue.AddWork(
+        private void EnqueueWork(bool highPriority, bool frozenPartialSemantics, CancellationToken? nonFrozenComputationToken)
+            => _eventChangeQueue.AddWork(
                 new TagSourceQueueItem(highPriority, frozenPartialSemantics, nonFrozenComputationToken),
                 _dataSource.CancelOnNewWork);
-        }
 
         private async ValueTask<VoidResult> ProcessEventChangeAsync(
             ImmutableSegmentedList<TagSourceQueueItem> changes, CancellationToken cancellationToken)
@@ -351,11 +341,10 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 PauseIfNotVisible();
 
                 // If we were computing with frozen partial semantics here, enqueue work to compute *without* frozen
-                // partial snapshots so we move to accurate results shortly. Note: when the queue goes to process this
-                // message, if it sees any other events asking for frozen-partial-semantics, it will process in that
-                // mode again, kicking the can down the road to finally end with non-frozen-partial computation
+                // partial snapshots so we move to accurate results shortly. Create and pass along a new cancellation
+                // token for this expensive work so that it can be canceled by future lightweight work.
                 if (frozenPartialSemantics)
-                    this.EnqueueWork(highPriority, frozenPartialSemantics: false);
+                    this.EnqueueWork(highPriority, frozenPartialSemantics: false, _nonFrozenComputationCancellationSeries.CreateNext(default));
 
                 return default;
             }
