@@ -327,6 +327,11 @@
         <target state="translated">メソッド グループ '{0}' をデリゲート型 '{1}' に変換することはできません。(&amp;M)</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotDynamicInvokeOnExpression">
+        <source>Cannot perform a dynamic invocation on an expression with type '{0}'.</source>
+        <target state="new">Cannot perform a dynamic invocation on an expression with type '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
         <source>The delegate type could not be inferred.</source>
         <target state="translated">デリゲート型を推論できませんでした。</target>
