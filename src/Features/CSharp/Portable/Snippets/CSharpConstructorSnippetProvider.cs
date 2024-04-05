@@ -76,9 +76,9 @@ internal sealed class CSharpConstructorSnippetProvider() : AbstractConstructorSn
         return new TextChange(TextSpan.FromBounds(position, position), constructorDeclaration.NormalizeWhitespace().ToFullString());
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, ConstructorDeclarationSyntax caretTarget, SourceText sourceText)
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, ConstructorDeclarationSyntax constructorDeclaration, SourceText sourceText)
         => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
-            caretTarget,
+            constructorDeclaration,
             static d => d.Body!,
             sourceText);
 
