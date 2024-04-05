@@ -33,13 +33,11 @@ internal sealed class CSharpVoidMainSnippetProvider() : AbstractCSharpMainMethod
     protected override IEnumerable<SyntaxNode> GenerateInnerStatements(SyntaxGenerator generator)
         => SpecializedCollections.EmptyEnumerable<SyntaxNode>();
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-    {
-        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<MethodDeclarationSyntax>(
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, MethodDeclarationSyntax caretTarget, SourceText sourceText)
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
             caretTarget,
             static d => d.Body!,
             sourceText);
-    }
 
     protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
     {

@@ -27,13 +27,11 @@ internal sealed class CSharpIfSnippetProvider() : AbstractIfSnippetProvider<IfSt
     protected override ExpressionSyntax GetCondition(IfStatementSyntax node)
         => node.Condition;
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-    {
-        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<IfStatementSyntax>(
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, IfStatementSyntax caretTarget, SourceText sourceText)
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
             caretTarget,
             static s => (BlockSyntax)s.Statement,
             sourceText);
-    }
 
     protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
     {

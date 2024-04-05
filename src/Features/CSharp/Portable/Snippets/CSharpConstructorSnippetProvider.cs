@@ -76,13 +76,11 @@ internal sealed class CSharpConstructorSnippetProvider() : AbstractConstructorSn
         return new TextChange(TextSpan.FromBounds(position, position), constructorDeclaration.NormalizeWhitespace().ToFullString());
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-    {
-        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<ConstructorDeclarationSyntax>(
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, ConstructorDeclarationSyntax caretTarget, SourceText sourceText)
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
             caretTarget,
             static d => d.Body!,
             sourceText);
-    }
 
     protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
     {

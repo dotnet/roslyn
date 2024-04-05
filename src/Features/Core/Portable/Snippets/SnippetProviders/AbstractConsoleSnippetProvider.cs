@@ -51,19 +51,15 @@ internal abstract class AbstractConsoleSnippetProvider<TExpressionStatementSynta
     /// Tries to get the location after the open parentheses in the argument list.
     /// If it can't, then we default to the end of the snippet's span.
     /// </summary>
-    protected sealed override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
+    protected sealed override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, TExpressionStatementSyntax caretTarget, SourceText sourceText)
     {
         var invocationExpression = caretTarget.DescendantNodes().Where(syntaxFacts.IsInvocationExpression).FirstOrDefault();
         if (invocationExpression is null)
-        {
             return caretTarget.Span.End;
-        }
 
         var argumentListNode = syntaxFacts.GetArgumentListOfInvocationExpression(invocationExpression);
         if (argumentListNode is null)
-        {
             return caretTarget.Span.End;
-        }
 
         syntaxFacts.GetPartsOfArgumentList(argumentListNode, out var openParenToken, out _, out _);
         return openParenToken.Span.End;

@@ -78,10 +78,9 @@ internal abstract class AbstractCSharpTypeSnippetProvider<TTypeDeclarationSyntax
         return new TextChange(TextSpan.FromBounds(targetPosition, targetPosition), SyntaxFacts.GetText(SyntaxKind.PublicKeyword) + " ");
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, TTypeDeclarationSyntax caretTarget, SourceText sourceText)
     {
-        var typeDeclaration = (BaseTypeDeclarationSyntax)caretTarget;
-        var triviaSpan = typeDeclaration.CloseBraceToken.LeadingTrivia.Span;
+        var triviaSpan = caretTarget.CloseBraceToken.LeadingTrivia.Span;
         var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
         // Getting the location at the end of the line before the newline.
         return line.Span.End;

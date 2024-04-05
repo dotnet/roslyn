@@ -113,13 +113,11 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
         return arrayBuilder.ToImmutableArray();
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-    {
-        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<ForEachStatementSyntax>(
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, ForEachStatementSyntax caretTarget, SourceText sourceText)
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
             caretTarget,
             static s => (BlockSyntax)s.Statement,
             sourceText);
-    }
 
     protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
     {

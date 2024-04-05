@@ -66,11 +66,8 @@ internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractProp
             accessorList: SyntaxFactory.AccessorList([.. accessors.Where(a => a is not null)!]));
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-    {
-        var propertyDeclaration = (PropertyDeclarationSyntax)caretTarget;
-        return propertyDeclaration.AccessorList!.CloseBraceToken.Span.End;
-    }
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, PropertyDeclarationSyntax caretTarget, SourceText sourceText)
+        => caretTarget.AccessorList!.CloseBraceToken.Span.End;
 
     protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(PropertyDeclarationSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {

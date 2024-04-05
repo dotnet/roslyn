@@ -37,13 +37,11 @@ internal sealed class CSharpDoWhileLoopStatementProvider()
     protected override ExpressionSyntax GetCondition(DoStatementSyntax node)
         => node.Condition;
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-    {
-        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<DoStatementSyntax>(
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, DoStatementSyntax caretTarget, SourceText sourceText)
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
             caretTarget,
             static s => (BlockSyntax)s.Statement,
             sourceText);
-    }
 
     protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
     {

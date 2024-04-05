@@ -16,11 +16,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 internal static class CSharpSnippetHelpers
 {
-    public static int GetTargetCaretPositionInBlock<TTargetNode>(SyntaxNode caretTarget, Func<TTargetNode, BlockSyntax> getBlock, SourceText sourceText)
+    public static int GetTargetCaretPositionInBlock<TTargetNode>(TTargetNode caretTarget, Func<TTargetNode, BlockSyntax> getBlock, SourceText sourceText)
         where TTargetNode : SyntaxNode
     {
-        var targetNode = (TTargetNode)caretTarget;
-        var block = getBlock(targetNode);
+        var block = getBlock(caretTarget);
 
         var triviaSpan = block.CloseBraceToken.LeadingTrivia.Span;
         var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);

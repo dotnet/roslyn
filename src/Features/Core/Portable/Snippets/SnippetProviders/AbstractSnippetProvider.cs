@@ -44,7 +44,7 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
     /// <summary>
     /// Gets the position that we want the caret to be at after all of the indentation/formatting has been done.
     /// </summary>
-    protected abstract int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText);
+    protected abstract int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, TSnippetSyntax caretTarget, SourceText sourceText);
 
     /// <summary>
     /// Method to find the locations that must be renamed and where tab stops must be inserted into the snippet.
@@ -101,10 +101,8 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
         var documentWithIndentation = await AddIndentationToDocumentAsync(reformattedDocument, cancellationToken).ConfigureAwait(false);
 
         var reformattedRoot = await documentWithIndentation.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var caretTarget = reformattedRoot.GetAnnotatedNodes(CursorAnnotation).FirstOrDefault();
+        var caretTarget = (TSnippetSyntax)reformattedRoot.GetAnnotatedNodes(CursorAnnotation).First();
         var mainChangeNode = (TSnippetSyntax)reformattedRoot.GetAnnotatedNodes(FindSnippetAnnotation).First();
-
-        Contract.ThrowIfNull(caretTarget);
 
         var annotatedReformattedDocument = documentWithIndentation.WithSyntaxRoot(reformattedRoot);
 

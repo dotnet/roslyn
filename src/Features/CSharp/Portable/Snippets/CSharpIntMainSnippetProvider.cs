@@ -39,10 +39,9 @@ internal sealed class CSharpIntMainSnippetProvider() : AbstractCSharpMainMethodS
         return SpecializedCollections.SingletonEnumerable(returnStatement);
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, MethodDeclarationSyntax caretTarget, SourceText sourceText)
     {
-        var methodDeclaration = (MethodDeclarationSyntax)caretTarget;
-        var body = methodDeclaration.Body!;
+        var body = caretTarget.Body!;
         var returnStatement = body.Statements.First();
 
         var triviaSpan = returnStatement.GetLeadingTrivia().Span;

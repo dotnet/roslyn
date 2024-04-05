@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -28,13 +27,11 @@ internal sealed class CSharpWhileLoopSnippetProvider() : AbstractWhileLoopSnippe
     protected override ExpressionSyntax GetCondition(WhileStatementSyntax node)
         => node.Condition;
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-    {
-        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<WhileStatementSyntax>(
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, WhileStatementSyntax caretTarget, SourceText sourceText)
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
             caretTarget,
             static s => (BlockSyntax)s.Statement,
             sourceText);
-    }
 
     protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
     {

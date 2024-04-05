@@ -61,13 +61,11 @@ internal sealed class CSharpElseSnippetProvider() : AbstractElseSnippetProvider<
         return Task.FromResult(new TextChange(TextSpan.FromBounds(position, position), elseClause.ToFullString()));
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-    {
-        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<ElseClauseSyntax>(
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, ElseClauseSyntax caretTarget, SourceText sourceText)
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
             caretTarget,
             static c => (BlockSyntax)c.Statement,
             sourceText);
-    }
 
     protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
     {
