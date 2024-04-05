@@ -8977,7 +8977,7 @@ class C
                 {
                     v.VerifySynthesizedMembers();
 
-                    g.VerifyMethodDefNames("F", "<F>b__1_0", "MoveNext");
+                    v.VerifyMethodDefNames("F", "<F>b__1_0", "MoveNext");
 
                     v.VerifyEncLogDefinitions(
                     [
