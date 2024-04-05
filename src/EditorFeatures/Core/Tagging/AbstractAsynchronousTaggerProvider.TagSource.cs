@@ -76,7 +76,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// This queue is used to batch up event change notifications and only dispatch one recomputation every <see
         /// cref="EventChangeDelay"/> to actually produce the latest set of tags.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<TagSourceQueueItem> _eventChangeQueue;
+        private readonly AsyncBatchingWorkQueue<TagSourceQueueItem, VoidResult> _eventChangeQueue;
 
         /// <summary>
         /// For taggers that support tagging frozen and non-frozen snapshots, this cancellation series controls the
