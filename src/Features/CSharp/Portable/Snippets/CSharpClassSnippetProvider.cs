@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpClassSnippetProvider() : AbstractCSharpTypeSnippetProvider
+internal sealed class CSharpClassSnippetProvider() : AbstractCSharpTypeSnippetProvider<ClassDeclarationSyntax>
 {
     private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
@@ -42,17 +43,15 @@ internal sealed class CSharpClassSnippetProvider() : AbstractCSharpTypeSnippetPr
 
     protected override ISet<SyntaxKind> ValidModifiers => s_validModifiers;
 
-    protected override async Task<SyntaxNode> GenerateTypeDeclarationAsync(Document document, int position, CancellationToken cancellationToken)
+    protected override async Task<ClassDeclarationSyntax> GenerateTypeDeclarationAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var generator = SyntaxGenerator.GetGenerator(document);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var name = NameGenerator.GenerateUniqueName("MyClass", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
-        return generator.ClassDeclaration(name);
+        return (ClassDeclarationSyntax)generator.ClassDeclaration(name);
     }
 
     protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
-    {
-        return syntaxFacts.IsClassDeclaration;
-    }
+        => syntaxFacts.IsClassDeclaration;
 }

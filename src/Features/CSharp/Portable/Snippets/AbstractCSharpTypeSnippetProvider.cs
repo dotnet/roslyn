@@ -24,7 +24,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
-internal abstract class AbstractCSharpTypeSnippetProvider : AbstractTypeSnippetProvider
+internal abstract class AbstractCSharpTypeSnippetProvider<TTypeDeclarationSyntax> : AbstractTypeSnippetProvider<TTypeDeclarationSyntax>
+    where TTypeDeclarationSyntax : BaseTypeDeclarationSyntax
 {
     protected abstract ISet<SyntaxKind> ValidModifiers { get; }
 
@@ -87,10 +88,10 @@ internal abstract class AbstractCSharpTypeSnippetProvider : AbstractTypeSnippetP
         return line.Span.End;
     }
 
-    protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
+    protected override TTypeDeclarationSyntax? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
     {
         var node = root.FindNode(TextSpan.FromBounds(position, position));
-        return node.GetAncestorOrThis<BaseTypeDeclarationSyntax>();
+        return node.GetAncestorOrThis<TTypeDeclarationSyntax>();
     }
 
     protected override async Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)

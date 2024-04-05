@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSnippetProvider
+internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSnippetProvider<ForEachStatementSyntax>
 {
     public override string Identifier => CSharpSnippetIdentifiers.ForEach;
 
@@ -48,7 +48,7 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
         return base.IsValidSnippetLocation(in context, cancellationToken);
     }
 
-    protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
+    protected override ForEachStatementSyntax GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
     {
         var semanticModel = syntaxContext.SemanticModel;
         var position = syntaxContext.Position;
@@ -102,14 +102,13 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
     /// Goes through each piece of the foreach statement and extracts the identifiers
     /// as well as their locations to create SnippetPlaceholder's of each.
     /// </summary>
-    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(ForEachStatementSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
-        GetPartsOfForEachStatement(node, out var identifier, out var expression, out var _1);
-        arrayBuilder.Add(new SnippetPlaceholder(identifier.ToString(), identifier.SpanStart));
+        arrayBuilder.Add(new SnippetPlaceholder(node.Identifier.ToString(), node.Identifier.SpanStart));
 
         if (!ConstructedFromInlineExpression)
-            arrayBuilder.Add(new SnippetPlaceholder(expression.ToString(), expression.SpanStart));
+            arrayBuilder.Add(new SnippetPlaceholder(node.Expression.ToString(), node.Expression.SpanStart));
 
         return arrayBuilder.ToImmutableArray();
     }
@@ -129,13 +128,5 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
             FindSnippetAnnotation,
             static s => (BlockSyntax)s.Statement,
             cancellationToken);
-    }
-
-    private static void GetPartsOfForEachStatement(SyntaxNode node, out SyntaxToken identifier, out SyntaxNode expression, out SyntaxNode statement)
-    {
-        var forEachStatement = (ForEachStatementSyntax)node;
-        identifier = forEachStatement.Identifier;
-        expression = forEachStatement.Expression;
-        statement = forEachStatement.Statement;
     }
 }
