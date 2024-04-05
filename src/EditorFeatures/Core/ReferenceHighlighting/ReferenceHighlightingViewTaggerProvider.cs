@@ -135,10 +135,7 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
         }
 
         // Otherwise, we need to go produce all tags.
-        var options = _globalOptions.GetHighlightingOptions(document.Project.Language) with
-        {
-            FrozenPartialSemantics = context.FrozenPartialSemantics,
-        };
+        var options = _globalOptions.GetHighlightingOptions(document.Project.Language);
         return ProduceTagsAsync(context, caretPosition, document, options, cancellationToken);
     }
 
@@ -158,9 +155,14 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
                 var service = document.GetLanguageService<IDocumentHighlightsService>();
                 if (service != null)
                 {
+                    // Ensure that if we're producing tags for frozen/partial documents, that we pass along that info so
+                    // that we preserve that same behavior in OOP if we end up computing the tags there.
+                    options = options with { FrozenPartialSemantics = context.FrozenPartialSemantics };
+
                     // We only want to search inside documents that correspond to the snapshots
                     // we're looking at
                     var documentsToSearch = ImmutableHashSet.CreateRange(context.SpansToTag.Select(vt => vt.Document).WhereNotNull());
+
                     var documentHighlightsList = await service.GetDocumentHighlightsAsync(
                         document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
                     if (documentHighlightsList != null)
