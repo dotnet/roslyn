@@ -345,9 +345,9 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // token for this expensive work so that it can be canceled by future lightweight work.
                 if (frozenPartialSemantics)
                     this.EnqueueWork(highPriority, frozenPartialSemantics: false, _nonFrozenComputationCancellationSeries.CreateNext(default));
-
-                return default;
             }
+
+            return default;
         }
 
         private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
