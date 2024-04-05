@@ -133,7 +133,7 @@ public static partial class SymbolFinder
                     var containingType = symbol.ContainingType.OriginalDefinition;
                     var derivedClasses = includeImplementationsThroughDerivedTypes
                         ? await FindDerivedClassesAsync(containingType, solution, projects, cancellationToken).ConfigureAwait(false)
-                        : SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
+                        : [];
                     var allTypes = derivedClasses.Concat(containingType);
 
                     using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);

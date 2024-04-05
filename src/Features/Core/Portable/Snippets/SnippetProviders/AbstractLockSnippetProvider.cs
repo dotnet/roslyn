@@ -16,7 +16,7 @@ internal abstract class AbstractLockSnippetProvider<TLockStatementSyntax> : Abst
     protected sealed override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var generator = SyntaxGenerator.GetGenerator(document);
-        var statement = generator.LockStatement(generator.ThisExpression(), SpecializedCollections.EmptyEnumerable<SyntaxNode>());
+        var statement = generator.LockStatement(generator.ThisExpression(), statements: []);
         return Task.FromResult(new TextChange(TextSpan.FromBounds(position, position), statement.NormalizeWhitespace().ToFullString()));
     }
 }

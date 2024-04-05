@@ -851,9 +851,7 @@ internal static class BreakpointSpans
     internal static IEnumerable<SyntaxToken> GetActiveTokensForVariableDeclarator(VariableDeclaratorSyntax variableDeclarator, SyntaxTokenList modifiers, SyntaxToken semicolon)
     {
         if (variableDeclarator.Initializer == null || modifiers.Any(SyntaxKind.ConstKeyword))
-        {
-            return SpecializedCollections.EmptyEnumerable<SyntaxToken>();
-        }
+            return [];
 
         // [|int F = 1;|]
         var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent!;

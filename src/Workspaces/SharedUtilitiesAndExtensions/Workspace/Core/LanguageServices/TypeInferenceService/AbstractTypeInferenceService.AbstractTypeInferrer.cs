@@ -70,7 +70,7 @@ internal partial class AbstractTypeInferenceService : ITypeInferenceService
                 }
             }
 
-            return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            return [];
         }
 
         private ImmutableArray<TypeInferenceInfo> Filter(IEnumerable<TypeInferenceInfo> types, bool filterUnusable = true)
@@ -119,7 +119,7 @@ internal partial class AbstractTypeInferenceService : ITypeInferenceService
                 }
             }
 
-            return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            return [];
         }
 
         protected static bool IsEnumHasFlag(ISymbol symbol)

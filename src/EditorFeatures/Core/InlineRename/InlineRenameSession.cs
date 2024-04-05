@@ -422,7 +422,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
             if (!documents.Any(static (d, locationsByDocument) => locationsByDocument.Contains(d.Id), locationsByDocument))
             {
-                _openTextBuffers[textBuffer].SetReferenceSpans(SpecializedCollections.EmptyEnumerable<TextSpan>());
+                _openTextBuffers[textBuffer].SetReferenceSpans([]);
             }
             else
             {

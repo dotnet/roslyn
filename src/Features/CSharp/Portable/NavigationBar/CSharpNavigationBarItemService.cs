@@ -131,9 +131,7 @@ internal class CSharpNavigationBarItemService : AbstractNavigationBarItemService
             while (!nodesToVisit.IsEmpty())
             {
                 if (cancellationToken.IsCancellationRequested)
-                {
-                    return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
-                }
+                    return [];
 
                 var node = nodesToVisit.Pop();
                 var type = GetType(semanticModel, node, cancellationToken);
