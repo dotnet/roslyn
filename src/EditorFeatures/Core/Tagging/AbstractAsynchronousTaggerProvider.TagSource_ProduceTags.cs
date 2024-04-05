@@ -205,52 +205,35 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             // to do the slow-but-accurate pass.
             var frozenPartialSemantics = changes.Any(t => t.FrozenPartialSemantics);
 
-            if (frozenPartialSemantics)
+            if (!frozenPartialSemantics && _dataSource.SupportsFrozenPartialSemantics)
             {
-                // If we were asking for frozen partial semantics, then just proceed as normal, getting those tags
-                // quickly, but inaccurately.
-                await RecomputeTagsAsync(highPriority, frozenPartialSemantics: true, cancellationToken).ConfigureAwait(false);
+                // We're asking for expensive tags, and this tagger supports frozen partial tags.  Kick off the work
+                // to do this expensive tagging, but attach ourselves to the requested cancellation token so this
+                // expensive work can be canceled if new requests for frozen partial work come in.
+
+                // Since we're not frozen-partial, all requests must have an associated cancellation token.  And all but
+                // the last *must* be already canceled (since each is canceled as new work is added).
+                Contract.ThrowIfFalse(changes.All(t => !t.FrozenPartialSemantics));
+                Contract.ThrowIfFalse(changes.All(t => t.NonFrozenComputationToken != null));
+                Contract.ThrowIfFalse(changes.Take(changes.Count - 1).All(t => t.NonFrozenComputationToken!.Value.IsCancellationRequested));
+
+                var lastNonFrozenComputationToken = changes[^1].NonFrozenComputationToken!.Value;
+
+                // Need a dedicated try/catch here since we're operating on a different token than the queue's token.
+                using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(lastNonFrozenComputationToken, cancellationToken);
+                try
+                {
+                    await RecomputeTagsAsync(highPriority, frozenPartialSemantics, linkedTokenSource.Token).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, linkedTokenSource.Token))
+                {
+                }
             }
             else
             {
-                if (!_dataSource.SupportsFrozenPartialSemantics)
-                {
-                    // We're asking for normal expensive full tags, and this tagger doesn't support frozen partial
-                    // tagging anyways, so just proceed as normal, asking for expensive tags.
-                    await RecomputeTagsAsync(highPriority, frozenPartialSemantics: false, cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    // We're asking for expensive tags, and this tagger supports frozen partial tags.  Kick off the work
-                    // to do this expensive tagging, but attach ourselves to the requested cancellation token so this
-                    // expensive work can be canceled if new requests for frozen partial work come in.
-
-                    // We must have at least one request asking for full semantics.
-                    Contract.ThrowIfFalse(changes.Any(c => !c.FrozenPartialSemantics));
-
-                    // All those requests should have cancellation tokens provided with them.
-                    Contract.ThrowIfFalse(changes.Where(c => !c.FrozenPartialSemantics).All(c => c.NonFrozenComputationToken != null));
-
-                    // Get the first non-cancelled token if present.
-                    var nonFrozenComputationToken = changes.FirstOrNull(t => t.NonFrozenComputationToken?.IsCancellationRequested is false)?.NonFrozenComputationToken;
-
-                    // If there is no non-frozen cancellation token that has not been triggered yet, then all non-frozen work
-                    // has been canceled, and we can immediately bail out.
-                    if (nonFrozenComputationToken is null)
-                        return;
-
-                    // Otherwise, link this token with the main queue cancellation token and do the actual tagging.
-                    using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, nonFrozenComputationToken.Value);
-
-                    // Need a dedicated try/catch here since we're operating on a different token than the queue's token.
-                    try
-                    {
-                        await RecomputeTagsAsync(highPriority, frozenPartialSemantics, linkedTokenSource.Token).ConfigureAwait(false);
-                    }
-                    catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, linkedTokenSource.Token))
-                    {
-                    }
-                }
+                // Normal request to either compute frozen partial tags, or compute normal tags in a tagger that does
+                // *not* support frozen partial tagging.
+                await RecomputeTagsAsync(highPriority, frozenPartialSemantics, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -273,6 +256,9 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             bool frozenPartialSemantics,
             CancellationToken cancellationToken)
         {
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
             await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
             if (cancellationToken.IsCancellationRequested)
                 return;
