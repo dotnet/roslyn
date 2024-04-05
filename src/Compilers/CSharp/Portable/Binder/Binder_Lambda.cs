@@ -424,7 +424,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return lambda;
         }
 
-        [ThreadStatic] private static Dictionary<SyntaxNode, int>? s_lambdaBindings;
+        // Please don't use thread local storage widely. This should be one of only a few uses.
+        [ThreadStatic] private static PooledDictionary<SyntaxNode, int>? s_lambdaBindings;
 
         internal TResult BindWithLambdaBindingCountDiagnostics<TSyntax, TArg, TResult>(
             TSyntax syntax,
@@ -435,23 +436,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             where TResult : BoundNode
         {
             Debug.Assert(s_lambdaBindings is null);
-            s_lambdaBindings = null;
+            s_lambdaBindings = PooledDictionary<SyntaxNode, int>.GetInstance();
 
             try
             {
                 TResult result = bind(this, syntax, arg, diagnostics);
 
-                if (s_lambdaBindings is { })
+                foreach (var pair in s_lambdaBindings)
                 {
-                    foreach (var pair in s_lambdaBindings)
+                    const int maxLambdaBinding = 100;
+                    int count = pair.Value;
+                    if (count > maxLambdaBinding)
                     {
-                        const int maxLambdaBinding = 100;
-                        int count = pair.Value;
-                        if (count > maxLambdaBinding)
-                        {
-                            int lowerCount = ((count - 1) / 100) * 100;
-                            diagnostics.Add(ErrorCode.INF_TooManyBoundLambdas, GetAnonymousFunctionLocation(pair.Key), lowerCount);
-                        }
+                        int truncatedToHundredsCount = ((count - 1) / 100) * 100;
+                        diagnostics.Add(ErrorCode.INF_TooManyBoundLambdas, GetAnonymousFunctionLocation(pair.Key), truncatedToHundredsCount);
                     }
                 }
 
@@ -459,13 +457,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             finally
             {
+                s_lambdaBindings.Free();
                 s_lambdaBindings = null;
             }
         }
 
         internal static void RecordLambdaBinding(SyntaxNode syntax)
         {
-            s_lambdaBindings ??= new Dictionary<SyntaxNode, int>();
+            if (s_lambdaBindings is null)
+            {
+                return;
+            }
             if (s_lambdaBindings.TryGetValue(syntax, out int count))
             {
                 s_lambdaBindings[syntax] = ++count;

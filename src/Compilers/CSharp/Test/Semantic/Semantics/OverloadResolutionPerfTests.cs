@@ -309,7 +309,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            var diagnostics = comp.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info);
+            var diagnostics = comp.GetDiagnostics().Where(d => d is not { Severity: DiagnosticSeverity.Info, Code: (int)ErrorCode.INF_TooManyBoundLambdas });
             diagnostics.Verify();
         }
 
