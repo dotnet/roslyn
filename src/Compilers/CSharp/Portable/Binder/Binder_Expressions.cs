@@ -6326,7 +6326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (implicitReceiver.Type.IsDynamic())
                 {
-                    var hasErrors = ReportBadDynamicArguments(elementInitializer, boundElementInitializerExpressions, refKinds: default, diagnostics, queryClause: null);
+                    var hasErrors = ReportBadDynamicArguments(elementInitializer, implicitReceiver, boundElementInitializerExpressions, refKinds: default, diagnostics, queryClause: null);
 
                     return new BoundDynamicCollectionElementInitializer(
                         elementInitializer,
@@ -6605,7 +6605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var argArray = BuildArgumentsForDynamicInvocation(analyzedArguments, diagnostics);
                         var refKindsArray = analyzedArguments.RefKinds.ToImmutableOrNull();
 
-                        hasErrors &= ReportBadDynamicArguments(node, argArray, refKindsArray, diagnostics, queryClause: null);
+                        hasErrors &= ReportBadDynamicArguments(node, receiver: null, argArray, refKindsArray, diagnostics, queryClause: null);
 
                         BoundObjectInitializerExpressionBase boundInitializerOpt;
                         boundInitializerOpt = MakeBoundInitializerOpt(typeNode, type, initializerSyntaxOpt, initializerTypeOpt, diagnostics);
@@ -9659,7 +9659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var argArray = BuildArgumentsForDynamicInvocation(arguments, diagnostics);
             var refKindsArray = arguments.RefKinds.ToImmutableOrNull();
 
-            hasErrors &= ReportBadDynamicArguments(syntax, argArray, refKindsArray, diagnostics, queryClause: null);
+            hasErrors &= ReportBadDynamicArguments(syntax, receiver, argArray, refKindsArray, diagnostics, queryClause: null);
 
             return new BoundDynamicIndexerAccess(
                 syntax,
