@@ -61,9 +61,9 @@ internal sealed class CSharpElseSnippetProvider() : AbstractElseSnippetProvider<
         return Task.FromResult(new TextChange(TextSpan.FromBounds(position, position), elseClause.ToFullString()));
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, ElseClauseSyntax caretTarget, SourceText sourceText)
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, ElseClauseSyntax elseClause, SourceText sourceText)
         => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
-            caretTarget,
+            elseClause,
             static c => (BlockSyntax)c.Statement,
             sourceText);
 
