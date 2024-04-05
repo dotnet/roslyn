@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
@@ -27,15 +26,15 @@ internal sealed class CSharpVoidMainSnippetProvider() : AbstractCSharpMainMethod
 
     public override string Description => CSharpFeaturesResources.static_void_Main;
 
-    protected override SyntaxNode GenerateReturnType(SyntaxGenerator generator)
+    protected override TypeSyntax GenerateReturnType(SyntaxGenerator generator)
         => SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword));
 
-    protected override IEnumerable<SyntaxNode> GenerateInnerStatements(SyntaxGenerator generator)
-        => SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+    protected override IEnumerable<StatementSyntax> GenerateInnerStatements(SyntaxGenerator generator)
+        => [];
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, MethodDeclarationSyntax caretTarget, SourceText sourceText)
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, MethodDeclarationSyntax methodDeclaration, SourceText sourceText)
         => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
-            caretTarget,
+            methodDeclaration,
             static d => d.Body!,
             sourceText);
 

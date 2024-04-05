@@ -12,7 +12,8 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
-internal abstract class AbstractCSharpMainMethodSnippetProvider : AbstractMainMethodSnippetProvider<MethodDeclarationSyntax>
+internal abstract class AbstractCSharpMainMethodSnippetProvider
+    : AbstractMainMethodSnippetProvider<MethodDeclarationSyntax, StatementSyntax, TypeSyntax>
 {
     protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
     {

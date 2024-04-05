@@ -13,12 +13,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
-internal abstract class AbstractMainMethodSnippetProvider<TMethodDeclarationSyntax> : AbstractSingleChangeSnippetProvider<TMethodDeclarationSyntax>
+internal abstract class AbstractMainMethodSnippetProvider<TMethodDeclarationSyntax, TStatementSyntax, TTypeSyntax> : AbstractSingleChangeSnippetProvider<TMethodDeclarationSyntax>
     where TMethodDeclarationSyntax : SyntaxNode
+    where TStatementSyntax : SyntaxNode
+    where TTypeSyntax : SyntaxNode
 {
-    protected abstract SyntaxNode GenerateReturnType(SyntaxGenerator generator);
+    protected abstract TTypeSyntax GenerateReturnType(SyntaxGenerator generator);
 
-    protected abstract IEnumerable<SyntaxNode> GenerateInnerStatements(SyntaxGenerator generator);
+    protected abstract IEnumerable<TStatementSyntax> GenerateInnerStatements(SyntaxGenerator generator);
 
     protected sealed override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
     {
