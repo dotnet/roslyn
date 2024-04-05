@@ -29,13 +29,13 @@ internal sealed class CSharpIntMainSnippetProvider() : AbstractCSharpMainMethodS
 
     public override string Description => CSharpFeaturesResources.static_int_Main;
 
-    protected override SyntaxNode GenerateReturnType(SyntaxGenerator generator)
-        => generator.TypeExpression(SpecialType.System_Int32);
+    protected override TypeSyntax GenerateReturnType(SyntaxGenerator generator)
+        => (TypeSyntax)generator.TypeExpression(SpecialType.System_Int32);
 
-    protected override IEnumerable<SyntaxNode> GenerateInnerStatements(SyntaxGenerator generator)
+    protected override IEnumerable<StatementSyntax> GenerateInnerStatements(SyntaxGenerator generator)
     {
-        var returnStatement = generator.ReturnStatement(generator.LiteralExpression(0));
-        return SpecializedCollections.SingletonEnumerable(returnStatement);
+        var returnStatement = (StatementSyntax)generator.ReturnStatement(generator.LiteralExpression(0));
+        return [returnStatement];
     }
 
     protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, MethodDeclarationSyntax methodDeclaration, SourceText sourceText)
