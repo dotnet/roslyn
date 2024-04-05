@@ -6,6 +6,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -123,6 +124,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
     protected virtual void SetupRequestDispatcher(IHandlerProvider handlerProvider)
     {
+        var entryPointMethodInfo = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.ExecuteRequestAsync))!;
         // Get unique set of methods from the handler provider for the default language.
         foreach (var methodGroup in handlerProvider
             .GetRegisteredMethods()
@@ -137,21 +139,38 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             // e.g. it is not allowed to have a method have both a parameterless and regular parameter handler.
             var requestTypes = methodGroup.Select(m => m.RequestType);
             var responseTypes = methodGroup.Select(m => m.ResponseType);
-            if (!(requestTypes.All(r => r is null) || requestTypes.Any(r => r is not null))
-                || !(responseTypes.All(r => r is null) || responseTypes.Any(r => r is not null)))
+            if (!AllTypesMatch(requestTypes))
             {
-                throw new InvalidOperationException($"Language specific handlers for {methodGroup.Key} have mis-matched number of parameters or returns:{Environment.NewLine}{string.Join(Environment.NewLine, methodGroup)}");
+                throw new InvalidOperationException($"Language specific handlers for {methodGroup.Key} have mis-matched number of parameters:{Environment.NewLine}{string.Join(Environment.NewLine, methodGroup)}");
             }
 
-            var entryPointMethodInfo = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.ExecuteRequestAsync))!;
-            var delegatingEntryPoint = new DelegatingEntryPoint(methodGroup.Key, this, handlerProvider);
+            if (!AllTypesMatch(responseTypes))
+            {
+                throw new InvalidOperationException($"Language specific handlers for {methodGroup.Key} have mis-matched number of returns:{Environment.NewLine}{string.Join(Environment.NewLine, methodGroup)}");
+            }
 
+            var delegatingEntryPoint = new DelegatingEntryPoint(methodGroup.Key, this, methodGroup);
             var methodAttribute = new JsonRpcMethodAttribute(methodGroup.Key)
             {
                 UseSingleObjectParameterDeserialization = true,
             };
 
             _jsonRpc.AddLocalRpcMethod(entryPointMethodInfo, delegatingEntryPoint, methodAttribute);
+        }
+
+        static bool AllTypesMatch(IEnumerable<Type?> types)
+        {
+            if (types.All(r => r is null))
+            {
+                return true;
+            }
+
+            if (types.All(r => r is not null))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 
@@ -190,21 +209,19 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     private sealed class DelegatingEntryPoint
     {
         private readonly string _method;
-        private readonly Lazy<ImmutableDictionary<string, (MethodInfo MethodInfo, RequestHandlerMetadata Metadata)>> _languageEntryPoint;
+        private readonly Lazy<FrozenDictionary<string, (MethodInfo MethodInfo, RequestHandlerMetadata Metadata)>> _languageEntryPoint;
         private readonly AbstractLanguageServer<TRequestContext> _target;
 
         private static readonly MethodInfo s_queueExecuteAsyncMethod = typeof(RequestExecutionQueue<TRequestContext>).GetMethod(nameof(RequestExecutionQueue<TRequestContext>.ExecuteAsync))!;
 
-        public DelegatingEntryPoint(string method, AbstractLanguageServer<TRequestContext> target, IHandlerProvider handlerProvider)
+        public DelegatingEntryPoint(string method, AbstractLanguageServer<TRequestContext> target, IGrouping<string, RequestHandlerMetadata> handlersForMethod)
         {
             _method = method;
             _target = target;
-            _languageEntryPoint = new Lazy<ImmutableDictionary<string, (MethodInfo, RequestHandlerMetadata)>>(() =>
+            _languageEntryPoint = new Lazy<FrozenDictionary<string, (MethodInfo, RequestHandlerMetadata)>>(() =>
             {
                 var handlerEntryPoints = new Dictionary<string, (MethodInfo, RequestHandlerMetadata)>();
-                foreach (var metadata in handlerProvider
-                    .GetRegisteredMethods()
-                    .Where(m => m.MethodName == method))
+                foreach (var metadata in handlersForMethod)
                 {
                     var requestType = metadata.RequestType ?? NoValue.Instance.GetType();
                     var responseType = metadata.ResponseType ?? NoValue.Instance.GetType();
@@ -212,7 +229,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
                     handlerEntryPoints[metadata.Language] = (methodInfo, metadata);
                 }
 
-                return handlerEntryPoints.ToImmutableDictionary();
+                return handlerEntryPoints.ToFrozenDictionary();
             });
         }
 
@@ -238,7 +255,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
             // Deserialize the request parameters (if any).
             var requestObject = DeserializeRequest(request, requestInfo.Metadata, _target._jsonSerializer);
 
-            var task = requestInfo.MethodInfo.Invoke(queue, new[] { requestObject, _method, language, lspServices, cancellationToken }) as Task
+            var task = requestInfo.MethodInfo.Invoke(queue, [requestObject, _method, language, lspServices, cancellationToken]) as Task
                 ?? throw new InvalidOperationException($"Queue result task cannot be null");
             await task.ConfigureAwait(false);
             var resultProperty = task.GetType().GetProperty("Result") ?? throw new InvalidOperationException("Result property on task cannot be null");

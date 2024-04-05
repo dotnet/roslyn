@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // { "textDocument": { "uri": "<uri>" ... } ... }
             //
             // We can easily identify the URI for the request by looking for this structure
-            var textDocumentToken = parameters["textDocument"];
+            var textDocumentToken = parameters["textDocument"] ?? parameters["_vs_textDocument"];
             if (textDocumentToken is not null)
             {
                 var uriToken = textDocumentToken["uri"];
