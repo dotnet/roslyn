@@ -287,7 +287,7 @@ internal partial class AutomaticLineEnderCommandHandler(
         var token = root.FindTokenFromEnd(position);
         if (token.Kind() == SyntaxKind.None)
         {
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+            return [];
         }
 
         return token.GetAncestors<SyntaxNode>()

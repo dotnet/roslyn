@@ -37,6 +37,6 @@ internal sealed class TokenRenameInfo(bool hasSymbols, IEnumerable<ISymbol> symb
     (
         hasSymbols: false,
         isMemberGroup: false,
-        symbols: SpecializedCollections.EmptyEnumerable<ISymbol>()
+        symbols: []
     );
 }

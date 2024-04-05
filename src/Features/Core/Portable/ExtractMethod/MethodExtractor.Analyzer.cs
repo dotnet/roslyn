@@ -887,21 +887,15 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             ITypeSymbol type, HashSet<ITypeSymbol> visited)
         {
             if (visited.Contains(type))
-            {
-                return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
-            }
+                return [];
 
             visited.Add(type);
 
             if (type.OriginalDefinition.Equals(type))
-            {
-                return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
-            }
+                return [];
 
             if (type is not INamedTypeSymbol constructedType)
-            {
-                return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
-            }
+                return [];
 
             var parameters = constructedType.GetAllTypeParameters().ToList();
             var arguments = constructedType.GetAllTypeArguments().ToList();

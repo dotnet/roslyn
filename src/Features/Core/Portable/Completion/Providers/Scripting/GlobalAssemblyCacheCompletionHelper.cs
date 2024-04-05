@@ -63,8 +63,5 @@ internal sealed class GlobalAssemblyCacheCompletionHelper
     }
 
     private static IEnumerable<AssemblyIdentity> GetAssemblyIdentities(string partialName)
-    {
-        return IOUtilities.PerformIO(() => GlobalAssemblyCache.Instance.GetAssemblyIdentities(partialName),
-            SpecializedCollections.EmptyEnumerable<AssemblyIdentity>());
-    }
+        => IOUtilities.PerformIO(() => GlobalAssemblyCache.Instance.GetAssemblyIdentities(partialName), []);
 }

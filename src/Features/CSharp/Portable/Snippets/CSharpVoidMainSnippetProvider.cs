@@ -31,7 +31,7 @@ internal sealed class CSharpVoidMainSnippetProvider() : AbstractCSharpMainMethod
         => SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword));
 
     protected override IEnumerable<SyntaxNode> GenerateInnerStatements(SyntaxGenerator generator)
-        => SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+        => [];
 
     protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
     {

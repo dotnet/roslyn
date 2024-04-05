@@ -73,7 +73,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
                 // above/below tagger should tag nothing.
                 return _viewPortToTag == ViewPortToTag.InView
                     ? base.GetSpansToTag(textView, subjectBuffer)
-                    : SpecializedCollections.EmptyEnumerable<SnapshotSpan>();
+                    : [];
             }
 
             var visibleSpan = visibleSpanOpt.Value;

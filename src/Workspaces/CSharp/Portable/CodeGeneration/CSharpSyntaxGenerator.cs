@@ -462,14 +462,10 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         else
         {
             if (getAccessorStatements == null && hasGetter)
-            {
-                getAccessorStatements = SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-            }
+                getAccessorStatements = [];
 
             if (setAccessorStatements == null && hasSetter)
-            {
-                setAccessorStatements = SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-            }
+                setAccessorStatements = [];
         }
 
         if (hasGetter)
@@ -545,8 +541,8 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         }
         else
         {
-            addAccessorStatements ??= SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-            removeAccessorStatements ??= SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+            addAccessorStatements ??= [];
+            removeAccessorStatements ??= [];
         }
 
         accessors.Add(AccessorDeclaration(SyntaxKind.AddAccessorDeclaration, addAccessorStatements));
