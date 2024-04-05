@@ -50,6 +50,30 @@ public class ChecksumTests
     }
 
     [Fact]
+    public void ValidateChecksumFromSpanSameAsChecksumFromBytes3()
+    {
+        var checksum1 = Checksum.Create("Goo");
+        var checksum2 = Checksum.Create("Bar");
+        var checksum3 = Checksum.Create("Baz");
+        var checksum4 = Checksum.Create("Quux");
+
+        var checksumA = Checksum.Create(checksum1, checksum2, checksum3, checksum4);
+
+        // Running this test on multiple target frameworks with the same expectation ensures the results match
+        Assert.Equal(Checksum.FromBase64String("vva1KeNW7vz7PNnIyM3K6g=="), checksumA);
+
+        Assert.NotEqual(checksum1, checksum2);
+        Assert.NotEqual(checksum2, checksum3);
+        Assert.NotEqual(checksum3, checksum4);
+        Assert.NotEqual(checksum4, checksum1);
+
+        Assert.NotEqual(checksum1, checksumA);
+        Assert.NotEqual(checksum2, checksumA);
+        Assert.NotEqual(checksum3, checksumA);
+        Assert.NotEqual(checksum4, checksumA);
+    }
+
+    [Fact]
     public void ValidateChecksumFromSpanSameAsChecksumFromBytes10()
     {
         const int max = 10;

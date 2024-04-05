@@ -320,16 +320,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 if (classificationType == ClassificationTypeNames.StaticSymbol)
                 {
                     // 4. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
-                    modifierBits = TokenModifiers.Static;
+                    modifierBits |= TokenModifiers.Static;
                 }
                 else if (classificationType == ClassificationTypeNames.ReassignedVariable)
                 {
                     // 5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
-                    modifierBits = TokenModifiers.ReassignedVariable;
+                    modifierBits |= TokenModifiers.ReassignedVariable;
+                }
+                else if (classificationType == ClassificationTypeNames.ObsoleteSymbol)
+                {
+                    // 6. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
+                    modifierBits |= TokenModifiers.Deprecated;
                 }
                 else
                 {
-                    // 6. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
+                    // 7. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
                     // from integer to LSP token types).
                     tokenTypeIndex = GetTokenTypeIndex(classificationType);
                 }

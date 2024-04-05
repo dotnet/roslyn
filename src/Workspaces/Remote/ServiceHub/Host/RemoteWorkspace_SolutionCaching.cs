@@ -53,7 +53,8 @@ namespace Microsoft.CodeAnalysis.Remote
             // to compute the primary branch as well, let it know so it can start that now.
             if (updatePrimaryBranch)
             {
-                solution.TryKickOffPrimaryBranchWork_NoLock(this.UpdateWorkspaceCurrentSolutionAsync);
+                solution.TryKickOffPrimaryBranchWork_NoLock((disconnectedSolution, cancellationToken) =>
+                    this.UpdateWorkspaceCurrentSolutionAsync(disconnectedSolution, cancellationToken));
             }
 
             CheckCacheInvariants_NoLock();

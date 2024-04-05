@@ -79,6 +79,7 @@
       "Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.TypeScript": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.UnitTesting": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Xaml":  "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch": "vs-impl",
@@ -213,18 +214,8 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
+      "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.11 P1]"
-    },
-    "features/vscode_net8": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[Validation]"
     },
     "dev/andrha/telemetry": {
       "nugetKind": [

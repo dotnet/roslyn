@@ -21,7 +21,7 @@ internal interface IRemoteSourceGenerationService
     /// compare that to the prior generated documents it has to see if it can reuse those directly, or if it needs to
     /// remove any documents no longer around, add any new documents, or change the contents of any existing documents.
     /// </summary>
-    ValueTask<ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity)>> GetSourceGenerationInfoAsync(
+    ValueTask<ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity, DateTime generationDateTime)>> GetSourceGenerationInfoAsync(
         Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
 
     /// <summary>
@@ -29,8 +29,14 @@ internal interface IRemoteSourceGenerationService
     /// Should only be called by the host for documents it does not know about, or documents whose checksum contents are
     /// different than the last time the document was queried.
     /// </summary>
-    ValueTask<ImmutableArray<(string contents, DateTime generationDateTime)>> GetContentsAsync(
+    ValueTask<ImmutableArray<string>> GetContentsAsync(
         Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Whether or not the specified <paramref name="projectId"/> has source generators or not.
+    /// </summary>
+    ValueTask<bool> HasGeneratorsAsync(
+        Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
 }
 
 /// <summary>

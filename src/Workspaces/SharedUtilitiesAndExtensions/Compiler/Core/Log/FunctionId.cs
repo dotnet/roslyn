@@ -622,6 +622,9 @@ internal enum FunctionId
 
     RemoteWorkspace_SolutionCachingStatistics = 750,
 
+    SemanticSearch_QueryExecution = 760,
+
     // 800-850 for Copilot performance logging.
     Copilot_Suggestion_Dismissed = 800,
+    Copilot_Rename = 851
 }
