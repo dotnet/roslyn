@@ -65,8 +65,8 @@ internal abstract class AbstractConsoleSnippetProvider<TExpressionStatementSynta
         return openParenToken.Span.End;
     }
 
-    protected sealed override async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
-        SyntaxAnnotation findSnippetAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken)
+    protected sealed override async Task<SyntaxNode> AnnotateNodesToReformatAsync(
+        Document document, int position, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position);
@@ -74,7 +74,7 @@ internal abstract class AbstractConsoleSnippetProvider<TExpressionStatementSynta
 
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
         var consoleSymbol = GetConsoleSymbolFromMetaDataName(compilation);
-        var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, SymbolAnnotation.Create(consoleSymbol!), Formatter.Annotation);
+        var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(FindSnippetAnnotation, Simplifier.Annotation, SymbolAnnotation.Create(consoleSymbol!), Formatter.Annotation);
         return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
     }
 

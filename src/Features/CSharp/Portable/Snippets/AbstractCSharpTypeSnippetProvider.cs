@@ -106,7 +106,7 @@ internal abstract class AbstractCSharpTypeSnippetProvider<TTypeDeclarationSyntax
         var newTypeDeclaration = originalTypeDeclaration.WithCloseBraceToken(
             originalTypeDeclaration.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
 
-        var newRoot = root.ReplaceNode(originalTypeDeclaration, newTypeDeclaration.WithAdditionalAnnotations(CursorAnnotation, FindSnippetAnnotation));
+        var newRoot = root.ReplaceNode(originalTypeDeclaration, newTypeDeclaration.WithAdditionalAnnotations(FindSnippetAnnotation));
         return document.WithSyntaxRoot(newRoot);
     }
 

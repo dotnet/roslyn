@@ -27,7 +27,6 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
 
     public virtual ImmutableArray<string> AdditionalFilterTexts => [];
 
-    protected readonly SyntaxAnnotation CursorAnnotation = new();
     protected readonly SyntaxAnnotation FindSnippetAnnotation = new();
 
     /// <summary>
@@ -101,7 +100,6 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
         var documentWithIndentation = await AddIndentationToDocumentAsync(reformattedDocument, cancellationToken).ConfigureAwait(false);
 
         var reformattedRoot = await documentWithIndentation.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var caretTarget = (TSnippetSyntax)reformattedRoot.GetAnnotatedNodes(CursorAnnotation).First();
         var mainChangeNode = (TSnippetSyntax)reformattedRoot.GetAnnotatedNodes(FindSnippetAnnotation).First();
 
         var annotatedReformattedDocument = documentWithIndentation.WithSyntaxRoot(reformattedRoot);
@@ -121,7 +119,7 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
 
         return new SnippetChange(
             textChanges: changesArray,
-            cursorPosition: GetTargetCaretPosition(syntaxFacts, caretTarget, sourceText),
+            cursorPosition: GetTargetCaretPosition(syntaxFacts, mainChangeNode, sourceText),
             placeholders: placeholders);
     }
 
@@ -208,7 +206,7 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
 
     private async Task<Document> AddFormatAnnotationAsync(Document document, int position, CancellationToken cancellationToken)
     {
-        var annotatedSnippetRoot = await AnnotateNodesToReformatAsync(document, FindSnippetAnnotation, CursorAnnotation, position, cancellationToken).ConfigureAwait(false);
+        var annotatedSnippetRoot = await AnnotateNodesToReformatAsync(document, position, cancellationToken).ConfigureAwait(false);
         document = document.WithSyntaxRoot(annotatedSnippetRoot);
         return document;
     }
@@ -216,14 +214,14 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
     /// <summary>
     /// Method to added formatting annotations to the created snippet.
     /// </summary>
-    protected virtual async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
-        SyntaxAnnotation findSnippetAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken)
+    protected virtual async Task<SyntaxNode> AnnotateNodesToReformatAsync(
+        Document document, int position, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position);
         Contract.ThrowIfNull(snippetExpressionNode);
 
-        var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, Formatter.Annotation);
+        var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(FindSnippetAnnotation, Simplifier.Annotation, Formatter.Annotation);
         return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
     }
 
