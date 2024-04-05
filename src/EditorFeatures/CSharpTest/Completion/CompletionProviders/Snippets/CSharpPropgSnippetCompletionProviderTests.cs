@@ -24,6 +24,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 """, "public int MyProperty { get; }");
         }
 
+        public override async Task InsertSnippetInReadonlyStruct_ReadonlyModifierInOtherPartialDeclaration()
+        {
+            // Ensure we don't generate redundant `set` accessor when executed in readonly struct
+            await VerifyPropertyAsync("""
+                partial struct MyStruct
+                {
+                    $$
+                }
+
+                readonly partial struct MyStruct
+                {
+                }
+                """, "public int MyProperty { get; }");
+        }
+
         public override async Task InsertSnippetInInterface()
         {
             // Ensure we don't generate redundant `set` accessor when executed in interface
