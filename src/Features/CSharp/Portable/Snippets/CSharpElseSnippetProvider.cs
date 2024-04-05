@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpElseSnippetProvider() : AbstractElseSnippetProvider
+internal sealed class CSharpElseSnippetProvider() : AbstractElseSnippetProvider<ElseClauseSyntax>
 {
     public override string Identifier => CSharpSnippetIdentifiers.Else;
 

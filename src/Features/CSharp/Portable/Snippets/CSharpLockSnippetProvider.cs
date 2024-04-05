@@ -19,16 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpLockSnippetProvider() : AbstractLockSnippetProvider
+internal sealed class CSharpLockSnippetProvider() : AbstractLockSnippetProvider<LockStatementSyntax>
 {
     public override string Identifier => CSharpSnippetIdentifiers.Lock;
 
     public override string Description => CSharpFeaturesResources.lock_statement;
 
-    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(LockStatementSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
-        var lockStatement = (LockStatementSyntax)node;
-        var expression = lockStatement.Expression;
+        var expression = node.Expression;
         return [new SnippetPlaceholder(expression.ToString(), expression.SpanStart)];
     }
 
