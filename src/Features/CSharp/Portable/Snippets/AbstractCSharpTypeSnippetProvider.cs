@@ -78,9 +78,9 @@ internal abstract class AbstractCSharpTypeSnippetProvider<TTypeDeclarationSyntax
         return new TextChange(TextSpan.FromBounds(targetPosition, targetPosition), SyntaxFacts.GetText(SyntaxKind.PublicKeyword) + " ");
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, TTypeDeclarationSyntax caretTarget, SourceText sourceText)
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, TTypeDeclarationSyntax typeDeclaration, SourceText sourceText)
     {
-        var triviaSpan = caretTarget.CloseBraceToken.LeadingTrivia.Span;
+        var triviaSpan = typeDeclaration.CloseBraceToken.LeadingTrivia.Span;
         var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
         // Getting the location at the end of the line before the newline.
         return line.Span.End;
@@ -92,17 +92,17 @@ internal abstract class AbstractCSharpTypeSnippetProvider<TTypeDeclarationSyntax
         return node.GetAncestorOrThis<TTypeDeclarationSyntax>();
     }
 
-    protected override async Task<Document> AddIndentationToDocumentAsync(Document document, TTypeDeclarationSyntax originalTypeDeclaration, CancellationToken cancellationToken)
+    protected override async Task<Document> AddIndentationToDocumentAsync(Document document, TTypeDeclarationSyntax typeDeclaration, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-        var indentationString = CSharpSnippetHelpers.GetBlockLikeIndentationString(document, originalTypeDeclaration.OpenBraceToken.SpanStart, syntaxFormattingOptions, cancellationToken);
+        var indentationString = CSharpSnippetHelpers.GetBlockLikeIndentationString(document, typeDeclaration.OpenBraceToken.SpanStart, syntaxFormattingOptions, cancellationToken);
 
-        var newTypeDeclaration = originalTypeDeclaration.WithCloseBraceToken(
-            originalTypeDeclaration.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
+        var newTypeDeclaration = typeDeclaration.WithCloseBraceToken(
+            typeDeclaration.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
 
-        var newRoot = root.ReplaceNode(originalTypeDeclaration, newTypeDeclaration.WithAdditionalAnnotations(FindSnippetAnnotation));
+        var newRoot = root.ReplaceNode(typeDeclaration, newTypeDeclaration.WithAdditionalAnnotations(FindSnippetAnnotation));
         return document.WithSyntaxRoot(newRoot);
     }
 
