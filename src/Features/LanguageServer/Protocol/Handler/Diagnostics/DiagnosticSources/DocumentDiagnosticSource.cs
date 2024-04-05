@@ -33,6 +33,7 @@ internal sealed class DocumentDiagnosticSource(DiagnosticKind diagnosticKind, Te
             Document, range: null, diagnosticKind: this.DiagnosticKind, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         // Add cached Copilot diagnostics when computing analyzer semantic diagnostics.
+        // TODO: move to a separate diagnostic source. https://github.com/dotnet/roslyn/issues/72896
         if (DiagnosticKind == DiagnosticKind.AnalyzerSemantic)
         {
             var copilotDiagnostics = await Document.GetCachedCopilotDiagnosticsAsync(span: null, cancellationToken).ConfigureAwait(false);
