@@ -107,7 +107,7 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
     /// continuously be getting frozen-partial results quickly, but always with the final, full, correct results coming
     /// at the end once enough idle time has passed.
     /// </summary>
-    protected virtual bool SupportsFrozenPartialSemantics { get; }
+    protected virtual bool SupportsFrozenPartialSemantics => false;
 
     protected virtual void BeforeTagsChanged(ITextSnapshot snapshot)
     {
