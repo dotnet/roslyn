@@ -25,13 +25,12 @@ stages:
       - download: current
         artifact: symbols-legacy
         displayName: 🔻 Download symbols-legacy artifact
-      - task: MicroBuildArchiveSymbols@4
+      - task: MicroBuildArchiveSymbols@5
         displayName: 🔣 Archive symbols to Symweb
         inputs:
           SymbolsFeatureName: $(SymbolsFeatureName)
           SymbolsProject: VS
           SymbolsAgentPath: $(Pipeline.Workspace)/symbols-legacy
-          azureSubscription: Symbols Upload (DevDiv)
 
   - ${{ if false }}: # Switch to true to enable, but leave the condition to avoid merge conflicts later.
     - job: push
