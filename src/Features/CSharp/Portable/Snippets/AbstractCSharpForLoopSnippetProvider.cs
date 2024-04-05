@@ -81,15 +81,15 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
         }
     }
 
-    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(ForStatementSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(ForStatementSyntax forStatement, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var result);
         var placeholderBuilder = new MultiDictionary<string, int>();
-        var declaration = node.Declaration;
-        var condition = node.Condition;
-        var incrementor = node.Incrementors.Single();
+        var declaration = forStatement.Declaration;
+        var condition = forStatement.Condition;
+        var incrementor = forStatement.Incrementors.Single();
 
-        var variableDeclarator = ((VariableDeclarationSyntax)declaration!).Variables.Single();
+        var variableDeclarator = declaration!.Variables.Single();
         var declaratorIdentifier = variableDeclarator.Identifier;
         placeholderBuilder.Add(declaratorIdentifier.ValueText, declaratorIdentifier.SpanStart);
 
@@ -108,9 +108,9 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
         return result.ToImmutableAndClear();
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, ForStatementSyntax caretTarget, SourceText sourceText)
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, ForStatementSyntax forStatement, SourceText sourceText)
         => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
-            caretTarget,
+            forStatement,
             static s => (BlockSyntax)s.Statement,
             sourceText);
 
