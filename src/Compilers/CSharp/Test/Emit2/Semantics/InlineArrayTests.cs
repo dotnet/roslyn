@@ -21168,6 +21168,98 @@ class Program
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_InAsync_17()
+        {
+            var src = @"
+using System.Threading.Tasks;
+
+class C
+{
+    public readonly Buffer4<int> F = default;
+}
+
+class Program
+{
+    private static C c = new C();
+    private static int index = 0;
+
+    static void Main()
+    {
+        Test(c).Wait();
+    }
+
+    static async Task Test(C x)
+    {
+        foreach (ref readonly int y in x.F)
+        {
+            Increment();    
+            System.Console.Write(' ');
+            System.Console.Write(y);
+
+            await Task.Yield();
+            await Task.Delay(2);
+        }
+    }
+
+    static void Increment()
+    {
+        index++;
+
+        if (index < 4)
+        {
+            System.Runtime.CompilerServices.Unsafe.AsRef(in c.F)[index] = index;
+        }
+    }
+}
+" + Buffer4Definition;
+            var expectedOutput = " 0 1 2 3";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Foreach_InAsync_18()
+        {
+            var src = @"
+using System.Threading.Tasks;
+
+class C
+{
+    public readonly Buffer4<int> F = default;
+}
+
+class Program
+{
+    static async Task Test(C x)
+    {
+        foreach (ref readonly int y in x.F)
+        {
+            await Task.Yield();
+            System.Console.Write(y);
+        }
+    }
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (13,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref readonly int y in x.F)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(13, 35));
+
+            var expectedDiagnostics = new[]
+            {
+                // (13,35): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (ref readonly int y in x.F)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(13, 35)
+            };
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void Foreach_InIterator_01()
         {
             var src = @"
@@ -22274,6 +22366,94 @@ class Program
 
             CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
 
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Foreach_InIterator_17()
+        {
+            var src = @"
+class C
+{
+    public readonly Buffer4<int> F = default;
+}
+
+class Program
+{
+    private static C c = new C();
+    private static int index = 0;
+
+    static void Main()
+    {
+        foreach (var a in Test(c))
+        {}
+    }
+
+    static System.Collections.Generic.IEnumerable<int> Test(C x)
+    {
+        foreach (ref readonly int y in x.F)
+        {
+            Increment();    
+            System.Console.Write(' ');
+            System.Console.Write(y);
+
+            yield return -1;
+        }
+    }
+
+    static void Increment()
+    {
+        index++;
+
+        if (index < 4)
+        {
+            System.Runtime.CompilerServices.Unsafe.AsRef(in c.F)[index] = index;
+        }
+    }
+}
+" + Buffer4Definition;
+            var expectedOutput = " 0 1 2 3";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Foreach_InIterator_18()
+        {
+            var src = @"
+class C
+{
+    public readonly Buffer4<int> F = default;
+}
+
+class Program
+{
+    static System.Collections.Generic.IEnumerable<int> Test(C x)
+    {
+        foreach (ref readonly int y in x.F)
+        {
+            yield return -1;
+            System.Console.Write(y);
+        }
+    }
+}
+" + Buffer4Definition;
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (11,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         foreach (ref readonly int y in x.F)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(11, 35));
+
+            var expectedDiagnostics = new[]
+            {
+                // (11,35): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (ref readonly int y in x.F)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(11, 35)
+            };
+
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
