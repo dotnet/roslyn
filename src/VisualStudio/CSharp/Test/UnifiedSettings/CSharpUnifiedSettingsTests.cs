@@ -49,6 +49,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
                     var unifiedSettingsPath = unifiedSettingsStorage.GetUnifiedSettingsPath(LanguageNames.CSharp);
                     VerifyType(registrationJsonObject, unifiedSettingsPath, option);
                     VerifyDefaultValue(registrationJsonObject, unifiedSettingsPath, option);
+                    VerifyMigration(registrationJsonObject, unifiedSettingsPath, option);
                 }
                 else
                 {
@@ -79,9 +80,61 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
             Assert.Equal(actualDefaultValue, expectedDefaultValue);
         }
 
-        private static void VerifyMigration()
+        private static void VerifyMigration(JObject registrationJsonObject, string unifiedSettingPath, IOption2 option)
         {
+            var actualMigration = registrationJsonObject.SelectToken($"$.properties['{unifiedSettingPath}'].migration")!;
+            // Get the single property under migration
+            var migrationProperty = (JProperty)actualMigration.Children().Single();
+            var migrationType = migrationProperty.Name;
+            if (migrationType is "pass")
+            {
+                // migration: {
+                //   pass: {
+                //     input: {
+                //      }
+                //   }
+                // }
+                // Verify input node
+                var input = registrationJsonObject.SelectToken($"$.properties['{unifiedSettingPath}'].migration.pass.input")!;
+                VerifyInput(input, option);
+            }
+            else if (migrationType is "enumIntegerToString")
+            {
+                VerifyEnumIntegerToStringMigration(registrationJsonObject, unifiedSettingPath, option);
+            }
+            else
+            {
+                // Need adding more migration types if new type is added
+                throw ExceptionUtilities.UnexpectedValue(migrationType);
+            }
 
+            // Verify input property under migration
+            // "input": {
+            //    "store": "xxxx",
+            //    "path": "yyyy"
+            // }
+            static void VerifyInput(JToken input, IOption2 option)
+            {
+                var store = input.SelectToken("store")!.ToString();
+                var path = input.SelectToken("path")!.ToString();
+                var configName = option.Definition.ConfigName;
+                var visualStudioStorage = VisualStudioOptionStorage.Storages[configName];
+                if (visualStudioStorage is VisualStudioOptionStorage.RoamingProfileStorage roamingProfileStorage)
+                {
+                    Assert.Equal("SettingsManager", store);
+                    Assert.Equal(roamingProfileStorage.Key.Replace("%LANGUAGE%", "CSharp"), path);
+                }
+                else
+                {
+                    // Not supported yet
+                    throw ExceptionUtilities.Unreachable();
+                }
+            }
+
+            static void VerifyEnumIntegerToStringMigration(JObject registrationJsonObject, string unifiedSettingPath, IOption2 option)
+            {
+                var input = registrationJsonObject.SelectToken($"$.properties['{unifiedSettingPath}'].migration.pass.input")!;
+            }
         }
     }
 }
