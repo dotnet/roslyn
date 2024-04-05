@@ -27,9 +27,9 @@ internal sealed class CSharpWhileLoopSnippetProvider() : AbstractWhileLoopSnippe
     protected override ExpressionSyntax GetCondition(WhileStatementSyntax node)
         => node.Condition;
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, WhileStatementSyntax caretTarget, SourceText sourceText)
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, WhileStatementSyntax whileStatement, SourceText sourceText)
         => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
-            caretTarget,
+            whileStatement,
             static s => (BlockSyntax)s.Statement,
             sourceText);
 
