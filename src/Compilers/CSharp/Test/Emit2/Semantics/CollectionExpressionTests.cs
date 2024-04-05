@@ -20452,7 +20452,7 @@ partial class Program
             CompileAndVerify(new[] { source, s_collectionExtensions }, verify: Verification.Skipped, expectedOutput: "[0, 1], ");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/72762")]
+        [Fact]
         public void RefStruct_04()
         {
             var source = """
@@ -20470,9 +20470,14 @@ partial class Program
                 }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/72762 - There should be diagnostics for S implementing an interface, and
-            // there should also be a diagnostic that `s` cannot be used a recevier for a dynamic call.
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,7): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                // S s = [d];
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "[d]").WithArguments("S").WithLocation(5, 7),
+                // (7,16): error CS8343: 'S': ref structs cannot implement interfaces
+                // ref struct S : IEnumerable<int>
+                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IEnumerable<int>").WithArguments("S").WithLocation(7, 16)
+            );
         }
 
         [CombinatorialData]
