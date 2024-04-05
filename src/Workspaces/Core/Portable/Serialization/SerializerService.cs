@@ -165,6 +165,10 @@ internal partial class SerializerService : ISerializerService
                     ((ChecksumCollection)value).WriteTo(writer);
                     return;
 
+                case WellKnownSynchronizationKind.SourceGeneratorExecutionVersionMap:
+                    ((SourceGeneratorExecutionVersionMap)value).WriteTo(writer);
+                    return;
+
                 default:
                     // object that is not part of solution is not supported since we don't know what inputs are required to
                     // serialize it
@@ -196,6 +200,7 @@ internal partial class SerializerService : ISerializerService
                 WellKnownSynchronizationKind.MetadataReference => DeserializeMetadataReference(reader, cancellationToken),
                 WellKnownSynchronizationKind.AnalyzerReference => DeserializeAnalyzerReference(reader, cancellationToken),
                 WellKnownSynchronizationKind.SerializableSourceText => SerializableSourceText.Deserialize(reader, _storageService, _textService, cancellationToken),
+                WellKnownSynchronizationKind.SourceGeneratorExecutionVersionMap => SourceGeneratorExecutionVersionMap.Deserialize(reader),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
         }

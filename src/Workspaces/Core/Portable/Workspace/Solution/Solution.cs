@@ -1543,6 +1543,9 @@ public partial class Solution
     internal Solution WithFrozenSourceGeneratedDocuments(ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)> documents)
         => WithCompilationState(_compilationState.WithFrozenSourceGeneratedDocuments(documents));
 
+    internal Solution WithSourceGeneratorExecutionVersions(SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap, CancellationToken cancellationToken)
+        => WithCompilationState(_compilationState.WithSourceGeneratorExecutionVersions(sourceGeneratorExecutionVersionMap, cancellationToken));
+
     /// <summary>
     /// Undoes the operation of <see cref="WithFrozenSourceGeneratedDocument"/>; any frozen source generated document is allowed
     /// to have it's real output again.
@@ -1763,4 +1766,7 @@ public partial class Solution
             }
         }
     }
+
+    internal SourceGeneratorExecutionVersion GetSourceGeneratorExecutionVersion(ProjectId projectId)
+        => this.CompilationState.SourceGeneratorExecutionVersionMap[projectId];
 }
