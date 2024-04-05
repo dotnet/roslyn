@@ -66,18 +66,18 @@ internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractProp
             accessorList: SyntaxFactory.AccessorList([.. accessors.Where(a => a is not null)!]));
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, PropertyDeclarationSyntax caretTarget, SourceText sourceText)
-        => caretTarget.AccessorList!.CloseBraceToken.Span.End;
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, PropertyDeclarationSyntax propertyDeclaration, SourceText sourceText)
+        => propertyDeclaration.AccessorList!.CloseBraceToken.Span.End;
 
-    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(PropertyDeclarationSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(PropertyDeclarationSyntax propertyDeclaration, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
-        var identifier = node.Identifier;
-        var type = node.Type;
+        var identifier = propertyDeclaration.Identifier;
+        var type = propertyDeclaration.Type;
 
         arrayBuilder.Add(new SnippetPlaceholder(type.ToString(), type.SpanStart));
         arrayBuilder.Add(new SnippetPlaceholder(identifier.ValueText, identifier.SpanStart));
-        return arrayBuilder.ToImmutableArray();
+        return arrayBuilder.ToImmutable();
     }
 
     protected override PropertyDeclarationSyntax? FindAddedSnippetSyntaxNode(SyntaxNode root, int position)
