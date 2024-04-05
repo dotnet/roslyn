@@ -82,7 +82,7 @@ internal partial class DocumentPullDiagnosticHandler
     {
         var category = diagnosticsParams.QueryingDiagnosticKind?.Value;
 
-        // TODO: Implement as extensibility point.
+        // TODO: Implement as extensibility point. https://github.com/dotnet/roslyn/issues/72896
 
         if (category == PullDiagnosticCategories.Task)
             return context.GetTrackedDocument<Document>() is { } document ? new TaskListDiagnosticSource(document, GlobalOptions) : null;
