@@ -20,7 +20,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets;
 
-internal abstract class AbstractSnippetProvider : ISnippetProvider
+internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvider
+    where TSnippetSyntax : SyntaxNode
 {
     public abstract string Identifier { get; }
     public abstract string Description { get; }
@@ -54,7 +55,7 @@ internal abstract class AbstractSnippetProvider : ISnippetProvider
     /// <summary>
     /// Method to find the locations that must be renamed and where tab stops must be inserted into the snippet.
     /// </summary>
-    protected abstract ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken);
+    protected abstract ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(TSnippetSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken);
 
     /// <summary>
     /// Determines if the location is valid for a snippet,
@@ -107,10 +108,9 @@ internal abstract class AbstractSnippetProvider : ISnippetProvider
 
         var reformattedRoot = await documentWithIndentation.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var caretTarget = reformattedRoot.GetAnnotatedNodes(CursorAnnotation).FirstOrDefault();
-        var mainChangeNode = reformattedRoot.GetAnnotatedNodes(FindSnippetAnnotation).FirstOrDefault();
+        var mainChangeNode = (TSnippetSyntax)reformattedRoot.GetAnnotatedNodes(FindSnippetAnnotation).First();
 
         Contract.ThrowIfNull(caretTarget);
-        Contract.ThrowIfNull(mainChangeNode);
 
         var annotatedReformattedDocument = documentWithIndentation.WithSyntaxRoot(reformattedRoot);
 
@@ -236,14 +236,13 @@ internal abstract class AbstractSnippetProvider : ISnippetProvider
         return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
     }
 
-    protected virtual SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
+    protected virtual TSnippetSyntax? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
     {
-        var closestNode = root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true);
+        if (root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true) is not TSnippetSyntax closestNode)
+            return null;
 
         if (!isCorrectContainer(closestNode))
-        {
             return null;
-        }
 
         return closestNode;
     }

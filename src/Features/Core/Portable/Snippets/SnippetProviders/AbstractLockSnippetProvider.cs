@@ -12,15 +12,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
-internal abstract class AbstractLockSnippetProvider : AbstractStatementSnippetProvider
+internal abstract class AbstractLockSnippetProvider<TLockStatementSyntax> : AbstractStatementSnippetProvider<TLockStatementSyntax>
+    where TLockStatementSyntax : SyntaxNode
 {
-    protected override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
+    protected sealed override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var generator = SyntaxGenerator.GetGenerator(document);
         var statement = generator.LockStatement(generator.ThisExpression(), SpecializedCollections.EmptyEnumerable<SyntaxNode>());
         return Task.FromResult(new TextChange(TextSpan.FromBounds(position, position), statement.NormalizeWhitespace().ToFullString()));
     }
 
-    protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
+    protected sealed override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
         => syntaxFacts.IsLockStatement;
 }

@@ -14,13 +14,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
-internal abstract class AbstractMainMethodSnippetProvider : AbstractSingleChangeSnippetProvider
+internal abstract class AbstractMainMethodSnippetProvider<TMethodDeclarationSyntax> : AbstractSingleChangeSnippetProvider<TMethodDeclarationSyntax>
+    where TMethodDeclarationSyntax : SyntaxNode
 {
     protected abstract SyntaxNode GenerateReturnType(SyntaxGenerator generator);
 
     protected abstract IEnumerable<SyntaxNode> GenerateInnerStatements(SyntaxGenerator generator);
 
-    protected override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
+    protected sealed override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var generator = SyntaxGenerator.GetGenerator(document);
         var method = generator.MethodDeclaration(
@@ -35,9 +36,9 @@ internal abstract class AbstractMainMethodSnippetProvider : AbstractSingleChange
         return Task.FromResult(new TextChange(TextSpan.FromBounds(position, position), method.NormalizeWhitespace().ToFullString()));
     }
 
-    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    protected sealed override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(TMethodDeclarationSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         => [];
 
-    protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
+    protected sealed override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
         => syntaxFacts.IsMethodDeclaration;
 }

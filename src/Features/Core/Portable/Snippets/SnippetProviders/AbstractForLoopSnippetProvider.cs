@@ -9,9 +9,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
-internal abstract class AbstractForLoopSnippetProvider : AbstractInlineStatementSnippetProvider
+internal abstract class AbstractForLoopSnippetProvider<TStatementSyntax> : AbstractInlineStatementSnippetProvider<TStatementSyntax>
+    where TStatementSyntax : SyntaxNode
 {
-    protected override bool IsValidAccessingType(ITypeSymbol type, Compilation compilation)
+    protected sealed override bool IsValidAccessingType(ITypeSymbol type, Compilation compilation)
     {
         if (IsSuitableIntegerType(type))
         {
@@ -25,7 +26,7 @@ internal abstract class AbstractForLoopSnippetProvider : AbstractInlineStatement
         return hasLengthProperty ^ hasCountProperty;
     }
 
-    protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
+    protected sealed override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
         => syntaxFacts.IsForStatement;
 
     protected static bool IsSuitableIntegerType(ITypeSymbol type)

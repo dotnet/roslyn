@@ -9,13 +9,12 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
 namespace Microsoft.CodeAnalysis.Snippets;
 
-internal abstract class AbstractForEachLoopSnippetProvider : AbstractInlineStatementSnippetProvider
+internal abstract class AbstractForEachLoopSnippetProvider<TStatementSyntax> : AbstractInlineStatementSnippetProvider<TStatementSyntax>
+    where TStatementSyntax : SyntaxNode
 {
-    protected override bool IsValidAccessingType(ITypeSymbol type, Compilation compilation)
+    protected sealed override bool IsValidAccessingType(ITypeSymbol type, Compilation compilation)
         => type.CanBeEnumerated() || type.CanBeAsynchronouslyEnumerated(compilation);
 
-    protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
-    {
-        return syntaxFacts.IsForEachStatement;
-    }
+    protected sealed override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
+        => syntaxFacts.IsForEachStatement;
 }

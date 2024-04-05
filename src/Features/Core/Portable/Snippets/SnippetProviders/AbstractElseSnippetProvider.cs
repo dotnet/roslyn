@@ -9,10 +9,11 @@ using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
-internal abstract class AbstractElseSnippetProvider : AbstractStatementSnippetProvider
+internal abstract class AbstractElseSnippetProvider<TElseClauseSyntax> : AbstractStatementSnippetProvider<TElseClauseSyntax>
+    where TElseClauseSyntax : SyntaxNode
 {
-    protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsElseClause;
+    protected sealed override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsElseClause;
 
-    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    protected sealed override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(TElseClauseSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         => [];
 }
