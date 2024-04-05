@@ -192,7 +192,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 _dataSource.CancelOnNewWork);
         }
 
-        private async ValueTask ProcessEventChangeAsync(
+        private async ValueTask<VoidResult> ProcessEventChangeAsync(
             ImmutableSegmentedList<TagSourceQueueItem> changes, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(changes.IsEmpty);
@@ -223,17 +223,18 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(lastNonFrozenComputationToken, cancellationToken);
                 try
                 {
-                    await RecomputeTagsAsync(highPriority, frozenPartialSemantics, linkedTokenSource.Token).ConfigureAwait(false);
+                    return await RecomputeTagsAsync(highPriority, frozenPartialSemantics, linkedTokenSource.Token).ConfigureAwait(false);
                 }
-                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, linkedTokenSource.Token))
+                catch (OperationCanceledException ex) when (ExceptionUtilities.IsCurrentOperationBeingCancelled(ex, linkedTokenSource.Token))
                 {
+                    return default;
                 }
             }
             else
             {
                 // Normal request to either compute frozen partial tags, or compute normal tags in a tagger that does
                 // *not* support frozen partial tagging.
-                await RecomputeTagsAsync(highPriority, frozenPartialSemantics, cancellationToken).ConfigureAwait(false);
+                return await RecomputeTagsAsync(highPriority, frozenPartialSemantics, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -251,17 +252,17 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// <param name="highPriority">
         /// If this tagging request should be processed as quickly as possible with no extra delays added for it.
         /// </param>
-        private async Task RecomputeTagsAsync(
+        private async Task<VoidResult> RecomputeTagsAsync(
             bool highPriority,
             bool frozenPartialSemantics,
             CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
-                return;
+                return default;
 
             await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
             if (cancellationToken.IsCancellationRequested)
-                return;
+                return default;
 
             // if we're tagging documents that are not visible, then introduce a long delay so that we avoid
             // consuming machine resources on work the user isn't likely to see.  ConfigureAwait(true) so that if
@@ -277,12 +278,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     _dataSource.ThreadingContext, _dataSource.AsyncListener, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).NoThrowAwaitable(captureContext: true);
 
                 if (cancellationToken.IsCancellationRequested)
-                    return;
+                    return default;
             }
 
             _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
             if (cancellationToken.IsCancellationRequested)
-                return;
+                return default;
 
             using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, cancellationToken))
             {
@@ -300,7 +301,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 await TaskScheduler.Default;
 
                 if (cancellationToken.IsCancellationRequested)
-                    return;
+                    return default;
 
                 if (frozenPartialSemantics)
                 {
@@ -315,7 +316,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
 
                 if (cancellationToken.IsCancellationRequested)
-                    return;
+                    return default;
 
                 // Process the result to determine what changed.
                 var newTagTrees = ComputeNewTagTrees(oldTagTrees, context);
@@ -324,7 +325,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // Then switch back to the UI thread to update our state and kick off the work to notify the editor.
                 await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
                 if (cancellationToken.IsCancellationRequested)
-                    return;
+                    return default;
 
                 // Once we assign our state, we're uncancellable.  We must report the changed information
                 // to the editor.  The only case where it's ok not to is if the tagger itself is disposed.
@@ -355,6 +356,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 // mode again, kicking the can down the road to finally end with non-frozen-partial computation
                 if (frozenPartialSemantics)
                     this.EnqueueWork(highPriority, frozenPartialSemantics: false);
+
+                return default;
             }
         }
 

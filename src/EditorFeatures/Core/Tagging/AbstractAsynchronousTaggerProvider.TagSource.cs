@@ -165,12 +165,9 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
 
-            // Collapse all booleans added to just a max of two ('true' or 'false') representing if we're being
-            // asked for initial tags or not
-            //
-            // PERF: Use AsyncBatchingWorkQueue<bool, VoidResult> instead of AsyncBatchingWorkQueue<bool> because
-            // the latter has an async state machine that rethrows a very common cancellation exception.
-            _eventChangeQueue = new AsyncBatchingWorkQueue<TagSourceQueueItem>(
+            // PERF: Use AsyncBatchingWorkQueue<_, VoidResult> instead of AsyncBatchingWorkQueue<_> because the latter
+            // has an async state machine that rethrows a very common cancellation exception.
+            _eventChangeQueue = new AsyncBatchingWorkQueue<TagSourceQueueItem, VoidResult>(
                 dataSource.EventChangeDelay.ComputeTimeDelay(),
                 ProcessEventChangeAsync,
                 EqualityComparer<TagSourceQueueItem>.Default,
