@@ -1255,9 +1255,9 @@ class C
     }
 }");
             comp.VerifyEmitDiagnostics(
-                // (10,34): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
-                //                 ref readonly int x = ref (new int[1])[0];
-                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "x").WithLocation(10, 34));
+                // (12,30): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //                 yield return x;
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "x").WithLocation(12, 30));
         }
 
         [Fact]

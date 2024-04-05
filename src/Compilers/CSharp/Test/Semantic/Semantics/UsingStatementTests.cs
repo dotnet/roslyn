@@ -1159,7 +1159,7 @@ class C2
             compilation.VerifyEmitDiagnostics(
                 // 0.cs(14,25): error CS4007: Instance of type 'S1' cannot be preserved across 'await' or 'yield' boundary.
                 //         await using (S1 c = new S1())
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "c").WithArguments("S1").WithLocation(14, 25));
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "c = new S1()").WithArguments("S1").WithLocation(14, 25));
         }
 
         [Fact]

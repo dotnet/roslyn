@@ -20910,9 +20910,15 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (10,26): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
-                //         foreach (ref int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(10, 26)
+                // (13,13): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             y *= y;
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(13, 13),
+                // (13,18): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             y *= y;
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(13, 18),
+                // (14,34): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             System.Console.Write(y);
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(14, 34)
             };
 
             CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
@@ -21009,9 +21015,9 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (10,26): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
-                //         ref Buffer4<int> buffer = ref GetBuffer();
-                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "buffer").WithLocation(10, 26)
+                // (11,31): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (ref int y in buffer)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "buffer").WithLocation(11, 31)
             };
 
             CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
@@ -21073,9 +21079,9 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (21,35): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
-                //         ref readonly Buffer4<int> f = ref x.F;
-                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(21, 35)
+                // (22,27): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var y in f)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(22, 27)
             };
 
             CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
@@ -21157,9 +21163,9 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (8,35): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
-                //         foreach (ref readonly int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(8, 35)
+                // (11,34): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             System.Console.Write(y);
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(11, 34)
             };
 
             CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
@@ -21250,9 +21256,9 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (13,35): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
-                //         foreach (ref readonly int y in x.F)
-                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(13, 35)
+                // (16,34): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             System.Console.Write(y);
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(16, 34)
             };
 
             CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
@@ -22098,9 +22104,15 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (18,26): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
-                //         foreach (ref int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(18, 26)
+                // (21,13): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             y *= y;
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(21, 13),
+                // (21,18): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             y *= y;
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(21, 18),
+                // (22,34): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             System.Console.Write(y);
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(22, 34)
             };
 
             CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
@@ -22213,9 +22225,9 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (18,26): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
-                //         ref Buffer4<int> buffer = ref GetBuffer();
-                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "buffer").WithLocation(18, 26)
+                // (19,31): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (ref int y in buffer)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "buffer").WithLocation(19, 31)
             };
 
             CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
@@ -22275,9 +22287,9 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (20,35): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
-                //         ref readonly Buffer4<int> f = ref x.F;
-                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(20, 35)
+                // (21,27): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var y in f)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "f").WithLocation(21, 27)
             };
 
             CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
@@ -22359,9 +22371,9 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (8,35): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
-                //         foreach (ref readonly int y in GetBuffer())
-                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(8, 35)
+                // (11,34): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             System.Console.Write(y);
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(11, 34)
             };
 
             CreateCompilation(src, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(expectedDiagnostics);
@@ -22448,9 +22460,9 @@ class Program
 
             var expectedDiagnostics = new[]
             {
-                // (11,35): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
-                //         foreach (ref readonly int y in x.F)
-                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(11, 35)
+                // (14,34): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //             System.Console.Write(y);
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(14, 34)
             };
 
             CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);

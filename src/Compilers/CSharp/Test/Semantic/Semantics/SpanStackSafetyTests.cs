@@ -1040,24 +1040,24 @@ public class Program
                 // (14,13): warning CS0219: The variable 'local2' is assigned but its value is never used
                 //         var local2 = default(Span<int>);
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local2").WithArguments("local2").WithLocation(14, 13),
-                // (22,19): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-                //         Span<int> local1 = default(Span<int>);
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local1").WithArguments("System.Span<int>").WithLocation(22, 19),
                 // (23,13): warning CS0219: The variable 'local2' is assigned but its value is never used
                 //         var local2 = default(Span<int>);
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local2").WithArguments("local2").WithLocation(23, 13),
+                // (26,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         return local1.Length; // 1
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local1").WithArguments("System.Span<int>").WithLocation(26, 16),
                 // (31,19): warning CS0219: The variable 'local1' is assigned but its value is never used
                 //         Span<int> local1 = default(Span<int>);
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local1").WithArguments("local1").WithLocation(31, 19),
-                // (32,13): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-                //         var local2 = default(Span<int>);
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local2").WithArguments("System.Span<int>").WithLocation(32, 13),
-                // (40,19): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-                //         Span<int> local1 = default(Span<int>);
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local1").WithArguments("System.Span<int>").WithLocation(40, 19),
-                // (41,13): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-                //         var local2 = default(Span<int>);
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local2").WithArguments("System.Span<int>").WithLocation(41, 13)
+                // (35,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         return local2.Length; // 2
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local2").WithArguments("System.Span<int>").WithLocation(35, 16),
+                // (44,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         return local1.Length + local2.Length; // 3, 4
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local1").WithArguments("System.Span<int>").WithLocation(44, 16),
+                // (44,32): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         return local1.Length + local2.Length; // 3, 4
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local2").WithArguments("System.Span<int>").WithLocation(44, 32)
             };
 
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
@@ -1089,20 +1089,20 @@ public class Program
 
     public static async Task<int> M3()
     {
-        M2(out var local1); // 1
+        M2(out var local1);
         M2(out Span<int> local2);
 
         await Task.Yield();
-        return local1.Length;
+        return local1.Length; // 1
     }
 
     public static async Task<int> M4()
     {
         M2(out var local1);
-        M2(out Span<int> local2); // 2
+        M2(out Span<int> local2);
 
         await Task.Yield();
-        return local2.Length;
+        return local2.Length; // 2
     }
 
     static void M2(out Span<int> s) => throw null;
@@ -1112,12 +1112,12 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyEmitDiagnostics(
-                // (18,20): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-                //         M2(out var local1);
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local1").WithArguments("System.Span<int>").WithLocation(18, 20),
-                // (28,26): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-                //         M2(out Span<int> local2);
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local2").WithArguments("System.Span<int>").WithLocation(28, 26));
+                // (22,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         return local1.Length; // 1
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local1").WithArguments("System.Span<int>").WithLocation(22, 16),
+                // (31,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         return local2.Length; // 2
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local2").WithArguments("System.Span<int>").WithLocation(31, 16));
         }
 
         [Fact, WorkItem(62747, "https://github.com/dotnet/roslyn/issues/62747")]
@@ -1147,18 +1147,18 @@ public class Program
 
     public async Task M2(IReadOnlyList<string> o)
     {
-        foreach (ReadOnlySpan<char> c1 in o) // 1
+        foreach (ReadOnlySpan<char> c1 in o)
         {
             await Task.Yield();
-            _ = c1.Length;
+            _ = c1.Length; // 1
         }
 
         var enumerator = ((IEnumerable<string>)o).GetEnumerator();
         while (enumerator.MoveNext())
         {
-            ReadOnlySpan<char> c2 = (ReadOnlySpan<char>)(string)enumerator.Current; // 2
+            ReadOnlySpan<char> c2 = (ReadOnlySpan<char>)(string)enumerator.Current;
             await Task.Yield();
-            _ = c2.Length;
+            _ = c2.Length; // 2
         }
 
         await Task.Yield();
@@ -1169,12 +1169,12 @@ public class Program
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (25,37): error CS4007: Instance of type 'System.ReadOnlySpan<char>' cannot be preserved across 'await' or 'yield' boundary.
-                //         foreach (ReadOnlySpan<char> c1 in o) // 1
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "c1").WithArguments("System.ReadOnlySpan<char>").WithLocation(25, 37),
-                // (34,32): error CS4007: Instance of type 'System.ReadOnlySpan<char>' cannot be preserved across 'await' or 'yield' boundary.
-                //             ReadOnlySpan<char> c2 = (ReadOnlySpan<char>)(string)enumerator.Current; // 2
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "c2").WithArguments("System.ReadOnlySpan<char>").WithLocation(34, 32));
+                // (28,17): error CS4007: Instance of type 'System.ReadOnlySpan<char>' cannot be preserved across 'await' or 'yield' boundary.
+                //             _ = c1.Length; // 1
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "c1").WithArguments("System.ReadOnlySpan<char>").WithLocation(28, 17),
+                // (36,17): error CS4007: Instance of type 'System.ReadOnlySpan<char>' cannot be preserved across 'await' or 'yield' boundary.
+                //             _ = c2.Length; // 2
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "c2").WithArguments("System.ReadOnlySpan<char>").WithLocation(36, 17));
         }
 
         [Fact, WorkItem(62747, "https://github.com/dotnet/roslyn/issues/62747")]
@@ -1198,13 +1198,13 @@ public class Program
 
     public async Task M2()
     {
-        (Span<int> s1, Span<int> s2) = new Program(); // 1
-        var (s3, s4) = new Program(); // 2
-        (var s5, var s6) = new Program(); // 3
+        (Span<int> s1, Span<int> s2) = new Program();
+        var (s3, s4) = new Program();
+        (var s5, var s6) = new Program();
 
         await Task.Yield();
 
-        _ = s1.Length + s4.Length + s5.Length;
+        _ = s1.Length + s4.Length + s5.Length; // 1, 2, 3
         return;
     }
 
@@ -1213,15 +1213,15 @@ public class Program
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (19,20): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-                //         (Span<int> s1, Span<int> s2) = new Program(); // 1
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s1").WithArguments("System.Span<int>").WithLocation(19, 20),
-                // (20,18): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-                //         var (s3, s4) = new Program(); // 2
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s4").WithArguments("System.Span<int>").WithLocation(20, 18),
-                // (21,14): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-                //         (var s5, var s6) = new Program(); // 3
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s5").WithArguments("System.Span<int>").WithLocation(21, 14));
+                // (25,13): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         _ = s1.Length + s4.Length + s5.Length; // 1, 2, 3
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s1").WithArguments("System.Span<int>").WithLocation(25, 13),
+                // (25,25): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         _ = s1.Length + s4.Length + s5.Length; // 1, 2, 3
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s4").WithArguments("System.Span<int>").WithLocation(25, 25),
+                // (25,37): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         _ = s1.Length + s4.Length + s5.Length; // 1, 2, 3
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s5").WithArguments("System.Span<int>").WithLocation(25, 37));
         }
 
         [Fact, WorkItem(62747, "https://github.com/dotnet/roslyn/issues/62747")]
@@ -1269,22 +1269,22 @@ public ref struct RS
             comp.VerifyEmitDiagnostics(
                 // (11,18): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
                 //         using RS s3 = default(RS); // 1
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s3").WithArguments("RS").WithLocation(11, 18),
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s3 = default(RS)").WithArguments("RS").WithLocation(11, 18),
                 // (12,19): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
                 //         using var s4 = default(RS); // 2
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s4").WithArguments("RS").WithLocation(12, 19),
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s4 = default(RS)").WithArguments("RS").WithLocation(12, 19),
                 // (20,16): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
                 //         using (default(RS)) { await Task.Yield(); } // 3
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "default(RS)").WithArguments("RS").WithLocation(20, 16),
                 // (21,20): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
                 //         using (var s1 = default(RS)) { await Task.Yield(); } // 4
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s1").WithArguments("RS").WithLocation(21, 20),
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s1 = default(RS)").WithArguments("RS").WithLocation(21, 20),
                 // (22,19): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
                 //         using (RS s2 = default(RS)) { await Task.Yield(); } // 5
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s2").WithArguments("RS").WithLocation(22, 19),
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s2 = default(RS)").WithArguments("RS").WithLocation(22, 19),
                 // (24,22): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
                 //             using RS s3 = default(RS); // 6
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s3").WithArguments("RS").WithLocation(24, 22));
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s3 = default(RS)").WithArguments("RS").WithLocation(24, 22));
         }
 
         [Fact]
@@ -1309,15 +1309,15 @@ public class Program
 
     public async Task M3()
     {
-        if (M2() is var s1) // 1
+        if (M2() is var s1)
         {
             await Task.Yield();
-            _ = s1.Length;
+            _ = s1.Length; // 1
         }
-        if (M2() is Span<int> s2) // 2
+        if (M2() is Span<int> s2)
         {
             await Task.Yield();
-            _ = s2.Length;
+            _ = s2.Length; // 2
         }
 
         await Task.Yield();
@@ -1329,12 +1329,12 @@ public class Program
 ";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (20,25): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-                //         if (M2() is var s1) // 1
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s1").WithArguments("System.Span<int>").WithLocation(20, 25),
-                // (25,31): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-                //         if (M2() is Span<int> s2) // 2
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s2").WithArguments("System.Span<int>").WithLocation(25, 31));
+                // (23,17): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //             _ = s1.Length;
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s1").WithArguments("System.Span<int>").WithLocation(23, 17),
+                // (28,17): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //             _ = s2.Length;
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s2").WithArguments("System.Span<int>").WithLocation(28, 17));
         }
 
         [Fact]
@@ -1348,10 +1348,10 @@ public class Program
                     async Task M1()
                     {
                         int x = 42;
-                        Span<int> y = new(ref x); // 1
+                        Span<int> y = new(ref x);
                         y.ToString();
                         await Task.Yield();
-                        y.ToString();
+                        y.ToString(); // 1
                     }
                     async Task M2()
                     {
@@ -1365,9 +1365,9 @@ public class Program
                 }
                 """;
             CreateCompilation(code, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
-                // (8,19): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-                //         Span<int> y = new(ref x); // 1
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "y").WithArguments("System.Span<int>").WithLocation(8, 19));
+                // (11,9): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         y.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "y").WithArguments("System.Span<int>").WithLocation(11, 9));
         }
 
         [Fact]

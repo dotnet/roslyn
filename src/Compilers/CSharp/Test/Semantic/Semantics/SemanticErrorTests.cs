@@ -7321,9 +7321,9 @@ using System.Collections.Generic;
 public class C
 {
   static void N(RuntimeArgumentHandle x) {}
-  static IEnumerable<int> M(RuntimeArgumentHandle h1) // Error: hoisted to field
+  static IEnumerable<int> M(RuntimeArgumentHandle h1)
   {
-    N(h1);
+    N(h1); // Error: hoisted to field
     yield return 1;
     RuntimeArgumentHandle h2 = default(RuntimeArgumentHandle);
     yield return 2;
@@ -7339,12 +7339,12 @@ public class C
 
             CreateCompilation(source).Emit(new System.IO.MemoryStream()).Diagnostics
                 .Verify(
-                // (7,51): error CS4007: Instance of type 'System.RuntimeArgumentHandle' cannot be preserved across 'await' or 'yield' boundary.
-                //   static IEnumerable<int> M(RuntimeArgumentHandle h1) // Error: hoisted to field
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "h1").WithArguments("System.RuntimeArgumentHandle").WithLocation(7, 51),
-                // (11,27): error CS4007: Instance of type 'System.RuntimeArgumentHandle' cannot be preserved across 'await' or 'yield' boundary.
-                //     RuntimeArgumentHandle h2 = default(RuntimeArgumentHandle);
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "h2").WithArguments("System.RuntimeArgumentHandle").WithLocation(11, 27)
+                // (9,7): error CS4007: Instance of type 'System.RuntimeArgumentHandle' cannot be preserved across 'await' or 'yield' boundary.
+                //     N(h1); // Error: hoisted to field
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "h1").WithArguments("System.RuntimeArgumentHandle").WithLocation(9, 7),
+                // (13,7): error CS4007: Instance of type 'System.RuntimeArgumentHandle' cannot be preserved across 'await' or 'yield' boundary.
+                //     N(h2); // Error: hoisted to field
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "h2").WithArguments("System.RuntimeArgumentHandle").WithLocation(13, 7)
                 );
         }
 

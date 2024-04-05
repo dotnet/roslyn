@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (variable is LocalSymbol local)
                     {
-                        if (local.SynthesizedKind is SynthesizedLocalKind.UserDefined or SynthesizedLocalKind.Spill)
+                        if (local.SynthesizedKind is SynthesizedLocalKind.Spill)
                         {
                             reportLocalAcrossAwaitError(diagnostics, local, local.GetFirstLocation());
                         }
@@ -95,8 +95,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var parameter = (ParameterSymbol)variable;
                         Debug.Assert(parameter.TypeWithAnnotations.IsRestrictedType());
-                        // CS4007: Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.
-                        diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, parameter.GetFirstLocation(), parameter.TypeWithAnnotations);
+
+                        foreach (var syntax in kvp.Value)
+                        {
+                            // CS4007: Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.
+                            diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, syntax.Location, parameter.TypeWithAnnotations);
+                        }
                     }
                 }
             }
@@ -225,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 if (_variablesToHoist.Add(variable) && variable is LocalSymbol local && _boundRefLocalInitializers.TryGetValue(local, out var variableInitializer))
-                    CaptureRefInitializer(variableInitializer, syntax);
+                    CaptureRefInitializer(variableInitializer, local.SynthesizedKind != SynthesizedLocalKind.UserDefined ? variableInitializer.Syntax : syntax);
             }
 
             static bool canRefLocalBeHoisted(LocalSymbol refLocal)
