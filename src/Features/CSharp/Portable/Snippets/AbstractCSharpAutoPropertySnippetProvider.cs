@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
-internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractPropertySnippetProvider
+internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractPropertySnippetProvider<PropertyDeclarationSyntax>
 {
     protected virtual AccessorDeclarationSyntax? GenerateGetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator)
         => (AccessorDeclarationSyntax)generator.GetAccessorDeclaration();
@@ -36,7 +36,7 @@ internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractProp
             SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken);
     }
 
-    protected override async Task<SyntaxNode> GenerateSnippetSyntaxAsync(Document document, int position, CancellationToken cancellationToken)
+    protected override async Task<PropertyDeclarationSyntax> GenerateSnippetSyntaxAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -73,19 +73,18 @@ internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractProp
         return propertyDeclaration.AccessorList!.CloseBraceToken.Span.End;
     }
 
-    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(PropertyDeclarationSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
-        var propertyDeclaration = (PropertyDeclarationSyntax)node;
-        var identifier = propertyDeclaration.Identifier;
-        var type = propertyDeclaration.Type;
+        var identifier = node.Identifier;
+        var type = node.Type;
 
         arrayBuilder.Add(new SnippetPlaceholder(type.ToString(), type.SpanStart));
         arrayBuilder.Add(new SnippetPlaceholder(identifier.ValueText, identifier.SpanStart));
         return arrayBuilder.ToImmutableArray();
     }
 
-    protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
+    protected override PropertyDeclarationSyntax? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
     {
         var node = root.FindNode(TextSpan.FromBounds(position, position));
         return node.GetAncestorOrThis<PropertyDeclarationSyntax>();
