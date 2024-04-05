@@ -84,7 +84,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// cancel the expensive non-frozen tagging pass (which might be computing skeletons, SG docs, etc.), do the 
         /// next cheap frozen-tagging-pass, and then push the expensive-nonfrozen-tagging-pass to the end again.
         /// </summary>
-        private readonly CancellationSeries _nonFrozenComputationCancellationSeries = new();
+        private readonly CancellationSeries _nonFrozenComputationCancellationSeries;
 
         #endregion
 
@@ -161,6 +161,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             _visibilityTracker = visibilityTracker;
             _dataSource = dataSource;
             _asyncListener = asyncListener;
+            _nonFrozenComputationCancellationSeries = new(_disposalTokenSource.Token);
 
             _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
 
