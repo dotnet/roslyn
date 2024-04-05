@@ -1,0 +1,3 @@
+﻿is_global = true
+
+dotnet_diagnostic.RS1009.severity = error
