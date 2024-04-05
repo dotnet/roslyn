@@ -247,9 +247,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             bool frozenPartialSemantics,
             CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested)
-                return default;
-
             await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken).NoThrowAwaitable();
             if (cancellationToken.IsCancellationRequested)
                 return default;
