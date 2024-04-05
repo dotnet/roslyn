@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,17 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpWhileLoopSnippetProvider() : AbstractWhileLoopSnippetProvider
+internal sealed class CSharpWhileLoopSnippetProvider() : AbstractWhileLoopSnippetProvider<WhileStatementSyntax, ExpressionSyntax>
 {
     public override string Identifier => CSharpSnippetIdentifiers.While;
 
     public override string Description => FeaturesResources.while_loop;
 
-    protected override SyntaxNode GetCondition(SyntaxNode node)
-    {
-        var whileStatement = (WhileStatementSyntax)node;
-        return whileStatement.Condition;
-    }
+    protected override ExpressionSyntax GetCondition(WhileStatementSyntax node)
+        => node.Condition;
 
     protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
     {

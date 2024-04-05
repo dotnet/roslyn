@@ -18,17 +18,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpIfSnippetProvider() : AbstractIfSnippetProvider
+internal sealed class CSharpIfSnippetProvider() : AbstractIfSnippetProvider<IfStatementSyntax, ExpressionSyntax>
 {
     public override string Identifier => CSharpSnippetIdentifiers.If;
 
     public override string Description => FeaturesResources.if_statement;
 
-    protected override SyntaxNode GetCondition(SyntaxNode node)
-    {
-        var ifStatement = (IfStatementSyntax)node;
-        return ifStatement.Condition;
-    }
+    protected override ExpressionSyntax GetCondition(IfStatementSyntax node)
+        => node.Condition;
 
     protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
     {

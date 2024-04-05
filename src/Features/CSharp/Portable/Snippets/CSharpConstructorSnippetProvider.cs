@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpConstructorSnippetProvider() : AbstractConstructorSnippetProvider
+internal sealed class CSharpConstructorSnippetProvider() : AbstractConstructorSnippetProvider<ConstructorDeclarationSyntax>
 {
     private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
