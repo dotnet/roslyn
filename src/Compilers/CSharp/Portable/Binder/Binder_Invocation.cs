@@ -640,12 +640,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    result = BindInvocationExpressionContinued(node, expression, methodName, overloadResolutionResult, analyzedArguments, methodGroup, delegateType, diagnostics, queryClause);
+                    result = BindInvocationExpressionContinued(node, expression, methodName, overloadResolutionResult, analyzedArguments, methodGroup, delegateType, hasDynamicArgument: true, boundExpression, diagnostics, queryClause);
                 }
             }
             else
             {
-                result = BindInvocationExpressionContinued(node, expression, methodName, overloadResolutionResult, analyzedArguments, methodGroup, delegateType, diagnostics, queryClause);
+                result = BindInvocationExpressionContinued(node, expression, methodName, overloadResolutionResult, analyzedArguments, methodGroup, delegateType, hasDynamicArgument: false, boundExpression, diagnostics, queryClause);
             }
 
             overloadResolutionResult.Free();
@@ -756,7 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // we want to force any unbound lambda arguments to cache an appropriate conversion if possible; see 9448.
                         result = BindInvocationExpressionContinued(
                             syntax, expression, methodName, resolution.OverloadResolutionResult, resolution.AnalyzedArguments,
-                            resolution.MethodGroup, delegateTypeOpt: null, diagnostics: BindingDiagnosticBag.Discarded, queryClause: queryClause);
+                            resolution.MethodGroup, delegateTypeOpt: null, hasDynamicArgument: false, methodGroup, diagnostics: BindingDiagnosticBag.Discarded, queryClause: queryClause);
                     }
 
                     // Since the resolution is non-empty and has no diagnostics, the LookupResultKind in its MethodGroup is uninteresting.
@@ -820,7 +820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         result = BindInvocationExpressionContinued(
                             syntax, expression, methodName, resolution.OverloadResolutionResult, resolution.AnalyzedArguments,
-                            resolution.MethodGroup, delegateTypeOpt: null, diagnostics: diagnostics, queryClause: queryClause);
+                            resolution.MethodGroup, delegateTypeOpt: null, hasDynamicArgument: false, methodGroup, diagnostics: diagnostics, queryClause: queryClause);
                     }
                 }
             }
@@ -986,6 +986,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedArguments: resolution.AnalyzedArguments,
                 methodGroup: resolution.MethodGroup,
                 delegateTypeOpt: null,
+                hasDynamicArgument: true,
+                boundMethodGroup,
                 diagnostics: diagnostics,
                 queryClause: queryClause);
 
@@ -1130,6 +1132,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             MethodGroup methodGroup,
             NamedTypeSymbol delegateTypeOpt,
+            bool hasDynamicArgument,
+            BoundExpression targetMethodGroupOrDelegateInstance,
             BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause = null)
         {
@@ -1205,12 +1209,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GetOriginalMethods(result), methodGroup.ResultKind, methodGroup.TypeArguments.ToImmutable(), analyzedArguments, invokedAsExtensionMethod: invokedAsExtensionMethod, isDelegate: ((object)delegateTypeOpt != null));
             }
 
-            // Otherwise, there were no dynamic arguments and overload resolution found a unique best candidate. 
+            // Otherwise, overload resolution found a unique best candidate. 
             // We still have to determine if it passes final validation.
 
             var methodResult = result.ValidResult;
             var returnType = methodResult.Member.ReturnType;
             var method = methodResult.Member;
+            bool forceDynamicResultType = false;
+
+            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+
+            if (hasDynamicArgument && !methodGroup.IsExtensionMethodGroup && method.MethodKind != MethodKind.LocalFunction && !method.ReturnsByRef && !returnType.IsDynamic() &&
+                Conversions.ClassifyConversionFromExpressionType(returnType, Compilation.DynamicType, isChecked: false, ref useSiteInfo).IsImplicit &&
+                !HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(analyzedArguments.Arguments, ImmutableArray.Create(methodResult)))
+            {
+                var tryDynamicInvocationDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+                BindDynamicInvocation(node, targetMethodGroupOrDelegateInstance, analyzedArguments, ImmutableArray.Create(method), tryDynamicInvocationDiagnostics, queryClause);
+                forceDynamicResultType = !tryDynamicInvocationDiagnostics.HasAnyResolvedErrors();
+                tryDynamicInvocationDiagnostics.Free();
+            }
+
+            diagnostics.Add(node, useSiteInfo);
 
             // It is possible that overload resolution succeeded, but we have chosen an
             // instance method and we're in a static method. A careful reading of the
@@ -1340,7 +1359,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundCall(node, receiver, initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, method), method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
                         expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
-                        argsToParamsOpt: argsToParams, defaultArguments, resultKind: LookupResultKind.Viable, type: returnType, hasErrors: gotError);
+                        argsToParamsOpt: argsToParams, defaultArguments, resultKind: LookupResultKind.Viable,
+                        type: forceDynamicResultType ? Compilation.DynamicType : returnType,
+                        hasErrors: gotError);
         }
 
 #nullable enable

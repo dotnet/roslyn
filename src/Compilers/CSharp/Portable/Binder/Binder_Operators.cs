@@ -22,7 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             node.Left.CheckDeconstructionCompatibleArgument(diagnostics);
 
-            BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind()));
+            BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind())
+#if DEBUG
+                                             , dynamificationOfAssignmentResultIsHandled: true
+#endif
+                                            );
             ReportSuppressionIfNeeded(left, diagnostics);
             BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
             BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
@@ -42,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // fall-through for other operators, if RHS is dynamic we produce dynamic operation, otherwise we'll report an error ...
                 }
             }
+
+            left = AdjustAssignmentTarget(left, out bool forceDynamicResult);
 
             if (left.HasAnyErrors || right.HasAnyErrors)
             {
@@ -81,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         finalPlaceholder: placeholder,
                         finalConversion: conversion,
                         LookupResultKind.Viable,
-                        left.Type,
+                        getResultType(left, forceDynamicResult),
                         hasErrors: false);
                 }
                 else
@@ -244,7 +250,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             var leftConversion = CreateConversion(node.Left, leftPlaceholder, best.LeftConversion, isCast: false, conversionGroupOpt: null, best.Signature.LeftType, diagnostics);
 
             return new BoundCompoundAssignmentOperator(node, bestSignature, left, rightConverted,
-                leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, originalUserDefinedOperators, leftType, hasError);
+                leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, originalUserDefinedOperators, getResultType(left, forceDynamicResult), hasError);
+
+            TypeSymbol getResultType(BoundExpression left, bool forceDynamicResult)
+            {
+                if (forceDynamicResult)
+                {
+                    return Compilation.DynamicType;
+                }
+
+                return left.Type;
+            }
+        }
+
+        private static BoundExpression AdjustAssignmentTarget(BoundExpression left, out bool forceDynamicResult)
+        {
+            if (left is BoundIndexerAccess { Type.TypeKind: TypeKind.Dynamic, Indexer.Type.TypeKind: not TypeKind.Dynamic } indexerAccess)
+            {
+                Debug.Assert(!indexerAccess.Indexer.ReturnsByRef);
+                forceDynamicResult = true;
+                left = indexerAccess.Update(
+                        indexerAccess.ReceiverOpt,
+                        indexerAccess.InitialBindingReceiverIsSubjectToCloning,
+                        indexerAccess.Indexer,
+                        indexerAccess.Arguments,
+                        indexerAccess.ArgumentNamesOpt,
+                        indexerAccess.ArgumentRefKindsOpt,
+                        indexerAccess.Expanded,
+                        indexerAccess.ArgsToParamsOpt,
+                        indexerAccess.DefaultArguments,
+                        indexerAccess.Indexer.Type);
+            }
+            else
+            {
+                forceDynamicResult = false;
+            }
+
+            return left;
         }
 
         /// <summary>
@@ -2261,7 +2303,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             operandSyntax.CheckDeconstructionCompatibleArgument(diagnostics);
 
-            BoundExpression operand = BindToNaturalType(BindValue(operandSyntax, diagnostics, BindValueKind.IncrementDecrement), diagnostics);
+            BoundExpression operand = BindToNaturalType(BindValue(operandSyntax, diagnostics, BindValueKind.IncrementDecrement
+#if DEBUG
+                                                                  , dynamificationOfAssignmentResultIsHandled: true
+#endif
+                                                                 ),
+                                                        diagnostics);
+
             UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
             // If the operand is bad, avoid generating cascading errors.
@@ -2282,6 +2330,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CreateErrorType(),
                     hasErrors: true);
             }
+
+            operand = AdjustAssignmentTarget(operand, out bool forceDynamicResult);
 
             // The operand has to be a variable, property or indexer, so it must have a type.
             var operandType = operand.Type;
@@ -2369,7 +2419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultConversion,
                 resultKind,
                 originalUserDefinedOperators,
-                operandType,
+                forceDynamicResult ? Compilation.DynamicType : operandType,
                 hasErrors);
         }
 
@@ -4134,8 +4184,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MessageID.IDS_FeatureCoalesceAssignmentExpression.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
-            BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment);
+            BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment
+#if DEBUG
+                                                    , dynamificationOfAssignmentResultIsHandled: true
+#endif
+                                                   );
             ReportSuppressionIfNeeded(leftOperand, diagnostics);
+
+            leftOperand = AdjustAssignmentTarget(leftOperand, out bool forceDynamicResult);
+
             BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
 
             // If either operand is bad, bail out preventing more cascading errors
@@ -4170,7 +4227,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(node, useSiteInfo);
                     var convertedRightOperand = CreateConversion(rightOperand, underlyingRightConversion, underlyingLeftType, diagnostics);
-                    return new BoundNullCoalescingAssignmentOperator(node, leftOperand, convertedRightOperand, underlyingLeftType);
+                    var result = new BoundNullCoalescingAssignmentOperator(node, leftOperand, convertedRightOperand, adjustResultType(underlyingLeftType, forceDynamicResult));
+                    Debug.Assert(result.IsNullableValueTypeAssignment);
+                    return result;
                 }
             }
 
@@ -4184,11 +4243,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rightConversion.Exists)
             {
                 var convertedRightOperand = CreateConversion(rightOperand, rightConversion, leftType, diagnostics);
-                return new BoundNullCoalescingAssignmentOperator(node, leftOperand, convertedRightOperand, leftType);
+                var result = new BoundNullCoalescingAssignmentOperator(node, leftOperand, convertedRightOperand, adjustResultType(leftType, forceDynamicResult));
+                Debug.Assert(!result.IsNullableValueTypeAssignment);
+                return result;
             }
 
             // a and b are incompatible and a compile-time error occurs
             return GenerateNullCoalescingAssignmentBadBinaryOpsError(node, leftOperand, rightOperand, diagnostics);
+
+            TypeSymbol adjustResultType(TypeSymbol resultType, bool forceDynamicResult)
+            {
+                if (forceDynamicResult)
+                {
+                    return Compilation.DynamicType;
+                }
+
+                return resultType;
+            }
         }
 
         private BoundExpression GenerateNullCoalescingAssignmentBadBinaryOpsError(AssignmentExpressionSyntax node, BoundExpression leftOperand, BoundExpression rightOperand, BindingDiagnosticBag diagnostics)

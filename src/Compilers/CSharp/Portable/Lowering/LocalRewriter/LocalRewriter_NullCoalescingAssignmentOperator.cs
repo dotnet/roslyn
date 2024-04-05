@@ -38,21 +38,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // isCompoundAssignment is only used for dynamic scenarios, and we want those scenarios to treat this like a standard assignment.
                 // See CodeGenNullCoalescingAssignmentTests.CoalescingAssignment_DynamicRuntimeCastFailure, which will fail if
                 // isCompoundAssignment is set to true. It will fail to throw a runtime binder cast exception.
-                BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, loweredRight, node.LeftOperand.Type, used: true, isChecked: false, isCompoundAssignment: false);
+                Debug.Assert(TypeSymbol.Equals(transformedLHS.Type, node.LeftOperand.Type, TypeCompareKind.AllIgnoreOptions));
+                BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, loweredRight, used: true, isChecked: false, isCompoundAssignment: false);
 
                 // lhsRead ?? (transformedLHS = loweredRight)
                 var leftPlaceholder = new BoundValuePlaceholder(lhsRead.Syntax, lhsRead.Type);
                 BoundExpression conditionalExpression = MakeNullCoalescingOperator(syntax, lhsRead, assignment, leftPlaceholder: leftPlaceholder, leftConversion: leftPlaceholder, BoundNullCoalescingOperatorResultKind.LeftType, node.LeftOperand.Type);
                 Debug.Assert(conditionalExpression.Type is { });
 
-                return (temps.Count == 0 && stores.Count == 0) ?
+                return adjustResult((temps.Count == 0 && stores.Count == 0) ?
                     conditionalExpression :
                     new BoundSequence(
                         syntax,
                         temps.ToImmutableAndFree(),
                         stores.ToImmutableAndFree(),
                         conditionalExpression,
-                        conditionalExpression.Type);
+                        conditionalExpression.Type));
+            }
+
+            BoundExpression adjustResult(BoundExpression result)
+            {
+                return ForceDynamicResultForAssignmentIfNecessary(node, node.LeftOperand, result, used: true);
             }
 
             // Rewrites the null coalescing operator in the case where the result type is the underlying
@@ -60,7 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewriteNullCoalescingAssignmentForValueType()
             {
                 Debug.Assert(node.LeftOperand.Type.IsNullableType());
-                Debug.Assert(node.Type.Equals(node.RightOperand.Type));
 
                 // We lower the expression to this form:
                 //
@@ -107,17 +112,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 temps.Add(tmp.LocalSymbol);
 
                 // tmp = loweredRight;
-                var tmpAssignment = MakeAssignmentOperator(node.Syntax, tmp, loweredRight, node.Type, used: true, isChecked: false, isCompoundAssignment: false);
+                var tmpAssignment = MakeAssignmentOperator(node.Syntax, tmp, loweredRight, used: true, isChecked: false, isCompoundAssignment: false);
 
                 Debug.Assert(transformedLHS.Type.GetNullableUnderlyingType().Equals(tmp.Type.StrippedType(), TypeCompareKind.AllIgnoreOptions));
 
                 // transformedLhs = tmp;
+                Debug.Assert(TypeSymbol.Equals(transformedLHS.Type, node.LeftOperand.Type, TypeCompareKind.AllIgnoreOptions));
                 var transformedLhsAssignment =
                     MakeAssignmentOperator(
                         node.Syntax,
                         transformedLHS,
                         MakeConversionNode(tmp, transformedLHS.Type, @checked: false, markAsChecked: true),
-                        node.LeftOperand.Type,
                         used: true,
                         isChecked: false,
                         isCompoundAssignment: false);
@@ -131,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // lhsRead.HasValue ? tmp : { /* sequence */ tmp = loweredRight; transformedLhs = tmp; tmp }
                 var ternary = _factory.Conditional(lhsReadHasValue, tmp, alternative, tmp.Type);
 
-                return _factory.Sequence(temps.ToImmutableAndFree(), stores.ToImmutableAndFree(), ternary);
+                return adjustResult(_factory.Sequence(temps.ToImmutableAndFree(), stores.ToImmutableAndFree(), ternary));
             }
         }
     }
