@@ -31,9 +31,9 @@ internal sealed class CSharpLockSnippetProvider() : AbstractLockSnippetProvider<
         return [new SnippetPlaceholder(expression.ToString(), expression.SpanStart)];
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, LockStatementSyntax caretTarget, SourceText sourceText)
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, LockStatementSyntax lockStatement, SourceText sourceText)
         => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
-            caretTarget,
+            lockStatement,
             static s => (BlockSyntax)s.Statement,
             sourceText);
 
