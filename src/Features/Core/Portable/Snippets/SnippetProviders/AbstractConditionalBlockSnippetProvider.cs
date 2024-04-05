@@ -26,8 +26,6 @@ internal abstract class AbstractConditionalBlockSnippetProvider<TStatementSyntax
             return [];
 
         var condition = GetCondition(node);
-        var placeholder = new SnippetPlaceholder(condition.ToString(), condition.SpanStart);
-
-        return [placeholder];
+        return [new SnippetPlaceholder(condition.ToString(), condition.SpanStart)];
     }
 }
