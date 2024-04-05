@@ -30,18 +30,11 @@ internal static class OmniSharpNavigateToSearcher
             kinds,
             disposalToken: CancellationToken.None);
 
-        return searcher.SearchAsync(searchCurrentDocument: false, cancellationToken);
+        return searcher.SearchAsync(NavigateToSearchScope.Solution, cancellationToken);
     }
 
-    private sealed class OmniSharpNavigateToCallbackImpl : INavigateToSearchCallback
+    private sealed class OmniSharpNavigateToCallbackImpl(OmniSharpNavigateToCallback callback) : INavigateToSearchCallback
     {
-        private readonly OmniSharpNavigateToCallback _callback;
-
-        public OmniSharpNavigateToCallbackImpl(OmniSharpNavigateToCallback callback)
-        {
-            _callback = callback;
-        }
-
         public async Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
         {
             var document = await result.NavigableItem.Document.GetRequiredDocumentAsync(project.Solution, cancellationToken).ConfigureAwait(false);
@@ -56,7 +49,7 @@ internal static class OmniSharpNavigateToSearcher
                 result.Summary!,
                 new OmniSharpNavigableItem(result.NavigableItem.DisplayTaggedParts, document, result.NavigableItem.SourceSpan));
 
-            await _callback(project, omniSharpResult, cancellationToken).ConfigureAwait(false);
+            await callback(project, omniSharpResult, cancellationToken).ConfigureAwait(false);
         }
 
         public void Done(bool isFullyLoaded)

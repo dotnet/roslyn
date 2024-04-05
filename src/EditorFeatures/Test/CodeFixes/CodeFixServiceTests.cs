@@ -349,8 +349,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp)));
 
             var workspace = EditorTestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
-            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.CurrentSolution.Options.WithChangedOption(new OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), false))));
 
             if (additionalDocument != null)
             {

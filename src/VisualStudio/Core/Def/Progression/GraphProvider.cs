@@ -152,8 +152,8 @@ internal sealed class RoslynGraphProvider : IGraphProvider
                 // Create two queries.  One to find results in normal docs, and one to find results in generated
                 // docs.  That way if the generated docs take a long time we can still report the regular doc
                 // results immediately.
-                graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToSearchScope.RegularDocuments, asyncListener));
-                graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToSearchScope.GeneratedDocuments, asyncListener));
+                graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToDocumentSupport.RegularDocuments, asyncListener));
+                graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToDocumentSupport.GeneratedDocuments, asyncListener));
             }
         }
 
