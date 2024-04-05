@@ -114,10 +114,10 @@ internal abstract class AbstractCSharpForLoopSnippetProvider : AbstractForLoopSn
             static s => (BlockSyntax)s.Statement,
             sourceText);
 
-    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<ForStatementSyntax>(
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, ForStatementSyntax forStatement, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
             document,
-            FindSnippetAnnotation,
+            forStatement,
             static s => (BlockSyntax)s.Statement,
             cancellationToken);
 }

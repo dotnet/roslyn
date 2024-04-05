@@ -50,13 +50,9 @@ internal sealed class CSharpIntMainSnippetProvider() : AbstractCSharpMainMethodS
         return line.Span.End;
     }
 
-    protected override async Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
+    protected override async Task<Document> AddIndentationToDocumentAsync(Document document, MethodDeclarationSyntax methodDeclaration, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var snippetNode = root.GetAnnotatedNodes(FindSnippetAnnotation).FirstOrDefault();
-
-        if (snippetNode is not MethodDeclarationSyntax methodDeclaration)
-            return document;
 
         var body = methodDeclaration.Body!;
         var returnStatement = body.Statements.First();

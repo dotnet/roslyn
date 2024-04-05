@@ -92,13 +92,9 @@ internal abstract class AbstractCSharpTypeSnippetProvider<TTypeDeclarationSyntax
         return node.GetAncestorOrThis<TTypeDeclarationSyntax>();
     }
 
-    protected override async Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
+    protected override async Task<Document> AddIndentationToDocumentAsync(Document document, TTypeDeclarationSyntax originalTypeDeclaration, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var snippet = root.GetAnnotatedNodes(FindSnippetAnnotation).FirstOrDefault();
-
-        if (snippet is not BaseTypeDeclarationSyntax originalTypeDeclaration)
-            return document;
 
         var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
         var indentationString = CSharpSnippetHelpers.GetBlockLikeIndentationString(document, originalTypeDeclaration.OpenBraceToken.SpanStart, syntaxFormattingOptions, cancellationToken);

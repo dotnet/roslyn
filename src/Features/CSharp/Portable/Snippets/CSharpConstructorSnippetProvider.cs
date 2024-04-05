@@ -82,12 +82,10 @@ internal sealed class CSharpConstructorSnippetProvider() : AbstractConstructorSn
             static d => d.Body!,
             sourceText);
 
-    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-    {
-        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<ConstructorDeclarationSyntax>(
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, ConstructorDeclarationSyntax constructorDeclaration, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
             document,
-            FindSnippetAnnotation,
+            constructorDeclaration,
             static d => d.Body!,
             cancellationToken);
-    }
 }

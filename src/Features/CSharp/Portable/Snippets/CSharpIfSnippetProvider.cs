@@ -33,12 +33,10 @@ internal sealed class CSharpIfSnippetProvider() : AbstractIfSnippetProvider<IfSt
             static s => (BlockSyntax)s.Statement,
             sourceText);
 
-    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-    {
-        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<IfStatementSyntax>(
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, IfStatementSyntax ifStatement, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
             document,
-            FindSnippetAnnotation,
+            ifStatement,
             static s => (BlockSyntax)s.Statement,
             cancellationToken);
-    }
 }

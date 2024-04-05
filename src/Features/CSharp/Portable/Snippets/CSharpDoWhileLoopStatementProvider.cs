@@ -43,12 +43,10 @@ internal sealed class CSharpDoWhileLoopStatementProvider()
             static s => (BlockSyntax)s.Statement,
             sourceText);
 
-    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-    {
-        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<DoStatementSyntax>(
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, DoStatementSyntax doStatement, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
             document,
-            FindSnippetAnnotation,
+            doStatement,
             static s => (BlockSyntax)s.Statement,
             cancellationToken);
-    }
 }

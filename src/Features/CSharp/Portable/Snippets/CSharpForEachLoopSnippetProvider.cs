@@ -119,12 +119,10 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
             static s => (BlockSyntax)s.Statement,
             sourceText);
 
-    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-    {
-        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<ForEachStatementSyntax>(
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, ForEachStatementSyntax forEachStatement, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
             document,
-            FindSnippetAnnotation,
+            forEachStatement,
             static s => (BlockSyntax)s.Statement,
             cancellationToken);
-    }
 }

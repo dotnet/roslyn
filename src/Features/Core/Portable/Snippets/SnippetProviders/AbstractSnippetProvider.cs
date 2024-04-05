@@ -233,8 +233,17 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
     /// The SyntaxGenerator does not insert this space for us nor does the LSP Snippet Expander.
     /// We need to manually add that spacing to snippets containing blocks.
     /// </summary>
-    protected virtual async Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
+    private async Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
     {
-        return await Task.FromResult(document).ConfigureAwait(false);
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var snippetNode = root.GetAnnotatedNodes(FindSnippetAnnotation).FirstOrDefault();
+
+        if (snippetNode is not TSnippetSyntax snippet)
+            return document;
+
+        return await AddIndentationToDocumentAsync(document, snippet, cancellationToken).ConfigureAwait(false);
     }
+
+    protected virtual Task<Document> AddIndentationToDocumentAsync(Document document, TSnippetSyntax snippet, CancellationToken cancellationToken)
+        => Task.FromResult(document);
 }

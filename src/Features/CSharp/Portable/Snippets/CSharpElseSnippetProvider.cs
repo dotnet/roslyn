@@ -67,12 +67,10 @@ internal sealed class CSharpElseSnippetProvider() : AbstractElseSnippetProvider<
             static c => (BlockSyntax)c.Statement,
             sourceText);
 
-    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-    {
-        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<ElseClauseSyntax>(
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, ElseClauseSyntax elseClause, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
             document,
-            FindSnippetAnnotation,
+            elseClause,
             static c => (BlockSyntax)c.Statement,
             cancellationToken);
-    }
 }

@@ -37,12 +37,10 @@ internal sealed class CSharpLockSnippetProvider() : AbstractLockSnippetProvider<
             static s => (BlockSyntax)s.Statement,
             sourceText);
 
-    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-    {
-        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<LockStatementSyntax>(
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, LockStatementSyntax lockStatement, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
             document,
-            FindSnippetAnnotation,
+            lockStatement,
             static s => (BlockSyntax)s.Statement,
             cancellationToken);
-    }
 }

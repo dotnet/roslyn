@@ -39,12 +39,10 @@ internal sealed class CSharpVoidMainSnippetProvider() : AbstractCSharpMainMethod
             static d => d.Body!,
             sourceText);
 
-    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-    {
-        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<MethodDeclarationSyntax>(
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, MethodDeclarationSyntax methodDeclaration, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
             document,
-            FindSnippetAnnotation,
+            methodDeclaration,
             static m => m.Body!,
             cancellationToken);
-    }
 }

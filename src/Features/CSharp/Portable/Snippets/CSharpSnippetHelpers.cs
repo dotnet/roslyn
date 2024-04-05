@@ -43,24 +43,20 @@ internal static class CSharpSnippetHelpers
         return newIndentation.GetIndentationString(parsedDocument.Text, syntaxFormattingOptions.UseTabs, syntaxFormattingOptions.TabSize) + newLine;
     }
 
-    public static async Task<Document> AddBlockIndentationToDocumentAsync<TTargetNode>(Document document, SyntaxAnnotation findSnippetAnnotation, Func<TTargetNode, BlockSyntax> getBlock, CancellationToken cancellationToken)
+    public static async Task<Document> AddBlockIndentationToDocumentAsync<TTargetNode>(
+        Document document, TTargetNode targetNode, Func<TTargetNode, BlockSyntax> getBlock, CancellationToken cancellationToken)
         where TTargetNode : SyntaxNode
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var snippetNode = root.GetAnnotatedNodes(findSnippetAnnotation).FirstOrDefault();
-
-        if (snippetNode is not TTargetNode targetStatement)
-            return document;
-
-        var block = getBlock(targetStatement);
+        var block = getBlock(targetNode);
 
         var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
         var indentationString = GetBlockLikeIndentationString(document, block.SpanStart, syntaxFormattingOptions, cancellationToken);
 
         var updatedBlock = block.WithCloseBraceToken(block.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
-        var updatedTargetStatement = targetStatement.ReplaceNode(block, updatedBlock);
+        var updatedTargetStatement = targetNode.ReplaceNode(block, updatedBlock);
 
-        var newRoot = root.ReplaceNode(targetStatement, updatedTargetStatement);
+        var newRoot = root.ReplaceNode(targetNode, updatedTargetStatement);
         return document.WithSyntaxRoot(newRoot);
     }
 }
