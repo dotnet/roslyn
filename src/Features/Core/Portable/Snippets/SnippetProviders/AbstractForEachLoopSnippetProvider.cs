@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
@@ -14,7 +12,4 @@ internal abstract class AbstractForEachLoopSnippetProvider<TStatementSyntax> : A
 {
     protected sealed override bool IsValidAccessingType(ITypeSymbol type, Compilation compilation)
         => type.CanBeEnumerated() || type.CanBeAsynchronouslyEnumerated(compilation);
-
-    protected sealed override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
-        => syntaxFacts.IsForEachStatement;
 }

@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Snippets;
@@ -47,7 +46,4 @@ internal sealed class CSharpInterfaceSnippetProvider() : AbstractCSharpTypeSnipp
         var name = NameGenerator.GenerateUniqueName("MyInterface", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
         return (InterfaceDeclarationSyntax)generator.InterfaceDeclaration(name);
     }
-
-    protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
-        => syntaxFacts.IsInterfaceDeclaration;
 }

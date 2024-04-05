@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
@@ -25,9 +23,6 @@ internal abstract class AbstractForLoopSnippetProvider<TStatementSyntax> : Abstr
         // We want to allow types, which have either `Length` or `Count` property, but not both to avoid ambiguity
         return hasLengthProperty ^ hasCountProperty;
     }
-
-    protected sealed override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
-        => syntaxFacts.IsForStatement;
 
     protected static bool IsSuitableIntegerType(ITypeSymbol type)
         => type.IsIntegralType() || type.IsNativeIntegerType;

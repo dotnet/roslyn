@@ -36,11 +36,6 @@ internal abstract class AbstractConsoleSnippetProvider<TExpressionStatementSynta
         return base.IsValidSnippetLocation(in context, cancellationToken);
     }
 
-    protected sealed override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
-    {
-        return syntaxFacts.IsExpressionStatement;
-    }
-
     protected sealed override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var generator = SyntaxGenerator.GetGenerator(document);
@@ -79,7 +74,7 @@ internal abstract class AbstractConsoleSnippetProvider<TExpressionStatementSynta
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts.IsExpressionStatement);
+        var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position);
         Contract.ThrowIfNull(snippetExpressionNode);
 
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -113,10 +108,10 @@ internal abstract class AbstractConsoleSnippetProvider<TExpressionStatementSynta
     private static INamedTypeSymbol? GetConsoleSymbolFromMetaDataName(Compilation compilation)
         => compilation.GetBestTypeByMetadataName(typeof(Console).FullName!);
 
-    protected sealed override TExpressionStatementSyntax? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
+    protected sealed override TExpressionStatementSyntax? FindAddedSnippetSyntaxNode(SyntaxNode root, int position)
     {
         var closestNode = root.FindNode(TextSpan.FromBounds(position, position));
-        var nearestExpressionStatement = closestNode.FirstAncestorOrSelf<TExpressionStatementSyntax>(isCorrectContainer);
+        var nearestExpressionStatement = closestNode.FirstAncestorOrSelf<TExpressionStatementSyntax>();
         if (nearestExpressionStatement is null)
             return null;
 

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -38,7 +37,4 @@ internal abstract class AbstractMainMethodSnippetProvider<TMethodDeclarationSynt
 
     protected sealed override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(TMethodDeclarationSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         => [];
-
-    protected sealed override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
-        => syntaxFacts.IsMethodDeclaration;
 }

@@ -37,9 +37,6 @@ internal sealed class CSharpDoWhileLoopStatementProvider()
     protected override ExpressionSyntax GetCondition(DoStatementSyntax node)
         => node.Condition;
 
-    protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
-        => static node => node is DoStatementSyntax;
-
     protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
     {
         return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<DoStatementSyntax>(

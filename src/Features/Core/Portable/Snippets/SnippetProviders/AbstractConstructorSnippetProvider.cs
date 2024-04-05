@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -17,8 +16,6 @@ internal abstract class AbstractConstructorSnippetProvider<TConstructorDeclarati
     public sealed override string Description => FeaturesResources.constructor;
 
     public sealed override ImmutableArray<string> AdditionalFilterTexts { get; } = ["constructor"];
-
-    protected sealed override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsConstructorDeclaration;
 
     protected sealed override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(TConstructorDeclarationSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         => [];

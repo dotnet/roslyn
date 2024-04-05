@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Snippets;
@@ -46,7 +45,4 @@ internal sealed class CSharpEnumSnippetProvider() : AbstractCSharpTypeSnippetPro
         var name = NameGenerator.GenerateUniqueName("MyEnum", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
         return (EnumDeclarationSyntax)generator.EnumDeclaration(name);
     }
-
-    protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
-        => syntaxFacts.IsEnumDeclaration;
 }

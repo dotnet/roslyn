@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -46,11 +45,6 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
     /// Gets the position that we want the caret to be at after all of the indentation/formatting has been done.
     /// </summary>
     protected abstract int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText);
-
-    /// <summary>
-    /// Helper function to retrieve the specific type of snippet syntax when it needs to be searched for again.
-    /// </summary>
-    protected abstract Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts);
 
     /// <summary>
     /// Method to find the locations that must be renamed and where tab stops must be inserted into the snippet.
@@ -186,7 +180,7 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
     private async Task<Document> GetDocumentWithSnippetAndTriviaAsync(Document snippetDocument, int position, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
         var root = await snippetDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var nearestStatement = FindAddedSnippetSyntaxNode(root, position, GetSnippetContainerFunction(syntaxFacts));
+        var nearestStatement = FindAddedSnippetSyntaxNode(root, position);
 
         if (nearestStatement is null)
         {
@@ -228,24 +222,15 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
         SyntaxAnnotation findSnippetAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, GetSnippetContainerFunction(syntaxFacts));
+        var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position);
         Contract.ThrowIfNull(snippetExpressionNode);
 
         var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, Formatter.Annotation);
         return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
     }
 
-    protected virtual TSnippetSyntax? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
-    {
-        if (root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true) is not TSnippetSyntax closestNode)
-            return null;
-
-        if (!isCorrectContainer(closestNode))
-            return null;
-
-        return closestNode;
-    }
+    protected virtual TSnippetSyntax? FindAddedSnippetSyntaxNode(SyntaxNode root, int position)
+        => root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true) as TSnippetSyntax;
 
     /// <summary>
     /// Certain snippets require more indentation - snippets with blocks.

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -12,8 +11,6 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 internal abstract class AbstractElseSnippetProvider<TElseClauseSyntax> : AbstractStatementSnippetProvider<TElseClauseSyntax>
     where TElseClauseSyntax : SyntaxNode
 {
-    protected sealed override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts) => syntaxFacts.IsElseClause;
-
     protected sealed override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(TElseClauseSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         => [];
 }

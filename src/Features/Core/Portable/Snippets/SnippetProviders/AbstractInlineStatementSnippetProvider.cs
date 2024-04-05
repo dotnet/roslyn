@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,10 +69,10 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
         return new TextChange(TextSpan.FromBounds(inlineExpressionInfo?.Node.SpanStart ?? position, position), statement.ToFullString());
     }
 
-    protected sealed override TStatementSyntax? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
+    protected sealed override TStatementSyntax? FindAddedSnippetSyntaxNode(SyntaxNode root, int position)
     {
         var closestNode = root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true);
-        return closestNode.FirstAncestorOrSelf<TStatementSyntax>(isCorrectContainer);
+        return closestNode.FirstAncestorOrSelf<TStatementSyntax>();
     }
 
     private static bool TryGetInlineExpressionInfo(SyntaxToken targetToken, ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, [NotNullWhen(true)] out InlineExpressionInfo? expressionInfo, CancellationToken cancellationToken)
