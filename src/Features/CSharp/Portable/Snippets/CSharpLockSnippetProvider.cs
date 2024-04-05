@@ -19,33 +19,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpLockSnippetProvider() : AbstractLockSnippetProvider
+internal sealed class CSharpLockSnippetProvider() : AbstractLockSnippetProvider<LockStatementSyntax>
 {
     public override string Identifier => CSharpSnippetIdentifiers.Lock;
 
     public override string Description => CSharpFeaturesResources.lock_statement;
 
-    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(LockStatementSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
-        var lockStatement = (LockStatementSyntax)node;
-        var expression = lockStatement.Expression;
+        var expression = node.Expression;
         return [new SnippetPlaceholder(expression.ToString(), expression.SpanStart)];
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-    {
-        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<LockStatementSyntax>(
-            caretTarget,
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, LockStatementSyntax lockStatement, SourceText sourceText)
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
+            lockStatement,
             static s => (BlockSyntax)s.Statement,
             sourceText);
-    }
 
-    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-    {
-        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<LockStatementSyntax>(
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, LockStatementSyntax lockStatement, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
             document,
-            FindSnippetAnnotation,
+            lockStatement,
             static s => (BlockSyntax)s.Statement,
             cancellationToken);
-    }
 }

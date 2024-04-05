@@ -18,32 +18,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpWhileLoopSnippetProvider() : AbstractWhileLoopSnippetProvider
+internal sealed class CSharpWhileLoopSnippetProvider() : AbstractWhileLoopSnippetProvider<WhileStatementSyntax, ExpressionSyntax>
 {
     public override string Identifier => CSharpSnippetIdentifiers.While;
 
     public override string Description => FeaturesResources.while_loop;
 
-    protected override SyntaxNode GetCondition(SyntaxNode node)
-    {
-        var whileStatement = (WhileStatementSyntax)node;
-        return whileStatement.Condition;
-    }
+    protected override ExpressionSyntax GetCondition(WhileStatementSyntax node)
+        => node.Condition;
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-    {
-        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<WhileStatementSyntax>(
-            caretTarget,
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, WhileStatementSyntax whileStatement, SourceText sourceText)
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
+            whileStatement,
             static s => (BlockSyntax)s.Statement,
             sourceText);
-    }
 
-    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-    {
-        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<WhileStatementSyntax>(
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, WhileStatementSyntax whileStatement, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
             document,
-            FindSnippetAnnotation,
+            whileStatement,
             static s => (BlockSyntax)s.Statement,
             cancellationToken);
-    }
 }
