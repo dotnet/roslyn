@@ -22,17 +22,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-internal sealed class CSharpIntMainSnippetProvider : AbstractCSharpMainMethodSnippetProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpIntMainSnippetProvider() : AbstractCSharpMainMethodSnippetProvider
 {
-    public override string Identifier => "sim";
+    public override string Identifier => CSharpSnippetIdentifiers.StaticIntMain;
 
     public override string Description => CSharpFeaturesResources.static_int_Main;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpIntMainSnippetProvider()
-    {
-    }
 
     protected override SyntaxNode GenerateReturnType(SyntaxGenerator generator)
         => generator.TypeExpression(SpecialType.System_Int32);

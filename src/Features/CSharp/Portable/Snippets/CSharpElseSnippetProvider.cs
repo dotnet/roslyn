@@ -17,13 +17,13 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-internal class CSharpElseSnippetProvider : AbstractElseSnippetProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpElseSnippetProvider() : AbstractElseSnippetProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpElseSnippetProvider()
-    {
-    }
+    public override string Identifier => CSharpSnippetIdentifiers.Else;
+
+    public override string Description => FeaturesResources.else_statement;
 
     protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
     {

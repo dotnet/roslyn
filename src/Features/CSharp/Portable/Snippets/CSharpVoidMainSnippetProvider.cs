@@ -19,17 +19,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-internal sealed class CSharpVoidMainSnippetProvider : AbstractCSharpMainMethodSnippetProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpVoidMainSnippetProvider() : AbstractCSharpMainMethodSnippetProvider
 {
-    public override string Identifier => "svm";
+    public override string Identifier => CSharpSnippetIdentifiers.StaticVoidMain;
 
     public override string Description => CSharpFeaturesResources.static_void_Main;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpVoidMainSnippetProvider()
-    {
-    }
 
     protected override SyntaxNode GenerateReturnType(SyntaxGenerator generator)
         => SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword));

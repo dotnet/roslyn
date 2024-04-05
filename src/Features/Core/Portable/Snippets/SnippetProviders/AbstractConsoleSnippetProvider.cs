@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Snippets;
 
 internal abstract class AbstractConsoleSnippetProvider : AbstractStatementSnippetProvider
 {
-    public override string Identifier => "cw";
+    public override string Identifier => CommonSnippetIdentifiers.ConsoleWriteLine;
 
     public override string Description => FeaturesResources.console_writeline;
 

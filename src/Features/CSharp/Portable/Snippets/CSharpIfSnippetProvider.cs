@@ -16,13 +16,13 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-internal sealed class CSharpIfSnippetProvider : AbstractIfSnippetProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpIfSnippetProvider() : AbstractIfSnippetProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpIfSnippetProvider()
-    {
-    }
+    public override string Identifier => CSharpSnippetIdentifiers.If;
+
+    public override string Description => FeaturesResources.if_statement;
 
     protected override SyntaxNode GetCondition(SyntaxNode node)
     {

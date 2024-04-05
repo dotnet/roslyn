@@ -23,13 +23,13 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-internal sealed class CSharpForEachLoopSnippetProvider : AbstractForEachLoopSnippetProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSnippetProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpForEachLoopSnippetProvider()
-    {
-    }
+    public override string Identifier => CSharpSnippetIdentifiers.ForEach;
+
+    public override string Description => FeaturesResources.foreach_loop;
 
     protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
     {
