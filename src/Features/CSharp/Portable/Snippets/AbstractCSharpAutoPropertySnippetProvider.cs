@@ -71,13 +71,14 @@ internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractProp
 
     protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(PropertyDeclarationSyntax propertyDeclaration, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
         var identifier = propertyDeclaration.Identifier;
         var type = propertyDeclaration.Type;
 
-        arrayBuilder.Add(new SnippetPlaceholder(type.ToString(), type.SpanStart));
-        arrayBuilder.Add(new SnippetPlaceholder(identifier.ValueText, identifier.SpanStart));
-        return arrayBuilder.ToImmutable();
+        return
+        [
+            new SnippetPlaceholder(type.ToString(), type.SpanStart),
+            new SnippetPlaceholder(identifier.ValueText, identifier.SpanStart),
+        ];
     }
 
     protected override PropertyDeclarationSyntax? FindAddedSnippetSyntaxNode(SyntaxNode root, int position)

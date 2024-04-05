@@ -106,9 +106,6 @@ internal abstract class AbstractCSharpTypeSnippetProvider<TTypeDeclarationSyntax
         return document.WithSyntaxRoot(newRoot);
     }
 
-    protected override void GetTypeDeclarationIdentifier(SyntaxNode node, out SyntaxToken identifier)
-    {
-        var typeDeclaration = (BaseTypeDeclarationSyntax)node;
-        identifier = typeDeclaration.Identifier;
-    }
+    protected sealed override SyntaxToken GetTypeDeclarationIdentifier(TTypeDeclarationSyntax baseTypeDeclaration)
+        => baseTypeDeclaration.Identifier;
 }

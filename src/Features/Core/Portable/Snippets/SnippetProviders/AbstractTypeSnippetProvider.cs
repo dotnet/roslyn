@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 internal abstract class AbstractTypeSnippetProvider<TTypeDeclarationSyntax> : AbstractSnippetProvider<TTypeDeclarationSyntax>
     where TTypeDeclarationSyntax : SyntaxNode
 {
-    protected abstract void GetTypeDeclarationIdentifier(SyntaxNode node, out SyntaxToken identifier);
+    protected abstract SyntaxToken GetTypeDeclarationIdentifier(TTypeDeclarationSyntax node);
     protected abstract Task<TTypeDeclarationSyntax> GenerateTypeDeclarationAsync(Document document, int position, CancellationToken cancellationToken);
     protected abstract Task<TextChange?> GetAccessibilityModifiersChangeAsync(Document document, int position, CancellationToken cancellationToken);
 
@@ -36,11 +36,8 @@ internal abstract class AbstractTypeSnippetProvider<TTypeDeclarationSyntax> : Ab
 
     protected sealed override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(TTypeDeclarationSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
-        GetTypeDeclarationIdentifier(node, out var identifier);
-        arrayBuilder.Add(new SnippetPlaceholder(identifier.ValueText, identifier.SpanStart));
-
-        return arrayBuilder.ToImmutableArray();
+        var identifier = GetTypeDeclarationIdentifier(node);
+        return [new SnippetPlaceholder(identifier.ValueText, identifier.SpanStart)];
     }
 
     protected static async Task<bool> AreAccessibilityModifiersRequiredAsync(Document document, CancellationToken cancellationToken)
