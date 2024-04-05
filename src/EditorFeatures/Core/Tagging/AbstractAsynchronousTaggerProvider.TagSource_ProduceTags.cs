@@ -198,12 +198,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             Contract.ThrowIfTrue(changes.IsEmpty);
 
             // If any of the requests was high priority, then compute at that speed.
-            var highPriority = changes.Contains(x => x.HighPriority);
+            var highPriority = changes.Any(x => x.HighPriority);
 
             // If any of the requests are for frozen partial, then we do compute with frozen partial semantics.  We
             // always want these "fast but inaccurate" passes to happen first.  That pass will then enqueue the work
             // to do the slow-but-accurate pass.
-            var frozenPartialSemantics = changes.Contains(t => t.FrozenPartialSemantics);
+            var frozenPartialSemantics = changes.Any(t => t.FrozenPartialSemantics);
 
             if (frozenPartialSemantics)
             {
