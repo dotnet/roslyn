@@ -65,6 +65,7 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
         _visualStudioWorkspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
+        _visualStudioWorkspaceImpl.SubscribeToSourceGeneratorImpactingEvents();
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
         // Since we're on the UI thread here anyways, use that as an opportunity to grab the

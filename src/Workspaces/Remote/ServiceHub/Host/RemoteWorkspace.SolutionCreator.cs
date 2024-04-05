@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -112,6 +114,19 @@ namespace Microsoft.CodeAnalysis.Remote
                         solution = solution.WithFrozenSourceGeneratedDocuments(frozenDocuments.ToImmutable());
                     }
 
+                    if (oldSolutionCompilationChecksums.SourceGeneratorExecutionVersionMap !=
+                        newSolutionCompilationChecksums.SourceGeneratorExecutionVersionMap)
+                    {
+                        var newVersions = await _assetProvider.GetAssetAsync<SourceGeneratorExecutionVersionMap>(
+                            assetHint: AssetHint.None, newSolutionCompilationChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
+
+                        // The execution version map will be for the entire solution on the host side.  However, we may
+                        // only be syncing over a partial cone.  In that case, filter down the version map we apply to
+                        // the local solution to only be for that cone as well.
+                        newVersions = FilterToProjectCone(newVersions, newSolutionChecksums.ProjectCone);
+                        solution = solution.WithSourceGeneratorExecutionVersions(newVersions, cancellationToken);
+                    }
+
 #if DEBUG
                     // make sure created solution has same checksum as given one
                     await ValidateChecksumAsync(newSolutionChecksum, solution, newSolutionChecksums.ProjectConeId, cancellationToken).ConfigureAwait(false);
@@ -122,6 +137,21 @@ namespace Microsoft.CodeAnalysis.Remote
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable();
+                }
+
+                static SourceGeneratorExecutionVersionMap FilterToProjectCone(SourceGeneratorExecutionVersionMap map, ProjectCone? projectCone)
+                {
+                    if (projectCone is null)
+                        return map;
+
+                    var builder = map.Map.ToBuilder();
+                    foreach (var (projectId, _) in map.Map)
+                    {
+                        if (!projectCone.Contains(projectId))
+                            builder.Remove(projectId);
+                    }
+
+                    return new(builder.ToImmutable());
                 }
             }
 
@@ -400,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 if (project.State.ProjectInfo.Attributes.CompilationOutputInfo != newProjectAttributes.CompilationOutputInfo)
                 {
-                    project = project.Solution.WithProjectCompilationOutputInfo(project.Id, newProjectAttributes.CompilationOutputInfo).GetProject(project.Id)!;
+                    project = project.Solution.WithProjectCompilationOutputInfo(project.Id, newProjectAttributes.CompilationOutputInfo).GetRequiredProject(project.Id);
                 }
 
                 if (project.State.ProjectInfo.Attributes.DefaultNamespace != newProjectAttributes.DefaultNamespace)

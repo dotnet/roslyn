@@ -55,9 +55,6 @@
                     <CheckBox x:Name="Run_code_analysis_in_separate_process"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}" />
 
-                    <CheckBox x:Name="Analyze_source_generated_files"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_analyze_source_generated_files}" />
-
                     <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental}" />
 
@@ -68,7 +65,34 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Skip_analyzers_for_implicitly_triggered_builds}" />
                 </StackPanel>
             </GroupBox>
-            
+
+            <GroupBox x:Uid="SourceGeneratorsGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Source_Generators}">
+                <StackPanel>
+  
+                    <StackPanel Margin="0, -5, 0, 5">
+                        <Label x:Name="Run_source_generators_label" Content="{x:Static local:AdvancedOptionPageStrings.Option_Source_generator_execution_requires_restart}"/>
+
+                        <StackPanel Margin="15, 0, 0, 0">
+                            <RadioButton GroupName="Run_source_generators_location"
+                                     x:Name="Automatic_Run_generators_after_any_change"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_Automatic_Run_generators_after_any_change}"/>
+                            
+                            <RadioButton GroupName="Run_source_generators_location"
+                                     x:Name="Balanced_Run_generators_after_saving_or_building"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_Balanced_Run_generators_after_saving_or_building}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <CheckBox x:Name="Analyze_source_generated_files"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_analyze_source_generated_files}" />
+
+                    <CheckBox x:Name="Enable_all_features_in_opened_files_from_source_generators"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
+
+                </StackPanel>
+            </GroupBox>
+
             <GroupBox x:Uid="GoToDefinitionGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Go_To_Definition}">
                 <StackPanel>
@@ -216,8 +240,6 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Underline_reassigned_variables}" />
                     <CheckBox x:Name="Strike_out_obsolete_symbols"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Strike_out_obsolete_symbols}" />
-                    <CheckBox x:Name="Enable_all_features_in_opened_files_from_source_generators"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
                 </StackPanel>
             </GroupBox>
 
