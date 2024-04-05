@@ -113,7 +113,7 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
         return arrayBuilder.ToImmutable();
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, ForEachStatementSyntax forEachStatement, SourceText sourceText)
+    protected override int GetTargetCaretPosition(ForEachStatementSyntax forEachStatement, SourceText sourceText)
         => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
             forEachStatement,
             static s => (BlockSyntax)s.Statement,
