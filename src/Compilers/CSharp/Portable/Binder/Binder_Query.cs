@@ -830,7 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private UnboundLambda MakeQueryUnboundLambda(RangeVariableMap qvm, ImmutableArray<RangeVariableSymbol> parameters, ExpressionSyntax expression, bool withDependencies)
         {
-            return MakeQueryUnboundLambda(expression, new QueryUnboundLambdaState(expression, this, qvm, parameters, (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics) =>
+            return MakeQueryUnboundLambda(expression, new QueryUnboundLambdaState(this, qvm, parameters, (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics) =>
             {
                 lambdaBodyBinder = lambdaBodyBinder.GetRequiredBinder(expression);
                 Debug.Assert(lambdaSymbol != null);
@@ -841,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private UnboundLambda MakeQueryUnboundLambdaWithCast(RangeVariableMap qvm, RangeVariableSymbol parameter, ExpressionSyntax expression, TypeSyntax castTypeSyntax, TypeWithAnnotations castType, bool withDependencies)
         {
-            return MakeQueryUnboundLambda(expression, new QueryUnboundLambdaState(expression, this, qvm, ImmutableArray.Create(parameter), (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics) =>
+            return MakeQueryUnboundLambda(expression, new QueryUnboundLambdaState(this, qvm, ImmutableArray.Create(parameter), (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics) =>
             {
                 lambdaBodyBinder = lambdaBodyBinder.GetRequiredBinder(expression);
                 BoundExpression boundExpression = lambdaBodyBinder.BindValue(expression, diagnostics, BindValueKind.RValue);
@@ -859,7 +859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private UnboundLambda MakeQueryUnboundLambda(RangeVariableMap qvm, ImmutableArray<RangeVariableSymbol> parameters, CSharpSyntaxNode node, LambdaBodyFactory bodyFactory, bool withDependencies)
         {
-            return MakeQueryUnboundLambda(node, new QueryUnboundLambdaState(node, this, qvm, parameters, bodyFactory), withDependencies);
+            return MakeQueryUnboundLambda(node, new QueryUnboundLambdaState(this, qvm, parameters, bodyFactory), withDependencies);
         }
 
         private static UnboundLambda MakeQueryUnboundLambda(CSharpSyntaxNode node, QueryUnboundLambdaState state, bool withDependencies)

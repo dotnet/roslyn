@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly LambdaBodyFactory _bodyFactory;
             private readonly RangeVariableMap _rangeVariableMap;
 
-            public QueryUnboundLambdaState(SyntaxNode syntax, Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, LambdaBodyFactory bodyFactory, bool includeCache = true)
-                : base(syntax, binder, includeCache)
+            public QueryUnboundLambdaState(Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, LambdaBodyFactory bodyFactory, bool includeCache = true)
+                : base(binder, includeCache)
             {
                 _parameters = parameters;
                 _rangeVariableMap = rangeVariableMap;
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override UnboundLambdaState WithCachingCore(bool includeCache)
             {
-                return new QueryUnboundLambdaState(Syntax, Binder, _rangeVariableMap, _parameters, _bodyFactory, includeCache);
+                return new QueryUnboundLambdaState(Binder, _rangeVariableMap, _parameters, _bodyFactory, includeCache);
             }
 
             protected override BoundExpression GetLambdaExpressionBody(BoundBlock body)

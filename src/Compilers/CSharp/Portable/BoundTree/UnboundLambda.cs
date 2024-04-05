@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = !types.IsDefault && types.Any(static t => t.Type?.Kind == SymbolKind.ErrorType);
 
             var functionType = FunctionTypeSymbol.CreateIfFeatureEnabled(syntax, binder, static (binder, expr) => ((UnboundLambda)expr).Data.InferDelegateType());
-            var data = new PlainUnboundLambdaState(syntax, binder, returnRefKind, returnType, parameterAttributes, names, discardsOpt, types, refKinds, declaredScopes, defaultValues, syntaxList, isAsync: isAsync, isStatic: isStatic, includeCache: true);
+            var data = new PlainUnboundLambdaState(binder, returnRefKind, returnType, parameterAttributes, names, discardsOpt, types, refKinds, declaredScopes, defaultValues, syntaxList, isAsync: isAsync, isStatic: isStatic, includeCache: true);
             var lambda = new UnboundLambda(syntax, data, functionType, withDependencies, hasErrors: hasErrors);
             data.SetUnboundLambda(lambda);
             functionType?.SetExpression(lambda.WithNoCache());
@@ -497,7 +497,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal abstract class UnboundLambdaState
     {
         private UnboundLambda _unboundLambda = null!; // we would prefer this readonly, but we have an initialization cycle.
-        internal readonly SyntaxNode Syntax;
         internal readonly Binder Binder;
 
         [PerformanceSensitive(
@@ -512,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundLambda? _errorBinding;
 
-        public UnboundLambdaState(SyntaxNode syntax, Binder binder, bool includeCache)
+        public UnboundLambdaState(Binder binder, bool includeCache)
         {
             Debug.Assert(binder != null);
             Debug.Assert(binder.ContainingMemberOrLambda != null);
@@ -523,7 +522,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _returnInferenceCache = ImmutableDictionary<ReturnInferenceCacheKey, BoundLambda>.Empty;
             }
 
-            this.Syntax = syntax;
             this.Binder = binder;
         }
 
@@ -1440,7 +1438,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly bool _isStatic;
 
         internal PlainUnboundLambdaState(
-            SyntaxNode syntax,
             Binder binder,
             RefKind returnRefKind,
             TypeWithAnnotations returnType,
@@ -1455,7 +1452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isAsync,
             bool isStatic,
             bool includeCache)
-            : base(syntax, binder, includeCache)
+            : base(binder, includeCache)
         {
             _returnRefKind = returnRefKind;
             _returnType = returnType;
@@ -1560,7 +1557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override UnboundLambdaState WithCachingCore(bool includeCache)
         {
-            return new PlainUnboundLambdaState(Syntax, Binder, _returnRefKind, _returnType, _parameterAttributes, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _parameterDeclaredScopes, _defaultValues, _parameterSyntaxList, isAsync: _isAsync, isStatic: _isStatic, includeCache: includeCache);
+            return new PlainUnboundLambdaState(Binder, _returnRefKind, _returnType, _parameterAttributes, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _parameterDeclaredScopes, _defaultValues, _parameterSyntaxList, isAsync: _isAsync, isStatic: _isStatic, includeCache: includeCache);
         }
 
         protected override BoundExpression? GetLambdaExpressionBody(BoundBlock body)
