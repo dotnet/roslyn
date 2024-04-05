@@ -8,6 +8,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -1202,6 +1204,49 @@ class A {
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
         Assert.Empty(results);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task EditAndContinue_ProjectDiagnostic(bool useVSDiagnostics, bool mutatingLspWorkspace)
+    {
+        var markup1 = "class C {}";
+
+        var options = GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, compilerDiagnosticsScope: null, useVSDiagnostics);
+        await using var testLspServer = await CreateTestLspServerAsync([markup1], LanguageNames.CSharp, mutatingLspWorkspace, options,
+            excludedTypes:
+            [
+                typeof(EditAndContinueService.WorkspaceService)
+            ],
+            extraExportedTypes:
+            [
+                typeof(MockEditAndContinueWorkspaceService)
+            ]);
+
+        var encSessionState = testLspServer.TestWorkspace.GetService<EditAndContinueSessionState>();
+
+        var project = testLspServer.TestWorkspace.CurrentSolution.Projects.Single();
+
+        var diagnosticData = new DiagnosticData(
+            id: "ENC0001",
+            category: "Test",
+            message: "test1 message",
+            severity: DiagnosticSeverity.Error,
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true,
+            warningLevel: 0,
+            projectId: project.Id,
+            customTags: [],
+            properties: ImmutableDictionary<string, string?>.Empty,
+            location: new DiagnosticDataLocation(new FileLinePositionSpan("file", span: default)),
+            additionalLocations: [],
+            language: project.Language);
+
+        encSessionState.IsSessionActive = true;
+        encSessionState.ApplyChangesDiagnostics = [diagnosticData];
+
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTaskListItems: false, category: PullDiagnosticCategories.EditAndContinue);
+
+        Assert.Equal(0, results.Length);
     }
 
     [Theory, CombinatorialData]

@@ -64,10 +64,17 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
         if (context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
             return [];
 
+        Contract.ThrowIfNull(context.Solution);
+
         var category = GetDiagnosticCategory(diagnosticsParams);
+
+        // TODO: Implement as extensibility point.
 
         if (category == PullDiagnosticCategories.Task)
             return GetTaskListDiagnosticSources(context, GlobalOptions);
+
+        if (category == PullDiagnosticCategories.EditAndContinue)
+            return await EditAndContinueDiagnosticSource.CreateWorkspaceDiagnosticSourcesAsync(context.Solution, document => context.IsTracking(document.GetURI()), cancellationToken).ConfigureAwait(false);
 
         // if this request doesn't have a category at all (legacy behavior, assume they're asking about everything).
         if (category == null || category == PullDiagnosticCategories.WorkspaceDocumentsAndProject)
@@ -161,8 +168,6 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
         var enableDiagnosticsInSourceGeneratedFiles = solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true;
         var codeAnalysisService = solution.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
 
-        await EditAndContinueDiagnosticSource.AddWorkspaceDiagnosticSourcesAsync(result, solution, document => context.IsTracking(document.GetURI()), cancellationToken).ConfigureAwait(false);
-
         foreach (var project in GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
             await AddDocumentsAndProjectAsync(project, cancellationToken).ConfigureAwait(false);
 
@@ -189,6 +194,8 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
 
             // Finally, add the appropriate FSA or CodeAnalysis project source to get project specific diagnostics, not associated with any document.
             AddProjectSource();
+
+            return;
 
             void AddDocumentSources(IEnumerable<TextDocument> documents)
             {

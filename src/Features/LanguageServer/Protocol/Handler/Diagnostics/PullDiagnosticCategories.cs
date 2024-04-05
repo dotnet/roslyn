@@ -13,6 +13,11 @@ internal static class PullDiagnosticCategories
     /// </summary>
     public static readonly string Task = VSInternalDiagnosticKind.Task.Value;
 
+    /// <summary>
+    /// Edit and Continue diagnostics. Can be for Document or Workspace pull requests.
+    /// </summary>
+    public static readonly string EditAndContinue = VSInternalDiagnosticKind.EditAndContiue.Value;
+
     // Workspace categories
 
     /// <summary>

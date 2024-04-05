@@ -32,17 +32,11 @@ internal sealed class DocumentDiagnosticSource(DiagnosticKind diagnosticKind, Te
         var allSpanDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
             Document, range: null, diagnosticKind: this.DiagnosticKind, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-        // Add cached Copilot and EnC diagnostics when computing analyzer semantic diagnostics.
+        // Add cached Copilot diagnostics when computing analyzer semantic diagnostics.
         if (DiagnosticKind == DiagnosticKind.AnalyzerSemantic)
         {
             var copilotDiagnostics = await Document.GetCachedCopilotDiagnosticsAsync(span: null, cancellationToken).ConfigureAwait(false);
             allSpanDiagnostics = allSpanDiagnostics.AddRange(copilotDiagnostics);
-
-            if (Document is Document document)
-            {
-                var encDiagnostics = await EditAndContinueDiagnosticSource.GetDocumentDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
-                allSpanDiagnostics = allSpanDiagnostics.AddRange(encDiagnostics);
-            }
         }
 
         // Drop the source suppressed diagnostics.

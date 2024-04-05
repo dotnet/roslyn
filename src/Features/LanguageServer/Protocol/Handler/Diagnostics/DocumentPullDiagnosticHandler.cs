@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
@@ -70,13 +71,24 @@ internal partial class DocumentPullDiagnosticHandler
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource)
         => ConvertTags(diagnosticData, isLiveSource, potentialDuplicate: false);
 
+    protected override VSInternalDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalDiagnosticReport[]> progress)
+        => progress.GetFlattenedValues();
+
     protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(
         VSInternalDocumentDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
+        => new(GetDiagnosticSource(diagnosticsParams, context) is { } diagnosticSource ? [diagnosticSource] : []);
+
+    private IDiagnosticSource? GetDiagnosticSource(VSInternalDocumentDiagnosticsParams diagnosticsParams, RequestContext context)
     {
         var category = diagnosticsParams.QueryingDiagnosticKind?.Value;
 
+        // TODO: Implement as extensibility point.
+
         if (category == PullDiagnosticCategories.Task)
-            return new(GetDiagnosticSources(diagnosticKind: default, nonLocalDocumentDiagnostics: false, taskList: true, context, GlobalOptions));
+            return context.GetTrackedDocument<Document>() is { } document ? new TaskListDiagnosticSource(document, GlobalOptions) : null;
+
+        if (category == PullDiagnosticCategories.EditAndContinue)
+            return context.GetTrackedDocument<Document>() is { } document ? EditAndContinueDiagnosticSource.CreateOpenDocumentSource(document) : null;
 
         var diagnosticKind = category switch
         {
@@ -91,69 +103,25 @@ internal partial class DocumentPullDiagnosticHandler
         };
 
         if (diagnosticKind is null)
-            return new([]);
+            return null;
 
-        return new(GetDiagnosticSources(diagnosticKind.Value, nonLocalDocumentDiagnostics: false, taskList: false, context, GlobalOptions));
+        return GetDiagnosticSource(diagnosticKind.Value, context);
     }
 
-    protected override VSInternalDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalDiagnosticReport[]> progress)
+    internal static IDiagnosticSource? GetDiagnosticSource(DiagnosticKind diagnosticKind, RequestContext context)
+        => context.GetTrackedDocument<TextDocument>() is { } textDocument ? new DocumentDiagnosticSource(diagnosticKind, textDocument) : null;
+
+    internal static IDiagnosticSource? GetNonLocalDiagnosticSource(RequestContext context, IGlobalOptionService globalOptions)
     {
-        return progress.GetFlattenedValues();
-    }
+        var textDocument = context.GetTrackedDocument<Document>();
+        if (textDocument == null)
+            return null;
 
-    internal static ImmutableArray<IDiagnosticSource> GetDiagnosticSources(
-        DiagnosticKind diagnosticKind, bool nonLocalDocumentDiagnostics, bool taskList, RequestContext context, IGlobalOptionService globalOptions)
-    {
-        // For the single document case, that is the only doc we want to process.
-        //
-        // Note: context.Document may be null in the case where the client is asking about a document that we have
-        // since removed from the workspace.  In this case, we don't really have anything to process.
-        // GetPreviousResults will be used to properly realize this and notify the client that the doc is gone.
-        //
-        // Only consider open documents here (and only closed ones in the WorkspacePullDiagnosticHandler).  Each
-        // handler treats those as separate worlds that they are responsible for.
-        var textDocument = context.TextDocument;
-        if (textDocument is null)
-        {
-            context.TraceInformation("Ignoring diagnostics request because no text document was provided");
-            return [];
-        }
+        // Non-local document diagnostics are reported only when full solution analysis is enabled for analyzer execution.
+        if (globalOptions.GetBackgroundAnalysisScope(textDocument.Project.Language) != BackgroundAnalysisScope.FullSolution)
+            return null;
 
-        var document = textDocument as Document;
-        if (taskList && document is null)
-        {
-            context.TraceInformation("Ignoring task list diagnostics request because no document was provided");
-            return [];
-        }
-
-        if (!context.IsTracking(textDocument.GetURI()))
-        {
-            context.TraceWarning($"Ignoring diagnostics request for untracked document: {textDocument.GetURI()}");
-            return [];
-        }
-
-        if (nonLocalDocumentDiagnostics)
-            return GetNonLocalDiagnosticSources();
-
-        return taskList
-            ? [new TaskListDiagnosticSource(document!, globalOptions)]
-            : [new DocumentDiagnosticSource(diagnosticKind, textDocument)];
-
-        ImmutableArray<IDiagnosticSource> GetNonLocalDiagnosticSources()
-        {
-            Debug.Assert(!taskList);
-
-            // This code path is currently only invoked from the public LSP handler, which always uses 'DiagnosticKind.All'
-            Debug.Assert(diagnosticKind == DiagnosticKind.All);
-
-            // Non-local document diagnostics are reported only when full solution analysis is enabled for analyzer execution.
-            if (globalOptions.GetBackgroundAnalysisScope(textDocument.Project.Language) != BackgroundAnalysisScope.FullSolution)
-                return [];
-
-            return [new NonLocalDocumentDiagnosticSource(textDocument, ShouldIncludeAnalyzer)];
-
-            // NOTE: Compiler does not report any non-local diagnostics, so we bail out for compiler analyzer.
-            bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !analyzer.IsCompilerAnalyzer();
-        }
+        // NOTE: Compiler does not report any non-local diagnostics, so we bail out for compiler analyzer.
+        return new NonLocalDocumentDiagnosticSource(textDocument, shouldIncludeAnalyzer: static analyzer => !analyzer.IsCompilerAnalyzer());
     }
 }
