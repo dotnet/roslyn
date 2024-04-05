@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -39,9 +38,9 @@ internal sealed class CSharpIntMainSnippetProvider() : AbstractCSharpMainMethodS
         return SpecializedCollections.SingletonEnumerable(returnStatement);
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, MethodDeclarationSyntax caretTarget, SourceText sourceText)
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, MethodDeclarationSyntax methodDeclaration, SourceText sourceText)
     {
-        var body = caretTarget.Body!;
+        var body = methodDeclaration.Body!;
         var returnStatement = body.Statements.First();
 
         var triviaSpan = returnStatement.GetLeadingTrivia().Span;
