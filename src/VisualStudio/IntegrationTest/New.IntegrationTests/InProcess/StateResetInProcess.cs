@@ -64,6 +64,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             ResetOption(globalOptions, InlineRenameUIOptionsStorage.UseInlineAdornment);
             ResetOption(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
             ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace);
+            ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution);
+            ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag);
             ResetPerLanguageOption(globalOptions, BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened);
             ResetPerLanguageOption(globalOptions, CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces);
             ResetPerLanguageOption(globalOptions, CompletionOptionsStorage.TriggerInArgumentLists);

@@ -347,6 +347,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 WorkspaceKind.MiscellaneousFiles => false,
                 WorkspaceKind.Interactive => false,
+                WorkspaceKind.SemanticSearch => false,
                 _ => true
             };
 

@@ -359,6 +359,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     try
                     {
+                        // Only bother keeping track of staleCompilationWithGeneratedDocuments for projects that
+                        // actually have generators in them.
+                        var hasSourceGenerators = await compilationState.HasSourceGeneratorsAsync(this.ProjectState.Id, cancellationToken).ConfigureAwait(false);
                         var currentState = initialState;
 
                         // Then, we serially process the chain while that parsing is happening concurrently.
@@ -368,7 +371,7 @@ namespace Microsoft.CodeAnalysis
 
                             // We have a list of transformations to get to our final compilation; take the first transformation and apply it.
                             var (compilationWithoutGeneratedDocuments, staleCompilationWithGeneratedDocuments, generatorInfo) =
-                                await ApplyFirstTransformationAsync(currentState).ConfigureAwait(false);
+                                await ApplyFirstTransformationAsync(currentState, hasSourceGenerators).ConfigureAwait(false);
 
                             // We have updated state, so store this new result; this allows us to drop the intermediate state we already processed
                             // even if we were to get cancelled at a later point.
@@ -397,7 +400,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     async Task<(Compilation compilationWithoutGeneratedDocuments, Compilation? staleCompilationWithGeneratedDocuments, CompilationTrackerGeneratorInfo generatorInfo)>
-                        ApplyFirstTransformationAsync(InProgressState inProgressState)
+                        ApplyFirstTransformationAsync(InProgressState inProgressState, bool hasSourceGenerators)
                     {
                         Contract.ThrowIfTrue(inProgressState.PendingTranslationActions.IsEmpty);
                         var translationAction = inProgressState.PendingTranslationActions[0];
@@ -422,7 +425,7 @@ namespace Microsoft.CodeAnalysis
                             // Also transform the compilation that has generated files; we won't do that though if the transformation either would cause problems with
                             // the generated documents, or if don't have any source generators in the first place.
                             if (translationAction.CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput &&
-                                translationAction.OldProjectState.SourceGenerators.Any())
+                                hasSourceGenerators)
                             {
                                 staleCompilationWithGeneratedDocuments = await translationAction.TransformCompilationAsync(staleCompilationWithGeneratedDocuments, cancellationToken).ConfigureAwait(false);
                             }
@@ -472,7 +475,6 @@ namespace Microsoft.CodeAnalysis
                     // Caller should collapse the in progress state first.
                     Contract.ThrowIfTrue(inProgressState.PendingTranslationActions.Count > 0);
 
-                    // The final state we produce will be frozen or not depending on if a frozen state was passed into it.
                     var creationPolicy = inProgressState.CreationPolicy;
                     var generatorInfo = inProgressState.GeneratorInfo;
                     var compilationWithoutGeneratedDocuments = inProgressState.CompilationWithoutGeneratedDocuments;
@@ -527,6 +529,7 @@ namespace Microsoft.CodeAnalysis
 
                             if (creationPolicy.SkeletonReferenceCreationPolicy is SkeletonReferenceCreationPolicy.Create)
                             {
+                                // Client always wants an up to date metadata reference.  Produce one for this project reference.
                                 var metadataReference = await compilationState.GetMetadataReferenceAsync(projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
                                 AddMetadataReference(projectReference, metadataReference);
                             }
@@ -569,7 +572,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // We will finalize the compilation by adding full contents here.
-                    var (compilationWithGeneratedDocuments, generatedDocuments, generatorDriver) = await AddExistingOrComputeNewGeneratorInfoAsync(
+                    var (compilationWithGeneratedDocuments, nextGeneratorInfo) = await AddExistingOrComputeNewGeneratorInfoAsync(
                         creationPolicy,
                         compilationState,
                         compilationWithoutGeneratedDocuments,
@@ -577,8 +580,24 @@ namespace Microsoft.CodeAnalysis
                         staleCompilationWithGeneratedDocuments,
                         cancellationToken).ConfigureAwait(false);
 
-                    // After producing the sg documents, we must always be in the final state for the generator data.
-                    var nextGeneratorInfo = new CompilationTrackerGeneratorInfo(generatedDocuments, generatorDriver);
+                    // If the user has the option set to only run generators to something other than 'automatic' then we
+                    // want to set ourselves to not run generators again now that generators have run.  That way, any
+                    // further *automatic* changes to the solution will not run generators again.  Instead, when one of
+                    // those external events happen, we'll grab the workspace's solution, transition all states *out* of
+                    // this state and then let the next 'GetCompilationAsync' operation cause generators to run.
+                    //
+                    // Similarly, we don't want to automatically create skeletons at this point (unless they're missing
+                    // entirely).
+
+                    var workspacePreference = compilationState.Services.GetRequiredService<IWorkspaceConfigurationService>().Options.SourceGeneratorExecution;
+                    if (workspacePreference != SourceGeneratorExecutionPreference.Automatic)
+                    {
+                        if (creationPolicy.GeneratedDocumentCreationPolicy == GeneratedDocumentCreationPolicy.Create)
+                            creationPolicy = creationPolicy with { GeneratedDocumentCreationPolicy = GeneratedDocumentCreationPolicy.DoNotCreate };
+
+                        if (creationPolicy.SkeletonReferenceCreationPolicy == SkeletonReferenceCreationPolicy.Create)
+                            creationPolicy = creationPolicy with { SkeletonReferenceCreationPolicy = SkeletonReferenceCreationPolicy.CreateIfAbsent };
+                    }
 
                     var finalState = FinalCompilationTrackerState.Create(
                         creationPolicy,
@@ -670,18 +689,75 @@ namespace Microsoft.CodeAnalysis
                 return finalState.HasSuccessfullyLoaded;
             }
 
-            public ICompilationTracker FreezePartialState(CancellationToken cancellationToken)
+            public ICompilationTracker WithCreationPolicy(bool create, bool forceRegeneration, CancellationToken cancellationToken)
+            {
+                return create
+                    ? WithCreateCreationPolicy(forceRegeneration)
+                    : WithDoNotCreateCreationPolicy(forceRegeneration, cancellationToken);
+            }
+
+            public ICompilationTracker WithCreateCreationPolicy(bool forceRegeneration)
             {
                 var state = this.ReadState();
 
-                // We're freezing the solution for features where latency performance is parameter.  Do not run SGs or
+                var desiredCreationPolicy = CreationPolicy.Create;
+
+                // If we've computed no state yet there's nothing to do.  This state will automatically transition 
+                // to an InProgressState with a creation policy of 'Create' anyways.
+                if (state is null)
+                    return this;
+
+                // If we're already in the state where we are running generators and skeletons (and we're not forcing
+                // regeneration) we don't need to do anything and can just return ourselves. The next request to create
+                // the compilation will do so fully.
+                if (state.CreationPolicy == desiredCreationPolicy && !forceRegeneration)
+                    return this;
+
+                // If we're forcing regeneration then we have to drop whatever driver we have so that we'll start from
+                // scratch next time around.
+                var desiredGeneratorInfo = forceRegeneration ? state.GeneratorInfo with { Driver = null } : state.GeneratorInfo;
+
+                var newState = state switch
+                {
+                    InProgressState inProgressState => new InProgressState(
+                        desiredCreationPolicy,
+                        inProgressState.LazyCompilationWithoutGeneratedDocuments,
+                        desiredGeneratorInfo,
+                        inProgressState.LazyStaleCompilationWithGeneratedDocuments,
+                        inProgressState.PendingTranslationActions),
+                    // Transition the final frozen state we have back to an in-progress state that will then compute
+                    // generators and skeletons.
+                    FinalCompilationTrackerState finalState => new InProgressState(
+                        desiredCreationPolicy,
+                        finalState.CompilationWithoutGeneratedDocuments,
+                        desiredGeneratorInfo,
+                        finalState.FinalCompilationWithGeneratedDocuments,
+                        pendingTranslationActions: []),
+                    _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
+                };
+
+                return new CompilationTracker(
+                    this.ProjectState,
+                    newState,
+                    skeletonReferenceCacheToClone: _skeletonReferenceCache);
+            }
+
+            public ICompilationTracker WithDoNotCreateCreationPolicy(
+                bool forceRegeneration, CancellationToken cancellationToken)
+            {
+                // We do not expect this to ever be passed true.  This is for freezing generators, and no callers
+                // (currently) will ask to drop drivers when they do that.
+                Contract.ThrowIfTrue(forceRegeneration);
+
+                var state = this.ReadState();
+
+                // We're freezing the solution for features where latency performance is paramount.  Do not run SGs or
                 // create skeleton references at this point.  Just use whatever we've already generated for each in the
                 // past.
                 var desiredCreationPolicy = CreationPolicy.DoNotCreate;
 
                 if (state is FinalCompilationTrackerState finalState)
                 {
-                    // Attempt to transition our state to one where we do not run generators or create skeleton references.
                     var newFinalState = finalState.WithCreationPolicy(desiredCreationPolicy);
                     return newFinalState == finalState
                         ? this
@@ -699,7 +775,7 @@ namespace Microsoft.CodeAnalysis
                     // parsed documents over to the new project state so we can preserve as much information as
                     // possible.
 
-                    // Note: this count may be innacurate as parsing may be going on in the background.  However, it
+                    // Note: this count may be inaccurate as parsing may be going on in the background.  However, it
                     // acts as a reasonable lower bound for the number of documents we'll be adding.
                     var alreadyParsedCount = this.ProjectState.DocumentStates.States.Count(static s => s.Value.TryGetSyntaxTree(out _));
 
@@ -777,10 +853,8 @@ namespace Microsoft.CodeAnalysis
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
                 // If we don't have any generators, then we know we have no generated files, so we can skip the computation entirely.
-                if (!this.ProjectState.SourceGenerators.Any())
-                {
+                if (!await compilationState.HasSourceGeneratorsAsync(this.ProjectState.Id, cancellationToken).ConfigureAwait(false))
                     return TextDocumentStates<SourceGeneratedDocumentState>.Empty;
-                }
 
                 var finalState = await GetOrBuildFinalStateAsync(
                     compilationState, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -790,10 +864,8 @@ namespace Microsoft.CodeAnalysis
             public async ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                if (!this.ProjectState.SourceGenerators.Any())
-                {
+                if (!await compilationState.HasSourceGeneratorsAsync(this.ProjectState.Id, cancellationToken).ConfigureAwait(false))
                     return [];
-                }
 
                 var finalState = await GetOrBuildFinalStateAsync(
                     compilationState, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -819,10 +891,8 @@ namespace Microsoft.CodeAnalysis
 
             public async ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
             {
-                if (!this.ProjectState.SourceGenerators.Any())
-                {
+                if (!await compilationState.HasSourceGeneratorsAsync(this.ProjectState.Id, cancellationToken).ConfigureAwait(false))
                     return null;
-                }
 
                 var finalState = await GetOrBuildFinalStateAsync(
                     compilationState, cancellationToken).ConfigureAwait(false);

@@ -484,25 +484,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return;
             }
 
-            switch (condition.Kind)
+            if (condition.Kind == BoundKind.BinaryOperator)
             {
-                case BoundKind.BinaryOperator:
-                    var binOp = (BoundBinaryOperator)condition;
-                    if (!IsConditional(binOp.OperatorKind))
-                    {
-                        break;
-                    }
-
+                var binOp = (BoundBinaryOperator)condition;
+                if (IsConditional(binOp.OperatorKind))
+                {
                     EmitBinaryCondOperator(binOp, sense);
                     return;
-
-                case BoundKind.Sequence:
-                    EmitSequenceExpression((BoundSequence)condition, used: true, sense);
-                    return;
-
-                case BoundKind.LoweredIsPatternExpression:
-                    EmitLoweredIsPatternExpression((BoundLoweredIsPatternExpression)condition, used: true, sense);
-                    return;
+                }
             }
 
             EmitExpression(condition, true);

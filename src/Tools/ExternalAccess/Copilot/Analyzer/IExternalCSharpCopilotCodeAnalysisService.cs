@@ -5,12 +5,11 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot;
 
-internal interface IExternalCopilotCodeAnalysisService : ILanguageService
+internal interface IExternalCSharpCopilotCodeAnalysisService
 {
     // mirror the ICopilotCodeAnalysisService interface
     Task<bool> IsAvailableAsync(CancellationToken cancellation);

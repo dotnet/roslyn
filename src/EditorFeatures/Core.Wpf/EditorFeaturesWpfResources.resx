@@ -156,4 +156,10 @@
   <data name="Get_AI_suggestions" xml:space="preserve">
     <value>Get AI-powered rename suggestions (Ctrl+Space)</value>
   </data>
+  <data name="Toggle_AI_suggestions" xml:space="preserve">
+    <value>Toggle rename suggestions (Ctrl+Space)</value>
+  </data>
+  <data name="Generating_suggestions" xml:space="preserve">
+    <value>Generating suggestions...</value>
+  </data>
 </root>
