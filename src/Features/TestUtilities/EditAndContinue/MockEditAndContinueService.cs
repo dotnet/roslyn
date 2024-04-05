@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     [Export(typeof(IEditAndContinueService)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal class MockEditAndContinueWorkspaceService() : IEditAndContinueService
+    internal class MockEditAndContinueService() : IEditAndContinueService
     {
         public Func<Solution, ImmutableArray<DocumentId>, ImmutableArray<ImmutableArray<ActiveStatementSpan>>>? GetBaseActiveStatementSpansImpl;
 

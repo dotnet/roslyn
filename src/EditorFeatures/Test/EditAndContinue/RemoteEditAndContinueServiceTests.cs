@@ -46,30 +46,30 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             {
                 localComposition = localComposition
                     .AddExcludedPartTypes(typeof(EditAndContinueService))
-                    .AddParts(typeof(MockEditAndContinueWorkspaceService));
+                    .AddParts(typeof(MockEditAndContinueService));
             }
 
             using var localWorkspace = new TestWorkspace(composition: localComposition);
 
             var globalOptions = localWorkspace.GetService<IGlobalOptionService>();
 
-            MockEditAndContinueWorkspaceService mockEncService;
+            MockEditAndContinueService mockEncService;
             var clientProvider = (InProcRemoteHostClientProvider?)localWorkspace.Services.GetService<IRemoteHostClientProvider>();
             if (testHost == TestHost.InProcess)
             {
                 Assert.Null(clientProvider);
 
-                mockEncService = (MockEditAndContinueWorkspaceService)localWorkspace.GetService<IEditAndContinueService>();
+                mockEncService = (MockEditAndContinueService)localWorkspace.GetService<IEditAndContinueService>();
             }
             else
             {
                 Assert.NotNull(clientProvider);
-                clientProvider!.AdditionalRemoteParts = [typeof(MockEditAndContinueWorkspaceService)];
+                clientProvider!.AdditionalRemoteParts = [typeof(MockEditAndContinueService)];
                 clientProvider!.ExcludedRemoteParts = [typeof(EditAndContinueService)];
 
                 var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
                 var remoteWorkspace = client.TestData.WorkspaceManager.GetWorkspace();
-                mockEncService = (MockEditAndContinueWorkspaceService)remoteWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
+                mockEncService = (MockEditAndContinueService)remoteWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
             }
 
             var projectId = ProjectId.CreateNewId();

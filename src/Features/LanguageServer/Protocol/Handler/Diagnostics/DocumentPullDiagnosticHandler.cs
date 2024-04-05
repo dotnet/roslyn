@@ -88,7 +88,7 @@ internal partial class DocumentPullDiagnosticHandler
             return context.GetTrackedDocument<Document>() is { } document ? new TaskListDiagnosticSource(document, GlobalOptions) : null;
 
         if (category == PullDiagnosticCategories.EditAndContinue)
-            return context.GetTrackedDocument<Document>() is { } document ? EditAndContinueDiagnosticSource.CreateOpenDocumentSource(document) : null;
+            return GetEditAndContinueDiagnosticSource(context);
 
         var diagnosticKind = category switch
         {
@@ -107,6 +107,9 @@ internal partial class DocumentPullDiagnosticHandler
 
         return GetDiagnosticSource(diagnosticKind.Value, context);
     }
+
+    internal static IDiagnosticSource? GetEditAndContinueDiagnosticSource(RequestContext context)
+        => context.GetTrackedDocument<Document>() is { } document ? EditAndContinueDiagnosticSource.CreateOpenDocumentSource(document) : null;
 
     internal static IDiagnosticSource? GetDiagnosticSource(DiagnosticKind diagnosticKind, RequestContext context)
         => context.GetTrackedDocument<TextDocument>() is { } textDocument ? new DocumentDiagnosticSource(diagnosticKind, textDocument) : null;

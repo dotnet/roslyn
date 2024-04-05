@@ -49,7 +49,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                     typeof(NoCompilationLanguageService),
                     typeof(MockHostWorkspaceProvider),
                     typeof(MockServiceBrokerProvider),
-                    typeof(MockEditAndContinueWorkspaceService),
+                    typeof(MockEditAndContinueService),
                     typeof(MockManagedHotReloadService));
 
             using var localWorkspace = new TestWorkspace(composition: localComposition);
@@ -63,9 +63,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 _ => throw ExceptionUtilities.UnexpectedValue(t)
             };
 
-            MockEditAndContinueWorkspaceService mockEncService;
+            MockEditAndContinueService mockEncService;
 
-            mockEncService = (MockEditAndContinueWorkspaceService)localWorkspace.GetService<IEditAndContinueService>();
+            mockEncService = (MockEditAndContinueService)localWorkspace.GetService<IEditAndContinueService>();
 
             var localService = localWorkspace.GetService<EditAndContinueLanguageService>();
 
