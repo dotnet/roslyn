@@ -162,7 +162,6 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(
                     // We only want to search inside documents that correspond to the snapshots
                     // we're looking at
                     var documentsToSearch = ImmutableHashSet.CreateRange(context.SpansToTag.Select(vt => vt.Document).WhereNotNull());
-
                     var documentHighlightsList = await service.GetDocumentHighlightsAsync(
                         document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
                     if (documentHighlightsList != null)
