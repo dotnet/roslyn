@@ -64,11 +64,11 @@ public static class Formatter
     /// <returns>The formatted document.</returns>
     public static Task<Document> FormatAsync(Document document, TextSpan span, OptionSet? options = null, CancellationToken cancellationToken = default)
 #pragma warning disable RS0030 // Do not used banned APIs
-        => FormatAsync(document, SpecializedCollections.SingletonEnumerable(span), options, cancellationToken);
+        => FormatAsync(document, [span], options, cancellationToken);
 #pragma warning restore
 
     internal static Task<Document> FormatAsync(Document document, TextSpan span, SyntaxFormattingOptions options, CancellationToken cancellationToken)
-        => FormatAsync(document, SpecializedCollections.SingletonEnumerable(span), options, rules: null, cancellationToken);
+        => FormatAsync(document, [span], options, rules: null, cancellationToken);
 
     /// <summary>
     /// Formats the whitespace in areas of a document corresponding to multiple non-overlapping spans.
@@ -187,10 +187,10 @@ public static class Formatter
     /// <param name="cancellationToken">An optional cancellation token.</param>
     /// <returns>The formatted tree's root node.</returns>
     public static SyntaxNode Format(SyntaxNode node, Workspace workspace, OptionSet? options = null, CancellationToken cancellationToken = default)
-        => Format(node, SpecializedCollections.SingletonEnumerable(node.FullSpan), workspace, options, rules: null, cancellationToken);
+        => Format(node, [node.FullSpan], workspace, options, rules: null, cancellationToken);
 
     internal static SyntaxNode Format(SyntaxNode node, SolutionServices services, SyntaxFormattingOptions options, CancellationToken cancellationToken)
-        => Format(node, SpecializedCollections.SingletonEnumerable(node.FullSpan), services, options, rules: null, cancellationToken);
+        => Format(node, [node.FullSpan], services, options, rules: null, cancellationToken);
 
     /// <summary>
     /// Formats the whitespace in areas of a syntax tree identified by a span.
