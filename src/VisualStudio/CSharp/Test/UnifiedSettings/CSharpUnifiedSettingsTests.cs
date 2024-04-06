@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -98,7 +99,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
             var actualEnumValues = registrationJsonObject.SelectToken($"$.properties['{unifiedSettingPath}'].enum").SelectAsArray(token => token.ToString());
             var expectedEnumValues = s_enumOptionsToValues.TryGetValue(option, out var possibleEnumValues)
                 ? possibleEnumValues.SelectAsArray(value => value.ToString().ToCamelCase())
-                : option.Type.GetEnumValues().Cast<object>().SelectAsArray(value => value.ToString().ToCamelCase());
+                : option.Type.GetEnumValues().Cast<string>().SelectAsArray(value => value.ToCamelCase());
             AssertEx.Equal(actualEnumValues, expectedEnumValues);
             VerifyEnumMigration(registrationJsonObject, unifiedSettingPath, option);
         }
@@ -147,6 +148,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
             // Verify input node and map node
             var input = registrationJsonObject.SelectToken($"$.properties['{unifiedSettingPath}'].migration.enumIntegerToString.input")!;
             VerifyInput(input, option);
+            VerifyEnumToIntegerMappings(registrationJsonObject, unifiedSettingPath, option);
         }
 
         private static void VerifyMigration(JObject registrationJsonObject, string unifiedSettingPath, IOption2 option)
@@ -194,6 +196,42 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
             {
                 // Not supported yet
                 throw ExceptionUtilities.Unreachable();
+            }
+        }
+
+        private static void VerifyEnumToIntegerMappings(JObject registrationJsonObject, string unifiedSettingPath, IOption2 option)
+        {
+            var actualMappings = ((JArray)registrationJsonObject.SelectToken($"$.properties['{unifiedSettingPath}'].migration.enumIntegerToString.map")!)
+                .SelectAsArray(mapping => (mapping["result"]!.ToString(), int.Parse(mapping["match"]!.ToString())));
+
+            var enumValues = option.Type.GetEnumValues().Cast<object>().ToImmutableDictionary(
+                enumValue => enumValue.ToString().ToCamelCase(),
+                enumValue =>
+                {
+                    // If this value is the real default value for the language, we also consider it maps the stub default value
+                    if (s_optionsToDefaultValue.TryGetValue(option, out var realDefaultValue) && realDefaultValue.Equals(enumValue))
+                    {
+                        return ImmutableArray.Create((int)enumValue, (int)option.DefaultValue!);
+                    }
+
+                    return ImmutableArray.Create((int)enumValue);
+                });
+
+            foreach (var (result, match) in actualMappings)
+            {
+                var acceptableValues = enumValues[result];
+                Assert.Contains(match, acceptableValues);
+            }
+
+            // If the default value of the enum is a stub value, verify the real value mapping is put in font of the default value mapping.
+            // It makes sure the default value would be converted to the real value by unified settings engine.
+            if (s_optionsToDefaultValue.TryGetValue(option, out var realDefaultValue))
+            {
+                var indexOfTheRealDefaultMapping = actualMappings.IndexOf((realDefaultValue.ToString().ToCamelCase(), (int)realDefaultValue));
+                Assert.NotEqual(-1, indexOfTheRealDefaultMapping);
+                var indexOfTheDefaultMapping = actualMappings.IndexOf((realDefaultValue.ToString().ToCamelCase(), (int)option.DefaultValue!));
+                Assert.NotEqual(-1, indexOfTheDefaultMapping);
+                Assert.True(indexOfTheRealDefaultMapping < indexOfTheDefaultMapping);
             }
         }
     }
