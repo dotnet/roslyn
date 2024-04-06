@@ -45,7 +45,7 @@ internal partial class SolutionAssetStorage
         /// the storage.
         /// </summary>
         public async Task AddAssetsAsync(
-            ssetHint? assetHint,
+            AssetHint assetHint,
             ReadOnlyMemory<Checksum> checksums,
             Dictionary<Checksum, object> assetMap,
             CancellationToken cancellationToken)
@@ -100,7 +100,7 @@ internal partial class SolutionAssetStorage
                 using var checksumPool = Creator.CreateChecksumSet(checksum);
                 using var _ = Creator.CreateResultMap(out var resultPool);
 
-                await scope.FindAssetsAsync(assetHint: null, checksumPool.Object, resultPool, cancellationToken).ConfigureAwait(false);
+                await scope.FindAssetsAsync(AssetHint.FullLookupForTesting, checksumPool.Object, resultPool, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfTrue(resultPool.Count != 1);
 
                 var (resultingChecksum, value) = resultPool.First();
