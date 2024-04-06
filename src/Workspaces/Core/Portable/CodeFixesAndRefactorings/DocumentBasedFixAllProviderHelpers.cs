@@ -10,7 +10,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -44,26 +46,16 @@ internal static class DocumentBasedFixAllProviderHelpers
         var currentSolution = solution;
         foreach (var fixAllContext in fixAllContexts)
         {
-            Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
-                or FixAllScope.ContainingMember or FixAllScope.ContainingType);
-            currentSolution = await FixSingleContextAsync(currentSolution, fixAllContext, progressTracker, getFixedDocumentsAsync).ConfigureAwait(false);
+            Contract.ThrowIfFalse(
+                fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project or FixAllScope.ContainingMember or FixAllScope.ContainingType);
+
+            // First, compute and apply the fixes.
+            var docIdToNewRootOrText = await getFixedDocumentsAsync(fixAllContext, progressTracker).ConfigureAwait(false);
+
+            // Then, cleanup the new doc roots, and apply the results to the solution.
+            currentSolution = await CleanupAndApplyChangesAsync(
+                progressTracker, currentSolution, docIdToNewRootOrText, fixAllContext.AsynchronousOperationListener, fixAllContext.CancellationToken).ConfigureAwait(false);
         }
-
-        return currentSolution;
-    }
-
-    private static async Task<Solution> FixSingleContextAsync<TFixAllContext>(
-        Solution currentSolution,
-        TFixAllContext fixAllContext,
-        IProgress<CodeAnalysisProgress> progressTracker,
-        Func<TFixAllContext, IProgress<CodeAnalysisProgress>, Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>>> getFixedDocumentsAsync)
-        where TFixAllContext : IFixAllContext
-    {
-        // First, compute and apply the fixes.
-        var docIdToNewRootOrText = await getFixedDocumentsAsync(fixAllContext, progressTracker).ConfigureAwait(false);
-
-        // Then, cleanup the new doc roots, and apply the results to the solution.
-        currentSolution = await CleanupAndApplyChangesAsync(progressTracker, currentSolution, docIdToNewRootOrText, fixAllContext.CancellationToken).ConfigureAwait(false);
 
         return currentSolution;
     }
@@ -77,6 +69,7 @@ internal static class DocumentBasedFixAllProviderHelpers
         IProgress<CodeAnalysisProgress> progressTracker,
         Solution currentSolution,
         Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)> docIdToNewRootOrText,
+        IAsynchronousOperationListener asyncListener,
         CancellationToken cancellationToken)
     {
         using var _1 = progressTracker.ItemCompletedScope();
@@ -96,25 +89,23 @@ internal static class DocumentBasedFixAllProviderHelpers
                     : currentSolution.WithDocumentText(docId, newText!);
             }
 
-            // Next, go and cleanup any trees we inserted. Once we clean the document, we get the text of it and
-            // insert that back into the final solution.  This way we can release both the original fixed tree, and
-            // the cleaned tree (both of which can be much more expensive than just text).
+            // Next, go and cleanup any trees we inserted. Once we clean the document, we get the text of it and insert
+            // that back into the final solution.  This way we can release both the original fixed tree, and the cleaned
+            // tree (both of which can be much more expensive than just text).
             //
             // Do this in parallel across all the documents that were fixed.
-            using var _2 = ArrayBuilder<Task<(DocumentId docId, SourceText sourceText)>>.GetInstance(out var tasks);
+            //
+            // We're about to making a ton of calls to this solution, including expensive oop calls to get up to date
+            // compilations, skeletons and SG docs.  Create and pin this solution so that all remote calls operate on
+            // the same fork and do not cause the forked solution to be created and dropped repeatedly.
+            using var _2 = RemoteKeepAliveSession.Create(currentSolution, asyncListener);
+
+            using var _3 = ArrayBuilder<Task<(DocumentId docId, SourceText sourceText)>>.GetInstance(out var tasks);
 
             foreach (var (docId, (newRoot, _)) in docIdToNewRootOrText)
             {
                 if (newRoot != null)
-                {
-                    var dirtyDocument = currentSolution.GetRequiredDocument(docId);
-                    tasks.Add(Task.Run(async () =>
-                    {
-                        var cleanedDocument = await PostProcessCodeAction.Instance.PostProcessChangesAsync(dirtyDocument, cancellationToken).ConfigureAwait(false);
-                        var cleanedText = await cleanedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                        return (dirtyDocument.Id, cleanedText);
-                    }, cancellationToken));
-                }
+                    tasks.Add(GetCleanedDocumentAsync(currentSolution.GetRequiredDocument(docId), cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -128,6 +119,15 @@ internal static class DocumentBasedFixAllProviderHelpers
         }
 
         return currentSolution;
+
+        static async Task<(DocumentId docId, SourceText sourceText)> GetCleanedDocumentAsync(Document dirtyDocument, CancellationToken cancellationToken)
+        {
+            await Task.Yield();
+
+            var cleanedDocument = await PostProcessCodeAction.Instance.PostProcessChangesAsync(dirtyDocument, cancellationToken).ConfigureAwait(false);
+            var cleanedText = await cleanedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            return (dirtyDocument.Id, cleanedText);
+        }
     }
 
     /// <summary>

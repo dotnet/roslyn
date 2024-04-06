@@ -3,11 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
@@ -27,6 +24,7 @@ internal interface IFixAllContext
     string? CodeActionEquivalenceKey { get; }
     CancellationToken CancellationToken { get; }
     IProgress<CodeAnalysisProgress> Progress { get; }
+    IAsynchronousOperationListener AsynchronousOperationListener { get; }
 
     string GetDefaultFixAllTitle();
     IFixAllContext With(
