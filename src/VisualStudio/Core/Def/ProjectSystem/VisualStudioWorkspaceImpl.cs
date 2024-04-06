@@ -838,9 +838,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     private static IEnumerable<ProjectItem> GetAllItems(ProjectItems projectItems)
     {
         if (projectItems == null)
-        {
-            return SpecializedCollections.EmptyEnumerable<ProjectItem>();
-        }
+            return [];
 
         var items = projectItems.OfType<ProjectItem>();
         return items.Concat(items.SelectMany(i => GetAllItems(i.ProjectItems)));

@@ -327,6 +327,11 @@
         <target state="translated">Die &amp;Methodengruppe "{0}" kann nicht in den Delegattyp "{1}" konvertiert werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotDynamicInvokeOnExpression">
+        <source>Cannot perform a dynamic invocation on an expression with type '{0}'.</source>
+        <target state="new">Cannot perform a dynamic invocation on an expression with type '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
         <source>The delegate type could not be inferred.</source>
         <target state="translated">Der Delegattyp konnte nicht abgeleitet werden.</target>
@@ -444,7 +449,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingAdd">
         <source>Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</source>
-        <target state="new">Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</target>
+        <target state="translated">Der Auflistungsausdruckstyp "{0}" muss über eine Instanz oder die Erweiterungsmethode "Add" verfügen, die mit einem einzelnen Argument aufgerufen werden kann.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingConstructor">

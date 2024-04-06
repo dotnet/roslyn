@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     buildRequest,
                     pipeName,
                     timeoutOverride: null,
-                    tryCreateServerFunc: (pipeName, logger) => TryCreateServer(clientDirectory, pipeName, logger),
+                    tryCreateServerFunc: (pipeName, logger) => TryCreateServer(clientDirectory, pipeName, logger, out int _),
                     logger,
                     cancellationToken);
 
@@ -446,8 +446,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// compiler server process was successful, it does not state whether the server successfully
         /// started or not (it could crash on startup).
         /// </summary>
-        internal static bool TryCreateServer(string clientDirectory, string pipeName, ICompilerServerLogger logger)
+        internal static bool TryCreateServer(string clientDirectory, string pipeName, ICompilerServerLogger logger, out int processId)
         {
+            processId = 0;
             var serverInfo = GetServerProcessInfo(clientDirectory, pipeName);
 
             if (!File.Exists(serverInfo.toolFilePath))
@@ -492,6 +493,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     logger.Log("Successfully created process with process id {0}", processInfo.dwProcessId);
                     CloseHandle(processInfo.hProcess);
                     CloseHandle(processInfo.hThread);
+                    processId = processInfo.dwProcessId;
                 }
                 else
                 {
@@ -515,8 +517,15 @@ namespace Microsoft.CodeAnalysis.CommandLine
                         CreateNoWindow = true
                     };
 
-                    Process.Start(startInfo);
-                    return true;
+                    if (Process.Start(startInfo) is { } process)
+                    {
+                        processId = process.Id;
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
                 catch
                 {

@@ -714,7 +714,7 @@ internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObj
         }
         else
         {
-            return SpecializedCollections.EmptyEnumerable<TextSpan>();
+            return [];
         }
     }
 

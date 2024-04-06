@@ -336,7 +336,7 @@ End Module";
             var provider = workspace.ExportProvider.GetExportedValue<AbstractStructureTaggerProvider>();
 
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
-            var context = new TaggerContext<IContainerStructureTag>(document, view.TextSnapshot);
+            var context = new TaggerContext<IContainerStructureTag>(document, view.TextSnapshot, frozenPartialSemantics: false);
             await provider.GetTestAccessor().ProduceTagsAsync(context);
 
             return context.TagSpans.Select(x => x.Tag).OrderBy(t => t.OutliningSpan.Value.Start).ToList();
