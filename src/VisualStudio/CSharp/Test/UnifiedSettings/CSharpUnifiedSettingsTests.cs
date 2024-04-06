@@ -2,22 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.CSharp.Snippets;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.UnitTests;
-using Microsoft.VisualStudio.CallHierarchy.Package.Definitions;
 using Microsoft.VisualStudio.LanguageServices.Options;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using Xunit;
@@ -26,15 +19,25 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
 {
     public class CSharpUnifiedSettingsTests
     {
-        private readonly static ImmutableArray<IOption2> s_onboardedOptions = ImmutableArray.Create<IOption2>(CompletionOptionsStorage.TriggerOnTypingLetters);
+        private static readonly ImmutableArray<IOption2> s_onboardedOptions = ImmutableArray.Create<IOption2>(
+            CompletionOptionsStorage.TriggerOnTypingLetters,
+            CompletionOptionsStorage.SnippetsBehavior);
+
+        /// <summary>
+        /// Some options use different default value for C# and VB. The default value in OptionConfig is just a stub value.
+        /// The real value is set at runtime. But in unified settings we always use the correct value for language.
+        /// Use this dictionary to indicate that in unit test.
+        /// </summary>
+        private static readonly ImmutableDictionary<IOption2, object> s_optionsToDefaultValue = ImmutableDictionary<IOption2, object>.Empty
+                .Add(CompletionOptionsStorage.SnippetsBehavior, SnippetsRule.AlwaysInclude.ToString().ToCamelCase());
 
         [Fact]
-        public async Task CSharpIntellisensePageTest()
+        public async Task IntellisensePageSettingsTest()
         {
             var registrationFileStream = typeof(CSharpUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.CSharp.UnitTests.csharpSettings.registration.json");
             using var reader = new StreamReader(registrationFileStream!);
             var registrationFile = await reader.ReadToEndAsync().ConfigureAwait(false);
-            var registrationJsonObject = JObject.Parse(registrationFile, new JsonLoadSettings() { CommentHandling = CommentHandling.Ignore });
+            var registrationJsonObject = JObject.Parse(registrationFile, new JsonLoadSettings { CommentHandling = CommentHandling.Ignore });
 
             var categoriesTitle = registrationJsonObject.SelectToken("$.categories['textEditor.csharp'].title")!;
             Assert.Equal("C#", categoriesTitle.ToString());
@@ -48,8 +51,14 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
                 {
                     var unifiedSettingsPath = unifiedSettingsStorage.GetUnifiedSettingsPath(LanguageNames.CSharp);
                     VerifyType(registrationJsonObject, unifiedSettingsPath, option);
-                    VerifyDefaultValue(registrationJsonObject, unifiedSettingsPath, option);
-                    VerifyMigration(registrationJsonObject, unifiedSettingsPath, option);
+                    if (option.Type.IsEnum)
+                    {
+                        // VerifyEnum(registrationJsonObject, unifiedSettingsPath, option);
+                    }
+                    else
+                    {
+                        VerifySettings(registrationJsonObject, unifiedSettingsPath, option);
+                    }
                 }
                 else
                 {
@@ -59,25 +68,56 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
             }
         }
 
+        private static void VerifySettings(JObject registrationJsonObject, string unifiedSettingPath, IOption2 option)
+        {
+            // Verify default value
+            var actualDefaultValue = registrationJsonObject.SelectToken($"$.properties['{unifiedSettingPath}'].default")!;
+            var expectedDefaultValue = option.Definition.DefaultValue?.ToString();
+            Assert.Equal(actualDefaultValue.ToString(), expectedDefaultValue);
+            VerifyMigration(registrationJsonObject, unifiedSettingPath, option);
+        }
+
+        private static void VerifyEnum(JObject registrationJsonObject, string unifiedSettingPath, IOption2 option)
+        {
+            var enumArray = registrationJsonObject.SelectTokens($"$.properties['{unifiedSettingPath}'].enum");
+
+        }
+
         private static void VerifyType(JObject registrationJsonObject, string unifiedSettingPath, IOption2 option)
         {
             var actualType = registrationJsonObject.SelectToken($"$.properties['{unifiedSettingPath}'].type")!;
-            var expectedType = ConvertTypeNameToJsonType(option.Definition.Type.Name);
-            Assert.Equal(expectedType, actualType.ToString());
+            var expectedType = option.Definition.Type;
+            if (expectedType.IsEnum)
+            {
+                // Enum is string in json
+                Assert.Equal("string", actualType.ToString());
+            }
+            else
+            {
+                var expectedTypeName = ConvertTypeNameToJsonType(option.Definition.Type.Name);
+                Assert.Equal(expectedTypeName, actualType.ToString());
+            }
 
             static string ConvertTypeNameToJsonType(string typeName)
                 => typeName switch
                 {
                     "Boolean" => "boolean",
-                    _ => throw ExceptionUtilities.Unreachable()
+                    _ => typeName
                 };
         }
 
-        private static void VerifyDefaultValue(JObject registrationJsonObject, string unifiedSettingPath, IOption2 option, string? alternateDefaultOnNull = null)
+        private static void VerifyDefaultValue(JObject registrationJsonObject, string unifiedSettingPath, IOption2 option)
         {
             var actualDefaultValue = registrationJsonObject.SelectToken($"$.properties['{unifiedSettingPath}'].default")!;
-            var expectedDefaultValue = option.Definition.DefaultValue?.ToString() ?? alternateDefaultOnNull;
-            Assert.Equal(actualDefaultValue, expectedDefaultValue);
+            if (s_optionsToDefaultValue.TryGetValue(option, out var perLangDefaultValue))
+            {
+                Assert.Equal(actualDefaultValue.ToString(), perLangDefaultValue.ToString());
+            }
+            else
+            {
+                var expectedDefaultValue = option.Definition.DefaultValue?.ToString();
+                Assert.Equal(actualDefaultValue.ToString(), expectedDefaultValue);
+            }
         }
 
         private static void VerifyMigration(JObject registrationJsonObject, string unifiedSettingPath, IOption2 option)
@@ -88,9 +128,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
             var migrationType = migrationProperty.Name;
             if (migrationType is "pass")
             {
-                // migration: {
-                //   pass: {
-                //     input: {
+                // "migration": {
+                //   "pass": {
+                //     "input": {
                 //      }
                 //   }
                 // }
@@ -100,6 +140,20 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
             }
             else if (migrationType is "enumIntegerToString")
             {
+                // "migration": {
+                //   "enumIntegerToString": {
+                //     "input": {
+                //        "store": xxxx,
+                //        "path": yyyy
+                //      },
+                //     "map": {
+                //      // Enum mappings
+                //     }
+                //   }
+                // }
+                // Verify input node and map node
+                var input = registrationJsonObject.SelectToken($"$.properties['{unifiedSettingPath}'].migration.enumIntegerToString.input")!;
+                VerifyInput(input, option);
                 VerifyEnumIntegerToStringMigration(registrationJsonObject, unifiedSettingPath, option);
             }
             else
@@ -131,7 +185,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
                 }
             }
 
-            static void VerifyEnumIntegerToStringMigration(JObject registrationJsonObject, string unifiedSettingPath, IOption2 option)
+            static void VerifyEnumIntegerToStringMigration(JToken registrationJsonObject, string unifiedSettingPath, IOption2 option)
             {
                 var input = registrationJsonObject.SelectToken($"$.properties['{unifiedSettingPath}'].migration.pass.input")!;
             }
