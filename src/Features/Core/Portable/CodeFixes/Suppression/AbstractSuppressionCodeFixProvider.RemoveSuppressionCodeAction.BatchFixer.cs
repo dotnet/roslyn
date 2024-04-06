@@ -44,7 +44,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 {
                     var span = diagnostic.Location.SourceSpan;
                     var removeSuppressionFixes = await _suppressionFixProvider.GetFixesAsync(
-                        document, span, SpecializedCollections.SingletonEnumerable(diagnostic), fixAllState.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
+                        document, span, [diagnostic], fixAllState.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
                     var removeSuppressionFix = removeSuppressionFixes.SingleOrDefault();
                     if (removeSuppressionFix != null)
                     {
@@ -89,7 +89,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 foreach (var diagnostic in diagnostics.Where(d => !d.Location.IsInSource && d.IsSuppressed))
                 {
                     var removeSuppressionFixes = await _suppressionFixProvider.GetFixesAsync(
-                        project, SpecializedCollections.SingletonEnumerable(diagnostic), fixAllState.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
+                        project, [diagnostic], fixAllState.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
                     if (removeSuppressionFixes.SingleOrDefault()?.Action is RemoveSuppressionCodeAction removeSuppressionCodeAction)
                     {
                         if (fixAllState.IsFixMultiple)
