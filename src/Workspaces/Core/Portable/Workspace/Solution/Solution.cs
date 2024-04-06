@@ -788,7 +788,7 @@ public partial class Solution
     public Solution AddAnalyzerReference(AnalyzerReference analyzerReference)
     {
         return AddAnalyzerReferences(
-            analyzerReference ?? throw new ArgumentNullException(nameof(analyzerReference))]);
+            [analyzerReference ?? throw new ArgumentNullException(nameof(analyzerReference))]);
     }
 
     /// <summary>
