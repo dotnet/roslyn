@@ -788,8 +788,7 @@ public partial class Solution
     public Solution AddAnalyzerReference(AnalyzerReference analyzerReference)
     {
         return AddAnalyzerReferences(
-            SpecializedCollections.SingletonEnumerable(
-                analyzerReference ?? throw new ArgumentNullException(nameof(analyzerReference))));
+            analyzerReference ?? throw new ArgumentNullException(nameof(analyzerReference))]);
     }
 
     /// <summary>
