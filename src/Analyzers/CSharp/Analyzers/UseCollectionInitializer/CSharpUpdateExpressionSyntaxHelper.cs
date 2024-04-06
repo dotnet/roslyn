@@ -40,5 +40,5 @@ internal sealed class CSharpUpdateExpressionSyntaxHelper : IUpdateExpressionSynt
     }
 
     private static IEnumerable<StatementSyntax> ExtractEmbeddedStatements(StatementSyntax embeddedStatement)
-        => embeddedStatement is BlockSyntax block ? block.Statements : SpecializedCollections.SingletonEnumerable(embeddedStatement);
+        => embeddedStatement is BlockSyntax block ? block.Statements : [embeddedStatement];
 }
