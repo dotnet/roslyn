@@ -390,9 +390,9 @@ internal partial class AutomaticLineEnderCommandHandler
             // =>
             // var l = new Bar() {}; // I am some comments
             var replacementContainerNode = objectCreationNodeContainer.ReplaceSyntax(
-                nodes: SpecializedCollections.SingletonCollection(baseObjectCreationExpressionNode),
+                nodes: [baseObjectCreationExpressionNode],
                 (_, _) => objectCreationNodeWithCorrectInitializer.WithoutTrailingTrivia(),
-                tokens: SpecializedCollections.SingletonCollection(nextToken),
+                tokens: [nextToken],
                 computeReplacementToken: (_, _) =>
                     SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(objectCreationNodeWithCorrectInitializer.GetTrailingTrivia()),
                 trivia: [],
