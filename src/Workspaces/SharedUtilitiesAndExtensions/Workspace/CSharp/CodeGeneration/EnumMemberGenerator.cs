@@ -39,7 +39,7 @@ internal static class EnumMemberGenerator
         {
             var lastMember = members.Last();
             var trailingTrivia = lastMember.GetTrailingTrivia();
-            members[members.Count - 1] = lastMember.WithTrailingTrivia();
+            members[^1] = lastMember.WithTrailingTrivia();
             members.Add(SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(trailingTrivia));
             members.Add(member);
         }

@@ -299,7 +299,7 @@ internal class CSharpLineSeparatorService : ILineSeparatorService
         {
             if (!seenSeparator)
             {
-                var nextToLast = children[children.Count - 2];
+                var nextToLast = children[^2];
                 AddLineSeparatorSpanForNode(nextToLast, spans, cancellationToken);
             }
 
