@@ -187,7 +187,7 @@ internal partial class CSharpMethodExtractor
             Contract.ThrowIfTrue(AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0);
 
             // propagate any type variable used in extracted code
-            return [.. AnalyzerResult.MethodTypeParametersInDeclaration.Select(m => ParseTypeName(m.Name))];
+            return [.. AnalyzerResult.MethodTypeParametersInDeclaration.Select(m => SyntaxFactory.ParseTypeName(m.Name))];
         }
 
         protected override SyntaxNode GetCallSiteContainerFromOutermostMoveInVariable(CancellationToken cancellationToken)
