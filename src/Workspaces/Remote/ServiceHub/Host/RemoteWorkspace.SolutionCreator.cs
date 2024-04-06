@@ -215,14 +215,16 @@ namespace Microsoft.CodeAnalysis.Remote
                     oldProjectIdToStateChecksums.Add(projectId, oldProjectStateChecksums);
                 }
 
-                // sync over the *info* about all the added/changed projects.  We'll want the info so we can determine
-                // what actually changed.
-                foreach (var (projectId, checksum) in newProjectIdToChecksum)
+                using var _5 = PooledHashSet<Checksum>.GetInstance(out var newChecksumsToSync);
+                newChecksumsToSync.AddRange(newProjectIdToChecksum.Values);
+
+                var newProjectStateChecksums = await _assetProvider.GetAssetsAsync<ProjectStateChecksums>(
+                    assetHint: AssetHint.SolutionAndTopLevelProjectsOnly, newChecksumsToSync, cancellationToken).ConfigureAwait(false);
+
+                foreach (var (checksum, newProjectStateChecksum) in newProjectStateChecksums)
                 {
-                    var newProjectStateChecksums = await _assetProvider.GetAssetAsync<ProjectStateChecksums>(
-                        assetHint: projectId, checksum, cancellationToken).ConfigureAwait(false);
-                    Contract.ThrowIfTrue(newProjectStateChecksums.Checksum != checksum);
-                    newProjectIdToStateChecksums.Add(projectId, newProjectStateChecksums);
+                    Contract.ThrowIfTrue(checksum != newProjectStateChecksum.Checksum);
+                    newProjectIdToStateChecksums.Add(newProjectStateChecksum.ProjectId, newProjectStateChecksum);
                 }
 
                 // Now that we've collected the old and new project state checksums, we can actually process them to
