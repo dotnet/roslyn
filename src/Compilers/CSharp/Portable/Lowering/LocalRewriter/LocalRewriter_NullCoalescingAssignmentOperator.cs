@@ -25,9 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lhsRead = MakeRValue(transformedLHS);
             BoundExpression loweredRight = VisitExpression(node.RightOperand);
 
-            return node.IsNullableValueTypeAssignment ?
+            var result = node.IsNullableValueTypeAssignment ?
                     rewriteNullCoalescingAssignmentForValueType() :
                     rewriteNullCoalscingAssignmentStandard();
+
+            return ForceDynamicResultForAssignmentIfNecessary(node, node.LeftOperand, result, used: true);
 
             BoundExpression rewriteNullCoalscingAssignmentStandard()
             {
@@ -46,19 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression conditionalExpression = MakeNullCoalescingOperator(syntax, lhsRead, assignment, leftPlaceholder: leftPlaceholder, leftConversion: leftPlaceholder, BoundNullCoalescingOperatorResultKind.LeftType, node.LeftOperand.Type);
                 Debug.Assert(conditionalExpression.Type is { });
 
-                return adjustResult((temps.Count == 0 && stores.Count == 0) ?
+                return (temps.Count == 0 && stores.Count == 0) ?
                     conditionalExpression :
                     new BoundSequence(
                         syntax,
                         temps.ToImmutableAndFree(),
                         stores.ToImmutableAndFree(),
                         conditionalExpression,
-                        conditionalExpression.Type));
-            }
-
-            BoundExpression adjustResult(BoundExpression result)
-            {
-                return ForceDynamicResultForAssignmentIfNecessary(node, node.LeftOperand, result, used: true);
+                        conditionalExpression.Type);
             }
 
             // Rewrites the null coalescing operator in the case where the result type is the underlying
@@ -136,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // lhsRead.HasValue ? tmp : { /* sequence */ tmp = loweredRight; transformedLhs = tmp; tmp }
                 var ternary = _factory.Conditional(lhsReadHasValue, tmp, alternative, tmp.Type);
 
-                return adjustResult(_factory.Sequence(temps.ToImmutableAndFree(), stores.ToImmutableAndFree(), ternary));
+                return _factory.Sequence(temps.ToImmutableAndFree(), stores.ToImmutableAndFree(), ternary);
             }
         }
     }

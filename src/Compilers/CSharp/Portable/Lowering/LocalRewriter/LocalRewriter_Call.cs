@@ -423,6 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!method.ReturnsByRef);
                     Debug.Assert(rewrittenCall.Type is not null);
                     Debug.Assert(!rewrittenCall.Type.IsDynamic());
+                    Debug.Assert(!rewrittenCall.Type.IsVoidType());
                     rewrittenCall = _factory.Convert(node.Type, rewrittenCall);
                 }
 

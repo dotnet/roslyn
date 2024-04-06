@@ -1243,7 +1243,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
-            if (hasDynamicArgument && !methodGroup.IsExtensionMethodGroup && method.MethodKind != MethodKind.LocalFunction && !method.ReturnsByRef && !returnType.IsDynamic() &&
+            if (hasDynamicArgument && !methodGroup.IsExtensionMethodGroup && method.MethodKind != MethodKind.LocalFunction &&
+                !method.ReturnsVoid && !method.ReturnsByRef && !returnType.IsDynamic() &&
                 Conversions.ClassifyConversionFromExpressionType(returnType, Compilation.DynamicType, isChecked: false, ref useSiteInfo).IsImplicit &&
                 !HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(analyzedArguments.Arguments, ImmutableArray.Create(methodResult)))
             {

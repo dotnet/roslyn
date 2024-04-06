@@ -5496,6 +5496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Type is not null);
             Debug.Assert(node.Type.IsDynamic());
             Debug.Assert(!sourceType.IsDynamic());
+            Debug.Assert(!sourceType.IsVoidType());
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
