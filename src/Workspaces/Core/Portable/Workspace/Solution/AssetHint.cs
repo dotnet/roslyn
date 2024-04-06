@@ -19,7 +19,7 @@ internal readonly struct AssetHint
     public static AssetHint SolutionOnly = default;
 
     /// <summary>
-    /// Special instance, allowed in tests, that can do a full lookup across the entire checksum tree.
+    /// Special instance, allowed only in tests, that can do a full lookup across the entire checksum tree.
     /// </summary>
     public static AssetHint FullLookupForTesting = new(projectId: null, documentId: null, true);
 
