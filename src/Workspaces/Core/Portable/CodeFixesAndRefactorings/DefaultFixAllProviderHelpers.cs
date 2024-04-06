@@ -41,10 +41,11 @@ internal static class DefaultFixAllProviderHelpers
             _ => throw ExceptionUtilities.UnexpectedValue(fixAllContext.Scope),
         };
 
-        if (solution is null)
+        if (solution == null)
             return null;
 
-        return CodeAction.Create(title, _ => Task.FromResult(solution));
+        return CodeAction.Create(
+            title, _ => Task.FromResult(solution));
     }
 
     private static Task<Solution?> GetDocumentFixesAsync<TFixAllContext>(
