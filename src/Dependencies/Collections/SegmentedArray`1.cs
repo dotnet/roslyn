@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 // Avoid using (length & s_offsetMask) because it doesn't handle a last page size of s_segmentSize.
                 var lastPageSize = length - ((_items.Length - 1) << SegmentShift);
 
-                _items[^1] = new T[lastPageSize];
+                _items[_items.Length - 1] = new T[lastPageSize];
                 _length = length;
             }
         }

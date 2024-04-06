@@ -65,7 +65,7 @@ namespace System.Linq
             // In the event of an empty list, generate the same exception
             // that the linq extension method would.
             return immutableList.Count > 0
-                ? immutableList[^1]
+                ? immutableList[immutableList.Count - 1]
                 : Enumerable.Last(immutableList);
         }
 
@@ -77,7 +77,7 @@ namespace System.Linq
             // In the event of an empty list, generate the same exception
             // that the linq extension method would.
             return builder.Count > 0
-                ? builder[^1]
+                ? builder[builder.Count - 1]
                 : Enumerable.Last(builder);
         }
 
