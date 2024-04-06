@@ -2693,7 +2693,7 @@ public static class ObjectExtensions
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 sourceWithSymbolReference: sourceWithSymbolReference);
             var navigationSymbol = await context.GetNavigationSymbolAsync();
@@ -2735,7 +2735,7 @@ End Namespace";
 
             using var context = TestContext.Create(
                 LanguageNames.VisualBasic,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 sourceWithSymbolReference: sourceWithSymbolReference);
             var navigationSymbol = await context.GetNavigationSymbolAsync();
@@ -3199,7 +3199,7 @@ public class [|TestType|]<T> where T : unmanaged
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "7.3",
                 sourceWithSymbolReference: sourceWithSymbolReference);
@@ -3239,7 +3239,7 @@ public class TestType
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "7.3",
                 sourceWithSymbolReference: sourceWithSymbolReference);
@@ -3268,7 +3268,7 @@ public delegate void [|D|]<T>() where T : unmanaged;";
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "7.3",
                 sourceWithSymbolReference: sourceWithSymbolReference);
@@ -4746,7 +4746,7 @@ public class [|TestType|]<T> where T : notnull
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
@@ -4788,7 +4788,7 @@ public class TestType
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
@@ -4819,7 +4819,7 @@ public delegate void [|D|]<T>() where T : notnull;";
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
@@ -4877,7 +4877,7 @@ public class TestType
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
@@ -4932,7 +4932,7 @@ public class TestType
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
@@ -4995,7 +4995,7 @@ public class TestType
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
@@ -5045,7 +5045,7 @@ public class TestType
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
@@ -5096,7 +5096,7 @@ public class TestType
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
@@ -5144,7 +5144,7 @@ public class TestType
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
@@ -5192,7 +5192,7 @@ public class TestType
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
@@ -5238,7 +5238,7 @@ public class TestType
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
@@ -5284,7 +5284,7 @@ public class TestType
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
@@ -5330,7 +5330,7 @@ public class TestType
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
@@ -5374,7 +5374,7 @@ public class TestType
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
@@ -5438,7 +5438,7 @@ namespace N
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
@@ -5512,7 +5512,7 @@ public class TestType
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
@@ -5556,7 +5556,7 @@ public class TestType
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
-                SpecializedCollections.SingletonEnumerable(metadata),
+                [metadata],
                 includeXmlDocComments: false,
                 languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
