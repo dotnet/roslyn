@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public ValueTask WriteAssetsAsync(
             PipeWriter pipeWriter,
             Checksum solutionChecksum,
-            AssetHint? assetHint,
+            AssetHint assetHint,
             ReadOnlyMemory<Checksum> checksums,
             CancellationToken cancellationToken)
         {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
             using var _ = FlowControlHelper.TrySuppressFlow();
             return WriteAssetsSuppressedFlowAsync(pipeWriter, solutionChecksum, assetHint, checksums, cancellationToken);
 
-            async ValueTask WriteAssetsSuppressedFlowAsync(PipeWriter pipeWriter, Checksum solutionChecksum, AssetHint? assetHint, ReadOnlyMemory<Checksum> checksums, CancellationToken cancellationToken)
+            async ValueTask WriteAssetsSuppressedFlowAsync(PipeWriter pipeWriter, Checksum solutionChecksum, AssetHint assetHint, ReadOnlyMemory<Checksum> checksums, CancellationToken cancellationToken)
             {
                 // The responsibility is on us (as per the requirements of RemoteCallback.InvokeAsync) to Complete the
                 // pipewriter.  This will signal to streamjsonrpc that the writer passed into it is complete, which will
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private async ValueTask WriteAssetsWorkerAsync(
             PipeWriter pipeWriter,
             Checksum solutionChecksum,
-            AssetHint? assetHint,
+            AssetHint assetHint,
             ReadOnlyMemory<Checksum> checksums,
             CancellationToken cancellationToken)
         {

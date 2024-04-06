@@ -31,7 +31,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     private readonly IAssetSource _assetSource = assetSource;
 
     public override async ValueTask<T> GetAssetAsync<T>(
-        AssetHint? assetHint, Checksum checksum, CancellationToken cancellationToken)
+        AssetHint assetHint, Checksum checksum, CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(checksum == Checksum.Null);
         if (_assetCache.TryGetAsset<T>(checksum, out var asset))
@@ -113,7 +113,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     }
 
     public async ValueTask SynchronizeAssetsAsync(
-        AssetHint? assetHint, HashSet<Checksum> checksums, Dictionary<Checksum, object>? results, CancellationToken cancellationToken)
+        AssetHint assetHint, HashSet<Checksum> checksums, Dictionary<Checksum, object>? results, CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
         if (checksums.Count == 0)
@@ -193,7 +193,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
     }
 
     private async ValueTask<ImmutableArray<object>> RequestAssetsAsync(
-        AssetHint? assetHint, ReadOnlyMemory<Checksum> checksums, CancellationToken cancellationToken)
+        AssetHint assetHint, ReadOnlyMemory<Checksum> checksums, CancellationToken cancellationToken)
     {
 #if NETCOREAPP
         Contract.ThrowIfTrue(checksums.Span.Contains(Checksum.Null));

@@ -111,7 +111,7 @@ internal sealed class SolutionCompilationStateChecksums
     public async Task FindAsync(
         SolutionCompilationState compilationState,
         ProjectCone? projectCone,
-        AssetHint? assetHint,
+        AssetHint assetHint,
         HashSet<Checksum> searchingChecksumsLeft,
         Dictionary<Checksum, object> result,
         CancellationToken cancellationToken)
@@ -235,7 +235,7 @@ internal sealed class SolutionStateChecksums(
     public async Task FindAsync(
         SolutionState solution,
         ProjectCone? projectCone,
-        AssetHint? assetHintOpt,
+        AssetHint assetHint,
         HashSet<Checksum> searchingChecksumsLeft,
         Dictionary<Checksum, object> result,
         CancellationToken cancellationToken)
@@ -256,9 +256,8 @@ internal sealed class SolutionStateChecksums(
         if (searchingChecksumsLeft.Count == 0)
             return;
 
-        if (assetHintOpt != null)
+        if (!assetHint.IsFullLookup_ForTestingPurposesOnly)
         {
-            var assetHint = assetHintOpt.Value;
             // Caller said they were only looking for solution level assets.  no need to go any further.
             if (assetHint.IsSolutionOnly)
                 return;
@@ -278,29 +277,6 @@ internal sealed class SolutionStateChecksums(
         else
         {
             // Full search, used for test purposes.
-
-            // Before doing a depth-first-search *into* each project, first run across all the project at their top
-            // level. This ensures that when we are trying to sync the projects referenced by a SolutionStateChecksums'
-            // instance that we don't unnecessarily walk all documents looking just for those.
-
-            foreach (var (projectId, projectState) in solution.ProjectStates)
-            {
-                if (searchingChecksumsLeft.Count == 0)
-                    break;
-
-                // If we're syncing a project cone, no point at all at looking at child projects of the solution that
-                // are not in that cone.
-                if (projectCone != null && !projectCone.Contains(projectId))
-                    continue;
-
-                if (projectState.TryGetStateChecksums(out var projectStateChecksums) &&
-                    searchingChecksumsLeft.Remove(projectStateChecksums.Checksum))
-                {
-                    result[projectStateChecksums.Checksum] = projectStateChecksums;
-                }
-            }
-
-            // Now actually do the depth first search into each project.
 
             foreach (var (projectId, projectState) in solution.ProjectStates)
             {
