@@ -8,30 +8,29 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindSymbols
+namespace Microsoft.CodeAnalysis.FindSymbols;
+
+internal static partial class DependentTypeFinder
 {
-    internal static partial class DependentTypeFinder
+    private static Task<ImmutableArray<INamedTypeSymbol>> FindDerivedClassesInCurrentProcessAsync(
+        INamedTypeSymbol type,
+        Solution solution,
+        IImmutableSet<Project>? projects,
+        bool transitive,
+        CancellationToken cancellationToken)
     {
-        private static Task<ImmutableArray<INamedTypeSymbol>> FindDerivedClassesInCurrentProcessAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project>? projects,
-            bool transitive,
-            CancellationToken cancellationToken)
+        if (s_isNonSealedClass(type))
         {
-            if (s_isNonSealedClass(type))
-            {
-                static bool TypeMatches(INamedTypeSymbol type, HashSet<INamedTypeSymbol> set)
-                    => TypeHasBaseTypeInSet(type, set);
+            static bool TypeMatches(INamedTypeSymbol type, HashSet<INamedTypeSymbol> set)
+                => TypeHasBaseTypeInSet(type, set);
 
-                return DescendInheritanceTreeAsync(type, solution, projects,
-                    typeMatches: TypeMatches,
-                    shouldContinueSearching: s_isNonSealedClass,
-                    transitive: transitive,
-                    cancellationToken: cancellationToken);
-            }
-
-            return SpecializedTasks.EmptyImmutableArray<INamedTypeSymbol>();
+            return DescendInheritanceTreeAsync(type, solution, projects,
+                typeMatches: TypeMatches,
+                shouldContinueSearching: s_isNonSealedClass,
+                transitive: transitive,
+                cancellationToken: cancellationToken);
         }
+
+        return SpecializedTasks.EmptyImmutableArray<INamedTypeSymbol>();
     }
 }

@@ -182,10 +182,10 @@ namespace Roslyn.Test.Utilities
                 + sizeof(int)                                  // Checksum
                 + sizeof(short)                                // Subsystem
                 + sizeof(short)                                // DllCharacteristics
-                + 4 * (is32bit ? sizeof(int) : sizeof(long)) + // SizeOfStackReserve, SizeOfStackCommit, SizeOfHeapReserve, SizeOfHeapCommit
-                +sizeof(int) +                                // LoaderFlags
-                +sizeof(int) +                                // NumberOfRvaAndSizes
-                +4 * sizeof(long);                            // directory entries before Authenticode
+                + 4 * (is32bit ? sizeof(int) : sizeof(long))   // SizeOfStackReserve, SizeOfStackCommit, SizeOfHeapReserve, SizeOfHeapCommit
+                + sizeof(int)                                  // LoaderFlags
+                + sizeof(int)                                  // NumberOfRvaAndSizes
+                + 4 * sizeof(long);                            // directory entries before Authenticode
         }
 
         private static MethodInfo s_peheaderSizeMethod;

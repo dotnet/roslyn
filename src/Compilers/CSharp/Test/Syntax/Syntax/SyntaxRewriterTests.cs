@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var rewriter = new BadRewriter();
             var rewrittenRoot = rewriter.Visit(tree.GetCompilationUnitRoot());
             Assert.NotNull(rewrittenRoot.SyntaxTree);
-            Assert.True(((SyntaxTree)rewrittenRoot.SyntaxTree).HasCompilationUnitRoot, "how did we get a non-CompilationUnit root?");
+            Assert.True(rewrittenRoot.SyntaxTree.HasCompilationUnitRoot, "how did we get a non-CompilationUnit root?");
             Assert.Same(rewrittenRoot, rewrittenRoot.SyntaxTree.GetRoot());
         }
 

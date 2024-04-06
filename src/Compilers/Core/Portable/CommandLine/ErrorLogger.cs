@@ -21,7 +21,10 @@ namespace Microsoft.CodeAnalysis
     /// for the <see cref="ErrorLogger"/>. It contains the following:
     ///   1. Analyzer execution time in seconds for the analyzer owning the descriptor.
     ///   2. Analyzer execution time in percentage of the total analyzer execution time.
-    ///   3. A boolean value "HasAnyExternalSuppression" indicating if the diagnostic ID has any
+    ///   3. Set of all effective severities for the diagnostic Id, configured through options
+    ///      from editorconfig, ruleset, command line options, etc. for either part of the compilation
+    ///      or the entire compilation.
+    ///   4. A boolean value "HasAnyExternalSuppression" indicating if the diagnostic ID has any
     ///      external non-source suppression from editorconfig, ruleset, command line options, etc.,
     ///      which disables the descriptor for either part of the compilation or the entire compilation.
     ///      Note that this flag doesn't account for source suppressions from pragma directives,
@@ -31,5 +34,6 @@ namespace Microsoft.CodeAnalysis
     internal readonly record struct DiagnosticDescriptorErrorLoggerInfo(
         double ExecutionTime,
         int ExecutionPercentage,
+        ImmutableHashSet<ReportDiagnostic>? EffectiveSeverities,
         bool HasAnyExternalSuppression);
 }

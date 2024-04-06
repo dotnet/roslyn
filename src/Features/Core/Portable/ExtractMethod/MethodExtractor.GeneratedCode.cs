@@ -2,41 +2,35 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExtractMethod
+namespace Microsoft.CodeAnalysis.ExtractMethod;
+
+internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
 {
-    internal abstract partial class MethodExtractor
+    internal class GeneratedCode
     {
-        internal class GeneratedCode
+        public GeneratedCode(
+            SemanticDocument document,
+            SyntaxAnnotation methodNameAnnotation,
+            SyntaxAnnotation callSiteAnnotation,
+            SyntaxAnnotation methodDefinitionAnnotation)
         {
-            public GeneratedCode(
-                OperationStatus status,
-                SemanticDocument document,
-                SyntaxAnnotation methodNameAnnotation,
-                SyntaxAnnotation callsiteAnnotation,
-                SyntaxAnnotation methodDefinitionAnnotation)
-            {
-                Contract.ThrowIfNull(document);
-                Contract.ThrowIfNull(methodNameAnnotation);
-                Contract.ThrowIfNull(callsiteAnnotation);
-                Contract.ThrowIfNull(methodDefinitionAnnotation);
+            Contract.ThrowIfNull(document);
+            Contract.ThrowIfNull(methodNameAnnotation);
+            Contract.ThrowIfNull(callSiteAnnotation);
+            Contract.ThrowIfNull(methodDefinitionAnnotation);
 
-                Status = status;
-                SemanticDocument = document;
-                MethodNameAnnotation = methodNameAnnotation;
-                CallSiteAnnotation = callsiteAnnotation;
-                MethodDefinitionAnnotation = methodDefinitionAnnotation;
-            }
-
-            public OperationStatus Status { get; }
-            public SemanticDocument SemanticDocument { get; }
-
-            public SyntaxAnnotation MethodNameAnnotation { get; }
-            public SyntaxAnnotation CallSiteAnnotation { get; }
-            public SyntaxAnnotation MethodDefinitionAnnotation { get; }
+            SemanticDocument = document;
+            MethodNameAnnotation = methodNameAnnotation;
+            CallSiteAnnotation = callSiteAnnotation;
+            MethodDefinitionAnnotation = methodDefinitionAnnotation;
         }
+
+        public SemanticDocument SemanticDocument { get; }
+
+        public SyntaxAnnotation MethodNameAnnotation { get; }
+        public SyntaxAnnotation CallSiteAnnotation { get; }
+        public SyntaxAnnotation MethodDefinitionAnnotation { get; }
     }
 }

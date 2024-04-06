@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AliasAmbiguousType
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
-    public class AliasAmbiguousTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class AliasAmbiguousTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public AliasAmbiguousTypeTests(ITestOutputHelper logger)
            : base(logger)

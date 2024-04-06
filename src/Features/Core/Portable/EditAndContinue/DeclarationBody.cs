@@ -22,6 +22,32 @@ internal abstract class DeclarationBody : IEquatable<DeclarationBody>
     public abstract OneOrMany<SyntaxNode> RootNodes { get; }
 
     /// <summary>
+    /// Returns all nodes of the body.
+    /// </summary>
+    /// <remarks>
+    /// Note that VB lambda bodies are represented by a lambda header and that some lambda bodies share 
+    /// their parent nodes with other bodies (e.g. join clause expressions).
+    /// </remarks>
+    public virtual IEnumerable<SyntaxNode> GetExpressionsAndStatements()
+    {
+        foreach (var root in RootNodes)
+        {
+            yield return root;
+        }
+    }
+
+    public IEnumerable<SyntaxNode> GetDescendantNodes(Func<SyntaxNode, bool> descendIntoChildren)
+    {
+        foreach (var root in GetExpressionsAndStatements())
+        {
+            foreach (var node in root.DescendantNodesAndSelf(descendIntoChildren))
+            {
+                yield return node;
+            }
+        }
+    }
+
+    /// <summary>
     /// <see cref="SyntaxNode"/> that includes all active tokens (<see cref="MemberBody.GetActiveTokens"/>)
     /// and its span covers the entire <see cref="MemberBody.Envelope"/>.
     /// May include descendant nodes or tokens that do not belong to the body.
@@ -39,10 +65,10 @@ internal abstract class DeclarationBody : IEquatable<DeclarationBody>
     /// <summary>
     /// Computes a statement-level syntax tree match of this body with <paramref name="newBody"/>.
     /// </summary>
-    public virtual BidirectionalMap<SyntaxNode> ComputeMatch(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
+    public virtual DeclarationBodyMap ComputeMap(DeclarationBody newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
     {
         var primaryMatch = ComputeSingleRootMatch(newBody, knownMatches);
-        return (primaryMatch != null) ? BidirectionalMap<SyntaxNode>.FromMatch(primaryMatch) : BidirectionalMap<SyntaxNode>.Empty;
+        return (primaryMatch != null) ? DeclarationBodyMap.FromMatch(primaryMatch) : DeclarationBodyMap.Empty;
     }
 
     /// <summary>

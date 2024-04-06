@@ -157,6 +157,11 @@
         <target state="translated">Použít zahozenou místní</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_may_change_semantics">
+        <source>{0} (may change semantics)</source>
+        <target state="translated">{0} (může změnit sémantiku)</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

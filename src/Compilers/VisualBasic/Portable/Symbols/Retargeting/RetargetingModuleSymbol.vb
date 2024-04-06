@@ -290,5 +290,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         Public Overrides Function GetMetadata() As ModuleMetadata
             Return _underlyingModule.GetMetadata()
         End Function
+
+        Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+            Get
+                Return _underlyingModule.ObsoleteAttributeData
+            End Get
+        End Property
+
     End Class
 End Namespace

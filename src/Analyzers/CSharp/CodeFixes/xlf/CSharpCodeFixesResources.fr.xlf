@@ -137,11 +137,6 @@
         <target state="translated">Placer un jeton sur la ligne suivante</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="translated">Supprimer les Usings inutiles</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_blank_lines_between_braces">
         <source>Remove blank line between braces</source>
         <target state="translated">Supprimer la ligne vide entre les accolades</target>
@@ -155,6 +150,11 @@
       <trans-unit id="Remove_new_modifier">
         <source>Remove 'new' modifier</source>
         <target state="translated">Supprimer le modificateur 'new'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="translated">Supprimer les Usings inutiles</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="Use_collection_expression">
         <source>Use collection expression</source>
-        <target state="new">Use collection expression</target>
+        <target state="translated">Utiliser une expression de collection</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">

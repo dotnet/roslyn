@@ -215,10 +215,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim [interface] = [event].ContainingType
 
                 For Each attrData In [interface].GetAttributes()
-                    If attrData.IsTargetAttribute([interface], AttributeDescription.ComEventInterfaceAttribute) AndAlso
-                        attrData.CommonConstructorArguments.Length = 2 Then
-                        expr = RewriteNoPiaAddRemoveHandler(node, receiver, [event], handler)
-                        Exit For
+                    Dim signatureIndex As Integer = attrData.GetTargetAttributeSignatureIndex(AttributeDescription.ComEventInterfaceAttribute)
+
+                    If signatureIndex = 0 Then
+                        Dim errorInfo As DiagnosticInfo = attrData.ErrorInfo
+                        If errorInfo IsNot Nothing Then
+                            _diagnostics.Add(errorInfo, node.EventAccess.Syntax.Location)
+                        End If
+
+                        If Not attrData.HasErrors Then
+                            expr = RewriteNoPiaAddRemoveHandler(node, receiver, [event], handler)
+                            Exit For
+                        End If
                     End If
                 Next
             End If
@@ -273,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                             WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__AddEventHandler,
                                                                             WellKnownMember.System_Runtime_InteropServices_ComAwareEventInfo__RemoveEventHandler))
                 If addRemove IsNot Nothing Then
-                    Dim eventInfo = factory.[New](ctor, factory.Typeof([event].ContainingType), factory.Literal([event].MetadataName))
+                    Dim eventInfo = factory.[New](ctor, factory.Typeof([event].ContainingType, ctor.Parameters(0).Type), factory.Literal([event].MetadataName))
                     result = factory.Call(eventInfo,
                                           addRemove,
                                           Convert(factory, addRemove.Parameters(0).Type, receiver.MakeRValue()),

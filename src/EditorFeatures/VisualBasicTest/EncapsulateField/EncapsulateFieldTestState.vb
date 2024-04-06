@@ -15,18 +15,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
     Friend Class EncapsulateFieldTestState
         Implements IDisposable
 
-        Private ReadOnly _testDocument As TestHostDocument
-        Public Workspace As TestWorkspace
+        Private ReadOnly _testDocument As EditorTestHostDocument
+        Public Workspace As EditorTestWorkspace
         Public TargetDocument As Document
 
-        Private Sub New(workspace As TestWorkspace)
+        Private Sub New(workspace As EditorTestWorkspace)
             Me.Workspace = workspace
             _testDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue OrElse d.SelectedSpans.Any())
             TargetDocument = workspace.CurrentSolution.GetDocument(_testDocument.Id)
         End Sub
 
         Public Shared Function Create(markup As String) As EncapsulateFieldTestState
-            Dim workspace = TestWorkspace.CreateVisualBasic(markup, composition:=EditorTestCompositions.EditorFeatures)
+            Dim workspace = EditorTestWorkspace.CreateVisualBasic(markup, composition:=EditorTestCompositions.EditorFeatures)
             Return New EncapsulateFieldTestState(workspace)
         End Function
 

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
@@ -174,16 +175,21 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 [return: RequiresLocation] ref int M6() => throw null;
                 [return: RequiresLocation] ref readonly int M7() => throw null;
                 [RequiresLocation] void M8() { }
+                [RequiresLocation] public int field;
+                [RequiresLocation] int Property { get => field; set => field = value; }
             }
             """;
 
         CreateCompilation(new[] { source, RequiresLocationAttributeDefinition }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // 0.cs(2,2): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            // [RequiresLocation] class C
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(2, 2),
             // 0.cs(4,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
             //     void M1([RequiresLocation] ref readonly int p) { }
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(4, 14),
-            // 0.cs(4,36): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // 0.cs(4,36): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     void M1([RequiresLocation] ref readonly int p) { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(4, 36),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(4, 36),
             // 0.cs(5,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
             //     void M2([RequiresLocation] in int p) { }
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(5, 14),
@@ -192,10 +198,31 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(6, 14),
             // 0.cs(7,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
             //     void M4([RequiresLocation] int p) { }
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(7, 14));
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(7, 14),
+            // 0.cs(8,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     [return: RequiresLocation] int M5() => 5;
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(8, 14),
+            // 0.cs(9,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     [return: RequiresLocation] ref int M6() => throw null;
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(9, 14),
+            // 0.cs(10,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     [return: RequiresLocation] ref readonly int M7() => throw null;
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(10, 14),
+            // 0.cs(11,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     [RequiresLocation] void M8() { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(11, 6),
+            // 0.cs(12,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     [RequiresLocation] public int field;
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(12, 6),
+            // 0.cs(13,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     [RequiresLocation] int Property { get => field; set => field = value; }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(13, 6));
 
         var expectedDiagnostics = new[]
         {
+            // 0.cs(2,2): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            // [RequiresLocation] class C
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(2, 2),
             // 0.cs(4,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
             //     void M1([RequiresLocation] ref readonly int p) { }
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(4, 14),
@@ -207,10 +234,28 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(6, 14),
             // 0.cs(7,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
             //     void M4([RequiresLocation] int p) { }
-            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(7, 14)
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(7, 14),
+            // 0.cs(8,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     [return: RequiresLocation] int M5() => 5;
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(8, 14),
+            // 0.cs(9,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     [return: RequiresLocation] ref int M6() => throw null;
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(9, 14),
+            // 0.cs(10,14): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     [return: RequiresLocation] ref readonly int M7() => throw null;
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(10, 14),
+            // 0.cs(11,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     [RequiresLocation] void M8() { }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(11, 6),
+            // 0.cs(12,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     [RequiresLocation] public int field;
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(12, 6),
+            // 0.cs(13,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
+            //     [RequiresLocation] int Property { get => field; set => field = value; }
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(13, 6)
         };
 
-        CreateCompilation(new[] { source, RequiresLocationAttributeDefinition }, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(new[] { source, RequiresLocationAttributeDefinition }, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(new[] { source, RequiresLocationAttributeDefinition }).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -546,6 +591,37 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             var p = m.GlobalNamespace.GetMember<MethodSymbol>("C..ctor").Parameters.Single();
             VerifyRefReadonlyParameter(p);
         }
+    }
+
+    [Fact]
+    public void AttributeConstructor()
+    {
+        var source = """
+            [A(1)]
+            class A : System.Attribute
+            {
+                A(ref readonly int x) { }
+            }
+            
+            [B()]
+            class B : System.Attribute
+            {
+                B(ref readonly int x = 2) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (1,2): error CS8358: Cannot use attribute constructor 'A.A(ref readonly int)' because it has 'in' or 'ref readonly' parameters.
+            // [A(1)]
+            Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(ref readonly int)").WithLocation(1, 2),
+            // (1,4): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+            // [A(1)]
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "1").WithArguments("1").WithLocation(1, 4),
+            // (7,2): error CS8358: Cannot use attribute constructor 'B.B(ref readonly int)' because it has 'in' or 'ref readonly' parameters.
+            // [B()]
+            Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "B()").WithArguments("B.B(ref readonly int)").WithLocation(7, 2),
+            // (10,28): warning CS9521: A default value is specified for 'ref readonly' parameter 'x', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+            //     B(ref readonly int x = 2) { }
+            Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "2").WithArguments("x").WithLocation(10, 28));
     }
 
     [Fact]
@@ -887,9 +963,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
 
         CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (7,17): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version preview or greater.
+            // (7,17): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
             //         c.D(ref x);
-            Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "preview").WithLocation(7, 17));
+            Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(7, 17));
 
         var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
@@ -963,9 +1039,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // 0.cs(12,37): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<in int, void>'. An explicit conversion exists (are you missing a cast?)
             //         delegate*<in int, void> i = c.D;
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c.D").WithArguments("delegate*<ref int, void>", "delegate*<in int, void>").WithLocation(12, 37),
-            // 0.cs(13,23): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // 0.cs(13,23): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //         delegate*<ref readonly int, void> rr = c.D;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(13, 23),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(13, 23),
             // 0.cs(13,48): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<ref readonly int, void>'. An explicit conversion exists (are you missing a cast?)
             //         delegate*<ref readonly int, void> rr = c.D;
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c.D").WithArguments("delegate*<ref int, void>", "delegate*<ref readonly int, void>").WithLocation(13, 48),
@@ -1192,11 +1268,244 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
-        comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute);
         comp.VerifyDiagnostics(
             // (3,36): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresLocationAttribute' is not defined or imported
             //     public unsafe void M(delegate*<ref readonly int, void> p) { }
             Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(3, 36));
+    }
+
+    [Fact]
+    public void FunctionPointer_NoAttribute_PlusNormalMethod()
+    {
+        var source = """
+            class C
+            {
+                public unsafe void M1(delegate*<ref readonly int, void> p) { }
+                public void M2(ref readonly int p) { }
+            }
+            """;
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyDiagnostics(
+            // (3,37): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresLocationAttribute' is not defined or imported
+            //     public unsafe void M1(delegate*<ref readonly int, void> p) { }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(3, 37));
+    }
+
+    [Fact]
+    public void FunctionPointer_InternalAttribute()
+    {
+        // Attribute is synthesized for Assembly1, but it's not visible to Assembly2.
+        var source1 = """
+            [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Assembly2")]
+            internal class C
+            {
+                public void M(ref readonly int p) { }
+            }
+            """;
+        var comp1 = CreateCompilation(source1, assemblyName: "Assembly1").VerifyDiagnostics();
+        var comp1Ref = comp1.EmitToImageReference();
+        var source2 = """
+            class D
+            {
+                public unsafe object M(delegate*<ref readonly int, void> p)
+                {
+                    var c = new C();
+                    int x = 5;
+                    c.M(in x);
+                    var attr = new System.Runtime.CompilerServices.RequiresLocationAttribute();
+                    return attr;
+                }
+            }
+            """;
+        var comp2 = CreateCompilation(source2, new[] { comp1Ref }, assemblyName: "Assembly2", options: TestOptions.UnsafeDebugDll);
+        comp2.VerifyDiagnostics(
+            // (3,38): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresLocationAttribute' is not defined or imported
+            //     public unsafe object M(delegate*<ref readonly int, void> p)
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(3, 38),
+            // (8,56): error CS0234: The type or namespace name 'RequiresLocationAttribute' does not exist in the namespace 'System.Runtime.CompilerServices' (are you missing an assembly reference?)
+            //         var attr = new System.Runtime.CompilerServices.RequiresLocationAttribute();
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "RequiresLocationAttribute").WithArguments("RequiresLocationAttribute", "System.Runtime.CompilerServices").WithLocation(8, 56));
+
+        // Assembly1 defines the attribute in source and has IVT to Assembly2, so the attribute is visible to Assembly2.
+        var comp1b = CreateCompilation(new[] { source1, RequiresLocationAttributeDefinition }, assemblyName: "Assembly1").VerifyDiagnostics();
+        var comp1bRef = comp1b.EmitToImageReference();
+        var comp2b = CreateCompilation(source2, new[] { comp1bRef }, assemblyName: "Assembly2", options: TestOptions.UnsafeDebugDll);
+        comp2b.VerifyDiagnostics();
+
+        // Assembly1 defines the attribute in source but doesn't have IVT to Assembly3, so the attribute isn't visible to Assembly3.
+        var source3 = """
+            class D
+            {
+                public unsafe object M(delegate*<ref readonly int, void> p)
+                {
+                    var attr = new System.Runtime.CompilerServices.RequiresLocationAttribute();
+                    return attr;
+                }
+            }
+            """;
+        var comp3 = CreateCompilation(source3, new[] { comp1bRef }, assemblyName: "Assembly3", options: TestOptions.UnsafeDebugDll);
+        comp3.VerifyDiagnostics(
+            // (3,38): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresLocationAttribute' is not defined or imported
+            //     public unsafe object M(delegate*<ref readonly int, void> p)
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(3, 38),
+            // (5,56): error CS0122: 'RequiresLocationAttribute' is inaccessible due to its protection level
+            //         var attr = new System.Runtime.CompilerServices.RequiresLocationAttribute();
+            Diagnostic(ErrorCode.ERR_BadAccess, "RequiresLocationAttribute").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(5, 56));
+    }
+
+    [Fact]
+    public void FunctionPointer_DefineManually_LaterDefinedInRuntime()
+    {
+        // Library defines an API with function pointer, manually declaring the attribute.
+        var source1 = """
+            public class C
+            {
+                public unsafe void M(delegate*<ref readonly int, void> f)
+                {
+                    int x = 123;
+                    f(in x);
+                }
+            }
+            """;
+        var comp1v1 = CreateCompilation(new[] { source1, RequiresLocationAttributeDefinition }, assemblyName: "Assembly1", options: TestOptions.UnsafeReleaseDll);
+        comp1v1.VerifyDiagnostics();
+        verifyModoptFromAssembly(comp1v1, "Assembly1");
+        var comp1v1Ref = comp1v1.EmitToImageReference();
+
+        // Consumer can use the API.
+        var source2 = """
+            public class D
+            {
+                public unsafe void M()
+                {
+                    new C().M(&F);
+                }
+                static void F(ref readonly int x) => System.Console.Write("F" + x);
+            }
+            """;
+        var comp2 = CreateCompilation(source2, new[] { comp1v1Ref }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        verifyModoptFromAssembly(comp2, "Assembly1");
+        var comp2Ref = comp2.EmitToImageReference();
+
+        var source3 = """
+            try
+            {
+                new D().M();
+            }
+            catch (System.MissingMethodException e)
+            {
+                System.Console.Write(e.Message.Contains("Void C.M(Void (Int32 ByRef))"));
+            }
+            """;
+        var verifier3v1 = CompileAndVerify(source3, new[] { comp1v1Ref, comp2Ref }, expectedOutput: "F123").VerifyDiagnostics();
+        verifyModoptFromAssembly(verifier3v1.Compilation, "Assembly1");
+
+        // .NET runtime declares the attribute.
+        var source4 = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+                public sealed class RequiresLocationAttribute : Attribute
+                {
+                }
+            }
+            """;
+        var comp4 = CreateCompilation(source4, assemblyName: "Assembly4").VerifyDiagnostics();
+        var comp4Ref = comp4.EmitToImageReference();
+
+        // Library is recompiled against the newest runtime.
+        var comp1v2 = CreateCompilation(source1, new[] { comp4Ref }, assemblyName: "Assembly1", options: TestOptions.UnsafeReleaseDll);
+        comp1v2.VerifyDiagnostics();
+        verifyModoptFromAssembly(comp1v2, "Assembly4");
+        var comp1v2Ref = comp1v2.EmitToImageReference();
+
+        // That breaks the consumer.
+        var verifier3v2 = CompileAndVerify(source3, new[] { comp1v2Ref, comp2Ref, comp4Ref }, expectedOutput: "True").VerifyDiagnostics();
+        verifyModoptFromAssembly(verifier3v2.Compilation, "Assembly4");
+
+        // Unless the library adds type forwarding.
+        var source5 = """
+            using System.Runtime.CompilerServices;
+            [assembly: TypeForwardedToAttribute(typeof(RequiresLocationAttribute))]
+            """;
+        var comp1v3 = CreateCompilation(new[] { source1, source5 }, new[] { comp4Ref }, assemblyName: "Assembly1", options: TestOptions.UnsafeReleaseDll);
+        comp1v3.VerifyDiagnostics();
+        verifyModoptFromAssembly(comp1v3, "Assembly4");
+        var comp1v3Ref = comp1v3.EmitToImageReference();
+        CompileAndVerify(source3, new[] { comp1v3Ref, comp2Ref, comp4Ref }, expectedOutput: "F123").VerifyDiagnostics();
+
+        // Or keeps the manual attribute definition.
+        var comp1v4 = CreateCompilation(new[] { source1, RequiresLocationAttributeDefinition }, new[] { comp4Ref }, assemblyName: "Assembly1", options: TestOptions.UnsafeReleaseDll);
+        comp1v4.VerifyDiagnostics();
+        verifyModoptFromAssembly(comp1v4, "Assembly1");
+        var comp1v4Ref = comp1v4.EmitToImageReference();
+        CompileAndVerify(source3, new[] { comp1v4Ref, comp2Ref, comp4Ref }, expectedOutput: "F123").VerifyDiagnostics();
+
+        static void verifyModoptFromAssembly(Compilation comp, string assemblyName)
+        {
+            var f = ((CSharpCompilation)comp).GetMember<MethodSymbol>("C.M").Parameters.Single();
+            var p = ((FunctionPointerTypeSymbol)f.Type).Signature.Parameters.Single();
+            var mod = p.RefCustomModifiers.Single();
+            Assert.True(mod.IsOptional);
+            Assert.Equal(RequiresLocationAttributeQualifiedName, mod.Modifier.ToTestDisplayString());
+            Assert.Equal(assemblyName, mod.Modifier.ContainingAssembly.Name);
+        }
+    }
+
+    [Fact]
+    public void FunctionPointer_DefineManually_AndInReference()
+    {
+        var source1 = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+                public sealed class RequiresLocationAttribute : Attribute
+                {
+                }
+            }
+            """;
+        var comp1 = CreateCompilation(source1, assemblyName: "Assembly1").VerifyDiagnostics();
+        var comp1Ref = comp1.EmitToImageReference();
+
+        // Attribute declared both in the same assembly and in a reference.
+        var source2 = """
+            public class C
+            {
+                public unsafe void M(delegate*<ref readonly int, void> f) { }
+            }
+            """;
+        var comp2 = CreateCompilation(new[] { source2, RequiresLocationAttributeDefinition }, new[] { comp1Ref },
+            assemblyName: "Assembly2", options: TestOptions.UnsafeReleaseDll);
+        CompileAndVerify(comp2, sourceSymbolValidator: verify2, symbolValidator: verify2).VerifyDiagnostics();
+
+        static void verify2(ModuleSymbol m)
+        {
+            Assert.NotNull(m.GlobalNamespace.GetMember<NamedTypeSymbol>(RequiresLocationAttributeQualifiedName));
+
+            var modifier = verify(m);
+            Assert.Equal("Assembly2", modifier.ContainingAssembly.Name);
+        }
+
+        // Attribute declared only in a reference.
+        var comp3 = CreateCompilation(source2, new[] { comp1Ref }, assemblyName: "Assembly3", options: TestOptions.UnsafeReleaseDll);
+        CompileAndVerify(comp3, sourceSymbolValidator: verify3, symbolValidator: verify3).VerifyDiagnostics();
+
+        static void verify3(ModuleSymbol m)
+        {
+            Assert.Null(m.GlobalNamespace.GetMember<NamedTypeSymbol>(RequiresLocationAttributeQualifiedName));
+
+            var modifier = verify(m);
+            Assert.Equal("Assembly1", modifier.ContainingAssembly.Name);
+        }
+
+        static INamedTypeSymbol verify(ModuleSymbol m)
+        {
+            var p = m.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
+            var ptr = (FunctionPointerTypeSymbol)p.Type;
+            var p2 = ptr.Signature.Parameters.Single();
+            VerifyRefReadonlyParameter(p2, customModifiers: VerifyModifiers.RequiresLocation);
+            return p2.RefCustomModifiers.Single().Modifier;
+        }
     }
 
     [Fact]
@@ -1232,7 +1541,6 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
-        comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute);
         comp.VerifyDiagnostics(
             // (5,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.RequiresLocationAttribute' is not defined or imported
             //         delegate*<ref readonly int, void> p = null;
@@ -1265,12 +1573,12 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
-            // (6,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (6,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //         c.D(x);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("ref readonly parameters").WithLocation(6, 13),
-            // (8,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x").WithArguments("ref readonly parameters", "12.0").WithLocation(6, 13),
+            // (8,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //         c.D(in x);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("ref readonly parameters").WithLocation(8, 16));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x").WithArguments("ref readonly parameters", "12.0").WithLocation(8, 16));
 
         var expectedDiagnostics = new[]
         {
@@ -1279,7 +1587,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(6, 13)
         };
 
-        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source2, new[] { comp1Ref }, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1329,11 +1637,11 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     void M(ref readonly int p);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16));
+            // (3,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
+            //     void M(ref readonly int p) => throw null;
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 16));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         var comp = CreateCompilation(source).VerifyDiagnostics();
 
         var p = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M").Parameters.Single();
@@ -1391,9 +1699,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     void M(ref readonly readonly int p) { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 16),
             // (3,25): error CS1107: A parameter can only have one 'readonly' modifier
             //     void M(ref readonly readonly int p) { }
             Diagnostic(ErrorCode.ERR_DupParamMod, "readonly").WithArguments("readonly").WithLocation(3, 25));
@@ -1405,7 +1713,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_DupParamMod, "readonly").WithArguments("readonly").WithLocation(3, 25)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1429,7 +1737,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1446,9 +1754,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (3,12): error CS9190: 'readonly' modifier must be specified after 'ref'.
             //     void M(readonly ref readonly int p) { }
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12),
-            // (3,25): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,25): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     void M(readonly ref readonly int p) { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 25));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 25));
 
         var expectedDiagnostics = new[]
         {
@@ -1457,7 +1765,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1481,7 +1789,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1495,9 +1803,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     void M(ref readonly ref readonly int p) { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 16),
             // (3,25): error CS1107: A parameter can only have one 'ref' modifier
             //     void M(ref readonly ref readonly int p) { }
             Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(3, 25),
@@ -1515,7 +1823,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_DupParamMod, "readonly").WithArguments("readonly").WithLocation(3, 29)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1536,7 +1844,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1557,7 +1865,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1578,7 +1886,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1592,9 +1900,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     void M(ref readonly params int[] p) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 16),
             // (3,25): error CS8328:  The parameter modifier 'params' cannot be used with 'ref'
             //     void M(ref readonly params int[] p) => throw null;
             Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "ref").WithLocation(3, 25));
@@ -1606,7 +1914,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "ref").WithLocation(3, 25)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1627,7 +1935,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1641,9 +1949,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     void M(ref readonly in int[] p) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 16),
             // (3,25): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
             //     void M(ref readonly in int[] p) => throw null;
             Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(3, 25));
@@ -1655,7 +1963,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(3, 25)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1676,7 +1984,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1690,9 +1998,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     void M(ref readonly out int[] p) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 16),
             // (3,25): error CS8328:  The parameter modifier 'out' cannot be used with 'ref'
             //     void M(ref readonly out int[] p) => throw null;
             Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(3, 25));
@@ -1704,7 +2012,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(3, 25)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1725,7 +2033,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1739,11 +2047,11 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,35): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,35): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     public static void M(this ref readonly int p) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 35));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 35));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         CreateCompilation(source).VerifyDiagnostics();
     }
 
@@ -1764,7 +2072,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1778,11 +2086,11 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,30): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,30): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     public static void M(ref readonly this int p) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 30));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 30));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         CreateCompilation(source).VerifyDiagnostics();
     }
 
@@ -1796,11 +2104,11 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,37): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,37): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     public static void M(scoped ref readonly int p) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 37));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 37));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         CreateCompilation(source).VerifyDiagnostics();
     }
 
@@ -1830,7 +2138,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1860,7 +2168,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1890,7 +2198,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -1904,11 +2212,11 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (3,30): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,30): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     public static void M(ref readonly int scoped) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 30));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 30));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         CreateCompilation(source).VerifyDiagnostics();
     }
 
@@ -1926,9 +2234,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (1,8): error CS9062: Types and aliases cannot be named 'scoped'.
             // struct scoped { }
             Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 8),
-            // (4,30): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (4,30): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     public static void M(ref readonly scoped p) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(4, 30));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(4, 30));
 
         var expectedDiagnostics = new[]
         {
@@ -1937,16 +2245,16 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 8),
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
             // (1,8): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
             // struct scoped { }
             Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(1, 8),
-            // (4,30): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (4,30): error CS8773: Feature 'ref readonly parameters' is not available in C# 9.0. Please use language version 12.0 or greater.
             //     public static void M(ref readonly scoped p) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(4, 30));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(4, 30));
     }
 
     [Fact]
@@ -1963,9 +2271,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (1,8): error CS9062: Types and aliases cannot be named 'scoped'.
             // struct scoped { }
             Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 8),
-            // (4,30): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (4,30): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     public static void M(ref readonly scoped scoped) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(4, 30));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(4, 30));
 
         var expectedDiagnostics = new[]
         {
@@ -1974,16 +2282,16 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 8),
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
             // (1,8): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
             // struct scoped { }
             Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(1, 8),
-            // (4,30): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (4,30): error CS8773: Feature 'ref readonly parameters' is not available in C# 9.0. Please use language version 12.0 or greater.
             //     public static void M(ref readonly scoped scoped) => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(4, 30));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(4, 30));
     }
 
     [Fact]
@@ -2653,6 +2961,143 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_AssgReadonly, "rorro").WithLocation(23, 9));
     }
 
+    [Theory, CombinatorialData]
+    public void RefAssignment_BetweenParameters(
+        [CombinatorialValues("in", "ref readonly", "ref")] string modifier1,
+        [CombinatorialValues("in", "ref readonly", "ref")] string modifier2)
+    {
+        var source = $$"""
+            class C
+            {
+                static void M1({{modifier1}} int x, {{modifier2}} int y)
+                {
+                    x = ref y;
+                }
+                static void M2({{modifier1}} int x, {{modifier2}} int y)
+                {
+                    System.Console.WriteLine(x + " " + y);
+                    x = ref y;
+                    System.Console.WriteLine(x + " " + y);
+                }
+                static void Main()
+                {
+                    int x = 5;
+                    int y = 6;
+                    M2({{getArgumentModifier(modifier1)}} x, {{getArgumentModifier(modifier2)}} y);
+                }
+            }
+            """;
+
+        if (modifier1 == "ref" && modifier2 != "ref")
+        {
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,17): error CS8331: Cannot assign to variable 'y' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         x = ref y;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(5, 17),
+                // (10,17): error CS8331: Cannot assign to variable 'y' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         x = ref y;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(10, 17));
+        }
+        else
+        {
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                5 6
+                6 6
+                """);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M1", """
+                {
+                  // Code size        4 (0x4)
+                  .maxstack  1
+                  IL_0000:  ldarg.1
+                  IL_0001:  starg.s    V_0
+                  IL_0003:  ret
+                }
+                """);
+        }
+
+        static string getArgumentModifier(string parameterModifier)
+        {
+            return parameterModifier switch
+            {
+                "ref" => "ref",
+                _ => "in",
+            };
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void RefAssignment_BetweenParameters_Struct(
+        [CombinatorialValues("in", "ref readonly", "ref")] string modifier1,
+        [CombinatorialValues("in", "ref readonly", "ref")] string modifier2)
+    {
+        var source = $$"""
+            struct S(int v)
+            {
+                public int V = v;
+            }
+            class C
+            {
+                static int M1({{modifier1}} S x, {{modifier2}} S y)
+                {
+                    return (x = ref y).V;
+                }
+                static void M2({{modifier1}} S x, {{modifier2}} S y)
+                {
+                    System.Console.WriteLine(x.V + " " + y.V);
+                    System.Console.WriteLine((x = ref y).V);
+                    System.Console.WriteLine(x.V + " " + y.V);
+                }
+                static void Main()
+                {
+                    S x = new S(5);
+                    S y = new S(6);
+                    M2({{getArgumentModifier(modifier1)}} x, {{getArgumentModifier(modifier2)}} y);
+                }
+            }
+            """;
+
+        if (modifier1 == "ref" && modifier2 != "ref")
+        {
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,25): error CS8331: Cannot assign to variable 'y' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         return (x = ref y).V;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(9, 25),
+                // (14,43): error CS8331: Cannot assign to variable 'y' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         System.Console.WriteLine((x = ref y).V);
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(14, 43));
+        }
+        else
+        {
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                5 6
+                6
+                6 6
+                """);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M1", """
+                {
+                  // Code size       10 (0xa)
+                  .maxstack  2
+                  IL_0000:  ldarg.1
+                  IL_0001:  dup
+                  IL_0002:  starg.s    V_0
+                  IL_0004:  ldfld      "int S.V"
+                  IL_0009:  ret
+                }
+                """);
+        }
+
+        static string getArgumentModifier(string parameterModifier)
+        {
+            return parameterModifier switch
+            {
+                "ref" => "ref",
+                _ => "in",
+            };
+        }
+    }
+
     [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
     public void RefReadonlyParameter_Arglist()
     {
@@ -2735,12 +3180,12 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (6,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (6,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //         c.M(x);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("ref readonly parameters").WithLocation(6, 13),
-            // (8,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x").WithArguments("ref readonly parameters", "12.0").WithLocation(6, 13),
+            // (8,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //         c.M(in x);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "x").WithArguments("ref readonly parameters").WithLocation(8, 16));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "x").WithArguments("ref readonly parameters", "12.0").WithLocation(8, 16));
 
         var expectedDiagnostics = new[]
         {
@@ -2749,7 +3194,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(6, 13)
         };
 
-        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source2, new[] { comp1Ref }).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -3026,7 +3471,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(8, 36)
         };
 
-        CompileAndVerify(source, expectedOutput: "object5", parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source, expectedOutput: "object5", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
         CompileAndVerify(source, expectedOutput: "object5").VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -3066,36 +3511,959 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         CompileAndVerify(source, expectedOutput: "c5").VerifyDiagnostics();
     }
 
-    [Fact]
-    public void RefReadonlyParameter_OverloadResolution_04()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_01()
     {
         var source = """
             interface I1 { }
             interface I2 { }
             class C
             {
-                static string M1(I1 o, in int i) => "1" + i;
-                static string M1(I2 o, ref readonly int i) => "2" + i;
+                static string M1(I1 o, in int i) => " 1" + i;
+                static string M1(I2 o, ref readonly int i) => " 2" + i;
                 static void Main()
                 {
                     int i = 5;
-                    System.Console.WriteLine(M1(null, ref i));
-                    System.Console.WriteLine(M1(null, in i));
-                    System.Console.WriteLine(M1(null, i));
+                    System.Console.Write(M1(null, ref i));
+                    System.Console.Write(M1(null, in i));
+                    System.Console.Write(M1(null, i));
                 }
             }
             """;
-        // Add betterness rule (https://github.com/dotnet/roslyn/issues/69229). Then verify execution.
         CreateCompilation(source).VerifyDiagnostics(
-            // (10,34): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref readonly int)'
-            //         System.Console.WriteLine(M1(null, ref i));
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I2, ref readonly int)").WithLocation(10, 34),
-            // (11,34): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref readonly int)'
-            //         System.Console.WriteLine(M1(null, in i));
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I2, ref readonly int)").WithLocation(11, 34),
-            // (12,34): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref readonly int)'
-            //         System.Console.WriteLine(M1(null, i));
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I2, ref readonly int)").WithLocation(12, 34));
+            // (10,30): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref readonly int)'
+            //         System.Console.Write(M1(null, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I2, ref readonly int)").WithLocation(10, 30),
+            // (11,30): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref readonly int)'
+            //         System.Console.Write(M1(null, in i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I2, ref readonly int)").WithLocation(11, 30),
+            // (12,30): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref readonly int)'
+            //         System.Console.Write(M1(null, i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I2, ref readonly int)").WithLocation(12, 30));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_02()
+    {
+        var source1 = """
+            interface I1 { }
+            interface I2 { }
+            class C
+            {
+                public static string M1(I1 o, ref int i) => " 1" + i;
+                public static string M1(I2 o, ref readonly int i) => " 2" + i;
+            }
+            """;
+
+        var source2 = """
+            int i = 5;
+            System.Console.Write(C.M1(null, ref i));
+            """;
+
+        CreateCompilation(new[] { source1, source2 }).VerifyDiagnostics(
+            // 1.cs(2,24): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, ref int)' and 'C.M1(I2, ref readonly int)'
+            // System.Console.Write(C.M1(null, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, ref int)", "C.M1(I2, ref readonly int)").WithLocation(2, 24));
+
+        var source3 = """
+            int i = 5;
+            System.Console.Write(C.M1(null, in i));
+            System.Console.Write(C.M1(null, i));
+            """;
+
+        CompileAndVerify(new[] { source1, source3 }, expectedOutput: "25 25").VerifyDiagnostics(
+            // 1.cs(3,33): warning CS9192: Argument 2 should be passed with 'ref' or 'in' keyword
+            // System.Console.Write(C.M1(null, i));
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "i").WithArguments("2").WithLocation(3, 33));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_03()
+    {
+        var source = """
+            interface I1 { }
+            interface I2 { }
+            class C
+            {
+                static string M1(I1 o, int i) => " 1" + i;
+                static string M1(I2 o, ref readonly int i) => " 2" + i;
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(M1(null, ref i));
+                    System.Console.Write(M1(null, in i));
+                    System.Console.Write(M1(null, i));
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "25 25 15").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_04()
+    {
+        var source = """
+            interface I1 { }
+            interface I2 { }
+            interface I3 { }
+            class C
+            {
+                static string M1(I1 o, in int i) => " 1" + i;
+                static string M1(I2 o, ref int i) => " 2" + i;
+                static string M1(I3 o, ref readonly int i) => " 3" + i;
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(M1(null, ref i));
+                    System.Console.Write(M1(null, in i));
+                    System.Console.Write(M1(null, i));
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (12,30): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref int)'
+            //         System.Console.Write(M1(null, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I2, ref int)").WithLocation(12, 30),
+            // (13,30): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I3, ref readonly int)'
+            //         System.Console.Write(M1(null, in i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I3, ref readonly int)").WithLocation(13, 30),
+            // (14,30): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I3, ref readonly int)'
+            //         System.Console.Write(M1(null, i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I3, ref readonly int)").WithLocation(14, 30));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_05()
+    {
+        var source1 = """
+            interface I1 { }
+            interface I2 { }
+            interface I3 { }
+            interface I4 { }
+            class C
+            {
+                public static string M1(I1 o, int i) => " 1" + i;
+                public static string M1(I2 o, in int i) => " 2" + i;
+                public static string M1(I3 o, ref int i) => " 3" + i;
+                public static string M1(I4 o, ref readonly int i) => " 4" + i;
+            }
+            """;
+
+        var source2 = """
+            int i = 5;
+            System.Console.Write(C.M1(null, ref i));
+            System.Console.Write(C.M1(null, in i));
+            """;
+
+        CreateCompilation(new[] { source1, source2 }).VerifyDiagnostics(
+            // 1.cs(2,24): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I2, in int)' and 'C.M1(I3, ref int)'
+            // System.Console.Write(C.M1(null, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I2, in int)", "C.M1(I3, ref int)").WithLocation(2, 24),
+            // 1.cs(3,24): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I2, in int)' and 'C.M1(I4, ref readonly int)'
+            // System.Console.Write(C.M1(null, in i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I2, in int)", "C.M1(I4, ref readonly int)").WithLocation(3, 24));
+
+        var source3 = """
+            int i = 5;
+            System.Console.Write(C.M1(null, i));
+            """;
+
+        CompileAndVerify(new[] { source1, source3 }, expectedOutput: "15").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_06()
+    {
+        var source = """
+            interface I1 { }
+            interface I2 { }
+            class C
+            {
+                static string M1(I1 o, in int i) => " 1" + i;
+                static string M1(I2 o, ref int i) => " 2" + i;
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(M1(null, ref i));
+                    System.Console.Write(M1(null, in i));
+                    System.Console.Write(M1(null, i));
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "25 15 15", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+        var expectedDiagnostics = new[]
+        {
+            // (10,30): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int)' and 'C.M1(I2, ref int)'
+            //         System.Console.Write(M1(null, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int)", "C.M1(I2, ref int)").WithLocation(10, 30)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_07([CombinatorialValues(LanguageVersion.CSharp11, LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+    {
+        var source1 = """
+            interface I1 { }
+            interface I2 { }
+            class C
+            {
+                public static string M1(I1 o, in int i, ref int j) => " 1" + i + j;
+                public static string M1(I2 o, ref int i, in int j) => " 2" + i + j;
+            }
+            """;
+
+        var source2 = """
+            int i = 5;
+            int j = 6;
+            System.Console.Write(C.M1(null, ref i, ref j));
+            System.Console.Write(C.M1(null, in i, in j));
+            System.Console.Write(C.M1(null, in i, j));
+            System.Console.Write(C.M1(null, i, in j));
+            System.Console.Write(C.M1(null, i, j));
+            """;
+
+        CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+            languageVersion == LanguageVersion.CSharp11
+                // 1.cs(3,37): error CS9194: Argument 2 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+                // System.Console.Write(C.M1(null, ref i, ref j));
+                ? Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "i").WithArguments("2", "11.0", "12.0").WithLocation(3, 37)
+                // 1.cs(3,24): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref int)' and 'C.M1(I2, ref int, in int)'
+                // System.Console.Write(C.M1(null, ref i, ref j));
+                : Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref int)", "C.M1(I2, ref int, in int)").WithLocation(3, 24),
+            // 1.cs(4,42): error CS1620: Argument 3 must be passed with the 'ref' keyword
+            // System.Console.Write(C.M1(null, in i, in j));
+            Diagnostic(ErrorCode.ERR_BadArgRef, "j").WithArguments("3", "ref").WithLocation(4, 42),
+            // 1.cs(5,39): error CS1620: Argument 3 must be passed with the 'ref' keyword
+            // System.Console.Write(C.M1(null, in i, j));
+            Diagnostic(ErrorCode.ERR_BadArgRef, "j").WithArguments("3", "ref").WithLocation(5, 39),
+            // 1.cs(6,39): error CS1620: Argument 3 must be passed with the 'ref' keyword
+            // System.Console.Write(C.M1(null, i, in j));
+            Diagnostic(ErrorCode.ERR_BadArgRef, "j").WithArguments("3", "ref").WithLocation(6, 39),
+            // 1.cs(7,36): error CS1620: Argument 3 must be passed with the 'ref' keyword
+            // System.Console.Write(C.M1(null, i, j));
+            Diagnostic(ErrorCode.ERR_BadArgRef, "j").WithArguments("3", "ref").WithLocation(7, 36));
+
+        var source3 = """
+            int i = 5;
+            int j = 6;
+            System.Console.Write(C.M1(null, ref i, in j));
+            System.Console.Write(C.M1(null, ref i, j));
+            System.Console.Write(C.M1(null, in i, ref j));
+            System.Console.Write(C.M1(null, i, ref j));
+            """;
+
+        CompileAndVerify(new[] { source1, source3 }, expectedOutput: "256 256 156 156", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_08()
+    {
+        var source = """
+            interface I1 { }
+            interface I2 { }
+            class C
+            {
+                public static string M1(I1 o, in int i, ref readonly int j) => " 1" + i + j;
+                public static string M1(I2 o, ref readonly int i, in int j) => " 2" + i + j;
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(C.M1(null, ref i, ref i));
+                    System.Console.Write(C.M1(null, ref i, in i));
+                    System.Console.Write(C.M1(null, ref i, i));
+                    System.Console.Write(C.M1(null, in i, ref i));
+                    System.Console.Write(C.M1(null, in i, in i));
+                    System.Console.Write(C.M1(null, in i, i));
+                    System.Console.Write(C.M1(null, i, ref i));
+                    System.Console.Write(C.M1(null, i, in i));
+                    System.Console.Write(C.M1(null, i, i));
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,32): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref readonly int)' and 'C.M1(I2, ref readonly int, in int)'
+            //         System.Console.Write(C.M1(null, ref i, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref readonly int)", "C.M1(I2, ref readonly int, in int)").WithLocation(10, 32),
+            // (11,32): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref readonly int)' and 'C.M1(I2, ref readonly int, in int)'
+            //         System.Console.Write(C.M1(null, ref i, in i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref readonly int)", "C.M1(I2, ref readonly int, in int)").WithLocation(11, 32),
+            // (12,32): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref readonly int)' and 'C.M1(I2, ref readonly int, in int)'
+            //         System.Console.Write(C.M1(null, ref i, i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref readonly int)", "C.M1(I2, ref readonly int, in int)").WithLocation(12, 32),
+            // (13,32): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref readonly int)' and 'C.M1(I2, ref readonly int, in int)'
+            //         System.Console.Write(C.M1(null, in i, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref readonly int)", "C.M1(I2, ref readonly int, in int)").WithLocation(13, 32),
+            // (14,32): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref readonly int)' and 'C.M1(I2, ref readonly int, in int)'
+            //         System.Console.Write(C.M1(null, in i, in i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref readonly int)", "C.M1(I2, ref readonly int, in int)").WithLocation(14, 32),
+            // (15,32): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref readonly int)' and 'C.M1(I2, ref readonly int, in int)'
+            //         System.Console.Write(C.M1(null, in i, i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref readonly int)", "C.M1(I2, ref readonly int, in int)").WithLocation(15, 32),
+            // (16,32): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref readonly int)' and 'C.M1(I2, ref readonly int, in int)'
+            //         System.Console.Write(C.M1(null, i, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref readonly int)", "C.M1(I2, ref readonly int, in int)").WithLocation(16, 32),
+            // (17,32): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref readonly int)' and 'C.M1(I2, ref readonly int, in int)'
+            //         System.Console.Write(C.M1(null, i, in i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref readonly int)", "C.M1(I2, ref readonly int, in int)").WithLocation(17, 32),
+            // (18,32): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, ref readonly int)' and 'C.M1(I2, ref readonly int, in int)'
+            //         System.Console.Write(C.M1(null, i, i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, ref readonly int)", "C.M1(I2, ref readonly int, in int)").WithLocation(18, 32));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_09()
+    {
+        var source = """
+            interface I1 { }
+            interface I2 { }
+            class C
+            {
+                string M1(I1 o, in int i, in int j, in int k) => "1";
+                string M1(I2 o, in int i, in int j, ref int k) => "2";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(null, in i, ref i, ref i));
+                }
+            }
+            """;
+        CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (10,57): error CS9194: Argument 3 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+            //         System.Console.Write(new C().M1(null, in i, ref i, ref i));
+            Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "i").WithArguments("3", "11.0", "12.0").WithLocation(10, 57),
+            // (10,64): error CS9194: Argument 4 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+            //         System.Console.Write(new C().M1(null, in i, ref i, ref i));
+            Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "i").WithArguments("4", "11.0", "12.0").WithLocation(10, 64));
+
+        var expectedDiagnostics = new[]
+        {
+            // (10,38): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, in int, in int)' and 'C.M1(I2, in int, in int, ref int)'
+            //         System.Console.Write(new C().M1(null, in i, ref i, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, in int, in int)", "C.M1(I2, in int, in int, ref int)").WithLocation(10, 38)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_10()
+    {
+        var source = """
+            interface I1 { }
+            interface I2 { }
+            class C
+            {
+                string M1(I1 o, in int i, in int j, in int k) => "1";
+                string M1(I2 o, in int i, in int j, in int k) => "2";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(null, in i, ref i, ref i));
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,38): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(I1, in int, in int, in int)' and 'C.M1(I2, in int, in int, in int)'
+            //         System.Console.Write(new C().M1(null, in i, ref i, ref i));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(I1, in int, in int, in int)", "C.M1(I2, in int, in int, in int)").WithLocation(10, 38));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_11()
+    {
+        var source1 = """
+            using System;
+            using System.Runtime.InteropServices;
+
+            interface I1 { }
+            interface I2 { }
+
+            [ComImport, Guid("96A2DE64-6D44-4DA5-BBA4-25F5F07E0E6B")]
+            interface I
+            {
+                void M(I1 o, ref int i);
+                void M(I2 o, in int i);
+            }
+
+            class C : I
+            {
+                void I.M(I1 o, ref int i) => System.Console.Write("1");
+                void I.M(I2 o, in int i) => System.Console.Write("2");
+            }
+            """;
+
+        var source2 = """
+            I i = new C();
+            int x = 42;
+            i.M(null, 43);
+            i.M(null, x);
+            i.M(null, in x);
+            """;
+
+        var expectedOutput = "222";
+        CompileAndVerify(new[] { source1, source2 }, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+        CompileAndVerify(new[] { source1, source2 }, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+        CompileAndVerify(new[] { source1, source2 }, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var source3 = """
+            I i = new C();
+            int x = 42;
+            i.M(null, ref x);
+            """;
+
+        CompileAndVerify(new[] { source1, source3 }, expectedOutput: "1", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+        var expectedDiagnostics = new[]
+        {
+            // 1.cs(3,3): error CS0121: The call is ambiguous between the following methods or properties: 'I.M(I1, ref int)' and 'I.M(I2, in int)'
+            // i.M(null, ref x);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("I.M(I1, ref int)", "I.M(I2, in int)").WithLocation(3, 3)
+        };
+
+        CreateCompilation(new[] { source1, source3 }, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(new[] { source1, source3 }).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_12()
+    {
+        var source1 = """
+            using System;
+            using System.Runtime.InteropServices;
+
+            interface I1 { }
+            interface I2 { }
+
+            [ComImport, Guid("96A2DE64-6D44-4DA5-BBA4-25F5F07E0E6B")]
+            interface I
+            {
+                void M(I1 o, ref int i);
+                void M(I2 o, ref readonly int i);
+            }
+
+            class C : I
+            {
+                void I.M(I1 o, ref int i) => System.Console.Write("1");
+                void I.M(I2 o, ref readonly int i) => System.Console.Write("2");
+            }
+            """;
+
+        var source2 = """
+            I i = new C();
+            int x = 42;
+            i.M(null, 43);
+            i.M(null, x);
+            i.M(null, in x);
+            """;
+        CompileAndVerify(new[] { source1, source2 }, expectedOutput: "222").VerifyDiagnostics(
+            // 1.cs(3,11): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
+            // i.M(null, 43);
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "43").WithArguments("2").WithLocation(3, 11),
+            // 1.cs(4,11): warning CS9192: Argument 2 should be passed with 'ref' or 'in' keyword
+            // i.M(null, x);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("2").WithLocation(4, 11));
+
+        var source3 = """
+            I i = new C();
+            int x = 42;
+            i.M(null, ref x);
+            """;
+        CreateCompilation(new[] { source1, source3 }).VerifyDiagnostics(
+            // 1.cs(3,3): error CS0121: The call is ambiguous between the following methods or properties: 'I.M(I1, ref int)' and 'I.M(I2, ref readonly int)'
+            // i.M(null, ref x);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("I.M(I1, ref int)", "I.M(I2, ref readonly int)").WithLocation(3, 3));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_01()
+    {
+        var source = """
+            class C
+            {
+                string M1(in int i) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(ref i));
+                    System.Console.Write(new C().M1(in i));
+                    System.Console.Write(new C().M1(i));
+                }
+            }
+            static class E
+            {
+                public static string M1(this C c, ref int i) => "E";
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "ECC", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+        var expectedDiagnostics = new[]
+        {
+            // (7,45): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("1").WithLocation(7, 45)
+        };
+
+        CompileAndVerify(source, expectedOutput: "CCC", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source, expectedOutput: "CCC").VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_02()
+    {
+        var source = """
+            using N1;
+            class C
+            {
+                string M1(in int i) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(ref i));
+                    System.Console.Write(new C().M1(in i));
+                    System.Console.Write(new C().M1(i));
+                }
+            }
+            static class X
+            {
+                public static string M1(this C c, in int i) => "X";
+            }
+            namespace N1
+            {
+                static class Y
+                {
+                    public static string M1(this C c, ref int i) => "Y";
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "YCC", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using N1;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1;").WithLocation(1, 1),
+            // (8,45): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("1").WithLocation(8, 45)
+        };
+
+        CompileAndVerify(source, expectedOutput: "CCC", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source, expectedOutput: "CCC").VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_03()
+    {
+        var source = """
+            using N1;
+            class C
+            {
+                string M1(in int i) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(ref i));
+                    System.Console.Write(new C().M1(in i));
+                    System.Console.Write(new C().M1(i));
+                }
+            }
+            static class X
+            {
+                public static string M1(this C c, ref readonly int i) => "X";
+            }
+            namespace N1
+            {
+                static class Y
+                {
+                    public static string M1(this C c, ref int i) => "Y";
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "CCC").VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using N1;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1;").WithLocation(1, 1),
+            // (8,45): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("1").WithLocation(8, 45));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_04()
+    {
+        var source1 = """
+            class C
+            {
+                public string M1(in int i, ref int j) => "C";
+            }
+            static class E
+            {
+                public static string M1(this C c, ref int i, in int j) => "E";
+            }
+            """;
+
+        var source2 = """
+            int i = 5;
+            System.Console.Write(new C().M1(in i, in i));
+            System.Console.Write(new C().M1(in i, i));
+            System.Console.Write(new C().M1(i, in i));
+            System.Console.Write(new C().M1(i, i));
+            """;
+
+        var expectedDiagnostics2 = new[]
+        {
+            // 1.cs(2,42): error CS1620: Argument 2 must be passed with the 'ref' keyword
+            // System.Console.Write(new C().M1(in i, in i));
+            Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("2", "ref").WithLocation(2, 42),
+            // 1.cs(3,39): error CS1620: Argument 2 must be passed with the 'ref' keyword
+            // System.Console.Write(new C().M1(in i, i));
+            Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("2", "ref").WithLocation(3, 39),
+            // 1.cs(4,39): error CS1620: Argument 2 must be passed with the 'ref' keyword
+            // System.Console.Write(new C().M1(i, in i));
+            Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("2", "ref").WithLocation(4, 39),
+            // 1.cs(5,36): error CS1620: Argument 2 must be passed with the 'ref' keyword
+            // System.Console.Write(new C().M1(i, i));
+            Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("2", "ref").WithLocation(5, 36)
+        };
+
+        CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics2);
+        CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics2);
+        CreateCompilation(new[] { source1, source2 }).VerifyDiagnostics(expectedDiagnostics2);
+
+        var source3 = """
+            int i = 5;
+            System.Console.Write(new C().M1(ref i, ref i));
+            """;
+
+        CreateCompilation(new[] { source1, source3 }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // 1.cs(2,37): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+            // System.Console.Write(new C().M1(ref i, ref i));
+            Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "i").WithArguments("1", "11.0", "12.0").WithLocation(2, 37));
+
+        var expectedDiagnostics3 = new[]
+        {
+            // 1.cs(2,37): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            // System.Console.Write(new C().M1(ref i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("1").WithLocation(2, 37)
+        };
+
+        var expectedOutput3 = "C";
+        CompileAndVerify(new[] { source1, source3 }, expectedOutput: expectedOutput3, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics3);
+        CompileAndVerify(new[] { source1, source3 }, expectedOutput: expectedOutput3).VerifyDiagnostics(expectedDiagnostics3);
+
+        var source4 = """
+            int i = 5;
+            System.Console.Write(new C().M1(ref i, i));
+            System.Console.Write(new C().M1(in i, ref i));
+            System.Console.Write(new C().M1(i, ref i));
+            """;
+
+        var expectedOutput4 = "ECC";
+        CompileAndVerify(new[] { source1, source4 }, expectedOutput: expectedOutput4, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+        CompileAndVerify(new[] { source1, source4 }, expectedOutput: expectedOutput4, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+        CompileAndVerify(new[] { source1, source4 }, expectedOutput: expectedOutput4).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_05()
+    {
+        var source = """
+            class C
+            {
+                string M1(in int i) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(in i));
+                    System.Console.Write(new C().M1(i));
+                }
+            }
+            static class E
+            {
+                public static string M1(this C c, int i) => "E";
+            }
+            """;
+        var expectedOutput = "CC";
+        CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_06()
+    {
+        var source = """
+            class C
+            {
+                string M1(int i) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(in i));
+                    System.Console.Write(new C().M1(i));
+                }
+            }
+            static class E
+            {
+                public static string M1(this C c, in int i) => "E";
+            }
+            """;
+        var expectedOutput = "EC";
+        CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_07()
+    {
+        var source = """
+            class C
+            {
+                string M1(ref readonly int i) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(i));
+                }
+            }
+            static class E
+            {
+                public static string M1(this C c, ref readonly int i) => "E";
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "C").VerifyDiagnostics(
+            // (7,41): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
+            //         System.Console.Write(new C().M1(i));
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "i").WithArguments("1").WithLocation(7, 41));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_08()
+    {
+        var source = """
+            class C
+            {
+                string M1(in int i) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(in i));
+                }
+            }
+            static class E
+            {
+                public static string M1(this C c, ref readonly int i) => "E";
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "C").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_09()
+    {
+        var source = """
+            namespace N1
+            {
+                namespace N2
+                {
+                    class C
+                    {
+                        string M1(in int i) => "C";
+                        static void Main()
+                        {
+                            int i = 5;
+                            System.Console.Write(new C().M1(ref i));
+                            System.Console.Write(new C().M1(in i));
+                            System.Console.Write(new C().M1(i));
+                        }
+                    }
+                    static class X
+                    {
+                        public static string M1(this C c, ref readonly int i) => "X";
+                    }
+                }
+                static class Y
+                {
+                    public static string M1(this N2.C c, int i) => "Y";
+                }
+            }
+            static class Z
+            {
+                public static string M1(this N1.N2.C c, ref int i) => "Z";
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "CCC").VerifyDiagnostics(
+            // (11,53): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //                 System.Console.Write(new C().M1(ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("1").WithLocation(11, 53));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_10()
+    {
+        var source = """
+            class C
+            {
+                string M1(in int i, in int j, in int k) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(in i, ref i, ref i));
+                }
+            }
+            static class E
+            {
+                public static string M1(this C c, in int i, in int j, ref int k) => "E";
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "C").VerifyDiagnostics(
+            // (7,51): warning CS9191: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(in i, ref i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(7, 51),
+            // (7,58): warning CS9191: The 'ref' modifier for argument 3 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(in i, ref i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("3").WithLocation(7, 58));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_11()
+    {
+        var source = """
+            using N1;
+            class C
+            {
+                string M1(in int i, in int j, in int k) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(in i, ref i, ref i));
+                }
+            }
+            static class X
+            {
+                public static string M1(this C c, in int i, in int j, ref int k) => "X";
+            }
+            namespace N1
+            {
+                static class Y
+                {
+                    public static string M1(this C c, in int i, in int j, in int k) => "Y";
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "C").VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using N1;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1;").WithLocation(1, 1),
+            // (8,51): warning CS9191: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(in i, ref i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(8, 51),
+            // (8,58): warning CS9191: The 'ref' modifier for argument 3 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(in i, ref i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("3").WithLocation(8, 58));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_12()
+    {
+        var source = """
+            using N1;
+            class C
+            {
+                string M1(in int i, in int j, in int k) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(in i, ref i, ref i));
+                }
+            }
+            static class X
+            {
+                public static string M1(this C c, in int i, in int j, in int k) => "X";
+            }
+            namespace N1
+            {
+                static class Y
+                {
+                    public static string M1(this C c, in int i, in int j, ref int k) => "Y";
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "C").VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // using N1;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N1;").WithLocation(1, 1),
+            // (8,51): warning CS9191: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(in i, ref i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(8, 51),
+            // (8,58): warning CS9191: The 'ref' modifier for argument 3 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(in i, ref i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("3").WithLocation(8, 58));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_13()
+    {
+        var source = """
+            class C
+            {
+                string M1(in int i, in int j, in int k) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(in i, in i, ref i));
+                }
+            }
+            static class E
+            {
+                public static string M1<T>(this T t, in int i, in int j, ref int k) => "E";
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "E", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+        var expectedDiagnostics = new[]
+        {
+            // (7,57): warning CS9191: The 'ref' modifier for argument 3 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(in i, in i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("3").WithLocation(7, 57)
+        };
+
+        CompileAndVerify(source, expectedOutput: "C", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source, expectedOutput: "C").VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void OverloadResolution_ExtensionMethod_14()
+    {
+        var source = """
+            class C
+            {
+                string M1(in int i, in int j, in int k) => "C";
+                static void Main()
+                {
+                    int i = 5;
+                    System.Console.Write(new C().M1(in i, ref i, ref i));
+                }
+            }
+            static class E
+            {
+                public static string M1<T>(this T t, in int i, in int j, in int k) => "E";
+            }
+            """;
+        // Neither method is better than the other, so the first scope wins.
+        CompileAndVerify(source, expectedOutput: "C").VerifyDiagnostics(
+            // (7,51): warning CS9191: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(in i, ref i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(7, 51),
+            // (7,58): warning CS9191: The 'ref' modifier for argument 3 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+            //         System.Console.Write(new C().M1(in i, ref i, ref i));
+            Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("3").WithLocation(7, 58));
     }
 
     [Fact]
@@ -3741,6 +5109,106 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """);
     }
 
+    [Fact]
+    public void Invocation_Operator_Metadata()
+    {
+        // public class C
+        // {
+        //     public static C operator+(ref readonly C x, C y) => x;
+        //     public static C operator--(ref readonly C x) => x;
+        //     public static implicit operator C(ref readonly int x) => null;
+        //     public static explicit operator C(ref readonly short x) => null;
+        // }
+        var ilSource = """
+            .class public auto ansi beforefieldinit C extends System.Object
+            {
+                .method public hidebysig specialname static 
+                    class C op_Addition (
+                        [in] class C& x,
+                        class C y
+                    ) cil managed 
+                {
+                    .param [1]
+                        .custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                    .maxstack 8
+                    ret
+                }
+
+                .method public hidebysig specialname static 
+                    class C op_Decrement (
+                        [in] class C& x
+                    ) cil managed 
+                {
+                    .param [1]
+                        .custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                    .maxstack 8
+                    ret
+                }
+
+                .method public hidebysig specialname static 
+                    class C op_Implicit (
+                        [in] int32& x
+                    ) cil managed 
+                {
+                    .param [1]
+                        .custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                    .maxstack 8
+                    ret
+                }
+
+                .method public hidebysig specialname static 
+                    class C op_Explicit (
+                        [in] int16& x
+                    ) cil managed 
+                {
+                    .param [1]
+                        .custom instance void System.Runtime.CompilerServices.RequiresLocationAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                    .maxstack 8
+                    ret
+                }
+            }
+
+            .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.RequiresLocationAttribute extends System.Object
+            {
+                .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+                {
+                    .maxstack 8
+                    ret
+                }
+            }
+            """;
+        var source = """
+            int i = 4;
+            short s = 5;
+            C c = null;
+            _ = c + c;
+            c--;
+            c = i;
+            c = (C)s;
+            """;
+        CreateCompilationWithIL(source, ilSource).VerifyDiagnostics(
+            // (4,5): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'C'
+            // _ = c + c;
+            Diagnostic(ErrorCode.ERR_BadBinaryOps, "c + c").WithArguments("+", "C", "C").WithLocation(4, 5),
+            // (5,1): error CS0023: Operator '--' cannot be applied to operand of type 'C'
+            // c--;
+            Diagnostic(ErrorCode.ERR_BadUnaryOp, "c--").WithArguments("--", "C").WithLocation(5, 1),
+            // (6,5): error CS0029: Cannot implicitly convert type 'int' to 'C'
+            // c = i;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "i").WithArguments("int", "C").WithLocation(6, 5),
+            // (7,5): error CS0030: Cannot convert type 'short' to 'C'
+            // c = (C)s;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C)s").WithArguments("short", "C").WithLocation(7, 5));
+    }
+
     [Theory, CombinatorialData]
     public void Invocation_ExtensionMethod([CombinatorialValues("ref readonly", "ref", "in")] string modifier)
     {
@@ -3766,6 +5234,44 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
               IL_0001:  stloc.0
               IL_0002:  ldloca.s   V_0
               IL_0004:  call       "void C.M({{modifier}} int)"
+              IL_0009:  ret
+            }
+            """);
+    }
+
+    [Theory, CombinatorialData]
+    public void Invocation_ExtensionMethod_Metadata([CombinatorialValues("ref readonly", "ref", "in")] string modifier)
+    {
+        var source1 = $$"""
+            public static class E
+            {
+                public static void M(this {{modifier}} int x) => System.Console.Write(x);
+            }
+            """;
+        var comp1 = CreateCompilation(source1).VerifyDiagnostics();
+        var comp1Ref = comp1.EmitToImageReference();
+
+        var source2 = """
+            static class Program
+            {
+                static void Main()
+                {
+                    var x = 1;
+                    x.M();
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("Program.Main", $$"""
+            {
+              // Code size       10 (0xa)
+              .maxstack  1
+              .locals init (int V_0) //x
+              IL_0000:  ldc.i4.1
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  call       "void E.M({{modifier}} int)"
               IL_0009:  ret
             }
             """);
@@ -3990,6 +5496,78 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void Invocation_CollectionInitializer()
+    {
+        var source = """
+            struct S : System.Collections.IEnumerable
+            {
+                public int i;
+                public System.Collections.IEnumerator GetEnumerator() => throw null;
+            }
+
+            static class MyStructExtension
+            {
+                public static void Add(ref this S s, ref readonly S other)
+                {
+                    s.i += other.i;
+                }
+            }
+
+            static class Program
+            {
+                static readonly S ro = new S { i = 3 };
+                static void Main()
+                {
+                    var rw = new S { i = 2 };
+                    var s = new S
+                    {
+                        rw, // 1
+                        ro  // 2
+                    };
+                    System.Console.Write(s.i);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "5", verify: Verification.Fails).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Invocation_CollectionInitializer_MoreArguments()
+    {
+        var source = """
+            struct S : System.Collections.IEnumerable
+            {
+                public int i;
+                public System.Collections.IEnumerator GetEnumerator() => throw null;
+            }
+
+            static class MyStructExtension
+            {
+                public static void Add(ref this S s, ref readonly S x, ref readonly S y)
+                {
+                    s.i += x.i + y.i;
+                }
+            }
+
+            static class Program
+            {
+                static readonly S ro = new S { i = 3 };
+                static void Main()
+                {
+                    var rw = new S { i = 2 };
+                    var s = new S
+                    {
+                        { rw, ro }, // 1
+                        { ro, rw }  // 2
+                    };
+                    System.Console.Write(s.i);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "10", verify: Verification.Fails).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void Invocation_Delegate()
     {
         var source = """
@@ -4031,7 +5609,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
-    public void Invocation_Dynamic()
+    public void Invocation_Dynamic_01()
     {
         var source = """
             class C
@@ -4055,6 +5633,8 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                     cd.M(ref i);
                 }
                 void M2(dynamic p) => M(p);
+
+                void M(ref readonly long p) => System.Console.Write(p);
             }
             """;
         var verifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "exception2");
@@ -4099,6 +5679,73 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     }
 
     [Fact]
+    public void Invocation_Dynamic_02()
+    {
+        var source = """
+            class C
+            {
+                void M(ref readonly int p) => System.Console.Write(p);
+                static void Main()
+                {
+                    dynamic d = 1;
+                    var c = new C();
+                    try
+                    {
+                        c.M(d);
+                    }
+                    catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+                    {
+                        System.Console.Write("exception");
+                    }
+
+                    int i = 2;
+                    dynamic cd = new C();
+                    cd.M(ref i);
+                }
+                void M2(dynamic p) => M(p);
+            }
+            """;
+        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "12");
+
+        verifier.VerifyDiagnostics(
+            // (10,17): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
+            //             c.M(d);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "d").WithArguments("1").WithLocation(10, 17),
+            // (21,29): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
+            //     void M2(dynamic p) => M(p);
+            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "p").WithArguments("1").WithLocation(21, 29)
+            );
+
+        verifier.VerifyIL("C.M2", """
+            {
+              // Code size       74 (0x4a)
+              .maxstack  4
+              .locals init (int V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__2.<>p__0"
+              IL_0006:  brtrue.s   IL_002c
+              IL_0008:  ldc.i4.0
+              IL_0009:  ldtoken    "int"
+              IL_000e:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+              IL_0013:  ldtoken    "C"
+              IL_0018:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+              IL_001d:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
+              IL_0022:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+              IL_0027:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__2.<>p__0"
+              IL_002c:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__2.<>p__0"
+              IL_0031:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target"
+              IL_0036:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__2.<>p__0"
+              IL_003b:  ldarg.1
+              IL_003c:  callvirt   "int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+              IL_0041:  stloc.0
+              IL_0042:  ldloca.s   V_0
+              IL_0044:  call       "void C.M(ref readonly int)"
+              IL_0049:  ret
+            }
+            """);
+    }
+
+    [Fact]
     public void Invocation_Dynamic_In()
     {
         var source = """
@@ -4124,6 +5771,80 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (12,16): error CS1503: Argument 1: cannot convert from 'in dynamic' to 'ref readonly int'
             //         c.M(in y);
             Diagnostic(ErrorCode.ERR_BadArgType, "y").WithArguments("1", "in dynamic", "ref readonly int").WithLocation(12, 16));
+    }
+
+    [Theory, CombinatorialData]
+    public void VisualBasic_Invocation([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
+    {
+        var source1 = $$"""
+            public class C
+            {
+                public void M({{modifier}} int p) => System.Console.WriteLine(p);
+            }
+            """;
+        var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Mscorlib40).VerifyDiagnostics();
+
+        var source2 = """
+            Public Module Program
+                Public Sub Main()
+                    Dim i = 123
+                    Dim c = New C()
+                    c.M(i)
+                End Sub
+            End Module
+            """;
+        var comp2 = CreateVisualBasicCompilation("Program", source2,
+            compilationOptions: new VisualBasic.VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
+            referencedCompilations: new[] { comp1 });
+        CompileAndVerify(comp2, expectedOutput: "123").VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void VisualBasic_Invocation_Virtual([CombinatorialValues("in", "ref readonly")] string modifier)
+    {
+        var source1 = $$"""
+            public class C
+            {
+                public virtual void M({{modifier}} int p) => System.Console.WriteLine(p);
+            }
+            """;
+        var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Mscorlib40).VerifyDiagnostics();
+
+        var source2 = """
+            Public Module Program
+                Public Sub Main()
+                    Dim i = 123
+                    Dim c = New C()
+                    c.M(i)
+                End Sub
+            End Module
+            """;
+        CreateVisualBasicCompilation("Program", source2, referencedCompilations: new[] { comp1 }).VerifyDiagnostics(
+            // (5) : error BC30657: 'M' has a return type that is not supported or parameter types that are not supported.
+            Diagnostic(30657, "M").WithArguments("M").WithLocation(5, 11));
+    }
+
+    [Theory, CombinatorialData]
+    public void VisualBasic_Override([CombinatorialValues("in", "ref readonly")] string modifier)
+    {
+        var source1 = $$"""
+            public class C
+            {
+                public virtual void M({{modifier}} int p) => System.Console.WriteLine(p);
+            }
+            """;
+        var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Mscorlib40).VerifyDiagnostics();
+
+        var source2 = """
+            Public Class D
+                Inherits C
+                Public Overrides Sub M(ByRef p As Integer)
+                End Sub
+            End Class
+            """;
+        CreateVisualBasicCompilation("Program", source2, referencedCompilations: new[] { comp1 }).VerifyDiagnostics(
+            // (3) : error BC30657: 'M' has a return type that is not supported or parameter types that are not supported.
+            Diagnostic(30657, "M").WithArguments("M").WithLocation(3, 26));
     }
 
     [Fact]
@@ -5272,10 +6993,12 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 public static void M(this C c, {{modifier}} int x) { }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
             // (6,17): error CS8917: The delegate type could not be inferred.
             //         var m = this.M;
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(6, 17));
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -5295,10 +7018,44 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 public static void M(this C c, ref readonly int x) { }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
             // (6,17): error CS8917: The delegate type could not be inferred.
             //         var m = this.M;
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(6, 17));
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void MethodGroupComparer_TwoExtensionMethods([CombinatorialValues("ref", "in", "")] string modifier)
+    {
+        var source = $$"""
+            class C
+            {
+                void M2()
+                {
+                    var m = this.M;
+                }
+            }
+            static class E1
+            {
+                public static void M(this C c, ref readonly int x) { }
+            }
+            static class E2
+            {
+                public static void M(this C c, {{modifier}} int x) { }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (5,17): error CS8917: The delegate type could not be inferred.
+            //         var m = this.M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(5, 17));
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            // (5,17): error CS8917: The delegate type could not be inferred.
+            //         var m = this.M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(5, 17));
     }
 
     /// <summary>
@@ -5417,9 +7174,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     [InlineData("", "in", false)]
     [InlineData("", "out", false)]
     [InlineData("", "ref readonly", null, false)]
-    [InlineData("ref", "in", false, true)]
+    [InlineData("ref", "in", false, false)]
     [InlineData("ref", "out", false)]
-    [InlineData("ref", "ref readonly", null, true)]
+    [InlineData("ref", "ref readonly", null, false)]
     [InlineData("in", "out", false)]
     [InlineData("in", "ref readonly", null, true)]
     [InlineData("out", "ref readonly", null, false)]
@@ -5488,12 +7245,25 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 }
                 : Array.Empty<DiagnosticDescription>();
 
-            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedWarnings);
+            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedWarnings);
             CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedWarnings);
         }
         else
         {
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            if (x is "ref" && y is "in" or "ref readonly")
+            {
+                expectedDiagnostics = new[]
+                {
+                    // (8,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref int p' in target.
+                    // x = C.Y;
+                    Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments($"{y} int p", "ref int p").WithLocation(8, 5),
+                    // (9,7): error CS0123: No overload for 'X' matches delegate 'Y'
+                    // y = C.X;
+                    Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "X").WithArguments("X", "Y").WithLocation(9, 7)
+                };
+            }
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -5517,27 +7287,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
     [Theory, CombinatorialData]
     public void Conversion_ExtensionMethod([CombinatorialValues("in", "ref")] string modifier)
     {
-        var source = $$"""
-            var c = new C();
-            X x = c.X1;
-            Y y = c.Y1;
-
-            var i = 1;
-            x(in i);
-            y({{modifier}} i);
-
-            x = c.Y1;
-            y = c.X1;
-
-            x(in i);
-            y({{modifier}} i);
-
-            x = c.Y2;
-            y = c.X2;
-
-            x(in i);
-            y({{modifier}} i);
-
+        var source1 = $$"""
             class C
             {
                 public void X1(ref readonly int p) => System.Console.Write("X1 ");
@@ -5553,19 +7303,57 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void X(ref readonly int p);
             delegate void Y({{modifier}} int p);
             """;
-        CompileAndVerify(source, expectedOutput: "X1 Y1 Y1 X1 Y2 X2", verify: Verification.FailsILVerify).VerifyDiagnostics(
-            // (9,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
-            // x = c.Y1;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.Y1").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(9, 5),
-            // (10,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+
+        var source2 = """
+            var c = new C();
+            X x = c.X1;
+            var i = 1;
+            x(in i);
+            x = c.Y1;
+            x(in i);
+            x = c.Y2;
+            x(in i);
+            """;
+
+        if (modifier == "ref")
+        {
+            CreateCompilation(new[] { source1, source2 }).VerifyDiagnostics(
+                // 1.cs(5,7): error CS0123: No overload for 'Y1' matches delegate 'X'
+                // x = c.Y1;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "Y1").WithArguments("Y1", "X").WithLocation(5, 7),
+                // 1.cs(7,7): error CS0123: No overload for 'Y2' matches delegate 'X'
+                // x = c.Y2;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "Y2").WithArguments("Y2", "X").WithLocation(7, 7));
+        }
+        else
+        {
+            CompileAndVerify(new[] { source1, source2 }, expectedOutput: "X1 Y1 Y2").VerifyDiagnostics(
+                // 1.cs(5,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+                // x = c.Y1;
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.Y1").WithArguments("in int p", "ref readonly int p").WithLocation(5, 5),
+                // 1.cs(7,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+                // x = c.Y2;
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.Y2").WithArguments("in int p", "ref readonly int p").WithLocation(7, 5));
+        }
+
+        var source3 = $"""
+            var c = new C();
+            Y y = c.Y1;
+            var i = 1;
+            y({modifier} i);
+            y = c.X1;
+            y({modifier} i);
+            y = c.X2;
+            y({modifier} i);
+            """;
+
+        CompileAndVerify(new[] { source1, source3 }, expectedOutput: "Y1 X1 X2").VerifyDiagnostics(
+            // 1.cs(5,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // y = c.X1;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.X1").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(10, 5),
-            // (15,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
-            // x = c.Y2;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.Y2").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(15, 5),
-            // (16,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.X1").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(5, 5),
+            // 1.cs(7,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // y = c.X2;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.X2").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(16, 5));
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "c.X2").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(7, 5));
     }
 
     [Theory, CombinatorialData]
@@ -5592,32 +7380,30 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void X(ref readonly int p);
             delegate void Y({{modifier}} int p);
             """;
-        CompileAndVerify(source, expectedOutput: "XYYX").VerifyDiagnostics(
-            // (7,11): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
-            // (x, y) = (C.Y, C.X);
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(7, 11),
-            // (7,16): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
-            // (x, y) = (C.Y, C.X);
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(7, 16));
+
+        if (modifier == "ref")
+        {
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,13): error CS0123: No overload for 'Y' matches delegate 'X'
+                // (x, y) = (C.Y, C.X);
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "Y").WithArguments("Y", "X").WithLocation(7, 13));
+        }
+        else
+        {
+            CompileAndVerify(source, expectedOutput: "XYYX").VerifyDiagnostics(
+                // (7,11): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+                // (x, y) = (C.Y, C.X);
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(7, 11),
+                // (7,16): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+                // (x, y) = (C.Y, C.X);
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(7, 16));
+        }
     }
 
     [Theory, CombinatorialData]
     public void Conversion_Cast([CombinatorialValues("in", "ref")] string modifier)
     {
-        var source = $$"""
-            X x = C.X;
-            Y y = C.Y;
-
-            var i = 1;
-            x(in i);
-            y({{modifier}} i);
-
-            x = (X)C.Y;
-            y = (Y)C.X;
-
-            x(in i);
-            y({{modifier}} i);
-
+        var source1 = $$"""
             class C
             {
                 public static void X(ref readonly int p) => System.Console.Write("X");
@@ -5627,32 +7413,48 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void X(ref readonly int p);
             delegate void Y({{modifier}} int p);
             """;
-        CompileAndVerify(source, expectedOutput: "XYYX").VerifyDiagnostics(
-            // (8,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
-            // x = (X)C.Y;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(X)C.Y").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(8, 5),
-            // (9,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+
+        var source2 = """
+            X x = C.X;
+            var i = 1;
+            x(in i);
+            x = (X)C.Y;
+            x(in i);
+            """;
+
+        if (modifier == "ref")
+        {
+            CreateCompilation(new[] { source1, source2 }).VerifyDiagnostics(
+                // 1.cs(4,5): error CS0123: No overload for 'Y' matches delegate 'X'
+                // x = (X)C.Y;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "(X)C.Y").WithArguments("Y", "X").WithLocation(4, 5));
+        }
+        else
+        {
+            CompileAndVerify(new[] { source1, source2 }, expectedOutput: "XY").VerifyDiagnostics(
+                // 1.cs(4,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+                // x = (X)C.Y;
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(X)C.Y").WithArguments("in int p", "ref readonly int p").WithLocation(4, 5));
+        }
+
+        var source3 = $"""
+            Y y = C.Y;
+            var i = 1;
+            y({modifier} i);
+            y = (Y)C.X;
+            y({modifier} i);
+            """;
+
+        CompileAndVerify(new[] { source1, source3 }, expectedOutput: "YX").VerifyDiagnostics(
+            // 1.cs(4,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // y = (Y)C.X;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(Y)C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(9, 5));
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(Y)C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(4, 5));
     }
 
     [Theory, CombinatorialData]
     public void Conversion_DelegateConstruction([CombinatorialValues("in", "ref")] string modifier)
     {
-        var source = $$"""
-            X x = C.X;
-            Y y = C.Y;
-
-            var i = 1;
-            x(in i);
-            y({{modifier}} i);
-
-            x = new X(C.Y);
-            y = new Y(C.X);
-
-            x(in i);
-            y({{modifier}} i);
-
+        var source1 = $$"""
             class C
             {
                 public static void X(ref readonly int p) => System.Console.Write("X");
@@ -5662,17 +7464,46 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void X(ref readonly int p);
             delegate void Y({{modifier}} int p);
             """;
-        CompileAndVerify(source, expectedOutput: "XYYX").VerifyDiagnostics(
-            // (8,11): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
-            // x = new X(C.Y);
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(8, 11),
-            // (9,11): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+
+        var source2 = """
+            X x = C.X;
+            var i = 1;
+            x(in i);
+            x = new X(C.Y);
+            x(in i);
+            """;
+
+        if (modifier == "ref")
+        {
+            CreateCompilation(new[] { source1, source2 }).VerifyDiagnostics(
+                // 1.cs(4,5): error CS0123: No overload for 'Y' matches delegate 'X'
+                // x = new X(C.Y);
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new X(C.Y)").WithArguments("Y", "X").WithLocation(4, 5));
+        }
+        else
+        {
+            CompileAndVerify(new[] { source1, source2 }, expectedOutput: "XY").VerifyDiagnostics(
+                // 1.cs(4,11): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+                // x = new X(C.Y);
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments("in int p", "ref readonly int p").WithLocation(4, 11));
+        }
+
+        var source3 = $"""
+            Y y = C.Y;
+            var i = 1;
+            y({modifier} i);
+            y = new Y(C.X);
+            y({modifier} i);
+            """;
+
+        CompileAndVerify(new[] { source1, source3 }, expectedOutput: "YX").VerifyDiagnostics(
+            // 1.cs(4,11): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // y = new Y(C.X);
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(9, 11));
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(4, 11));
     }
 
-    [Theory, CombinatorialData]
-    public void Conversion_ExplicitDelegateType([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void Conversion_OverloadResolution_01([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
     {
         var source = $$"""
             class C
@@ -5696,7 +7527,6 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void D1(ref readonly int x);
             delegate void D2({{modifier}} int x);
             """;
-        // Add betterness rule (https://github.com/dotnet/roslyn/issues/69229).
         var verifier = CompileAndVerify(source, expectedOutput: "CC");
         if (modifier != "ref readonly")
         {
@@ -5711,8 +7541,8 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         }
     }
 
-    [Theory, CombinatorialData]
-    public void Conversion_ExplicitDelegateType_Inverse([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void Conversion_OverloadResolution_02([CombinatorialValues("ref", "in", "ref readonly")] string modifier)
     {
         var source = $$"""
             class C
@@ -5736,14 +7566,14 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void D1({{modifier}} int x);
             delegate void D2(ref readonly int x);
             """;
-        // Add betterness rule (https://github.com/dotnet/roslyn/issues/69229).
-        var verifier = CompileAndVerify(source, expectedOutput: "CC");
-        if (modifier != "ref readonly")
+        var verifier = CompileAndVerify(source,
+            expectedOutput: modifier == "ref" ? "CE" : "CC");
+        if (modifier == "in")
         {
             verifier.VerifyDiagnostics(
                 // (7,17): warning CS9198: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in target.
                 //         D2 m2 = this.M;
-                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "this.M").WithArguments($"{modifier} int x", "ref readonly int x").WithLocation(7, 17));
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "this.M").WithArguments("in int x", "ref readonly int x").WithLocation(7, 17));
         }
         else
         {
@@ -5751,22 +7581,18 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         }
     }
 
-    [Fact]
-    public void Conversion_ExplicitDelegateType_MultipleArguments()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void Conversion_OverloadResolution_03()
     {
-        var source = """
+        static string getSource(string body) => $$"""
             class C
             {
                 void M(I1 o, ref readonly int x) => System.Console.Write("1");
                 void M(I2 o, ref int x) => System.Console.Write("2");
                 void Run()
                 {
-                    D1 m1 = this.M;
-                    D2 m2 = this.M;
-
                     var i = 1;
-                    m1(null, in i);
-                    m2(null, ref i);
+                    {{body}}
                 }
                 static void Main() => new C().Run();
             }
@@ -5776,14 +7602,80 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void D1(X s, ref readonly int x);
             delegate void D2(X s, ref int x);
             """;
-        // Add betterness rule (https://github.com/dotnet/roslyn/issues/69229). Then verify execution.
-        CreateCompilation(source).VerifyDiagnostics(
-            // (7,17): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(I1, ref readonly int)' and 'C.M(I2, ref int)'
-            //         D1 m1 = this.M;
-            Diagnostic(ErrorCode.ERR_AmbigCall, "this.M").WithArguments("C.M(I1, ref readonly int)", "C.M(I2, ref int)").WithLocation(7, 17),
+
+        var source1 = getSource("""
+            D1 m1 = this.M;
+            m1(null, in i);
+            """);
+
+        CompileAndVerify(source1, expectedOutput: "1").VerifyDiagnostics();
+
+        var source2 = getSource("""
+            D2 m2 = this.M;
+            m2(null, ref i);
+            """);
+
+        CreateCompilation(source2).VerifyDiagnostics(
             // (8,17): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(I1, ref readonly int)' and 'C.M(I2, ref int)'
             //         D2 m2 = this.M;
             Diagnostic(ErrorCode.ERR_AmbigCall, "this.M").WithArguments("C.M(I1, ref readonly int)", "C.M(I2, ref int)").WithLocation(8, 17));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69229")]
+    public void Conversion_OverloadResolution_04()
+    {
+        static string getSource(string body) => $$"""
+            class C
+            {
+                void M(I1 o, in int x) => System.Console.Write("1");
+                void M(I2 o, ref int x) => System.Console.Write("2");
+                void Run()
+                {
+                    var i = 1;
+                    {{body}}
+                }
+                static void Main() => new C().Run();
+            }
+            interface I1 { }
+            interface I2 { }
+            class X : I1, I2 { }
+            delegate void D1(X s, in int x);
+            delegate void D2(X s, ref int x);
+            """;
+
+        var source1 = getSource("""
+            D1 m1 = this.M;
+            D2 m2 = this.M;
+            m1(null, in i);
+            m2(null, ref i);
+            """);
+
+        CompileAndVerify(source1, expectedOutput: "12", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+
+        var source2 = getSource("""
+            D1 m1 = this.M;
+            m1(null, in i);
+            """);
+
+        var expectedOutput = "1";
+
+        CompileAndVerify(source2, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+        CompileAndVerify(source2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        var source3 = getSource("""
+            D2 m2 = this.M;
+            m2(null, ref i);
+            """);
+
+        var expectedDiagnostics = new[]
+        {
+            // (8,17): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(I1, in int)' and 'C.M(I2, ref int)'
+            //         D2 m2 = this.M;
+            Diagnostic(ErrorCode.ERR_AmbigCall, "this.M").WithArguments("C.M(I1, in int)", "C.M(I2, ref int)").WithLocation(8, 17)
+        };
+
+        CreateCompilation(source3, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source3).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -5802,47 +7694,90 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         var comp1 = CreateCompilation(source1).VerifyDiagnostics();
         var comp1Ref = comp1.ToMetadataReference();
 
-        var source2 = $$"""
-            X x = C.X;
-            Y y = C.Y;
+        DiagnosticDescription[] expectedDiagnostics;
+        string expectedOutput;
 
+        var source2 = """
+            X x = C.X;
             var i = 1;
             x(in i);
-            y({{modifier}} i);
-
             x = C.Y;
-            y = C.X;
-
             x(in i);
-            y({{modifier}} i);
             """;
 
-        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (5,6): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // x(in i);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("ref readonly parameters").WithLocation(5, 6),
-            // (8,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
-            // x = C.Y;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(8, 5),
-            // (9,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
-            // y = C.X;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(9, 5),
-            // (11,6): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // x(in i);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("ref readonly parameters").WithLocation(11, 6));
-
-        var expectedDiagnostics = new[]
+        if (modifier == "ref")
         {
-            // (8,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
-            // x = C.Y;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(8, 5),
-            // (9,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (3,6): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
+                // x(in i);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 6),
+                // (4,7): error CS0123: No overload for 'Y' matches delegate 'X'
+                // x = C.Y;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "Y").WithArguments("Y", "X").WithLocation(4, 7),
+                // (5,6): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
+                // x(in i);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(5, 6));
+
+            expectedDiagnostics = new[]
+            {
+                // (4,7): error CS0123: No overload for 'Y' matches delegate 'X'
+                // x = C.Y;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "Y").WithArguments("Y", "X").WithLocation(4, 7)
+            };
+
+            CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source2, new[] { comp1Ref }).VerifyDiagnostics(expectedDiagnostics);
+        }
+        else
+        {
+            CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (3,6): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
+                // x(in i);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 6),
+                // (4,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+                // x = C.Y;
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments("in int p", "ref readonly int p").WithLocation(4, 5),
+                // (5,6): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
+                // x(in i);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(5, 6));
+
+            expectedDiagnostics = new[]
+            {
+                // (4,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+                // x = C.Y;
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments("in int p", "ref readonly int p").WithLocation(4, 5)
+            };
+
+            expectedOutput = "XY";
+
+            CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        var source3 = $"""
+            Y y = C.Y;
+            var i = 1;
+            y({modifier} i);
+            y = C.X;
+            y({modifier} i);
+            """;
+
+        CreateCompilation(source3, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (4,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // y = C.X;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(9, 5)
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(4, 5));
+
+        expectedDiagnostics = new[]
+        {
+            // (4,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // y = C.X;
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(4, 5)
         };
 
-        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "XYYX", parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "XYYX").VerifyDiagnostics(expectedDiagnostics);
+        expectedOutput = "YX";
+
+        CompileAndVerify(source3, new[] { comp1Ref }, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source3, new[] { comp1Ref }, expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
@@ -5863,39 +7798,49 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         var source2 = """
             X x = C.X;
-            Y y = C.Y;
-
             var i = 1;
             x(ref i);
-            y(in i);
-
             x = C.Y;
-            y = C.X;
-
             x(ref i);
-            y(in i);
             """;
 
-        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (8,7): error CS0123: No overload for 'Y' matches delegate 'X'
+        var source3 = """
+            Y y = C.Y;
+            var j = 1;
+            y(in j);
+            y = C.X;
+            y(in j);
+            """;
+
+        CreateCompilation(source2 + Environment.NewLine + source3, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+            // (4,7): error CS0123: No overload for 'Y' matches delegate 'X'
             // x = C.Y;
-            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "Y").WithArguments("Y", "X").WithLocation(8, 7),
+            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "Y").WithArguments("Y", "X").WithLocation(4, 7),
             // (9,7): error CS0123: No overload for 'X' matches delegate 'Y'
             // y = C.X;
             Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "X").WithArguments("X", "Y").WithLocation(9, 7));
 
         var expectedDiagnostics = new[]
         {
-            // (8,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref int p' in target.
+            // (4,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref int p' in target.
             // x = C.Y;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments("in int p", "ref int p").WithLocation(8, 5),
-            // (9,5): warning CS9198: Reference kind modifier of parameter 'ref int p' doesn't match the corresponding parameter 'in int p' in target.
-            // y = C.X;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.X").WithArguments("ref int p", "in int p").WithLocation(9, 5)
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "C.Y").WithArguments("in int p", "ref int p").WithLocation(4, 5)
         };
 
-        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "XYYX", parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "XYYX").VerifyDiagnostics(expectedDiagnostics);
+        var expectedOutput = "XY";
+
+        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
+
+        expectedDiagnostics = new[]
+        {
+            // (4,7): error CS0123: No overload for 'X' matches delegate 'Y'
+            // y = C.X;
+            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "X").WithArguments("X", "Y").WithLocation(4, 7)
+        };
+
+        CreateCompilation(source3, new[] { comp1Ref }, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source3, new[] { comp1Ref }).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
@@ -6038,21 +7983,21 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
 
         CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
-            // (4,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (4,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     C.X2(in i);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("ref readonly parameters").WithLocation(4, 13),
-            // (10,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(4, 13),
+            // (10,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     C.X2(in i);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("ref readonly parameters").WithLocation(10, 13),
-            // (13,12): error CS0266: Cannot implicitly convert type 'delegate*<ref readonly int, void>' to 'delegate*<in int, void>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(10, 13),
+            // (13,12): error CS0266: Cannot implicitly convert type 'delegate*<ref readonly int, void>' to 'delegate*<ref int, void>'. An explicit conversion exists (are you missing a cast?)
             //     C.Y2 = C.X1;
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "C.X1").WithArguments("delegate*<ref readonly int, void>", $"delegate*<{modifier} int, void>").WithLocation(13, 12),
-            // (14,12): error CS0266: Cannot implicitly convert type 'delegate*<in int, void>' to 'delegate*<ref readonly int, void>'. An explicit conversion exists (are you missing a cast?)
+            // (14,12): error CS0266: Cannot implicitly convert type 'delegate*<ref int, void>' to 'delegate*<ref readonly int, void>'. An explicit conversion exists (are you missing a cast?)
             //     C.X2 = C.Y1;
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "C.Y1").WithArguments($"delegate*<{modifier} int, void>", "delegate*<ref readonly int, void>").WithLocation(14, 12),
-            // (16,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (16,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             //     C.X2(in i);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("ref readonly parameters").WithLocation(16, 13));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(16, 13));
 
         var expectedDiagnostics = new[]
         {
@@ -6064,7 +8009,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "C.Y1").WithArguments($"delegate*<{modifier} int, void>", "delegate*<ref readonly int, void>").WithLocation(14, 12)
         };
 
-        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source2, new[] { comp1Ref }, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -6123,7 +8068,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         };
 
         CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics); CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source2, new[] { comp1Ref }, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -6161,9 +8106,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // 0.cs(9,10): error CS8757: No overload for 'V' matches function pointer 'delegate*<ref readonly int, void>'
             //     rr = &V;
             Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&V").WithArguments("V", "delegate*<ref readonly int, void>").WithLocation(9, 10),
-            // 0.cs(10,10): warning CS9198: Reference kind modifier of parameter 'ref int p' doesn't match the corresponding parameter 'ref readonly int' in target.
+            // 0.cs(10,10): error CS8757: No overload for 'R' matches function pointer 'delegate*<ref readonly int, void>'
             //     rr = &R;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&R").WithArguments("ref int p", "ref readonly int").WithLocation(10, 10),
+            Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&R").WithArguments("R", "delegate*<ref readonly int, void>").WithLocation(10, 10),
             // 0.cs(11,10): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
             //     rr = &I;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&I").WithArguments("in int p", "ref readonly int").WithLocation(11, 10),
@@ -6185,15 +8130,15 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // 0.cs(17,9): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref int' in target.
             //     r = &I;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&I").WithArguments("in int p", "ref int").WithLocation(17, 9),
-            // 0.cs(18,9): warning CS9198: Reference kind modifier of parameter 'ref int p' doesn't match the corresponding parameter 'in int' in target.
+            // 0.cs(18,9): error CS8757: No overload for 'R' matches function pointer 'delegate*<in int, void>'
             //     i = &R;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&R").WithArguments("ref int p", "in int").WithLocation(18, 9));
+            Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&R").WithArguments("R", "delegate*<in int, void>").WithLocation(18, 9));
     }
 
     [Theory, CombinatorialData]
     public void Conversion_FunctionPointer_MethodGroup_Cast([CombinatorialValues("in", "ref")] string modifier)
     {
-        var source = $$"""
+        string getSource(string body) => $$"""
             unsafe
             {
                 delegate*<ref readonly int, void> x = &X;
@@ -6203,8 +8148,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 x(in i);
                 y({{modifier}} i);
 
-                x = (delegate*<ref readonly int, void>)&Y;
-                y = (delegate*<{{modifier}} int, void>)&X;
+                {{body}}
 
                 x(in i);
                 y({{modifier}} i);
@@ -6213,14 +8157,32 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 static void Y({{modifier}} int p) => System.Console.Write("Y");
             }
             """;
-        CompileAndVerify(new[] { source, RequiresLocationAttributeDefinition }, verify: Verification.Fails,
-            expectedOutput: "XYYX", options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
-            // 0.cs(10,9): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
-            //     x = (delegate*<ref readonly int, void>)&Y;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(delegate*<ref readonly int, void>)&Y").WithArguments($"{modifier} int p", "ref readonly int").WithLocation(10, 9),
-            // 0.cs(11,9): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int' in target.
+
+        var source1 = getSource("x = (delegate*<ref readonly int, void>)&Y;");
+
+        if (modifier == "ref")
+        {
+            CreateCompilation(new[] { source1, RequiresLocationAttributeDefinition }, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
+                // 0.cs(10,9): error CS8757: No overload for 'Y' matches function pointer 'delegate*<ref readonly int, void>'
+                //     x = (delegate*<ref readonly int, void>)&Y;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "(delegate*<ref readonly int, void>)&Y").WithArguments("Y", "delegate*<ref readonly int, void>").WithLocation(10, 9));
+        }
+        else
+        {
+            CompileAndVerify(new[] { source1, RequiresLocationAttributeDefinition }, verify: Verification.Fails,
+                expectedOutput: "XYYY", options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
+                // 0.cs(10,9): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
+                //     x = (delegate*<ref readonly int, void>)&Y;
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(delegate*<ref readonly int, void>)&Y").WithArguments("in int p", "ref readonly int").WithLocation(10, 9));
+        }
+
+        var source2 = getSource($"y = (delegate*<{modifier} int, void>)&X;");
+
+        CompileAndVerify(new[] { source2, RequiresLocationAttributeDefinition }, verify: Verification.Fails,
+            expectedOutput: "XYXX", options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
+            // 0.cs(10,9): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int' in target.
             //     y = (delegate*<in int, void>)&X;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, $"(delegate*<{modifier} int, void>)&X").WithArguments("ref readonly int p", $"{modifier} int").WithLocation(11, 9));
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, $"(delegate*<{modifier} int, void>)&X").WithArguments("ref readonly int p", $"{modifier} int").WithLocation(10, 9));
     }
 
     [Theory, CombinatorialData]
@@ -6240,52 +8202,102 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         comp1.VerifyDiagnostics();
         var comp1Ref = comp1.ToMetadataReference();
 
-        var source2 = $$"""
+        DiagnosticDescription[] expectedDiagnostics;
+        string expectedOutput;
+
+        var source2 = """
             unsafe
             {
                 C.X2 = &C.X1;
-                C.Y2 = &C.Y1;
-
                 var i = 1;
                 C.X2(in i);
-                C.Y2({{modifier}} i);
-
-                C.Y2 = &C.X1;
                 C.X2 = &C.Y1;
-
                 C.X2(in i);
+            }
+            """;
+
+        var comp = CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe);
+        if (modifier == "ref")
+        {
+            comp.VerifyDiagnostics(
+                // (5,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
+                //     C.X2(in i);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(5, 13),
+                // (6,12): error CS8757: No overload for 'Y1' matches function pointer 'delegate*<ref readonly int, void>'
+                //     C.X2 = &C.Y1;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&C.Y1").WithArguments("Y1", "delegate*<ref readonly int, void>").WithLocation(6, 12),
+                // (7,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
+                //     C.X2(in i);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(7, 13));
+
+            expectedDiagnostics = new[]
+            {
+                // (6,12): error CS8757: No overload for 'Y1' matches function pointer 'delegate*<ref readonly int, void>'
+                //     C.X2 = &C.Y1;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&C.Y1").WithArguments("Y1", "delegate*<ref readonly int, void>").WithLocation(6, 12)
+            };
+
+            CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source2, new[] { comp1Ref }, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (5,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
+                //     C.X2(in i);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(5, 13),
+                // (6,12): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
+                //     C.X2 = &C.Y1;
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.Y1").WithArguments("in int p", "ref readonly int").WithLocation(6, 12),
+                // (7,13): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
+                //     C.X2(in i);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "i").WithArguments("ref readonly parameters", "12.0").WithLocation(7, 13));
+
+            expectedDiagnostics = new[]
+            {
+                // (6,12): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
+                //     C.X2 = &C.Y1;
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.Y1").WithArguments("in int p", "ref readonly int").WithLocation(6, 12)
+            };
+
+            expectedOutput = "XY";
+
+            CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeDebugExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, options: TestOptions.UnsafeDebugExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        var source3 = $$"""
+            unsafe
+            {
+                C.Y2 = &C.Y1;
+                var i = 1;
+                C.Y2({{modifier}} i);
+                C.Y2 = &C.X1;
                 C.Y2({{modifier}} i);
             }
             """;
 
-        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
-            // (7,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     C.X2(in i);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("ref readonly parameters").WithLocation(7, 13),
-            // (10,12): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int' in target.
+        CompileAndVerify(source3, new[] { comp1Ref }, verify: Verification.Fails, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe,
+            expectedOutput: "YX").VerifyDiagnostics(
+            // (6,12): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int' in target.
             //     C.Y2 = &C.X1;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.X1").WithArguments("ref readonly int p", $"{modifier} int").WithLocation(10, 12),
-            // (11,12): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
-            //     C.X2 = &C.Y1;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.Y1").WithArguments($"{modifier} int p", "ref readonly int").WithLocation(11, 12),
-            // (13,13): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     C.X2(in i);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("ref readonly parameters").WithLocation(13, 13));
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.X1").WithArguments("ref readonly int p", $"{modifier} int").WithLocation(6, 12));
 
-        var expectedDiagnostics = new[]
+        expectedDiagnostics = new[]
         {
-            // (10,12): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int' in target.
+            // (6,12): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int' in target.
             //     C.Y2 = &C.X1;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.X1").WithArguments("ref readonly int p", $"{modifier} int").WithLocation(10, 12),
-            // (11,12): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int' in target.
-            //     C.X2 = &C.Y1;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.Y1").WithArguments($"{modifier} int p", "ref readonly int").WithLocation(11, 12)
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.X1").WithArguments("ref readonly int p", $"{modifier} int").WithLocation(6, 12)
         };
 
-        CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe,
-            expectedOutput: "XYYX").VerifyDiagnostics(expectedDiagnostics);
-        CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, options: TestOptions.UnsafeDebugExe,
-            expectedOutput: "XYYX").VerifyDiagnostics(expectedDiagnostics);
+        expectedOutput = "YX";
+
+        CompileAndVerify(source3, new[] { comp1Ref }, verify: Verification.Fails, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeDebugExe,
+            expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source3, new[] { comp1Ref }, verify: Verification.Fails, options: TestOptions.UnsafeDebugExe,
+            expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
@@ -6309,42 +8321,57 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             unsafe
             {
                 C.X2 = &C.X1;
-                C.Y2 = &C.Y1;
-
                 var i = 1;
                 C.X2(ref i);
-                C.Y2(in i);
-
-                C.Y2 = &C.X1;
                 C.X2 = &C.Y1;
-
                 C.X2(ref i);
-                C.Y2(in i);
             }
             """;
 
         CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
-            // (10,12): error CS8757: No overload for 'X1' matches function pointer 'delegate*<in int, void>'
-            //     C.Y2 = &C.X1;
-            Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&C.X1").WithArguments("X1", "delegate*<in int, void>").WithLocation(10, 12),
-            // (11,12): error CS8757: No overload for 'Y1' matches function pointer 'delegate*<ref int, void>'
+            // (6,12): error CS8757: No overload for 'Y1' matches function pointer 'delegate*<ref int, void>'
             //     C.X2 = &C.Y1;
-            Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&C.Y1").WithArguments("Y1", "delegate*<ref int, void>").WithLocation(11, 12));
+            Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&C.Y1").WithArguments("Y1", "delegate*<ref int, void>").WithLocation(6, 12));
 
         var expectedDiagnostics = new[]
         {
-            // (10,12): warning CS9198: Reference kind modifier of parameter 'ref int p' doesn't match the corresponding parameter 'in int' in target.
-            //     C.Y2 = &C.X1;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.X1").WithArguments("ref int p", "in int").WithLocation(10, 12),
-            // (11,12): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref int' in target.
+            // (6,12): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref int' in target.
             //     C.X2 = &C.Y1;
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.Y1").WithArguments("in int p", "ref int").WithLocation(11, 12)
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "&C.Y1").WithArguments("in int p", "ref int").WithLocation(6, 12)
         };
 
-        CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe,
-            expectedOutput: "XYYX").VerifyDiagnostics(expectedDiagnostics);
+        var expectedOutput = "XY";
+
+        CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeDebugExe,
+            expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
         CompileAndVerify(source2, new[] { comp1Ref }, verify: Verification.Fails, options: TestOptions.UnsafeDebugExe,
-            expectedOutput: "XYYX").VerifyDiagnostics(expectedDiagnostics);
+            expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
+
+        var source3 = """
+            unsafe
+            {
+                C.Y2 = &C.Y1;
+                var i = 1;
+                C.Y2(in i);
+                C.Y2 = &C.X1;
+                C.Y2(in i);
+            }
+            """;
+
+        CreateCompilation(source3, new[] { comp1Ref }, parseOptions: TestOptions.Regular11, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(
+            // (6,12): error CS8757: No overload for 'X1' matches function pointer 'delegate*<in int, void>'
+            //     C.Y2 = &C.X1;
+            Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&C.X1").WithArguments("X1", "delegate*<in int, void>").WithLocation(6, 12));
+
+        expectedDiagnostics = new[]
+        {
+            // (6,12): error CS8757: No overload for 'X1' matches function pointer 'delegate*<in int, void>'
+            //     C.Y2 = &C.X1;
+            Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&C.X1").WithArguments("X1", "delegate*<in int, void>").WithLocation(6, 12)
+        };
+
+        CreateCompilation(source3, new[] { comp1Ref }, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source3, new[] { comp1Ref }, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
@@ -6378,67 +8405,69 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void O(out int p);
             """;
         CreateCompilation(source).VerifyDiagnostics(
-                // (7,11): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
-                // rr = (int x) => throw null;
-                Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(7, 11),
-                // (7,14): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
-                // rr = (int x) => throw null;
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(7, 14),
-                // (8,6): warning CS9198: Reference kind modifier of parameter 'ref int x' doesn't match the corresponding parameter 'ref readonly int p' in target.
-                // rr = (ref int x) => throw null;
-                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref int x) => throw null").WithArguments("ref int x", "ref readonly int p").WithLocation(8, 6),
-                // (9,6): warning CS9198: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int p' in target.
-                // rr = (in int x) => throw null;
-                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(in int x) => throw null").WithArguments("in int x", "ref readonly int p").WithLocation(9, 6),
-                // (10,15): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
-                // rr = (out int x) => throw null;
-                Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(10, 15),
-                // (10,18): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
-                // rr = (out int x) => throw null;
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(10, 18),
-                // (11,23): error CS1677: Parameter 1 should not be declared with the 'ref readonly' keyword
-                // v = (ref readonly int x) => throw null;
-                Diagnostic(ErrorCode.ERR_BadParamExtraRef, "x").WithArguments("1", "ref readonly").WithLocation(11, 23),
-                // (11,26): error CS1661: Cannot convert lambda expression to type 'V' because the parameter types do not match the delegate parameter types
-                // v = (ref readonly int x) => throw null;
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "V").WithLocation(11, 26),
-                // (12,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int p' in target.
-                // i = (ref readonly int x) => throw null;
-                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref readonly int x) => throw null").WithArguments("ref readonly int x", "in int p").WithLocation(12, 5),
-                // (13,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'ref int p' in target.
-                // r = (ref readonly int x) => throw null;
-                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref readonly int x) => throw null").WithArguments("ref readonly int x", "ref int p").WithLocation(13, 5),
-                // (14,23): error CS1676: Parameter 1 must be declared with the 'out' keyword
-                // o = (ref readonly int x) => throw null;
-                Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "out").WithLocation(14, 23),
-                // (14,26): error CS1661: Cannot convert lambda expression to type 'O' because the parameter types do not match the delegate parameter types
-                // o = (ref readonly int x) => throw null;
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "O").WithLocation(14, 26),
-                // (15,5): warning CS9198: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref int p' in target.
-                // r = (in int x) => throw null;
-                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(in int x) => throw null").WithArguments("in int x", "ref int p").WithLocation(15, 5),
-                // (16,5): warning CS9198: Reference kind modifier of parameter 'ref int x' doesn't match the corresponding parameter 'in int p' in target.
-                // i = (ref int x) => throw null;
-                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref int x) => throw null").WithArguments("ref int x", "in int p").WithLocation(16, 5),
-                // (18,11): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
-                // rr = (int x) => throw null;
-                Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(18, 11),
-                // (18,14): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
-                // rr = (int x) => throw null;
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(18, 14),
-                // (19,6): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
-                // rr = x => throw null;
-                Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(19, 6),
-                // (19,8): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
-                // rr = x => throw null;
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(19, 8)
-            );
+            // (7,11): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
+            // rr = (int x) => throw null;
+            Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(7, 11),
+            // (7,14): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
+            // rr = (int x) => throw null;
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(7, 14),
+            // (8,15): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
+            // rr = (ref int x) => throw null;
+            Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(8, 15),
+            // (8,18): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
+            // rr = (ref int x) => throw null;
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(8, 18),
+            // (9,6): warning CS9198: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int p' in target.
+            // rr = (in int x) => throw null;
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(in int x) => throw null").WithArguments("in int x", "ref readonly int p").WithLocation(9, 6),
+            // (10,15): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
+            // rr = (out int x) => throw null;
+            Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(10, 15),
+            // (10,18): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
+            // rr = (out int x) => throw null;
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(10, 18),
+            // (11,23): error CS1677: Parameter 1 should not be declared with the 'ref readonly' keyword
+            // v = (ref readonly int x) => throw null;
+            Diagnostic(ErrorCode.ERR_BadParamExtraRef, "x").WithArguments("1", "ref readonly").WithLocation(11, 23),
+            // (11,26): error CS1661: Cannot convert lambda expression to type 'V' because the parameter types do not match the delegate parameter types
+            // v = (ref readonly int x) => throw null;
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "V").WithLocation(11, 26),
+            // (12,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int p' in target.
+            // i = (ref readonly int x) => throw null;
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref readonly int x) => throw null").WithArguments("ref readonly int x", "in int p").WithLocation(12, 5),
+            // (13,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'ref int p' in target.
+            // r = (ref readonly int x) => throw null;
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref readonly int x) => throw null").WithArguments("ref readonly int x", "ref int p").WithLocation(13, 5),
+            // (14,23): error CS1676: Parameter 1 must be declared with the 'out' keyword
+            // o = (ref readonly int x) => throw null;
+            Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "out").WithLocation(14, 23),
+            // (14,26): error CS1661: Cannot convert lambda expression to type 'O' because the parameter types do not match the delegate parameter types
+            // o = (ref readonly int x) => throw null;
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "O").WithLocation(14, 26),
+            // (15,5): warning CS9198: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref int p' in target.
+            // r = (in int x) => throw null;
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(in int x) => throw null").WithArguments("in int x", "ref int p").WithLocation(15, 5),
+            // (16,14): error CS1676: Parameter 1 must be declared with the 'in' keyword
+            // i = (ref int x) => throw null;
+            Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "in").WithLocation(16, 14),
+            // (16,17): error CS1661: Cannot convert lambda expression to type 'I' because the parameter types do not match the delegate parameter types
+            // i = (ref int x) => throw null;
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "I").WithLocation(16, 17),
+            // (18,11): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
+            // rr = (int x) => throw null;
+            Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(18, 11),
+            // (18,14): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
+            // rr = (int x) => throw null;
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(18, 14),
+            // (19,6): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
+            // rr = x => throw null;
+            Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(19, 6));
     }
 
     [Theory, CombinatorialData]
     public void Conversion_Lambda_Cast([CombinatorialValues("in", "ref")] string modifier)
     {
-        var source = $$"""
+        string getSource(string body) => $$"""
             X x = (X)((ref readonly int p) => System.Console.Write("1"));
             Y y = (Y)(({{modifier}} int p) => System.Console.Write("2"));
 
@@ -6446,8 +8475,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             x(in i);
             y({{modifier}} i);
 
-            x = (X)(({{modifier}} int p) => System.Console.Write("3"));
-            y = (Y)((ref readonly int p) => System.Console.Write("4"));
+            {{body}}
 
             x(in i);
             y({{modifier}} i);
@@ -6455,13 +8483,33 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             delegate void X(ref readonly int p);
             delegate void Y({{modifier}} int p);
             """;
-        CompileAndVerify(source, expectedOutput: "1234").VerifyDiagnostics(
-            // (8,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
-            // x = (X)((in int p) => System.Console.Write("3"));
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @$"(X)(({modifier} int p) => System.Console.Write(""3""))").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(8, 5),
-            // (9,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+
+        var source1 = getSource($"""x = (X)(({modifier} int p) => System.Console.Write("3"));""");
+
+        if (modifier == "ref")
+        {
+            CreateCompilation(source1).VerifyDiagnostics(
+                // (8,18): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
+                // x = (X)((ref int p) => System.Console.Write("3"));
+                Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "ref readonly").WithLocation(8, 18),
+                // (8,21): error CS1661: Cannot convert lambda expression to type 'X' because the parameter types do not match the delegate parameter types
+                // x = (X)((ref int p) => System.Console.Write("3"));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "X").WithLocation(8, 21));
+        }
+        else
+        {
+            CompileAndVerify(source1, expectedOutput: "1232").VerifyDiagnostics(
+                // (8,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+                // x = (X)((in int p) => System.Console.Write("3"));
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(X)((in int p) => System.Console.Write(""3""))").WithArguments("in int p", "ref readonly int p").WithLocation(8, 5));
+        }
+
+        var source2 = getSource("""y = (Y)((ref readonly int p) => System.Console.Write("4"));""");
+
+        CompileAndVerify(source2, expectedOutput: "1214").VerifyDiagnostics(
+            // (8,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
             // y = (Y)((ref readonly int p) => System.Console.Write("4"));
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(Y)((ref readonly int p) => System.Console.Write(""4""))").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(9, 5));
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(Y)((ref readonly int p) => System.Console.Write(""4""))").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(8, 5));
     }
 
     [Theory, CombinatorialData]
@@ -6484,37 +8532,78 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         var source2 = $$"""
             C.X((ref readonly int p) => System.Console.Write("1"));
             C.Y(({{modifier}} int p) => System.Console.Write("2"));
-
-            C.X(({{modifier}} int p) => System.Console.Write("3"));
-            C.Y((ref readonly int p) => System.Console.Write("4"));
+            C.Y((ref readonly int p) => System.Console.Write("3"));
             """;
 
         CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-            // (1,10): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,10): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
             // C.X((ref readonly int p) => System.Console.Write("1"));
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(1, 10),
-            // (4,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
-            // C.X((in int p) => System.Console.Write("3"));
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @$"({modifier} int p) => System.Console.Write(""3"")").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(4, 5),
-            // (5,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
-            // C.Y((ref readonly int p) => System.Console.Write("4"));
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(ref readonly int p) => System.Console.Write(""4"")").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(5, 5),
-            // (5,10): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // C.Y((ref readonly int p) => System.Console.Write("4"));
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(5, 10));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(1, 10),
+            // (3,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // C.Y((ref readonly int p) => System.Console.Write("3"));
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(ref readonly int p) => System.Console.Write(""3"")").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(3, 5),
+            // (3,10): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
+            // C.Y((ref readonly int p) => System.Console.Write("3"));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 10));
 
         var expectedDiagnostics = new[]
         {
-            // (4,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
-            // C.X((in int p) => System.Console.Write("3"));
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @$"({modifier} int p) => System.Console.Write(""3"")").WithArguments($"{modifier} int p", "ref readonly int p").WithLocation(4, 5),
-            // (5,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
-            // C.Y((ref readonly int p) => System.Console.Write("4"));
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(ref readonly int p) => System.Console.Write(""4"")").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(5, 5)
+            // (3,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int p' doesn't match the corresponding parameter 'in int p' in target.
+            // C.Y((ref readonly int p) => System.Console.Write("3"));
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(ref readonly int p) => System.Console.Write(""3"")").WithArguments("ref readonly int p", $"{modifier} int p").WithLocation(3, 5)
         };
 
-        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "X1Y2X3Y4", parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "X1Y2X3Y4").VerifyDiagnostics(expectedDiagnostics);
+        var expectedOutput = "X1Y2Y3";
+
+        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
+
+        var source3 = $$"""
+            C.X(({{modifier}} int p) => System.Console.Write("4"));
+            """;
+
+        if (modifier == "ref")
+        {
+            CreateCompilation(source3, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (1,14): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
+                // C.X((ref int p) => System.Console.Write("4"));
+                Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "ref readonly").WithLocation(1, 14),
+                // (1,17): error CS1661: Cannot convert lambda expression to type 'X' because the parameter types do not match the delegate parameter types
+                // C.X((ref int p) => System.Console.Write("4"));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "X").WithLocation(1, 17));
+
+            expectedDiagnostics = new[]
+            {
+                // (1,14): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
+                // C.X((ref int p) => System.Console.Write("4"));
+                Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "ref readonly").WithLocation(1, 14),
+                // (1,17): error CS1661: Cannot convert lambda expression to type 'X' because the parameter types do not match the delegate parameter types
+                // C.X((ref int p) => System.Console.Write("4"));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "X").WithLocation(1, 17)
+            };
+
+            CreateCompilation(source3, new[] { comp1Ref }, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source3, new[] { comp1Ref }).VerifyDiagnostics(expectedDiagnostics);
+        }
+        else
+        {
+            expectedOutput = "X4";
+
+            CompileAndVerify(source3, new[] { comp1Ref }, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (1,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+                // C.X((in int p) => System.Console.Write("4"));
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(in int p) => System.Console.Write(""4"")").WithArguments("in int p", "ref readonly int p").WithLocation(1, 5));
+
+            expectedDiagnostics = new[]
+            {
+                // (1,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref readonly int p' in target.
+                // C.X((in int p) => System.Console.Write("4"));
+                Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(in int p) => System.Console.Write(""4"")").WithArguments("in int p", "ref readonly int p").WithLocation(1, 5)
+            };
+
+            CompileAndVerify(source3, new[] { comp1Ref }, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source3, new[] { comp1Ref }, expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
+        }
     }
 
     [Fact]
@@ -6539,10 +8628,13 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             C.Y((in int p) => System.Console.Write("2"));
 
             C.X((in int p) => System.Console.Write("3"));
+            """;
+
+        var source3 = """
             C.Y((ref int p) => System.Console.Write("4"));
             """;
 
-        CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+        CreateCompilation(source2 + Environment.NewLine + source3, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
             // (4,13): error CS1676: Parameter 1 must be declared with the 'ref' keyword
             // C.X((in int p) => System.Console.Write("3"));
             Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "ref").WithLocation(4, 13),
@@ -6560,13 +8652,50 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         {
             // (4,5): warning CS9198: Reference kind modifier of parameter 'in int p' doesn't match the corresponding parameter 'ref int p' in target.
             // C.X((in int p) => System.Console.Write("3"));
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(in int p) => System.Console.Write(""3"")").WithArguments("in int p", "ref int p").WithLocation(4, 5),
-            // (5,5): warning CS9198: Reference kind modifier of parameter 'ref int p' doesn't match the corresponding parameter 'in int p' in target.
-            // C.Y((ref int p) => System.Console.Write("4"));
-            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(ref int p) => System.Console.Write(""4"")").WithArguments("ref int p", "in int p").WithLocation(5, 5)
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, @"(in int p) => System.Console.Write(""3"")").WithArguments("in int p", "ref int p").WithLocation(4, 5)
         };
 
-        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "X1Y2X3Y4", parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: "X1Y2X3Y4").VerifyDiagnostics(expectedDiagnostics);
+        var expectedOutput = "X1Y2X3";
+
+        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source2, new[] { comp1Ref }, expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
+
+        expectedDiagnostics = new[]
+        {
+            // (1,14): error CS1676: Parameter 1 must be declared with the 'in' keyword
+            // C.Y((ref int p) => System.Console.Write("4"));
+            Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "in").WithLocation(1, 14),
+            // (1,17): error CS1661: Cannot convert lambda expression to type 'Y' because the parameter types do not match the delegate parameter types
+            // C.Y((ref int p) => System.Console.Write("4"));
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "Y").WithLocation(1, 17)
+        };
+
+        CreateCompilation(source3, new[] { comp1Ref }, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source3, new[] { comp1Ref }).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71383")]
+    public void Conversion_ReadonlySemantics()
+    {
+        var source = """
+            class Program
+            {
+                static readonly int f = 123;
+                static void Main()
+                {
+                    var d = (in int x) => { };
+                    d = (ref int x) => { x = 42; }; // should be an error
+                    d(f);
+                    System.Console.WriteLine(f);
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,22): error CS1676: Parameter 1 must be declared with the 'in' keyword
+            //         d = (ref int x) => { x = 42; }; // should be an error
+            Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "in").WithLocation(7, 22),
+            // (7,25): error CS1661: Cannot convert lambda expression to type '<anonymous delegate>' because the parameter types do not match the delegate parameter types
+            //         d = (ref int x) => { x = 42; }; // should be an error
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "<anonymous delegate>").WithLocation(7, 25));
     }
 }

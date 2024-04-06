@@ -110,12 +110,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private static bool TryGetTextForSpecialCharacters(SyntaxToken token, [NotNullWhen(true)] out string? text)
         {
-            if (token.IsKind(SyntaxKind.InterpolatedStringStartToken) ||
-                token.IsKind(SyntaxKind.InterpolatedStringEndToken) ||
-                token.IsKind(SyntaxKind.InterpolatedRawStringEndToken) ||
-                token.IsKind(SyntaxKind.InterpolatedStringTextToken) ||
-                token.IsKind(SyntaxKind.InterpolatedSingleLineRawStringStartToken) ||
-                token.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken))
+            if (token.Kind()
+                    is SyntaxKind.InterpolatedStringStartToken
+                    or SyntaxKind.InterpolatedStringEndToken
+                    or SyntaxKind.InterpolatedRawStringEndToken
+                    or SyntaxKind.InterpolatedStringTextToken
+                    or SyntaxKind.InterpolatedSingleLineRawStringStartToken
+                    or SyntaxKind.InterpolatedMultiLineRawStringStartToken)
             {
                 text = Keyword("$");
                 return true;
@@ -133,16 +134,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.Utf8StringLiteralToken) ||
-                token.IsKind(SyntaxKind.Utf8SingleLineRawStringLiteralToken) ||
-                token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken))
+            if (token.Kind()
+                    is SyntaxKind.Utf8StringLiteralToken
+                    or SyntaxKind.Utf8SingleLineRawStringLiteralToken
+                    or SyntaxKind.Utf8MultiLineRawStringLiteralToken)
             {
                 text = Keyword("Utf8StringLiteral");
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.SingleLineRawStringLiteralToken) ||
-                token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken))
+            if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
             {
                 text = Keyword("RawStringLiteral");
                 return true;

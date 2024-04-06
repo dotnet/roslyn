@@ -13,25 +13,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal interface IRemoteDiagnosticAnalyzerService
 {
-    internal interface IRemoteDiagnosticAnalyzerService
-    {
-        ValueTask<SerializableDiagnosticAnalysisResults> CalculateDiagnosticsAsync(Checksum solutionChecksum, DiagnosticArguments arguments, CancellationToken cancellationToken);
-        ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, bool forSpanAnalysis, CancellationToken cancellationToken);
-        ValueTask StartSolutionCrawlerAsync(CancellationToken cancellationToken);
-    }
+    ValueTask<SerializableDiagnosticAnalysisResults> CalculateDiagnosticsAsync(Checksum solutionChecksum, DiagnosticArguments arguments, CancellationToken cancellationToken);
+    ValueTask<ImmutableArray<DiagnosticData>> GetSourceGeneratorDiagnosticsAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
+    ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, bool forSpanAnalysis, CancellationToken cancellationToken);
+}
 
-    [DataContract]
-    internal readonly struct AnalyzerPerformanceInfo(string analyzerId, bool builtIn, TimeSpan timeSpan)
-    {
-        [DataMember(Order = 0)]
-        public readonly string AnalyzerId = analyzerId;
+[DataContract]
+internal readonly struct AnalyzerPerformanceInfo(string analyzerId, bool builtIn, TimeSpan timeSpan)
+{
+    [DataMember(Order = 0)]
+    public readonly string AnalyzerId = analyzerId;
 
-        [DataMember(Order = 1)]
-        public readonly bool BuiltIn = builtIn;
+    [DataMember(Order = 1)]
+    public readonly bool BuiltIn = builtIn;
 
-        [DataMember(Order = 2)]
-        public readonly TimeSpan TimeSpan = timeSpan;
-    }
+    [DataMember(Order = 2)]
+    public readonly TimeSpan TimeSpan = timeSpan;
 }

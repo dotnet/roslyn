@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
     public sealed class InvokeUtil
     {
-        public void Exec(ITestOutputHelper testOutputHelper, AssemblyLoadContext compilerContext, AssemblyLoadTestFixture fixture, bool shadowLoad, string typeName, string methodName)
+        public void Exec(ITestOutputHelper testOutputHelper, AssemblyLoadContext compilerContext, AssemblyLoadTestFixture fixture, AnalyzerTestKind kind, string typeName, string methodName)
         {
             // Ensure that the test did not load any of the test fixture assemblies into 
             // the default load context. That should never happen. Assemblies should either 
@@ -46,9 +46,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var compilerContextCount = compilerContext.Assemblies.Count();
 
             using var tempRoot = new TempRoot();
-            AnalyzerAssemblyLoader loader = shadowLoad
-                ? new ShadowCopyAnalyzerAssemblyLoader(compilerContext, tempRoot.CreateDirectory().Path)
-                : new DefaultAnalyzerAssemblyLoader(compilerContext);
+            AnalyzerAssemblyLoader loader = kind switch
+            {
+                AnalyzerTestKind.LoadDirect => new DefaultAnalyzerAssemblyLoader(compilerContext, AnalyzerLoadOption.LoadFromDisk),
+                AnalyzerTestKind.LoadStream => new DefaultAnalyzerAssemblyLoader(compilerContext, AnalyzerLoadOption.LoadFromStream),
+                AnalyzerTestKind.ShadowLoad => new ShadowCopyAnalyzerAssemblyLoader(compilerContext, tempRoot.CreateDirectory().Path),
+                _ => throw ExceptionUtilities.Unreachable()
+            };
+
             try
             {
                 AnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName);
@@ -88,12 +93,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
     public sealed class InvokeUtil : MarshalByRefObject
     {
-        public void Exec(ITestOutputHelper testOutputHelper, AssemblyLoadTestFixture fixture, bool shadowLoad, string typeName, string methodName)
+        public void Exec(ITestOutputHelper testOutputHelper, AssemblyLoadTestFixture fixture, AnalyzerTestKind kind, string typeName, string methodName)
         {
             using var tempRoot = new TempRoot();
-            AnalyzerAssemblyLoader loader = shadowLoad
-                ? new ShadowCopyAnalyzerAssemblyLoader(tempRoot.CreateDirectory().Path)
-                : new DefaultAnalyzerAssemblyLoader();
+            AnalyzerAssemblyLoader loader = kind switch
+            {
+                AnalyzerTestKind.LoadDirect => new DefaultAnalyzerAssemblyLoader(),
+                AnalyzerTestKind.ShadowLoad => new ShadowCopyAnalyzerAssemblyLoader(tempRoot.CreateDirectory().Path),
+                _ => throw ExceptionUtilities.Unreachable()
+            };
 
             try
             {

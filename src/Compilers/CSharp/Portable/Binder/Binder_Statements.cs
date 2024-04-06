@@ -748,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="syntaxNode">The syntax node to perform lookup on</param>
         /// <param name="diagnostics">Populated with invocation errors, and warnings of near misses</param>
         /// <returns>The <see cref="MethodSymbol"/> of the Dispose method if one is found, otherwise null.</returns>
-        internal MethodSymbol TryFindDisposePatternMethod(BoundExpression expr, SyntaxNode syntaxNode, bool hasAwait, BindingDiagnosticBag diagnostics)
+        internal MethodSymbol TryFindDisposePatternMethod(BoundExpression expr, SyntaxNode syntaxNode, bool hasAwait, BindingDiagnosticBag diagnostics, out bool isExpanded)
         {
             Debug.Assert(expr is object);
             Debug.Assert(expr.Type is object);
@@ -758,7 +758,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     hasAwait ? WellKnownMemberNames.DisposeAsyncMethodName : WellKnownMemberNames.DisposeMethodName,
                                                     syntaxNode,
                                                     diagnostics,
-                                                    out var disposeMethod);
+                                                    out var disposeMethod,
+                                                    out isExpanded);
 
             if (disposeMethod?.IsExtensionMethod == true)
             {
@@ -1335,14 +1336,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             const string methodName = "GetPinnableReference";
 
-            var result = PerformPatternMethodLookup(initializer, methodName, initializer.Syntax, additionalDiagnostics, out var patternMethodSymbol);
+            var result = PerformPatternMethodLookup(initializer, methodName, initializer.Syntax, additionalDiagnostics, out var patternMethodSymbol, out bool isExpanded);
 
             if (patternMethodSymbol is null)
             {
                 return null;
             }
 
-            if (HasOptionalOrVariableParameters(patternMethodSymbol) ||
+            if (isExpanded || HasOptionalParameters(patternMethodSymbol) ||
                 patternMethodSymbol.ReturnsVoid ||
                 !patternMethodSymbol.RefKind.IsManagedReference() ||
                 !(patternMethodSymbol.ParameterCount == 0 || patternMethodSymbol.IsStatic && patternMethodSymbol.ParameterCount == 1))
@@ -2212,11 +2213,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!conversion.IsImplicit || !conversion.IsValid);
 
-            // If the either type is an error then an error has already been reported
+            // If the either type has an error then an error has already been reported
             // for some aspect of the analysis of this expression. (For example, something like
             // "garbage g = null; short s = g;" -- we don't want to report that g is not
             // convertible to short because we've already reported that g does not have a good type.
-            if (!sourceType.IsErrorType() && !targetType.IsErrorType())
+            if (!sourceType.ContainsErrorType() && !targetType.ContainsErrorType())
             {
                 if (conversion.IsExplicit)
                 {
@@ -2379,8 +2380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case BoundKind.UnconvertedCollectionExpression:
                     {
-                        Debug.Assert(operand.Type is null);
-                        Error(diagnostics, ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, syntax, targetType);
+                        GenerateImplicitConversionErrorForCollectionExpression((BoundUnconvertedCollectionExpression)operand, targetType, diagnostics);
                         return;
                     }
                 case BoundKind.AddressOfOperator when targetType.IsFunctionPointer():
@@ -3786,17 +3786,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The constructor is implicit. We need to get the binder for the body
                 // of the enclosing class.
                 CSharpSyntaxNode containerNode = constructor.GetNonNullSyntaxNode();
-                BinderFactory binderFactory = compilation.GetBinderFactory(containerNode.SyntaxTree);
 
-                if (containerNode is TypeDeclarationSyntax typeDecl)
+                if (containerNode is CompilationUnitSyntax)
                 {
-                    outerBinder = binderFactory.GetInTypeBodyBinder(typeDecl);
+                    // Must be a source of top level statements with a partial type declaration
+                    // that specifies a non-object base. The object base is handled above.
+                    // We need an actual TypeDeclarationSyntax in order to locate the correct binder for this case.
+                    containerNode = containingType.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).OfType<TypeDeclarationSyntax>().First();
                 }
-                else
-                {
-                    SyntaxToken bodyToken = GetImplicitConstructorBodyToken(containerNode);
-                    outerBinder = binderFactory.GetBinder(containerNode, bodyToken.Position);
-                }
+
+                BinderFactory binderFactory = compilation.GetBinderFactory(containerNode.SyntaxTree);
+                outerBinder = binderFactory.GetInTypeBodyBinder((TypeDeclarationSyntax)containerNode);
             }
             else
             {
@@ -3826,11 +3826,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor);
 
             return initializerBinder.BindConstructorInitializer(null, constructor, diagnostics);
-        }
-
-        private static SyntaxToken GetImplicitConstructorBodyToken(CSharpSyntaxNode containerNode)
-        {
-            return ((BaseTypeDeclarationSyntax)containerNode).OpenBraceToken;
         }
 
         internal static BoundCall? GenerateBaseParameterlessConstructorInitializer(MethodSymbol constructor, BindingDiagnosticBag diagnostics)
@@ -3879,9 +3874,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 syntax: syntax,
                 receiverOpt: receiver,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                 method: baseConstructor,
                 arguments: ImmutableArray<BoundExpression>.Empty,
-                argumentNamesOpt: ImmutableArray<string>.Empty,
+                argumentNamesOpt: ImmutableArray<string?>.Empty,
                 argumentRefKindsOpt: ImmutableArray<RefKind>.Empty,
                 isDelegateCall: false,
                 expanded: false,
@@ -3925,6 +3921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 syntax: syntax,
                 receiverOpt: receiver,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                 method: baseConstructor,
                 arguments: ImmutableArray.Create(argument),
                 argumentNamesOpt: default,
@@ -4017,13 +4014,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="result">The method symbol that was looked up, or null</param>
         /// <returns>A <see cref="PatternLookupResult"/> value with the outcome of the lookup</returns>
         internal PatternLookupResult PerformPatternMethodLookup(BoundExpression receiver, string methodName,
-                                                                SyntaxNode syntaxNode, BindingDiagnosticBag diagnostics, out MethodSymbol result)
+                                                                SyntaxNode syntaxNode, BindingDiagnosticBag diagnostics, out MethodSymbol result, out bool isExpanded)
         {
             var bindingDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
 
             try
             {
                 result = null;
+                isExpanded = false;
 
                 var boundAccess = BindInstanceMemberAccess(
                        syntaxNode,
@@ -4058,7 +4056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     analyzedArguments,
                     bindingDiagnostics,
                     queryClause: null,
-                    allowUnexpandedForm: false,
+                    ignoreNormalFormIfHasValidParamsParameter: true,
                     anyApplicableCandidates: out _);
 
                 analyzedArguments.Free();
@@ -4087,6 +4085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Success!
                 result = patternMethodSymbol;
+                isExpanded = call.Expanded;
                 return PatternLookupResult.Success;
             }
             finally

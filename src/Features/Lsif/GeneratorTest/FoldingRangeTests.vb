@@ -4,7 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.LanguageServer.Protocol
+Imports Roslyn.LanguageServer.Protocol
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
@@ -44,7 +44,7 @@ using System.Linq;|}", "imports", "...")>
 {|foldingRange:// Comment Line 1
 // Comment Line 2|}", Nothing, "// Comment Line 1...")>
         Public Async Function TestFoldingRanges(code As String, rangeKind As String, collapsedText As String) As Task
-            Using workspace = TestWorkspace.CreateWorkspace(
+            Using workspace = EditorTestWorkspace.CreateWorkspace(
                     <Workspace>
                         <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
                             <Document Name="A.cs" FilePath="Z:\A.cs">
@@ -54,7 +54,7 @@ using System.Linq;|}", "imports", "...")>
                     </Workspace>, openDocuments:=False, composition:=TestLsifOutput.TestComposition)
 
                 Dim annotatedLocations = Await AbstractLanguageServerProtocolTests.GetAnnotatedLocationsAsync(workspace, workspace.CurrentSolution)
-                Dim expectedRanges = annotatedLocations("foldingRange").Select(Function(location) CreateFoldingRange(rangeKind, location.Range, collapsedText)).OrderBy(Function(range) range.StartLine).ToArray()
+                Dim expectedRanges = annotatedLocations("foldingRange").Select(Function(location) CreateFoldingRange(rangeKind, location.Range, collapsedText)).OrderByDescending(Function(range) range.StartLine).ToArray()
 
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
                 Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(workspace)

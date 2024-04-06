@@ -12,45 +12,44 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.AddFileBanner
+namespace Microsoft.CodeAnalysis.AddFileBanner;
+
+internal abstract class AbstractAddFileBannerNewDocumentFormattingProvider : INewDocumentFormattingProvider
 {
-    internal abstract class AbstractAddFileBannerNewDocumentFormattingProvider : INewDocumentFormattingProvider
+    protected abstract SyntaxGenerator SyntaxGenerator { get; }
+    protected abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
+    protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
+
+    public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
     {
-        protected abstract SyntaxGenerator SyntaxGenerator { get; }
-        protected abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
-        protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
+        var rootToFormat = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
+        // Apply file header preferences
+        var fileHeaderTemplate = options.DocumentFormattingOptions.FileHeaderTemplate;
+        if (!string.IsNullOrEmpty(fileHeaderTemplate))
         {
-            var rootToFormat = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var newLineTrivia = SyntaxGeneratorInternal.EndOfLine(options.FormattingOptions.NewLine);
+            var rootWithFileHeader = await AbstractFileHeaderCodeFixProvider.GetTransformedSyntaxRootAsync(
+                    SyntaxGenerator.SyntaxFacts,
+                    FileHeaderHelper,
+                    newLineTrivia,
+                    document,
+                    fileHeaderTemplate,
+                    cancellationToken).ConfigureAwait(false);
 
-            // Apply file header preferences
-            var fileHeaderTemplate = options.DocumentFormattingOptions.FileHeaderTemplate;
-            if (!string.IsNullOrEmpty(fileHeaderTemplate))
-            {
-                var newLineTrivia = SyntaxGeneratorInternal.EndOfLine(options.FormattingOptions.NewLine);
-                var rootWithFileHeader = await AbstractFileHeaderCodeFixProvider.GetTransformedSyntaxRootAsync(
-                        SyntaxGenerator.SyntaxFacts,
-                        FileHeaderHelper,
-                        newLineTrivia,
-                        document,
-                        fileHeaderTemplate,
-                        cancellationToken).ConfigureAwait(false);
-
-                return document.WithSyntaxRoot(rootWithFileHeader);
-            }
-            else if (hintDocument is not null)
-            {
-                // If there is no file header preference, see if we can use the one in the hint document
-                var bannerService = hintDocument.GetRequiredLanguageService<IFileBannerFactsService>();
-                var hintSyntaxRoot = await hintDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var fileBanner = bannerService.GetFileBanner(hintSyntaxRoot);
-
-                var rootWithBanner = rootToFormat.WithPrependedLeadingTrivia(fileBanner);
-                return document.WithSyntaxRoot(rootWithBanner);
-            }
-
-            return document;
+            return document.WithSyntaxRoot(rootWithFileHeader);
         }
+        else if (hintDocument is not null)
+        {
+            // If there is no file header preference, see if we can use the one in the hint document
+            var bannerService = hintDocument.GetRequiredLanguageService<IFileBannerFactsService>();
+            var hintSyntaxRoot = await hintDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var fileBanner = bannerService.GetFileBanner(hintSyntaxRoot);
+
+            var rootWithBanner = rootToFormat.WithPrependedLeadingTrivia(fileBanner);
+            return document.WithSyntaxRoot(rootWithBanner);
+        }
+
+        return document;
     }
 }

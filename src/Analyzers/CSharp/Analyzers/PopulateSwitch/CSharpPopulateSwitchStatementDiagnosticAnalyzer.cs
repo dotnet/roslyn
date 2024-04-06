@@ -6,11 +6,10 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PopulateSwitch;
 
-namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch
+namespace Microsoft.CodeAnalysis.CSharp.PopulateSwitch;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal sealed class CSharpPopulateSwitchStatementDiagnosticAnalyzer :
+    AbstractPopulateSwitchStatementDiagnosticAnalyzer<SwitchStatementSyntax>
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpPopulateSwitchStatementDiagnosticAnalyzer :
-        AbstractPopulateSwitchStatementDiagnosticAnalyzer<SwitchStatementSyntax>
-    {
-    }
 }

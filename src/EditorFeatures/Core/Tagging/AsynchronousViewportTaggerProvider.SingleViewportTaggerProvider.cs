@@ -47,6 +47,9 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
         protected override SpanTrackingMode SpanTrackingMode
             => _callback.SpanTrackingMode;
 
+        protected override bool SupportsFrozenPartialSemantics
+            => _callback.SupportsFrozenPartialSemantics;
+
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
             => _callback.CreateEventSource(textView, subjectBuffer);
 
@@ -70,7 +73,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
                 // above/below tagger should tag nothing.
                 return _viewPortToTag == ViewPortToTag.InView
                     ? base.GetSpansToTag(textView, subjectBuffer)
-                    : SpecializedCollections.EmptyEnumerable<SnapshotSpan>();
+                    : [];
             }
 
             var visibleSpan = visibleSpanOpt.Value;
@@ -89,14 +92,19 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
 
             using var result = TemporaryArray<SnapshotSpan>.Empty;
 
-            var aboveSpan = new SnapshotSpan(visibleSpan.Snapshot, Span.FromBounds(widenedSpan.Span.Start, visibleSpan.Span.Start));
-            var belowSpan = new SnapshotSpan(visibleSpan.Snapshot, Span.FromBounds(visibleSpan.Span.End, widenedSpan.Span.End));
+            if (_viewPortToTag is ViewPortToTag.Above)
+            {
+                var aboveSpan = new SnapshotSpan(visibleSpan.Snapshot, Span.FromBounds(widenedSpan.Span.Start, visibleSpan.Span.Start));
+                if (!aboveSpan.IsEmpty)
+                    result.Add(aboveSpan);
+            }
+            else if (_viewPortToTag is ViewPortToTag.Below)
+            {
+                var belowSpan = new SnapshotSpan(visibleSpan.Snapshot, Span.FromBounds(visibleSpan.Span.End, widenedSpan.Span.End));
 
-            if (!aboveSpan.IsEmpty)
-                result.Add(aboveSpan);
-
-            if (!belowSpan.IsEmpty)
-                result.Add(belowSpan);
+                if (!belowSpan.IsEmpty)
+                    result.Add(belowSpan);
+            }
 
             return result.ToImmutableAndClear();
         }

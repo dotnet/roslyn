@@ -52,8 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         protected AbstractOptionPreviewViewModel(OptionStore optionStore, IServiceProvider serviceProvider, string language)
         {
             this.OptionStore = optionStore;
-            this.Items = new List<object>();
-            this.CodeStyleItems = new ObservableCollection<AbstractCodeStyleOptionViewModel>();
+            this.Items = [];
+            this.CodeStyleItems = [];
 
             _componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 
@@ -120,11 +120,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             // use the mscorlib, system, and system.core that are loaded in the current process.
             string[] references =
-                {
+                [
                     "mscorlib",
                     "System",
                     "System.Core"
-                };
+                ];
 
             var metadataService = workspace.Services.GetService<IMetadataService>();
 

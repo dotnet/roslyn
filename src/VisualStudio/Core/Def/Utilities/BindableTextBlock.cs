@@ -12,40 +12,39 @@ using System.Windows.Documents;
 using System.Xml.Linq;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Utilities
+namespace Microsoft.VisualStudio.LanguageServices.Utilities;
+
+internal class BindableTextBlock : TextBlock
 {
-    internal class BindableTextBlock : TextBlock
+    public IList<Inline> InlineCollection
     {
-        public IList<Inline> InlineCollection
+        get { return (ObservableCollection<Inline>)GetValue(InlineListProperty); }
+        set { SetValue(InlineListProperty, value); }
+    }
+
+    public static readonly DependencyProperty InlineListProperty =
+        DependencyProperty.Register(nameof(InlineCollection), typeof(IList<Inline>), typeof(BindableTextBlock), new UIPropertyMetadata(null, OnPropertyChanged));
+
+    private static void OnPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+    {
+        var textBlock = (BindableTextBlock)sender;
+        var newList = (IList<Inline>)e.NewValue;
+
+        textBlock.Inlines.Clear();
+
+        if (newList is null)
         {
-            get { return (ObservableCollection<Inline>)GetValue(InlineListProperty); }
-            set { SetValue(InlineListProperty, value); }
+            return;
         }
 
-        public static readonly DependencyProperty InlineListProperty =
-            DependencyProperty.Register(nameof(InlineCollection), typeof(IList<Inline>), typeof(BindableTextBlock), new UIPropertyMetadata(null, OnPropertyChanged));
+        var automationTextBuilder = new StringBuilder();
 
-        private static void OnPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+        foreach (var inline in newList)
         {
-            var textBlock = (BindableTextBlock)sender;
-            var newList = (IList<Inline>)e.NewValue;
-
-            textBlock.Inlines.Clear();
-
-            if (newList is null)
-            {
-                return;
-            }
-
-            var automationTextBuilder = new StringBuilder();
-
-            foreach (var inline in newList)
-            {
-                textBlock.Inlines.Add(inline);
-                automationTextBuilder.Append(inline.GetText());
-            }
-
-            AutomationProperties.SetName(textBlock, automationTextBuilder.ToString());
+            textBlock.Inlines.Add(inline);
+            automationTextBuilder.Append(inline.GetText());
         }
+
+        AutomationProperties.SetName(textBlock, automationTextBuilder.ToString());
     }
 }

@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
 public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
@@ -33,13 +33,11 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
         Assert.Equal(2, results.Length);
         Assert.Empty(results[0].Diagnostics);
         Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
-        Assert.Equal(ProtocolConversions.GetUriFromFilePath(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
-        Assert.Null(results2[0].Diagnostics);
-        Assert.Null(results2[1].Diagnostics);
-        Assert.Equal(results[1].ResultId, results2[1].ResultId);
+        Assert.Empty(results2);
     }
 
     [Theory, CombinatorialData]
@@ -52,7 +50,7 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
         Assert.Equal(2, results.Length);
         Assert.Empty(results[0].Diagnostics);
         Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
-        Assert.Equal(ProtocolConversions.GetUriFromFilePath(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
 
         var initialSolution = testLspServer.GetCurrentSolution();
         var newSolution = initialSolution.RemoveProject(initialSolution.Projects.First().Id);
@@ -60,9 +58,9 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
 
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
         Assert.Equal(2, results2.Length);
-        Assert.Equal(useVSDiagnostics ? null : Array.Empty<LSP.Diagnostic>(), results2[0].Diagnostics);
+        Assert.Equal(useVSDiagnostics ? null : [], results2[0].Diagnostics);
         Assert.Null(results2[0].ResultId);
-        Assert.Equal(useVSDiagnostics ? null : Array.Empty<LSP.Diagnostic>(), results2[1].Diagnostics);
+        Assert.Equal(useVSDiagnostics ? null : [], results2[1].Diagnostics);
         Assert.Null(results2[1].ResultId);
     }
 

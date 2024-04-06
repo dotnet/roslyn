@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -199,12 +200,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 RemoveInMemoryCache(_lastResult);
 
+                using var _ = PooledHashSet<DocumentId>.GetInstance(out var documentIdsToProcess);
+                documentIdsToProcess.AddRange(_lastResult.DocumentIdsOrEmpty);
+                documentIdsToProcess.AddRange(result.DocumentIdsOrEmpty);
+
                 // save last aggregated form of analysis result
                 _lastResult = result.ToAggregatedForm();
 
                 // serialization can't be canceled.
                 var serializerVersion = result.Version;
-                foreach (var documentId in result.DocumentIds)
+
+                foreach (var documentId in documentIdsToProcess)
                 {
                     var document = project.GetTextDocument(documentId);
 
@@ -228,12 +234,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         continue;
                     }
 
-                    await AddToInMemoryStorageAsync(serializerVersion, project, document, document.Id, SyntaxStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax)).ConfigureAwait(false);
-                    await AddToInMemoryStorageAsync(serializerVersion, project, document, document.Id, SemanticStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic)).ConfigureAwait(false);
-                    await AddToInMemoryStorageAsync(serializerVersion, project, document, document.Id, NonLocalStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.NonLocal)).ConfigureAwait(false);
+                    AddToInMemoryStorage(serializerVersion, project, document, document.Id, SyntaxStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax));
+                    AddToInMemoryStorage(serializerVersion, project, document, document.Id, SemanticStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic));
+                    AddToInMemoryStorage(serializerVersion, project, document, document.Id, NonLocalStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.NonLocal));
                 }
 
-                await AddToInMemoryStorageAsync(serializerVersion, project, document: null, result.ProjectId, NonLocalStateName, result.GetOtherDiagnostics()).ConfigureAwait(false);
+                AddToInMemoryStorage(serializerVersion, project, document: null, result.ProjectId, NonLocalStateName, result.GetOtherDiagnostics());
             }
 
             public void ResetVersion()
@@ -282,8 +288,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializerVersion = version;
 
                 // save active file diagnostics back to project state
-                await AddToInMemoryStorageAsync(serializerVersion, project, document, document.Id, SyntaxStateName, syntax.Items).ConfigureAwait(false);
-                await AddToInMemoryStorageAsync(serializerVersion, project, document, document.Id, SemanticStateName, semantic.Items).ConfigureAwait(false);
+                AddToInMemoryStorage(serializerVersion, project, document, document.Id, SyntaxStateName, syntax.Items);
+                AddToInMemoryStorage(serializerVersion, project, document, document.Id, SemanticStateName, semantic.Items);
 
                 // save last aggregated form of analysis result
                 _lastResult = _lastResult.UpdateAggregatedResult(version, state.DocumentId, fromBuild);
@@ -352,14 +358,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return builder.ToResult();
             }
 
-            private ValueTask AddToInMemoryStorageAsync(
+            private void AddToInMemoryStorage(
                 VersionStamp serializerVersion, Project project, TextDocument? document, object key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
             {
                 Contract.ThrowIfFalse(document == null || document.Project == project);
 
                 // if serialization fail, hold it in the memory
                 InMemoryStorage.Cache(_owner.Analyzer, (key, stateKey), new CacheEntry(serializerVersion, diagnostics));
-                return default;
             }
 
             private async ValueTask<bool> TryGetDiagnosticsFromInMemoryStorageAsync(VersionStamp serializerVersion, TextDocument document, Builder builder, CancellationToken cancellationToken)

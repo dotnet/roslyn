@@ -39,15 +39,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 
         public CSharpFormatterTestsBase(ITestOutputHelper output) : base(output) { }
 
-        protected const string HtmlMarkup = @"<html>
-    <body>
-        <%{|S1:|}%>
-    </body>
-</html>";
+        protected const string HtmlMarkup = """
+            <html>
+                <body>
+                    <%{|S1:|}%>
+                </body>
+            </html>
+            """;
         protected const int BaseIndentationOfNugget = 8;
 
         protected static async Task<int> GetSmartTokenFormatterIndentationWorkerAsync(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             ITextBuffer buffer,
             int indentationLine,
             char ch,
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         }
 
         protected static async Task<string> TokenFormatAsync(
-            TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             ITextBuffer buffer,
             int indentationLine,
             char ch,
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             return buffer.CurrentSnapshot.GetText();
         }
 
-        private static async Task TokenFormatWorkerAsync(TestWorkspace workspace, ITextBuffer buffer, int indentationLine, char ch, bool useTabs)
+        private static async Task TokenFormatWorkerAsync(EditorTestWorkspace workspace, ITextBuffer buffer, int indentationLine, char ch, bool useTabs)
         {
             var document = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().First();
             var documentSyntax = await ParsedDocument.CreateAsync(document, CancellationToken.None);
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             TextSpan span = default)
         {
             // create tree service
-            using var workspace = TestWorkspace.CreateCSharp(code, composition: s_composition);
+            using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: s_composition);
 
             if (baseIndentation.HasValue)
             {

@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                   returnsVoidIsSet: false,
                                                   isExpressionBodied: isExpressionBodied,
                                                   isExtensionMethod: false, isVarArg: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                                                  isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation)))
+                                                  isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation,
+                                                  hasThisInitializer: false)))
         {
             _explicitInterfaceType = explicitInterfaceType;
             _name = name;

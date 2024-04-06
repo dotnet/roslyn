@@ -72,6 +72,92 @@ class C
             VerifySuppressedAndFilteredDiagnostics(compilation, analyzers);
         }
 
+        [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
+        [Fact]
+        public void TestSuppression_CompilerSyntaxBindingError_AndSuppressibleWarning()
+        {
+            const string SourceCode = @"
+                public class MyClass
+                {
+                    void MyPrivateMethod(int i)
+                    {
+                        // warning CS1522: Empty switch block
+                        switch (i)
+                        {
+                        }
+                    }
+                }
+                public class YourClass
+                { 
+                    void YourPrivateMethod()
+                    {
+                        // Cannot access private method
+                        new MyClass().MyPrivateMethod();
+                    }
+                }";
+
+            var compilation = CreateCompilation(SourceCode);
+            compilation.VerifyDiagnostics(
+                // (8,25): warning CS1522: Empty switch block
+                //         {
+                Diagnostic(ErrorCode.WRN_EmptySwitch, "{", isSuppressed: false).WithLocation(line: 8, column: 25),
+                // (17,39): error CS0122: 'MyClass.MyPrivateMethod(int)' is inaccessible due to its protection level
+                //                         new MyClass().MyPrivateMethod();
+                Diagnostic(ErrorCode.ERR_BadAccess, "MyPrivateMethod").WithArguments("MyClass.MyPrivateMethod(int)").WithLocation(17, 39));
+
+            // Verify that suppression takes place even there are declaration errors
+            var analyzers = new DiagnosticAnalyzer[] { new DiagnosticSuppressorForId("CS1522") };
+            VerifySuppressedDiagnostics(compilation, analyzers,
+                // (8,25): warning CS1522: Empty switch block
+                //         {
+                Diagnostic("CS1522", "{", isSuppressed: true).WithLocation(line: 8, column: 25));
+
+            VerifySuppressedAndFilteredDiagnostics(compilation, analyzers);
+        }
+
+        [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
+        [Fact]
+        public void TestSuppression_CompilerSyntaxDeclarationError_AndSuppressibleWarning()
+        {
+            const string SourceCode = @"
+                // warning CS1522: Empty switch block
+                class C
+                {
+                    void M(int i)
+                    {
+                        switch (i)
+                        {
+                        }
+                    }
+                }
+
+                public abstract class MyAbstractClass
+                {
+                    // error CS0180: Methods cannot be both extern and abstract -- this is a declaration error
+                    public extern abstract void MyFaultyMethod()
+                    {
+                    }
+                }";
+
+            var compilation = CreateCompilation(SourceCode);
+            compilation.VerifyDiagnostics(
+                // (8,25): warning CS1522: Empty switch block
+                //         {
+                Diagnostic(ErrorCode.WRN_EmptySwitch, "{", isSuppressed: false).WithLocation(line: 8, column: 25),
+                // (16,49): error CS0180: 'MyAbstractClass.MyFaultyMethod()' cannot be both extern and abstract
+                //                     public extern abstract void MyFaultyMethod()
+                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "MyFaultyMethod").WithArguments("MyAbstractClass.MyFaultyMethod()").WithLocation(16, 49));
+
+            // Verify that suppression takes place even there are declaration errors
+            var analyzers = new DiagnosticAnalyzer[] { new DiagnosticSuppressorForId("CS1522") };
+            VerifySuppressedDiagnostics(compilation, analyzers,
+                // (8,25): warning CS1522: Empty switch block
+                //         {
+                Diagnostic("CS1522", "{", isSuppressed: true).WithLocation(line: 8, column: 25));
+
+            VerifySuppressedAndFilteredDiagnostics(compilation, analyzers);
+        }
+
         [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         public void TestSuppression_CompilerSemanticWarning()
         {
@@ -553,23 +639,27 @@ class C { }";
             var suppressor = new DiagnosticSuppressorForId(analyzer.Descriptor.Id, suppressionId);
             var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, suppressor };
             var diagnostics = compilation.GetAnalyzerDiagnostics(analyzersAndSuppressors, reportSuppressedDiagnostics: true);
-            Assert.Single(diagnostics);
-            var suppressionInfo = diagnostics.Select(d => d.ProgrammaticSuppressionInfo).Single().Suppressions.Single();
-            Assert.Equal(suppressionId, suppressionInfo.Id);
-            Assert.Equal(suppressor.SuppressionDescriptor.Justification, suppressionInfo.Justification);
+            var diagnostic = Assert.Single(diagnostics);
+            var suppression = diagnostic.ProgrammaticSuppressionInfo.Suppressions.Single();
+            Assert.Equal(suppressionId, suppression.Descriptor.Id);
+            Assert.Equal(suppressor.SuppressionDescriptor.Justification, suppression.Descriptor.Justification);
+            var suppressionInfo = diagnostic.GetSuppressionInfo(compilation);
+            Assert.Equal(suppression, suppressionInfo.ProgrammaticSuppressions.Single());
 
             const string suppressionId2 = "SPR1002";
             var suppressor2 = new DiagnosticSuppressorForId(analyzer.Descriptor.Id, suppressionId2);
             analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, suppressor, suppressor2 };
             diagnostics = compilation.GetAnalyzerDiagnostics(analyzersAndSuppressors, reportSuppressedDiagnostics: true);
-            Assert.Single(diagnostics);
-            var programmaticSuppression = diagnostics.Select(d => d.ProgrammaticSuppressionInfo).Single();
-            Assert.Equal(2, programmaticSuppression.Suppressions.Count);
-            var orderedSuppressions = programmaticSuppression.Suppressions.Order().ToImmutableArrayOrEmpty();
-            Assert.Equal(suppressionId, orderedSuppressions[0].Id);
-            Assert.Equal(suppressor.SuppressionDescriptor.Justification, orderedSuppressions[0].Justification);
-            Assert.Equal(suppressionId2, orderedSuppressions[1].Id);
-            Assert.Equal(suppressor2.SuppressionDescriptor.Justification, orderedSuppressions[1].Justification);
+            diagnostic = Assert.Single(diagnostics);
+            var programmaticSuppression = diagnostic.ProgrammaticSuppressionInfo;
+            Assert.Equal(2, programmaticSuppression.Suppressions.Length);
+            var orderedSuppressions = programmaticSuppression.Suppressions.OrderBy(suppression => suppression.Descriptor.Id).ToImmutableArrayOrEmpty();
+            Assert.Equal(suppressionId, orderedSuppressions[0].Descriptor.Id);
+            Assert.Equal(suppressor.SuppressionDescriptor.Justification, orderedSuppressions[0].Descriptor.Justification);
+            Assert.Equal(suppressionId2, orderedSuppressions[1].Descriptor.Id);
+            Assert.Equal(suppressor2.SuppressionDescriptor.Justification, orderedSuppressions[1].Descriptor.Justification);
+            suppressionInfo = diagnostic.GetSuppressionInfo(compilation);
+            AssertEx.SetEqual(programmaticSuppression.Suppressions, suppressionInfo.ProgrammaticSuppressions);
         }
 
         [CombinatorialData]

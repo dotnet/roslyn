@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.InteractiveHost.UnitTests</RootNamespace>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>$(NetRoslyn)</TargetFramework>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -30,17 +30,17 @@
       and thus would result in building the project twice.
     -->
     
-    <CopyPublishedOutputProjectReference Include="..\HostProcess\InteractiveHost32.csproj">
+    <CopyPublishedOutputProjectReference Include="..\HostProcess\x86\InteractiveHost32.csproj">
       <OutputItemType>InteractiveHostFiles_Desktop32</OutputItemType>
     </CopyPublishedOutputProjectReference>
 
-    <CopyPublishedOutputProjectReference Include="..\HostProcess\InteractiveHost64.csproj">
+    <CopyPublishedOutputProjectReference Include="..\HostProcess\x64\InteractiveHost64.csproj">
       <SetTargetFramework>TargetFramework=net472</SetTargetFramework>
       <OutputItemType>InteractiveHostFiles_Desktop64</OutputItemType>
     </CopyPublishedOutputProjectReference>
 
-    <CopyPublishedOutputProjectReference Include="..\HostProcess\InteractiveHost64.csproj">
-      <SetTargetFramework>TargetFramework=net6.0-windows7.0</SetTargetFramework>
+    <CopyPublishedOutputProjectReference Include="..\HostProcess\x64\InteractiveHost64.csproj">
+      <SetTargetFramework>TargetFramework=$(NetVS)-windows</SetTargetFramework>
       <OutputItemType>InteractiveHostFiles_Core</OutputItemType>
     </CopyPublishedOutputProjectReference>
   </ItemGroup>

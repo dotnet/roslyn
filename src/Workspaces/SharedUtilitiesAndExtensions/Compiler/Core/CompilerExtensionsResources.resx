@@ -120,9 +120,6 @@
   <data name="Absolute_path_expected" xml:space="preserve">
     <value>Absolute path expected.</value>
   </data>
-  <data name="An_element_with_the_same_key_but_a_different_value_already_exists" xml:space="preserve">
-    <value>An element with the same key but a different value already exists.</value>
-  </data>
   <data name="Organize_usings" xml:space="preserve">
     <value>Organize usings</value>
   </data>
@@ -272,9 +269,6 @@
   </data>
   <data name="Specified_sequence_has_duplicate_items" xml:space="preserve">
     <value>Specified sequence has duplicate items</value>
-  </data>
-  <data name="Segment_size_must_be_power_of_2_greater_than_1" xml:space="preserve">
-    <value>Segment size must be power of 2 greater than 1</value>
   </data>
   <data name="New_line_preferences" xml:space="preserve">
     <value>New line preferences</value>

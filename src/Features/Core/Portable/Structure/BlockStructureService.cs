@@ -10,21 +10,20 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Structure
+namespace Microsoft.CodeAnalysis.Structure;
+
+internal abstract class BlockStructureService : ILanguageService
 {
-    internal abstract class BlockStructureService : ILanguageService
-    {
-        /// <summary>
-        /// Gets the service corresponding to the specified document.
-        /// </summary>
-        public static BlockStructureService GetService(Document document)
-            => document.GetLanguageService<BlockStructureService>();
+    /// <summary>
+    /// Gets the service corresponding to the specified document.
+    /// </summary>
+    public static BlockStructureService GetService(Document document)
+        => document.GetLanguageService<BlockStructureService>();
 
-        /// <summary>
-        /// The language from <see cref="LanguageNames"/> this service corresponds to.
-        /// </summary>
-        public abstract string Language { get; }
+    /// <summary>
+    /// The language from <see cref="LanguageNames"/> this service corresponds to.
+    /// </summary>
+    public abstract string Language { get; }
 
-        public abstract Task<BlockStructure> GetBlockStructureAsync(Document document, BlockStructureOptions options, CancellationToken cancellationToken);
-    }
+    public abstract Task<BlockStructure> GetBlockStructureAsync(Document document, BlockStructureOptions options, CancellationToken cancellationToken);
 }

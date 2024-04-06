@@ -130,16 +130,6 @@ Gelişmiş renkleri kullan;Düzenleyici Renk Düzeni;Devralma Kenar Boşluğu;İ
         <target state="translated">Visual Basic Araçları</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_Visual_Basic_script_file">
-        <source>An empty Visual Basic script file.</source>
-        <target state="translated">Boş bir Visual Basic betik dosyası.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Visual_Basic_Script">
-        <source>Visual Basic Script</source>
-        <target state="translated">Visual Basic Betiği</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

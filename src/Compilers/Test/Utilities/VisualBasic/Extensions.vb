@@ -147,7 +147,7 @@ Friend Module Extensions
 
     <Extension>
     Friend Function GetAttributes(this As Symbol, description As AttributeDescription) As IEnumerable(Of VisualBasicAttributeData)
-        Return this.GetAttributes().Where(Function(a) a.IsTargetAttribute(this, description))
+        Return this.GetAttributes().Where(Function(a) a.IsTargetAttribute(description))
     End Function
 
     <Extension>
@@ -323,7 +323,7 @@ Friend Module Extensions
     End Function
 
     <Extension>
-    Friend Function Parameters(this As IMethodSymbolInternal) As ImmutableArray(Of ParameterSymbol)
+    Friend Function ParameterSymbols(this As IMethodSymbolInternal) As ImmutableArray(Of ParameterSymbol)
         Return DirectCast(this, MethodSymbol).Parameters
     End Function
 
@@ -358,7 +358,7 @@ Friend Module Extensions
     End Function
 
     <Extension>
-    Friend Sub Verify(this As ImmutableBindingDiagnostic(Of AssemblySymbol), ParamArray expected As DiagnosticDescription())
+    Friend Sub Verify(this As ReadOnlyBindingDiagnostic(Of AssemblySymbol), ParamArray expected As DiagnosticDescription())
         this.Diagnostics.Verify(expected)
     End Sub
 

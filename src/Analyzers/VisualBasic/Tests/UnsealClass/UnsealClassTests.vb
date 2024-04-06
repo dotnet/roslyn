@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UnsealClass
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UnsealClass
     <Trait(Traits.Feature, Traits.Features.CodeActionsUnsealClass)>
     Public NotInheritable Class UnsealClassTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicUnsealClassCodeFixProvider())

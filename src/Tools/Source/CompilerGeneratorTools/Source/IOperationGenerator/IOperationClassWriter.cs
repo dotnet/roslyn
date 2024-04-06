@@ -239,7 +239,7 @@ namespace IOperationGenerator
                 {
                     WriteLine($"/// <{el.LocalName}>");
 
-                    string[] separators = new[] { "\r", "\n", "\r\n" };
+                    string[] separators = ["\r", "\n", "\r\n"];
                     string[] lines = el.InnerXml.Split(separators, StringSplitOptions.RemoveEmptyEntries);
 
                     int indentation = lines[0].Length - lines[0].TrimStart().Length;

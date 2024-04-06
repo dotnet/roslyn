@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using AnalyzerRunner;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
-using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -34,7 +33,6 @@ namespace IdeCoreBenchmarks
         public void GlobalSetup()
         {
             RestoreCompilerSolution();
-            SetUpWorkspace();
         }
 
         [IterationSetup]
@@ -48,15 +46,6 @@ namespace IdeCoreBenchmarks
             restoreOperation.WaitForExit();
             if (restoreOperation.ExitCode != 0)
                 throw new ArgumentException($"Unable to restore {solutionPath}");
-        }
-
-        private static void SetUpWorkspace()
-        {
-            // QueryVisualStudioInstances returns Visual Studio installations on .NET Framework, and .NET Core SDK
-            // installations on .NET Core. We use the one with the most recent version.
-            var msBuildInstance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).First();
-
-            MSBuildLocator.RegisterInstance(msBuildInstance);
         }
 
         private async Task LoadSolutionAsync()

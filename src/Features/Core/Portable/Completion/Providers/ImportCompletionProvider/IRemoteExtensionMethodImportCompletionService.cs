@@ -7,21 +7,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers
-{
-    internal interface IRemoteExtensionMethodImportCompletionService
-    {
-        ValueTask<SerializableUnimportedExtensionMethods?> GetUnimportedExtensionMethodsAsync(
-            Checksum solutionChecksum,
-            DocumentId documentId,
-            int position,
-            string receiverTypeSymbolKeyData,
-            ImmutableArray<string> namespaceInScope,
-            ImmutableArray<string> targetTypesSymbolKeyData,
-            bool forceCacheCreation,
-            bool hideAdvancedMembers,
-            CancellationToken cancellationToken);
+namespace Microsoft.CodeAnalysis.Completion.Providers;
 
-        ValueTask WarmUpCacheAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
-    }
+internal interface IRemoteExtensionMethodImportCompletionService
+{
+    ValueTask<SerializableUnimportedExtensionMethods?> GetUnimportedExtensionMethodsAsync(
+        Checksum solutionChecksum,
+        DocumentId documentId,
+        int position,
+        string receiverTypeSymbolKeyData,
+        ImmutableArray<string> namespaceInScope,
+        ImmutableArray<string> targetTypesSymbolKeyData,
+        bool forceCacheCreation,
+        bool hideAdvancedMembers,
+        CancellationToken cancellationToken);
+
+    ValueTask WarmUpCacheAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
 }

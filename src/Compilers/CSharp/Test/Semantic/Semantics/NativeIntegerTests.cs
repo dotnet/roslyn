@@ -3773,23 +3773,23 @@ class Program
                 // (1,12): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // using A1 = nint;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(1, 12),
-                // (1,12): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,12): error CS8400: Feature 'using type alias' is not available in C# 8.0. Please use language version 12.0 or greater.
                 // using A1 = nint;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("using type alias").WithLocation(1, 12),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("using type alias", "12.0").WithLocation(1, 12),
                 // (2,12): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // using A2 = nuint;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(2, 12),
-                // (2,12): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,12): error CS8400: Feature 'using type alias' is not available in C# 8.0. Please use language version 12.0 or greater.
                 // using A2 = nuint;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("using type alias").WithLocation(2, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("using type alias", "12.0").WithLocation(2, 12));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (1,12): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,12): error CS8773: Feature 'using type alias' is not available in C# 9.0. Please use language version 12.0 or greater.
                 // using A1 = nint;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("using type alias").WithLocation(1, 12),
-                // (2,12): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "nint").WithArguments("using type alias", "12.0").WithLocation(1, 12),
+                // (2,12): error CS8773: Feature 'using type alias' is not available in C# 9.0. Please use language version 12.0 or greater.
                 // using A2 = nuint;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("using type alias").WithLocation(2, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "nuint").WithArguments("using type alias", "12.0").WithLocation(2, 12));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
@@ -4662,7 +4662,10 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            var verifier = CompileAndVerify(comp, expectedOutput:
+            // See tracking issue https://github.com/dotnet/runtime/issues/96695
+            var verifier = CompileAndVerify(comp,
+                verify: Verification.FailsILVerify with { ILVerifyMessage = "[GetHashCode]: Unrecognized arguments for delegate .ctor. { Offset = 0x12 }" },
+                expectedOutput:
 $@"42
 {42.GetHashCode()}
 False
@@ -4786,7 +4789,7 @@ False
                 static void verifyUnaryOperators(CSharpCompilation comp, UnaryOperatorKind operatorKind, bool skipNativeIntegerOperators)
                 {
                     var builder = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
-                    comp.builtInOperators.GetSimpleBuiltInOperators(operatorKind, builder, skipNativeIntegerOperators);
+                    comp.BuiltInOperators.GetSimpleBuiltInOperators(operatorKind, builder, skipNativeIntegerOperators);
                     var operators = builder.ToImmutableAndFree();
                     int expectedSigned = skipNativeIntegerOperators ? 0 : 1;
                     int expectedUnsigned = skipNativeIntegerOperators ? 0 : (operatorKind == UnaryOperatorKind.UnaryMinus) ? 0 : 1;
@@ -4797,7 +4800,7 @@ False
                 static void verifyBinaryOperators(CSharpCompilation comp, BinaryOperatorKind operatorKind, bool skipNativeIntegerOperators)
                 {
                     var builder = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
-                    comp.builtInOperators.GetSimpleBuiltInOperators(operatorKind, builder, skipNativeIntegerOperators);
+                    comp.BuiltInOperators.GetSimpleBuiltInOperators(operatorKind, builder, skipNativeIntegerOperators);
                     var operators = builder.ToImmutableAndFree();
                     int expected = skipNativeIntegerOperators ? 0 : 1;
                     verifyOperators(operators, (op, signed) => isNativeInt(op.LeftType, signed), expected, expected);

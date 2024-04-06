@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             if (string.IsNullOrEmpty(request.Character) || SyntaxFacts.IsNewLine(request.Character[0]))
             {
-                return Array.Empty<TextEdit>();
+                return [];
             }
 
             var formattingService = document.Project.Services.GetRequiredService<ISyntaxFormattingService>();
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, request.Character[0], position, cancellationToken))
             {
-                return Array.Empty<TextEdit>();
+                return [];
             }
 
             // We should use the options passed in by LSP instead of the document's options.
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var textChanges = formattingService.GetFormattingChangesOnTypedCharacter(documentSyntax, position, indentationOptions, cancellationToken);
             if (textChanges.IsEmpty)
             {
-                return Array.Empty<TextEdit>();
+                return [];
             }
 
             var edits = new ArrayBuilder<TextEdit>();

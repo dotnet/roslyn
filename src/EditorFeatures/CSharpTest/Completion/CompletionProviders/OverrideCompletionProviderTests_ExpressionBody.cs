@@ -32,77 +32,86 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement }
             };
 
-        [WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
-        [WpfFact]
+        [WpfFact, WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
         public async Task CommitProducesExpressionBodyProperties()
         {
-            var markupBeforeCommit = @"class B
-{
-    public virtual int A { get; set; }
-    class C : B
-    {
-        override A$$
-    }
-}";
+            var markupBeforeCommit = """
+                class B
+                {
+                    public virtual int A { get; set; }
+                    class C : B
+                    {
+                        override A$$
+                    }
+                }
+                """;
 
-            var expectedCodeAfterCommit = @"class B
-{
-    public virtual int A { get; set; }
-    class C : B
-    {
-        public override int A { get => base.A$$; set => base.A = value; }
-    }
-}";
+            var expectedCodeAfterCommit = """
+                class B
+                {
+                    public virtual int A { get; set; }
+                    class C : B
+                    {
+                        public override int A { get => base.A$$; set => base.A = value; }
+                    }
+                }
+                """;
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "A", expectedCodeAfterCommit);
         }
 
-        [WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
-        [WpfFact]
+        [WpfFact, WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
         public async Task CommitProducesExpressionBodyGetterOnlyProperty()
         {
-            var markupBeforeCommit = @"class B
-{
-    public virtual int A { get; }
-    class C : B
-    {
-        override A$$
-    }
-}";
+            var markupBeforeCommit = """
+                class B
+                {
+                    public virtual int A { get; }
+                    class C : B
+                    {
+                        override A$$
+                    }
+                }
+                """;
 
-            var expectedCodeAfterCommit = @"class B
-{
-    public virtual int A { get; }
-    class C : B
-    {
-        public override int A => base.A;$$
-    }
-}";
+            var expectedCodeAfterCommit = """
+                class B
+                {
+                    public virtual int A { get; }
+                    class C : B
+                    {
+                        public override int A => base.A;$$
+                    }
+                }
+                """;
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "A", expectedCodeAfterCommit);
         }
 
-        [WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
-        [WpfFact]
+        [WpfFact, WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
         public async Task CommitProducesExpressionBodyMethod()
         {
-            var markupBeforeCommit = @"class B
-{
-    public virtual int A() => 2;
-    class C : B
-    {
-        override A$$
-    }
-}";
+            var markupBeforeCommit = """
+                class B
+                {
+                    public virtual int A() => 2;
+                    class C : B
+                    {
+                        override A$$
+                    }
+                }
+                """;
 
-            var expectedCodeAfterCommit = @"class B
-{
-    public virtual int A() => 2;
-    class C : B
-    {
-        public override int A() => base.A();$$
-    }
-}";
+            var expectedCodeAfterCommit = """
+                class B
+                {
+                    public virtual int A() => 2;
+                    class C : B
+                    {
+                        public override int A() => base.A();$$
+                    }
+                }
+                """;
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "A()", expectedCodeAfterCommit);
         }

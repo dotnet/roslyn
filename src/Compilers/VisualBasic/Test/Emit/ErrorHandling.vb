@@ -1091,7 +1091,7 @@ Class Test
         End Sub
 
         <Fact>
-        Public Sub SynthesizingDefaultConstructorsWithMsCorLibMissing_NoSystemObjectDefaultConstructor()
+        Public Sub SynthesizingDefaultConstructorsWithMsCorLibMissing_NoSystemObjectDefaultConstructor_01()
             Dim comp = CompilationUtils.CreateEmptyCompilation("
 Namespace System
     Public Class [Object]
@@ -1113,6 +1113,25 @@ BC30387: Class 'Test' must declare a 'Sub New' because its base class 'Object' d
 Class Test
       ~~~~
                                                           </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SynthesizingDefaultConstructorsWithMsCorLibMissing_NoSystemObjectDefaultConstructor_02()
+            Dim comp = CompilationUtils.CreateEmptyCompilation("
+Namespace System
+    Public Class [Object]
+        Public Sub New(other as Object)
+        End Sub
+    End Class
+    Public Class Void
+        Public Sub New()
+            MyBase.New(Nothing)
+        End Sub
+    End Class
+End Namespace
+", options:=TestOptions.ReleaseDll.WithModuleName("testModule"))
+
+            comp.VerifyEmitDiagnostics()
         End Sub
 
     End Class

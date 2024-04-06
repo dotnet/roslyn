@@ -9,19 +9,13 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Newtonsoft;
 using Newtonsoft.Json.Linq;
 using System.Linq;
 using Newtonsoft.Json;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.VisualBasic.UnitTests;
 using System;
-using System.IO;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
@@ -61,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         public void VerifyUpToDate()
         {
             verifyCount<ParseOptions>(11);
-            verifyCount<CSharpParseOptions>(10);
+            verifyCount<CSharpParseOptions>(12);
             verifyCount<CompilationOptions>(63);
             verifyCount<CSharpCompilationOptions>(9);
 
@@ -551,7 +545,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""features"": {{
             ""debug-determinism"": ""true""
           }},
-          ""languageVersion"": ""CSharp11"",
+          ""languageVersion"": ""CSharp12"",
           ""specifiedLanguageVersion"": ""Default"",
           ""preprocessorSymbols"": []
         }}

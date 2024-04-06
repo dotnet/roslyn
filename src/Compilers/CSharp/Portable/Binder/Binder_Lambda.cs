@@ -99,7 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isAsync = false;
             bool isStatic = false;
-            var hasParamsArray = false;
 
             foreach (var modifier in syntax.Modifiers)
             {
@@ -183,10 +182,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parsingAnonymousMethodParams: isAnonymousMethod);
 
                     var isLastParameter = parameterCount == parameterSyntaxList.Value.Count;
-                    if (isLastParameter && paramsKeyword.Kind() != SyntaxKind.None)
+                    if (isLastParameter && paramsKeyword.Kind() != SyntaxKind.None
+                        && !type.IsDefault && type.IsSZArray())
                     {
-                        hasParamsArray = true;
-
                         ReportUseSiteDiagnosticForSynthesizedAttribute(Compilation,
                             WellKnownMember.System_ParamArrayAttribute__ctor,
                             diagnostics,
@@ -242,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, parameterSyntaxList, defaultValues, isAsync: isAsync, isStatic: isStatic, hasParamsArray: hasParamsArray);
+            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, parameterSyntaxList, defaultValues, isAsync: isAsync, isStatic: isStatic);
 
             static ImmutableArray<bool> computeDiscards(SeparatedSyntaxList<ParameterSyntax> parameters, int underscoresCount)
             {

@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Roslyn.Utilities;
 using static AnalyzerRunner.Program;
 
 namespace AnalyzerRunner
@@ -83,7 +84,7 @@ namespace AnalyzerRunner
             var stopwatch = PerformanceTracker.StartNew();
 
             var analysisResult = await GetAnalysisResultAsync(solution, _analyzers, _options, cancellationToken).ConfigureAwait(false);
-            var allDiagnostics = analysisResult.Where(pair => pair.Value != null).SelectMany(pair => pair.Value.GetAllDiagnostics()).ToImmutableArray();
+            var allDiagnostics = analysisResult.Where(pair => pair.Value != null).SelectManyAsArray(pair => pair.Value.GetAllDiagnostics());
 
             Console.WriteLine($"Found {allDiagnostics.Length} diagnostics in {stopwatch.GetSummary(preciseMemory: true)}");
             WriteTelemetry(analysisResult);
@@ -170,7 +171,7 @@ namespace AnalyzerRunner
 
             if (!string.IsNullOrWhiteSpace(_options.LogFileName))
             {
-                WriteDiagnosticResults(analysisResult.SelectMany(pair => pair.Value.GetAllDiagnostics().Select(j => Tuple.Create(pair.Key, j))).ToImmutableArray(), _options.LogFileName);
+                WriteDiagnosticResults(analysisResult.SelectManyAsArray(pair => pair.Value.GetAllDiagnostics().Select(j => Tuple.Create(pair.Key, j))), _options.LogFileName);
             }
         }
 
@@ -296,7 +297,7 @@ namespace AnalyzerRunner
                     .ToLookup(analyzers => analyzers.Key, analyzers => analyzers.Value)
                     .ToImmutableDictionary(
                         group => group.Key,
-                        group => group.SelectMany(analyzer => analyzer).ToImmutableArray());
+                        group => group.SelectManyAsArray(analyzer => analyzer));
             }
 
             throw new InvalidDataException($"Cannot find {path}.");

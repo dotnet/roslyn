@@ -48,11 +48,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
                 return SpecializedCollections.SingletonEnumerable(new CSharpExtractClassCodeRefactoringProvider(service));
             }
 
-            protected override Workspace CreateWorkspaceImpl()
+            protected override Task<Workspace> CreateWorkspaceImplAsync()
             {
                 var unusedCompilationOptions = new CSharpCompilationOptions(OutputKind.NetModule);
                 var unusedParseOptions = new CSharpParseOptions(LanguageVersion.CSharp1);
-                return TestWorkspace.Create(WorkspaceKind, LanguageNames.CSharp, unusedCompilationOptions, unusedParseOptions);
+                return Task.FromResult<Workspace>(TestWorkspace.Create(WorkspaceKind, LanguageNames.CSharp, unusedCompilationOptions, unusedParseOptions));
             }
         }
 
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             await new Test
             {
                 TestCode = input,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
                 FixedState =
                 {
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             await new Test
             {
                 TestCode = input,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
                 FixedState =
                 {
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             {
                 TestCode = input,
                 FixedCode = input,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
         }
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             {
                 TestCode = input,
                 FixedCode = input,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
         }
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             {
                 TestCode = input,
                 FixedCode = input,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
         }
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             {
                 TestCode = input,
                 FixedCode = input,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
         }
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             {
                 TestCode = input,
                 FixedCode = input,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp12,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             }.RunAsync();
         }
@@ -2904,8 +2904,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/63315")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63315")]
         public async Task TestMethodInsideNamespace_NoException()
         {
             var code = """
@@ -2937,8 +2936,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/55610")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55610")]
         public async Task TestMultipleMethodsSelected_WithTypeContainingBaseClass()
         {
             var code = """
@@ -2960,8 +2958,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/55610")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55610")]
         public async Task TestClassSelected_WithTypeContainingBaseClass()
         {
             var code = """
@@ -3025,8 +3022,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/55402")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55402")]
         public async Task TestMemberKeyword()
         {
             var code = """

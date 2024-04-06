@@ -166,6 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     expr = BoundCall.Synthesized(
                         syntax,
                         receiverOpt: null,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         method: conversionMethod,
                         arg0: temp);
                 }

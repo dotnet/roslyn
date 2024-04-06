@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -175,10 +174,16 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
             .ToImmutableHashSet();
 
         var references = await SymbolFinder.FindReferencesAsync(parameter, solution, documents, cancellationToken).ConfigureAwait(false);
-        foreach (var group in references.SelectMany(r => r.Locations.Where(loc => !loc.IsImplicit).GroupBy(loc => loc.Document)))
+        var groups = references.SelectMany(static r => r.Locations.Where(loc => !loc.IsImplicit)).GroupBy(static loc => loc.Document);
+
+        foreach (var group in groups)
         {
             var editor = await solutionEditor.GetDocumentEditorAsync(group.Key.Id, cancellationToken).ConfigureAwait(false);
-            foreach (var location in group)
+
+            // We may hit a location multiple times due to how we do FAR for linked symbols, but each linked symbol is
+            // allowed to report the entire set of references it think it is compatible with.  So ensure we're hitting
+            // each location only once.
+            foreach (var location in group.Distinct(LinkedFileReferenceLocationEqualityComparer.Instance))
             {
                 var node = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
                 if (node is IdentifierNameSyntax { Parent: not NameColonSyntax } identifierName &&

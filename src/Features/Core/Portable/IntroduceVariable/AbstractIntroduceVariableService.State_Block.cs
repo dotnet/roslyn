@@ -8,35 +8,34 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.IntroduceVariable
+namespace Microsoft.CodeAnalysis.IntroduceVariable;
+
+internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
 {
-    internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
+    private partial class State
     {
-        private partial class State
+        private bool IsInBlockContext(
+            CancellationToken cancellationToken)
         {
-            private bool IsInBlockContext(
-                CancellationToken cancellationToken)
+            if (!IsInTypeDeclarationOrValidCompilationUnit())
             {
-                if (!IsInTypeDeclarationOrValidCompilationUnit())
-                {
-                    return false;
-                }
-
-                // If refer to a query property, then we use the query context instead.
-                var bindingMap = GetSemanticMap(cancellationToken);
-                if (bindingMap.AllReferencedSymbols.Any(s => s is IRangeVariableSymbol))
-                {
-                    return false;
-                }
-
-                var type = GetTypeSymbol(Document, Expression, cancellationToken, objectAsDefault: false);
-                if (type == null || type.SpecialType == SpecialType.System_Void)
-                {
-                    return false;
-                }
-
-                return true;
+                return false;
             }
+
+            // If refer to a query property, then we use the query context instead.
+            var bindingMap = GetSemanticMap(cancellationToken);
+            if (bindingMap.AllReferencedSymbols.Any(s => s is IRangeVariableSymbol))
+            {
+                return false;
+            }
+
+            var type = GetTypeSymbol(Document, Expression, cancellationToken, objectAsDefault: false);
+            if (type == null || type.SpecialType == SpecialType.System_Void)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

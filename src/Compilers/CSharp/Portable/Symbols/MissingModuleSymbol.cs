@@ -198,6 +198,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override bool UseUpdatedEscapeRules => false;
+
+#nullable enable
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData => null;
+#nullable disable
     }
 
     internal sealed class MissingModuleSymbolWithName : MissingModuleSymbol

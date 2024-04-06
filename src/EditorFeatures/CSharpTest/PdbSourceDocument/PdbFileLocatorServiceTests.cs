@@ -18,11 +18,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
         [Fact]
         public async Task ReturnsPdbPathFromDebugger()
         {
-            var source = @"
-public class C
-{
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -46,11 +47,12 @@ public class C
         [Fact]
         public async Task DoesntReadNonPortablePdbs()
         {
-            var source = @"
-public class C
-{
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -76,11 +78,12 @@ public class C
         [Fact]
         public async Task NoPdbFoundReturnsNull()
         {
-            var source = @"
-public class C
-{
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {

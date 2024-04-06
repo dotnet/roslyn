@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -4626,11 +4627,10 @@ class B
             compilation.VerifyIL("B.M2<T>(T)",
 @"
 {
-  // Code size      180 (0xb4)
+  // Code size      172 (0xac)
   .maxstack  4
   .locals init (int V_0,
-            T& V_1,
-            T V_2)
+                T& V_1)
   IL_0000:  ldarga.s   V_0
   IL_0002:  dup
   IL_0003:  constrained. ""T""
@@ -4657,42 +4657,38 @@ class B
   IL_003e:  stloc.1
   IL_003f:  ldloc.1
   IL_0040:  ldobj      ""T""
-  IL_0045:  stloc.2
-  IL_0046:  ldloca.s   V_2
-  IL_0048:  ldloc.1
-  IL_0049:  constrained. ""T""
-  IL_004f:  callvirt   ""int I.P.get""
-  IL_0054:  ldc.i4.2
-  IL_0055:  add
-  IL_0056:  constrained. ""T""
-  IL_005c:  callvirt   ""void I.P.set""
-  IL_0061:  ldarga.s   V_0
-  IL_0063:  stloc.1
-  IL_0064:  ldloc.1
-  IL_0065:  ldobj      ""T""
-  IL_006a:  stloc.2
-  IL_006b:  ldloca.s   V_2
+  IL_0045:  box        ""T""
+  IL_004a:  ldloc.1
+  IL_004b:  constrained. ""T""
+  IL_0051:  callvirt   ""int I.P.get""
+  IL_0056:  ldc.i4.2
+  IL_0057:  add
+  IL_0058:  callvirt   ""void I.P.set""
+  IL_005d:  ldarga.s   V_0
+  IL_005f:  stloc.1
+  IL_0060:  ldloc.1
+  IL_0061:  ldobj      ""T""
+  IL_0066:  box        ""T""
+  IL_006b:  ldc.i4.0
+  IL_006c:  ldloc.1
   IL_006d:  ldc.i4.0
-  IL_006e:  ldloc.1
-  IL_006f:  ldc.i4.0
-  IL_0070:  constrained. ""T""
-  IL_0076:  callvirt   ""int I.this[int].get""
-  IL_007b:  ldc.i4.2
-  IL_007c:  add
-  IL_007d:  constrained. ""T""
-  IL_0083:  callvirt   ""void I.this[int].set""
-  IL_0088:  ldstr      ""{0}, {1}""
-  IL_008d:  ldarg.0
-  IL_008e:  box        ""T""
-  IL_0093:  callvirt   ""int I.P.get""
-  IL_0098:  box        ""int""
-  IL_009d:  ldarg.0
-  IL_009e:  box        ""T""
-  IL_00a3:  ldc.i4.0
-  IL_00a4:  callvirt   ""int I.this[int].get""
-  IL_00a9:  box        ""int""
-  IL_00ae:  call       ""void System.Console.WriteLine(string, object, object)""
-  IL_00b3:  ret
+  IL_006e:  constrained. ""T""
+  IL_0074:  callvirt   ""int I.this[int].get""
+  IL_0079:  ldc.i4.2
+  IL_007a:  add
+  IL_007b:  callvirt   ""void I.this[int].set""
+  IL_0080:  ldstr      ""{0}, {1}""
+  IL_0085:  ldarg.0
+  IL_0086:  box        ""T""
+  IL_008b:  callvirt   ""int I.P.get""
+  IL_0090:  box        ""int""
+  IL_0095:  ldarg.0
+  IL_0096:  box        ""T""
+  IL_009b:  ldc.i4.0
+  IL_009c:  callvirt   ""int I.this[int].get""
+  IL_00a1:  box        ""int""
+  IL_00a6:  call       ""void System.Console.WriteLine(string, object, object)""
+  IL_00ab:  ret
 }
 ");
             compilation.VerifyIL("B.M3<T>(T)",
@@ -5833,7 +5829,7 @@ class @c
 }
 ";
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe class F<T> : A where T : F<object*>.I
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "F").WithLocation(6, 14),
@@ -5841,7 +5837,7 @@ class @c
                 // unsafe class G<T> : A where T : G<void*>.I
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "G").WithLocation(10, 14));
 
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         }
 
         [WorkItem(545460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545460")]
@@ -6477,7 +6473,7 @@ class D : C<int>, IB { }";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
 
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (4,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void F<T>() where T : IA<C<int>.E*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C<int>.E*").WithLocation(4, 30),
@@ -6500,7 +6496,7 @@ class D<T> : C<T>, IB { }";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
 
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (4,33): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void F<T, U>() where T : IA<C<U>.E*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C<U>.E*").WithLocation(4, 33),
@@ -6525,7 +6521,7 @@ unsafe class C<T>
 }
 class D : C<int>, IB { }";
 
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
 
             source =
 @"interface IA<T> { }
@@ -6540,7 +6536,7 @@ unsafe class C<T>
 }
 class D<T> : C<T>, IB { }";
 
-            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         }
 
         [WorkItem(578350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578350")]
@@ -6974,7 +6970,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 7)
                 );
 
-            compilation = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            compilation = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             compilation.VerifyDiagnostics(
                 // (6,7): error CS0306: The type 'int*' may not be used as a type argument
                 // class R2 : R1<int*>
@@ -7005,13 +7001,13 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext);
+            var compilation = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12);
             compilation.VerifyDiagnostics(
                 // (6,14): error CS0306: The type 'int*' may not be used as a type argument
                 // unsafe class R2 : R1<int*>
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 14));
 
-            compilation = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            compilation = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             compilation.VerifyDiagnostics(
                 // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe class R2 : R1<int*>
@@ -7375,6 +7371,52 @@ System.Console.WriteLine(typeof(G).FullName);
             var c = comp.GetTypeByMetadataName("C");
             Assert.Null(c.GetUseSiteDiagnostic());
             Assert.True(c.ContainingModule.HasUnifiedReferences);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68223")]
+        public void ConstraintCycle_NestedTypeFromBase_01()
+        {
+            var src = """
+#nullable enable
+
+interface ISetup<T> { T Data { get; set; } }
+interface Base { public abstract class Nest { } }
+interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var nest = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ValueText == "Nest").Single();
+            Assert.Null(model.GetAliasInfo(nest));
+            Assert.Equal("Base.Nest", model.GetTypeInfo(nest).Type.ToDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68223")]
+        public void ConstraintCycle_NestedTypeFromBase_02()
+        {
+            var src = """
+#nullable enable
+
+interface ISetup<T> where T : new() { T Data { get; set; } }
+interface Base { public abstract class Nest { } }
+interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
+""";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (5,11): error CS0310: 'N' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'ISetup<T>'
+                // interface Base<N> : Base, ISetup<N> where N : Base<N>.Nest { }
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "Base").WithArguments("ISetup<T>", "T", "N").WithLocation(5, 11)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var nest = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ValueText == "Nest").Single();
+            Assert.Null(model.GetAliasInfo(nest));
+            Assert.Equal("Base.Nest", model.GetTypeInfo(nest).Type.ToDisplayString());
         }
     }
 }

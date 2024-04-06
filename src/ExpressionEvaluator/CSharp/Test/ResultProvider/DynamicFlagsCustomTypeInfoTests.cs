@@ -21,20 +21,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         {
             ValidateToBytes(new bool[0]);
 
-            ValidateToBytes(new bool[] { false });
-            ValidateToBytes(new bool[] { true }, 0x01);
-            ValidateToBytes(new bool[] { false, false });
-            ValidateToBytes(new bool[] { true, false }, 0x01);
-            ValidateToBytes(new bool[] { false, true }, 0x02);
-            ValidateToBytes(new bool[] { true, true }, 0x03);
+            ValidateToBytes([false]);
+            ValidateToBytes([true], 0x01);
+            ValidateToBytes([false, false]);
+            ValidateToBytes([true, false], 0x01);
+            ValidateToBytes([false, true], 0x02);
+            ValidateToBytes([true, true], 0x03);
 
-            ValidateToBytes(new bool[] { false, false, true }, 0x04);
-            ValidateToBytes(new bool[] { false, false, false, true }, 0x08);
-            ValidateToBytes(new bool[] { false, false, false, false, true }, 0x10);
-            ValidateToBytes(new bool[] { false, false, false, false, false, true }, 0x20);
-            ValidateToBytes(new bool[] { false, false, false, false, false, false, true }, 0x40);
-            ValidateToBytes(new bool[] { false, false, false, false, false, false, false, true }, 0x80);
-            ValidateToBytes(new bool[] { false, false, false, false, false, false, false, false, true }, 0x00, 0x01);
+            ValidateToBytes([false, false, true], 0x04);
+            ValidateToBytes([false, false, false, true], 0x08);
+            ValidateToBytes([false, false, false, false, true], 0x10);
+            ValidateToBytes([false, false, false, false, false, true], 0x20);
+            ValidateToBytes([false, false, false, false, false, false, true], 0x40);
+            ValidateToBytes([false, false, false, false, false, false, false, true], 0x80);
+            ValidateToBytes([false, false, false, false, false, false, false, false, true], 0x00, 0x01);
         }
 
         [Fact]
@@ -42,18 +42,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         {
             ValidateCopyTo(new byte[0]);
 
-            ValidateCopyTo(new byte[] { 0x00 }, false, false, false, false, false, false, false, false);
-            ValidateCopyTo(new byte[] { 0x01 }, true, false, false, false, false, false, false, false);
-            ValidateCopyTo(new byte[] { 0x02 }, false, true, false, false, false, false, false, false);
-            ValidateCopyTo(new byte[] { 0x03 }, true, true, false, false, false, false, false, false);
+            ValidateCopyTo([0x00], false, false, false, false, false, false, false, false);
+            ValidateCopyTo([0x01], true, false, false, false, false, false, false, false);
+            ValidateCopyTo([0x02], false, true, false, false, false, false, false, false);
+            ValidateCopyTo([0x03], true, true, false, false, false, false, false, false);
 
-            ValidateCopyTo(new byte[] { 0x04 }, false, false, true, false, false, false, false, false);
-            ValidateCopyTo(new byte[] { 0x08 }, false, false, false, true, false, false, false, false);
-            ValidateCopyTo(new byte[] { 0x10 }, false, false, false, false, true, false, false, false);
-            ValidateCopyTo(new byte[] { 0x20 }, false, false, false, false, false, true, false, false);
-            ValidateCopyTo(new byte[] { 0x40 }, false, false, false, false, false, false, true, false);
-            ValidateCopyTo(new byte[] { 0x80 }, false, false, false, false, false, false, false, true);
-            ValidateCopyTo(new byte[] { 0x00, 0x01 }, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false);
+            ValidateCopyTo([0x04], false, false, true, false, false, false, false, false);
+            ValidateCopyTo([0x08], false, false, false, true, false, false, false, false);
+            ValidateCopyTo([0x10], false, false, false, false, true, false, false, false);
+            ValidateCopyTo([0x20], false, false, false, false, false, true, false, false);
+            ValidateCopyTo([0x40], false, false, false, false, false, false, true, false);
+            ValidateCopyTo([0x80], false, false, false, false, false, false, false, true);
+            ValidateCopyTo([0x00, 0x01], false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false);
         }
 
         [Fact]

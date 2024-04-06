@@ -5,35 +5,33 @@
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Formatting.Rules
+namespace Microsoft.CodeAnalysis.Formatting.Rules;
+
+/// <summary>
+/// suppress formatting operations within the given text span
+/// </summary>
+internal readonly struct SuppressOperation
 {
-    /// <summary>
-    /// suppress formatting operations within the given text span
-    /// </summary>
-    internal sealed class SuppressOperation
+    public readonly TextSpan TextSpan;
+    public readonly SuppressOption Option;
+    public readonly SyntaxToken StartToken;
+    public readonly SyntaxToken EndToken;
+
+    internal SuppressOperation(SyntaxToken startToken, SyntaxToken endToken, TextSpan textSpan, SuppressOption option)
     {
-        internal SuppressOperation(SyntaxToken startToken, SyntaxToken endToken, TextSpan textSpan, SuppressOption option)
-        {
-            Contract.ThrowIfTrue(textSpan.Start < 0 || textSpan.Length < 0);
-            Contract.ThrowIfTrue(startToken.RawKind == 0);
-            Contract.ThrowIfTrue(endToken.RawKind == 0);
+        Contract.ThrowIfTrue(textSpan.Start < 0 || textSpan.Length < 0);
+        Contract.ThrowIfTrue(startToken.RawKind == 0);
+        Contract.ThrowIfTrue(endToken.RawKind == 0);
 
-            this.TextSpan = textSpan;
-            this.Option = option;
+        this.TextSpan = textSpan;
+        this.Option = option;
 
-            this.StartToken = startToken;
-            this.EndToken = endToken;
-        }
-
-        public TextSpan TextSpan { get; }
-        public SuppressOption Option { get; }
-
-        public SyntaxToken StartToken { get; }
-        public SyntaxToken EndToken { get; }
+        this.StartToken = startToken;
+        this.EndToken = endToken;
+    }
 
 #if DEBUG
-        public override string ToString()
-            => $"Suppress {TextSpan} from '{StartToken}' to '{EndToken}' with '{Option}'";
+    public override string ToString()
+        => $"Suppress {TextSpan} from '{StartToken}' to '{EndToken}' with '{Option}'";
 #endif
-    }
 }

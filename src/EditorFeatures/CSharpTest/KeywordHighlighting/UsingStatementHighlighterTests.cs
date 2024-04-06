@@ -21,16 +21,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         public async Task TestExample1_1()
         {
             await TestAsync(
-@"class C
-{
-    void M()
-    {
-        {|Cursor:[|using|]|} (Font f = new Font(“Arial”, 10.0f))
-        {
-            // use f...
-        }
-    }
-}");
+                """
+                class C
+                {
+                    void M()
+                    {
+                        {|Cursor:[|using|]|} (Font f = new Font(“Arial”, 10.0f))
+                        {
+                            // use f...
+                        }
+                    }
+                }
+                """);
         }
     }
 }

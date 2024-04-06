@@ -10,147 +10,146 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.UnusedReferences;
 using Microsoft.VisualStudio.Shell.TableManager;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog;
+
+internal partial class UnusedReferencesTableProvider
 {
-    internal partial class UnusedReferencesTableProvider
+    internal class UnusedReferencesDataSource : ITableDataSource
     {
-        internal class UnusedReferencesDataSource : ITableDataSource
+        public const string Name = nameof(UnusedReferencesDataSource);
+
+        public string SourceTypeIdentifier => Name;
+        public string Identifier => Name;
+        public string? DisplayName => null;
+
+        private ImmutableList<SinkManager> _managers = ImmutableList<SinkManager>.Empty;
+        private ImmutableArray<UnusedReferencesEntry> _currentEntries = ImmutableArray<UnusedReferencesEntry>.Empty;
+
+        public IDisposable Subscribe(ITableDataSink sink)
         {
-            public const string Name = nameof(UnusedReferencesDataSource);
+            return new SinkManager(this, sink);
+        }
 
-            public string SourceTypeIdentifier => Name;
-            public string Identifier => Name;
-            public string? DisplayName => null;
+        public void AddTableData(Solution solution, string projectFilePath, ImmutableArray<ReferenceUpdate> referenceUpdates)
+        {
+            var solutionName = Path.GetFileName(solution.FilePath);
+            var project = solution.Projects.First(project => projectFilePath.Equals(project.FilePath, StringComparison.OrdinalIgnoreCase));
+            var entries = referenceUpdates
+                .Select(update => new UnusedReferencesEntry(solutionName, project.Name, project.Language, update))
+                .ToImmutableArray();
 
-            private ImmutableList<SinkManager> _managers = ImmutableList<SinkManager>.Empty;
-            private ImmutableArray<UnusedReferencesEntry> _currentEntries = ImmutableArray<UnusedReferencesEntry>.Empty;
-
-            public IDisposable Subscribe(ITableDataSink sink)
+            foreach (var manager in _managers)
             {
-                return new SinkManager(this, sink);
+                manager.Sink.AddEntries(entries);
             }
 
-            public void AddTableData(Solution solution, string projectFilePath, ImmutableArray<ReferenceUpdate> referenceUpdates)
+            _currentEntries = _currentEntries.AddRange(entries);
+        }
+
+        public void RemoveAllTableData()
+        {
+            foreach (var manager in _managers)
             {
-                var solutionName = Path.GetFileName(solution.FilePath);
-                var project = solution.Projects.First(project => projectFilePath.Equals(project.FilePath, StringComparison.OrdinalIgnoreCase));
-                var entries = referenceUpdates
-                    .Select(update => new UnusedReferencesEntry(solutionName, project.Name, project.Language, update))
-                    .ToImmutableArray();
-
-                foreach (var manager in _managers)
-                {
-                    manager.Sink.AddEntries(entries);
-                }
-
-                _currentEntries = _currentEntries.AddRange(entries);
+                manager.Sink.RemoveAllEntries();
             }
 
-            public void RemoveAllTableData()
-            {
-                foreach (var manager in _managers)
-                {
-                    manager.Sink.RemoveAllEntries();
-                }
+            _currentEntries = ImmutableArray<UnusedReferencesEntry>.Empty;
+        }
 
-                _currentEntries = ImmutableArray<UnusedReferencesEntry>.Empty;
+        internal void AddSinkManager(SinkManager manager)
+        {
+            _managers = _managers.Add(manager);
+
+            manager.Sink.AddEntries(_currentEntries);
+        }
+
+        internal void RemoveSinkManager(SinkManager manager)
+        {
+            _managers = _managers.Remove(manager);
+        }
+
+        internal sealed class SinkManager : IDisposable
+        {
+            internal readonly UnusedReferencesDataSource UnusedReferencesDataSource;
+            internal readonly ITableDataSink Sink;
+
+            internal SinkManager(UnusedReferencesDataSource unusedReferencesDataSource, ITableDataSink sink)
+            {
+                UnusedReferencesDataSource = unusedReferencesDataSource;
+                Sink = sink;
+
+                UnusedReferencesDataSource.AddSinkManager(this);
             }
 
-            internal void AddSinkManager(SinkManager manager)
+            public void Dispose()
             {
-                _managers = _managers.Add(manager);
+                UnusedReferencesDataSource.RemoveSinkManager(this);
+            }
+        }
 
-                manager.Sink.AddEntries(_currentEntries);
+        internal class UnusedReferencesEntry : ITableEntry
+        {
+            public string SolutionName { get; }
+            public string ProjectName { get; }
+            public string Language { get; }
+            public ReferenceUpdate ReferenceUpdate { get; }
+
+            public object Identity => ReferenceUpdate;
+
+            public UnusedReferencesEntry(string solutionName, string projectName, string language, ReferenceUpdate referenceUpdate)
+            {
+                SolutionName = solutionName;
+                ProjectName = projectName;
+                Language = language;
+                ReferenceUpdate = referenceUpdate;
             }
 
-            internal void RemoveSinkManager(SinkManager manager)
+            public bool TryGetValue(string keyName, out object? content)
             {
-                _managers = _managers.Remove(manager);
+                content = null;
+
+                switch (keyName)
+                {
+                    case UnusedReferencesTableKeyNames.SolutionName:
+                        content = SolutionName;
+                        break;
+                    case UnusedReferencesTableKeyNames.ProjectName:
+                        content = ProjectName;
+                        break;
+                    case UnusedReferencesTableKeyNames.Language:
+                        content = Language;
+                        break;
+                    case UnusedReferencesTableKeyNames.ReferenceType:
+                        content = ReferenceUpdate.ReferenceInfo.ReferenceType;
+                        break;
+                    case UnusedReferencesTableKeyNames.ReferenceName:
+                        // For Project and Assembly references, use the file name instead of overwhelming the user with the full path.
+                        content = ReferenceUpdate.ReferenceInfo.ReferenceType != ReferenceType.Package
+                            ? Path.GetFileName(ReferenceUpdate.ReferenceInfo.ItemSpecification)
+                            : ReferenceUpdate.ReferenceInfo.ItemSpecification;
+                        break;
+                    case UnusedReferencesTableKeyNames.UpdateAction:
+                        content = ReferenceUpdate.Action;
+                        break;
+                }
+
+                return content != null;
             }
 
-            internal sealed class SinkManager : IDisposable
+            public bool CanSetValue(string keyName)
             {
-                internal readonly UnusedReferencesDataSource UnusedReferencesDataSource;
-                internal readonly ITableDataSink Sink;
-
-                internal SinkManager(UnusedReferencesDataSource unusedReferencesDataSource, ITableDataSink sink)
-                {
-                    UnusedReferencesDataSource = unusedReferencesDataSource;
-                    Sink = sink;
-
-                    UnusedReferencesDataSource.AddSinkManager(this);
-                }
-
-                public void Dispose()
-                {
-                    UnusedReferencesDataSource.RemoveSinkManager(this);
-                }
+                return keyName == UnusedReferencesTableKeyNames.UpdateAction;
             }
 
-            internal class UnusedReferencesEntry : ITableEntry
+            public bool TrySetValue(string keyName, object content)
             {
-                public string SolutionName { get; }
-                public string ProjectName { get; }
-                public string Language { get; }
-                public ReferenceUpdate ReferenceUpdate { get; }
-
-                public object Identity => ReferenceUpdate;
-
-                public UnusedReferencesEntry(string solutionName, string projectName, string language, ReferenceUpdate referenceUpdate)
+                if (keyName != UnusedReferencesTableKeyNames.UpdateAction || content is not UpdateAction action)
                 {
-                    SolutionName = solutionName;
-                    ProjectName = projectName;
-                    Language = language;
-                    ReferenceUpdate = referenceUpdate;
+                    return false;
                 }
 
-                public bool TryGetValue(string keyName, out object? content)
-                {
-                    content = null;
-
-                    switch (keyName)
-                    {
-                        case UnusedReferencesTableKeyNames.SolutionName:
-                            content = SolutionName;
-                            break;
-                        case UnusedReferencesTableKeyNames.ProjectName:
-                            content = ProjectName;
-                            break;
-                        case UnusedReferencesTableKeyNames.Language:
-                            content = Language;
-                            break;
-                        case UnusedReferencesTableKeyNames.ReferenceType:
-                            content = ReferenceUpdate.ReferenceInfo.ReferenceType;
-                            break;
-                        case UnusedReferencesTableKeyNames.ReferenceName:
-                            // For Project and Assembly references, use the file name instead of overwhelming the user with the full path.
-                            content = ReferenceUpdate.ReferenceInfo.ReferenceType != ReferenceType.Package
-                                ? Path.GetFileName(ReferenceUpdate.ReferenceInfo.ItemSpecification)
-                                : ReferenceUpdate.ReferenceInfo.ItemSpecification;
-                            break;
-                        case UnusedReferencesTableKeyNames.UpdateAction:
-                            content = ReferenceUpdate.Action;
-                            break;
-                    }
-
-                    return content != null;
-                }
-
-                public bool CanSetValue(string keyName)
-                {
-                    return keyName == UnusedReferencesTableKeyNames.UpdateAction;
-                }
-
-                public bool TrySetValue(string keyName, object content)
-                {
-                    if (keyName != UnusedReferencesTableKeyNames.UpdateAction || content is not UpdateAction action)
-                    {
-                        return false;
-                    }
-
-                    ReferenceUpdate.Action = action;
-                    return true;
-                }
+                ReferenceUpdate.Action = action;
+                return true;
             }
         }
     }

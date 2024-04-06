@@ -3997,7 +3997,6 @@ BC41999: Implicit conversion from 'I1' to 'C1' in copying the value of 'ByRef' p
         ~
 ]]></expected>)
 
-            ' ILVerify: Unexpected type on the stack. { Offset = 39, Found = readonly address of '[...]S1', Expected = address of '[...]S1' }
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
  ---------
@@ -4060,7 +4059,7 @@ C1
 Ext4
 C1
 ---------
-]]>, verify:=Verification.FailsILVerify)
+]]>)
         End Sub
 
         <Fact()>
@@ -5949,30 +5948,23 @@ End Class
             verifier.VerifyIL("Module1.Test3",
             <![CDATA[
 {
-  // Code size       52 (0x34)
+  // Code size       39 (0x27)
   .maxstack  2
-  .locals init (Integer? V_0,
-                Integer? V_1)
+  .locals init (Integer? V_0)
   IL_0000:  ldarg.0
   IL_0001:  brtrue.s   IL_000e
-  IL_0003:  ldloca.s   V_1
+  IL_0003:  ldloca.s   V_0
   IL_0005:  initobj    "Integer?"
-  IL_000b:  ldloc.1
+  IL_000b:  ldloc.0
   IL_000c:  br.s       IL_0014
   IL_000e:  ldarg.0
   IL_000f:  call       "Function C1.M2() As Integer?"
-  IL_0014:  dup
-  IL_0015:  stloc.0
-  IL_0016:  stloc.1
-  IL_0017:  ldloca.s   V_1
-  IL_0019:  call       "Function Integer?.get_HasValue() As Boolean"
-  IL_001e:  brtrue.s   IL_0027
-  IL_0020:  ldc.i4     0x12d
-  IL_0025:  br.s       IL_002e
-  IL_0027:  ldloca.s   V_0
-  IL_0029:  call       "Function Integer?.GetValueOrDefault() As Integer"
-  IL_002e:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_0033:  ret
+  IL_0014:  stloc.0
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  ldc.i4     0x12d
+  IL_001c:  call       "Function Integer?.GetValueOrDefault(Integer) As Integer"
+  IL_0021:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0026:  ret
 }
 ]]>)
         End Sub

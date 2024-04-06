@@ -4,10 +4,9 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+internal interface IMetadataService : IWorkspaceService
 {
-    internal interface IMetadataService : IWorkspaceService
-    {
-        PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties);
-    }
+    PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties);
 }

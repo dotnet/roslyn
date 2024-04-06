@@ -673,7 +673,6 @@ index: 2);
                 """
                 using System;
                 using System.Runtime.Serialization;
-
                 class Program : Exception
                 {
                     public Program()
@@ -1586,7 +1585,7 @@ index: 2);
             {
                 TestCode = source.Replace("[||]", ""),
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp12,
             }.RunAsync();
 
             await TestRefactoringMissingAsync(source);

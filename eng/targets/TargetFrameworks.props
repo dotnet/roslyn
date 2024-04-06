@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <!-- 
+    This props file manages the target framework properties for Roslyn. The strategy for these properties
+    is convered in "docs/contributing/Target Framework Strategy.md". Please see that for documentation
+    on what these values mean.
+
+    Requirements: 
+      - NetVSShared must include both NetVS and NetVSCode
+      - NetRoslynSourceBuild must include NetRoslyn
+      - NetRoslynAll must include all .NET Core TFMS in any property below
+  -->
+  <PropertyGroup>
+    <NetRoslyn>net8.0</NetRoslyn>
+    <NetRoslynAll>net7.0;net8.0</NetRoslynAll>
+    <NetVS>net8.0</NetVS>
+    <NetVSCode>net8.0</NetVSCode>
+    <NetVSShared>net7.0;net8.0</NetVSShared>
+    <NetRoslynBuildHostNetCoreVersion>net6.0</NetRoslynBuildHostNetCoreVersion>
+  </PropertyGroup>
+
+  <!-- 
+    There are effectively three modes that are needed for our source build TFMs and this is where
+    we calculate them
+  -->
+  <Choose>
+    <!-- 
+      1. CI source build leg: this needs to build the current and previous source build TFM. Both are 
+         necessary as the output of this leg is used in other CI source build legs. Those could be 
+         targeting NetCurrent or NetPrevious hence we must produce both. 
+
+        However the toolset package we produce must target NetPrevious. This package gets used as the 
+        bootstrap toolset in other repos doing (1). Those can be using a NetPrevious runtime hence 
+        the toolset must support that.
+    -->
+    <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' != 'Product'">
+      <PropertyGroup>
+        <NetRoslyn>$(NetPrevious)</NetRoslyn>
+        <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
+        <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
+        <NetRoslynBuildHostNetCoreVersion>$(NetPrevious)</NetRoslynBuildHostNetCoreVersion>
+      </PropertyGroup>
+    </When>
+
+    <!--
+      2. Source build the product: this is the all up build of the product which needs only NetCurrent
+    -->
+    <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' == 'Product'">
+      <PropertyGroup>
+        <NetRoslyn>$(NetCurrent)</NetRoslyn>
+        <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
+        <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
+        <NetRoslynBuildHostNetCoreVersion>$(NetCurrent)</NetRoslynBuildHostNetCoreVersion>
+      </PropertyGroup>
+    </When>
+
+    <!--
+      3. Everything else including normal CI, developer machines and official builds. This brings in enough
+         TFM that source build will go smoothly but doesn't bring in all source build TFMs to avoid adding
+         too many extra compiles to our builds
+    -->
+    <Otherwise>
+      <PropertyGroup>
+        <NetRoslyn>net8.0</NetRoslyn>
+        <NetRoslynSourceBuild>net7.0;net8.0</NetRoslynSourceBuild>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+</Project>

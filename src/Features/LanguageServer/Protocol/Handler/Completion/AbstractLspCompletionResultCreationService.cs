@@ -11,14 +11,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 {
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             {
                 return new LSP.VSInternalCompletionList
                 {
-                    Items = Array.Empty<LSP.CompletionItem>(),
+                    Items = [],
                     // If we have a suggestion mode item, we just need to keep the list in suggestion mode.
                     // We don't need to return the fake suggestion mode item.
                     SuggestionMode = isSuggestionMode,
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Set resolve data on list if the client supports it, otherwise set it on each item.
-            var resolveData = new CompletionResolveData() { ResultId = resultId };
+            var resolveData = new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document));
             var completionItemResolveData = capabilityHelper.SupportCompletionListData || capabilityHelper.SupportVSInternalCompletionListData
                 ? null : resolveData;
 
@@ -65,17 +66,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             var creationService = document.Project.Solution.Services.GetRequiredService<ILspCompletionResultCreationService>();
             var completionService = document.GetRequiredLanguageService<CompletionService>();
 
-            // By default, Roslyn would treat continuous alphabetical text as a single word for completion purpose.
-            // e.g. when user triggers completion at the location of {$} in "pub{$}class", the span would cover "pubclass",
-            // which is used for subsequent matching and commit.
-            // This works fine for VS async-completion, where we have full control of entire completion process.
-            // However, the insert mode in VSCode (i.e. the mode our LSP server supports) expects us to return TextEdit that only
-            // covers the span ends at the cursor location, e.g. "pub" in the example above. Here we detect when that occurs and
-            // adjust the span accordingly.
-            var defaultSpan = !capabilityHelper.SupportVSInternalClientCapabilities && position < list.Span.End
-                ? new(list.Span.Start, length: position - list.Span.Start)
-                : list.Span;
-
+            var defaultSpan = list.Span;
             var typedText = documentText.GetSubText(defaultSpan).ToString();
             foreach (var item in list.ItemsList)
             {
@@ -131,6 +122,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                     lspItem.FilterText = item.FilterText;
 
                 lspItem.Kind = GetCompletionKind(item.Tags, capabilityHelper.SupportedItemKinds);
+                lspItem.Tags = GetCompletionTags(item.Tags, capabilityHelper.SupportedItemTags);
                 lspItem.Preselect = item.Rules.MatchPriority == MatchPriority.Preselect;
 
                 if (lspVSClientCapability)
@@ -145,14 +137,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 // This means only tab / enter will commit. VS supports soft selection, so we only do this for non-VS clients.
                 if (isSuggestionMode)
                 {
-                    lspItem.CommitCharacters = Array.Empty<string>();
+                    lspItem.CommitCharacters = [];
                 }
-                else if (!lspItem.Preselect && typedText.Length == 0 && item.Rules.SelectionBehavior != CompletionItemSelectionBehavior.HardSelection)
+                else if (typedText.Length == 0 && item.Rules.SelectionBehavior != CompletionItemSelectionBehavior.HardSelection)
                 {
                     // Note this also applies when user hasn't actually typed anything and completion provider does not request the item
                     // to be hard-selected. Otherwise, we set its commit characters as normal. This means we'd need to set IsIncomplete to true
                     // to make sure the client will ask us again when user starts typing so we can provide items with proper commit characters.
-                    lspItem.CommitCharacters = Array.Empty<string>();
+                    lspItem.CommitCharacters = [];
                     isIncomplete = true;
                 }
                 else
@@ -187,6 +179,37 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 }
 
                 return LSP.CompletionItemKind.Text;
+            }
+
+            static LSP.CompletionItemTag[]? GetCompletionTags(
+                ImmutableArray<string> tags,
+                ISet<LSP.CompletionItemTag> supportedClientTags)
+            {
+                using var result = TemporaryArray<LSP.CompletionItemTag>.Empty;
+
+                foreach (var tag in tags)
+                {
+                    if (ProtocolConversions.RoslynTagToCompletionItemTags.TryGetValue(tag, out var completionItemTags))
+                    {
+                        // Always at least pick the core tag provided.
+                        var lspTag = completionItemTags[0];
+
+                        // If better kinds are preferred, return them if the client supports them.
+                        for (var i = 1; i < completionItemTags.Length; i++)
+                        {
+                            var preferredTag = completionItemTags[i];
+                            if (supportedClientTags.Contains(preferredTag))
+                                lspTag = preferredTag;
+                        }
+
+                        result.Add(lspTag);
+                    }
+                }
+
+                if (result.Count == 0)
+                    return null;
+
+                return [.. result.ToImmutableAndClear()];
             }
 
             static string[] GetCommitCharacters(
@@ -379,7 +402,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             Contract.ThrowIfTrue(item.IsComplexTextEdit);
             Contract.ThrowIfNull(lspItem.Label);
 
-            var completionChange = await completionService.GetChangeAsync(document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var completionChange = await GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(completionService, document, item, cancellationToken).ConfigureAwait(false);
             var change = completionChange.TextChange;
 
             // If the change's span is different from default, then the item should be mark as IsComplexTextEdit.
@@ -395,8 +418,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             CancellationToken cancellationToken)
         {
             Debug.Assert(selectedItem.Flags.IsExpanded());
-            selectedItem = ImportCompletionItem.MarkItemToAlwaysAddMissingImport(selectedItem);
-            var completionChange = await completionService.GetChangeAsync(document, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var completionChange = await GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(completionService, document, selectedItem, cancellationToken).ConfigureAwait(false);
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             using var _ = ArrayBuilder<LSP.TextEdit>.GetInstance(out var builder);
@@ -415,6 +437,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             return builder.ToArray();
         }
 
+        private static async Task<CompletionChange> GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(CompletionService completionService, Document document, CompletionItem completionItem, CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await completionService.GetChangeAsync(document, completionItem, cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            {
+                // In case of exception, we simply return DisplayText with default span as the change.
+                return CompletionChange.Create(new TextChange(completionItem.Span, completionItem.DisplayText));
+            }
+        }
+
         public static async Task<(LSP.TextEdit edit, bool isSnippetString, int? newPosition)> GenerateComplexTextEditAsync(
             Document document,
             CompletionService completionService,
@@ -425,7 +460,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         {
             Debug.Assert(selectedItem.IsComplexTextEdit);
 
-            var completionChange = await completionService.GetChangeAsync(document, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var completionChange = await GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(completionService, document, selectedItem, cancellationToken).ConfigureAwait(false);
             var completionChangeSpan = completionChange.TextChange.Span;
             var newText = completionChange.TextChange.NewText;
             Contract.ThrowIfNull(newText);

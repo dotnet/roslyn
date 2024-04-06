@@ -3,10 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UsePrimaryConstructor;
@@ -36,7 +37,7 @@ public partial class UsePrimaryConstructorTests
                 {
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -70,7 +71,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -92,7 +93,7 @@ public partial class UsePrimaryConstructorTests
                 {
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -113,7 +114,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -142,7 +143,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -179,7 +180,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -216,7 +217,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -255,7 +256,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -294,7 +295,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -335,7 +336,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -351,7 +352,7 @@ public partial class UsePrimaryConstructorTests
                         => System.Console.WriteLine(i);
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -369,7 +370,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -393,7 +394,7 @@ public partial class UsePrimaryConstructorTests
                     private int i = i;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -417,7 +418,7 @@ public partial class UsePrimaryConstructorTests
                     private int I { get; } = i;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -441,7 +442,7 @@ public partial class UsePrimaryConstructorTests
                     private int i = j;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -465,7 +466,7 @@ public partial class UsePrimaryConstructorTests
                     private int i = j;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -486,7 +487,7 @@ public partial class UsePrimaryConstructorTests
                         => this.i = i;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -507,7 +508,7 @@ public partial class UsePrimaryConstructorTests
                         => base.i = i;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -525,7 +526,7 @@ public partial class UsePrimaryConstructorTests
                         => this.i += i;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -546,7 +547,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -570,7 +571,7 @@ public partial class UsePrimaryConstructorTests
                     private int i = i * 2;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -599,7 +600,7 @@ public partial class UsePrimaryConstructorTests
                     public int j = j;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -626,7 +627,7 @@ public partial class UsePrimaryConstructorTests
                     public int i = i, j = j;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -654,7 +655,7 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -682,7 +683,7 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -711,7 +712,7 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -734,7 +735,7 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -789,7 +790,7 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -828,7 +829,7 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -867,7 +868,7 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -906,7 +907,7 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -947,7 +948,7 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -990,7 +991,7 @@ public partial class UsePrimaryConstructorTests
             }
             """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1033,7 +1034,7 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1055,7 +1056,7 @@ public partial class UsePrimaryConstructorTests
                     int M(int y) => y;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1077,7 +1078,7 @@ public partial class UsePrimaryConstructorTests
                     int M(int y) => y;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1107,7 +1108,7 @@ public partial class UsePrimaryConstructorTests
                     static int M(int y) => y;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1143,7 +1144,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1183,7 +1184,7 @@ public partial class UsePrimaryConstructorTests
                 #endif
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1213,7 +1214,7 @@ public partial class UsePrimaryConstructorTests
                     private int i = i;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1261,7 +1262,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1305,7 +1306,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1345,7 +1346,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1394,7 +1395,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1441,7 +1442,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1483,7 +1484,7 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1525,7 +1526,7 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1573,7 +1574,7 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1621,7 +1622,7 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1668,7 +1669,7 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1717,7 +1718,7 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1750,7 +1751,7 @@ public partial class UsePrimaryConstructorTests
                 {
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1782,7 +1783,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1823,7 +1824,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1882,7 +1883,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
             CodeActionIndex = 1,
             NumberOfFixAllIterations = 1,
         }.RunAsync();
@@ -1910,7 +1911,7 @@ public partial class UsePrimaryConstructorTests
                {
                }
                """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1938,7 +1939,7 @@ public partial class UsePrimaryConstructorTests
                {
                }
                """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -1972,7 +1973,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2008,7 +2009,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2045,7 +2046,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2084,7 +2085,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2116,7 +2117,7 @@ public partial class UsePrimaryConstructorTests
                 {
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2151,7 +2152,7 @@ public partial class UsePrimaryConstructorTests
                     int x;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2179,7 +2180,7 @@ public partial class UsePrimaryConstructorTests
                 {
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2213,7 +2214,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2243,7 +2244,7 @@ public partial class UsePrimaryConstructorTests
                 {
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2279,7 +2280,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2307,7 +2308,7 @@ public partial class UsePrimaryConstructorTests
                 {
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2341,7 +2342,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2371,7 +2372,7 @@ public partial class UsePrimaryConstructorTests
                 {
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2407,7 +2408,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2436,7 +2437,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2469,7 +2470,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2498,7 +2499,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2531,7 +2532,37 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70586")]
+    public async Task TestReferenceToNestedType5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class B(B.A a)
+                {
+                    public class A { }
+                }
+
+                public class C : B
+                {
+                    public [|C|](A a) : base(a) { }
+                }
+                """,
+            FixedCode = """
+                public class B(B.A a)
+                {
+                    public class A { }
+                }
+                
+                public class C(B.A a) : B(a)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2552,7 +2583,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2578,7 +2609,7 @@ public partial class UsePrimaryConstructorTests
                     private int i = i;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2604,7 +2635,7 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2626,7 +2657,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2648,7 +2679,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2672,7 +2703,7 @@ public partial class UsePrimaryConstructorTests
                 #endif
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2696,7 +2727,7 @@ public partial class UsePrimaryConstructorTests
                 #endif
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2720,7 +2751,7 @@ public partial class UsePrimaryConstructorTests
                 #endif
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2744,7 +2775,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2770,7 +2801,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2796,7 +2827,7 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2829,7 +2860,7 @@ public partial class UsePrimaryConstructorTests
 
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2870,7 +2901,7 @@ public partial class UsePrimaryConstructorTests
 
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2902,7 +2933,7 @@ public partial class UsePrimaryConstructorTests
                     private int _i = i;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2934,7 +2965,7 @@ public partial class UsePrimaryConstructorTests
                 }
                 """,
             CodeActionIndex = 1,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2962,7 +2993,7 @@ public partial class UsePrimaryConstructorTests
                     private int _i = i;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -2990,7 +3021,7 @@ public partial class UsePrimaryConstructorTests
                     private int _i = i;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -3018,7 +3049,7 @@ public partial class UsePrimaryConstructorTests
                     private int _i = i;
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 
@@ -3095,7 +3126,949 @@ public partial class UsePrimaryConstructorTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70658")]
+    public async Task TestPartialType1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class Base(int i)
+                {
+                }
+
+                partial class C
+                {
+                    public [|C|](int i) : base(i)
+                    {
+                    }
+                }
+
+                partial class C : Base
+                {
+                }
+                """,
+            FixedCode = """
+                class Base(int i)
+                {
+                }
+                
+                partial class C(int i) : Base(i)
+                {
+                }
+                
+                partial class C : Base
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70658")]
+    public async Task TestPartialType2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class Base(int i)
+                {
+                }
+
+                partial class C : IDisposable
+                {
+                    public [|C|](int i) : base(i)
+                    {
+                    }
+
+                    public void Dispose() { }
+                }
+
+                partial class C : Base
+                {
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class Base(int i)
+                {
+                }
+                
+                partial class C(int i) : Base(i), IDisposable
+                {
+                    public void Dispose() { }
+                }
+                
+                partial class C : Base
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70658")]
+    public async Task TestPartialType3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class Base(int i)
+                {
+                }
+
+                partial class C<T>
+                {
+                    public [|C|](int i) : base(i)
+                    {
+                    }
+                }
+
+                partial class C<T> : Base
+                {
+                }
+                """,
+            FixedCode = """
+                class Base(int i)
+                {
+                }
+                
+                partial class C<T>(int i) : Base(i)
+                {
+                }
+                
+                partial class C<T> : Base
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70658")]
+    public async Task TestPartialType4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class Base(int i)
+                {
+                }
+
+                partial class C<T> where T : IDisposable
+                {
+                    public [|C|](int i) : base(i)
+                    {
+                    }
+                }
+
+                partial class C<T> : Base
+                {
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class Base(int i)
+                {
+                }
+                
+                partial class C<T>(int i) : Base(i) where T : IDisposable
+                {
+                }
+                
+                partial class C<T> : Base
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int A;
+                    public int B;
+
+                    public [|C|](int value)
+                    {
+                        A = ++value;
+                        B = ++value;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int value)
+                {
+                    public int A = ++value;
+                    public int B = ++value;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects1_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int B;
+                    public int A;
+
+                    public C(int value)
+                    {
+                        A = ++value;
+                        B = ++value;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int A, B;
+
+                    public [|C|](int value)
+                    {
+                        A = ++value;
+                        B = ++value;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int value)
+                {
+                    public int A = ++value, B = ++value;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects2_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int B, A;
+
+                    public C(int value)
+                    {
+                        A = ++value;
+                        B = ++value;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int A { get; }
+                    public int B { get; }
+
+                    public [|C|](int value)
+                    {
+                        A = ++value;
+                        B = ++value;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int value)
+                {
+                    public int A { get; } = ++value;
+                    public int B { get; } = ++value;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects3_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int B { get; }
+                    public int A { get; }
+
+                    public C(int value)
+                    {
+                        A = ++value;
+                        B = ++value;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                partial class C
+                {
+                    public int A;
+
+                    public C(int value)
+                    {
+                        A = ++value;
+                        B = ++value;
+                    }
+                }
+
+                partial class C
+                {
+                    public int B;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int A;
+                    public int B;
+
+                    public [|C|](int value1, int value2)
+                    {
+                        A = ++value1;
+                        B = ++value2;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int value1, int value2)
+                {
+                    public int A = ++value1;
+                    public int B = ++value2;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects5_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int B;
+                    public int A;
+
+                    public [|C|](int value1, int value2)
+                    {
+                        A = ++value1;
+                        B = ++value2;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int value1, int value2)
+                {
+                    public int B = ++value2;
+                    public int A = ++value1;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects6()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int A;
+                    public int B;
+
+                    public [|C|](int value)
+                    {
+                        A = value;
+                        B = value;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int value)
+                {
+                    public int A = value;
+                    public int B = value;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70868")]
+    public async Task TestSideEffects6_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int B;
+                    public int A;
+
+                    public [|C|](int value)
+                    {
+                        A = value;
+                        B = value;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C(int value)
+                {
+                    public int B = value;
+                    public int A = value;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestAbstractClass1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                abstract class C
+                {
+                    protected [|C|](int i)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                abstract class C(int i)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestAbstractClass2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                abstract class C
+                {
+                    public [|C|](int i)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                abstract class C(int i)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestAbstractClass3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                abstract class C
+                {
+                    internal C(int i)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71117")]
+    public async Task TestNullableMismatch()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                using System.Threading;
+
+                public class Test
+                {
+                    private object? _parameter;
+
+                    public [|Test|](object parameter)
+                    {
+                        _parameter = parameter;
+                    }
+
+                    public void Remove()
+                    {
+                        Interlocked.Exchange(ref _parameter, null);
+                    }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+                
+                using System.Threading;
+
+                public class Test(object parameter)
+                {
+                    private object? _parameter = parameter;
+
+                    public void Remove()
+                    {
+                        Interlocked.Exchange(ref _parameter, null);
+                    }
+                }
+                """,
+            // Only one action should be shown to the user here.
+            // The "and remove fields" option should not be shown.
+            CodeActionsVerifier = actions => Assert.Single(actions),
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71119")]
+    public async Task TestPragma1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class Test
+                {
+
+                #pragma warning disable IDE0044 // or any other suppression
+                    private object _value;
+                #pragma warning restore IDE0044
+
+                    private int? _other;
+
+                    public [|Test|](object value)
+                    {
+                        _value = value;
+                    }
+                }
+                """,
+            FixedCode = """
+                public class Test(object value)
+                {
+
+                #pragma warning disable IDE0044 // or any other suppression
+                #pragma warning restore IDE0044
+                
+                    private int? _other;
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71119")]
+    public async Task TestPragma2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class Test
+                {
+
+                #pragma warning disable IDE0044 // or any other supporession
+                    private object _value1;
+
+                #pragma warning restore IDE0044
+                    private object _value2;
+
+                    public [|Test|](object value2)
+                    {
+                        _value1 = new();
+                        _value2 = value2;
+                    }
+                }
+                """,
+            FixedCode = """
+                public class Test(object value2)
+                {
+
+                #pragma warning disable IDE0044 // or any other supporession
+                    private object _value1 = new();
+
+                #pragma warning restore IDE0044
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71152")]
+    public async Task TestOutVariableInConstructor1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class Test
+                {
+                    private int i;
+
+                    public [|Test|](string x)
+                    {
+                        i = int.TryParse(x, out var result) ? result : 0;
+                    }
+                }
+                """,
+            FixedCode = """
+                public class Test(string x)
+                {
+                    private int i = int.TryParse(x, out var result) ? result : 0;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71152")]
+    public async Task TestOutVariableInConstructor2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class Test
+                {
+                    private int i;
+                    private int r;
+
+                    public Test(string x)
+                    {
+                        i = int.TryParse(x, out var result) ? result : 0;
+                        r = result;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71152")]
+    public async Task TestPatternVariableInConstructor1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class Test
+                {
+                    private int i;
+
+                    public [|Test|](object x)
+                    {
+                        i = x is string s ? s.Length : 0;
+                    }
+                }
+                """,
+            FixedCode = """
+                public class Test(object x)
+                {
+                    private int i = x is string s ? s.Length : 0;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71167")]
+    public async Task TestMemberReferenceInAttribute1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Diagnostics.CodeAnalysis;
+
+                public class Goo
+                {
+                    public string Name { get; }
+
+                    public [|Goo|]([NotNullIfNotNull(nameof(Name))] string name)
+                    {
+                        Name= name;
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Diagnostics.CodeAnalysis;
+                
+                public class Goo([NotNullIfNotNull(nameof(Goo.Name))] string name)
+                {
+                    public string Name { get; } = name;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71167")]
+    public async Task TestMemberReferenceInAttribute2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                
+                public class MyAttribute(string s) : Attribute
+                {
+                }
+
+                public class Goo
+                {
+                    public string Name { get; }
+
+                    public [|Goo|]([My(nameof(Nested))] string name)
+                    {
+                        Name = name;
+                    }
+
+                    public class Nested { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                public class MyAttribute(string s) : Attribute
+                {
+                }
+                
+                public class Goo([My(nameof(Goo.Nested))] string name)
+                {
+                    public string Name { get; } = name;
+
+                    public class Nested { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71167")]
+    public async Task TestMemberReferenceInAttribute3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public class MyAttribute(string s) : Attribute
+                {
+                }
+
+                public class Goo
+                {
+                    public string Name { get; }
+
+                    public [|Goo|]([My(nameof(E))] string name)
+                    {
+                        Name = name;
+                    }
+
+                    public event Action E;
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                public class MyAttribute(string s) : Attribute
+                {
+                }
+                
+                public class Goo([My(nameof(Goo.E))] string name)
+                {
+                    public string Name { get; } = name;
+
+                    public event Action E;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71167")]
+    public async Task TestMemberReferenceInAttribute4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                
+                public class MyAttribute(string s) : Attribute
+                {
+                }
+
+                public class Goo
+                {
+                    public string Name { get; }
+
+                    public [|Goo|]([My(nameof(M))] string name)
+                    {
+                        Name = name;
+                    }
+
+                    public void M() { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                public class MyAttribute(string s) : Attribute
+                {
+                }
+                
+                public class Goo([My(nameof(Goo.M))] string name)
+                {
+                    public string Name { get; } = name;
+                
+                    public void M() { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71749")]
+    public async Task TestNotOnSuppressedAssignmentToAnotherField()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+                using System.Reflection;
+
+                public class C
+                {
+                    private readonly Type _type;
+                    private readonly Type _comparerType;
+                    private readonly object _defaultObject;
+
+                    public C(Type type)
+                    {
+                        _type = type;
+                        _comparerType = typeof(EqualityComparer<>).MakeGenericType(type);
+                        _defaultObject = _comparerType.GetProperty("Default", BindingFlags.Public | BindingFlags.Static)!.GetValue(null)!;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72784")]
+    public async Task TestQualifyNestedEnum()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class MyClass
+                {
+                    public [|MyClass|](EnumInClass.MyEnum myEnum = EnumInClass.MyEnum.Default)
+                    {
+                        this.MyEnum = myEnum;
+                    }
+
+                    public EnumInClass.MyEnum MyEnum { get; set; }
+                }
+
+                public class EnumInClass
+                {
+                    public enum MyEnum
+                    {
+                        Default
+                    }
+                }
+                """,
+            FixedCode = """
+                public class MyClass(EnumInClass.MyEnum myEnum = EnumInClass.MyEnum.Default)
+                {
+                    public EnumInClass.MyEnum MyEnum { get; set; } = myEnum;
+                }
+                
+                public class EnumInClass
+                {
+                    public enum MyEnum
+                    {
+                        Default
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 }

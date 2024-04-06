@@ -18,6 +18,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
         Public Sub New()
         End Sub
 
+        Protected Overrides Function SupportsInterpolatedStringHandler(compilation As Compilation) As Boolean
+            ' VB does not support interpolated string handlers at all.
+            Return False
+        End Function
+
         Protected Overrides Function GetTextWithoutQuotes(text As String, isVerbatim As Boolean, isCharacterLiteral As Boolean) As String
             If isCharacterLiteral Then
                 Return text.Substring("'".Length, text.Length - "''C".Length)

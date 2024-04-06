@@ -10,31 +10,26 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Wrapping.BinaryExpression;
 using Microsoft.CodeAnalysis.CSharp.Wrapping.ChainedExpression;
 using Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Wrapping;
 
-namespace Microsoft.CodeAnalysis.CSharp.Wrapping
+namespace Microsoft.CodeAnalysis.CSharp.Wrapping;
+
+[ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.Wrapping), Shared]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal class CSharpWrappingCodeRefactoringProvider() : AbstractWrappingCodeRefactoringProvider(s_wrappers)
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.Wrapping), Shared]
-    internal class CSharpWrappingCodeRefactoringProvider : AbstractWrappingCodeRefactoringProvider
-    {
-        private static readonly ImmutableArray<ISyntaxWrapper> s_wrappers =
-            ImmutableArray.Create<ISyntaxWrapper>(
-                new CSharpArgumentWrapper(),
-                new CSharpParameterWrapper(),
-                new CSharpBinaryExpressionWrapper(),
-                new CSharpChainedExpressionWrapper(),
-                new CSharpInitializerExpressionWrapper());
+    private static readonly ImmutableArray<ISyntaxWrapper> s_wrappers =
+        [
+            new CSharpArgumentWrapper(),
+            new CSharpParameterWrapper(),
+            new CSharpBinaryExpressionWrapper(),
+            new CSharpChainedExpressionWrapper(),
+            new CSharpInitializerExpressionWrapper(),
+            new CSharpCollectionExpressionWrapper(),
+        ];
 
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpWrappingCodeRefactoringProvider()
-            : base(s_wrappers)
-        {
-        }
-
-        protected override SyntaxWrappingOptions GetWrappingOptions(IOptionsReader options, CodeActionOptions ideOptions)
-            => options.GetCSharpSyntaxWrappingOptions(ideOptions);
-    }
+    protected override SyntaxWrappingOptions GetWrappingOptions(IOptionsReader options, CodeActionOptions ideOptions)
+        => options.GetCSharpSyntaxWrappingOptions(ideOptions);
 }

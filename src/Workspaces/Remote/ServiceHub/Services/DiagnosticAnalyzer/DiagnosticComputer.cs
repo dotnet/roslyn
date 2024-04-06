@@ -14,10 +14,10 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using static Microsoft.VisualStudio.Threading.ThreadingTools;
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         /// <remarks>
         /// Read/write access to this field is guarded by <see cref="s_gate"/>.
         /// </remarks>
-        private static ImmutableHashSet<Task> s_highPriorityComputeTasks = ImmutableHashSet<Task>.Empty;
+        private static ImmutableHashSet<Task> s_highPriorityComputeTasks = [];
 
         /// <summary>
         /// Set of cancellation token sources for normal priority diagnostic computation tasks which are currently executing.
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         /// <remarks>
         /// Read/write access to this field is guarded by <see cref="s_gate"/>.
         /// </remarks>
-        private static ImmutableHashSet<CancellationTokenSource> s_normalPriorityCancellationTokenSources = ImmutableHashSet<CancellationTokenSource>.Empty;
+        private static ImmutableHashSet<CancellationTokenSource> s_normalPriorityCancellationTokenSources = [];
 
         /// <summary>
         /// Static gate controlling access to following static fields:
@@ -307,11 +307,11 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                         if (task.IsCompleted)
                         {
                             // Make sure to yield so continuations of 'task' can make progress.
-                            await Task.Yield().ConfigureAwait(false);
+                            await AwaitExtensions.ConfigureAwait(Task.Yield(), false);
                         }
                         else
                         {
-                            await task.WithCancellation(cancellationToken).NoThrowAwaitableInternal(false);
+                            await task.WithCancellation(cancellationToken).NoThrowAwaitable(false);
                         }
                     }
                 }
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             var telemetry = getTelemetryInfo
                 ? GetTelemetryInfo(analysisResult, analyzers, analyzerToIdMap)
-                : ImmutableArray<(string analyzerId, AnalyzerTelemetryInfo)>.Empty;
+                : [];
 
             return new SerializableDiagnosticAnalysisResults(Dehydrate(builderMap, analyzerToIdMap), telemetry);
         }

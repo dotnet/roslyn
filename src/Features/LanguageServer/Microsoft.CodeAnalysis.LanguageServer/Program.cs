@@ -5,17 +5,21 @@
 using System.Collections.Immutable;
 using System.CommandLine;
 using System.Diagnostics;
+using System.IO.Pipes;
 using System.Runtime.InteropServices;
+using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
-using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.HelloWorld;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
+using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+using Newtonsoft.Json;
+using Roslyn.Utilities;
 
 // Setting the title can fail if the process is run without a window, such
 // as when launched detached from nodejs
@@ -44,7 +48,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
             LoggerFactory.Create(builder =>
             {
                 builder.SetMinimumLevel(serverConfiguration.MinimumLogLevel);
-                builder.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace);
+                builder.AddConsole();
                 // The console logger outputs control characters on unix for colors which don't render correctly in VSCode.
                 builder.AddSimpleConsole(formatterOptions => formatterOptions.ColorBehavior = LoggerColorBehavior.Disabled);
             })
@@ -53,6 +57,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     var logger = loggerFactory.CreateLogger<Program>();
 
+    logger.Log(serverConfiguration.LaunchDebugger ? LogLevel.Critical : LogLevel.Trace, "Server started with process ID {processId}", Environment.ProcessId);
     if (serverConfiguration.LaunchDebugger)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -62,8 +67,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         }
         else
         {
-            var timeout = TimeSpan.FromMinutes(1);
-            logger.LogCritical($"Server started with process ID {Environment.ProcessId}");
+            var timeout = TimeSpan.FromMinutes(2);
             logger.LogCritical($"Waiting {timeout:g} for a debugger to attach");
             using var timeoutSource = new CancellationTokenSource(timeout);
             while (!Debugger.IsAttached && !timeoutSource.Token.IsCancellationRequested)
@@ -73,7 +77,10 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         }
     }
 
-    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(serverConfiguration.ExtensionAssemblyPaths, serverConfiguration.SharedDependenciesPath, loggerFactory);
+    logger.LogTrace($".NET Runtime Version: {RuntimeInformation.FrameworkDescription}");
+    var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
+
+    using var exportProvider = await ExportProviderBuilder.CreateExportProviderAsync(extensionManager, serverConfiguration.DevKitDependencyPath, loggerFactory);
 
     // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
     Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
@@ -93,15 +100,32 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         .Select(f => f.FullName)
         .ToImmutableArray();
 
-    await workspaceFactory.InitializeSolutionLevelAnalyzersAsync(analyzerPaths);
+    // Include analyzers from extension assemblies.
+    analyzerPaths = analyzerPaths.AddRange(extensionManager.ExtensionAssemblyPaths);
+
+    await workspaceFactory.InitializeSolutionLevelAnalyzersAsync(analyzerPaths, extensionManager);
 
     var serviceBrokerFactory = exportProvider.GetExportedValue<ServiceBrokerFactory>();
-    StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, loggerFactory, serviceBrokerFactory);
-
+    StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, extensionManager, loggerFactory, serviceBrokerFactory);
     // TODO: Remove, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
     Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames = Path.DirectorySeparatorChar == '\\';
 
-    var server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, loggerFactory.CreateLogger(nameof(LanguageServerHost)));
+    var languageServerLogger = loggerFactory.CreateLogger(nameof(LanguageServerHost));
+
+    var (clientPipeName, serverPipeName) = CreateNewPipeNames();
+    var pipeServer = new NamedPipeServerStream(serverPipeName,
+        PipeDirection.InOut,
+        maxNumberOfServerInstances: 1,
+        PipeTransmissionMode.Byte,
+        PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
+
+    // Send the named pipe connection info to the client 
+    Console.WriteLine(JsonConvert.SerializeObject(new NamedPipeInformation(clientPipeName)));
+
+    // Wait for connection from client
+    await pipeServer.WaitForConnectionAsync(cancellationToken);
+
+    var server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, languageServerLogger);
     server.Start();
 
     logger.LogInformation("Language server initialized");
@@ -162,15 +186,21 @@ static CliRootCommand CreateCommandLineParser()
         Required = false
     };
 
-    var sharedDependenciesOption = new CliOption<string?>("--sharedDependencies")
+    var extensionAssemblyPathsOption = new CliOption<string[]?>("--extension")
     {
-        Description = "Full path of the directory containing shared assemblies (optional).",
+        Description = "Full paths of extension assemblies to load (optional).",
         Required = false
     };
 
-    var extensionAssemblyPathsOption = new CliOption<string[]?>("--extension", "--extensions") // TODO: remove plural form
+    var devKitDependencyPathOption = new CliOption<string?>("--devKitDependencyPath")
     {
-        Description = "Full paths of extension assemblies to load (optional).",
+        Description = "Full path to the Roslyn dependency used with DevKit (optional).",
+        Required = false
+    };
+
+    var razorSourceGeneratorOption = new CliOption<string?>("--razorSourceGenerator")
+    {
+        Description = "Full path to the Razor source generator (optional).",
         Required = false
     };
 
@@ -182,8 +212,9 @@ static CliRootCommand CreateCommandLineParser()
         starredCompletionsPathOption,
         telemetryLevelOption,
         sessionIdOption,
-        sharedDependenciesOption,
         extensionAssemblyPathsOption,
+        devKitDependencyPathOption,
+        razorSourceGeneratorOption,
         extensionLogDirectoryOption
     };
     rootCommand.SetAction((parseResult, cancellationToken) =>
@@ -193,8 +224,9 @@ static CliRootCommand CreateCommandLineParser()
         var starredCompletionsPath = parseResult.GetValue(starredCompletionsPathOption);
         var telemetryLevel = parseResult.GetValue(telemetryLevelOption);
         var sessionId = parseResult.GetValue(sessionIdOption);
-        var sharedDependenciesPath = parseResult.GetValue(sharedDependenciesOption);
-        var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? Array.Empty<string>();
+        var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
+        var devKitDependencyPath = parseResult.GetValue(devKitDependencyPathOption);
+        var razorSourceGenerator = parseResult.GetValue(razorSourceGeneratorOption);
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
 
         var serverConfiguration = new ServerConfiguration(
@@ -203,13 +235,34 @@ static CliRootCommand CreateCommandLineParser()
             StarredCompletionsPath: starredCompletionsPath,
             TelemetryLevel: telemetryLevel,
             SessionId: sessionId,
-            SharedDependenciesPath: sharedDependenciesPath,
             ExtensionAssemblyPaths: extensionAssemblyPaths,
+            DevKitDependencyPath: devKitDependencyPath,
+            RazorSourceGenerator: razorSourceGenerator,
             ExtensionLogDirectory: extensionLogDirectory);
 
         return RunAsync(serverConfiguration, cancellationToken);
     });
-
     return rootCommand;
 }
 
+static (string clientPipe, string serverPipe) CreateNewPipeNames()
+{
+    // On windows, .NET and Nodejs use different formats for the pipe name
+    const string WINDOWS_NODJS_PREFIX = @"\\.\pipe\";
+    const string WINDOWS_DOTNET_PREFIX = @"\\.\";
+
+    // The pipe name constructed by some systems is very long (due to temp path).
+    // Shorten the unique id for the pipe. 
+    var newGuid = Guid.NewGuid().ToString();
+    var pipeName = newGuid.Split('-')[0];
+
+    return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+        ? (WINDOWS_NODJS_PREFIX + pipeName, WINDOWS_DOTNET_PREFIX + pipeName)
+        : (GetUnixTypePipeName(pipeName), GetUnixTypePipeName(pipeName));
+}
+
+static string GetUnixTypePipeName(string pipeName)
+{
+    // Unix-type pipes are actually writing to a file
+    return Path.Combine(Path.GetTempPath(), pipeName + ".sock");
+}

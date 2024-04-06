@@ -4,13 +4,12 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
+
+[Flags]
+internal enum LocationKind
 {
-    [Flags]
-    internal enum LocationKind
-    {
-        EditorConfig,
-        GlobalConfig,
-        VisualStudio,
-    }
+    EditorConfig,
+    GlobalConfig,
+    VisualStudio,
 }

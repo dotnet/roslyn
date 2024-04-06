@@ -7,16 +7,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
-{
-    internal abstract class AbstractSingleChangeSnippetProvider : AbstractSnippetProvider
-    {
-        protected abstract Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken);
+namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
-        protected sealed override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var change = await GenerateSnippetTextChangeAsync(document, position, cancellationToken).ConfigureAwait(false);
-            return ImmutableArray.Create(change);
-        }
+internal abstract class AbstractSingleChangeSnippetProvider<TSnippetSyntax> : AbstractSnippetProvider<TSnippetSyntax>
+    where TSnippetSyntax : SyntaxNode
+{
+    protected abstract Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken);
+
+    protected sealed override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        var change = await GenerateSnippetTextChangeAsync(document, position, cancellationToken).ConfigureAwait(false);
+        return [change];
     }
 }

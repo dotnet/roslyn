@@ -4,10 +4,9 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
+namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
+
+internal static class SmartIndenterOptionsStorage
 {
-    internal static class SmartIndenterOptionsStorage
-    {
-        public static readonly Option2<bool> SmartIndenter = new("dotnet_enable_smart_indenter", defaultValue: true);
-    }
+    public static readonly Option2<bool> SmartIndenter = new("dotnet_enable_smart_indenter", defaultValue: true);
 }

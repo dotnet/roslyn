@@ -22,24 +22,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotAfterClass_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -67,56 +73,70 @@ $$");
         public async Task TestAfterOrderByExpr()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          orderby x $$"));
+                """
+                var q = from x in y
+                          orderby x $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterSecondExpr()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          orderby x, y $$"));
+                """
+                var q = from x in y
+                          orderby x, y $$
+                """));
         }
 
         [Fact]
         public async Task TestBetweenExprs()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          orderby x, y $$, z"));
+                """
+                var q = from x in y
+                          orderby x, y $$, z
+                """));
         }
 
         [Fact]
         public async Task TestNotAfterDot()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          orderby x.$$"));
+                """
+                var q = from x in y
+                          orderby x.$$
+                """));
         }
 
         [Fact]
         public async Task TestNotAfterComma()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"var q = from x in y
-          orderby x, $$"));
+                """
+                var q = from x in y
+                          orderby x, $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterCloseParen()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          orderby x.ToString() $$"));
+                """
+                var q = from x in y
+                          orderby x.ToString() $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterCloseBracket()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from x in y
-          orderby x.ToString()[0] $$"));
+                """
+                var q = from x in y
+                          orderby x.ToString()[0] $$
+                """));
         }
     }
 }

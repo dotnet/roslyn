@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Return ImmutableArray(Of ISymbol).Empty
             End If
 
-            Return model.AnalyzeDataFlow(methodBlock.Statements.First, methodBlock.Statements.Last).Captured
+            Return model.AnalyzeDataFlow(methodBlock.Statements.First, methodBlock.Statements.Last).CapturedInside
         End Function
 
         Public Overrides Function GetStateMachineInfo() As StateMachineInfo

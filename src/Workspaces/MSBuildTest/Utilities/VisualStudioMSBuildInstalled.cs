@@ -2,63 +2,52 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using Microsoft.Build.Locator;
+using System.Threading;
+using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
     internal class VisualStudioMSBuildInstalled : ExecutionCondition
     {
-#if NET472_OR_GREATER
-
-        private static readonly VisualStudioInstance? s_instance;
-        private readonly Version _minimumVersion;
+        private static readonly string? s_skipReason;
 
         static VisualStudioMSBuildInstalled()
         {
-            var latestInstalledInstance = (VisualStudioInstance?)null;
-            foreach (var visualStudioInstance in MSBuildLocator.QueryVisualStudioInstances())
+            if (!PlatformInformation.IsWindows)
             {
-                if (latestInstalledInstance == null || visualStudioInstance.Version > latestInstalledInstance.Version)
-                {
-                    latestInstalledInstance = visualStudioInstance;
-                }
+                s_skipReason = "Test is only supported on Windows since it looks for a Visual Studio install.";
             }
-
-            if (latestInstalledInstance != null)
+            else if (!IsVisualStudioMSBuildInstalled())
             {
-                MSBuildLocator.RegisterInstance(latestInstalledInstance);
-                s_instance = latestInstalledInstance;
+                s_skipReason = "No usable Visual Studio is installed.";
             }
         }
 
-#endif
-
-        public VisualStudioMSBuildInstalled()
-            : this(new Version(17, 0))
+        private static bool IsVisualStudioMSBuildInstalled()
         {
-        }
+            BuildHostProcessManager? buildHostProcessManager = null;
 
-        internal VisualStudioMSBuildInstalled(Version minimumVersion)
-        {
-#if NET472_OR_GREATER
-            _minimumVersion = minimumVersion;
-#endif
+            try
+            {
+                buildHostProcessManager = new BuildHostProcessManager();
+
+                var buildHost = buildHostProcessManager.GetBuildHostAsync(BuildHostProcessManager.BuildHostProcessKind.NetFramework, CancellationToken.None).Result;
+
+                // HACK: for .NET Framework build hosts, we don't actually need the project path to determine whether there's a usable VS -- so we can pass any file name here.
+                return buildHost.HasUsableMSBuildAsync("NonExistent.sln", CancellationToken.None).Result;
+            }
+            finally
+            {
+                buildHostProcessManager?.DisposeAsync().AsTask().Wait();
+            }
         }
 
         public override bool ShouldSkip
-#if NET472_OR_GREATER
-            => s_instance is null || s_instance.Version < _minimumVersion;
-#else
-            => true;
-#endif
+            => s_skipReason is not null;
 
         public override string SkipReason
-#if NET472_OR_GREATER
-            => $"Could not locate Visual Studio with MSBuild {_minimumVersion} or higher installed";
-#else
-            => $"Test runs on .NET Framework only.";
-#endif
+            => s_skipReason!;
     }
 }

@@ -10,29 +10,43 @@ using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.CodeAnalysis.Editor.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Tagging;
+
+internal abstract class AsynchronousTaggerProvider<TTag> : AbstractAsynchronousTaggerProvider<TTag>, ITaggerProvider
+    where TTag : ITag
 {
-    internal abstract class AsynchronousTaggerProvider<TTag> : AbstractAsynchronousTaggerProvider<TTag>, ITaggerProvider
-        where TTag : ITag
+    protected AsynchronousTaggerProvider(
+        IThreadingContext threadingContext,
+        IGlobalOptionService globalOptions,
+        ITextBufferVisibilityTracker? visibilityTracker,
+        IAsynchronousOperationListener asyncListener)
+        : base(threadingContext, globalOptions, visibilityTracker, asyncListener)
     {
-        protected AsynchronousTaggerProvider(
-            IThreadingContext threadingContext,
-            IGlobalOptionService globalOptions,
-            ITextBufferVisibilityTracker? visibilityTracker,
-            IAsynchronousOperationListener asyncListener)
-            : base(threadingContext, globalOptions, visibilityTracker, asyncListener)
+    }
+
+    public EfficientTagger<TTag>? CreateTagger(ITextBuffer subjectBuffer)
+    {
+        if (subjectBuffer == null)
+            throw new ArgumentNullException(nameof(subjectBuffer));
+
+        return this.CreateEfficientTagger(null, subjectBuffer);
+    }
+
+    ITagger<T>? ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
+    {
+        var tagger = CreateTagger(buffer);
+        if (tagger is null)
+            return null;
+
+        // If we're not able to convert the tagger we instantiated to the type the caller wants, then make sure we
+        // dispose of it now.  The tagger will have added a ref to the underlying tagsource, and we have to make
+        // sure we return that to the proper starting value.
+        if (tagger is not ITagger<T> typedTagger)
         {
+            tagger.Dispose();
+            return null;
         }
 
-        public ITagger<T>? CreateTagger<T>(ITextBuffer subjectBuffer) where T : ITag
-        {
-            if (subjectBuffer == null)
-                throw new ArgumentNullException(nameof(subjectBuffer));
-
-            return this.CreateTaggerWorker<T>(null, subjectBuffer);
-        }
-
-        ITagger<T>? ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
-            => CreateTagger<T>(buffer);
+        return typedTagger;
     }
 }

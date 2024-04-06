@@ -4,13 +4,12 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
+namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
+
+internal class RQConstructor(
+    RQUnconstructedType containingType,
+    RQMethodPropertyOrEventName memberName,
+    int typeParameterCount,
+    IList<RQParameter> parameters) : RQMethodBase(containingType, memberName, typeParameterCount, parameters)
 {
-    internal class RQConstructor(
-        RQUnconstructedType containingType,
-        RQMethodPropertyOrEventName memberName,
-        int typeParameterCount,
-        IList<RQParameter> parameters) : RQMethodBase(containingType, memberName, typeParameterCount, parameters)
-    {
-    }
 }

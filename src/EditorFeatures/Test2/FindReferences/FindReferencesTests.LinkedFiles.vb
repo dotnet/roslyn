@@ -28,7 +28,7 @@ class C
         <Document IsLinkFile="true" LinkAssemblyName="CSProj1" LinkFilePath="C.cs"/>
     </Project>
 </Workspace>
-            Using workspace = TestWorkspace.Create(definition)
+            Using workspace = EditorTestWorkspace.Create(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
 
@@ -60,7 +60,7 @@ End Class
         <Document IsLinkFile="true" LinkAssemblyName="VBProj1" LinkFilePath="C.vb"/>
     </Project>
 </Workspace>
-            Using workspace = TestWorkspace.Create(definition)
+            Using workspace = EditorTestWorkspace.Create(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
 
@@ -97,7 +97,7 @@ End Class
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(definition)
+            Using workspace = EditorTestWorkspace.Create(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
                 Dim linkedDocument = workspace.Documents.Single(Function(d) d.IsLinkFile)
@@ -213,7 +213,7 @@ namespace {|Definition:System|}
         <Document IsLinkFile="true" LinkAssemblyName="CSProj1" LinkFilePath="C.cs"/>
     </Project>
 </Workspace>
-            Using workspace = TestWorkspace.Create(definition)
+            Using workspace = EditorTestWorkspace.Create(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
 
@@ -251,7 +251,7 @@ namespace {|Definition:System|}
         <Document IsLinkFile="true" LinkAssemblyName="CSProj1" LinkFilePath="C.cs"/>
     </Project>
 </Workspace>
-            Using workspace = TestWorkspace.Create(definition)
+            Using workspace = EditorTestWorkspace.Create(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
 
@@ -295,7 +295,7 @@ class D
         <Document IsLinkFile="true" LinkAssemblyName="CSProj1" LinkFilePath="C.cs"/>
     </Project>
 </Workspace>
-            Using workspace = TestWorkspace.Create(definition)
+            Using workspace = EditorTestWorkspace.Create(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
 
@@ -338,7 +338,7 @@ class D
         <Document IsLinkFile="true" LinkAssemblyName="CSProj1" LinkFilePath="C.cs"/>
     </Project>
 </Workspace>
-            Using workspace = TestWorkspace.Create(definition)
+            Using workspace = EditorTestWorkspace.Create(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
 
@@ -381,7 +381,7 @@ class D
         <Document IsLinkFile="true" LinkAssemblyName="CSProj1" LinkFilePath="C.cs"/>
     </Project>
 </Workspace>
-            Using workspace = TestWorkspace.Create(definition)
+            Using workspace = EditorTestWorkspace.Create(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
 
@@ -424,7 +424,7 @@ class D
         <Document IsLinkFile="true" LinkAssemblyName="CSProj1" LinkFilePath="C.cs"/>
     </Project>
 </Workspace>
-            Using workspace = TestWorkspace.Create(definition)
+            Using workspace = EditorTestWorkspace.Create(definition)
                 Dim invocationDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim invocationPosition = invocationDocument.CursorPosition.Value
 

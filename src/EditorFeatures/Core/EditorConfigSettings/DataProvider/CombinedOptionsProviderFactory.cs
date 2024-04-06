@@ -5,21 +5,20 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
+
+internal class CombinedOptionsProviderFactory<T>(ImmutableArray<ISettingsProviderFactory<T>> factories) : ISettingsProviderFactory<T>
 {
-    internal class CombinedOptionsProviderFactory<T>(ImmutableArray<ISettingsProviderFactory<T>> factories) : ISettingsProviderFactory<T>
+    private readonly ImmutableArray<ISettingsProviderFactory<T>> _factories = factories;
+
+    public ISettingsProvider<T> GetForFile(string filePath)
     {
-        private readonly ImmutableArray<ISettingsProviderFactory<T>> _factories = factories;
-
-        public ISettingsProvider<T> GetForFile(string filePath)
+        var providers = TemporaryArray<ISettingsProvider<T>>.Empty;
+        foreach (var factory in _factories)
         {
-            var providers = TemporaryArray<ISettingsProvider<T>>.Empty;
-            foreach (var factory in _factories)
-            {
-                providers.Add(factory.GetForFile(filePath));
-            }
-
-            return new CombinedProvider<T>(providers.ToImmutableAndClear());
+            providers.Add(factory.GetForFile(filePath));
         }
+
+        return new CombinedProvider<T>(providers.ToImmutableAndClear());
     }
 }

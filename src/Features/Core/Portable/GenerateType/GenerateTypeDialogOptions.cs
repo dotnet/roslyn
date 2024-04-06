@@ -4,15 +4,14 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.GenerateType
+namespace Microsoft.CodeAnalysis.GenerateType;
+
+internal class GenerateTypeDialogOptions(
+    bool isPublicOnlyAccessibility = false,
+    TypeKindOptions typeKindOptions = TypeKindOptions.AllOptions,
+    bool isAttribute = false)
 {
-    internal class GenerateTypeDialogOptions(
-        bool isPublicOnlyAccessibility = false,
-        TypeKindOptions typeKindOptions = TypeKindOptions.AllOptions,
-        bool isAttribute = false)
-    {
-        public bool IsPublicOnlyAccessibility { get; } = isPublicOnlyAccessibility;
-        public TypeKindOptions TypeKindOptions { get; } = typeKindOptions;
-        public bool IsAttribute { get; } = isAttribute;
-    }
+    public bool IsPublicOnlyAccessibility { get; } = isPublicOnlyAccessibility;
+    public TypeKindOptions TypeKindOptions { get; } = typeKindOptions;
+    public bool IsAttribute { get; } = isAttribute;
 }

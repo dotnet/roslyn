@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
@@ -16,7 +15,11 @@ public class WorkspaceProjectFactoryServiceTests
     [Fact]
     public async Task CreateProjectAndBatch()
     {
-        using var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(new LoggerFactory(), includeDevKitComponents: false);
+        using var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(
+            new LoggerFactory(), includeDevKitComponents: false, out var serverConfiguration);
+
+        exportProvider.GetExportedValue<ServerConfigurationFactory>()
+            .InitializeConfiguration(serverConfiguration);
         await exportProvider.GetExportedValue<ServiceBrokerFactory>().CreateAsync();
 
         var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
@@ -37,14 +40,20 @@ public class WorkspaceProjectFactoryServiceTests
         var sourceFilePath = MakeAbsolutePath("SourceFile.cs");
         var additionalFilePath = MakeAbsolutePath("AdditionalFile.txt");
 
-        await workspaceProject.AddSourceFilesAsync(new[] { new SourceFileInfo(sourceFilePath, Array.Empty<string>()) }, CancellationToken.None);
-        await workspaceProject.AddAdditionalFilesAsync(new[] { additionalFilePath }, CancellationToken.None);
+        await workspaceProject.AddSourceFilesAsync([new SourceFileInfo(sourceFilePath, ["Folder"])], CancellationToken.None);
+        await workspaceProject.AddAdditionalFilesAsync([new SourceFileInfo(additionalFilePath, FolderNames: ["Folder"])], CancellationToken.None);
         await batch.ApplyAsync(CancellationToken.None);
 
         // Verify it actually did something; we won't exclusively test each method since those are tested at lower layers
         var project = workspaceFactory.Workspace.CurrentSolution.Projects.Single();
-        Assert.Equal(sourceFilePath, project.Documents.Single().FilePath);
-        Assert.Equal(additionalFilePath, project.AdditionalDocuments.Single().FilePath);
+
+        var document = Assert.Single(project.Documents);
+        Assert.Equal(sourceFilePath, document.FilePath);
+        Assert.Equal("Folder", Assert.Single(document.Folders));
+
+        var additionalDocument = Assert.Single(project.AdditionalDocuments);
+        Assert.Equal(additionalFilePath, additionalDocument.FilePath);
+        Assert.Equal("Folder", Assert.Single(additionalDocument.Folders));
     }
 
     private static string MakeAbsolutePath(string relativePath)

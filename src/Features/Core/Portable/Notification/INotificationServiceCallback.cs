@@ -6,10 +6,9 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Notification
+namespace Microsoft.CodeAnalysis.Notification;
+
+internal interface INotificationServiceCallback
 {
-    internal interface INotificationServiceCallback
-    {
-        Action<string, string, NotificationSeverity> NotificationCallback { get; set; }
-    }
+    Action<string, string, NotificationSeverity> NotificationCallback { get; set; }
 }

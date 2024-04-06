@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionItem request)
-            => GetCompletionListCacheEntry(request)?.TextDocument;
+            => CompletionResolveHandler.GetTextDocumentCacheEntry(request);
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 await creationService.ResolveAsync(
                     completionItem,
                     selectedItem,
-                    cacheEntry.TextDocument,
+                    ProtocolConversions.DocumentToTextDocumentIdentifier(document),
                     document,
                     new CompletionCapabilityHelper(context.GetRequiredClientCapabilities()),
                     completionService,
@@ -80,8 +80,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private static bool MatchesLSPCompletionItem(LSP.CompletionItem lspCompletionItem, CompletionItem completionItem)
         {
+            // We want to make sure we are resolving the same unimported item in case we have multiple with same name
+            // but from different namespaces. However, VSCode doesn't include labelDetails in the resolve request, so we 
+            // compare SortText instead when it's set (which is when label != SortText)
             return lspCompletionItem.Label == completionItem.GetEntireDisplayText()
-                && (lspCompletionItem.LabelDetails?.Description ?? string.Empty) == completionItem.InlineDescription;
+                && (lspCompletionItem.SortText is null || lspCompletionItem.SortText == completionItem.SortText);
+        }
+
+        private static LSP.TextDocumentIdentifier? GetTextDocumentCacheEntry(LSP.CompletionItem request)
+        {
+            Contract.ThrowIfNull(request.Data);
+            var resolveData = ((JToken)request.Data).ToObject<DocumentResolveData>();
+            if (resolveData is null)
+            {
+                Contract.Fail("Document should always be provided when resolving a completion item request.");
+                return null;
+            }
+
+            return resolveData.TextDocument;
         }
 
         private CompletionListCache.CacheEntry? GetCompletionListCacheEntry(LSP.CompletionItem request)
@@ -94,7 +110,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var cacheEntry = _completionListCache.GetCachedEntry(resolveData.ResultId.Value);
+            var cacheEntry = _completionListCache.GetCachedEntry(resolveData.ResultId);
             if (cacheEntry == null)
             {
                 // No cache for associated completion item. Log some telemetry so we can understand how frequently this actually happens.

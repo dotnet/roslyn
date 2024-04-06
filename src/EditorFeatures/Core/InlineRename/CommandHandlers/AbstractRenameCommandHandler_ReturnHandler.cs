@@ -7,32 +7,31 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+
+internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
 {
-    internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
+    public CommandState GetCommandState(ReturnKeyCommandArgs args)
+        => GetCommandState();
+
+    public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
     {
-        public CommandState GetCommandState(ReturnKeyCommandArgs args)
-            => GetCommandState();
-
-        public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
+        if (_renameService.ActiveSession != null)
         {
-            if (_renameService.ActiveSession != null)
-            {
-                // Prevent Editor's typing responsiveness auto canceling the rename operation.
-                // InlineRenameSession will call IUIThreadOperationExecutor to sets up our own IUIThreadOperationContext
-                context.OperationContext.TakeOwnership();
+            // Prevent Editor's typing responsiveness auto canceling the rename operation.
+            // InlineRenameSession will call IUIThreadOperationExecutor to sets up our own IUIThreadOperationContext
+            context.OperationContext.TakeOwnership();
 
-                Commit(_renameService.ActiveSession, args.TextView);
-                return true;
-            }
-
-            return false;
+            Commit(_renameService.ActiveSession, args.TextView);
+            return true;
         }
 
-        protected virtual void Commit(InlineRenameSession activeSession, ITextView textView)
-        {
-            activeSession.Commit();
-            SetFocusToTextView(textView);
-        }
+        return false;
+    }
+
+    protected virtual void Commit(InlineRenameSession activeSession, ITextView textView)
+    {
+        activeSession.Commit();
+        SetFocusToTextView(textView);
     }
 }

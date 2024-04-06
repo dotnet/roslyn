@@ -6,14 +6,19 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -811,6 +816,46 @@ public partial class C
             AssertEx.Equal("<MyGeneratedFile_g>F18307E6C553D2E6465CEA162655C06E2BB2896889519559EB1EE5FA53513F0E8__C", expectedSymbol.MetadataName);
             Assert.Equal(new[] { "M", ".ctor" }, expectedSymbol.MemberNames);
         }
+    }
+
+    [Theory]
+    [InlineData("""
+            file class Outer1 { }
+            file class Outer2 { }
+            """, "Outer2")]
+    [InlineData("""
+            file class Outer { }
+            """, "Outer")]
+    public void Determinism(string source, string fileTypeName)
+    {
+        var (root1, root2) = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? (@"q:\", @"j:\") : ("/q", "/j");
+        var testSource1 = CSharpTestSource.Parse(source, Path.Combine(root1, "code.cs"));
+        var testSource2 = CSharpTestSource.Parse(source, Path.Combine(root2, "code.cs"));
+        var options = TestOptions.DebugDll.WithDeterministic(true);
+        var comp1 = CreateCompilation(testSource1, options: options, assemblyName: "filetypes");
+        var comp2 = CreateCompilation(testSource2, options: options, assemblyName: "filetypes");
+
+        var resolver = new SourceFileResolver(
+            ImmutableArray<string>.Empty,
+            baseDirectory: null,
+            ImmutableArray.Create(new KeyValuePair<string, string>(root2, root1)));
+        var comp3 = CreateCompilation(testSource2, options: options.WithSourceReferenceResolver(resolver), assemblyName: "filetypes");
+
+        var outer1 = comp1.GetMember<NamedTypeSymbol>(fileTypeName).AssociatedFileIdentifier;
+        var outer2 = comp2.GetMember<NamedTypeSymbol>(fileTypeName).AssociatedFileIdentifier;
+        var outer3 = comp3.GetMember<NamedTypeSymbol>(fileTypeName).AssociatedFileIdentifier;
+        Assert.False(outer1.FilePathChecksumOpt.IsDefaultOrEmpty);
+        Assert.False(outer2.FilePathChecksumOpt.IsDefaultOrEmpty);
+        Assert.False(outer3.FilePathChecksumOpt.IsDefaultOrEmpty);
+        Assert.False(outer1.FilePathChecksumOpt.SequenceEqual(outer2.FilePathChecksumOpt));
+        Assert.True(outer1.FilePathChecksumOpt.SequenceEqual(outer3.FilePathChecksumOpt));
+
+        var emitOptions = EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded);
+        var bytes1 = comp1.EmitToArray(emitOptions);
+        var bytes2 = comp2.EmitToArray(emitOptions);
+        var bytes3 = comp3.EmitToArray(emitOptions);
+        Assert.False(bytes1.SequenceEqual(bytes2));
+        Assert.True(bytes1.SequenceEqual(bytes3));
     }
 
     [Fact]
@@ -4367,8 +4412,8 @@ public partial class C
         Assert.Equal("C@<tree 0>", type.ToTestDisplayString());
         var identifier = type.GetSymbol()!.AssociatedFileIdentifier;
         Assert.NotNull(identifier);
-        AssertEx.Equal(expectedChecksum, identifier.GetValueOrDefault().FilePathChecksumOpt);
-        Assert.Empty(identifier.GetValueOrDefault().DisplayFilePath);
+        AssertEx.Equal(expectedChecksum, identifier.FilePathChecksumOpt);
+        Assert.Empty(identifier.DisplayFilePath);
         Assert.True(type.IsFileLocal);
 
         var referencingMetadataComp = CreateCompilation("", new[] { comp.ToMetadataReference() });
@@ -4376,8 +4421,8 @@ public partial class C
         Assert.Equal("C@<tree 0>", type.ToTestDisplayString());
         identifier = type.GetSymbol()!.AssociatedFileIdentifier;
         Assert.NotNull(identifier);
-        AssertEx.Equal(expectedChecksum, identifier.GetValueOrDefault().FilePathChecksumOpt);
-        Assert.Empty(identifier.GetValueOrDefault().DisplayFilePath);
+        AssertEx.Equal(expectedChecksum, identifier.FilePathChecksumOpt);
+        Assert.Empty(identifier.DisplayFilePath);
         Assert.True(type.IsFileLocal);
 
         var referencingImageComp = CreateCompilation("", new[] { comp.EmitToImageReference() });
@@ -4385,8 +4430,8 @@ public partial class C
         Assert.Equal("C@<unknown>", type.ToTestDisplayString());
         identifier = type.GetSymbol()!.AssociatedFileIdentifier;
         Assert.NotNull(identifier);
-        AssertEx.Equal(expectedChecksum, identifier.GetValueOrDefault().FilePathChecksumOpt);
-        Assert.Empty(identifier.GetValueOrDefault().DisplayFilePath);
+        AssertEx.Equal(expectedChecksum, identifier.FilePathChecksumOpt);
+        Assert.Empty(identifier.DisplayFilePath);
         Assert.False(type.IsFileLocal);
     }
 
@@ -4436,8 +4481,8 @@ public partial class C
         Assert.NotNull(identifier);
         AssertEx.Equal(
             new byte[] { 0xE3, 0xB0, 0xC4, 0x42, 0x98, 0xFC, 0x1C, 0x14, 0x9A, 0xFB, 0xF4, 0xC8, 0x99, 0x6F, 0xB9, 0x24, 0x27, 0xAE, 0x41, 0xE4, 0x64, 0x9B, 0x93, 0x4C, 0xA4, 0x95, 0x99, 0x1B, 0x78, 0x52, 0xB8, 0x55 },
-            identifier.GetValueOrDefault().FilePathChecksumOpt);
-        Assert.Empty(identifier.GetValueOrDefault().DisplayFilePath);
+            identifier.FilePathChecksumOpt);
+        Assert.Empty(identifier.DisplayFilePath);
         Assert.True(type.IsFileLocal);
     }
 
@@ -4526,8 +4571,8 @@ public partial class C
         Assert.IsType<RetargetingNamedTypeSymbol>(retargeted);
         Assert.False(retargeted.GetPublicSymbol().IsFileLocal);
 
-        var originalFileIdentifier = classC1.AssociatedFileIdentifier!.Value;
-        var retargetedFileIdentifier = retargeted.AssociatedFileIdentifier!.Value;
+        var originalFileIdentifier = classC1.AssociatedFileIdentifier!;
+        var retargetedFileIdentifier = retargeted.AssociatedFileIdentifier!;
         Assert.Equal(originalFileIdentifier.DisplayFilePath, retargetedFileIdentifier.DisplayFilePath);
         Assert.Equal((IEnumerable<byte>)originalFileIdentifier.FilePathChecksumOpt, (IEnumerable<byte>)retargetedFileIdentifier.FilePathChecksumOpt);
         Assert.Equal(originalFileIdentifier.EncoderFallbackErrorMessage, retargetedFileIdentifier.EncoderFallbackErrorMessage);

@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
         private static async Task TestInRegularAndScriptAsync(
             string testCode,
             string fixedCode,
-            LanguageVersion version = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion version = LanguageVersion.CSharp12,
             OutputKind? outputKind = null)
         {
             await new VerifyCS.Test
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
 
         private static Task TestMissingInRegularAndScriptAsync(
             string testCode,
-            LanguageVersion version = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion version = LanguageVersion.CSharp12,
             OutputKind? outputKind = null)
             => TestInRegularAndScriptAsync(testCode, testCode, version, outputKind);
 
@@ -121,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
             {
                 TestCode = code,
                 FixedCode = code,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                LanguageVersion = LanguageVersion.CSharp12,
                 Options = { { CSharpCodeStyleOptions.PreferMethodGroupConversion, new CodeStyleOption2<bool>(false, NotificationOption2.None) } }
             }.RunAsync();
         }
@@ -1969,6 +1968,71 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryLambda
                    internal void Set(bool value) => action(value);
                 }
                 
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71300")]
+        public async Task TestWithWriteInOtherMethod()
+        {
+            await TestInRegularAndScriptAsync("""
+                using System;
+                using System.Linq;
+
+                public class Repro
+                {
+                    private readonly MethodProvider _methodProvider;
+
+                    public Repro(MethodProvider methodProvider)
+                    {
+                        // Assignment that should not block feature.
+                        _methodProvider = methodProvider;
+                    }
+
+                    public void Main()
+                    {
+                        int[] numbers = { 1, 2, 3, 4, 5 };
+                        string[] asStrings = numbers.Select([|x => |]_methodProvider.ToStr(x)).ToArray();
+                        Console.WriteLine(asStrings.Length);
+                    }
+                }
+
+                public class MethodProvider
+                {
+                    public string ToStr(int x)
+                    {
+                        return x.ToString();
+                    }
+                }
+                """,
+                """
+                using System;
+                using System.Linq;
+
+                public class Repro
+                {
+                    private readonly MethodProvider _methodProvider;
+
+                    public Repro(MethodProvider methodProvider)
+                    {
+                        // Assignment that should not block feature.
+                        _methodProvider = methodProvider;
+                    }
+
+                    public void Main()
+                    {
+                        int[] numbers = { 1, 2, 3, 4, 5 };
+                        string[] asStrings = numbers.Select(_methodProvider.ToStr).ToArray();
+                        Console.WriteLine(asStrings.Length);
+                    }
+                }
+
+                public class MethodProvider
+                {
+                    public string ToStr(int x)
+                    {
+                        return x.ToString();
+                    }
+                }
                 """);
         }
     }

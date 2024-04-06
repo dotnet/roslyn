@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -75,7 +76,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' "This" in the context of current method.
         Private _currentFrameThis As ParameterSymbol
 
-        Private ReadOnly _lambdaDebugInfoBuilder As ArrayBuilder(Of LambdaDebugInfo)
+        Private ReadOnly _lambdaDebugInfoBuilder As ArrayBuilder(Of EncLambdaInfo)
+        Private ReadOnly _lambdaRuntimeRudeEditsBuilder As ArrayBuilder(Of LambdaRuntimeRudeEditInfo)
+
         Private _delegateRelaxationIdDispenser As Integer
 
         ' ID dispenser for field names of frame references.
@@ -112,7 +115,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub New(analysis As Analysis,
                         method As MethodSymbol,
                         methodOrdinal As Integer,
-                        lambdaDebugInfoBuilder As ArrayBuilder(Of LambdaDebugInfo),
+                        lambdaDebugInfoBuilder As ArrayBuilder(Of EncLambdaInfo),
+                        lambdaRuntimeRudeEditsBuilder As ArrayBuilder(Of LambdaRuntimeRudeEditInfo),
                         delegateRelaxationIdDispenser As Integer,
                         slotAllocatorOpt As VariableSlotAllocator,
                         compilationState As TypeCompilationState,
@@ -122,6 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._topLevelMethod = method
             Me._topLevelMethodOrdinal = methodOrdinal
             Me._lambdaDebugInfoBuilder = lambdaDebugInfoBuilder
+            Me._lambdaRuntimeRudeEditsBuilder = lambdaRuntimeRudeEditsBuilder
             Me._delegateRelaxationIdDispenser = delegateRelaxationIdDispenser
             Me._currentMethod = method
             Me._analysis = analysis
@@ -146,17 +151,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="node">The bound node to be rewritten</param>
         ''' <param name="method">The containing method of the node to be rewritten</param>
         ''' <param name="methodOrdinal">Index of the method symbol in its containing type member list.</param>
+        ''' <param name="lambdaDebugInfoBuilder">Information on lambdas defined in <paramref name="method"/> needed for debugging.</param>
+        ''' <param name="lambdaRuntimeRudeEditsBuilder">EnC rude edit information on lambdas defined in <paramref name="method"/>.</param>
+        ''' <param name="closureDebugInfoBuilder">Information on closures defined in <paramref name="method"/> needed for debugging.</param>
         ''' <param name="compilationState">The caller's buffer into which we produce additional methods to be emitted by the caller</param>
         ''' <param name="symbolsCapturedWithoutCopyCtor">Set of symbols that should not be captured using a copy constructor</param>
         ''' <param name="diagnostics">The caller's buffer into which we place any diagnostics for problems encountered</param>
         Public Shared Function Rewrite(node As BoundBlock,
                                        method As MethodSymbol,
                                        methodOrdinal As Integer,
-                                       lambdaDebugInfoBuilder As ArrayBuilder(Of LambdaDebugInfo),
-                                       closureDebugInfoBuilder As ArrayBuilder(Of ClosureDebugInfo),
+                                       lambdaDebugInfoBuilder As ArrayBuilder(Of EncLambdaInfo),
+                                       lambdaRuntimeRudeEditsBuilder As ArrayBuilder(Of LambdaRuntimeRudeEditInfo),
+                                       closureDebugInfoBuilder As ArrayBuilder(Of EncClosureInfo),
                                        ByRef delegateRelaxationIdDispenser As Integer,
                                        slotAllocatorOpt As VariableSlotAllocator,
-                                       CompilationState As TypeCompilationState,
+                                       compilationState As TypeCompilationState,
                                        symbolsCapturedWithoutCopyCtor As ISet(Of Symbol),
                                        diagnostics As BindingDiagnosticBag,
                                        rewrittenNodes As HashSet(Of BoundNode)) As BoundBlock
@@ -170,9 +179,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               method,
                                               methodOrdinal,
                                               lambdaDebugInfoBuilder,
+                                              lambdaRuntimeRudeEditsBuilder,
                                               delegateRelaxationIdDispenser,
                                               slotAllocatorOpt,
-                                              CompilationState,
+                                              compilationState,
                                               diagnostics)
 #If DEBUG Then
             Debug.Assert(rewrittenNodes IsNot Nothing)
@@ -219,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Create the frame types.
         ''' </summary>
-        Private Sub MakeFrames(closureDebugInfo As ArrayBuilder(Of ClosureDebugInfo))
+        Private Sub MakeFrames(closureDebugInfo As ArrayBuilder(Of EncClosureInfo))
             ' There is a simple test to determine whether to do copy-construction:
             ' If method contains a backward branch, then all closures should attempt copy-construction.
             ' In the worst case, we will redundantly check if a previous version exists which is cheap
@@ -250,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function GetFrameForScope(copyConstructor As Boolean,
                                           captured As Symbol,
                                           scope As BoundNode,
-                                          closureDebugInfo As ArrayBuilder(Of ClosureDebugInfo),
+                                          closureDebugInfo As ArrayBuilder(Of EncClosureInfo),
                                           ByRef delegateRelaxationIdDispenser As Integer) As LambdaFrame
             Dim frame As LambdaFrame = Nothing
 
@@ -268,6 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim isDelegateRelaxationFrame = If(TryCast(captured, SynthesizedLocal)?.SynthesizedKind = SynthesizedLocalKind.DelegateRelaxationReceiver, False)
 
                 Dim methodId, closureId As DebugId
+                Dim rudeEdit As RuntimeRudeEdit? = Nothing
 
                 If isDelegateRelaxationFrame Then
                     Dim currentGeneration = CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal
@@ -276,13 +287,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     delegateRelaxationIdDispenser += 1
                 Else
                     methodId = GetTopLevelMethodId()
-                    closureId = GetClosureId(syntax, closureDebugInfo)
+                    closureId = GetClosureId(scope, syntax, closureDebugInfo, rudeEdit)
                 End If
 
                 frame = New LambdaFrame(_topLevelMethod,
                                         syntax,
                                         methodId,
                                         closureId,
+                                        rudeEdit,
                                         copyConstructor AndAlso Not _analysis.symbolsCapturedWithoutCopyCtor.Contains(captured),
                                         isStatic:=False,
                                         isDelegateRelaxationFrame:=isDelegateRelaxationFrame)
@@ -313,7 +325,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     Dim closureId As DebugId = Nothing
-                    _lazyStaticLambdaFrame = New LambdaFrame(_topLevelMethod, lambda.Syntax, methodId, closureId, copyConstructor:=False, isStatic:=True, isDelegateRelaxationFrame:=False)
+                    _lazyStaticLambdaFrame = New LambdaFrame(
+                        _topLevelMethod,
+                        lambda.Syntax,
+                        methodId,
+                        closureId,
+                        rudeEdit:=Nothing,
+                        copyConstructor:=False,
+                        isStatic:=True,
+                        isDelegateRelaxationFrame:=False)
 
                     ' non-generic static lambdas can share the frame
                     If isNonGeneric Then
@@ -959,23 +979,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(SlotAllocatorOpt?.MethodId, New DebugId(_topLevelMethodOrdinal, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal))
         End Function
 
-        Private Function GetClosureId(syntax As SyntaxNode, closureDebugInfo As ArrayBuilder(Of ClosureDebugInfo)) As DebugId
+        Private Function GetClosureId(scope As BoundNode, syntax As SyntaxNode, closureDebugInfo As ArrayBuilder(Of EncClosureInfo), <Out> ByRef rudeEdit As RuntimeRudeEdit?) As DebugId
             Debug.Assert(syntax IsNot Nothing)
+
+            Dim parentScope As BoundNode = Nothing
+            Dim parentFrame As LambdaFrame = Nothing
+            Dim parentClosureId As DebugId? = Nothing
+
+            If _analysis.needsParentFrame.Contains(scope) AndAlso
+               _analysis.blockParent.TryGetValue(scope, parentScope) AndAlso
+               _frames.TryGetValue(parentScope, parentFrame) Then
+
+                rudeEdit = parentFrame.RudeEdit
+                parentClosureId = parentFrame.ClosureId
+            End If
 
             Dim closureId As DebugId
             Dim previousClosureId As DebugId
-            If SlotAllocatorOpt IsNot Nothing AndAlso SlotAllocatorOpt.TryGetPreviousClosure(syntax, previousClosureId) Then
+
+            If rudeEdit Is Nothing AndAlso
+               SlotAllocatorOpt IsNot Nothing AndAlso
+               SlotAllocatorOpt.TryGetPreviousClosure(syntax, parentClosureId, structCaptures:=Nothing, previousClosureId, rudeEdit) AndAlso
+               rudeEdit Is Nothing Then
                 closureId = previousClosureId
             Else
                 closureId = New DebugId(closureDebugInfo.Count, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal)
             End If
 
             Dim syntaxOffset As Integer = _topLevelMethod.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree)
-            closureDebugInfo.Add(New ClosureDebugInfo(syntaxOffset, closureId))
+            closureDebugInfo.Add(New EncClosureInfo(New ClosureDebugInfo(syntaxOffset, closureId), parentClosureId, structCaptures:=Nothing))
             Return closureId
         End Function
 
-        Private Function GetLambdaId(syntax As SyntaxNode, closureKind As ClosureKind, closureOrdinal As Integer) As DebugId
+        Private Function GetLambdaId(syntax As SyntaxNode, closureKind As ClosureKind, closureOrdinal As Integer, closureRudeEdit As RuntimeRudeEdit?) As DebugId
             Debug.Assert(syntax IsNot Nothing)
 
             Dim lambdaOrLambdaBodySyntax As SyntaxNode
@@ -990,7 +1026,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' EnC is not supported in this case.
                 lambdaOrLambdaBodySyntax = syntax
                 isLambdaBody = False
-            ElseIf LambdaUtilities.IsNonUserCodeQueryLambda(syntax)
+            ElseIf LambdaUtilities.IsNonUserCodeQueryLambda(syntax) Then
                 lambdaOrLambdaBodySyntax = syntax
                 isLambdaBody = False
             Else
@@ -1004,15 +1040,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' determine lambda ordinal and calculate syntax offset
 
             Dim lambdaId As DebugId
-            Dim previousLambdaId As DebugId
-            If SlotAllocatorOpt IsNot Nothing AndAlso SlotAllocatorOpt.TryGetPreviousLambda(lambdaOrLambdaBodySyntax, isLambdaBody, previousLambdaId) Then
+            Dim previousLambdaId As DebugId = Nothing
+            Dim lambdaRudeEdit As RuntimeRudeEdit? = Nothing
+            If closureRudeEdit Is Nothing AndAlso
+               SlotAllocatorOpt?.TryGetPreviousLambda(lambdaOrLambdaBodySyntax, isLambdaBody, closureOrdinal, structClosureIds:=ImmutableArray(Of DebugId).Empty, previousLambdaId, lambdaRudeEdit) = True AndAlso
+               lambdaRudeEdit Is Nothing Then
                 lambdaId = previousLambdaId
             Else
                 lambdaId = New DebugId(_lambdaDebugInfoBuilder.Count, CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal)
+
+                Dim rudeEdit = If(closureRudeEdit, lambdaRudeEdit)
+                If rudeEdit IsNot Nothing Then
+                    _lambdaRuntimeRudeEditsBuilder.Add(New LambdaRuntimeRudeEditInfo(previousLambdaId, rudeEdit.Value))
+                End If
             End If
 
             Dim syntaxOffset As Integer = _topLevelMethod.CalculateLocalSyntaxOffset(lambdaOrLambdaBodySyntax.SpanStart, lambdaOrLambdaBodySyntax.SyntaxTree)
-            _lambdaDebugInfoBuilder.Add(New LambdaDebugInfo(syntaxOffset, lambdaId, closureOrdinal))
+            _lambdaDebugInfoBuilder.Add(New EncLambdaInfo(New LambdaDebugInfo(syntaxOffset, lambdaId, closureOrdinal), structClosureIds:=ImmutableArray(Of DebugId).Empty))
             Return lambdaId
         End Function
 
@@ -1037,19 +1081,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim translatedLambdaContainer As InstanceTypeSymbol
+            Dim containerFrame As LambdaFrame
             Dim lambdaScope As BoundNode = Nothing
             Dim closureOrdinal As Integer
             Dim closureKind As ClosureKind
 
             If _analysis.lambdaScopes.TryGetValue(node.LambdaSymbol, lambdaScope) Then
-                translatedLambdaContainer = _frames(lambdaScope)
+                containerFrame = _frames(lambdaScope)
+                translatedLambdaContainer = containerFrame
                 closureKind = ClosureKind.General
-                closureOrdinal = _frames(lambdaScope).ClosureOrdinal
-            ElseIf _analysis.capturedVariablesByLambda(node.LambdaSymbol).Count = 0
-                translatedLambdaContainer = GetStaticFrame(node, Diagnostics)
+                closureOrdinal = _frames(lambdaScope).ClosureId.Ordinal
+            ElseIf _analysis.capturedVariablesByLambda(node.LambdaSymbol).Count = 0 Then
+                containerFrame = GetStaticFrame(node, Diagnostics)
+                translatedLambdaContainer = containerFrame
                 closureKind = ClosureKind.Static
                 closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal
             Else
+                containerFrame = Nothing
                 translatedLambdaContainer = DirectCast(_topLevelMethod.ContainingType, InstanceTypeSymbol)
                 closureKind = ClosureKind.ThisOnly
                 closureOrdinal = LambdaDebugInfo.ThisOnlyClosureOrdinal
@@ -1062,7 +1110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 lambdaId = New DebugId(_delegateRelaxationIdDispenser, generation)
                 topLevelMethodId = New DebugId(_topLevelMethodOrdinal, generation)
             Else
-                lambdaId = GetLambdaId(node.Syntax, closureKind, closureOrdinal)
+                lambdaId = GetLambdaId(node.Syntax, closureKind, closureOrdinal, containerFrame?.RudeEdit)
                 topLevelMethodId = GetTopLevelMethodId()
             End If
 

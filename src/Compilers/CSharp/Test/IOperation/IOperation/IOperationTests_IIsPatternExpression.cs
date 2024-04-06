@@ -480,30 +480,30 @@ class X
       IsType: ?
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                    // file.cs(8,39): error CS1525: Invalid expression term 'const'
-                    //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "const").WithArguments("const").WithLocation(8, 39),
-                    // file.cs(8,39): error CS1026: ) expected
-                    //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
-                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "const").WithLocation(8, 39),
-                    // file.cs(8,49): error CS0145: A const field requires a value to be provided
-                    //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
-                    Diagnostic(ErrorCode.ERR_ConstValueRequired, "y").WithLocation(8, 49),
-                    // file.cs(8,50): error CS1002: ; expected
-                    //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
-                    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(8, 50),
-                    // file.cs(8,50): error CS1513: } expected
-                    //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
-                    Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(8, 50),
-                    // file.cs(8,39): error CS1023: Embedded statement cannot be a declaration or labeled statement
-                    //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
-                    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const int y").WithLocation(8, 39),
-                    // file.cs(8,70): error CS0103: The name 'y' does not exist in the current context
-                    //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
-                    Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(8, 70),
-                    // file.cs(8,49): warning CS0168: The variable 'y' is declared but never used
-                    //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
-                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "y").WithArguments("y").WithLocation(8, 49)
+                // (8,39): error CS1525: Invalid expression term 'const'
+                //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "const").WithArguments("const").WithLocation(8, 39),
+                // (8,39): error CS1026: ) expected
+                //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "const").WithLocation(8, 39),
+                // (8,49): error CS0145: A const field requires a value to be provided
+                //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, "y").WithLocation(8, 49),
+                // (8,50): error CS1003: Syntax error, ',' expected
+                //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(8, 50),
+                // (8,52): error CS1002: ; expected
+                //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Console").WithLocation(8, 52),
+                // (8,39): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const int y) ").WithLocation(8, 39),
+                // (8,70): error CS0103: The name 'y' does not exist in the current context
+                //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(8, 70),
+                // (8,49): warning CS0168: The variable 'y' is declared but never used
+                //         if (/*<bind>*/x is /*</bind>*/const int y) Console.WriteLine(y);
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y").WithArguments("y").WithLocation(8, 49)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

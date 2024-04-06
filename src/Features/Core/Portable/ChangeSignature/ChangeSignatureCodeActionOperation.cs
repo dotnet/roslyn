@@ -10,42 +10,41 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ChangeSignature
+namespace Microsoft.CodeAnalysis.ChangeSignature;
+
+/// <summary>
+/// Defines the <see cref="CodeActionOperation"/> for the <see cref="ChangeSignatureCodeAction"/>
+/// This is used instead of <see cref="ApplyChangesOperation"/> as we need to show a confirmation
+/// dialog to the user before applying the change.
+/// </summary>
+internal sealed class ChangeSignatureCodeActionOperation(Solution changedSolution, string? confirmationMessage) : CodeActionOperation
 {
+    public Solution ChangedSolution { get; } = changedSolution ?? throw new ArgumentNullException(nameof(changedSolution));
+
+    public string? ConfirmationMessage { get; } = confirmationMessage;
+
+    internal override bool ApplyDuringTests => true;
+
     /// <summary>
-    /// Defines the <see cref="CodeActionOperation"/> for the <see cref="ChangeSignatureCodeAction"/>
-    /// This is used instead of <see cref="ApplyChangesOperation"/> as we need to show a confirmation
-    /// dialog to the user before applying the change.
+    /// Show the confirmation message, if available, before attempting to apply the changes.
     /// </summary>
-    internal sealed class ChangeSignatureCodeActionOperation(Solution changedSolution, string? confirmationMessage) : CodeActionOperation
+    internal sealed override Task<bool> TryApplyAsync(
+        Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
     {
-        public Solution ChangedSolution { get; } = changedSolution ?? throw new ArgumentNullException(nameof(changedSolution));
+        return ApplyWorker(workspace, originalSolution, progressTracker, cancellationToken) ? SpecializedTasks.True : SpecializedTasks.False;
+    }
 
-        public string? ConfirmationMessage { get; } = confirmationMessage;
-
-        internal override bool ApplyDuringTests => true;
-
-        /// <summary>
-        /// Show the confirmation message, if available, before attempting to apply the changes.
-        /// </summary>
-        internal sealed override Task<bool> TryApplyAsync(
-            Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
+    private bool ApplyWorker(Workspace workspace, Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+    {
+        if (ConfirmationMessage != null)
         {
-            return ApplyWorker(workspace, originalSolution, progressTracker, cancellationToken) ? SpecializedTasks.True : SpecializedTasks.False;
-        }
-
-        private bool ApplyWorker(Workspace workspace, Solution originalSolution, IProgressTracker progressTracker, CancellationToken cancellationToken)
-        {
-            if (ConfirmationMessage != null)
+            var notificationService = workspace.Services.GetRequiredService<INotificationService>();
+            if (!notificationService.ConfirmMessageBox(ConfirmationMessage, severity: NotificationSeverity.Warning))
             {
-                var notificationService = workspace.Services.GetRequiredService<INotificationService>();
-                if (!notificationService.ConfirmMessageBox(ConfirmationMessage, severity: NotificationSeverity.Warning))
-                {
-                    return false;
-                }
+                return false;
             }
-
-            return ApplyChangesOperation.ApplyOrMergeChanges(workspace, originalSolution, ChangedSolution, progressTracker, cancellationToken);
         }
+
+        return ApplyChangesOperation.ApplyOrMergeChanges(workspace, originalSolution, ChangedSolution, progressTracker, cancellationToken);
     }
 }

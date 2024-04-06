@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 type As INamedTypeSymbol,
                 position As Integer,
                 semanticModel As SemanticModel,
-                workspaceSupportsDocumentChanges As Boolean,
+        workspaceSupportsDocumentChanges As Boolean,
                 symbolDeclarationService As ISymbolDeclarationService,
                 cancellationToken As CancellationToken) As ImmutableArray(Of RoslynNavigationBarItem)
 

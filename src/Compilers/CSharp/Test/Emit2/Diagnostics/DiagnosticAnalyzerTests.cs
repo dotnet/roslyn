@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable RSEXPERIMENTAL001 // Internal usage of experimental API
 #nullable disable
 
 using System;
@@ -3229,6 +3230,52 @@ static partial class B
             compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
         }
 
+        [Theory, CombinatorialData, WorkItem(32702, "https://github.com/dotnet/roslyn/issues/71149")]
+        public async Task TestPartialFileSymbolEndDiagnosticsAsync(bool separateFiles)
+        {
+            string definition1 = @"
+internal partial class Test
+{
+    private partial object Method();
+    public Test(object _) { }
+}";
+            string definition2 = @"
+internal partial class Test
+{
+    private partial object Method() => new();
+}";
+
+            string source1, source2;
+            if (separateFiles)
+            {
+                source1 = definition1;
+                source2 = definition2;
+            }
+            else
+            {
+                source1 = definition1 + definition2;
+                source2 = string.Empty;
+            }
+
+            var compilation = CreateCompilationWithMscorlib45([source1, source2]);
+            compilation.VerifyDiagnostics();
+
+            var tree1 = compilation.SyntaxTrees[0];
+            var semanticModel1 = compilation.GetSemanticModel(tree1);
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.NamedType));
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
+
+            // Requesting diagnostics on a single tree should run the SymbolStart/End actions on all the partials across the compilation
+            // and the analysis result should contain the diagnostics reported at SymbolEnd action.
+            var analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel1, filterSpan: null, analyzers, CancellationToken.None);
+            Assert.Empty(analysisResult.SyntaxDiagnostics);
+            Assert.Empty(analysisResult.SemanticDiagnostics);
+            var compilationDiagnostics = analysisResult.CompilationDiagnostics[analyzers[0]];
+            compilationDiagnostics.Verify(
+                Diagnostic("SymbolStartRuleId").WithArguments("Test", "Analyzer1").WithLocation(1, 1)
+            );
+        }
+
         [Fact, WorkItem(922802, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/922802")]
         public async Task TestAnalysisScopeForGetAnalyzerSemanticDiagnosticsAsync()
         {
@@ -3960,9 +4007,9 @@ public class C
         {
             private readonly ConcurrentDictionary<SyntaxTree, SemanticModel> _cache = new ConcurrentDictionary<SyntaxTree, SemanticModel>();
 
-            public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, bool ignoreAccessibility = false)
+            public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, SemanticModelOptions options)
             {
-                return _cache.GetOrAdd(tree, compilation.CreateSemanticModel(tree, ignoreAccessibility));
+                return _cache.GetOrAdd(tree, compilation.CreateSemanticModel(tree, options));
             }
 
             public void VerifyCachedModel(SyntaxTree tree, SemanticModel model)
@@ -4007,6 +4054,68 @@ public record A(int X, int Y);";
                 .VerifyDiagnostics()
                 .VerifyAnalyzerDiagnostics(analyzers, null, null,
                      Diagnostic("MyDiagnostic", @"public record A(int X, int Y);").WithLocation(2, 1));
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public class PrimaryConstructorBaseTypeAnalyzer : DiagnosticAnalyzer
+        {
+            public const string DiagnosticId = "MyDiagnostic";
+            internal const string Title = "MyDiagnostic";
+            internal const string MessageFormat = "SyntaxKind: {0}, Symbol: {1}";
+            internal const string Category = "Category";
+            private readonly SyntaxNode _topmostNode;
+            private readonly ImmutableArray<SyntaxKind> _syntaxKinds;
+            internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public PrimaryConstructorBaseTypeAnalyzer(SyntaxNode topmostNode, ImmutableArray<SyntaxKind> syntaxKinds)
+            {
+                _topmostNode = topmostNode;
+                _syntaxKinds = syntaxKinds;
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(AnalyzePrimaryConstructorBaseType, _syntaxKinds);
+            }
+
+            private void AnalyzePrimaryConstructorBaseType(SyntaxNodeAnalysisContext context)
+            {
+                // Bail out on callbacks outside the topmost node to analyze.
+                if (!_topmostNode.FullSpan.Contains(context.Node.FullSpan))
+                    return;
+
+                var diagnostic = CodeAnalysis.Diagnostic.Create(Rule, context.Node.GetLocation(), context.Node.Kind(), context.ContainingSymbol.Name);
+                context.ReportDiagnostic(diagnostic);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70488")]
+        public void TestNoDuplicateCallbacksForPrimaryConstructorBaseType()
+        {
+            string source = @"#pragma warning disable CS9113 // warning CS9113: Parameter 'a' is unread.
+class Base(int a) { }
+
+class Derived(int a) : Base(a);";
+
+            var compilation = CreateCompilation(source);
+
+            var tree = compilation.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var baseListNode = root.DescendantNodes().OfType<BaseListSyntax>().Single();
+            var syntaxKinds = baseListNode.DescendantNodesAndSelf().Select(node => node.Kind()).Distinct().AsImmutable();
+            var analyzers = new DiagnosticAnalyzer[] { new PrimaryConstructorBaseTypeAnalyzer(baseListNode, syntaxKinds) };
+
+            compilation
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null,
+                    Diagnostic("MyDiagnostic", ": Base(a)").WithArguments("BaseList", "Derived").WithLocation(4, 22),
+                    Diagnostic("MyDiagnostic", "Base(a)").WithArguments("PrimaryConstructorBaseType", ".ctor").WithLocation(4, 24),
+                    Diagnostic("MyDiagnostic", "Base").WithArguments("IdentifierName", "Derived").WithLocation(4, 24),
+                    Diagnostic("MyDiagnostic", "(a)").WithArguments("ArgumentList", ".ctor").WithLocation(4, 28),
+                    Diagnostic("MyDiagnostic", "a").WithArguments("Argument", ".ctor").WithLocation(4, 29),
+                    Diagnostic("MyDiagnostic", "a").WithArguments("IdentifierName", ".ctor").WithLocation(4, 29));
         }
 
         [Theory, CombinatorialData]
@@ -4226,6 +4335,30 @@ partial class B
                     Assert.Null(analyzer.CallbackFilterFile);
                 }
             }
+        }
+
+        [Theory]
+        // IDE scenario where no reported severities are filtered.
+        [InlineData(SeverityFilter.None, DiagnosticSeverity.Hidden)]
+        // Command line scenario where hidden and info severities are filtered.
+        [InlineData(SeverityFilter.Hidden | SeverityFilter.Info, DiagnosticSeverity.Warning)]
+        internal async Task TestMinimumReportedSeverity(SeverityFilter severityFilter, DiagnosticSeverity expectedMinimumReportedSeverity)
+        {
+            var tree = CSharpSyntaxTree.ParseText(@"class C { }");
+            var compilation = CreateCompilation(new[] { tree });
+
+            var analyzer = new MinimumReportedSeverityAnalyzer();
+            var analyzersArray = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
+            var analyzerManager = new AnalyzerManager(analyzersArray);
+            var driver = AnalyzerDriver.CreateAndAttachToCompilation(compilation, analyzersArray, AnalyzerOptions.Empty, analyzerManager, onAnalyzerException: null,
+                analyzerExceptionFilter: null, reportAnalyzer: false, severityFilter, trackSuppressedDiagnosticIds: false, out var newCompilation, CancellationToken.None);
+
+            // Force complete compilation event queue and analyzer execution.
+            _ = newCompilation.GetDiagnostics(CancellationToken.None);
+            _ = await driver.GetDiagnosticsAsync(newCompilation, CancellationToken.None);
+
+            Assert.True(analyzer.AnalyzerInvoked);
+            Assert.Equal(expectedMinimumReportedSeverity, analyzer.MinimumReportedSeverity);
         }
     }
 }

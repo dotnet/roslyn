@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 }
                 """,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 }
                 """,
                 ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net20.Default,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 }
                 """,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 }
                 """,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 }
                 """,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 csharp_style_prefer_utf8_string_literals = false
                 """,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 }
                 """,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 }
                 """,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 }
                 """,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -562,7 +562,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -635,7 +635,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -799,7 +799,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
                 }
                 """,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -824,15 +824,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
             await new VerifyCS.Test
             {
                 TestCode =
-$@"
-public class C
-{{
-    private static readonly byte[] _bytes = new byte[] {{ {string.Join(", ", bytes)} }};
-}}
-",
+                $$"""
+                public class C
+                {
+                    private static readonly byte[] _bytes = new byte[] { {{string.Join(", ", bytes)}} };
+                }
+                """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -887,7 +887,7 @@ public class C
                 TestCode = input,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -918,7 +918,7 @@ public class C
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -949,7 +949,7 @@ public class C
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -980,7 +980,7 @@ public class C
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -1011,7 +1011,7 @@ public class C
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -1042,7 +1042,7 @@ public class C
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -1073,7 +1073,7 @@ public class C
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -1093,7 +1093,7 @@ public class C
                 }
                 """,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -1124,7 +1124,7 @@ public class C
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -1155,7 +1155,7 @@ public class C
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -1186,7 +1186,7 @@ public class C
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -1217,7 +1217,7 @@ public class C
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -1248,7 +1248,7 @@ public class C
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -1289,7 +1289,7 @@ public class C
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -1344,7 +1344,7 @@ public class C
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -1433,7 +1433,7 @@ public class C
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -1464,7 +1464,7 @@ public class C
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -1495,7 +1495,7 @@ public class C
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -1526,7 +1526,7 @@ public class C
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -1561,7 +1561,7 @@ public class C
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
 
@@ -1596,7 +1596,7 @@ public class C
                 """,
                 CodeActionValidationMode = CodeActionValidationMode.None,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-                LanguageVersion = LanguageVersionExtensions.CSharpNext
+                LanguageVersion = LanguageVersion.CSharp12
             }.RunAsync();
         }
     }

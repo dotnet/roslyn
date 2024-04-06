@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 {
@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            // Verify that as originally serialized, the URI had a file scheme.
+            Assert.True(results.Single().Uri.OriginalString.StartsWith("file"));
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
         }
 
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
             var position = new LSP.Position { Line = 5, Character = 18 };
             var results = await RunGotoDefinitionAsync(testLspServer, new LSP.Location
             {
-                Uri = new Uri($"C:\\{TestSpanMapper.GeneratedFileName}"),
+                Uri = ProtocolConversions.CreateAbsoluteUri($"C:\\{TestSpanMapper.GeneratedFileName}"),
                 Range = new LSP.Range { Start = position, End = position }
             });
             AssertLocationsEqual(ImmutableArray.Create(TestSpanMapper.MappedFileLocation), results);
@@ -177,6 +179,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+        }
+
+        [Theory]
+        [InlineData("ValueTuple<int> valueTuple1;")]
+        [InlineData("ValueTuple<int, int> valueTuple2;")]
+        [InlineData("ValueTuple<int, int, int> valueTuple3;")]
+        [InlineData("ValueTuple<int, int, int, int> valueTuple4;")]
+        [InlineData("ValueTuple<int, int, int, int, int> valueTuple5;")]
+        [InlineData("ValueTuple<int, int, int, int, int, int> valueTuple6;")]
+        [InlineData("ValueTuple<int, int, int, int, int, int, int> valueTuple7;")]
+        [InlineData("ValueTuple<int, int, int, int, int, int, int, int> valueTuple8;")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71680")]
+        public async Task TestGotoDefinitionWithValueTuple(string statement)
+        {
+            var markup = $"using System; {{|caret:|}}{statement}";
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, false);
+
+            var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            Assert.Single(results);
         }
 
         private static async Task<LSP.Location[]> RunGotoDefinitionAsync(TestLspServer testLspServer, LSP.Location caret)

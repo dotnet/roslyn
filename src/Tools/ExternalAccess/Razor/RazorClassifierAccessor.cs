@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return Classifier.GetClassifiedSpans(
-                document.Project.Services, document.Project, semanticModel, textSpan, options.UnderlyingObject, cancellationToken);
+                document.Project.Solution.Services, document.Project, semanticModel, textSpan, options.UnderlyingObject, cancellationToken);
         }
     }
 }

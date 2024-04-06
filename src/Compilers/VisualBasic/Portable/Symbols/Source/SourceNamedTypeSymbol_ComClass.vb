@@ -304,7 +304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' presence and its value. If we start caching that information, implementation of this function 
                 ' should change to take advantage of the cache.
                 Dim attrData As ImmutableArray(Of VisualBasicAttributeData) = target.GetAttributes()
-                Dim comVisible = attrData.IndexOfAttribute(target, AttributeDescription.ComVisibleAttribute)
+                Dim comVisible = attrData.IndexOfAttribute(AttributeDescription.ComVisibleAttribute)
 
                 If comVisible > -1 Then
                     Dim typedValue As TypedConstant = attrData(comVisible).CommonConstructorArguments(0)
@@ -478,7 +478,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' presence and its value. If we start caching that information, implementation of this function 
                 ' should change to take advantage of the cache.
                 Dim attrData As ImmutableArray(Of VisualBasicAttributeData) = target.GetAttributes()
-                Dim dispIdIndex = attrData.IndexOfAttribute(target, AttributeDescription.DispIdAttribute)
+                Dim dispIdIndex = attrData.IndexOfAttribute(AttributeDescription.DispIdAttribute)
 
                 If dispIdIndex > -1 Then
                     Dim typedValue As TypedConstant = attrData(dispIdIndex).CommonConstructorArguments(0)
@@ -1031,6 +1031,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Return False
                     End Get
                 End Property
+
+                Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+                    guidString = Nothing
+                    Return False
+                End Function
             End Class
 
             Private Class SynthesizedComMethod

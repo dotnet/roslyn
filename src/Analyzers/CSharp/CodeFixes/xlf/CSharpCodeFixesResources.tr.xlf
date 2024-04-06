@@ -137,11 +137,6 @@
         <target state="translated">Belirteci aşağıdaki satıra yerleştir</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="translated">Gereksiz Kullanımları Kaldır</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_blank_lines_between_braces">
         <source>Remove blank line between braces</source>
         <target state="translated">Küme ayraçları arasındaki boş satırı kaldır</target>
@@ -155,6 +150,11 @@
       <trans-unit id="Remove_new_modifier">
         <source>Remove 'new' modifier</source>
         <target state="translated">'New' değiştiricisini kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="translated">Gereksiz Kullanımları Kaldır</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="Use_collection_expression">
         <source>Use collection expression</source>
-        <target state="new">Use collection expression</target>
+        <target state="translated">Koleksiyon ifadesi kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">

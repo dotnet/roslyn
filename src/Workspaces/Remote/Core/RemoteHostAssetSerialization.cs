@@ -21,12 +21,11 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public static async ValueTask WriteDataAsync(
             Stream stream,
-            SolutionAsset? singleAsset,
-            IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap,
+            Dictionary<Checksum, object> assetMap,
             ISerializerService serializer,
             SolutionReplicationContext context,
             Checksum solutionChecksum,
-            Checksum[] checksums,
+            ReadOnlyMemory<Checksum> checksums,
             CancellationToken cancellationToken)
         {
             using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
@@ -38,60 +37,58 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // special case
             if (checksums.Length == 0)
-            {
-                writer.WriteInt32(0);
                 return;
-            }
-
-            if (singleAsset != null)
-            {
-                writer.WriteInt32(1);
-                WriteAsset(writer, serializer, context, checksums[0], singleAsset, cancellationToken);
-                return;
-            }
 
             Debug.Assert(assetMap != null);
-            writer.WriteInt32(assetMap.Count);
 
-            foreach (var (checksum, asset) in assetMap)
+            for (var i = 0; i < checksums.Span.Length; i++)
             {
-                WriteAsset(writer, serializer, context, checksum, asset, cancellationToken);
+                var checksum = checksums.Span[i];
+                var asset = assetMap[checksum];
 
                 // We flush after each item as that forms a reasonably sized chunk of data to want to then send over the
                 // pipe for the reader on the other side to read.  This allows the item-writing to remain entirely
                 // synchronous without any blocking on async flushing, while also ensuring that we're not buffering the
                 // entire stream of data into the pipe before it gets sent to the other side.
+                WriteAsset(writer, serializer, context, asset, cancellationToken);
                 await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
 
             return;
 
-            static void WriteAsset(ObjectWriter writer, ISerializerService serializer, SolutionReplicationContext context, Checksum checksum, SolutionAsset asset, CancellationToken cancellationToken)
+            static void WriteAsset(ObjectWriter writer, ISerializerService serializer, SolutionReplicationContext context, object asset, CancellationToken cancellationToken)
             {
-                Debug.Assert(asset.Kind != WellKnownSynchronizationKind.Null, "We should not be sending null assets");
-                checksum.WriteTo(writer);
-                writer.WriteInt32((int)asset.Kind);
+                Contract.ThrowIfNull(asset);
+                var kind = asset.GetWellKnownSynchronizationKind();
+                writer.WriteInt32((int)kind);
 
-                // null is already indicated by checksum and kind above:
-                if (asset.Value is not null)
-                {
-                    serializer.Serialize(asset.Value, writer, context, cancellationToken);
-                }
+                serializer.Serialize(asset, writer, context, cancellationToken);
             }
         }
 
-        public static async ValueTask<ImmutableArray<(Checksum, object)>> ReadDataAsync(
-            PipeReader pipeReader, Checksum solutionChecksum, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        public static ValueTask<ImmutableArray<object>> ReadDataAsync(
+            PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
         {
-            using var stream = await pipeReader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
-            return ReadData(stream, solutionChecksum, checksums, serializerService, cancellationToken);
+            // Suppress ExecutionContext flow for asynchronous operations operate on the pipe. In addition to avoiding
+            // ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone data set by
+            // CallContext.LogicalSetData at each yielding await in the task tree.
+            //
+            // ⚠ DO NOT AWAIT INSIDE THE USING. The Dispose method that restores ExecutionContext flow must run on the
+            // same thread where SuppressFlow was originally run.
+            using var _ = FlowControlHelper.TrySuppressFlow();
+            return ReadDataSuppressedFlowAsync(pipeReader, solutionChecksum, objectCount, serializerService, cancellationToken);
+
+            static async ValueTask<ImmutableArray<object>> ReadDataSuppressedFlowAsync(
+                PipeReader pipeReader, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
+            {
+                using var stream = await pipeReader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
+                return ReadData(stream, solutionChecksum, objectCount, serializerService, cancellationToken);
+            }
         }
 
-        public static ImmutableArray<(Checksum, object)> ReadData(Stream stream, Checksum solutionChecksum, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        public static ImmutableArray<object> ReadData(Stream stream, Checksum solutionChecksum, int objectCount, ISerializerService serializerService, CancellationToken cancellationToken)
         {
-            Debug.Assert(!checksums.Contains(Checksum.Null));
-
-            using var _ = ArrayBuilder<(Checksum, object)>.GetInstance(out var results);
+            using var _ = ArrayBuilder<object>.GetInstance(objectCount, out var results);
 
             using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
 
@@ -100,25 +97,17 @@ namespace Microsoft.CodeAnalysis.Remote
             var responseSolutionChecksum = Checksum.ReadFrom(reader);
             Contract.ThrowIfFalse(solutionChecksum == responseSolutionChecksum);
 
-            var count = reader.ReadInt32();
-            Contract.ThrowIfFalse(count == checksums.Count);
-
-            for (var i = 0; i < count; i++)
+            for (int i = 0, n = objectCount; i < n; i++)
             {
-                var responseChecksum = Checksum.ReadFrom(reader);
-                Contract.ThrowIfFalse(checksums.Contains(responseChecksum));
-
                 var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
 
                 // in service hub, cancellation means simply closed stream
-                var result = serializerService.Deserialize<object>(kind, reader, cancellationToken);
-
-                Debug.Assert(result != null, "We should not be requesting null assets");
-
-                results.Add((responseChecksum, result));
+                var result = serializerService.Deserialize(kind, reader, cancellationToken);
+                Contract.ThrowIfNull(result);
+                results.Add(result);
             }
 
-            return results.ToImmutable();
+            return results.ToImmutableAndClear();
         }
     }
 }

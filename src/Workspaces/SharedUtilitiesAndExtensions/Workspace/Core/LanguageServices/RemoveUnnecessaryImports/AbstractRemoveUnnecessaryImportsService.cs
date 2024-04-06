@@ -12,42 +12,41 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
+namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
+
+internal abstract class AbstractRemoveUnnecessaryImportsService<T> :
+    IRemoveUnnecessaryImportsService,
+    IEqualityComparer<T> where T : SyntaxNode
 {
-    internal abstract class AbstractRemoveUnnecessaryImportsService<T> :
-        IRemoveUnnecessaryImportsService,
-        IEqualityComparer<T> where T : SyntaxNode
+    protected abstract IUnnecessaryImportsProvider<T> UnnecessaryImportsProvider { get; }
+
+    public Task<Document> RemoveUnnecessaryImportsAsync(Document document, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken)
+        => RemoveUnnecessaryImportsAsync(document, predicate: null, formattingOptions, cancellationToken);
+
+    public abstract Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool>? predicate, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken);
+
+    protected async Task<HashSet<T>> GetCommonUnnecessaryImportsOfAllContextAsync(
+        Document document, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
     {
-        protected abstract IUnnecessaryImportsProvider<T> UnnecessaryImportsProvider { get; }
+        var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-        public Task<Document> RemoveUnnecessaryImportsAsync(Document document, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken)
-            => RemoveUnnecessaryImportsAsync(document, predicate: null, formattingOptions, cancellationToken);
-
-        public abstract Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool>? predicate, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken);
-
-        protected async Task<HashSet<T>> GetCommonUnnecessaryImportsOfAllContextAsync(
-            Document document, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
+        var unnecessaryImports = new HashSet<T>(this);
+        unnecessaryImports.AddRange(UnnecessaryImportsProvider.GetUnnecessaryImports(
+            model, span: null, predicate, cancellationToken));
+        foreach (var current in document.GetLinkedDocuments())
         {
-            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var currentModel = await current.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var unnecessaryImports = new HashSet<T>(this);
-            unnecessaryImports.AddRange(UnnecessaryImportsProvider.GetUnnecessaryImports(
-                model, span: null, predicate, cancellationToken));
-            foreach (var current in document.GetLinkedDocuments())
-            {
-                var currentModel = await current.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                unnecessaryImports.IntersectWith(UnnecessaryImportsProvider.GetUnnecessaryImports(
-                    currentModel, span: null, predicate, cancellationToken));
-            }
-
-            return unnecessaryImports;
+            unnecessaryImports.IntersectWith(UnnecessaryImportsProvider.GetUnnecessaryImports(
+                currentModel, span: null, predicate, cancellationToken));
         }
 
-        bool IEqualityComparer<T>.Equals(T? x, T? y)
-            => x?.Span == y?.Span;
-
-        int IEqualityComparer<T>.GetHashCode(T obj)
-            => obj.Span.GetHashCode();
+        return unnecessaryImports;
     }
+
+    bool IEqualityComparer<T>.Equals(T? x, T? y)
+        => x?.Span == y?.Span;
+
+    int IEqualityComparer<T>.GetHashCode(T obj)
+        => obj.Span.GetHashCode();
 }

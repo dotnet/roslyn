@@ -48,12 +48,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
             => new EventHookupTestState(GetWorkspaceXml(markup), options);
 
         public static XElement GetWorkspaceXml(string markup)
-            => XElement.Parse(string.Format(@"
-<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document>{0}</Document>
-    </Project>
-</Workspace>", markup));
+            => XElement.Parse(string.Format("""
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>{0}</Document>
+                    </Project>
+                </Workspace>
+                """, markup));
 
         internal void AssertShowing(string expectedText)
         {

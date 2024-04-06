@@ -238,15 +238,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        ''' <summary>
-        ''' Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
-        ''' This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
-        ''' </summary>
-        Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
-            Get
-                Return Nothing
-            End Get
-        End Property
+        Public MustOverride ReadOnly Property HasImportedFromTypeLibAttribute As Boolean
+
+        Public MustOverride ReadOnly Property HasPrimaryInteropAssemblyAttribute As Boolean
 
         ''' <summary>
         ''' Lookup a top level type referenced from metadata, names should be
@@ -316,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="type"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Friend MustOverride Function GetDeclaredSpecialType(type As SpecialType) As NamedTypeSymbol
+        Friend MustOverride Function GetDeclaredSpecialType(type As ExtendedSpecialType) As NamedTypeSymbol
 
         ''' <summary>
         ''' Register declaration of predefined CorLib type in this Assembly.
@@ -416,7 +410,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function RuntimeSupportsFeature(feature As SpecialMember) As Boolean
-            Debug.Assert(SpecialMembers.GetDescriptor(feature).DeclaringTypeId = SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
+            Debug.Assert(SpecialMembers.GetDescriptor(feature).DeclaringSpecialType = SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
 
             Dim runtimeFeature = GetSpecialType(SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
             Return runtimeFeature.IsClassType() AndAlso runtimeFeature.IsMetadataAbstract AndAlso runtimeFeature.IsMetadataSealed AndAlso
@@ -450,9 +444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' the string might be null or an invalid guid representation. False, 
         ''' if there is no GuidAttribute with string argument.
         ''' </summary>
-        Friend Overridable Function GetGuidString(ByRef guidString As String) As Boolean
-            Return GetGuidStringDefaultImplementation(guidString)
-        End Function
+        Friend MustOverride Function GetGuidString(ByRef guidString As String) As Boolean
 
         Public MustOverride ReadOnly Property TypeNames As ICollection(Of String) Implements IAssemblySymbol.TypeNames
 
@@ -477,9 +469,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="type"></param>
         ''' <returns>The symbol for the pre-defined type or Nothing if the type is not defined in the core library</returns>
         ''' <remarks></remarks>
-        Friend Function GetSpecialType(type As SpecialType) As NamedTypeSymbol
-            If type <= SpecialType.None OrElse type > SpecialType.Count Then
-                Throw New ArgumentOutOfRangeException(NameOf(type), $"Unexpected SpecialType: '{CType(type, Integer)}'.")
+        Friend Function GetSpecialType(type As ExtendedSpecialType) As NamedTypeSymbol
+            If CInt(type) <= SpecialType.None OrElse CInt(type) >= InternalSpecialType.NextAvailable Then
+                Throw New ArgumentOutOfRangeException(NameOf(type), $"Unexpected SpecialType: '{CInt(type)}'.")
             End If
 
             Return CorLibrary.GetDeclaredSpecialType(type)

@@ -4,19 +4,18 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.MoveToNamespace
+namespace Microsoft.CodeAnalysis.MoveToNamespace;
+
+internal class MoveToNamespaceOptionsResult
 {
-    internal class MoveToNamespaceOptionsResult
-    {
-        public static readonly MoveToNamespaceOptionsResult Cancelled = new();
+    public static readonly MoveToNamespaceOptionsResult Cancelled = new();
 
-        public bool IsCancelled { get; }
-        public string Namespace { get; }
+    public bool IsCancelled { get; }
+    public string Namespace { get; }
 
-        private MoveToNamespaceOptionsResult()
-            => IsCancelled = true;
+    private MoveToNamespaceOptionsResult()
+        => IsCancelled = true;
 
-        public MoveToNamespaceOptionsResult(string @namespace)
-            => Namespace = @namespace;
-    }
+    public MoveToNamespaceOptionsResult(string @namespace)
+        => Namespace = @namespace;
 }

@@ -14,59 +14,60 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Tagging;
+
+internal partial class AbstractAsynchronousTaggerProvider<TTag>
 {
-    internal partial class AbstractAsynchronousTaggerProvider<TTag>
+    private partial class TagSource
     {
-        private partial class TagSource
+        public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
+
+        private void OnTagsChangedForBuffer(
+            ICollection<KeyValuePair<ITextBuffer, DiffResult>> changes, bool highPriority)
         {
-            public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
+            _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
-            private void OnTagsChangedForBuffer(
-                ICollection<KeyValuePair<ITextBuffer, DiffResult>> changes, bool highPriority)
+            foreach (var change in changes)
             {
-                _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
+                if (change.Key != _subjectBuffer)
+                    continue;
 
-                foreach (var change in changes)
-                {
-                    if (change.Key != _subjectBuffer)
-                        continue;
+                // Removed tags are always treated as high pri, so we can clean their stale
+                // data out from the ui immediately.
+                _highPriTagsChangedQueue.AddWork(change.Value.Removed);
 
-                    // Removed tags are always treated as high pri, so we can clean their stale
-                    // data out from the ui immediately.
-                    _highPriTagsChangedQueue.AddWork(change.Value.Removed);
-
-                    // Added tags are run at the requested priority.
-                    var addedTagsQueue = highPriority ? _highPriTagsChangedQueue : _normalPriTagsChangedQueue;
-                    addedTagsQueue.AddWork(change.Value.Added);
-                }
+                // Added tags are run at the requested priority.
+                var addedTagsQueue = highPriority ? _highPriTagsChangedQueue : _normalPriTagsChangedQueue;
+                addedTagsQueue.AddWork(change.Value.Added);
             }
+        }
 
-            private ValueTask ProcessTagsChangedAsync(
-                ImmutableSegmentedList<NormalizedSnapshotSpanCollection> snapshotSpans, CancellationToken cancellationToken)
-            {
-                var tagsChanged = this.TagsChanged;
-                if (tagsChanged == null)
-                    return ValueTaskFactory.CompletedTask;
-
-                foreach (var collection in snapshotSpans)
-                {
-                    if (collection.Count == 0)
-                        continue;
-
-                    var snapshot = collection.First().Snapshot;
-
-                    // Coalesce the spans if there are a lot of them.
-                    var coalesced = collection.Count > CoalesceDifferenceCount
-                        ? new NormalizedSnapshotSpanCollection(snapshot.GetSpanFromBounds(collection.First().Start, collection.Last().End))
-                        : collection;
-
-                    foreach (var span in coalesced)
-                        tagsChanged(this, new SnapshotSpanEventArgs(span));
-                }
-
+        private ValueTask ProcessTagsChangedAsync(
+            ImmutableSegmentedList<NormalizedSnapshotSpanCollection> snapshotSpans, CancellationToken cancellationToken)
+        {
+            var tagsChanged = this.TagsChanged;
+            if (tagsChanged == null)
                 return ValueTaskFactory.CompletedTask;
+
+            foreach (var collection in snapshotSpans)
+            {
+                if (collection.Count == 0)
+                    continue;
+
+                var snapshot = collection.First().Snapshot;
+
+                // Coalesce the spans if there are a lot of them.
+                var coalesced = collection.Count > CoalesceDifferenceCount
+                    ? new NormalizedSnapshotSpanCollection(snapshot.GetSpanFromBounds(collection.First().Start, collection.Last().End))
+                    : collection;
+
+                _dataSource.BeforeTagsChanged(snapshot);
+
+                foreach (var span in coalesced)
+                    tagsChanged(this, new SnapshotSpanEventArgs(span));
             }
+
+            return ValueTaskFactory.CompletedTask;
         }
     }
 }

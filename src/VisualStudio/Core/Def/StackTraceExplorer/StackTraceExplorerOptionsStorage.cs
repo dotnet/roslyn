@@ -4,14 +4,13 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.StackTraceExplorer
+namespace Microsoft.CodeAnalysis.StackTraceExplorer;
+
+internal sealed class StackTraceExplorerOptionsStorage
 {
-    internal sealed class StackTraceExplorerOptionsStorage
-    {
-        /// <summary>
-        /// Used to determine if a user focusing VS should look at the clipboard for a callstack and automatically
-        /// open the tool window with the callstack inserted
-        /// </summary>
-        public static readonly Option2<bool> OpenOnFocus = new("visual_studio_open_stack_trace_explorer_on_focus", defaultValue: false);
-    }
+    /// <summary>
+    /// Used to determine if a user focusing VS should look at the clipboard for a callstack and automatically
+    /// open the tool window with the callstack inserted
+    /// </summary>
+    public static readonly Option2<bool> OpenOnFocus = new("visual_studio_open_stack_trace_explorer_on_focus", defaultValue: false);
 }

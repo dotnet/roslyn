@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -14,7 +16,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Symbols
 {
-    public class DocumentationCommentIdTests : CommonTestBase
+    public sealed class DocumentationCommentIdTests : CommonTestBase
     {
         private CSharpCompilation CreateCompilation(string code) =>
             CreateCSharpCompilation(
@@ -152,6 +154,35 @@ class C
             Assert.NotNull(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(``0[])", comp));
             Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(`0[])", comp));
             Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(``1[])", comp));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70159")]
+        public async Task TestReturnValueOnInvalidSymbol1(
+            [CombinatorialValues("int*", "dynamic")] string type)
+        {
+            var text = $$"""
+                class C
+                {
+                    unsafe void M({{type}} i)
+                    {
+                        var x = i + 1;
+                    }
+                }
+                """;
+
+            var comp = CreateCSharpCompilation(text, compilationOptions: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(tree);
+            var root = await tree.GetRootAsync();
+
+            var token = root.FindToken(text.IndexOf('+'));
+            var node = token.Parent;
+            Assert.NotNull(node);
+            var symbol = semanticModel.GetSymbolInfo(node!).Symbol;
+            Assert.NotNull(symbol);
+
+            var id = DocumentationCommentId.CreateDeclarationId(symbol!);
+            Assert.Null(id);
         }
 
         internal override string VisualizeRealIL(

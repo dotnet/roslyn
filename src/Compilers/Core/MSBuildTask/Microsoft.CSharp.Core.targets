@@ -25,6 +25,10 @@
     <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '7.0' AND
                                          '$(_MaxSupportedLangVersion)' == ''">11.0</_MaxSupportedLangVersion>
 
+    <!-- .NETCoreApp == 8.0 -->
+    <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '8.0' AND
+                                         '$(_MaxSupportedLangVersion)' == ''">12.0</_MaxSupportedLangVersion>
+
     <MaxSupportedLangVersion>$(_MaxSupportedLangVersion)</MaxSupportedLangVersion>
     <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>
   </PropertyGroup>
@@ -46,7 +50,8 @@
                   @(AdditionalFiles);
                   @(EmbeddedFiles);
                   @(Analyzer);
-                  @(EditorConfigFiles)"
+                  @(EditorConfigFiles);
+                  $(SourceLink)"
           Outputs="@(DocFileItem);
                    @(IntermediateAssembly);
                    @(IntermediateRefAssembly);
@@ -104,6 +109,7 @@
          ErrorLog="$(ErrorLog)"
          ErrorReport="$(ErrorReport)"
          Features="$(Features)"
+         InterceptorsPreviewNamespaces="$(InterceptorsPreviewNamespaces)"
          FileAlignment="$(FileAlignment)"
          GeneratedFilesOutputPath="$(CompilerGeneratedFilesOutputPath)"
          GenerateFullPaths="$(GenerateFullPaths)"
@@ -129,6 +135,7 @@
          Platform="$(PlatformTarget)"
          Prefer32Bit="$(Prefer32Bit)"
          PreferredUILang="$(PreferredUILang)"
+         ProjectName="$(MSBuildProjectName)"
          ProvideCommandLineArgs="$(ProvideCommandLineArgs)"
          References="@(ReferencePathWithRefAssemblies)"
          RefOnly="$(ProduceOnlyReferenceAssembly)"
@@ -143,6 +150,7 @@
          Sources="@(Compile)"
          SubsystemVersion="$(SubsystemVersion)"
          TargetType="$(OutputType)"
+         TargetFramework="$(TargetFramework)"
          ToolExe="$(CscToolExe)"
          ToolPath="$(CscToolPath)"
          TreatWarningsAsErrors="$(TreatWarningsAsErrors)"

@@ -4,30 +4,29 @@
 
 using Microsoft.CodeAnalysis.Editing;
 
-namespace Microsoft.CodeAnalysis.CodeGeneration
+namespace Microsoft.CodeAnalysis.CodeGeneration;
+
+/// <summary>
+/// Context and preferences.
+/// </summary>
+internal abstract class CodeGenerationContextInfo
 {
-    /// <summary>
-    /// Context and preferences.
-    /// </summary>
-    internal abstract class CodeGenerationContextInfo
+    public readonly CodeGenerationContext Context;
+
+    protected CodeGenerationContextInfo(CodeGenerationContext context)
     {
-        public readonly CodeGenerationContext Context;
-
-        protected CodeGenerationContextInfo(CodeGenerationContext context)
-        {
-            Context = context;
-        }
-
-        public CodeGenerationContextInfo WithContext(CodeGenerationContext value)
-            => WithContextImpl(value);
-
-        public SyntaxGenerator Generator => GeneratorImpl;
-        public CodeGenerationOptions Options => OptionsImpl;
-        public ICodeGenerationService Service => ServiceImpl;
-
-        protected abstract SyntaxGenerator GeneratorImpl { get; }
-        protected abstract CodeGenerationOptions OptionsImpl { get; }
-        protected abstract ICodeGenerationService ServiceImpl { get; }
-        protected abstract CodeGenerationContextInfo WithContextImpl(CodeGenerationContext value);
+        Context = context;
     }
+
+    public CodeGenerationContextInfo WithContext(CodeGenerationContext value)
+        => WithContextImpl(value);
+
+    public SyntaxGenerator Generator => GeneratorImpl;
+    public CodeGenerationOptions Options => OptionsImpl;
+    public ICodeGenerationService Service => ServiceImpl;
+
+    protected abstract SyntaxGenerator GeneratorImpl { get; }
+    protected abstract CodeGenerationOptions OptionsImpl { get; }
+    protected abstract ICodeGenerationService ServiceImpl { get; }
+    protected abstract CodeGenerationContextInfo WithContextImpl(CodeGenerationContext value);
 }

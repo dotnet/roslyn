@@ -12,11 +12,6 @@
         <target state="translated">Método Abstract</target>
         <note>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
       </trans-unit>
-      <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
-        <source>An element with the same key but a different value already exists.</source>
-        <target state="translated">Um elemento com a mesma chave, mas um valor diferente já existe.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Begins_with_I">
         <source>Begins with I</source>
         <target state="translated">Começa com I</target>
@@ -161,11 +156,6 @@
         <source>Public or Protected Field</source>
         <target state="translated">Campo Protegido ou Público</target>
         <note>{locked: public}{locked: protected}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Segment_size_must_be_power_of_2_greater_than_1">
-        <source>Segment size must be power of 2 greater than 1</source>
-        <target state="translated">O tamanho do segmento precisa ser na potência de 2 maior que 1</target>
-        <note />
       </trans-unit>
       <trans-unit id="Specified_sequence_has_duplicate_items">
         <source>Specified sequence has duplicate items</source>

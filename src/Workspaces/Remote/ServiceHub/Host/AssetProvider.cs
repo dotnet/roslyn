@@ -6,157 +6,204 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+/// <summary>
+/// This service provide a way to get roslyn objects from checksum
+/// </summary>
+internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
+    : AbstractAssetProvider
 {
-    /// <summary>
-    /// This service provide a way to get roslyn objects from checksum
-    /// </summary>
-    internal sealed class AssetProvider : AbstractAssetProvider
+    private const int PooledChecksumArraySize = 256;
+    private static readonly ObjectPool<Checksum[]> s_checksumPool = new(() => new Checksum[PooledChecksumArraySize], 16);
+
+    private readonly Checksum _solutionChecksum = solutionChecksum;
+    private readonly ISerializerService _serializerService = serializerService;
+    private readonly SolutionAssetCache _assetCache = assetCache;
+    private readonly IAssetSource _assetSource = assetSource;
+
+    public override async ValueTask<T> GetAssetAsync<T>(
+        AssetHint assetHint, Checksum checksum, CancellationToken cancellationToken)
     {
-        private readonly Checksum _solutionChecksum;
-        private readonly ISerializerService _serializerService;
-        private readonly SolutionAssetCache _assetCache;
-        private readonly IAssetSource _assetSource;
+        Contract.ThrowIfTrue(checksum == Checksum.Null);
+        if (_assetCache.TryGetAsset<T>(checksum, out var asset))
+            return asset;
 
-        public AssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
+        using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksums);
+        checksums.Add(checksum);
+
+        using var _2 = PooledDictionary<Checksum, object>.GetInstance(out var results);
+        await this.SynchronizeAssetsAsync(assetHint, checksums, results, cancellationToken).ConfigureAwait(false);
+
+        return (T)results[checksum];
+    }
+
+    public async ValueTask<ImmutableArray<(Checksum checksum, T asset)>> GetAssetsAsync<T>(
+        AssetHint assetHint, HashSet<Checksum> checksums, CancellationToken cancellationToken)
+    {
+        using var _ = PooledDictionary<Checksum, object>.GetInstance(out var results);
+
+        // bulk synchronize checksums first
+        var syncer = new ChecksumSynchronizer(this);
+        await syncer.SynchronizeAssetsAsync(assetHint, checksums, results, cancellationToken).ConfigureAwait(false);
+
+        var result = new (Checksum checksum, T asset)[checksums.Count];
+        var index = 0;
+        foreach (var (checksum, assetObject) in results)
         {
-            _solutionChecksum = solutionChecksum;
-            _assetCache = assetCache;
-            _assetSource = assetSource;
-            _serializerService = serializerService;
+            result[index] = (checksum, (T)assetObject);
+            index++;
         }
 
-        public override async ValueTask<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
+        return ImmutableCollectionsMarshal.AsImmutableArray(result);
+    }
+
+    public async ValueTask SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+    {
+        var timer = new Stopwatch();
+        timer.Start();
+
+        // this will pull in assets that belong to the given solution checksum to this remote host.
+        // this one is not supposed to be used for functionality but only for perf. that is why it doesn't return anything.
+        // to get actual data GetAssetAsync should be used. and that will return actual data and if there is any missing data in cache, GetAssetAsync
+        // itself will bring that data in from data source (VS)
+
+        // one can call this method to make cache hot for all assets that belong to the solution checksum so that GetAssetAsync call will most likely cache hit.
+        // it is most likely since we might change cache hueristic in future which make data to live a lot shorter in the cache, and the data might get expired
+        // before one actually consume the data. 
+        using (Logger.LogBlock(FunctionId.AssetService_SynchronizeSolutionAssetsAsync, Checksum.GetChecksumLogInfo, solutionChecksum, cancellationToken))
         {
-            Debug.Assert(checksum != Checksum.Null);
-
-            if (_assetCache.TryGetAsset<T>(checksum, out var asset))
-            {
-                return asset;
-            }
-
-            using (Logger.LogBlock(FunctionId.AssetService_GetAssetAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
-            {
-                var value = await RequestAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
-
-                // Attempt to add the value to the cache.  If someone else beat us, we'll return their value.
-                return (T)_assetCache.GetOrAdd(checksum, value);
-            }
-        }
-
-        public async ValueTask<ImmutableArray<ValueTuple<Checksum, T>>> GetAssetsAsync<T>(HashSet<Checksum> checksums, CancellationToken cancellationToken)
-        {
-            // this only works when caller wants to get same kind of assets at once
-
-            // bulk synchronize checksums first
             var syncer = new ChecksumSynchronizer(this);
-            await syncer.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+            await syncer.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+        }
 
-            using var _ = ArrayBuilder<ValueTuple<Checksum, T>>.GetInstance(checksums.Count, out var list);
+        timer.Stop();
+
+        // report telemetry to help correlate slow solution sync with UI delays
+        if (timer.ElapsedMilliseconds > 1000)
+        {
+            Logger.Log(FunctionId.AssetService_Perf, KeyValueLogMessage.Create(map => map["SolutionSyncTime"] = timer.ElapsedMilliseconds));
+        }
+    }
+
+    public async ValueTask SynchronizeProjectAssetsAsync(ProjectStateChecksums projectChecksums, CancellationToken cancellationToken)
+    {
+        // this will pull in assets that belong to the given project checksum to this remote host. this one is not
+        // supposed to be used for functionality but only for perf. that is why it doesn't return anything. to get
+        // actual data GetAssetAsync should be used. and that will return actual data and if there is any missing data
+        // in cache, GetAssetAsync itself will bring that data in from data source (VS)
+
+        // one can call this method to make cache hot for all assets that belong to the project checksum so that
+        // GetAssetAsync call will most likely cache hit. it is most likely since we might change cache heuristic in
+        // future which make data to live a lot shorter in the cache, and the data might get expired before one actually
+        // consume the data. 
+        using (Logger.LogBlock(FunctionId.AssetService_SynchronizeProjectAssetsAsync, Checksum.GetProjectChecksumsLogInfo, projectChecksums, cancellationToken))
+        {
+            var syncer = new ChecksumSynchronizer(this);
+            await syncer.SynchronizeProjectAssetsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    public async ValueTask SynchronizeAssetsAsync(
+        AssetHint assetHint, HashSet<Checksum> checksums, Dictionary<Checksum, object>? results, CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfTrue(checksums.Contains(Checksum.Null));
+        if (checksums.Count == 0)
+            return;
+
+        using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
+        {
+            var missingChecksumsCount = 0;
+
+            // Calculate the number of missing checksums upfront. Calculation is cheap and can help avoid extraneous allocations.
             foreach (var checksum in checksums)
-                list.Add(ValueTuple.Create(checksum, await GetAssetAsync<T>(checksum, cancellationToken).ConfigureAwait(false)));
-
-            return list.ToImmutableAndClear();
-        }
-
-        public async ValueTask SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
-        {
-            var timer = new Stopwatch();
-            timer.Start();
-
-            // this will pull in assets that belong to the given solution checksum to this remote host.
-            // this one is not supposed to be used for functionality but only for perf. that is why it doesn't return anything.
-            // to get actual data GetAssetAsync should be used. and that will return actual data and if there is any missing data in cache, GetAssetAsync
-            // itself will bring that data in from data source (VS)
-
-            // one can call this method to make cache hot for all assets that belong to the solution checksum so that GetAssetAsync call will most likely cache hit.
-            // it is most likely since we might change cache hueristic in future which make data to live a lot shorter in the cache, and the data might get expired
-            // before one actually consume the data. 
-            using (Logger.LogBlock(FunctionId.AssetService_SynchronizeSolutionAssetsAsync, Checksum.GetChecksumLogInfo, solutionChecksum, cancellationToken))
             {
-                var syncer = new ChecksumSynchronizer(this);
-                await syncer.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+                if (!_assetCache.ContainsAsset(checksum))
+                    missingChecksumsCount++;
             }
 
-            timer.Stop();
+            var usePool = missingChecksumsCount <= PooledChecksumArraySize;
+            var missingChecksums = usePool ? s_checksumPool.Allocate() : new Checksum[missingChecksumsCount];
 
-            // report telemetry to help correlate slow solution sync with UI delays
-            if (timer.ElapsedMilliseconds > 1000)
+            missingChecksumsCount = 0;
+            foreach (var checksum in checksums)
             {
-                Logger.Log(FunctionId.AssetService_Perf, KeyValueLogMessage.Create(map => map["SolutionSyncTime"] = timer.ElapsedMilliseconds));
-            }
-        }
+                if (_assetCache.TryGetAsset<object>(checksum, out var existing))
+                {
+                    AddResult(checksum, existing);
+                }
+                else
+                {
+                    if (missingChecksumsCount == missingChecksums.Length)
+                    {
+                        // This can happen if the asset cache has been modified by another thread during this method's execution.
+                        var newMissingChecksums = new Checksum[missingChecksumsCount * 2];
+                        Array.Copy(missingChecksums, newMissingChecksums, missingChecksumsCount);
 
-        public async ValueTask SynchronizeProjectAssetsAsync(HashSet<Checksum> projectChecksums, CancellationToken cancellationToken)
-        {
-            // this will pull in assets that belong to the given project checksum to this remote host.
-            // this one is not supposed to be used for functionality but only for perf. that is why it doesn't return anything.
-            // to get actual data GetAssetAsync should be used. and that will return actual data and if there is any missing data in cache, GetAssetAsync
-            // itself will bring that data in from data source (VS)
+                        if (usePool)
+                        {
+                            s_checksumPool.Free(missingChecksums);
+                            usePool = false;
+                        }
 
-            // one can call this method to make cache hot for all assets that belong to the project checksum so that GetAssetAsync call will most likely cache hit.
-            // it is most likely since we might change cache hueristic in future which make data to live a lot shorter in the cache, and the data might get expired
-            // before one actually consume the data. 
-            using (Logger.LogBlock(FunctionId.AssetService_SynchronizeProjectAssetsAsync, Checksum.GetChecksumsLogInfo, projectChecksums, cancellationToken))
-            {
-                var syncer = new ChecksumSynchronizer(this);
-                await syncer.SynchronizeProjectAssetsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
-            }
-        }
+                        missingChecksums = newMissingChecksums;
+                    }
 
-        public bool EnsureCacheEntryIfExists(Checksum checksum)
-        {
-            // this will check whether checksum exists in the cache and if it does,
-            // it will touch the entry so that it doesn't expire right after we checked it.
-            //
-            // even if it got expired after this for whatever reason, functionality wise everything will still work, 
-            // just perf will be impacted since we will fetch it from data source (VS)
-            return _assetCache.TryGetAsset<object>(checksum, out _);
-        }
-
-        public async ValueTask SynchronizeAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
-        {
-            Debug.Assert(!checksums.Contains(Checksum.Null));
-            if (checksums.Count == 0)
-                return;
-
-            using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
-            {
-                var assets = await RequestAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
-
-                foreach (var (checksum, value) in assets)
-                    _assetCache.GetOrAdd(checksum, value);
-            }
-        }
-
-        private async Task<object> RequestAssetAsync(Checksum checksum, CancellationToken cancellationToken)
-        {
-            Debug.Assert(checksum != Checksum.Null);
-
-            using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
-            checksums.Add(checksum);
-
-            var assets = await RequestAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
-            return assets.Single().value;
-        }
-
-        private async Task<ImmutableArray<(Checksum checksum, object value)>> RequestAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)
-        {
-            Debug.Assert(!checksums.Contains(Checksum.Null));
-
-            if (checksums.Count == 0)
-            {
-                return ImmutableArray<(Checksum, object)>.Empty;
+                    missingChecksums[missingChecksumsCount] = checksum;
+                    missingChecksumsCount++;
+                }
             }
 
-            return await _assetSource.GetAssetsAsync(_solutionChecksum, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
+            if (missingChecksumsCount > 0)
+            {
+                var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
+                var missingAssets = await RequestAssetsAsync(assetHint, missingChecksumsMemory, cancellationToken).ConfigureAwait(false);
+
+                Contract.ThrowIfTrue(missingChecksumsMemory.Length != missingAssets.Length);
+
+                for (int i = 0, n = missingAssets.Length; i < n; i++)
+                {
+                    var missingChecksum = missingChecksums[i];
+                    var missingAsset = missingAssets[i];
+
+                    AddResult(missingChecksum, missingAsset);
+                    _assetCache.GetOrAdd(missingChecksum, missingAsset);
+                }
+            }
+
+            if (usePool)
+                s_checksumPool.Free(missingChecksums);
         }
+
+        return;
+
+        void AddResult(Checksum checksum, object result)
+        {
+            if (results != null)
+                results[checksum] = result;
+        }
+    }
+
+    private async ValueTask<ImmutableArray<object>> RequestAssetsAsync(
+        AssetHint assetHint, ReadOnlyMemory<Checksum> checksums, CancellationToken cancellationToken)
+    {
+#if NETCOREAPP
+        Contract.ThrowIfTrue(checksums.Span.Contains(Checksum.Null));
+#else
+        Contract.ThrowIfTrue(checksums.Span.IndexOf(Checksum.Null) >= 0);
+#endif
+
+        if (checksums.Length == 0)
+            return [];
+
+        return await _assetSource.GetAssetsAsync(_solutionChecksum, assetHint, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
     }
 }

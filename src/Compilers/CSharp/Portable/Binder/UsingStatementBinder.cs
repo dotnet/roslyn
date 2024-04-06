@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(expressionOpt is not null);
                 if (expressionOpt.Type is not null)
                 {
-                    CheckRestrictedTypeInAsyncMethod(originalBinder.ContainingMemberOrLambda, expressionOpt.Type, diagnostics, expressionOpt.Syntax, forUsingExpression: true);
+                    CheckRestrictedTypeInAsyncMethod(originalBinder.ContainingMemberOrLambda, expressionOpt.Type, diagnostics, expressionOpt.Syntax, errorCode: ErrorCode.ERR_BadSpecialByRefUsing);
                 }
             }
             else
@@ -183,13 +183,61 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool bindDisposable(bool fromExpression, out MethodArgumentInfo? patternDisposeInfo, out TypeSymbol? awaitableType)
             {
+                patternDisposeInfo = null;
+                awaitableType = null;
+                Debug.Assert(!fromExpression || expressionOpt != null);
+                TypeSymbol? type = fromExpression ? expressionOpt!.Type : declarationTypeOpt;
+
+                // Pattern-based binding
+                // If this is a ref struct, or we're in a valid asynchronous using, try binding via pattern.
+                if (type is object && (type.IsRefLikeType || hasAwait))
+                {
+                    BoundExpression? receiver = fromExpression
+                                               ? expressionOpt
+                                               : new BoundLocal(syntax, declarationsOpt[0].LocalSymbol, null, type) { WasCompilerGenerated = true };
+
+                    BindingDiagnosticBag patternDiagnostics = originalBinder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDisposalPattern)
+                                                       ? diagnostics
+                                                       : BindingDiagnosticBag.Discarded;
+                    MethodSymbol disposeMethod = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, patternDiagnostics, out bool expanded);
+                    if (disposeMethod is object)
+                    {
+                        MessageID.IDS_FeatureDisposalPattern.CheckFeatureAvailability(diagnostics, originalBinder.Compilation, syntax.Location);
+
+                        var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
+                        ImmutableArray<int> argsToParams = default;
+
+                        originalBinder.BindDefaultArguments(
+                            // If this is a using statement, then we want to use the whole `using (expr) { }` as the argument location. These arguments
+                            // will be represented in the IOperation tree and the "correct" node for them, given that they are an implicit invocation
+                            // at the end of the using statement, is on the whole using statement, not on the current expression.
+                            usingBinderOpt?._syntax ?? syntax,
+                            disposeMethod.Parameters,
+                            argumentsBuilder,
+                            argumentRefKindsBuilder: null,
+                            namesBuilder: null,
+                            ref argsToParams,
+                            out BitVector defaultArguments,
+                            expanded,
+                            enableCallerInfo: true,
+                            patternDiagnostics);
+
+                        Debug.Assert(argsToParams.IsDefault);
+                        patternDisposeInfo = new MethodArgumentInfo(disposeMethod, argumentsBuilder.ToImmutableAndFree(), defaultArguments, expanded);
+                        if (hasAwait)
+                        {
+                            awaitableType = disposeMethod.ReturnType;
+                        }
+                        return true;
+                    }
+                }
+
+                // Interface binding
                 TypeSymbol disposableInterface = getDisposableInterface(hasAwait);
                 Debug.Assert((object)disposableInterface != null);
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = originalBinder.GetNewCompoundUseSiteInfo(diagnostics);
                 Conversion iDisposableConversion = classifyConversion(fromExpression, disposableInterface, ref useSiteInfo);
-                patternDisposeInfo = null;
-                awaitableType = null;
 
                 diagnostics.Add(syntax, useSiteInfo);
 
@@ -201,51 +249,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return !ReportUseSite(disposableInterface, diagnostics, hasAwait ? awaitKeyword : usingKeyword);
-                }
-
-                Debug.Assert(!fromExpression || expressionOpt != null);
-                TypeSymbol? type = fromExpression ? expressionOpt!.Type : declarationTypeOpt;
-
-                // If this is a ref struct, or we're in a valid asynchronous using, try binding via pattern.
-                // We won't need to try and bind a second time if it fails, as async dispose can't be pattern based (ref structs are not allowed in async methods)
-                if (type is object && (type.IsRefLikeType || hasAwait))
-                {
-                    BoundExpression? receiver = fromExpression
-                                               ? expressionOpt
-                                               : new BoundLocal(syntax, declarationsOpt[0].LocalSymbol, null, type) { WasCompilerGenerated = true };
-
-                    BindingDiagnosticBag patternDiagnostics = originalBinder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDisposalPattern)
-                                                       ? diagnostics
-                                                       : BindingDiagnosticBag.Discarded;
-                    MethodSymbol disposeMethod = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, patternDiagnostics);
-                    if (disposeMethod is object)
-                    {
-                        MessageID.IDS_FeatureDisposalPattern.CheckFeatureAvailability(diagnostics, originalBinder.Compilation, syntax.Location);
-
-                        var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
-                        ImmutableArray<int> argsToParams = default;
-                        bool expanded = disposeMethod.HasParamsParameter();
-                        originalBinder.BindDefaultArguments(
-                            // If this is a using statement, then we want to use the whole `using (expr) { }` as the argument location. These arguments
-                            // will be represented in the IOperation tree and the "correct" node for them, given that they are an implicit invocation
-                            // at the end of the using statement, is on the whole using statement, not on the current expression.
-                            usingBinderOpt?._syntax ?? syntax,
-                            disposeMethod.Parameters,
-                            argumentsBuilder,
-                            argumentRefKindsBuilder: null,
-                            ref argsToParams,
-                            out BitVector defaultArguments,
-                            expanded,
-                            enableCallerInfo: true,
-                            patternDiagnostics);
-
-                        patternDisposeInfo = new MethodArgumentInfo(disposeMethod, argumentsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments, expanded);
-                        if (hasAwait)
-                        {
-                            awaitableType = disposeMethod.ReturnType;
-                        }
-                        return true;
-                    }
                 }
 
                 if (type is null || !type.IsErrorType())

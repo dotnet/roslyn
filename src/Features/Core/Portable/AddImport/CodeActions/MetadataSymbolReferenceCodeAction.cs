@@ -9,31 +9,30 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.AddImport
+namespace Microsoft.CodeAnalysis.AddImport;
+
+internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
+    private class MetadataSymbolReferenceCodeAction : SymbolReferenceCodeAction
     {
-        private class MetadataSymbolReferenceCodeAction : SymbolReferenceCodeAction
+        /// <summary>
+        /// This code action only works by adding a reference to a metadata dll.  As such, it requires a non
+        /// document change (and is thus restricted in which hosts it can run).
+        /// </summary>
+        public MetadataSymbolReferenceCodeAction(Document originalDocument, AddImportFixData fixData)
+            : base(originalDocument, fixData, RequiresNonDocumentChangeTags)
         {
-            /// <summary>
-            /// This code action only works by adding a reference to a metadata dll.  As such, it requires a non
-            /// document change (and is thus restricted in which hosts it can run).
-            /// </summary>
-            public MetadataSymbolReferenceCodeAction(Document originalDocument, AddImportFixData fixData)
-                : base(originalDocument, fixData, RequiresNonDocumentChangeTags)
-            {
-                Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.MetadataSymbol);
-            }
+            Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.MetadataSymbol);
+        }
 
-            protected override Task<CodeActionOperation?> UpdateProjectAsync(Project project, bool isPreview, CancellationToken cancellationToken)
-            {
-                var projectWithReference = project.Solution.GetRequiredProject(FixData.PortableExecutableReferenceProjectId);
-                var reference = projectWithReference.MetadataReferences
-                                                    .OfType<PortableExecutableReference>()
-                                                    .First(pe => pe.FilePath == FixData.PortableExecutableReferenceFilePathToAdd);
+        protected override Task<CodeActionOperation?> UpdateProjectAsync(Project project, bool isPreview, CancellationToken cancellationToken)
+        {
+            var projectWithReference = project.Solution.GetRequiredProject(FixData.PortableExecutableReferenceProjectId);
+            var reference = projectWithReference.MetadataReferences
+                                                .OfType<PortableExecutableReference>()
+                                                .First(pe => pe.FilePath == FixData.PortableExecutableReferenceFilePathToAdd);
 
-                return Task.FromResult<CodeActionOperation?>(new ApplyChangesOperation(project.AddMetadataReference(reference).Solution));
-            }
+            return Task.FromResult<CodeActionOperation?>(new ApplyChangesOperation(project.AddMetadataReference(reference).Solution));
         }
     }
 }

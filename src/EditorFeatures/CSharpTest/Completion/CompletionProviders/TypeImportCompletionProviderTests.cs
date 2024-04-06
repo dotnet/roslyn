@@ -853,6 +853,8 @@ namespace Foo
 $$
 ";
             var expectedCodeAfterCommit = @"using Foo;
+
+
 Bar$$
 ";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
@@ -880,6 +882,7 @@ $$
             var expectedCodeAfterCommit = @"
 using System;
 using Foo;
+
 Bar$$
 ";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
@@ -1029,11 +1032,10 @@ namespace Baz
 }";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
             var completionList = await GetCompletionListAsync(markup).ConfigureAwait(false);
-            AssertRelativeOrder(new List<string>() { "SomeType", "SomeTypeWithLongerName" }, completionList.ItemsList.ToImmutableArray());
+            AssertRelativeOrder(["SomeType", "SomeTypeWithLongerName"], completionList.ItemsList.ToImmutableArray());
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task AttributeTypeInAttributeNameContext()
         {
             var file1 = @"
@@ -1090,8 +1092,7 @@ namespace Test
             await VerifyCustomCommitProviderAsync(markup, "My", expectedCodeAfterCommit, sourceCodeKind: kind);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task AttributeTypeInNonAttributeNameContext()
         {
             var file1 = @"
@@ -1153,8 +1154,7 @@ namespace Test
             await VerifyCustomCommitProviderAsync(markup, "MyAttribute", expectedCodeAfterCommit, sourceCodeKind: kind);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task AttributeTypeWithoutSuffixInAttributeNameContext()
         {
             // attribute suffix isn't capitalized
@@ -1211,8 +1211,7 @@ namespace Test
             await VerifyCustomCommitProviderAsync(markup, "Myattribute", expectedCodeAfterCommit, sourceCodeKind: kind);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task AttributeTypeWithoutSuffixInNonAttributeNameContext()
         {
             // attribute suffix isn't capitalized
@@ -1274,8 +1273,7 @@ namespace Test
             await VerifyCustomCommitProviderAsync(markup, "Myattribute", expectedCodeAfterCommit, sourceCodeKind: kind);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
         public async Task VBAttributeTypeWithoutSuffixInAttributeNameContext()
         {
             var file1 = @"

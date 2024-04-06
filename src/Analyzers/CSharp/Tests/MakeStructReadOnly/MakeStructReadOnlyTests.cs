@@ -5,10 +5,10 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.MakeStructReadOnly;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructReadOnly;
@@ -20,10 +20,10 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructReadOnly)]
 public class MakeStructReadOnlyTests
 {
-    private static Task TestMissingAsync(string testCode, LanguageVersion version = LanguageVersionExtensions.CSharpNext)
+    private static Task TestMissingAsync(string testCode, LanguageVersion version = LanguageVersion.CSharp12)
         => TestAsync(testCode, testCode, version);
 
-    private static async Task TestAsync(string testCode, string fixedCode, LanguageVersion version = LanguageVersionExtensions.CSharpNext)
+    private static async Task TestAsync(string testCode, string fixedCode, LanguageVersion version = LanguageVersion.CSharp12)
     {
         await new VerifyCS.Test
         {
@@ -155,10 +155,12 @@ LanguageVersion.CSharp7_2);
     public async Task TestMissingWithMutableAndReadOnlyFieldStruct2()
     {
         await TestMissingAsync(
-@"struct S(int j)
-{
-    int i;
-}");
+            """
+            struct S(int j)
+            {
+                int i;
+            }
+            """);
     }
 
     [Fact]
@@ -201,10 +203,12 @@ LanguageVersion.CSharp7_2);
     public async Task TestMissingWithMutablePropertyStruct2()
     {
         await TestMissingAsync(
-@"struct S(int q)
-{
-    int P { get; set; }
-}");
+            """
+            struct S(int q)
+            {
+                int P { get; set; }
+            }
+            """);
     }
 
     [Fact]
@@ -244,9 +248,11 @@ LanguageVersion.CSharp7_2);
     public async Task TestMissingWithEmptyStructPrimaryConstructor()
     {
         await TestMissingAsync(
-@"struct S()
-{
-}");
+            """
+            struct S()
+            {
+            }
+            """);
     }
 
     [Fact]
@@ -406,9 +412,11 @@ LanguageVersion.CSharp7_2);
     public async Task TestMissingStructWithPrimaryConstructor()
     {
         await TestMissingAsync(
-@"struct S(int i)
-{
-}");
+            """
+            struct S(int i)
+            {
+            }
+            """);
     }
 
     [Fact]
@@ -427,15 +435,19 @@ LanguageVersion.CSharp7_2);
     public async Task TestOnStructWithPrimaryConstructorAndReadonlyField()
     {
         await TestAsync(
-@"struct [|S|](int i)
-{
-    readonly int i;
-}",
-@"readonly struct S(int i)
-{
-    readonly int i;
-}",
-LanguageVersionExtensions.CSharpNext);
+            """
+            struct [|S|](int i)
+            {
+                readonly int i;
+            }
+            """,
+            """
+            readonly struct S(int i)
+            {
+                readonly int i;
+            }
+            """,
+LanguageVersion.CSharp12);
     }
 
     [Fact]
@@ -923,6 +935,99 @@ LanguageVersionExtensions.CSharpNext);
                 {
                     ref readonly S s = ref this;
                 }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69994")]
+    public async Task NotWithFieldLikeEvent()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+
+            public struct MyStruct
+            {
+                public event Action MyEvent;
+
+                public readonly int MyInt;
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69994")]
+    public async Task WithPropertyLikeEvent1()
+    {
+        await TestAsync(
+            """
+            using System;
+
+            public struct [|MyStruct|]
+            {
+                public event Action MyEvent { add { } remove { } }
+
+                public readonly int MyInt;
+            }
+            """,
+            """
+            using System;
+
+            public readonly struct MyStruct
+            {
+                public event Action MyEvent { add { } remove { } }
+
+                public readonly int MyInt;
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69994")]
+    public async Task WithPropertyLikeEvent2()
+    {
+        await TestAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            public struct [|MyStruct|]
+            {
+                private readonly List<Action> actions = new();
+
+                public event Action MyEvent { add => actions.Add(value); remove => actions.Remove(value); }
+
+                public MyStruct() { }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+
+            public readonly struct MyStruct
+            {
+                private readonly List<Action> actions = new();
+            
+                public event Action MyEvent { add => actions.Add(value); remove => actions.Remove(value); }
+            
+                public MyStruct() { }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69994")]
+    public async Task NotWithPropertyLikeEvent1()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            public struct MyStruct
+            {
+                private List<Action> actions = new();
+
+                public event Action MyEvent { add => actions.Add(value); remove => actions.Remove(value); }
+            
+                public MyStruct() { }
             }
             """);
     }

@@ -6,9 +6,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.UnitTests.TestFiles;
@@ -30,22 +34,19 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
         private void RunDotNet(string arguments)
         {
-            Assert.NotNull(DotNetSdkMSBuildInstalled.SdkPath);
-
             var environmentVariables = new Dictionary<string, string>()
             {
                 ["NUGET_PACKAGES"] = _nugetCacheDir.Path
             };
 
             var dotNetExeName = "dotnet" + (Path.DirectorySeparatorChar == '/' ? "" : ".exe");
-            var exePath = Path.Combine(DotNetSdkMSBuildInstalled.SdkPath, dotNetExeName);
 
             var restoreResult = ProcessUtilities.Run(
-                exePath, arguments,
+                dotNetExeName, arguments,
                 workingDirectory: SolutionDirectory.Path,
                 additionalEnvironmentVars: environmentVariables);
 
-            Assert.True(restoreResult.ExitCode == 0, $"{exePath} failed with exit code {restoreResult.ExitCode}: {restoreResult.Output}");
+            Assert.True(restoreResult.ExitCode == 0, $"{dotNetExeName} failed with exit code {restoreResult.ExitCode}: {restoreResult.Output}");
         }
 
         private void DotNetRestore(string solutionOrProjectFileName)
@@ -494,6 +495,13 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 var projectRefId = projectReference.ProjectId;
                 Assert.Equal(projectRefFilePath, project.Solution.GetProject(projectRefId).FilePath);
             }
+        }
+
+        [Fact]
+        public void BuildHostShipsDepsJsonFile()
+        {
+            var depsJsonFile = Path.ChangeExtension(BuildHostProcessManager.GetNetCoreBuildHostPath(), "deps.json");
+            Assert.True(File.Exists(depsJsonFile), $"{depsJsonFile} should exist, or it won't load on some runtimes.");
         }
     }
 }

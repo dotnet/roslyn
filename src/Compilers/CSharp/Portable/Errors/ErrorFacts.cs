@@ -10,7 +10,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -413,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AlignmentMagnitude:
                 case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
-                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_WindowsExperimental:
                 case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                 case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                 case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
@@ -551,6 +550,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_TargetDifferentRefness:
                 case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                 case ErrorCode.WRN_UseDefViolationRefField:
+                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
+                case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
+                case ErrorCode.WRN_ConvertingLock:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
+
                     return 1;
                 default:
                     return 0;
@@ -597,7 +604,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_RefReturningCallAndAwait:
                 case ErrorCode.ERR_SpecialByRefInLambda:
                 case ErrorCode.ERR_DynamicRequiredTypesMissing:
-                case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                 case ErrorCode.ERR_CannotBeConvertedToUtf8:
                 case ErrorCode.ERR_FileTypeNonUniquePath:
                 case ErrorCode.ERR_InterceptorSignatureMismatch:
@@ -613,6 +619,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_SymbolDefinedInAssembly:
                 case ErrorCode.ERR_InterceptorArityNotCompatible:
                 case ErrorCode.ERR_InterceptorCannotBeGeneric:
+                case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
+                case ErrorCode.ERR_PossibleAsyncIteratorWithoutYield:
+                case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
                     // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // whenever new values are added here.
                     return true;
@@ -769,7 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_CheckedOverflow:
                 case ErrorCode.ERR_ConstOutOfRangeChecked:
                 case ErrorCode.ERR_BadVarargs:
-                case ErrorCode.ERR_ParamsMustBeArray:
+                case ErrorCode.ERR_ParamsMustBeCollection:
                 case ErrorCode.ERR_IllegalArglist:
                 case ErrorCode.ERR_IllegalUnsafe:
                 case ErrorCode.ERR_AmbigMember:
@@ -1003,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FieldCantHaveVoidType:
                 case ErrorCode.WRN_NonObsoleteOverridingObsolete:
                 case ErrorCode.ERR_SystemVoid:
-                case ErrorCode.ERR_ExplicitParamArray:
+                case ErrorCode.ERR_ExplicitParamArrayOrCollection:
                 case ErrorCode.WRN_BitwiseOrSignExtend:
                 case ErrorCode.ERR_VolatileStruct:
                 case ErrorCode.ERR_VolatileAndReadonly:
@@ -1799,7 +1808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FeatureNotAvailableInVersion7_1:
                 case ErrorCode.ERR_LanguageVersionCannotHaveLeadingZeroes:
                 case ErrorCode.ERR_CompilerAndLanguageVersion:
-                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_WindowsExperimental:
                 case ErrorCode.ERR_TupleInferredNamesNotAvailable:
                 case ErrorCode.ERR_TypelessTupleInAs:
                 case ErrorCode.ERR_NoRefOutWhenRefOnly:
@@ -1883,8 +1892,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadDynamicAwaitForEach:
                 case ErrorCode.ERR_NoConvToIAsyncDispWrongAsync:
                 case ErrorCode.ERR_NoConvToIDispWrongAsync:
-                case ErrorCode.ERR_PossibleAsyncIteratorWithoutYield:
-                case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
                 case ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable:
                 case ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis:
                 case ErrorCode.ERR_AttributeNotOnEventAccessor:
@@ -2346,7 +2353,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InterceptorContainingTypeCannotBeGeneric:
                 case ErrorCode.ERR_InterceptorPathNotInCompilation:
                 case ErrorCode.ERR_InterceptorPathNotInCompilationWithCandidate:
-                case ErrorCode.ERR_InterceptorPathNotInCompilationWithUnmappedCandidate:
                 case ErrorCode.ERR_InterceptorPositionBadToken:
                 case ErrorCode.ERR_InterceptorLineOutOfRange:
                 case ErrorCode.ERR_InterceptorCharacterOutOfRange:
@@ -2398,6 +2404,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                 case ErrorCode.WRN_ByValArraySizeConstRequired:
                 case ErrorCode.WRN_UseDefViolationRefField:
+                case ErrorCode.ERR_FeatureNotAvailableInVersion12:
+                case ErrorCode.ERR_CollectionExpressionEscape:
+                case ErrorCode.WRN_Experimental:
+                case ErrorCode.ERR_ExpectedInterpolatedString:
+                case ErrorCode.ERR_InterceptorGlobalNamespace:
+                case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
+                case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
+                case ErrorCode.ERR_CollectionExpressionImmutableArray:
+                case ErrorCode.ERR_InvalidExperimentalDiagID:
+                case ErrorCode.ERR_SpreadMissingMember:
+                case ErrorCode.ERR_CollectionExpressionTargetNoElementType:
+                case ErrorCode.ERR_CollectionExpressionMissingConstructor:
+                case ErrorCode.ERR_CollectionExpressionMissingAdd:
+                case ErrorCode.WRN_ConvertingLock:
+                case ErrorCode.ERR_BadSpecialByRefLock:
+                case ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections:
+                case ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
+                case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
+                case ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls:
+                case ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember:
+                case ErrorCode.ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember:
+                case ErrorCode.ERR_ParamsCollectionExpressionTree:
+                case ErrorCode.ERR_ParamsCollectionExtensionAddMethod:
+                case ErrorCode.ERR_ParamsCollectionMissingConstructor:
+                case ErrorCode.ERR_NoModifiersOnUsing:
+                case ErrorCode.ERR_CannotDynamicInvokeOnExpression:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
@@ -2438,6 +2472,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_DeprecatedCollectionInitAddStr:
                 case ErrorCode.ERR_DeprecatedSymbolStr:
                 case ErrorCode.ERR_MissingPredefinedMember:
+                case ErrorCode.ERR_DefaultValueUsedWithAttributes:
+                case ErrorCode.ERR_ExplicitParamArrayOrCollection:
                     return false;
                 default:
                     return true;

@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             If compilation.Compile(moduleBeingBuilt,
                                    emittingPdb:=True,
                                    diagnostics:=diagnostics,
-                                   filterOpt:=Function(s) changes.RequiresCompilation(s.GetISymbol()),
+                                   filterOpt:=Function(s) changes.RequiresCompilation(s),
                                    cancellationToken:=cancellationToken) Then
 
                 ' Map the definitions from the previous compilation to the current compilation.
@@ -116,21 +116,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return previousGeneration
             End If
 
+            Dim synthesizedTypes = moduleBeingBuilt.GetSynthesizedTypes()
             Dim currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers()
-            Dim currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.GetAllDeletedMembers()
+            Dim currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.DeletedMembers
 
             ' Mapping from previous compilation to the current.
-            Dim anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap()
             Dim sourceAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
-            Dim sourceContext = New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
-            Dim otherContext = New EmitContext(moduleBeingBuilt, Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
 
             Dim matcher = New VisualBasicSymbolMatcher(
-                anonymousTypeMap,
                 sourceAssembly,
-                sourceContext,
                 compilation.SourceAssembly,
-                otherContext,
+                synthesizedTypes,
                 currentSynthesizedMembers,
                 currentDeletedMembers)
 
@@ -139,11 +135,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             ' TODO can we reuse some data from the previous matcher?
             Dim matcherWithAllSynthesizedMembers = New VisualBasicSymbolMatcher(
-                anonymousTypeMap,
                 sourceAssembly,
-                sourceContext,
                 compilation.SourceAssembly,
-                otherContext,
+                synthesizedTypes,
                 mappedSynthesizedMembers,
                 mappedDeletedMembers)
 

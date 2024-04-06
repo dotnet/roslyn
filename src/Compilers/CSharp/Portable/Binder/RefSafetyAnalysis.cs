@@ -539,6 +539,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
+        {
+            base.VisitCompoundAssignmentOperator(node);
+            ValidateAssignment(node.Syntax, node.Left, node, isRef: false, _diagnostics);
+            return null;
+        }
+
         public override BoundNode? VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             this.Visit(node.Expression);
@@ -634,6 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitArguments(BoundCall node)
         {
+            Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
             VisitArgumentsAndGetArgumentPlaceholders(node.ReceiverOpt, node.Arguments);
 
             if (!node.HasErrors)
@@ -643,6 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Syntax,
                     method,
                     node.ReceiverOpt,
+                    node.InitialBindingReceiverIsSubjectToCloning,
                     method.Parameters,
                     node.Arguments,
                     node.ArgumentRefKindsOpt,
@@ -748,6 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node.Syntax,
                         constructor,
                         receiverOpt: null,
+                        receiverIsSubjectToCloning: ThreeState.Unknown,
                         constructor.Parameters,
                         node.Arguments,
                         node.ArgumentRefKindsOpt,
@@ -758,8 +768,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode? VisitPropertyAccess(BoundPropertyAccess node)
+        {
+            Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
+            return base.VisitPropertyAccess(node);
+        }
+
         public override BoundNode? VisitIndexerAccess(BoundIndexerAccess node)
         {
+            Debug.Assert(node.InitialBindingReceiverIsSubjectToCloning != ThreeState.Unknown);
             Visit(node.ReceiverOpt);
             VisitArgumentsAndGetArgumentPlaceholders(node.ReceiverOpt, node.Arguments);
 
@@ -770,6 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Syntax,
                     indexer,
                     node.ReceiverOpt,
+                    node.InitialBindingReceiverIsSubjectToCloning,
                     indexer.Parameters,
                     node.Arguments,
                     node.ArgumentRefKindsOpt,
@@ -792,6 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Syntax,
                     method,
                     receiverOpt: null,
+                    receiverIsSubjectToCloning: ThreeState.Unknown,
                     method.Parameters,
                     node.Arguments,
                     node.ArgumentRefKindsOpt,
@@ -892,6 +911,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 deconstructMethod,
                 invocation.ReceiverOpt,
+                invocation.InitialBindingReceiverIsSubjectToCloning,
                 parameters,
                 invocation.Arguments,
                 invocation.ArgumentRefKindsOpt,
@@ -982,6 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionEscape = GetInvocationEscapeScope(
                     equivalentSignatureMethod,
                     receiver: null,
+                    receiverIsSubjectToCloning: ThreeState.Unknown,
                     equivalentSignatureMethod.Parameters,
                     arguments,
                     refKinds,

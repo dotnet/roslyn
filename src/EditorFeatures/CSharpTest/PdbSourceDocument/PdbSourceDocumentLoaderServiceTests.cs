@@ -22,11 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
         [Fact]
         public async Task ReturnsSourceFileFromSourceLink()
         {
-            var source = @"
-public class C
-{
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {
@@ -56,11 +57,12 @@ public class C
         [Fact]
         public async Task NoUrlFoundReturnsNull()
         {
-            var source = @"
-public class C
-{
-    public event System.EventHandler [|E|] { add { } remove { } }
-}";
+            var source = """
+                public class C
+                {
+                    public event System.EventHandler [|E|] { add { } remove { } }
+                }
+                """;
 
             await RunTestAsync(async path =>
             {

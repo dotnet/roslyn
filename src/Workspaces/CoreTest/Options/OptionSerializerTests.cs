@@ -76,9 +76,6 @@ public class OptionSerializerTests
             ImplementTypeOptionsStorage.PropertyGenerationBehavior,
             CompletionOptionsStorage.EnterKeyBehavior,
             CompletionOptionsStorage.SnippetsBehavior,
-            InternalDiagnosticsOptionsStorage.RazorDiagnosticMode,
-            InternalDiagnosticsOptionsStorage.LiveShareDiagnosticMode,
-            InternalDiagnosticsOptionsStorage.NormalDiagnosticMode,
         };
 
         foreach (var option in options)

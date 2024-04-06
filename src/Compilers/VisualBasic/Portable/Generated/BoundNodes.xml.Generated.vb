@@ -846,13 +846,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundGetType
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, sourceType As BoundTypeExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, sourceType As BoundTypeExpression, getTypeFromHandle As MethodSymbol, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.GetType, syntax, type, hasErrors OrElse sourceType.NonNullAndHasErrors())
 
             Debug.Assert(sourceType IsNot Nothing, "Field 'sourceType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._SourceType = sourceType
+            Me._GetTypeFromHandle = getTypeFromHandle
         End Sub
 
 
@@ -863,14 +864,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly _GetTypeFromHandle As MethodSymbol
+        Public ReadOnly Property GetTypeFromHandle As MethodSymbol
+            Get
+                Return _GetTypeFromHandle
+            End Get
+        End Property
+
         <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitGetType(Me)
         End Function
 
-        Public Function Update(sourceType As BoundTypeExpression, type As TypeSymbol) As BoundGetType
-            If sourceType IsNot Me.SourceType OrElse type IsNot Me.Type Then
-                Dim result = New BoundGetType(Me.Syntax, sourceType, type, Me.HasErrors)
+        Public Function Update(sourceType As BoundTypeExpression, getTypeFromHandle As MethodSymbol, type As TypeSymbol) As BoundGetType
+            If sourceType IsNot Me.SourceType OrElse getTypeFromHandle IsNot Me.GetTypeFromHandle OrElse type IsNot Me.Type Then
+                Dim result = New BoundGetType(Me.Syntax, sourceType, getTypeFromHandle, type, Me.HasErrors)
                 result.CopyAttributes(Me)
                 Return result
             End If
@@ -925,22 +933,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundMethodInfo
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol, hasErrors As Boolean)
+        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, getMethodFromHandle As MethodSymbol, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.MethodInfo, syntax, type, hasErrors)
 
             Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(getMethodFromHandle IsNot Nothing, "Field 'getMethodFromHandle' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Method = method
+            Me._GetMethodFromHandle = getMethodFromHandle
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol)
+        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, getMethodFromHandle As MethodSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.MethodInfo, syntax, type)
 
             Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(getMethodFromHandle IsNot Nothing, "Field 'getMethodFromHandle' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Method = method
+            Me._GetMethodFromHandle = getMethodFromHandle
         End Sub
 
 
@@ -951,14 +963,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly _GetMethodFromHandle As MethodSymbol
+        Public ReadOnly Property GetMethodFromHandle As MethodSymbol
+            Get
+                Return _GetMethodFromHandle
+            End Get
+        End Property
+
         <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitMethodInfo(Me)
         End Function
 
-        Public Function Update(method As MethodSymbol, type As TypeSymbol) As BoundMethodInfo
-            If method IsNot Me.Method OrElse type IsNot Me.Type Then
-                Dim result = New BoundMethodInfo(Me.Syntax, method, type, Me.HasErrors)
+        Public Function Update(method As MethodSymbol, getMethodFromHandle As MethodSymbol, type As TypeSymbol) As BoundMethodInfo
+            If method IsNot Me.Method OrElse getMethodFromHandle IsNot Me.GetMethodFromHandle OrElse type IsNot Me.Type Then
+                Dim result = New BoundMethodInfo(Me.Syntax, method, getMethodFromHandle, type, Me.HasErrors)
                 result.CopyAttributes(Me)
                 Return result
             End If
@@ -6213,6 +6232,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._LocalSymbol = localSymbol
             Me._IsLValue = isLValue
             Me._EmitExpressions = emitExpressions
+
+            Validate()
+        End Sub
+
+        Private Partial Sub Validate()
         End Sub
 
         Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, isLValue As Boolean, emitExpressions As PseudoVariableExpressions, type As TypeSymbol)
@@ -6225,6 +6249,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._LocalSymbol = localSymbol
             Me._IsLValue = isLValue
             Me._EmitExpressions = emitExpressions
+
+            Validate()
         End Sub
 
 
@@ -6846,7 +6872,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundLambda
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Lambda, syntax, Nothing, hasErrors OrElse body.NonNullAndHasErrors())
 
             Debug.Assert(lambdaSymbol IsNot Nothing, "Field 'lambdaSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6880,8 +6906,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly _Diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
-        Public ReadOnly Property Diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
+        Private ReadOnly _Diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
+        Public ReadOnly Property Diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
             Get
                 Return _Diagnostics
             End Get
@@ -6913,7 +6939,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return visitor.VisitLambda(Me)
         End Function
 
-        Public Function Update(lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind) As BoundLambda
+        Public Function Update(lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind) As BoundLambda
             If lambdaSymbol IsNot Me.LambdaSymbol OrElse body IsNot Me.Body OrElse diagnostics <> Me.Diagnostics OrElse lambdaBinderOpt IsNot Me.LambdaBinderOpt OrElse delegateRelaxation <> Me.DelegateRelaxation OrElse methodConversionKind <> Me.MethodConversionKind Then
                 Dim result = New BoundLambda(Me.Syntax, lambdaSymbol, body, diagnostics, lambdaBinderOpt, delegateRelaxation, methodConversionKind, Me.HasErrors)
                 result.CopyAttributes(Me)
@@ -8945,12 +8971,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundConditionalAccessReceiverPlaceholder
         Inherits BoundRValuePlaceholderBase
 
-        Public Sub New(syntax As SyntaxNode, placeholderId As Integer, type As TypeSymbol, hasErrors As Boolean)
+        Public Sub New(syntax As SyntaxNode, placeholderId As Integer, capture As Boolean, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.ConditionalAccessReceiverPlaceholder, syntax, type, hasErrors)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._PlaceholderId = placeholderId
+            Me._Capture = capture
 
             Validate()
         End Sub
@@ -8958,12 +8985,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, placeholderId As Integer, type As TypeSymbol)
+        Public Sub New(syntax As SyntaxNode, placeholderId As Integer, capture As Boolean, type As TypeSymbol)
             MyBase.New(BoundKind.ConditionalAccessReceiverPlaceholder, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._PlaceholderId = placeholderId
+            Me._Capture = capture
 
             Validate()
         End Sub
@@ -8976,14 +9004,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly _Capture As Boolean
+        Public ReadOnly Property Capture As Boolean
+            Get
+                Return _Capture
+            End Get
+        End Property
+
         <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitConditionalAccessReceiverPlaceholder(Me)
         End Function
 
-        Public Function Update(placeholderId As Integer, type As TypeSymbol) As BoundConditionalAccessReceiverPlaceholder
-            If placeholderId <> Me.PlaceholderId OrElse type IsNot Me.Type Then
-                Dim result = New BoundConditionalAccessReceiverPlaceholder(Me.Syntax, placeholderId, type, Me.HasErrors)
+        Public Function Update(placeholderId As Integer, capture As Boolean, type As TypeSymbol) As BoundConditionalAccessReceiverPlaceholder
+            If placeholderId <> Me.PlaceholderId OrElse capture <> Me.Capture OrElse type IsNot Me.Type Then
+                Dim result = New BoundConditionalAccessReceiverPlaceholder(Me.Syntax, placeholderId, capture, type, Me.HasErrors)
                 result.CopyAttributes(Me)
                 Return result
             End If
@@ -12098,7 +12133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitGetType(node As BoundGetType) As BoundNode
             Dim sourceType As BoundTypeExpression = DirectCast(Me.Visit(node.SourceType), BoundTypeExpression)
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(sourceType, type)
+            Return node.Update(sourceType, node.GetTypeFromHandle, type)
         End Function
 
         Public Overrides Function VisitFieldInfo(node As BoundFieldInfo) As BoundNode
@@ -12108,7 +12143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitMethodInfo(node As BoundMethodInfo) As BoundNode
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(node.Method, type)
+            Return node.Update(node.Method, node.GetMethodFromHandle, type)
         End Function
 
         Public Overrides Function VisitTypeExpression(node As BoundTypeExpression) As BoundNode
@@ -13059,7 +13094,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitConditionalAccessReceiverPlaceholder(node As BoundConditionalAccessReceiverPlaceholder) As BoundNode
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(node.PlaceholderId, type)
+            Return node.Update(node.PlaceholderId, node.Capture, type)
         End Function
 
         Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess) As BoundNode
@@ -13214,6 +13249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitGetType(node As BoundGetType, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("[getType]", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("sourceType", Nothing, new TreeDumperNode() {Visit(node.SourceType, Nothing)}),
+                New TreeDumperNode("getTypeFromHandle", node.GetTypeFromHandle, Nothing),
                 New TreeDumperNode("type", node.Type, Nothing)
             })
         End Function
@@ -13228,6 +13264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitMethodInfo(node As BoundMethodInfo, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("methodInfo", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("method", node.Method, Nothing),
+                New TreeDumperNode("getMethodFromHandle", node.GetMethodFromHandle, Nothing),
                 New TreeDumperNode("type", node.Type, Nothing)
             })
         End Function
@@ -14510,6 +14547,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitConditionalAccessReceiverPlaceholder(node As BoundConditionalAccessReceiverPlaceholder, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("conditionalAccessReceiverPlaceholder", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("placeholderId", node.PlaceholderId, Nothing),
+                New TreeDumperNode("capture", node.Capture, Nothing),
                 New TreeDumperNode("type", node.Type, Nothing)
             })
         End Function

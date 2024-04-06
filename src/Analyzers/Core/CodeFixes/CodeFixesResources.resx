@@ -210,4 +210,7 @@
   <data name="Make_method_synchronous" xml:space="preserve">
     <value>Make method synchronous</value>
   </data>
+  <data name="_0_may_change_semantics" xml:space="preserve">
+    <value>{0} (may change semantics)</value>
+  </data>
 </root>

@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Classification
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
     <[UseExportProvider]>
@@ -17,7 +18,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
                 host,
                 Async Function(document As Document, position As Integer, context As SimpleFindUsagesContext) As Task
                     Dim findUsagesService = document.GetLanguageService(Of IFindUsagesService)
-                    Await findUsagesService.FindImplementationsAsync(context, document, position, CancellationToken.None).ConfigureAwait(False)
+                    Dim options = New TestOptionsProvider(Of ClassificationOptions)(ClassificationOptions.Default)
+                    Await findUsagesService.FindImplementationsAsync(context, document, position, options, CancellationToken.None).ConfigureAwait(False)
                 End Function,
                 shouldSucceed,
                 metadataDefinitions)
@@ -500,7 +502,7 @@ class D : C
 
         <Theory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/43093")>
-        Public Async Function TestMultiTargetting1(host As TestHost) As Task
+        Public Async Function TestMultiTargeting1(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
@@ -532,7 +534,7 @@ public class [|Impl|] : IInterface
 
         <Theory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/46818")>
-        Public Async Function TestCrossTargetting1(host As TestHost) As Task
+        Public Async Function TestCrossTargeting1(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
@@ -541,7 +543,7 @@ public class [|Impl|] : IInterface
 using System;
 using System.Threading.Tasks;
 
-namespace MultiTargettingCore
+namespace MultiTargetingCore
 {
     public class Class1
     {
@@ -579,7 +581,7 @@ public class StringCreator : IStringCreator
 
         <Theory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/46818")>
-        Public Async Function TestCrossTargetting2(host As TestHost) As Task
+        Public Async Function TestCrossTargeting2(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
@@ -588,7 +590,7 @@ public class StringCreator : IStringCreator
 using System;
 using System.Threading.Tasks;
 
-namespace MultiTargettingCore
+namespace MultiTargetingCore
 {
     public class Class1
     {
@@ -626,7 +628,7 @@ public class StringCreator : IStringCreator
 
         <Theory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/46818")>
-        Public Async Function TestCrossTargetting3(host As TestHost) As Task
+        Public Async Function TestCrossTargeting3(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
@@ -635,7 +637,7 @@ public class StringCreator : IStringCreator
 using System;
 using System.Threading.Tasks;
 
-namespace MultiTargettingCore
+namespace MultiTargetingCore
 {
     public class Class1
     {
@@ -727,6 +729,58 @@ interface I&lt;T&gt; { static abstract T operator $$>>>(T x, int y); }
         <Document>
 class C : I&lt;C&gt; { static C I&lt;C&gt;.operator [|>>>|](C x, int y) { return x; } }
 interface I&lt;T&gt; { static abstract T operator $$>>>(T x, int y); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestInSourceGeneratedDocument1(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <DocumentFromSourceGenerator>
+interface I { void $$M(); }
+class C : I { public abstract void M() { } }
+class D : C { public override void [|M|]() { } }}
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestInSourceGeneratedDocument2(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <DocumentFromSourceGenerator>
+interface I { void $$M(); }
+class C : I { public abstract void M() { } }
+        </DocumentFromSourceGenerator>
+        <DocumentFromSourceGenerator>
+class D : C { public override void [|M|]() { } }}
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestInSourceGeneratedDocument3(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <DocumentFromSourceGenerator>
+interface I { void $$M(); }
+class C : I { public abstract void M() { } }
+        </DocumentFromSourceGenerator>
+        <Document>
+class D : C { public override void [|M|]() { } }}
         </Document>
     </Project>
 </Workspace>

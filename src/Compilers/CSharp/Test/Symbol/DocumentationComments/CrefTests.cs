@@ -6729,14 +6729,14 @@ class Test
                 """;
 
             verify(CreateCompilation(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(
-                // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     void M(ref readonly int x)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16),
-                // (8,26): warning CS1658: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 16),
+                // (8,26): warning CS1658: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.. See also error CS9058.
                 //     /// <see cref="M(ref readonly int)"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments("The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(8, 26)));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments("Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.", "9058").WithLocation(8, 26)));
 
-            verify(CreateCompilation(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics());
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular12.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics());
             verify(CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics());
 
             static void verify(CSharpCompilation compilation)
@@ -6773,9 +6773,9 @@ class Test
                 """;
 
             verify(CreateCompilation(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(
-                // (3,16): error CS8652: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     void M(ref readonly int x)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("ref readonly parameters").WithLocation(3, 16),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 16),
                 // (8,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'M(readonly ref int)'
                 //     /// <see cref="M(readonly ref int)"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "M(").WithArguments("M(readonly ref int)").WithLocation(8, 20),
@@ -6793,7 +6793,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments(") expected", "1026").WithLocation(8, 22)
             };
 
-            verify(CreateCompilation(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular12.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
             verify(CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
 
             static void verify(CSharpCompilation compilation)
@@ -6836,7 +6836,7 @@ class Test
             };
 
             verify(CreateCompilation(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
-            verify(CreateCompilation(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular12.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
             verify(CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
 
             static void verify(CSharpCompilation compilation)
@@ -6872,9 +6872,9 @@ class Test
                 // (8,20): warning CS1574: XML comment has cref attribute 'M(ref readonly int)' that could not be resolved
                 //     /// <see cref="M(ref readonly int)"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "M(ref readonly int)").WithArguments("M(ref readonly int)").WithLocation(8, 20),
-                // (8,26): warning CS1658: The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
+                // (8,26): warning CS1658: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.. See also error CS9058.
                 //     /// <see cref="M(ref readonly int)"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments("The feature 'ref readonly parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(8, 26)));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments("Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.", "9058").WithLocation(8, 26)));
 
             var expectedDiagnostics = new[]
             {
@@ -6886,7 +6886,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "M(ref readonly int)").WithArguments("M(ref readonly int)").WithLocation(8, 20)
             };
 
-            verify(CreateCompilation(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular12.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
             verify(CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
 
             static void verify(CSharpCompilation compilation)

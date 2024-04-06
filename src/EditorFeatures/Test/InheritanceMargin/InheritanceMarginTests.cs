@@ -2079,8 +2079,8 @@ using System.Collections;";
             return VerifyInDifferentProjectsAsync(
                 (markup1, LanguageNames.CSharp),
                 (markup2, LanguageNames.VisualBasic),
-                new[] { itemForBar, itemForFooInMarkup1 },
-                new[] { itemForIBar, itemForFooInMarkup2 },
+                [itemForBar, itemForFooInMarkup1],
+                [itemForIBar, itemForFooInMarkup2],
                 testHost);
         }
 
@@ -2150,8 +2150,8 @@ using System.Collections;";
             return VerifyInDifferentProjectsAsync(
                 (markup1, LanguageNames.VisualBasic),
                 (markup2, LanguageNames.CSharp),
-                new[] { itemForProjectImports, itemForBar44, itemForFooInMarkup1 },
-                new[] { itemForIBar, itemForFooInMarkup2 },
+                [itemForProjectImports, itemForBar44, itemForFooInMarkup1],
+                [itemForIBar, itemForFooInMarkup2],
                 testHost);
         }
 
@@ -2213,8 +2213,8 @@ using System.Collections;";
             return VerifyInDifferentProjectsAsync(
                 (markup1, LanguageNames.CSharp),
                 (markup2, LanguageNames.VisualBasic),
-                new[] { itemForBarInMarkup1 },
-                new[] { itemForIBar, itemForBarInMarkup2 },
+                [itemForBarInMarkup1],
+                [itemForIBar, itemForBarInMarkup2],
                 testHost);
         }
 
@@ -2276,8 +2276,8 @@ using System.Collections;";
             return VerifyInDifferentProjectsAsync(
                 (markup1, LanguageNames.CSharp),
                 (markup2, LanguageNames.CSharp),
-                new[] { itemForBarInMarkup1 },
-                new[] { itemForIBar, itemForBarInMarkup2 },
+                [itemForBarInMarkup1],
+                [itemForIBar, itemForBarInMarkup2],
                 testHost);
         }
 

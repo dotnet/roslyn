@@ -4,20 +4,19 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
+
+internal partial class SymbolEquivalenceComparer
 {
-    internal partial class SymbolEquivalenceComparer
+    internal class SignatureTypeSymbolEquivalenceComparer(SymbolEquivalenceComparer symbolEquivalenceComparer) : IEqualityComparer<ITypeSymbol?>
     {
-        internal class SignatureTypeSymbolEquivalenceComparer(SymbolEquivalenceComparer symbolEquivalenceComparer) : IEqualityComparer<ITypeSymbol?>
-        {
-            public bool Equals(ITypeSymbol? x, ITypeSymbol? y)
-                => this.Equals(x, y, null);
+        public bool Equals(ITypeSymbol? x, ITypeSymbol? y)
+            => this.Equals(x, y, null);
 
-            public bool Equals(ITypeSymbol? x, ITypeSymbol? y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
-                => symbolEquivalenceComparer.GetEquivalenceVisitor(compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: true).AreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
+        public bool Equals(ITypeSymbol? x, ITypeSymbol? y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
+            => symbolEquivalenceComparer.GetEquivalenceVisitor(compareMethodTypeParametersByIndex: true, symbolEquivalenceComparer._objectAndDynamicCompareEqually).AreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
 
-            public int GetHashCode(ITypeSymbol? x)
-                => symbolEquivalenceComparer.GetGetHashCodeVisitor(compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: true).GetHashCode(x, currentHash: 0);
-        }
+        public int GetHashCode(ITypeSymbol? x)
+            => symbolEquivalenceComparer.GetGetHashCodeVisitor(compareMethodTypeParametersByIndex: true, symbolEquivalenceComparer._objectAndDynamicCompareEqually).GetHashCode(x, currentHash: 0);
     }
 }
