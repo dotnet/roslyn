@@ -16,19 +16,19 @@ internal readonly struct AssetHint
     /// <summary>
     /// Instance that will only look up solution-level data when searching for checksums.
     /// </summary>
-    public static AssetHint SolutionOnly = default;
+    public static readonly AssetHint SolutionOnly = default;
 
     /// <summary>
     /// Instance that will only look up solution-level, as well as the top level nodes for projects when searching for
     /// checksums.  It will not descend into projects.
     /// </summary>
-    public static AssetHint SolutionAndTopLevelProjectsOnly = new(projectId: null, documentId: null, topLevelProjects: true, isFullLookup_ForTestingPurposesOnly: false);
+    public static readonly AssetHint SolutionAndTopLevelProjectsOnly = new(projectId: null, documentId: null, topLevelProjects: true, isFullLookup_ForTestingPurposesOnly: false);
 
     /// <summary>
     /// Special instance, allowed only in tests/debug-asserts, that can do a full lookup across the entire checksum
     /// tree.  Should not be used in normal release-mode product code.
     /// </summary>
-    public static AssetHint FullLookupForTesting = new(projectId: null, documentId: null, topLevelProjects: false, isFullLookup_ForTestingPurposesOnly: true);
+    public static readonly AssetHint FullLookupForTesting = new(projectId: null, documentId: null, topLevelProjects: false, isFullLookup_ForTestingPurposesOnly: true);
 
     [DataMember(Order = 0)]
     public readonly ProjectId? ProjectId;
