@@ -144,7 +144,7 @@ internal sealed class CSharpConvertForEachToForCodeRefactoringProvider :
 
             return bodyBlock.InsertNodesBefore(
                 bodyBlock.Statements[0],
-                SpecializedCollections.SingletonEnumerable(variableStatement));
+                [variableStatement]);
         }
     }
 
