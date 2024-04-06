@@ -61,11 +61,6 @@ internal partial class ProjectState
 
     private AnalyzerOptions? _lazyAnalyzerOptions;
 
-    /// <summary>
-    /// The list of source generators and the analyzer reference they came from.
-    /// </summary>
-    private ImmutableDictionary<ISourceGenerator, AnalyzerReference>? _lazySourceGenerators;
-
     private ProjectState(
         ProjectInfo projectInfo,
         LanguageServices languageServices,
@@ -735,38 +730,6 @@ internal partial class ProjectState
         }
 
         return With(projectInfo: ProjectInfo.WithAnalyzerReferences(analyzerReferences).WithVersion(Version.GetNewerVersion()));
-    }
-
-    [MemberNotNull(nameof(_lazySourceGenerators))]
-    private void EnsureSourceGeneratorsInitialized()
-    {
-        if (_lazySourceGenerators == null)
-        {
-            var builder = ImmutableDictionary.CreateBuilder<ISourceGenerator, AnalyzerReference>();
-
-            foreach (var analyzerReference in AnalyzerReferences)
-            {
-                foreach (var generator in analyzerReference.GetGenerators(Language))
-                    builder.Add(generator, analyzerReference);
-            }
-
-            Interlocked.CompareExchange(ref _lazySourceGenerators, builder.ToImmutable(), comparand: null);
-        }
-    }
-
-    public IEnumerable<ISourceGenerator> SourceGenerators
-    {
-        get
-        {
-            EnsureSourceGeneratorsInitialized();
-            return _lazySourceGenerators.Keys;
-        }
-    }
-
-    public AnalyzerReference GetAnalyzerReferenceForGenerator(ISourceGenerator generator)
-    {
-        EnsureSourceGeneratorsInitialized();
-        return _lazySourceGenerators[generator];
     }
 
     public ProjectState AddDocuments(ImmutableArray<DocumentState> documents)

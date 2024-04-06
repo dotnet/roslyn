@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="Refine_using_Copilot">
         <source>Refine using Copilot</source>
-        <target state="new">Refine using Copilot</target>
+        <target state="translated">Copilot を使用して絞り込む</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
@@ -295,6 +295,11 @@
       <trans-unit id="Roslyn_Test_Code_Markup">
         <source>Roslyn Test Code Markup</source>
         <target state="translated">Roslyn テスト コード マークアップ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run">
+        <source>Run</source>
+        <target state="new">Run</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_comment">

@@ -269,7 +269,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLock">
         <source>A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</source>
-        <target state="new">A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</target>
+        <target state="translated">'System.Threading.Lock' 형식의 값에 대한 lock 문은 비동기 메서드 또는 비동기 람다 식에서 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefUsing">
@@ -327,6 +327,11 @@
         <target state="translated">메서드 그룹 '{0}'을(를) 대리자 형식 '{1}'(으)로 변환할 수 없습니다(&amp;M).</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotDynamicInvokeOnExpression">
+        <source>Cannot perform a dynamic invocation on an expression with type '{0}'.</source>
+        <target state="new">Cannot perform a dynamic invocation on an expression with type '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
         <source>The delegate type could not be inferred.</source>
         <target state="translated">대리자 형식을 유추할 수 없습니다.</target>
@@ -379,7 +384,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections">
         <source>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</source>
-        <target state="new">The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</target>
+        <target state="translated">동적 형식을 가진 인수가 사용되고 메서드에 배열 매개 변수가 아닌 params 컬렉션 매개 변수가 있으므로 메서드 '{0}' 형식 인수를 사용법에서 유추할 수 없습니다. 형식 인수를 명시적으로 지정해 보세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -443,13 +448,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingAdd">
-        <source>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</source>
-        <target state="new">Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</target>
+        <source>Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</source>
+        <target state="translated">컬렉션 식 형식 '{0}'에는 단일 인수로 호출할 수 있는 인스턴스 또는 확장 메서드 'Add'가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingConstructor">
         <source>Collection expression type must have an applicable constructor that can be called with no arguments.</source>
-        <target state="new">Collection expression type must have an applicable constructor that can be called with no arguments.</target>
+        <target state="translated">컬렉션 식 형식에는 인수 없이 호출할 수 있는 적용 가능한 생성자가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
@@ -459,7 +464,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetNoElementType">
         <source>Collection expression target '{0}' has no element type.</source>
-        <target state="new">Collection expression target '{0}' has no element type.</target>
+        <target state="translated">컬렉션 식 대상 '{0}'에 요소 형식이 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
@@ -619,7 +624,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
         <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
-        <target state="new">Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</target>
+        <target state="translated">'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'를 사용하지 마세요. 대신 'params' 키워드를 사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
@@ -984,7 +989,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
         <source>Method '{0}' must be non-generic to match '{1}'.</source>
-        <target state="translated">'{1}' 일치하려면 메서드 '{0}' 제네릭이 아니어야 합니다.</target>
+        <target state="translated">'{0}' 메서드는 '{1}'에 일치하려면 제네릭이 아니어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotInterceptNameof">
@@ -1419,7 +1424,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoModifiersOnUsing">
         <source>Modifiers cannot be placed on using declarations</source>
-        <target state="new">Modifiers cannot be placed on using declarations</target>
+        <target state="translated">선언을 사용하여 한정자를 배치할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
@@ -1539,42 +1544,42 @@
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
         <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="new">Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</target>
+        <target state="translated">'{0}'의 배열 매개 변수가 아닌 params 컬렉션 매개 변수의 확장된 형식과 일반 형식 간의 모호성입니다. 해당 인수에는 'dynamic' 형식만 있습니다. 동적 인수를 캐스팅하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
-        <target state="new">Constructor '{0}' leaves required member '{1}' uninitialized.</target>
+        <target state="translated">생성자 '{0}'은(는) 필수 멤버 '{1}'을(를) 초기화되지 않은 상태로 둡니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionExpressionTree">
         <source>An expression tree may not contain an expanded form of non-array params collection parameter.</source>
-        <target state="new">An expression tree may not contain an expanded form of non-array params collection parameter.</target>
+        <target state="translated">식 트리에는 배열 매개 변수가 아닌 params 컬렉션 매개 변수의 확장된 형식을 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionExtensionAddMethod">
         <source>'{0}' does not contain a definition for a suitable instance 'Add' method</source>
-        <target state="new">'{0}' does not contain a definition for a suitable instance 'Add' method</target>
+        <target state="translated">'{0}'에 적합한 인스턴스 'Add' 메서드에 대한 정의가 포함되어 있지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionInfiniteChainOfConstructorCalls">
         <source>Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</source>
-        <target state="new">Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</target>
+        <target state="translated">params 컬렉션 '{0}'을(를) 만들면 생성자 '{1}’이(가) 무한 체인으로 호출됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionMissingConstructor">
         <source>Non-array params collection type must have an applicable constructor that can be called with no arguments.</source>
-        <target state="new">Non-array params collection type must have an applicable constructor that can be called with no arguments.</target>
+        <target state="translated">배열 매개 변수가 아닌 params 컬렉션 형식에는 인수 없이 호출할 수 있는 적용 가능한 생성자가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember">
         <source>Method '{0}' cannot be less visible than the member with params collection '{1}'.</source>
-        <target state="new">Method '{0}' cannot be less visible than the member with params collection '{1}'.</target>
+        <target state="translated">'{0}' 메서드는 params 컬렉션이 '{1}'인 멤버보다 작게 표시할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsMustBeCollection">
         <source>The params parameter must have a valid collection type</source>
-        <target state="new">The params parameter must have a valid collection type</target>
+        <target state="translated">params 매개 변수는 유효한 컬렉션 형식이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
@@ -2244,7 +2249,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitIndexerInitializer">
         <source>implicit indexer initializer</source>
-        <target state="new">implicit indexer initializer</target>
+        <target state="translated">암시적 인덱서 이니셜라이저</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
@@ -2299,7 +2304,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLockObject">
         <source>Lock object</source>
-        <target state="new">Lock object</target>
+        <target state="translated">개체 잠금</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
@@ -2314,7 +2319,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureParamsCollections">
         <source>params collections</source>
-        <target state="new">params collections</target>
+        <target state="translated">params 컬렉션</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -2364,7 +2369,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
         <source>string escape character</source>
-        <target state="new">string escape character</target>
+        <target state="translated">문자열 이스케이프 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStructFieldInitializers">
@@ -2644,12 +2649,12 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <target state="translated">다른 형식으로 변환된 'System.Threading.Lock' 형식의 값은 ‘lock’ 문에서 의도하지 않은 모니터 기반 잠금을 사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock_Title">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <target state="translated">다른 형식으로 변환된 'System.Threading.Lock' 형식의 값은 ‘lock’ 문에서 의도하지 않은 모니터 기반 잠금을 사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -2674,32 +2679,32 @@
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor">
         <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">배열 매개 변수가 아닌 params 컬렉션 매개 변수가 있는 하나 이상의 생성자 오버로드는 동적 디스패치 중에 지원되지 않는 확장된 형식에서만 적용할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor_Title">
         <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">배열 매개 변수가 아닌 params 컬렉션 매개 변수가 있는 하나 이상의 생성자 오버로드는 동적 디스패치 중에 지원되지 않는 확장된 형식에서만 적용할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer">
         <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">배열 매개 변수가 아닌 params 컬렉션 매개 변수가 있는 하나 이상의 인덱서 오버로드는 동적 디스패치 중에 지원되지 않는 확장된 형식에서만 적용할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer_Title">
         <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">배열 매개 변수가 아닌 params 컬렉션 매개 변수가 있는 하나 이상의 인덱서 오버로드는 동적 디스패치 중에 지원되지 않는 확장된 형식에서만 적용할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod">
         <source>One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">배열 매개 변수가 아닌 params 컬렉션 매개 변수가 있는 '{0}' 메서드의 하나 이상의 오버로드는 동적 디스패치 중에 지원되지 않는 확장된 형식에서만 적용할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod_Title">
         <source>One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">배열 매개 변수가 아닌 params 컬렉션 매개 변수가 있는 메서드의 오버로드 하나 이상은 동적 디스패치 중에 지원되지 않는 확장된 형식에서만 적용할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall">
@@ -10958,7 +10963,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
         <source>Cannot specify a default value for a parameter collection</source>
-        <target state="needs-review-translation">매개 변수 배열의 기본값을 지정할 수 없습니다.</target>
+        <target state="translated">매개 변수 컬렉션의 기본값을 지정할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">

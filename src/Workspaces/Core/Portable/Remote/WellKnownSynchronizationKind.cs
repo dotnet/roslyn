@@ -22,6 +22,7 @@ internal enum WellKnownSynchronizationKind
     ProjectAttributes,
     DocumentAttributes,
     SourceGeneratedDocumentIdentity,
+    SourceGeneratorExecutionVersionMap,
 
     CompilationOptions,
     ParseOptions,

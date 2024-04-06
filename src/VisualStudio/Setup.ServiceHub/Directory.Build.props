@@ -24,7 +24,6 @@
     <!-- Path to our servicehub entry point dll in the vsix directory relative 
          to our servicehub.servicehub.json files in the same vsix directory -->
     <ServiceHubAssemblyBasePath>.\</ServiceHubAssemblyBasePath>
-    <ServiceHubHostRuntime>core</ServiceHubHostRuntime>
   </PropertyGroup>
 
   <ItemGroup>

@@ -279,7 +279,7 @@ internal sealed class CSharpSyntaxFormattingService : CSharpSyntaxFormatting, IS
         if (tokenBeforeCaret.Kind() is SyntaxKind.CloseBraceToken or
             SyntaxKind.EndOfFileToken)
         {
-            return SpecializedCollections.EmptyEnumerable<AbstractFormattingRule>();
+            return [];
         }
 
         return SpecializedCollections.SingletonEnumerable(TypingFormattingRule.Instance);

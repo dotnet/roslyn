@@ -547,6 +547,9 @@ Do you want to proceed?</value>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <data name="Run" xml:space="preserve">
+    <value>Run</value>
+  </data>
   <data name="Changes" xml:space="preserve">
     <value>Changes</value>
   </data>

@@ -146,7 +146,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
             }
             else
             {
-                initialDocumentStates = SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>();
+                initialDocumentStates = [];
             }
 
             var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));

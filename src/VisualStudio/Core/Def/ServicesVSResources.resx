@@ -859,6 +859,12 @@ Additional information: {1}</value>
   <data name="Search_found_no_results" xml:space="preserve">
     <value>Search found no results</value>
   </data>
+  <data name="Search_found_no_results_no_csharp_or_vb_projects_opened" xml:space="preserve">
+    <value>Search found no results: no C# or Visual Basic projects are opened</value>
+  </data>
+  <data name="Search_cancelled" xml:space="preserve">
+    <value>Search canceled</value>
+  </data>
   <data name="Sync_Class_View" xml:space="preserve">
     <value>Sync Class View</value>
   </data>
@@ -1897,10 +1903,37 @@ Additional information: {1}</value>
   <data name="AssemblyNameAndVersionDisplay" xml:space="preserve">
     <value>{0} ({1})</value>
   </data>
+  <data name="Automatic_Run_generators_after_any_change" xml:space="preserve">
+    <value>Automatic. Run generators after any change</value>
+  </data>
+  <data name="Source_generator_execution_requires_restart" xml:space="preserve">
+    <value>Source generator execution (requires restart):</value>
+  </data>
+  <data name="Source_Generators" xml:space="preserve">
+    <value>Source Generators</value>
+  </data>
+  <data name="Balanced_Run_generators_after_saving_or_building" xml:space="preserve">
+    <value>Balanced. Run generators after saving or building</value>
+  </data>
+  <data name="Roslyn_save_command_handler" xml:space="preserve">
+    <value>Roslyn save command handler</value>
+  </data>
+  <data name="Generator_running" xml:space="preserve">
+    <value>Generator running...</value>
+  </data>
+  <data name="Rerun_generator" xml:space="preserve">
+    <value>Rerun generator</value>
+  </data>
   <data name="The_project_no_longer_exists" xml:space="preserve">
     <value>The project no longer exists</value>
   </data>
   <data name="Show_guides_for_comments_and_preprocessor_regions" xml:space="preserve">
     <value>Show guides for comments and preprocessor regions</value>
+  </data>
+  <data name="Semantic_search_results" xml:space="preserve">
+    <value>Semantic Search Results</value>
+  </data>
+  <data name="Semantic_search_0" xml:space="preserve">
+    <value>Semantic Search ({0})</value>
   </data>
 </root>

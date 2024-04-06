@@ -43,6 +43,6 @@ internal class ChangeSignatureCodeAction(AbstractChangeSignatureService changeSi
             }
         }
 
-        return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
+        return [];
     }
 }

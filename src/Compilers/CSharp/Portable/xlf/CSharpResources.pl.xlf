@@ -269,7 +269,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLock">
         <source>A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</source>
-        <target state="new">A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</target>
+        <target state="translated">Instrukcja blokady na wartości typu „System.Threading.Lock” nie może być używana w metodach asynchronicznych lub asynchronicznych wyrażeniach lambda.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefUsing">
@@ -327,6 +327,11 @@
         <target state="translated">Nie można przekonwertować &amp;grupy metod „{0}” na typ delegata „{1}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotDynamicInvokeOnExpression">
+        <source>Cannot perform a dynamic invocation on an expression with type '{0}'.</source>
+        <target state="new">Cannot perform a dynamic invocation on an expression with type '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
         <source>The delegate type could not be inferred.</source>
         <target state="translated">Nie można wywnioskować typu delegowania.</target>
@@ -379,7 +384,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections">
         <source>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</source>
-        <target state="new">The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</target>
+        <target state="translated">Argumenty typu dla metody „{0}” nie mogą być wywnioskowane z użycia, ponieważ używany jest argument typu dynamicznego, a metoda ma parametr kolekcji params inny niż tablica. Spróbuj jawnie określić argumenty typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -443,13 +448,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingAdd">
-        <source>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</source>
-        <target state="new">Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</target>
+        <source>Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</source>
+        <target state="translated">Typ wyrażenia kolekcji „{0}” musi mieć wystąpienie lub metodę rozszerzenia „Dodaj”, którą można wywołać z pojedynczym argumentem.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingConstructor">
         <source>Collection expression type must have an applicable constructor that can be called with no arguments.</source>
-        <target state="new">Collection expression type must have an applicable constructor that can be called with no arguments.</target>
+        <target state="translated">Typ wyrażenia kolekcji musi mieć odpowiedni konstruktor, który można wywołać bez argumentów.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
@@ -459,7 +464,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetNoElementType">
         <source>Collection expression target '{0}' has no element type.</source>
-        <target state="new">Collection expression target '{0}' has no element type.</target>
+        <target state="translated">Wyrażenie kolekcji docelowej „{0}” nie ma typu elementu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
@@ -619,7 +624,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
         <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
-        <target state="new">Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</target>
+        <target state="translated">Nie używaj atrybutu „System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute”. Zamiast niego użyj słowa kluczowego „params”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
@@ -1419,7 +1424,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoModifiersOnUsing">
         <source>Modifiers cannot be placed on using declarations</source>
-        <target state="new">Modifiers cannot be placed on using declarations</target>
+        <target state="translated">Modyfikatorów nie można umieszczać przy użyciu deklaracji usług</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
@@ -1539,42 +1544,42 @@
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
         <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="new">Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</target>
+        <target state="translated">Niejednoznaczność między rozszerzoną i normalną formą parametru kolekcji params niebędącego tablicą „{0}”, jedyny odpowiadający argument ma typ dynamiczny. Rozważ rzutowanie argumentu dynamicznego.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
-        <target state="new">Constructor '{0}' leaves required member '{1}' uninitialized.</target>
+        <target state="translated">Konstruktor „{0}” pozostawia wymaganą składową "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionExpressionTree">
         <source>An expression tree may not contain an expanded form of non-array params collection parameter.</source>
-        <target state="new">An expression tree may not contain an expanded form of non-array params collection parameter.</target>
+        <target state="translated">Drzewo wyrażeń nie może zawierać rozszerzonej formy parametru kolekcji params innego niż tablica.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionExtensionAddMethod">
         <source>'{0}' does not contain a definition for a suitable instance 'Add' method</source>
-        <target state="new">'{0}' does not contain a definition for a suitable instance 'Add' method</target>
+        <target state="translated">Element „{0}” nie zawiera definicji odpowiedniej metody „Dodaj” wystąpienia</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionInfiniteChainOfConstructorCalls">
         <source>Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</source>
-        <target state="new">Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</target>
+        <target state="translated">Utworzenie kolekcji parametrów „{0}” powoduje nieskończony łańcuch wywołania konstruktora „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionMissingConstructor">
         <source>Non-array params collection type must have an applicable constructor that can be called with no arguments.</source>
-        <target state="new">Non-array params collection type must have an applicable constructor that can be called with no arguments.</target>
+        <target state="translated">Typ kolekcji niebędący tablicą parametrów musi mieć odpowiedni konstruktor, który można wywołać bez argumentów.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember">
         <source>Method '{0}' cannot be less visible than the member with params collection '{1}'.</source>
-        <target state="new">Method '{0}' cannot be less visible than the member with params collection '{1}'.</target>
+        <target state="translated">Metoda „{0}” nie może być mniej widoczna niż składowa z kolekcją parametrów „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsMustBeCollection">
         <source>The params parameter must have a valid collection type</source>
-        <target state="new">The params parameter must have a valid collection type</target>
+        <target state="translated">Parametr params musi mieć prawidłowy typ kolekcji</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
@@ -2244,7 +2249,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitIndexerInitializer">
         <source>implicit indexer initializer</source>
-        <target state="new">implicit indexer initializer</target>
+        <target state="translated">niejawny inicjator indeksatora</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
@@ -2299,7 +2304,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLockObject">
         <source>Lock object</source>
-        <target state="new">Lock object</target>
+        <target state="translated">Zablokuj obiekt</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
@@ -2314,7 +2319,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureParamsCollections">
         <source>params collections</source>
-        <target state="new">params collections</target>
+        <target state="translated">kolekcje params</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -2364,7 +2369,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
         <source>string escape character</source>
-        <target state="new">string escape character</target>
+        <target state="translated">ciąg — znak ucieczki</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStructFieldInitializers">
@@ -2644,12 +2649,12 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <target state="translated">Wartość typu „System.Threading.Lock” przekonwertowana na inny typ użyje prawdopodobnie niezamierzonego blokowania opartego na monitorze w instrukcji „zablokuj”.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock_Title">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <target state="translated">Wartość typu „System.Threading.Lock” przekonwertowana na inny typ użyje prawdopodobnie niezamierzonego blokowania opartego na monitorze w instrukcji „zablokuj”.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -2674,32 +2679,32 @@
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor">
         <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">Jedno lub więcej przeciążeń konstruktora z parametrem kolekcji parametrów niebędącym tablicą może mieć zastosowanie tylko w rozszerzonej formie, która nie jest obsługiwana podczas dynamicznego wysyłania.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor_Title">
         <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">Jedno lub więcej przeciążeń konstruktora z parametrem kolekcji parametrów niebędącym tablicą może mieć zastosowanie tylko w rozszerzonej formie, która nie jest obsługiwana podczas dynamicznego wysyłania.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer">
         <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">Jedno lub więcej przeciążeń indeksatora z parametrem kolekcji niebędącym tablicą parametrów może mieć zastosowanie tylko w rozszerzonej formie, która nie jest obsługiwana podczas dynamicznego wysyłania.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer_Title">
         <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">Jedno lub więcej przeciążeń indeksatora z parametrem kolekcji niebędącym tablicą parametrów może mieć zastosowanie tylko w rozszerzonej formie, która nie jest obsługiwana podczas dynamicznego wysyłania.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod">
         <source>One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">Co najmniej jedno przeciążenie metody „{0}” z parametrem kolekcji params innych niż tablicowe może mieć zastosowanie tylko w rozszerzonej formie, która nie jest obsługiwana podczas dynamicznego wysyłania.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod_Title">
         <source>One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">Co najmniej jedno przeciążenie metody posiadającej parametr kolekcji params inny niż tablica może mieć zastosowanie tylko w rozszerzonej formie, która nie jest obsługiwana podczas dynamicznego wysyłania.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall">
@@ -10958,7 +10963,7 @@ Pominięcie ostrzeżenia należy wziąć pod uwagę tylko w sytuacji, gdy na pew
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
         <source>Cannot specify a default value for a parameter collection</source>
-        <target state="needs-review-translation">Nie można określić wartości domyślnej dla tablicy parametrów</target>
+        <target state="translated">Nie można określić wartości domyślnej dla tablicy parametrów</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">

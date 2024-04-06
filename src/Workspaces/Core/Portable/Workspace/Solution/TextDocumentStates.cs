@@ -237,13 +237,13 @@ internal sealed class TextDocumentStates<TState>
     /// Returns a <see cref="DocumentId"/>s of added documents.
     /// </summary>
     public IEnumerable<DocumentId> GetAddedStateIds(TextDocumentStates<TState> oldStates)
-        => (_ids == oldStates._ids) ? SpecializedCollections.EmptyEnumerable<DocumentId>() : Except(_ids, oldStates._map);
+        => (_ids == oldStates._ids) ? [] : Except(_ids, oldStates._map);
 
     /// <summary>
     /// Returns a <see cref="DocumentId"/>s of removed documents.
     /// </summary>
     public IEnumerable<DocumentId> GetRemovedStateIds(TextDocumentStates<TState> oldStates)
-        => (_ids == oldStates._ids) ? SpecializedCollections.EmptyEnumerable<DocumentId>() : Except(oldStates._ids, _map);
+        => (_ids == oldStates._ids) ? [] : Except(oldStates._ids, _map);
 
     private static IEnumerable<DocumentId> Except(ImmutableList<DocumentId> ids, ImmutableSortedDictionary<DocumentId, TState> map)
     {

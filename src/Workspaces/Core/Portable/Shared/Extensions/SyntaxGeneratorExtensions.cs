@@ -91,7 +91,7 @@ internal static partial class SyntaxGeneratorExtensions
                 .OfType<IFieldSymbol>()
                 .Where(field => !field.IsStatic)
                 .Select(field => field.AssociatedSymbol ?? field)
-                .Except(parameterToExistingFieldMap?.Values ?? SpecializedCollections.EmptyEnumerable<ISymbol>())
+                .Except(parameterToExistingFieldMap?.Values ?? [])
                 .Any();
         }
 

@@ -269,7 +269,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLock">
         <source>A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</source>
-        <target state="new">A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</target>
+        <target state="translated">型別 'System.Threading.Lock' 的值上的 lock 陳述式不能用在非同步方法或非同步 Lambda 運算式中。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefUsing">
@@ -327,6 +327,11 @@
         <target state="translated">無法將方法群組 '{0}' 轉換成委派類型 '{1}'(&amp;M)。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotDynamicInvokeOnExpression">
+        <source>Cannot perform a dynamic invocation on an expression with type '{0}'.</source>
+        <target state="new">Cannot perform a dynamic invocation on an expression with type '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
         <source>The delegate type could not be inferred.</source>
         <target state="translated">無法推斷委派類型。</target>
@@ -379,7 +384,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections">
         <source>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</source>
-        <target state="new">The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</target>
+        <target state="translated">無法從使用方式推斷方法 '{0}' 的型別引數，因為使用了具有動態型別的引述，而且該方法具有非陣列參數集合參數。請嘗試明確指定型別引數。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -443,13 +448,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingAdd">
-        <source>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</source>
-        <target state="new">Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</target>
+        <source>Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</source>
+        <target state="translated">集合運算式類型 '{0}' 必須有可以使用單一引數來呼叫的執行個體或延伸模組方法 'Add'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingConstructor">
         <source>Collection expression type must have an applicable constructor that can be called with no arguments.</source>
-        <target state="new">Collection expression type must have an applicable constructor that can be called with no arguments.</target>
+        <target state="translated">集合運算式型別必須具有可在不帶引數的情況下呼叫的適用建構函式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
@@ -459,7 +464,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetNoElementType">
         <source>Collection expression target '{0}' has no element type.</source>
-        <target state="new">Collection expression target '{0}' has no element type.</target>
+        <target state="translated">集合運算式目標 '{0}' 沒有元素型別。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
@@ -619,7 +624,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
         <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
-        <target state="new">Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</target>
+        <target state="translated">請勿使用 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'。請改用 'params' 關鍵字。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
@@ -1419,7 +1424,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoModifiersOnUsing">
         <source>Modifiers cannot be placed on using declarations</source>
-        <target state="new">Modifiers cannot be placed on using declarations</target>
+        <target state="translated">修飾元不能置於 using 宣告中</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
@@ -1539,42 +1544,42 @@
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
         <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="new">Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</target>
+        <target state="translated">非陣列參數集合參數 '{0}' 的展開形式和正常形式之間存在歧義，唯一對應的引數型別為 'dynamic'。請考慮轉換動態引數。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
-        <target state="new">Constructor '{0}' leaves required member '{1}' uninitialized.</target>
+        <target state="translated">建構函式 '{0}' 未初始化必要的成員 '{1}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionExpressionTree">
         <source>An expression tree may not contain an expanded form of non-array params collection parameter.</source>
-        <target state="new">An expression tree may not contain an expanded form of non-array params collection parameter.</target>
+        <target state="translated">運算式樹狀架構不能包含展開的非陣列參數集合參數形式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionExtensionAddMethod">
         <source>'{0}' does not contain a definition for a suitable instance 'Add' method</source>
-        <target state="new">'{0}' does not contain a definition for a suitable instance 'Add' method</target>
+        <target state="translated">'{0}' 不包含適當執行個體 'Add' 方法的定義</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionInfiniteChainOfConstructorCalls">
         <source>Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</source>
-        <target state="new">Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</target>
+        <target state="translated">建立參數集合 '{0}' 產生無限鏈結的建構函式 '{1}' 叫用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionMissingConstructor">
         <source>Non-array params collection type must have an applicable constructor that can be called with no arguments.</source>
-        <target state="new">Non-array params collection type must have an applicable constructor that can be called with no arguments.</target>
+        <target state="translated">非陣列參數集合型別必須具有可在不帶引數的情況下呼叫的適用建構函式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember">
         <source>Method '{0}' cannot be less visible than the member with params collection '{1}'.</source>
-        <target state="new">Method '{0}' cannot be less visible than the member with params collection '{1}'.</target>
+        <target state="translated">方法 '{0}' 不能小於具有參數集合 '{1}' 的成員。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsMustBeCollection">
         <source>The params parameter must have a valid collection type</source>
-        <target state="new">The params parameter must have a valid collection type</target>
+        <target state="translated">params 參數必須具有有效的集合型別</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
@@ -2244,7 +2249,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitIndexerInitializer">
         <source>implicit indexer initializer</source>
-        <target state="new">implicit indexer initializer</target>
+        <target state="translated">隱含索引子初始設定式</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
@@ -2299,7 +2304,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLockObject">
         <source>Lock object</source>
-        <target state="new">Lock object</target>
+        <target state="translated">鎖定物件</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
@@ -2314,7 +2319,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureParamsCollections">
         <source>params collections</source>
-        <target state="new">params collections</target>
+        <target state="translated">參數集合</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -2364,7 +2369,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
         <source>string escape character</source>
-        <target state="new">string escape character</target>
+        <target state="translated">字串逸出字元</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStructFieldInitializers">
@@ -2644,12 +2649,12 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <target state="translated">型別 'System.Threading.Lock' 轉換為不同型別的值，在 'lock' 陳述式中可能會使用非預期的監視器型鎖定。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock_Title">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <target state="translated">型別 'System.Threading.Lock' 轉換為不同型別的值，在 'lock' 陳述式中可能會使用非預期的監視器型鎖定。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -2674,32 +2679,32 @@
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor">
         <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">一或多個具有非陣列參數集合參數的建構函式多載可能只適用於展開形式，但其在動態分派期間不支援。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor_Title">
         <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">一或多個具有非陣列參數集合參數的建構函式多載可能只適用於展開形式，但其在動態分派期間不支援。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer">
         <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">一或多個具有非陣列參數集合參數的索引子多載可能只適用於展開形式，但其在動態分派期間不支援。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer_Title">
         <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">一或多個具有非陣列參數集合參數的索引子多載可能只適用於展開形式，但其在動態分派期間不支援。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod">
         <source>One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">一或多個具有非陣列參數集合參數的方法 '{0}' 多載可能只適用於展開形式，但其在動態分派期間不支援。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod_Title">
         <source>One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">一或多個具有非陣列參數集合參數的方法多載可能只適用於展開形式，但其在動態分派期間不支援。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall">
@@ -10958,7 +10963,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
         <source>Cannot specify a default value for a parameter collection</source>
-        <target state="needs-review-translation">無法指定參數陣列的預設值</target>
+        <target state="translated">無法指定參數收集的預設值</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">

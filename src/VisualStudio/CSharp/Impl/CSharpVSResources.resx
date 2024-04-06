@@ -637,4 +637,19 @@
   <data name="Allow_blank_line_after_token_in_arrow_expression_clause" xml:space="preserve">
     <value>Allow blank line after token in arrow expression clause</value>
   </data>
+  <data name="SemanticSearch" xml:space="preserve">
+    <value>Semantic Search</value>
+  </data>
+  <data name="RunQuery" xml:space="preserve">
+    <value>Run Query</value>
+  </data>
+  <data name="CancelQuery" xml:space="preserve">
+    <value>Cancel Query</value>
+  </data>
+  <data name="RunQueryCommandToolTip" xml:space="preserve">
+    <value>Run (Ctrl+Enter)</value>
+  </data>
+  <data name="CancelQueryCommandToolTip" xml:space="preserve">
+    <value>Cancel (Escape)</value>
+  </data>
 </root>

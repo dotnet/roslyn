@@ -269,7 +269,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLock">
         <source>A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</source>
-        <target state="new">A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</target>
+        <target state="translated">型 'System.Threading.Lock' の値に対する lock ステートメントは、非同期メソッドまたは非同期ラムダ式では使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefUsing">
@@ -327,6 +327,11 @@
         <target state="translated">メソッド グループ '{0}' をデリゲート型 '{1}' に変換することはできません。(&amp;M)</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotDynamicInvokeOnExpression">
+        <source>Cannot perform a dynamic invocation on an expression with type '{0}'.</source>
+        <target state="new">Cannot perform a dynamic invocation on an expression with type '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
         <source>The delegate type could not be inferred.</source>
         <target state="translated">デリゲート型を推論できませんでした。</target>
@@ -379,7 +384,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections">
         <source>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</source>
-        <target state="new">The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</target>
+        <target state="translated">メソッド '{0}' の型引数を使用法から推論できません。これは動的型のある引数が使用され、メソッドに配列以外の params コレクション パラメーターがあるためです。型引数を明示的に指定してみてください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -443,13 +448,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingAdd">
-        <source>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</source>
-        <target state="new">Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</target>
+        <source>Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</source>
+        <target state="translated">コレクション式の型 '{0}' には、1 つの引数で呼び出すことができるインスタンスメソッドまたは拡張メソッド 'Add' が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingConstructor">
         <source>Collection expression type must have an applicable constructor that can be called with no arguments.</source>
-        <target state="new">Collection expression type must have an applicable constructor that can be called with no arguments.</target>
+        <target state="translated">コレクション式の型には、引数なしで呼び出すことができる適用可能なコンストラクターが必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
@@ -459,7 +464,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetNoElementType">
         <source>Collection expression target '{0}' has no element type.</source>
-        <target state="new">Collection expression target '{0}' has no element type.</target>
+        <target state="translated">コレクション式のターゲット '{0}' に要素型がありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
@@ -619,7 +624,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
         <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
-        <target state="new">Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</target>
+        <target state="translated">'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute' は使用しないでください。代わりに 'params' キーワードを使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
@@ -984,7 +989,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
         <source>Method '{0}' must be non-generic to match '{1}'.</source>
-        <target state="translated">'{1}' に一致するには、メソッド '{0}' は非ジェネリックである必要があります。</target>
+        <target state="translated">'{0}' に一致するには、メソッド '{1}' は非ジェネリックである必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotInterceptNameof">
@@ -1419,7 +1424,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoModifiersOnUsing">
         <source>Modifiers cannot be placed on using declarations</source>
-        <target state="new">Modifiers cannot be placed on using declarations</target>
+        <target state="translated">宣言を使用して修飾子を配置することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
@@ -1539,42 +1544,42 @@
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
         <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="new">Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</target>
+        <target state="translated">'{0}' の非配列 params コレクション パラメーターの展開形式と通常の形式の間のあいまいさです。対応する引数の型は 'dynamic' のみです。動的引数のキャストを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
-        <target state="new">Constructor '{0}' leaves required member '{1}' uninitialized.</target>
+        <target state="translated">コンストラクター '{0}' は、必要なメンバー '{1}' を初期化しないままにします。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionExpressionTree">
         <source>An expression tree may not contain an expanded form of non-array params collection parameter.</source>
-        <target state="new">An expression tree may not contain an expanded form of non-array params collection parameter.</target>
+        <target state="translated">式ツリーに、配列以外の params コレクション パラメーターの展開形式を含めないようにしてください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionExtensionAddMethod">
         <source>'{0}' does not contain a definition for a suitable instance 'Add' method</source>
-        <target state="new">'{0}' does not contain a definition for a suitable instance 'Add' method</target>
+        <target state="translated">'{0}' には、適切なインスタンス 'Add' メソッドの定義が含まれていません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionInfiniteChainOfConstructorCalls">
         <source>Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</source>
-        <target state="new">Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</target>
+        <target state="translated">パラメーター コレクション '{0}' を作成すると、コンストラクター '{1}' の呼び出しのチェーンが無限になります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionMissingConstructor">
         <source>Non-array params collection type must have an applicable constructor that can be called with no arguments.</source>
-        <target state="new">Non-array params collection type must have an applicable constructor that can be called with no arguments.</target>
+        <target state="translated">配列 params コレクション以外の種類には、引数なしで呼び出すことができる適用可能なコンストラクターが必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember">
         <source>Method '{0}' cannot be less visible than the member with params collection '{1}'.</source>
-        <target state="new">Method '{0}' cannot be less visible than the member with params collection '{1}'.</target>
+        <target state="translated">メソッド '{0}' は params コレクション '{1}' を持つメンバーより低く表示できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsMustBeCollection">
         <source>The params parameter must have a valid collection type</source>
-        <target state="new">The params parameter must have a valid collection type</target>
+        <target state="translated">params パラメーターには有効なコレクションの種類が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
@@ -2244,7 +2249,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitIndexerInitializer">
         <source>implicit indexer initializer</source>
-        <target state="new">implicit indexer initializer</target>
+        <target state="translated">暗黙的なインデクサー初期化子</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
@@ -2299,7 +2304,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLockObject">
         <source>Lock object</source>
-        <target state="new">Lock object</target>
+        <target state="translated">オブジェクトをロックする</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
@@ -2314,7 +2319,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureParamsCollections">
         <source>params collections</source>
-        <target state="new">params collections</target>
+        <target state="translated">params コレクション</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -2364,7 +2369,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
         <source>string escape character</source>
-        <target state="new">string escape character</target>
+        <target state="translated">文字列エスケープ文字</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStructFieldInitializers">
@@ -2644,12 +2649,12 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <target state="translated">型 'System.Threading.Lock' の値が別の型に変換されると、'lock' ステートメントで意図しない可能性の高いモニターベースのロックが使用されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingLock_Title">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
-        <target state="new">A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</target>
+        <target state="translated">型 'System.Threading.Lock' の値が別の型に変換されると、'lock' ステートメントで意図しない可能性の高いモニターベースのロックが使用されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -2674,32 +2679,32 @@
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor">
         <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">配列 params 以外のコレクション パラメーターを持つ 1 つ以上のコンストラクター オーバーロードは、動的ディスパッチ中にサポートされない拡張形式でのみ適用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor_Title">
         <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">配列 params 以外のコレクション パラメーターを持つ 1 つ以上のコンストラクター オーバーロードは、動的ディスパッチ中にサポートされない拡張形式でのみ適用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer">
         <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">配列パラメーター以外のコレクション パラメーターを持つ 1 つ以上のインデクサー オーバーロードは、動的ディスパッチ中にサポートされない拡張形式でのみ適用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer_Title">
         <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">配列パラメーター以外のコレクション パラメーターを持つ 1 つ以上のインデクサー オーバーロードは、動的ディスパッチ中にサポートされない拡張形式でのみ適用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod">
         <source>One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">配列 params 以外のコレクション パラメーターを持つメソッド '{0}' の 1 つ以上のオーバーロードは、動的ディスパッチ中にサポートされない拡張形式でのみ適用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod_Title">
         <source>One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="new">One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</target>
+        <target state="translated">配列パラメーター以外のコレクション パラメーターを持つメソッドの 1 つ以上のオーバーロードは、動的ディスパッチ中にサポートされない拡張形式でのみ適用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall">
@@ -10958,7 +10963,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
         <source>Cannot specify a default value for a parameter collection</source>
-        <target state="needs-review-translation">パラメーター配列には既定値を指定できません</target>
+        <target state="translated">パラメーター コレクションには、既定値を指定できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">

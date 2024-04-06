@@ -524,8 +524,8 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
 
         public UnitTestingReanalyzeScope(IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null)
         {
-            projectIds ??= SpecializedCollections.EmptyEnumerable<ProjectId>();
-            documentIds ??= SpecializedCollections.EmptyEnumerable<DocumentId>();
+            projectIds ??= [];
+            documentIds ??= [];
 
             _solutionId = null;
             _projectOrDocumentIds = new HashSet<object>(projectIds);

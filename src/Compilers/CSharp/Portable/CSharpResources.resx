@@ -6863,7 +6863,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Collection expression type must have an applicable constructor that can be called with no arguments.</value>
   </data>
   <data name="ERR_CollectionExpressionMissingAdd" xml:space="preserve">
-    <value>Collection expression type must have an applicable instance or extension method 'Add' that can be called with an argument of iteration type '{0}'. The best overloaded method is '{1}'.</value>
+    <value>Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</value>
   </data>
   <data name="ERR_CollectionBuilderAttributeInvalidType" xml:space="preserve">
     <value>The CollectionBuilderAttribute builder type must be a non-generic class or struct.</value>
@@ -7904,5 +7904,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_NoModifiersOnUsing" xml:space="preserve">
     <value>Modifiers cannot be placed on using declarations</value>
+  </data>
+  <data name="ERR_CannotDynamicInvokeOnExpression" xml:space="preserve">
+    <value>Cannot perform a dynamic invocation on an expression with type '{0}'.</value>
   </data>
 </root>

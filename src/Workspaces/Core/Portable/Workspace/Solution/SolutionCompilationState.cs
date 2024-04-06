@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
@@ -47,6 +48,16 @@ internal sealed partial class SolutionCompilationState
     private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
 
     /// <summary>
+    /// Map from each project to the <see cref="SourceGeneratorExecutionVersion"/> it is currently at. Loosely, the
+    /// execution version allows us to have the generated documents for a project get fixed at some point in the past
+    /// when they were generated, up until events happen in the host that cause a need for them to be brought up to
+    /// date.  This is ambient, compilation-level, information about our projects, which is why it is stored at this
+    /// compilation-state level.  When syncing to our OOP process, this information is included, allowing the oop side
+    /// to move its own generators forward when a host changes these versions.
+    /// </summary>
+    private readonly SourceGeneratorExecutionVersionMap _sourceGeneratorExecutionVersionMap;
+
+    /// <summary>
     /// Cache we use to map between unrooted symbols (i.e. assembly, module and dynamic symbols) and the project
     /// they came from.  That way if we are asked about many symbols from the same assembly/module we can answer the
     /// question quickly after computing for the first one.  Created on demand.
@@ -60,12 +71,14 @@ internal sealed partial class SolutionCompilationState
         SolutionState solution,
         bool partialSemanticsEnabled,
         ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
+        SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap,
         TextDocumentStates<SourceGeneratedDocumentState>? frozenSourceGeneratedDocumentStates,
         AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot = null)
     {
         SolutionState = solution;
         PartialSemanticsEnabled = partialSemanticsEnabled;
         _projectIdToTrackerMap = projectIdToTrackerMap;
+        _sourceGeneratorExecutionVersionMap = sourceGeneratorExecutionVersionMap;
         FrozenSourceGeneratedDocumentStates = frozenSourceGeneratedDocumentStates;
 
         // when solution state is changed, we recalculate its checksum
@@ -90,6 +103,7 @@ internal sealed partial class SolutionCompilationState
               solution,
               partialSemanticsEnabled,
               projectIdToTrackerMap: ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>.Empty,
+              sourceGeneratorExecutionVersionMap: SourceGeneratorExecutionVersionMap.Empty,
               frozenSourceGeneratedDocumentStates: null)
     {
     }
@@ -102,19 +116,28 @@ internal sealed partial class SolutionCompilationState
     {
         // An id shouldn't point at a tracker for a different project.
         Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
+
+        // Solution and SG version maps must correspond to the same set of projets.
+        Contract.ThrowIfFalse(this.SolutionState.ProjectStates
+            .Where(kvp => RemoteSupportedLanguages.IsSupported(kvp.Value.Language))
+            .Select(kvp => kvp.Key)
+            .SetEquals(_sourceGeneratorExecutionVersionMap.Map.Keys));
     }
 
     private SolutionCompilationState Branch(
         SolutionState newSolutionState,
         ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
+        SourceGeneratorExecutionVersionMap? sourceGeneratorExecutionVersionMap = null,
         Optional<TextDocumentStates<SourceGeneratedDocumentState>?> frozenSourceGeneratedDocumentStates = default,
         AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot = null)
     {
         projectIdToTrackerMap ??= _projectIdToTrackerMap;
+        sourceGeneratorExecutionVersionMap ??= _sourceGeneratorExecutionVersionMap;
         var newFrozenSourceGeneratedDocumentStates = frozenSourceGeneratedDocumentStates.HasValue ? frozenSourceGeneratedDocumentStates.Value : FrozenSourceGeneratedDocumentStates;
 
         if (newSolutionState == this.SolutionState &&
             projectIdToTrackerMap == _projectIdToTrackerMap &&
+            sourceGeneratorExecutionVersionMap == _sourceGeneratorExecutionVersionMap &&
             Equals(newFrozenSourceGeneratedDocumentStates, FrozenSourceGeneratedDocumentStates))
         {
             return this;
@@ -124,6 +147,7 @@ internal sealed partial class SolutionCompilationState
             newSolutionState,
             PartialSemanticsEnabled,
             projectIdToTrackerMap.Value,
+            sourceGeneratorExecutionVersionMap,
             newFrozenSourceGeneratedDocumentStates,
             cachedFrozenSnapshot);
     }
@@ -290,15 +314,26 @@ internal sealed partial class SolutionCompilationState
         return projectIdToTrackerMapBuilder.ToImmutable();
     }
 
+    public SourceGeneratorExecutionVersionMap SourceGeneratorExecutionVersionMap => _sourceGeneratorExecutionVersionMap;
+
     /// <inheritdoc cref="SolutionState.AddProject(ProjectInfo)"/>
     public SolutionCompilationState AddProject(ProjectInfo projectInfo)
     {
         var newSolutionState = this.SolutionState.AddProject(projectInfo);
         var newTrackerMap = CreateCompilationTrackerMap(projectInfo.Id, newSolutionState.GetProjectDependencyGraph(), static (_, _) => { }, /* unused */ 0, skipEmptyCallback: true);
 
+        var sourceGeneratorExecutionVersionMap = _sourceGeneratorExecutionVersionMap;
+        if (RemoteSupportedLanguages.IsSupported(projectInfo.Language))
+        {
+            var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
+            versionMapBuilder.Add(projectInfo.Id, new());
+            sourceGeneratorExecutionVersionMap = new(versionMapBuilder.ToImmutable());
+        }
+
         return Branch(
             newSolutionState,
-            projectIdToTrackerMap: newTrackerMap);
+            projectIdToTrackerMap: newTrackerMap,
+            sourceGeneratorExecutionVersionMap: sourceGeneratorExecutionVersionMap);
     }
 
     /// <inheritdoc cref="SolutionState.RemoveProject(ProjectId)"/>
@@ -315,9 +350,13 @@ internal sealed partial class SolutionCompilationState
             projectId,
             skipEmptyCallback: true);
 
+        var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
+        versionMapBuilder.Remove(projectId);
+
         return this.Branch(
             newSolutionState,
-            projectIdToTrackerMap: newTrackerMap);
+            projectIdToTrackerMap: newTrackerMap,
+            sourceGeneratorExecutionVersionMap: new(versionMapBuilder.ToImmutable()));
     }
 
     /// <inheritdoc cref="SolutionState.WithProjectAssemblyName"/>
@@ -1136,6 +1175,49 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithOptions(options));
     }
 
+    public SolutionCompilationState WithSourceGeneratorExecutionVersions(
+        SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersions, CancellationToken cancellationToken)
+    {
+        var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
+        var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
+        var changed = false;
+
+        foreach (var (projectId, sourceGeneratorExecutionVersion) in sourceGeneratorExecutionVersions.Map)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var currentExecutionVersion = versionMapBuilder[projectId];
+
+            // Nothing to do if already at this version.
+            if (currentExecutionVersion == sourceGeneratorExecutionVersion)
+                continue;
+
+            changed = true;
+            versionMapBuilder[projectId] = sourceGeneratorExecutionVersion;
+
+            // If we do already have a compilation tracker for this project, then let the tracker know that the source
+            // generator version has changed. We do this by telling it that it should now create SG docs and skeleton
+            // references if they're out of date.
+            if (_projectIdToTrackerMap.TryGetValue(projectId, out var existingTracker))
+            {
+                // if the major version has changed then we also want to drop the generator driver so that we're rerun
+                // generators from scratch.
+                var forceRegeneration = currentExecutionVersion.MajorVersion != sourceGeneratorExecutionVersion.MajorVersion;
+                var newTracker = existingTracker.WithCreationPolicy(create: true, forceRegeneration, cancellationToken);
+                if (newTracker != existingTracker)
+                    newIdToTrackerMapBuilder[projectId] = newTracker;
+            }
+        }
+
+        if (!changed)
+            return this;
+
+        return this.Branch(
+            this.SolutionState,
+            projectIdToTrackerMap: newIdToTrackerMapBuilder.ToImmutable(),
+            sourceGeneratorExecutionVersionMap: new(versionMapBuilder.ToImmutable()));
+    }
+
     public SolutionCompilationState WithFrozenPartialCompilations(CancellationToken cancellationToken)
         => _cachedFrozenSnapshot.GetValue(cancellationToken);
 
@@ -1154,7 +1236,10 @@ internal sealed partial class SolutionCompilationState
                 continue;
 
             var oldTracker = GetCompilationTracker(projectId);
-            var newTracker = oldTracker.FreezePartialState(cancellationToken);
+
+            // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
+            // perf hit on either of those at all for our clients.
+            var newTracker = oldTracker.WithCreationPolicy(create: false, forceRegeneration: false, cancellationToken);
             if (oldTracker == newTracker)
                 continue;
 

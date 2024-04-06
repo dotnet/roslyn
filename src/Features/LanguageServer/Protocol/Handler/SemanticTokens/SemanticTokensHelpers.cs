@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
             // results but will speed up how quickly we can respond to the client's request.
             document = document.WithFrozenPartialSemantics(cancellationToken);
-            options = options with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
+            options = options with { FrozenPartialSemantics = true };
 
             // The results from the range handler should not be cached since we don't want to cache
             // partial token results. In addition, a range request is only ever called with a whole

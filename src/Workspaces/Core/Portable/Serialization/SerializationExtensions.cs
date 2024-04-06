@@ -31,6 +31,7 @@ internal static class SerializationExtensions
             AnalyzerReference => WellKnownSynchronizationKind.AnalyzerReference,
             SourceText => WellKnownSynchronizationKind.SourceText,
             SourceGeneratedDocumentIdentity => WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity,
+            SourceGeneratorExecutionVersionMap => WellKnownSynchronizationKind.SourceGeneratorExecutionVersionMap,
             _ => throw ExceptionUtilities.UnexpectedValue(value),
         };
 

@@ -165,6 +165,10 @@ internal partial class SerializerService : ISerializerService
                     ((ChecksumCollection)value).WriteTo(writer);
                     return;
 
+                case WellKnownSynchronizationKind.SourceGeneratorExecutionVersionMap:
+                    ((SourceGeneratorExecutionVersionMap)value).WriteTo(writer);
+                    return;
+
                 default:
                     // object that is not part of solution is not supported since we don't know what inputs are required to
                     // serialize it
@@ -196,6 +200,7 @@ internal partial class SerializerService : ISerializerService
                 WellKnownSynchronizationKind.MetadataReference => DeserializeMetadataReference(reader, cancellationToken),
                 WellKnownSynchronizationKind.AnalyzerReference => DeserializeAnalyzerReference(reader, cancellationToken),
                 WellKnownSynchronizationKind.SourceText => DeserializeSourceText(reader, cancellationToken),
+                WellKnownSynchronizationKind.SourceGeneratorExecutionVersionMap => SourceGeneratorExecutionVersionMap.Deserialize(reader),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
         }
@@ -205,7 +210,7 @@ internal partial class SerializerService : ISerializerService
         => _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetRequiredService<IOptionsSerializationService>());
 
     public Checksum CreateParseOptionsChecksum(ParseOptions value)
-        => Checksum.Create(value, this);
+        => Checksum.Create((value, @this: this), static (tuple, writer) => tuple.@this.SerializeParseOptions(tuple.value, writer));
 }
 
 // TODO: convert this to sub class rather than using enum with if statement.
