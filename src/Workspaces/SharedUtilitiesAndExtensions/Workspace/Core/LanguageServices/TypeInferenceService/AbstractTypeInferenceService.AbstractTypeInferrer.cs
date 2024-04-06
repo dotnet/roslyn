@@ -84,9 +84,7 @@ internal partial class AbstractTypeInferenceService : ITypeInferenceService
             => CreateResult(Compilation.GetSpecialType(type).WithNullableAnnotation(nullableAnnotation));
 
         protected static IEnumerable<TypeInferenceInfo> CreateResult(ITypeSymbol type)
-            => type == null
-                ? SpecializedCollections.EmptyCollection<TypeInferenceInfo>()
-                : SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(type));
+            => type == null ? [] : [new TypeInferenceInfo(type)];
 
         protected static IEnumerable<ITypeSymbol> ExpandParamsParameter(IParameterSymbol parameterSymbol)
         {
