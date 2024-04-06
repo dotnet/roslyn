@@ -27,8 +27,8 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider
     private sealed class CSharpUsePrimaryConstructorFixAllProvider : FixAllProvider
     {
         public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
-            => Task.FromResult<CodeAction?>(DefaultFixAllProviderHelpers.GetFix(
-                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync));
+            => DefaultFixAllProviderHelpers.GetFixAsync(
+                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync);
 
         private static async Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalContext, ImmutableArray<FixAllContext> contexts)
         {
