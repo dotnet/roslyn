@@ -114,9 +114,7 @@ internal partial class CSharpTypeInferenceService
                     }
 
                     if (IsUsableTypeFunc(typeInferenceInfo))
-                    {
-                        return SpecializedCollections.SingletonEnumerable(typeInferenceInfo);
-                    }
+                        return [typeInferenceInfo];
                 }
             }
 
@@ -1609,8 +1607,7 @@ internal partial class CSharpTypeInferenceService
                 if (invoke != null)
                 {
                     var isAsync = anonymousFunction.AsyncKeyword.Kind() != SyntaxKind.None;
-                    return SpecializedCollections.SingletonEnumerable(
-                        new TypeInferenceInfo(UnwrapTaskLike(invoke.ReturnType, isAsync)));
+                    return [new TypeInferenceInfo(UnwrapTaskLike(invoke.ReturnType, isAsync))];
                 }
             }
 
