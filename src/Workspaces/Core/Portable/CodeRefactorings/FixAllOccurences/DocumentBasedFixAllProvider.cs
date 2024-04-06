@@ -69,8 +69,8 @@ internal abstract class DocumentBasedFixAllProvider : FixAllProvider
         => _supportedFixAllScopes;
 
     public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
-        => Task.FromResult<CodeAction?>(DefaultFixAllProviderHelpers.GetFix(
-            fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync));
+        => DefaultFixAllProviderHelpers.GetFixAsync(
+            fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync);
 
     private Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
         => DocumentBasedFixAllProviderHelpers.FixAllContextsAsync(originalFixAllContext, fixAllContexts,

@@ -20,33 +20,31 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 /// </summary>
 internal static class DefaultFixAllProviderHelpers
 {
-    public static CodeAction GetFix<TFixAllContext>(
+    public static async Task<CodeAction?> GetFixAsync<TFixAllContext>(
         string title,
         TFixAllContext fixAllContext,
         Func<TFixAllContext, ImmutableArray<TFixAllContext>, Task<Solution?>> fixAllContextsAsync)
         where TFixAllContext : IFixAllContext
     {
-        return CodeAction.Create(
-            title, async cancellationToken =>
-            {
-                fixAllContext = (TFixAllContext)fixAllContext.With(cancellationToken: cancellationToken);
 
-                // We're about to do a lot of computation to compute all the diagnostics needed and to perform the
-                // changes.  Keep this solution alive on the OOP side so that we never drop it and then resync it
-                // (which would cause us to drop/recreate compilations, skeletons and sg docs.
-                using var _ = await RemoteKeepAliveSession.CreateAsync(fixAllContext.Solution, fixAllContext.CancellationToken).ConfigureAwait(false);
+        // We're about to do a lot of computation to compute all the diagnostics needed and to perform the
+        // changes.  Keep this solution alive on the OOP side so that we never drop it and then resync it
+        // (which would cause us to drop/recreate compilations, skeletons and sg docs.
+        using var _ = await RemoteKeepAliveSession.CreateAsync(fixAllContext.Solution, fixAllContext.CancellationToken).ConfigureAwait(false);
 
-                var solution = fixAllContext.Scope switch
-                {
-                    FixAllScope.Document or FixAllScope.ContainingMember or FixAllScope.ContainingType
-                        => await GetDocumentFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
-                    FixAllScope.Project => await GetProjectFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
-                    FixAllScope.Solution => await GetSolutionFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
-                    _ => throw ExceptionUtilities.UnexpectedValue(fixAllContext.Scope),
-                };
+        var solution = fixAllContext.Scope switch
+        {
+            FixAllScope.Document or FixAllScope.ContainingMember or FixAllScope.ContainingType
+                => await GetDocumentFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
+            FixAllScope.Project => await GetProjectFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
+            FixAllScope.Solution => await GetSolutionFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
+            _ => throw ExceptionUtilities.UnexpectedValue(fixAllContext.Scope),
+        };
 
-                return solution ?? fixAllContext.Solution;
-            });
+        if (solution is null)
+            return null;
+
+        return CodeAction.Create(title, _ => Task.FromResult(solution));
     }
 
     private static Task<Solution?> GetDocumentFixesAsync<TFixAllContext>(
