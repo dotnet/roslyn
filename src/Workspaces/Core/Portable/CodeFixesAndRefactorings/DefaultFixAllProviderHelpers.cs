@@ -31,7 +31,9 @@ internal static class DefaultFixAllProviderHelpers
             {
                 fixAllContext = (TFixAllContext)fixAllContext.With(cancellationToken: cancellationToken);
 
-                // We're about to do a lot of computation to compute all the diagnostics needed 
+                // We're about to do a lot of computation to compute all the diagnostics needed and to perform the
+                // changes.  Keep this solution alive on the OOP side so that we never drop it and then resync it
+                // (which would cause us to drop/recreate compilations, skeletons and sg docs.
                 using var _ = await RemoteKeepAliveSession.CreateAsync(fixAllContext.Solution, fixAllContext.CancellationToken).ConfigureAwait(false);
 
                 var solution = fixAllContext.Scope switch
