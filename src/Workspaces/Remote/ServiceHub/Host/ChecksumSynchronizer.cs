@@ -34,29 +34,36 @@ internal sealed partial class AssetProvider
 
         public async ValueTask SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
-            SolutionStateChecksums solutionChecksumObject;
+            SolutionStateChecksums stateChecksums;
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                // this will make 4 round trip to data source (VS) to get all assets that belong to the given solution checksum
-
-                // first, get solution checksum object for the given solution checksum
-                var solutionCompilationChecksumObject = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
+                // first, get top level solution state for the given solution checksum
+                var compilationStateChecksums = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
                     assetHint: AssetHint.SolutionOnly, solutionChecksum, cancellationToken).ConfigureAwait(false);
-                solutionChecksumObject = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
-                    assetHint: AssetHint.SolutionOnly, solutionCompilationChecksumObject.SolutionState, cancellationToken).ConfigureAwait(false);
 
-                // second, get direct children of the solution
+                // second, get direct children of the solution compilation state.
                 {
                     using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
 
-                    solutionCompilationChecksumObject.AddAllTo(checksums);
-                    solutionChecksumObject.AnalyzerReferences.AddAllTo(checksums);
+                    compilationStateChecksums.AddAllTo(checksums);
+                    await _assetProvider.SynchronizeAssetsAsync(assetHint: AssetHint.SolutionOnly, checksums, results: null, cancellationToken).ConfigureAwait(false);
+                }
+
+                // third, get direct children of the solution state.
+                {
+                    stateChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
+                        assetHint: AssetHint.SolutionOnly, compilationStateChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
+
+                    using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
+
+                    checksums.Add(stateChecksums.Attributes);
+                    stateChecksums.AnalyzerReferences.AddAllTo(checksums);
                     await _assetProvider.SynchronizeAssetsAsync(assetHint: AssetHint.SolutionOnly, checksums, results: null, cancellationToken).ConfigureAwait(false);
                 }
             }
 
-            // third and last get direct children for all projects and documents in the solution 
-            foreach (var (projectChecksum, projectId) in solutionChecksumObject.Projects)
+            // fourth, get all projects and documents in the solution 
+            foreach (var (projectChecksum, projectId) in stateChecksums.Projects)
             {
                 var projectStateChecksums = await _assetProvider.GetAssetAsync<ProjectStateChecksums>(
                     assetHint: projectId, projectChecksum, cancellationToken).ConfigureAwait(false);
