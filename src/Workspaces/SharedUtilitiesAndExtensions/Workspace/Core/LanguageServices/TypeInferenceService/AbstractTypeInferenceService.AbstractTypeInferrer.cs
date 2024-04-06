@@ -112,9 +112,7 @@ internal partial class AbstractTypeInferenceService : ITypeInferenceService
 
                 var elementType = parameters.ElementAtOrDefault(0);
                 if (elementType != null)
-                {
-                    return SpecializedCollections.SingletonCollection(new TypeInferenceInfo(elementType));
-                }
+                    return [new TypeInferenceInfo(elementType)];
             }
 
             return [];
