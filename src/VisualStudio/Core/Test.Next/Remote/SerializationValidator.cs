@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             public AssetProvider(SerializationValidator validator)
                 => _validator = validator;
 
-            public override async ValueTask<T> GetAssetAsync<T>(AssetHint assetHint, Checksum checksum, CancellationToken cancellationToken)
+            public override async ValueTask<T> GetAssetAsync<T>(AssetPath assetPath, Checksum checksum, CancellationToken cancellationToken)
                 => await _validator.GetValueAsync<T>(checksum).ConfigureAwait(false);
         }
 

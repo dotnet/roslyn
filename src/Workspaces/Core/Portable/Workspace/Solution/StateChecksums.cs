@@ -111,7 +111,7 @@ internal sealed class SolutionCompilationStateChecksums
     public async Task FindAsync(
         SolutionCompilationState compilationState,
         ProjectCone? projectCone,
-        AssetHint assetHint,
+        AssetPath assetPath,
         HashSet<Checksum> searchingChecksumsLeft,
         Dictionary<Checksum, object> result,
         CancellationToken cancellationToken)
@@ -157,13 +157,13 @@ internal sealed class SolutionCompilationStateChecksums
             // If we're not in a project cone, start the search at the top most state-checksum corresponding to the
             // entire solution.
             Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(out var solutionChecksums));
-            await solutionChecksums.FindAsync(solutionState, projectCone, assetHint, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            await solutionChecksums.FindAsync(solutionState, projectCone, assetPath, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
         }
         else
         {
             // Otherwise, grab the top-most state checksum for this cone and search within that.
             Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(projectCone.RootProjectId, out var solutionChecksums));
-            await solutionChecksums.FindAsync(solutionState, projectCone, assetHint, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            await solutionChecksums.FindAsync(solutionState, projectCone, assetPath, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
         }
     }
 }
@@ -235,7 +235,7 @@ internal sealed class SolutionStateChecksums(
     public async Task FindAsync(
         SolutionState solution,
         ProjectCone? projectCone,
-        AssetHint assetHint,
+        AssetPath assetPath,
         HashSet<Checksum> searchingChecksumsLeft,
         Dictionary<Checksum, object> result,
         CancellationToken cancellationToken)
@@ -253,7 +253,7 @@ internal sealed class SolutionStateChecksums(
 
         ChecksumCollection.Find(solution.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
 
-        if (assetHint.TopLevelProjects)
+        if (assetPath.TopLevelProjects)
         {
             // Caller is trying to fetch the top level ProjectStateChecksums as well. Look for those without diving deeper.
             foreach (var (projectId, projectState) in solution.ProjectStates)
@@ -277,24 +277,24 @@ internal sealed class SolutionStateChecksums(
         if (searchingChecksumsLeft.Count == 0)
             return;
 
-        if (!assetHint.IsFullLookup_ForTestingPurposesOnly)
+        if (!assetPath.IsFullLookup_ForTestingPurposesOnly)
         {
             // Caller said they were only looking for solution level assets.  no need to go any further.
-            if (assetHint.IsSolutionOnly)
+            if (assetPath.IsSolutionOnly)
                 return;
 
             // Since we're not solution-only, we must have a project id being requested.  Dive into that project alone
             // to search for the remaining checksums.
-            Contract.ThrowIfNull(assetHint.ProjectId);
+            Contract.ThrowIfNull(assetPath.ProjectId);
             Contract.ThrowIfTrue(
-                projectCone != null && !projectCone.Contains(assetHint.ProjectId),
+                projectCone != null && !projectCone.Contains(assetPath.ProjectId),
                 "Requesting an asset outside of the cone explicitly being asked for!");
 
-            var projectState = solution.GetProjectState(assetHint.ProjectId);
+            var projectState = solution.GetProjectState(assetPath.ProjectId);
             if (projectState != null &&
                 projectState.TryGetStateChecksums(out var projectStateChecksums))
             {
-                await projectStateChecksums.FindAsync(projectState, assetHint.DocumentId, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                await projectStateChecksums.FindAsync(projectState, assetPath.DocumentId, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
             }
         }
         else
