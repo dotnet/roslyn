@@ -161,8 +161,8 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
-        /// create checksum to correspoing object map from solution
-        /// this map should contain every parts of solution that can be used to re-create the solution back
+        /// create checksum to corresponding object map from solution this map should contain every parts of solution
+        /// that can be used to re-create the solution back
         /// </summary>
         public static async Task<Dictionary<Checksum, object>> GetAssetMapAsync(this Solution solution, CancellationToken cancellationToken)
         {

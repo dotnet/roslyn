@@ -186,7 +186,7 @@ internal sealed class SolutionAssetCache
             // Ensure that if our remote workspace has a current solution, that we don't purge any items associated
             // with that solution.
             using var _1 = PooledHashSet<Checksum>.GetInstance(out var pinnedChecksums);
-            var computePinnedChecksums = false;
+            var computePinnedInformation = false;
 
             foreach (var (checksum, entry) in _assets)
             {
@@ -195,10 +195,10 @@ internal sealed class SolutionAssetCache
                     continue;
 
                 // If this is a checksum we want to pin, do not remove it.
-                if (!computePinnedChecksums)
+                if (!computePinnedInformation)
                 {
                     await AddPinnedChecksumsAsync(pinnedChecksums, cancellationToken).ConfigureAwait(false);
-                    computePinnedChecksums = true;
+                    computePinnedInformation = true;
                 }
 
                 if (pinnedChecksums.Contains(checksum))
@@ -214,24 +214,39 @@ internal sealed class SolutionAssetCache
         if (_remoteWorkspace is null)
             return;
 
-        var currentSolution = _remoteWorkspace.CurrentSolution;
-        var compilationStateChecksums = await currentSolution.CompilationState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-        compilationStateChecksums.AddAllTo(pinnedChecksums);
+        using var _1 = PooledHashSet<Solution>.GetInstance(out var pinnedSolutions);
 
-        Contract.ThrowIfFalse(currentSolution.CompilationState.SolutionState.TryGetStateChecksums(out var stateChecksums));
-        stateChecksums.AddAllTo(pinnedChecksums);
+        // Collect all the solutions the remote workspace has pinned.
+        await _remoteWorkspace.AddPinnedSolutionsAsync(pinnedSolutions, cancellationToken).ConfigureAwait(false);
 
-        foreach (var (_, projectState) in currentSolution.CompilationState.SolutionState.ProjectStates)
-        {
-            Contract.ThrowIfFalse(projectState.TryGetStateChecksums(out var projectStateChecksums));
-            projectStateChecksums.AddAllTo(pinnedChecksums);
-
-            AddAll(projectState.DocumentStates);
-            AddAll(projectState.AdditionalDocumentStates);
-            AddAll(projectState.AnalyzerConfigDocumentStates);
-        }
+        // Then add all relevant info from those pinned solutions so the set that we will not let go of.
+        foreach (var pinnedSolution in pinnedSolutions)
+            await AddPinnedChecksumsAsync(pinnedSolution).ConfigureAwait(false);
 
         return;
+
+        async ValueTask AddPinnedChecksumsAsync(Solution pinnedSolution)
+        {
+            // Get the checksums for the local solution.  Note that this will ensure that all child checksums are
+            // computed.  As such, we can just use TryGetXXX below to get them.
+            var compilationState = pinnedSolution.CompilationState;
+            var compilationStateChecksums = await compilationState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            compilationStateChecksums.AddAllTo(pinnedChecksums);
+
+            var solutionState = compilationState.SolutionState;
+            Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(out var stateChecksums));
+            stateChecksums.AddAllTo(pinnedChecksums);
+
+            foreach (var (_, projectState) in solutionState.ProjectStates)
+            {
+                Contract.ThrowIfFalse(projectState.TryGetStateChecksums(out var projectStateChecksums));
+                projectStateChecksums.AddAllTo(pinnedChecksums);
+
+                AddAll(projectState.DocumentStates);
+                AddAll(projectState.AdditionalDocumentStates);
+                AddAll(projectState.AnalyzerConfigDocumentStates);
+            }
+        }
 
         void AddAll<TState>(TextDocumentStates<TState> states) where TState : TextDocumentState
         {

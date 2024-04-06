@@ -93,14 +93,14 @@ internal partial class SolutionAssetStorage
             /// Retrieve asset of a specified <paramref name="checksum"/> available within <see langword="this"/> from
             /// the storage.
             /// </summary>
-            public async ValueTask<object> GetAssetAsync(Checksum checksum, CancellationToken cancellationToken)
+            public async ValueTask<object> GetAssetAsync(AssetHint assetHint, Checksum checksum, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfTrue(checksum == Checksum.Null);
 
                 using var checksumPool = Creator.CreateChecksumSet(checksum);
                 using var _ = Creator.CreateResultMap(out var resultPool);
 
-                await scope.FindAssetsAsync(AssetHint.None, checksumPool.Object, resultPool, cancellationToken).ConfigureAwait(false);
+                await scope.FindAssetsAsync(assetHint, checksumPool.Object, resultPool, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfTrue(resultPool.Count != 1);
 
                 var (resultingChecksum, value) = resultPool.First();

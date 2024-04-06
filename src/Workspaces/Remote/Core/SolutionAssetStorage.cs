@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -126,9 +127,9 @@ internal partial class SolutionAssetStorage
             _solutionAssetStorage = solutionAssetStorage;
         }
 
-        public async ValueTask<object> GetRequiredAssetAsync(Checksum checksum, CancellationToken cancellationToken)
+        public async ValueTask<object> GetRequiredAssetAsync(AssetHint assetHint, Checksum checksum, CancellationToken cancellationToken)
         {
-            return await _solutionAssetStorage._checksumToScope.Single().Value.GetTestAccessor().GetAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
+            return await _solutionAssetStorage._checksumToScope.Single().Value.GetTestAccessor().GetAssetAsync(assetHint, checksum, cancellationToken).ConfigureAwait(false);
         }
 
         public bool IsPinned(Checksum checksum)

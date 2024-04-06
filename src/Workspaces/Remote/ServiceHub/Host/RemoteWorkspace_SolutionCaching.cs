@@ -4,6 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -110,6 +113,19 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfTrue(solution.InFlightCount < 1);
                 Contract.ThrowIfTrue(solutionChecksum != solution.SolutionChecksum);
             }
+        }
+
+        /// <summary>
+        /// Gets all the solution instances this remote workspace knows about because of the primary solution or any
+        /// in-flight operations.
+        /// </summary>
+        public async ValueTask AddPinnedSolutionsAsync(HashSet<Solution> solutions, CancellationToken cancellationToken)
+        {
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                solutions.AddIfNotNull(_lastRequestedPrimaryBranchSolution.solution);
+                _lastRequestedAnyBranchSolutions.AddAllTo(solutions);
+            };
         }
     }
 }
