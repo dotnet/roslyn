@@ -41,9 +41,9 @@ internal sealed partial class AssetProvider
 
                 // first, get solution checksum object for the given solution checksum
                 var solutionCompilationChecksumObject = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
-                    assetHint: AssetHint.None, solutionChecksum, cancellationToken).ConfigureAwait(false);
+                    assetHint: AssetHint.SolutionOnly, solutionChecksum, cancellationToken).ConfigureAwait(false);
                 solutionChecksumObject = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
-                    assetHint: AssetHint.None, solutionCompilationChecksumObject.SolutionState, cancellationToken).ConfigureAwait(false);
+                    assetHint: AssetHint.SolutionOnly, solutionCompilationChecksumObject.SolutionState, cancellationToken).ConfigureAwait(false);
 
                 // second, get direct children of the solution
                 {
@@ -51,17 +51,17 @@ internal sealed partial class AssetProvider
 
                     checksums.Add(solutionCompilationChecksumObject.SourceGeneratorExecutionVersionMap);
                     solutionChecksumObject.AddAllTo(checksums);
-                    await _assetProvider.SynchronizeAssetsAsync(assetHint: AssetHint.None, checksums, results: null, cancellationToken).ConfigureAwait(false);
+                    await _assetProvider.SynchronizeAssetsAsync(assetHint: AssetHint.SolutionOnly, checksums, results: null, cancellationToken).ConfigureAwait(false);
                 }
             }
 
             // third and last get direct children for all projects and documents in the solution 
-            foreach (var (projectChecksum, _) in solutionChecksumObject.Projects)
+            foreach (var (projectChecksum, projectId) in solutionChecksumObject.Projects)
             {
                 // These GetAssetAsync calls should be fast since they were just retrieved above.  There's a small
                 // chance the asset-cache GC pass may have cleaned them up, but that should be exceedingly rare.
                 var projectStateChecksums = await _assetProvider.GetAssetAsync<ProjectStateChecksums>(
-                    assetHint: AssetHint.None, projectChecksum, cancellationToken).ConfigureAwait(false);
+                    assetHint: projectId, projectChecksum, cancellationToken).ConfigureAwait(false);
                 await SynchronizeProjectAssetsAsync(projectStateChecksums, cancellationToken).ConfigureAwait(false);
             }
         }

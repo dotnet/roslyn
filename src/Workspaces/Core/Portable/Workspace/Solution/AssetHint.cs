@@ -13,12 +13,14 @@ namespace Microsoft.CodeAnalysis.Serialization;
 [DataContract]
 internal readonly struct AssetHint
 {
-    public static readonly AssetHint None = default;
+    public static AssetHint SolutionOnly = default;
 
     [DataMember(Order = 0)]
     public readonly ProjectId? ProjectId;
     [DataMember(Order = 1)]
     public readonly DocumentId? DocumentId;
+
+    public bool IsSolutionOnly => ProjectId is null;
 
     private AssetHint(ProjectId? projectId, DocumentId? documentId)
     {

@@ -256,61 +256,19 @@ internal sealed class SolutionStateChecksums(
         if (searchingChecksumsLeft.Count == 0)
             return;
 
-        if (assetHint.ProjectId != null)
+        if (assetHint.IsSolutionOnly)
+            return;
+
+        Contract.ThrowIfNull(assetHint.ProjectId);
+        Contract.ThrowIfTrue(
+            projectCone != null && !projectCone.Contains(assetHint.ProjectId),
+            "Requesting an asset outside of the cone explicitly being asked for!");
+
+        var projectState = solution.GetProjectState(assetHint.ProjectId);
+        if (projectState != null &&
+            projectState.TryGetStateChecksums(out var projectStateChecksums))
         {
-            Contract.ThrowIfTrue(
-                projectCone != null && !projectCone.Contains(assetHint.ProjectId),
-                "Requesting an asset outside of the cone explicitly being asked for!");
-
-            var projectState = solution.GetProjectState(assetHint.ProjectId);
-            if (projectState != null &&
-                projectState.TryGetStateChecksums(out var projectStateChecksums))
-            {
-                await projectStateChecksums.FindAsync(projectState, assetHint.DocumentId, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-            }
-        }
-        else
-        {
-            Contract.ThrowIfTrue(assetHint.DocumentId != null);
-
-            // Before doing a depth-first-search *into* each project, first run across all the project at their top
-            // level. This ensures that when we are trying to sync the projects referenced by a SolutionStateChecksums'
-            // instance that we don't unnecessarily walk all documents looking just for those.
-
-            foreach (var (projectId, projectState) in solution.ProjectStates)
-            {
-                if (searchingChecksumsLeft.Count == 0)
-                    break;
-
-                // If we're syncing a project cone, no point at all at looking at child projects of the solution that
-                // are not in that cone.
-                if (projectCone != null && !projectCone.Contains(projectId))
-                    continue;
-
-                if (projectState.TryGetStateChecksums(out var projectStateChecksums) &&
-                    searchingChecksumsLeft.Remove(projectStateChecksums.Checksum))
-                {
-                    result[projectStateChecksums.Checksum] = projectStateChecksums;
-                }
-            }
-
-            // Now actually do the depth first search into each project.
-
-            foreach (var (projectId, projectState) in solution.ProjectStates)
-            {
-                if (searchingChecksumsLeft.Count == 0)
-                    break;
-
-                // If we're syncing a project cone, no point at all at looking at child projects of the solution that
-                // are not in that cone.
-                if (projectCone != null && !projectCone.Contains(projectId))
-                    continue;
-
-                // It's possible not all all our projects have checksums.  Specifically, we may have only been asked to
-                // compute the checksum tree for a subset of projects that were all that a feature needed.
-                if (projectState.TryGetStateChecksums(out var projectStateChecksums))
-                    await projectStateChecksums.FindAsync(projectState, hintDocument: null, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-            }
+            await projectStateChecksums.FindAsync(projectState, assetHint.DocumentId, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
         }
     }
 }

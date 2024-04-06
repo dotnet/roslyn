@@ -39,12 +39,12 @@ namespace Microsoft.CodeAnalysis.Remote
             public async Task<bool> IsIncrementalUpdateAsync(Checksum newSolutionChecksum, CancellationToken cancellationToken)
             {
                 var newSolutionCompilationChecksums = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
-                    assetHint: AssetHint.None, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
+                    assetHint: AssetHint.SolutionOnly, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
                 var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
-                    assetHint: AssetHint.None, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
+                    assetHint: AssetHint.SolutionOnly, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
 
                 var newSolutionInfo = await _assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(
-                    assetHint: AssetHint.None, newSolutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
+                    assetHint: AssetHint.SolutionOnly, newSolutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
 
                 // if either solution id or file path changed, then we consider it as new solution
                 return _baseSolution.Id == newSolutionInfo.Id && _baseSolution.FilePath == newSolutionInfo.FilePath;
@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.Remote
                     solution = solution.WithoutFrozenSourceGeneratedDocuments();
 
                     var newSolutionCompilationChecksums = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
-                        assetHint: AssetHint.None, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
+                        assetHint: AssetHint.SolutionOnly, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
                     var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
-                        assetHint: AssetHint.None, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
+                        assetHint: AssetHint.SolutionOnly, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
 
                     var oldSolutionCompilationChecksums = await solution.CompilationState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                     var oldSolutionChecksums = await solution.CompilationState.SolutionState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     if (oldSolutionChecksums.Attributes != newSolutionChecksums.Attributes)
                     {
                         var newSolutionInfo = await _assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(
-                            assetHint: AssetHint.None, newSolutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
+                            assetHint: AssetHint.SolutionOnly, newSolutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
 
                         // if either id or file path has changed, then this is not update
                         Contract.ThrowIfFalse(solution.Id == newSolutionInfo.Id && solution.FilePath == newSolutionInfo.FilePath);
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     if (oldSolutionChecksums.AnalyzerReferences.Checksum != newSolutionChecksums.AnalyzerReferences.Checksum)
                     {
                         solution = solution.WithAnalyzerReferences(await _assetProvider.CreateCollectionAsync<AnalyzerReference>(
-                            assetHint: AssetHint.None, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false));
+                            assetHint: AssetHint.SolutionOnly, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false));
                     }
 
                     if (newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.HasValue &&
@@ -99,10 +99,10 @@ namespace Microsoft.CodeAnalysis.Remote
                         for (var i = 0; i < count; i++)
                         {
                             var identity = await _assetProvider.GetAssetAsync<SourceGeneratedDocumentIdentity>(
-                                assetHint: AssetHint.None, newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.Value[i], cancellationToken).ConfigureAwait(false);
+                                assetHint: AssetHint.SolutionOnly, newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.Value[i], cancellationToken).ConfigureAwait(false);
 
                             var documentStateChecksums = await _assetProvider.GetAssetAsync<DocumentStateChecksums>(
-                                assetHint: AssetHint.None, newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value.Checksums[i], cancellationToken).ConfigureAwait(false);
+                                assetHint: AssetHint.SolutionOnly, newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value.Checksums[i], cancellationToken).ConfigureAwait(false);
 
                             var serializableSourceText = await _assetProvider.GetAssetAsync<SerializableSourceText>(assetHint: newSolutionCompilationChecksums.FrozenSourceGeneratedDocuments.Value.Ids[i], documentStateChecksums.Text, cancellationToken).ConfigureAwait(false);
 
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         newSolutionCompilationChecksums.SourceGeneratorExecutionVersionMap)
                     {
                         var newVersions = await _assetProvider.GetAssetAsync<SourceGeneratorExecutionVersionMap>(
-                            assetHint: AssetHint.None, newSolutionCompilationChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
+                            assetHint: AssetHint.SolutionOnly, newSolutionCompilationChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
 
                         // The execution version map will be for the entire solution on the host side.  However, we may
                         // only be syncing over a partial cone.  In that case, filter down the version map we apply to
@@ -220,16 +220,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // sync over the *info* about all the added/changed projects.  We'll want the info so we can determine
                 // what actually changed.
-                using var _5 = PooledHashSet<Checksum>.GetInstance(out var newChecksumsToSync);
-                newChecksumsToSync.AddRange(newProjectIdToChecksum.Values);
-
-                var newProjectStateChecksums = await _assetProvider.GetAssetsAsync<ProjectStateChecksums>(
-                    assetHint: AssetHint.None, newChecksumsToSync, cancellationToken).ConfigureAwait(false);
-
-                foreach (var (checksum, newProjectStateChecksum) in newProjectStateChecksums)
+                foreach (var (projectId, checksum) in newProjectIdToChecksum)
                 {
-                    Contract.ThrowIfTrue(checksum != newProjectStateChecksum.Checksum);
-                    newProjectIdToStateChecksums.Add(newProjectStateChecksum.ProjectId, newProjectStateChecksum);
+                    var newProjectStateChecksums = await _assetProvider.GetAssetAsync<ProjectStateChecksums>(
+                        assetHint: projectId, checksum, cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfTrue(newProjectStateChecksums.Checksum != checksum);
+                    newProjectIdToStateChecksums.Add(projectId, newProjectStateChecksums);
                 }
 
                 // Now that we've collected the old and new project state checksums, we can actually process them to
