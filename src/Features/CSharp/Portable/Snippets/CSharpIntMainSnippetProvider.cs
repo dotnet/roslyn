@@ -37,7 +37,7 @@ internal sealed class CSharpIntMainSnippetProvider() : AbstractCSharpMainMethodS
         return [returnStatement];
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, MethodDeclarationSyntax methodDeclaration, SourceText sourceText)
+    protected override int GetTargetCaretPosition(MethodDeclarationSyntax methodDeclaration, SourceText sourceText)
     {
         var body = methodDeclaration.Body!;
         var returnStatement = body.Statements.First();

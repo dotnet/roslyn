@@ -27,7 +27,7 @@ internal sealed class CSharpIfSnippetProvider() : AbstractIfSnippetProvider<IfSt
     protected override ExpressionSyntax GetCondition(IfStatementSyntax node)
         => node.Condition;
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, IfStatementSyntax ifStatement, SourceText sourceText)
+    protected override int GetTargetCaretPosition(IfStatementSyntax ifStatement, SourceText sourceText)
         => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
             ifStatement,
             static s => (BlockSyntax)s.Statement,
