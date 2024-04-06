@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Also add the last few forked solutions we were asked about.  As with the above solutions, there's a
                 // reasonable chance it will refer to data needed by future oop calls.
                 _lastRequestedAnyBranchSolutions.AddAllTo(solutions);
-            };
+            }
         }
     }
 }
