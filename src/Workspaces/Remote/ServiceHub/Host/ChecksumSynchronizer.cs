@@ -49,8 +49,8 @@ internal sealed partial class AssetProvider
                 {
                     using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
 
-                    checksums.Add(solutionCompilationChecksumObject.SourceGeneratorExecutionVersionMap);
-                    solutionChecksumObject.AddAllTo(checksums);
+                    solutionCompilationChecksumObject.AddAllTo(checksums);
+                    solutionChecksumObject.AnalyzerReferences.AddAllTo(checksums);
                     await _assetProvider.SynchronizeAssetsAsync(assetHint: AssetHint.SolutionOnly, checksums, results: null, cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -58,8 +58,6 @@ internal sealed partial class AssetProvider
             // third and last get direct children for all projects and documents in the solution 
             foreach (var (projectChecksum, projectId) in solutionChecksumObject.Projects)
             {
-                // These GetAssetAsync calls should be fast since they were just retrieved above.  There's a small
-                // chance the asset-cache GC pass may have cleaned them up, but that should be exceedingly rare.
                 var projectStateChecksums = await _assetProvider.GetAssetAsync<ProjectStateChecksums>(
                     assetHint: projectId, projectChecksum, cancellationToken).ConfigureAwait(false);
                 await SynchronizeProjectAssetsAsync(projectStateChecksums, cancellationToken).ConfigureAwait(false);
