@@ -253,9 +253,6 @@ internal sealed class SolutionStateChecksums(
 
         ChecksumCollection.Find(solution.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
 
-        if (searchingChecksumsLeft.Count == 0)
-            return;
-
         if (assetHint.TopLevelProjects)
         {
             // Caller is trying to fetch the top level ProjectStateChecksums as well. Look for those without diving deeper.
@@ -275,10 +272,10 @@ internal sealed class SolutionStateChecksums(
                     result[projectStateChecksums.Checksum] = projectStateChecksums;
                 }
             }
-
-            if (searchingChecksumsLeft.Count == 0)
-                return;
         }
+
+        if (searchingChecksumsLeft.Count == 0)
+            return;
 
         if (!assetHint.IsFullLookup_ForTestingPurposesOnly)
         {
