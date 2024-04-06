@@ -149,7 +149,7 @@ internal static partial class ISymbolExtensions2
 
             case SymbolKind.Preprocessing:
                 return Glyph.Keyword;
-                
+
             case SymbolKind.RangeVariable:
                 return Glyph.RangeVariable;
 
