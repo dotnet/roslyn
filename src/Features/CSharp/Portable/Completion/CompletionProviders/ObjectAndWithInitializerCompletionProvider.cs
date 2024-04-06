@@ -6,18 +6,24 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections.Internal;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SimplifyBooleanExpression;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
@@ -151,6 +157,50 @@ internal class ObjectAndWithInitializerCompletionProvider : AbstractObjectInitia
         // new Goo { $$
         if (parent is (kind: SyntaxKind.ObjectCreationExpression or SyntaxKind.ImplicitObjectCreationExpression))
         {
+            var firstParent = parent.Parent;
+            // [.. new() { $$
+            if (firstParent is (kind: SyntaxKind.SpreadElement))
+            {
+                // Spread elements cannot be target-typed via new()
+                return null;
+            }
+
+            var secondParent = firstParent?.Parent;
+
+            // [new() { $$
+            if (parent is (kind: SyntaxKind.ImplicitObjectCreationExpression)
+                && secondParent is (kind: SyntaxKind.CollectionExpression))
+            {
+                var type = semanticModel.GetTypeInfo(parent, cancellationToken).Type;
+                if (type is not null and not IErrorTypeSymbol)
+                {
+                    return type;
+                }
+
+                var secondParentOperation = semanticModel.GetOperation(secondParent, cancellationToken);
+                if (secondParentOperation is not ICollectionExpressionOperation collectionExpressionOperation)
+                {
+                    // We should always get a collection expression operation
+                    return null;
+                }
+
+                var namedContainerType = collectionExpressionOperation.Type as INamedTypeSymbol;
+                if (IsImmutableArrayType(namedContainerType, out var immutableArrayElementType))
+                {
+                    return immutableArrayElementType;
+                }
+                var collectionExpressionElement = collectionExpressionOperation.Elements.FirstOrDefault();
+                var elementType = collectionExpressionElement switch
+                {
+                    ISpreadOperation spread => spread.ElementType,
+                    _ => collectionExpressionElement?.Type,
+                };
+                if (elementType is not null)
+                {
+                    return elementType;
+                }
+            }
+
             return semanticModel.GetTypeInfo(parent, cancellationToken).Type;
         }
 
@@ -170,6 +220,36 @@ internal class ObjectAndWithInitializerCompletionProvider : AbstractObjectInitia
         }
 
         return null;
+    }
+
+    private static bool IsImmutableArrayType(INamedTypeSymbol? type, [NotNullWhen(true)] out ITypeSymbol? elementType)
+    {
+        const string immutableArrayMetadataName = "ImmutableArray`1";
+        var matches = type?.OriginalDefinition is
+        {
+            MetadataName: immutableArrayMetadataName,
+            ContainingNamespace:
+            {
+                Name: "Immutable",
+                ContainingNamespace:
+                {
+                    Name: "Collections",
+                    ContainingNamespace:
+                    {
+                        Name: "System",
+                        ContainingNamespace.IsGlobalNamespace: true
+                    }
+                }
+            }
+        };
+        if (!matches)
+        {
+            elementType = null;
+            return false;
+        }
+
+        elementType = type!.TypeArguments[0];
+        return true;
     }
 
     protected override HashSet<string> GetInitializedMembers(SyntaxTree tree, int position, CancellationToken cancellationToken)

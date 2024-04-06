@@ -222,6 +222,129 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyExclusiveAsync(markup, true);
         }
 
+        [Theory]
+        [InlineData(nameof(System.Collections.Generic.List<int>))]
+        [InlineData(nameof(System.Collections.Generic.HashSet<int>))]
+        [InlineData(nameof(System.Collections.Generic.SortedSet<int>))]
+        public async Task FieldAndProperty3(string typeName)
+        {
+            var markup = $$"""
+                using System.Collections.Generic;
+
+                public static class TestClass
+                {
+                    private static {{typeName}}<SimpleRange> _ranges;
+                
+                    public static void Method()
+                    {
+                        _ranges =
+                        [
+                            new()
+                            {
+                                Start = 1,
+                                End = 3,
+                            },
+                            new()
+                            {
+                                $$
+                            },
+                        ];
+                    }
+                }
+                
+                public struct SimpleRange
+                {
+                    public int Start;
+                    public int End { get; set; }
+                };
+                """;
+
+            await VerifyItemExistsAsync(markup, "Start");
+            await VerifyItemExistsAsync(markup, "End");
+            await VerifyExclusiveAsync(markup, true);
+        }
+
+        [Fact]
+        public async Task FieldAndProperty4()
+        {
+            var markup = """
+                using System.Collections.Generic;
+
+                public static class TestClass
+                {
+                    private static ListWrapper<SimpleRange> _ranges;
+                
+                    public static void Method()
+                    {
+                        _ranges =
+                        [
+                            new()
+                            {
+                                Start = 1,
+                                End = 3,
+                            },
+                            new()
+                            {
+                                $$
+                            },
+                        ];
+                    }
+                }
+                
+                public struct SimpleRange
+                {
+                    public int Start;
+                    public int End { get; set; }
+                };
+
+                [CollectionBuilder(typeof(ListWrapperCollectionBuilder), nameof(ListWrapperCollectionBuilder.Create))]
+                public class ListWrapper<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list = new();
+
+                    public void Add(T item)
+                    {
+                        _list.Add(item);
+                    }
+                    public void AddRange(ReadOnlySpan<T> items)
+                    {
+                        _list.AddRange(items);
+                    }
+
+                    public IEnumerator<T> GetEnumerator()
+                    {
+                        return _list.GetEnumerator();
+                    }
+                    IEnumerator IEnumerable.GetEnumerator()
+                    {
+                        return _list.GetEnumerator();
+                    }
+                }
+
+                public static class ListWrapperCollectionBuilder
+                {
+                    public static ListWrapper<T> Create<T>() => new();
+                    public static ListWrapper<T> Create<T>(T item)
+                    {
+                        return new()
+                        {
+                            item
+                        };
+                    }
+                    public static ListWrapper<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        var list = new ListWrapper<T>();
+                        list.AddRange(items);
+                        return list;
+                    }
+                }
+                """;
+
+            await VerifyItemExistsAsync(markup, "Start");
+            await VerifyItemExistsAsync(markup, "End");
+            await VerifyExclusiveAsync(markup, true);
+        }
+
         [Fact]
         public async Task HidePreviouslyTyped()
         {

@@ -12597,5 +12597,292 @@ $$
                 Await state.AssertCompletionItemsContain("System", displayTextSuffix:="")
             End Using
         End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72872")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function CompletionOnImplicitObjectCreationExpressionInitializerWithinCollectionExpression_01(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public static class TestClass
+{
+    private static SimpleRange[] _ranges;
+
+    public static void Method()
+    {
+        const int start = 1;
+        const int end = 3;
+
+        _ranges =
+        [
+            new()
+            {
+                Start = 1,
+                End = 3,
+            },
+            new() $$
+        ];
+    }
+}
+
+public struct SimpleRange
+{
+    public int Start;
+    public int End { get; set; }
+};
+                              </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars("{ ")
+                Await state.AssertSelectedCompletionItem(displayText:="End", isHardSelected:=False)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("new() { End", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars(" = en")
+                Await state.AssertSelectedCompletionItem(displayText:="end", isHardSelected:=True)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("new() { End = end", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72872")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function CompletionOnImplicitObjectCreationExpressionInitializerWithinCollectionExpression_02(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System.Collections.Generic;
+
+public static class TestClass
+{
+    private static List&lt;SimpleRange&gt; _ranges;
+
+    public static void Method()
+    {
+        const int start = 1;
+        const int end = 3;
+
+        _ranges =
+        [
+            new()
+            {
+                Start = 1,
+                End = 3,
+            },
+            new() $$
+        ];
+    }
+}
+
+public struct SimpleRange
+{
+    public int Start;
+    public int End { get; set; }
+};
+                              </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars("{ ")
+                Await state.AssertSelectedCompletionItem(displayText:="End", isHardSelected:=False)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("new() { End", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars(" = en")
+                Await state.AssertSelectedCompletionItem(displayText:="end", isHardSelected:=True)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("new() { End = end", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72872")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function CompletionOnImplicitObjectCreationExpressionInitializerWithinCollectionExpression_03(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" CommonReferencesNet7="true" LanguageVersion="12">
+                        <Document>
+using System.Collections.Immutable;
+
+public static class TestClass
+{
+    private static ImmutableArray&lt;SimpleRange&gt; _ranges;
+
+    public static void Method()
+    {
+        const int start = 1;
+        const int end = 3;
+
+        _ranges =
+        [
+            new()
+            {
+                Start = 1,
+                End = 3,
+            },
+            new() $$
+        ];
+    }
+}
+
+public struct SimpleRange
+{
+    public int Start;
+    public int End { get; set; }
+};
+                        </Document>
+                    </Project>
+                </Workspace>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("{ ")
+                Await state.AssertSelectedCompletionItem(displayText:="End", isHardSelected:=False)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("new() { End", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars(" = en")
+                Await state.AssertSelectedCompletionItem(displayText:="end", isHardSelected:=True)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("new() { End = end", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72872")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function CompletionOnImplicitObjectCreationExpressionInitializerWithinCollectionExpression_04(showCompletionInArgumentLists As Boolean) As Task
+            Const code As String = "
+                using System.Collections.Generic;
+
+                public static class TestClass
+                {
+                    private static ListWrapper<SimpleRange> _ranges;
+                
+                    public static void Method()
+                    {
+                        const int start = 1;
+                        const int end = 3;
+
+                        _ranges =
+                        [
+                            new()
+                            {
+                                Start = 1,
+                                End = 3,
+                            },
+                            new() $$
+                        ];
+                    }
+                }
+                
+                public struct SimpleRange
+                {
+                    public int Start;
+                    public int End { get; set; }
+                };
+
+                [CollectionBuilder(typeof(ListWrapperCollectionBuilder), nameof(ListWrapperCollectionBuilder.Create))]
+                public class ListWrapper<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list = new();
+
+                    public void Add(T item)
+                    {
+                        _list.Add(item);
+                    }
+                    public void AddRange(ReadOnlySpan<T> items)
+                    {
+                        _list.AddRange(items);
+                    }
+
+                    public IEnumerator<T> GetEnumerator()
+                    {
+                        return _list.GetEnumerator();
+                    }
+                    IEnumerator IEnumerable.GetEnumerator()
+                    {
+                        return _list.GetEnumerator();
+                    }
+                }
+
+                public static class ListWrapperCollectionBuilder
+                {
+                    public static ListWrapper<T> Create<T>() => new();
+                    public static ListWrapper<T> Create<T>(T item)
+                    {
+                        return new()
+                        {
+                            item
+                        };
+                    }
+                    public static ListWrapper<T> Create<T>(ReadOnlySpan<T> items)
+                    {
+                        var list = new ListWrapper<T>();
+                        list.AddRange(items);
+                        return list;
+                    }
+                }"
+
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                    <%= code %>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars("{ ")
+                Await state.AssertSelectedCompletionItem(displayText:="End", isHardSelected:=False)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("new() { End", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars(" = en")
+                Await state.AssertSelectedCompletionItem(displayText:="end", isHardSelected:=True)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("new() { End = end", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72872")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function CompletionOnImplicitObjectCreationExpressionInitializerWithinCollectionExpression_05(showCompletionInArgumentLists As Boolean) As Task
+            Const code As String = "
+                using System.Collections.Generic;
+
+                public static class TestClass
+                {
+                    private static SimpleRange[] _ranges;
+                
+                    public static void Method()
+                    {
+                        const int start = 1;
+                        const int end = 3;
+
+                        _ranges =
+                        [
+                            new()
+                            {
+                                Start = 1,
+                                End = 3,
+                            },
+                            $$
+                        ];
+                    }
+                }
+                
+                public struct SimpleRange
+                {
+                    public int Start;
+                    public int End { get; set; }
+                };"
+
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                    <%= code %>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars(".. new() { ")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
     End Class
 End Namespace
