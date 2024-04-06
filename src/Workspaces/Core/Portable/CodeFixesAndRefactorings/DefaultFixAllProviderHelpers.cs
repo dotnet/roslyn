@@ -27,7 +27,7 @@ internal static class DefaultFixAllProviderHelpers
         where TFixAllContext : IFixAllContext
     {
         // We're about to do a lot of computation to compute all the diagnostics needed 
-        using var _ = RemoteKeepAliveSession.Create(fixAllContext.Solution, fixAllContext.AsynchronousOperationListener);
+        using var _ = await RemoteKeepAliveSession.CreateAsync(fixAllContext.Solution, fixAllContext.CancellationToken).ConfigureAwait(false);
 
         var solution = fixAllContext.Scope switch
         {

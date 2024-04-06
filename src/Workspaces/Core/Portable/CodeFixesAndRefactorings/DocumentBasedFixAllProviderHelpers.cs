@@ -47,7 +47,7 @@ internal static class DocumentBasedFixAllProviderHelpers
             // First, iterate over all contexts, and collect all the changes for each of them.  We'll be making a lot of
             // calls to the remote server to compute diagnostics and changes.  So keep a single connection alive to it
             // so we never resync or recompute anything.
-            using var _2 = RemoteKeepAliveSession.Create(solution, originalFixAllContext.AsynchronousOperationListener);
+            using var _2 = await RemoteKeepAliveSession.CreateAsync(solution, originalFixAllContext.CancellationToken).ConfigureAwait(false);
 
             foreach (var fixAllContext in fixAllContexts)
             {
@@ -78,7 +78,7 @@ internal static class DocumentBasedFixAllProviderHelpers
             // We're about to making a ton of calls to this new solution, including expensive oop calls to get up to
             // date compilations, skeletons and SG docs.  Create and pin this solution so that all remote calls operate
             // on the same fork and do not cause the forked solution to be created and dropped repeatedly.
-            using var _2 = RemoteKeepAliveSession.Create(currentSolution, originalFixAllContext.AsynchronousOperationListener);
+            using var _2 = await RemoteKeepAliveSession.CreateAsync(currentSolution, originalFixAllContext.CancellationToken).ConfigureAwait(false);
 
             var finalSolution = await CleanupAndApplyChangesAsync(
                 progressTracker,

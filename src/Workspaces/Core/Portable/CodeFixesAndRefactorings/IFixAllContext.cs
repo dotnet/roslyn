@@ -24,7 +24,6 @@ internal interface IFixAllContext
     string? CodeActionEquivalenceKey { get; }
     CancellationToken CancellationToken { get; }
     IProgress<CodeAnalysisProgress> Progress { get; }
-    IAsynchronousOperationListener AsynchronousOperationListener { get; }
 
     string GetDefaultFixAllTitle();
     IFixAllContext With(

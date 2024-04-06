@@ -247,7 +247,7 @@ internal sealed class NavigateToSearcher
         {
             // We're potentially about to make many calls over to our OOP service to perform searches.  Ensure the
             // solution we're searching stays pinned between us and it while this is happening.
-            using var _2 = RemoteKeepAliveSession.Create(_solution, _listener);
+            using var _2 = await RemoteKeepAliveSession.CreateAsync(_solution, cancellationToken).ConfigureAwait(false);
 
             // We may do up to two passes.  One for loaded docs.  One for source generated docs.
             await AddProgressItemsAsync(
