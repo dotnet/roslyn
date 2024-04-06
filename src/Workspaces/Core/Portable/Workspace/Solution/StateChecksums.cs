@@ -256,12 +256,38 @@ internal sealed class SolutionStateChecksums(
         if (searchingChecksumsLeft.Count == 0)
             return;
 
+        if (assetHint.TopLevelProjects)
+        {
+            // Caller is trying to fetch the top level ProjectStateChecksums as well. Look for those without diving deeper.
+            foreach (var (projectId, projectState) in solution.ProjectStates)
+            {
+                if (searchingChecksumsLeft.Count == 0)
+                    break;
+
+                // If we're syncing a project cone, no point at all at looking at child projects of the solution that
+                // are not in that cone.
+                if (projectCone != null && !projectCone.Contains(projectId))
+                    continue;
+
+                if (projectState.TryGetStateChecksums(out var projectStateChecksums) &&
+                    searchingChecksumsLeft.Remove(projectStateChecksums.Checksum))
+                {
+                    result[projectStateChecksums.Checksum] = projectStateChecksums;
+                }
+            }
+
+            if (searchingChecksumsLeft.Count == 0)
+                return;
+        }
+
         if (!assetHint.IsFullLookup_ForTestingPurposesOnly)
         {
             // Caller said they were only looking for solution level assets.  no need to go any further.
             if (assetHint.IsSolutionOnly)
                 return;
 
+            // Since we're not solution-only, we must have a project id being requested.  Dive into that project alone
+            // to search for the remaining checksums.
             Contract.ThrowIfNull(assetHint.ProjectId);
             Contract.ThrowIfTrue(
                 projectCone != null && !projectCone.Contains(assetHint.ProjectId),
@@ -277,7 +303,6 @@ internal sealed class SolutionStateChecksums(
         else
         {
             // Full search, used for test purposes.
-
             foreach (var (projectId, projectState) in solution.ProjectStates)
             {
                 if (searchingChecksumsLeft.Count == 0)

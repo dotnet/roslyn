@@ -19,26 +19,35 @@ internal readonly struct AssetHint
     public static AssetHint SolutionOnly = default;
 
     /// <summary>
+    /// Instance that will only look up solution-level, as well as the top level nodes for projects when searching for
+    /// checksums.  It will not descend into projects.
+    /// </summary>
+    public static AssetHint SolutionAndTopLevelProjectsOnly = new(projectId: null, documentId: null, topLevelProjects: true, isFullLookup_ForTestingPurposesOnly: false);
+
+    /// <summary>
     /// Special instance, allowed only in tests, that can do a full lookup across the entire checksum tree.
     /// </summary>
-    public static AssetHint FullLookupForTesting = new(projectId: null, documentId: null, true);
+    public static AssetHint FullLookupForTesting = new(projectId: null, documentId: null, topLevelProjects: false, isFullLookup_ForTestingPurposesOnly: true);
 
     [DataMember(Order = 0)]
     public readonly ProjectId? ProjectId;
     [DataMember(Order = 1)]
     public readonly DocumentId? DocumentId;
-    [DataMember(Order = 2)]
+    [DataMember(Order = 3)]
+    public readonly bool TopLevelProjects;
+    [DataMember(Order = 4)]
     public readonly bool IsFullLookup_ForTestingPurposesOnly;
 
     public bool IsSolutionOnly => !IsFullLookup_ForTestingPurposesOnly && ProjectId is null;
 
-    private AssetHint(ProjectId? projectId, DocumentId? documentId, bool isFullLookup_ForTestingPurposesOnly)
+    private AssetHint(ProjectId? projectId, DocumentId? documentId, bool topLevelProjects, bool isFullLookup_ForTestingPurposesOnly)
     {
         ProjectId = projectId;
         DocumentId = documentId;
+        TopLevelProjects = topLevelProjects;
         IsFullLookup_ForTestingPurposesOnly = isFullLookup_ForTestingPurposesOnly;
     }
 
-    public static implicit operator AssetHint(ProjectId projectId) => new(projectId, documentId: null, false);
-    public static implicit operator AssetHint(DocumentId documentId) => new(documentId.ProjectId, documentId, false);
+    public static implicit operator AssetHint(ProjectId projectId) => new(projectId, documentId: null, topLevelProjects: false, isFullLookup_ForTestingPurposesOnly: false);
+    public static implicit operator AssetHint(DocumentId documentId) => new(documentId.ProjectId, documentId, topLevelProjects: false, isFullLookup_ForTestingPurposesOnly: false);
 }
