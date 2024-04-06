@@ -123,8 +123,17 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
+                // Ensure everything in the workspace's current solution is pinned.  We def don't want any of its data
+                // dropped from the checksum->asset cache.
                 solutions.Add(this.CurrentSolution);
+
+                // Also the data for the last 'current solution' this workspace had that we actually got an OOP request
+                // for. this is commonly the same as CurrentSolution, but technically could be slightly behind if the
+                // primary solution just got updated.
                 solutions.AddIfNotNull(_lastRequestedPrimaryBranchSolution.solution);
+
+                // Also add the last few forked solutions we were asked about.  As with the above solutions, there's a
+                // reasonable chance it will refer to data needed by future oop calls.
                 _lastRequestedAnyBranchSolutions.AddAllTo(solutions);
             };
         }
