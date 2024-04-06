@@ -490,7 +490,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
                 ? attribute.Value
                 : null;
             var navigationHint = navigationTarget;
-            state.AppendParts(SpecializedCollections.SingletonEnumerable(new TaggedText(displayKind, text, style, navigationTarget, navigationHint)));
+            state.AppendParts([new TaggedText(displayKind, text, style, navigationTarget, navigationHint)]);
         }
     }
 
