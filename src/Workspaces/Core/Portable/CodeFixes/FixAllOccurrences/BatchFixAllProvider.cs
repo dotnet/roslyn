@@ -34,8 +34,8 @@ internal sealed class BatchFixAllProvider : FixAllProvider
             FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType);
 
     public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
-        => DefaultFixAllProviderHelpers.GetFixAsync(
-            fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsAsync);
+        => Task.FromResult<CodeAction?>(DefaultFixAllProviderHelpers.GetFix(
+            fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsAsync));
 
     private async Task<Solution?> FixAllContextsAsync(
         FixAllContext originalFixAllContext,

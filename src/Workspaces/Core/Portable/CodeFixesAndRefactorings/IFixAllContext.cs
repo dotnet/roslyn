@@ -29,5 +29,6 @@ internal interface IFixAllContext
     IFixAllContext With(
         Optional<(Document? document, Project project)> documentAndProject = default,
         Optional<FixAllScope> scope = default,
-        Optional<string?> codeActionEquivalenceKey = default);
+        Optional<string?> codeActionEquivalenceKey = default,
+        Optional<CancellationToken> cancellationToken = default);
 }
