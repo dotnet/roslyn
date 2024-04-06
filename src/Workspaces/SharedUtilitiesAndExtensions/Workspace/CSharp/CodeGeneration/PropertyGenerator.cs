@@ -19,6 +19,8 @@ using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHe
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
+using static SyntaxFactory;
+
 internal static class PropertyGenerator
 {
     public static bool CanBeGenerated(IPropertySymbol property)
@@ -92,7 +94,7 @@ internal static class PropertyGenerator
     {
         var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(property.ExplicitInterfaceImplementations);
 
-        var declaration = SyntaxFactory.IndexerDeclaration(
+        var declaration = IndexerDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), info),
                 modifiers: GenerateModifiers(property, destination, info),
                 type: GenerateTypeSyntax(property),
@@ -110,14 +112,14 @@ internal static class PropertyGenerator
        CSharpCodeGenerationContextInfo info, CancellationToken cancellationToken)
     {
         var initializer = CodeGenerationPropertyInfo.GetInitializer(property) is ExpressionSyntax initializerNode
-            ? SyntaxFactory.EqualsValueClause(initializerNode)
+            ? EqualsValueClause(initializerNode)
             : null;
 
         var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(property.ExplicitInterfaceImplementations);
 
         var accessorList = GenerateAccessorList(property, destination, info, cancellationToken);
 
-        var propertyDeclaration = SyntaxFactory.PropertyDeclaration(
+        var propertyDeclaration = PropertyDeclaration(
             attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), info),
             modifiers: GenerateModifiers(property, destination, info),
             type: GenerateTypeSyntax(property),
@@ -126,7 +128,7 @@ internal static class PropertyGenerator
             accessorList: accessorList,
             expressionBody: null,
             initializer: initializer,
-            semicolonToken: initializer is null ? default : SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            semicolonToken: initializer is null ? default : Token(SyntaxKind.SemicolonToken));
 
         propertyDeclaration = UseExpressionBodyIfDesired(info, propertyDeclaration, cancellationToken);
 
@@ -268,7 +270,7 @@ internal static class PropertyGenerator
 
         return accessors[0] == null && accessors[1] == null
             ? null
-            : SyntaxFactory.AccessorList([.. accessors.WhereNotNull()]);
+            : AccessorList([.. accessors.WhereNotNull()]);
     }
 
     private static AccessorDeclarationSyntax? GenerateAccessorDeclaration(
@@ -293,10 +295,10 @@ internal static class PropertyGenerator
         CSharpCodeGenerationContextInfo info,
         CancellationToken cancellationToken)
     {
-        var declaration = SyntaxFactory.AccessorDeclaration(kind)
+        var declaration = AccessorDeclaration(kind)
                                        .WithModifiers(GenerateAccessorModifiers(property, accessor, info))
                                        .WithBody(hasBody ? GenerateBlock(accessor) : null)
-                                       .WithSemicolonToken(hasBody ? default : SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                                       .WithSemicolonToken(hasBody ? default : Token(SyntaxKind.SemicolonToken));
 
         declaration = UseExpressionBodyIfDesired(info, declaration, cancellationToken);
 
@@ -305,7 +307,7 @@ internal static class PropertyGenerator
 
     private static BlockSyntax GenerateBlock(IMethodSymbol accessor)
     {
-        return SyntaxFactory.Block(
+        return Block(
             StatementGenerator.GenerateStatements(CodeGenerationMethodInfo.GetStatements(accessor)));
     }
 
@@ -336,7 +338,7 @@ internal static class PropertyGenerator
         var hasNonReadOnlyAccessor = property.GetMethod?.IsReadOnly == false || property.SetMethod?.IsReadOnly == false;
         if (hasNonReadOnlyAccessor && accessor.IsReadOnly)
         {
-            modifiers.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
+            modifiers.Add(Token(SyntaxKind.ReadOnlyKeyword));
         }
 
         return modifiers.ToSyntaxTokenListAndFree();
@@ -351,7 +353,7 @@ internal static class PropertyGenerator
         if (property.ExplicitInterfaceImplementations.Any())
         {
             if (property.IsStatic)
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                tokens.Add(Token(SyntaxKind.StaticKeyword));
         }
         else
         {
@@ -360,10 +362,10 @@ internal static class PropertyGenerator
             {
                 if (property.IsStatic)
                 {
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    tokens.Add(Token(SyntaxKind.StaticKeyword));
 
                     if (property.IsAbstract)
-                        tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
+                        tokens.Add(Token(SyntaxKind.AbstractKeyword));
                 }
             }
             else if (destination is not CodeGenerationDestination.CompilationUnit)
@@ -371,7 +373,7 @@ internal static class PropertyGenerator
                 CSharpCodeGenerationHelpers.AddAccessibilityModifiers(property.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                 if (property.IsStatic)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    tokens.Add(Token(SyntaxKind.StaticKeyword));
 
                 // note: explicit interface impls are allowed to be 'readonly' but it never actually affects callers
                 // because of the boxing requirement in order to call the method.
@@ -380,27 +382,27 @@ internal static class PropertyGenerator
 
                 // Don't show the readonly modifier if the containing type is already readonly
                 if (hasAllReadOnlyAccessors && !property.ContainingType.IsReadOnly)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
+                    tokens.Add(Token(SyntaxKind.ReadOnlyKeyword));
 
                 if (property.IsSealed)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.SealedKeyword));
+                    tokens.Add(Token(SyntaxKind.SealedKeyword));
 
                 if (property.IsOverride)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.OverrideKeyword));
+                    tokens.Add(Token(SyntaxKind.OverrideKeyword));
 
                 if (property.IsVirtual)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.VirtualKeyword));
+                    tokens.Add(Token(SyntaxKind.VirtualKeyword));
 
                 if (property.IsAbstract)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
+                    tokens.Add(Token(SyntaxKind.AbstractKeyword));
 
                 if (property.IsRequired)
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.RequiredKeyword));
+                    tokens.Add(Token(SyntaxKind.RequiredKeyword));
             }
         }
 
         if (CodeGenerationPropertyInfo.GetIsUnsafe(property))
-            tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+            tokens.Add(Token(SyntaxKind.UnsafeKeyword));
 
         return tokens.ToSyntaxTokenList();
     }
