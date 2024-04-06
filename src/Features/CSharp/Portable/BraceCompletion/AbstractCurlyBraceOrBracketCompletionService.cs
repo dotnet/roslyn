@@ -245,7 +245,7 @@ internal abstract class AbstractCurlyBraceOrBracketCompletionService : AbstractC
         var annotatedRoot = GetSyntaxRootWithAnnotatedClosingBrace(document.Root, closingPoint);
 
         var result = Formatter.GetFormattingResult(
-            annotatedRoot, SpecializedCollections.SingletonEnumerable(spanToFormat), document.SolutionServices, options.FormattingOptions, rules, cancellationToken);
+            annotatedRoot, [spanToFormat], document.SolutionServices, options.FormattingOptions, rules, cancellationToken);
 
         if (result == null)
         {
