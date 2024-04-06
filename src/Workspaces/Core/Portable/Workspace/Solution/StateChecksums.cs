@@ -442,6 +442,13 @@ internal sealed class DocumentStateChecksums(
         this.Text.WriteTo(writer);
     }
 
+    public void AddAllTo(HashSet<Checksum> checksums)
+    {
+        checksums.AddIfNotNullChecksum(this.Checksum);
+        checksums.AddIfNotNullChecksum(this.Info);
+        checksums.AddIfNotNullChecksum(this.Text);
+    }
+
     public static DocumentStateChecksums Deserialize(ObjectReader reader)
     {
         return new DocumentStateChecksums(
