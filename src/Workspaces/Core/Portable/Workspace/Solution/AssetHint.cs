@@ -25,7 +25,8 @@ internal readonly struct AssetHint
     public static AssetHint SolutionAndTopLevelProjectsOnly = new(projectId: null, documentId: null, topLevelProjects: true, isFullLookup_ForTestingPurposesOnly: false);
 
     /// <summary>
-    /// Special instance, allowed only in tests, that can do a full lookup across the entire checksum tree.
+    /// Special instance, allowed only in tests/debug-asserts, that can do a full lookup across the entire checksum
+    /// tree.  Should not be used in normal release-mode product code.
     /// </summary>
     public static AssetHint FullLookupForTesting = new(projectId: null, documentId: null, topLevelProjects: false, isFullLookup_ForTestingPurposesOnly: true);
 
