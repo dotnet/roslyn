@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
+                solutions.Add(this.CurrentSolution);
                 solutions.AddIfNotNull(_lastRequestedPrimaryBranchSolution.solution);
                 _lastRequestedAnyBranchSolutions.AddAllTo(solutions);
             };
