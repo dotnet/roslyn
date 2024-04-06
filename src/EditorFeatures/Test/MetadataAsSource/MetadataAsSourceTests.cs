@@ -998,7 +998,7 @@ public class [|C|]
             var metadataSource = "namespace N { public class C {} }";
 
             using var context = TestContext.Create(
-                LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource), languageVersion: "9");
+                LanguageNames.CSharp, [metadataSource], languageVersion: "9");
 
             await context.GenerateAndVerifySourceAsync("N.C",
                 $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
@@ -1020,7 +1020,7 @@ namespace N
             var metadataSource = "namespace N { public class C {} }";
 
             using var context = TestContext.Create(
-                LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource), languageVersion: "10");
+                LanguageNames.CSharp, [metadataSource], languageVersion: "10");
 
             await context.GenerateAndVerifySourceAsync("N.C",
                 $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
@@ -1699,7 +1699,7 @@ public class [|C|]
         {
             var metadataSource = "public class C { public bool Is; }";
 
-            using var context = TestContext.Create(LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource));
+            using var context = TestContext.Create(LanguageNames.CSharp, [metadataSource]);
             var a = await context.GenerateSourceAsync("C");
             var b = await context.GenerateSourceAsync("C.Is");
             TestContext.VerifyDocumentReused(a, b);
