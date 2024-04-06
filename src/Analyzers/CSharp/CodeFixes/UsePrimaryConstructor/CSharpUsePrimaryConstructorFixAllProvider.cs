@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// Ignore Spelling: loc kvp
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,8 +29,10 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider
     private sealed class CSharpUsePrimaryConstructorFixAllProvider : FixAllProvider
     {
         public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
-            => DefaultFixAllProviderHelpers.GetFixAsync(
+        {
+            return DefaultFixAllProviderHelpers.GetFixAsync(
                 fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync);
+        }
 
         private static async Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalContext, ImmutableArray<FixAllContext> contexts)
         {
@@ -56,6 +60,5 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider
             return solutionEditor.GetChangedSolution();
         }
     }
-
 #endif
 }
