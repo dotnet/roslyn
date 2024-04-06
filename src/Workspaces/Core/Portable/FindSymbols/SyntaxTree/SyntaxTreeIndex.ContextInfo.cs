@@ -163,7 +163,7 @@ internal partial class SyntaxTreeIndex
 
         public bool ContainsDirective
             => (_containingNodes & ContainingNodes.ContainsDirective) == ContainingNodes.ContainsDirective;
-            
+
         public void WriteTo(ObjectWriter writer)
         {
             writer.WriteInt32(_predefinedTypes);
