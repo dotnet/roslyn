@@ -186,7 +186,6 @@ internal sealed class SolutionAssetCache
             // Ensure that if our remote workspace has a current solution, that we don't purge any items associated
             // with that solution.
             using var _1 = PooledHashSet<Checksum>.GetInstance(out var pinnedChecksums);
-            var computePinnedInformation = false;
 
             foreach (var (checksum, entry) in _assets)
             {
@@ -195,11 +194,8 @@ internal sealed class SolutionAssetCache
                     continue;
 
                 // If this is a checksum we want to pin, do not remove it.
-                if (!computePinnedInformation)
-                {
+                if (pinnedChecksums.Count == 0)
                     await AddPinnedChecksumsAsync(pinnedChecksums, cancellationToken).ConfigureAwait(false);
-                    computePinnedInformation = true;
-                }
 
                 if (pinnedChecksums.Contains(checksum))
                     continue;
