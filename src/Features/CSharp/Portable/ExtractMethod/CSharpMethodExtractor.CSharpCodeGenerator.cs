@@ -673,14 +673,14 @@ internal partial class CSharpMethodExtractor
                 return method.ReplaceToken(
                         body.OpenBraceToken,
                         body.OpenBraceToken.WithAppendedTrailingTrivia(
-                            SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticCarriageReturnLineFeed)));
+                            SyntaxFactory.ElasticCarriageReturnLineFeed));
             }
             else if (expressionBody != null)
             {
                 return method.ReplaceToken(
                         expressionBody.ArrowToken,
                         expressionBody.ArrowToken.WithPrependedLeadingTrivia(
-                            SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticCarriageReturnLineFeed)));
+                            SyntaxFactory.ElasticCarriageReturnLineFeed));
             }
             else
             {

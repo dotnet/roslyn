@@ -390,8 +390,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 return;
             }
 
-            OnTagsChangedForBuffer(SpecializedCollections.SingletonCollection(
-                new KeyValuePair<ITextBuffer, DiffResult>(buffer, difference)),
+            OnTagsChangedForBuffer(
+                [new KeyValuePair<ITextBuffer, DiffResult>(buffer, difference)],
                 highPriority: false);
         }
     }

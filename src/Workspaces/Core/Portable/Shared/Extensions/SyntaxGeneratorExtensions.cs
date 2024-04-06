@@ -191,9 +191,7 @@ internal static partial class SyntaxGeneratorExtensions
         var throwStatement = factory.CreateThrowArgumentNullExceptionStatement(semanticModel.Compilation, parameter);
 
         // generates: if (s is null) { throw new ArgumentNullException(nameof(s)); }
-        return factory.IfStatement(
-            condition,
-            SpecializedCollections.SingletonEnumerable(throwStatement));
+        return factory.IfStatement(condition, [throwStatement]);
     }
 
     public static SyntaxNode CreateThrowArgumentNullExceptionStatement(this SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)

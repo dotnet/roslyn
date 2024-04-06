@@ -110,7 +110,7 @@ internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, F
 
             case FixAllScope.Document:
                 Contract.ThrowIfNull(Document);
-                documentsToFix = SpecializedCollections.SingletonEnumerable(Document);
+                documentsToFix = [Document];
                 break;
 
             case FixAllScope.Project:

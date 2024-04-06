@@ -276,10 +276,7 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
     }
 
     private static IList<SymbolDisplayPart> GetPostambleParts()
-    {
-        return SpecializedCollections.SingletonList(
-            Punctuation(SyntaxKind.CloseBracketToken));
-    }
+        => [Punctuation(SyntaxKind.CloseBracketToken)];
 
     private static class CompleteElementAccessExpression
     {

@@ -105,7 +105,7 @@ internal partial class AutomaticLineEnderCommandHandler(
         var formatter = document.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
         return formatter.GetFormattingResult(
             root,
-            SpecializedCollections.SingletonCollection(CommonFormattingHelpers.GetFormattingSpan(root, span.Value)),
+            [CommonFormattingHelpers.GetFormattingSpan(root, span.Value)],
             options,
             rules: null,
             cancellationToken).GetTextChanges(cancellationToken);
