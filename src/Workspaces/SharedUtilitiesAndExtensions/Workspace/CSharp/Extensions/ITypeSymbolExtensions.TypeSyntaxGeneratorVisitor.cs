@@ -162,9 +162,9 @@ internal partial class ITypeSymbolExtensions
             }
 
             var parameters = symbol.Signature.Parameters.Select(p => (p.Type, RefKindModifiers: CSharpSyntaxGeneratorInternal.GetParameterModifiers(p.RefKind)))
-                .Concat(SpecializedCollections.SingletonEnumerable((
+                .Concat([(
                     Type: symbol.Signature.ReturnType,
-                    RefKindModifiers: CSharpSyntaxGeneratorInternal.GetParameterModifiers(symbol.Signature.RefKind, forFunctionPointerReturnParameter: true))))
+                    RefKindModifiers: CSharpSyntaxGeneratorInternal.GetParameterModifiers(symbol.Signature.RefKind, forFunctionPointerReturnParameter: true))])
                 .SelectAsArray(t => SyntaxFactory.FunctionPointerParameter(t.Type.GenerateTypeSyntax()).WithModifiers(t.RefKindModifiers));
 
             return AddInformationTo(
