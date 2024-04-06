@@ -190,11 +190,7 @@ internal class ObjectAndWithInitializerCompletionProvider : AbstractObjectInitia
                     return immutableArrayElementType;
                 }
                 var collectionExpressionElement = collectionExpressionOperation.Elements.FirstOrDefault();
-                var elementType = collectionExpressionElement switch
-                {
-                    ISpreadOperation spread => spread.ElementType,
-                    _ => collectionExpressionElement?.Type,
-                };
+                var elementType = ElementTypeOfCollectionExpressionElement(collectionExpressionElement);
                 if (elementType is not null)
                 {
                     return elementType;
@@ -220,6 +216,15 @@ internal class ObjectAndWithInitializerCompletionProvider : AbstractObjectInitia
         }
 
         return null;
+    }
+
+    private static ITypeSymbol? ElementTypeOfCollectionExpressionElement(IOperation? element)
+    {
+        return element switch
+        {
+            ISpreadOperation spread => ElementTypeOfCollectionExpressionElement(spread.Operand),
+            _ => element?.Type,
+        };
     }
 
     private static bool IsImmutableArrayType(INamedTypeSymbol? type, [NotNullWhen(true)] out ITypeSymbol? elementType)
