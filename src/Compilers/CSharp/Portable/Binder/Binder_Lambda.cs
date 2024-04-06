@@ -436,13 +436,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             where TResult : BoundNode
         {
             Debug.Assert(s_lambdaBindings is null);
-            s_lambdaBindings = PooledDictionary<SyntaxNode, int>.GetInstance();
+            var bindings = PooledDictionary<SyntaxNode, int>.GetInstance();
+            s_lambdaBindings = bindings;
 
             try
             {
                 TResult result = bind(this, syntax, arg, diagnostics);
 
-                foreach (var pair in s_lambdaBindings)
+                foreach (var pair in bindings)
                 {
                     const int maxLambdaBinding = 100;
                     int count = pair.Value;
@@ -457,24 +458,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             finally
             {
-                s_lambdaBindings.Free();
+                bindings.Free();
                 s_lambdaBindings = null;
             }
         }
 
         internal static void RecordLambdaBinding(SyntaxNode syntax)
         {
-            if (s_lambdaBindings is null)
+            var bindings = s_lambdaBindings;
+            if (bindings is null)
             {
                 return;
             }
-            if (s_lambdaBindings.TryGetValue(syntax, out int count))
+            if (bindings.TryGetValue(syntax, out int count))
             {
-                s_lambdaBindings[syntax] = ++count;
+                bindings[syntax] = ++count;
             }
             else
             {
-                s_lambdaBindings.Add(syntax, 1);
+                bindings.Add(syntax, 1);
             }
         }
     }
