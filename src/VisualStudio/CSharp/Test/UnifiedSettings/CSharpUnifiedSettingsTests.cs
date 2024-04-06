@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Options;
 using Newtonsoft.Json.Linq;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -24,12 +25,19 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
             CompletionOptionsStorage.SnippetsBehavior);
 
         /// <summary>
-        /// Some options use different default value for C# and VB. The default value in OptionConfig is just a stub value.
-        /// The real value is set at runtime. But in unified settings we always use the correct value for language.
-        /// Use this dictionary to indicate that in unit test.
+        /// The default value of some enum options is overridden at runtime. It uses different default value for C# and VB.
+        /// But in unified settings we always use the correct value for language.
+        /// Use this dictionary to indicate that value in unit test.
         /// </summary>
         private static readonly ImmutableDictionary<IOption2, object> s_optionsToDefaultValue = ImmutableDictionary<IOption2, object>.Empty
-                .Add(CompletionOptionsStorage.SnippetsBehavior, SnippetsRule.AlwaysInclude.ToString().ToCamelCase());
+            .Add(CompletionOptionsStorage.SnippetsBehavior, SnippetsRule.AlwaysInclude);
+
+        /// <summary>
+        /// The default value of some enum options is overridden at runtime. And it's not shown in the unified settings page.
+        /// Use this dictionary to list all the possible enum values in settings page.
+        /// </summary>
+        private static readonly ImmutableDictionary<IOption2, ImmutableArray<object>> s_enumOptionsToValues = ImmutableDictionary<IOption2, ImmutableArray<object>>.Empty
+            .Add(CompletionOptionsStorage.SnippetsBehavior, ImmutableArray.Create<object>(SnippetsRule.NeverInclude, SnippetsRule.AlwaysInclude, SnippetsRule.IncludeAfterTypingIdentifierQuestionTab));
 
         [Fact]
         public async Task IntellisensePageSettingsTest()
@@ -53,7 +61,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
                     VerifyType(registrationJsonObject, unifiedSettingsPath, option);
                     if (option.Type.IsEnum)
                     {
-                        // VerifyEnum(registrationJsonObject, unifiedSettingsPath, option);
+                        // Enum settings contains special setup.
+                        VerifyEnum(registrationJsonObject, unifiedSettingsPath, option);
                     }
                     else
                     {
@@ -74,13 +83,23 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
             var actualDefaultValue = registrationJsonObject.SelectToken($"$.properties['{unifiedSettingPath}'].default")!;
             var expectedDefaultValue = option.Definition.DefaultValue?.ToString();
             Assert.Equal(actualDefaultValue.ToString(), expectedDefaultValue);
+
             VerifyMigration(registrationJsonObject, unifiedSettingPath, option);
         }
 
         private static void VerifyEnum(JObject registrationJsonObject, string unifiedSettingPath, IOption2 option)
         {
-            var enumArray = registrationJsonObject.SelectTokens($"$.properties['{unifiedSettingPath}'].enum");
+            var actualDefaultValue = registrationJsonObject.SelectToken($"$.properties['{unifiedSettingPath}'].default")!;
+            Assert.Equal(actualDefaultValue.ToString(),
+                s_optionsToDefaultValue.TryGetValue(option, out var perLangDefaultValue)
+                    ? perLangDefaultValue.ToString().ToCamelCase()
+                    : option.Definition.DefaultValue?.ToString());
 
+            var actualEnumValues = registrationJsonObject.SelectToken($"$.properties['{unifiedSettingPath}'].enum").SelectAsArray(token => token.ToString());
+            var expectedEnumValues = s_enumOptionsToValues.TryGetValue(option, out var possibleEnumValues)
+                ? possibleEnumValues.SelectAsArray(value => value.ToString().ToCamelCase())
+                : option.Type.GetEnumValues().Cast<object>().SelectAsArray(value => value.ToString().ToCamelCase());
+            AssertEx.Equal(actualEnumValues, expectedEnumValues);
         }
 
         private static void VerifyType(JObject registrationJsonObject, string unifiedSettingPath, IOption2 option)
