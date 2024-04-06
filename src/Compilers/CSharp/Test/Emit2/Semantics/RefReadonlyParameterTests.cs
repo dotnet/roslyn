@@ -8461,7 +8461,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(18, 14),
             // (19,6): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
             // rr = x => throw null;
-            Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(19, 6));
+            Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(19, 6),
+            // (19,8): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
+            // rr = x => throw null;
+            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(19, 8));
     }
 
     [Theory, CombinatorialData]
